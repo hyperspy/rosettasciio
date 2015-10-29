@@ -15,3 +15,23 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with  HyperSpy.  If not, see <http://www.gnu.org/licenses/>.
+
+
+import os
+
+from nose.tools import assert_equal
+from hyperspy.io import load
+
+my_path = os.path.dirname(__file__)
+
+
+class TestStackBuilder:
+
+    def test_load_stackbuilder_imagestack(self):
+        image_stack = load(
+            my_path +
+            "/dm_stackbuilder_plugin/test_stackbuilder_imagestack.dm3")
+        data_dimensions = image_stack.data.ndim
+        am = image_stack.axes_manager
+        axes_dimensions = am.signal_dimension + am.navigation_dimension
+        assert_equal(data_dimensions, axes_dimensions)

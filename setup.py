@@ -21,6 +21,8 @@ import distutils.sysconfig
 import distutils.ccompiler
 from distutils.errors import CompileError, DistutilsPlatformError
 
+import itertools
+
 from rsciio.version import __version__
 
 setup_path = path.abspath(path.dirname(__file__))
@@ -137,6 +139,24 @@ class Recythonize(Command):
         global raw_extensions
         global extensions
         cythonize(extensions)
+
+
+extras_require = {
+    "mrcz": ["blosc>=1.5", 'mrcz>=0.3.6'],
+    "scalebar_export": ["matplotlib>=3.1.3"],
+    "tiff": ["tifffile>=2020.2.16", "imagecodecs>=2020.1.31"],
+    "tests": ["pytest>=3.6", "pytest-xdist", "pytest-rerunfailures", "pytest-cov"],  # for testing
+    "docs": ["pydata-sphinx-theme"],  # for building the docs
+}
+
+# Don't include "tests" and "docs" requirements since "all" is designed to be
+# used for user installation.
+runtime_extras_require = {x: extras_require[x] for x in extras_require.keys()
+                          if x not in ["tests", "coverage", "build-doc"]}
+extras_require["all"] = list(itertools.chain(*list(
+    runtime_extras_require.values())))
+
+extras_require["dev"] = list(itertools.chain(*list(extras_require.values())))
 
 
 # Arguments marked as "Required" below must be included for upload to PyPI.
@@ -288,13 +308,7 @@ setup(
     #
     # Similar to `install_requires` above, these must be valid existing
     # projects.
-    extras_require={  # Optional
-        "mrcz": ["blosc>=1.5", 'mrcz>=0.3.6'],
-        "scalebar_export": ["matplotlib>=3.1.3"],
-        "tiff": ["tifffile>=2020.2.16", "imagecodecs>=2020.1.31"],
-        "tests": ["pytest>=3.6", "pytest-xdist", "pytest-rerunfailures", "pytest-cov"],  # for testing
-        "docs": ["pydata-sphinx-theme"],  # for building the docs
-    },
+    extras_require=extras_require,
 
     # If there are data files included in your packages that need to be
     # installed, specify them here.

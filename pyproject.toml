@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=49.0", "wheel", "cython", "pyyaml"]
+build-backend = "setuptools.build_meta:__legacy__"
+
 [tool.pytest.ini_options]
 # Note we may need to use `-n 2` argument for pytest-xdist on CI 
 # due to https://github.com/pytest-dev/pytest-xdist/issues/9.

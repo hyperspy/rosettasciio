@@ -268,14 +268,16 @@ setup(
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        "scipy",
-        'numpy>=1.10, !=1.13.0',
-        'h5py',
-        'pint>=0.8',
-        'sparse',
+        'dask[array]>=2.11',
+        'h5py>=2.3',
         'imageio',
-        'dask[array]>=0.18',
+        'numba>=0.52',
+        'numpy>=1.17.1',
+        'pint>=0.8',
         'python-box>=6.0',
+        'pyyaml',
+        'sparse',
+        'scipy>=1.1',
     ],  # Optional
 
     # List additional groups of dependencies here (e.g. development
@@ -288,7 +290,9 @@ setup(
     # projects.
     extras_require={  # Optional
         "mrcz": ["blosc>=1.5", 'mrcz>=0.3.6'],
-        "tests": ["pytest>=3.6", ],  # for testing
+        "scalebar_export": ["matplotlib>=3.1.3"],
+        "tiff": ["tifffile>=2020.2.16", "imagecodecs>=2020.1.31"],
+        "tests": ["pytest>=3.6", "pytest-xdist", "pytest-rerunfailures"],  # for testing
         "docs": ["pydata-sphinx-theme"],  # for building the docs
     },
 

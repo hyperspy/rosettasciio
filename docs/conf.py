@@ -30,6 +30,7 @@ author = 'HyperSpy Developers'
 extensions = [
     'sphinx.ext.githubpages',
     'sphinx.ext.intersphinx',
+    'sphinxcontrib.towncrier',
 ]
 
 intersphinx_mapping = {
@@ -97,6 +98,14 @@ html_theme_options = {
 html_sidebars = {
     "**": ["search-field.html", "sidebar-nav-bs.html", "sidebar-ethical-ads.html"]
 }
+
+# -- Options for towncrier_draft extension -----------------------------------
+
+# Options: draft/sphinx-version/sphinx-release
+towncrier_draft_autoversion_mode = 'draft'
+towncrier_draft_include_empty = False
+towncrier_draft_working_directory = ".."
+
 
 def setup(app):
     app.add_css_file("custom-styles.css")

@@ -23,6 +23,19 @@ RosettaSciIO provides the dataset, its axes and related metadata contained in a
 file in a python dictionary that can be easily handled by other libraries.
 Similarly, it takes a dictionary as input for file writers.
 
+.. note::
+
+   RosettaSciIO has recently been split out of the `HyperSpy repository 
+   <https://github.com/hyperspy/hyperspy>`_ and the new API is still under development. 
+   HyperSpy will use the RosettaSciIO IO-plugins from v2.0. It is already possible to import 
+   the readers directly from RosettaSciIO as follows:
+
+.. code::
+
+   from rsciio.msa import api
+   api.file_reader("your_msa_file.msa")
+
+
 .. toctree::
    :maxdepth: 2
 

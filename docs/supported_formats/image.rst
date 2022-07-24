@@ -5,8 +5,8 @@ Image formats
 
 RosettaSciIO can read and write data to `all the image formats
 <https://imageio.readthedocs.io/en/stable/formats/index.html>`_ supported by
-`imageio <https://imageio.readthedocs.io/>`_, which uses the 
-`Python Image Library (PIL/pillow) <https://pillow.readthedocs.io>`_.
+`imageio <https://imageio.readthedocs.io/en/stable/>`_, which uses the 
+`Python Image Library (PIL/pillow) <https://pillow.readthedocs.io/en/stable/>`_.
 This includes ``.jpg``, ``.gif``, ``.png``, ``.pdf``, ``.tif``, etc.
 It is important to note that these image formats only support 8-bit files, and
 therefore have an insufficient dynamic range for most scientific applications.

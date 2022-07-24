@@ -15,9 +15,9 @@ It supports arbitrary meta-data, which is serialized into JSON.
 MRCZ also supports asynchronous reads and writes.
 
 Repository: https://github.com/em-MRCZ
-PyPI:       https://pypi.python.org/pypi/mrcz
+PyPI:       https://pypi.org/project/mrcz
 Citation:   Submitted.
-Preprint:   https://www.biorxiv.org/content/early/2017/03/13/116533
+Preprint:   https://www.biorxiv.org/content/10.1101/116533v1
 
 Support for this format is not enabled by default. In order to enable it
 install the `mrcz` and optionally the `blosc` Python packages.

@@ -16,9 +16,9 @@ writing capabilities in Python for a wide range of
 [scientific data formats](https://hyperspy.org/rosettasciio/supported_formats/index.html). Thus
 providing an entry point to the wide ecosystem of python packages for scientific data
 analysis and computation, as well as an interoperability between different file
-formats. Just as the `Rosetta stone <https://en.wikipedia.org/wiki/Rosetta_Stone>`_
+formats. Just as the [Rosetta stone](https://en.wikipedia.org/wiki/Rosetta_Stone)
 provided a translation between ancient Egyptian hieroglyphs and ancient Greek.
-The RosettaSciIO library originates from the `HyperSpy <https://hyperspy.org>`_
+The RosettaSciIO library originates from the [HyperSpy](https://hyperspy.org)
 project for multi-dimensional data analysis. As HyperSpy is rooted in the electron
 microscopy community, data formats used by this community are still particularly
 well represented.

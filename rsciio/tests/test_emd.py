@@ -18,7 +18,7 @@
 
 
 # The EMD format is a hdf5 standard proposed at Lawrence Berkeley
-# National Lab (see http://emdatasets.com/ for more information).
+# National Lab (see https://emdatasets.com/ for more information).
 # NOT to be confused with the FEI EMD format which was developed later.
 
 import dask.array as da

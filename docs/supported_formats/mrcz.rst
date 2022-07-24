@@ -4,7 +4,7 @@ MRCZ format
 -----------
 
 The ``.mrcz`` format is an extension of the CCP-EM MRC2014 file format.
-`CCP-EM MRC2014 <http://www.ccpem.ac.uk/mrc_format/mrc2014.php>`_ file format.
+`CCP-EM MRC2014 <https://www.ccpem.ac.uk/mrc_format/mrc2014.php>`_ file format.
 It uses the `blosc` meta-compression library to bitshuffle and compress files in
 a blocked, multi-threaded environment. The supported data types are:
 
@@ -17,7 +17,7 @@ MRCZ also supports asynchronous reads and writes.
 Repository: https://github.com/em-MRCZ
 PyPI:       https://pypi.python.org/pypi/mrcz
 Citation:   Submitted.
-Preprint:   http://www.biorxiv.org/content/early/2017/03/13/116533
+Preprint:   https://www.biorxiv.org/content/early/2017/03/13/116533
 
 Support for this format is not enabled by default. In order to enable it
 install the `mrcz` and optionally the `blosc` Python packages.

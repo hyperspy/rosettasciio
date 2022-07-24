@@ -17,7 +17,7 @@
 # along with HyperSpy. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 # The EMD format is a hdf5 standard proposed at Lawrence Berkeley
-# National Lab (see http://emdatasets.com/ for more information).
+# National Lab (see https://emdatasets.com/ for more information).
 # FEI later developed another EMD format, also based on the hdf5 standard. This
 # reader first checked if the file have been saved by Velox (FEI EMD format)
 # and use either the EMD class or the FEIEMDReader class to read the file.

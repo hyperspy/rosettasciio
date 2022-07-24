@@ -4,13 +4,13 @@ Tagges image file format (TIFF)
 -------------------------------
 
 RosettaSciIO can read and write 2D and 3D ``.tiff`` files using using
-Christoph Gohlke's `tifffile <https://github.com/cgohlke/tifffile/>`_ library.
+Christoph Gohlke's `tifffile <https://pypi.org/project/tifffile/>`__ library.
 In particular, it supports reading and
 writing of TIFF, BigTIFF, OME-TIFF, STK, LSM, NIH, and FluoView files. Most of
 these are uncompressed or losslessly compressed 2**(0 to 6) bit integer, 16, 32
 and 64-bit float, grayscale and RGB(A) images, which are commonly used in
 bio-scientific imaging. See `the library webpage
-<http://www.lfd.uci.edu/~gohlke/code/tifffile.py.html>`_ for more details.
+<https://pypi.org/project/tifffile/>`__ for more details.
 
 .. versionadded: 1.0
    Add support for writing/reading scale and unit to tif files to be read with

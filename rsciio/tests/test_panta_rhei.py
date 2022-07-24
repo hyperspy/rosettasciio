@@ -14,10 +14,6 @@
 # along with HyperSpy. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 
-# The EMD format is a hdf5 standard proposed at Lawrence Berkeley
-# National Lab (see http://emdatasets.com/ for more information).
-# NOT to be confused with the FEI EMD format which was developed later.
-
 from pathlib import Path
 import numpy as np
 

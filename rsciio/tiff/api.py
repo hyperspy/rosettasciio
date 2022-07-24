@@ -120,7 +120,7 @@ def file_reader(filename, force_read_resolution=False, lazy=False, **kwds):
     force_read_resolution: bool
         Force reading the x_resolution, y_resolution and the resolution_unit
         of the tiff tags.
-        See http://www.awaresystems.be/imaging/tiff/tifftags/resolutionunit.html
+        See https://www.awaresystems.be/imaging/tiff/tifftags/resolutionunit.html
         Default is False.
     lazy : bool
         Load the data lazily. Default is False

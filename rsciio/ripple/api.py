@@ -17,9 +17,9 @@
 # along with HyperSpy. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 #  for more information on the RPL/RAW format, see
-#  http://www.nist.gov/lispix/
+#  https://www.nist.gov/services-resources/software/lispix
 #  and
-#  http://www.nist.gov/lispix/doc/image-file-formats/raw-file-format.htm
+#  https://www.nist.gov/services-resources/software/lispixdoc/image-file-formats/raw-file-format.htm
 
 import codecs
 import os.path
@@ -253,7 +253,7 @@ def read_raw(rpl_info, fp, mmap_mode='c'):
 
 def file_reader(filename, rpl_info=None, encoding="latin-1",
                 mmap_mode='c', *args, **kwds):
-    """Parses a Lispix (http://www.nist.gov/lispix/) ripple (.rpl) file
+    """Parses a Lispix (https://www.nist.gov/services-resources/software/lispix) ripple (.rpl) file
     and reads the data from the corresponding raw (.raw) file;
     or, read a raw file if the dictionary rpl_info is provided.
 

@@ -1,0 +1,522 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Electron Microscopy Dataset (EMD) &#8212; RosettaSciIO  documentation</title>
+<script>
+  document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+  document.documentElement.dataset.theme = localStorage.getItem("theme") || "light"
+</script>
+
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=92025949c220c2e29695" rel="stylesheet">
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=92025949c220c2e29695" rel="stylesheet">
+
+
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
+
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="FEI TIA (SER &amp; EMI)" href="emi_ser.html" />
+    <link rel="prev" title="EDAX TEAM/Genesis (SPC, SPD)" href="edax.html" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="docsearch:language" content="en">
+  </head>
+  
+  
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="">
+    <div class="bd-header-announcement container-fluid" id="banner">
+      
+
+    </div>
+
+    
+    <nav class="bd-header navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="bd-header__inner container-xl">
+
+  <div id="navbar-start">
+    
+    
+  
+
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    <p class="title logo__title">RosettaSciIO</p>
+  
+</a>
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="fas fa-bars"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 current active nav-item">
+ <a class="reference internal nav-link" href="index.html">
+  Supported formats
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../interoperatibility.html">
+  Interoperability
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <span id="theme-switch" class="btn btn-sm btn-outline-primary navbar-btn rounded-circle">
+    <a class="theme-switch" data-mode="light"><i class="fas fa-sun"></i></a>
+    <a class="theme-switch" data-mode="dark"><i class="far fa-moon"></i></a>
+    <a class="theme-switch" data-mode="auto"><i class="fas fa-adjust"></i></a>
+</span>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/hyperspy/rosettasciio" rel="noopener" target="_blank" title="GitHub"><span><i class="fab fa-github-square"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/hyperspy/rosettasciio" rel="noopener" target="_blank" title="RosettaSciIO"><img src="../" class="icon-link-image" alt="RosettaSciIO"/></a>
+        </li>
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="bd-container container-xl">
+      <div class="bd-container__inner row">
+          
+
+<!-- Only show if we have sidebars configured, else just a small margin  -->
+<div class="bd-sidebar-primary col-12 col-md-3 bd-sidebar">
+  <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    <ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="blockfile.html">
+   Blockfile
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="bruker.html">
+   Bruker formats
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="de5.html">
+   Direct Electron EMD (DE5)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="dens.html">
+   DENSsolutions formats
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="digital_micrograph.html">
+   Gatan Digital Micrograph
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="digitalsurf.html">
+   DigitalSurf format (SUR &amp; PRO)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="edax.html">
+   EDAX TEAM/Genesis (SPC, SPD)
+  </a>
+ </li>
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   Electron Microscopy Dataset (EMD)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="emi_ser.html">
+   FEI TIA (SER &amp; EMI)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="empad.html">
+   EMPAD format (XML &amp; RAW)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="hspy.html">
+   HSpy - HyperSpy’s HDF5 Specification
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="image.html">
+   Image formats
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="jeol.html">
+   JEOL Analyst Station (ASW, …)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="mrc.html">
+   MRC format
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="mrcz.html">
+   MRCZ format
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="msa.html">
+   EMSA/MSA format
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="netcdf.html">
+   NetCDF (EELSlab) format
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="nexus.html">
+   NeXus data format
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="panta_rhei.html">
+   CEOS Panta Rhei (PRZ)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="phenom.html">
+   Phenom ELID format
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="protochips.html">
+   Protochips logfile
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="ripple.html">
+   Ripple format
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="semper.html">
+   SEMPER binary format (UNF)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tiff.html">
+   Tagges image file format (TIFF)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tvips.html">
+   TVIPS format
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="usid.html">
+   Universal Spectroscopy and Imaging Data (h5USID)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="zspy.html">
+   ZSpy - HyperSpy’s Zarr Specification
+  </a>
+ </li>
+</ul>
+
+  </div>
+</nav>
+  </div>
+  <div class="sidebar-end-items">
+  </div>
+</div>
+
+
+          
+
+
+<div class="bd-sidebar-secondary d-none d-xl-block col-xl-2 bd-toc">
+  
+    
+    <div class="toc-item">
+      
+<div class="tocsection onthispage mt-5 pt-1 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#emd-ncem">
+   EMD (NCEM)
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#extra-loading-arguments">
+     Extra loading arguments
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#emd-velox">
+   EMD (Velox)
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#extra-loading-arguments-fei-emd">
+     Extra loading arguments
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+    </div>
+    
+    <div class="toc-item">
+      
+    </div>
+    
+  
+</div>
+
+
+          
+          
+          <div class="bd-content col-12 col-md-9 col-xl-7">
+              
+              <article class="bd-article" role="main">
+                
+  <section id="electron-microscopy-dataset-emd">
+<span id="emd-format"></span><h1>Electron Microscopy Dataset (EMD)<a class="headerlink" href="#electron-microscopy-dataset-emd" title="Permalink to this heading">#</a></h1>
+<p>EMD stands for “Electron Microscopy Dataset”. It is a subset of the open source
+HDF5 wrapper format. N-dimensional data arrays of any standard type can be
+stored in an HDF5 file, as well as tags and other metadata.</p>
+<section id="emd-ncem">
+<span id="emd-ncem-format"></span><h2>EMD (NCEM)<a class="headerlink" href="#emd-ncem" title="Permalink to this heading">#</a></h2>
+<p>This <a class="reference external" href="https://emdatasets.com">EMD format</a> was developed by Colin Ophus at the
+National Center for Electron Microscopy (NCEM).
+This format is used by the <a class="reference external" href="https://prism-em.com/docs-outputs/">prismatic software</a>
+to save the simulation outputs.</p>
+<section id="extra-loading-arguments">
+<h3>Extra loading arguments<a class="headerlink" href="#extra-loading-arguments" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dataset_path</span></code> : None, str or list of str. Path of the dataset. If None,
+load all supported datasets, otherwise the specified dataset(s).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stack_group</span></code> : bool, default is True. Stack datasets of groups with common
+path. Relevant for emd file version &gt;= 0.5 where groups can be named
+‘group0000’, ‘group0001’, etc.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">chunks</span></code> : None, True or tuple. Determine the chunking of the dataset to save.
+See the <code class="docutils literal notranslate"><span class="pre">chunks</span></code> arguments of the <code class="docutils literal notranslate"><span class="pre">hspy</span></code> file format for more details.</p></li>
+</ul>
+<p>For files containing several datasets, the <cite>dataset_name</cite> argument can be
+used to select a specific one:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;adatafile.emd&quot;</span><span class="p">,</span> <span class="n">dataset_name</span><span class="o">=</span><span class="s2">&quot;/experimental/science_data_1/data&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Or several by using a list:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;adatafile.emd&quot;</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="n">dataset_name</span><span class="o">=</span><span class="p">[</span>
+<span class="gp">... </span>                <span class="s2">&quot;/experimental/science_data_1/data&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="s2">&quot;/experimental/science_data_2/data&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="emd-velox">
+<span id="emd-fei-format"></span><h2>EMD (Velox)<a class="headerlink" href="#emd-velox" title="Permalink to this heading">#</a></h2>
+<p>This is a non-compliant variant of the standard EMD format developed by
+Thermo-Fisher (former FEI). RosettaSciIO supports importing images, EDS spectrum and EDS
+spectrum streams (spectrum images stored in a sparse format). For spectrum
+streams, there are several loading options (described below) to control the frames
+and detectors to load and if to sum them on loading.  The default is
+to import the sum over all frames and over all detectors in order to decrease
+the data size in memory.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Pruned Velox EMD files only contain the spectrum image in a proprietary
+format that RosettaSciIO cannot read. Therefore, don’t prune Velox EMD files
+if you intend to read them with RosettaSciIO.</p>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.emd&quot;</span><span class="p">)</span>
+<span class="go">[&lt;Signal2D, title: HAADF, dimensions: (|179, 161)&gt;,</span>
+<span class="go">&lt;EDSSEMSpectrum, title: EDS, dimensions: (179, 161|4096)&gt;]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When using <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, FFTs made in Velox are loaded
+in as-is as a HyperSpy ComplexSignal2D object.
+The FFT is not centered and only positive frequencies are stored in the file.
+Making FFTs with HyperSpy from the respective image datasets is recommended.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When using <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, DPC data is loaded in as a HyperSpy ComplexSignal2D object.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Currently only lazy uncompression rather than lazy loading is implemented.
+This means that it is not currently possible to read EDS SI Velox EMD files
+with size bigger than the available memory.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This format is still not stable and files generated with the most recent
+version of Velox may not be supported. If you experience issues loading
+a file, please report it  to the RosettaSciIO developers so that they can
+add support for newer versions of the format.</p>
+</div>
+<section id="extra-loading-arguments-fei-emd">
+<span id="id3"></span><h3>Extra loading arguments<a class="headerlink" href="#extra-loading-arguments-fei-emd" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">select_type</span></code> : one of {None, ‘image’, ‘single_spectrum’, ‘spectrum_image’} (default is None).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">first_frame</span></code> : integer (default is 0).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">last_frame</span></code> : integer (default is None)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sum_frames</span></code> : boolean (default is True)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sum_EDS_detectors</span></code> : boolean (default is True)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rebin_energy</span></code> : integer (default is 1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SI_dtype</span></code> : numpy dtype (default is None)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">load_SI_image_stack</span></code> : boolean (default is False)</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">select_type</span></code> parameter specifies the type of data to load: if <cite>image</cite> is selected,
+only images (including EDS maps) are loaded, if <cite>single_spectrum</cite> is selected, only
+single spectra are loaded and if <cite>spectrum_image</cite> is selected, only the spectrum
+image will be loaded. The <code class="docutils literal notranslate"><span class="pre">first_frame</span></code> and <code class="docutils literal notranslate"><span class="pre">last_frame</span></code> parameters can be used
+to select the frame range of the EDS spectrum image to load. To load each individual
+EDS frame, use <code class="docutils literal notranslate"><span class="pre">sum_frames=False</span></code> and the EDS spectrum image will be loaded
+with an extra navigation dimension corresponding to the frame index
+(time axis). Use the <code class="docutils literal notranslate"><span class="pre">sum_EDS_detectors=True</span></code> parameter to load the signal of
+each individual EDS detector. In such a case, a corresponding number of distinct
+EDS signal is returned. The default is <code class="docutils literal notranslate"><span class="pre">sum_EDS_detectors=True</span></code>, which loads the
+EDS signal as a sum over the signals from each EDS detectors.  The <code class="docutils literal notranslate"><span class="pre">rebin_energy</span></code>
+and <code class="docutils literal notranslate"><span class="pre">SI_dtype</span></code> parameters are particularly useful in combination with
+<code class="docutils literal notranslate"><span class="pre">sum_frames=False</span></code> to reduce the data size when one want to read the
+individual frames of the spectrum image. If <code class="docutils literal notranslate"><span class="pre">SI_dtype=None</span></code> (default), the dtype
+of the data in the emd file is used. The <code class="docutils literal notranslate"><span class="pre">load_SI_image_stack</span></code> parameter allows
+loading the stack of STEM images acquired simultaneously as the EDS spectrum image.
+This can be useful to monitor any specimen changes during the acquisition or to
+correct the spatial drift in the spectrum image by using the STEM images.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.emd&quot;</span><span class="p">,</span> <span class="n">sum_EDS_detectors</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">[&lt;Signal2D, title: HAADF, dimensions: (|179, 161)&gt;,</span>
+<span class="go">&lt;EDSSEMSpectrum, title: EDS - SuperXG21, dimensions: (179, 161|4096)&gt;,</span>
+<span class="go">&lt;EDSSEMSpectrum, title: EDS - SuperXG22, dimensions: (179, 161|4096)&gt;,</span>
+<span class="go">&lt;EDSSEMSpectrum, title: EDS - SuperXG23, dimensions: (179, 161|4096)&gt;,</span>
+<span class="go">&lt;EDSSEMSpectrum, title: EDS - SuperXG24, dimensions: (179, 161|4096)&gt;]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.emd&quot;</span><span class="p">,</span> <span class="n">sum_frames</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">load_SI_image_stack</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">SI_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">,</span> <span class="n">rebin_energy</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="go">[&lt;Signal2D, title: HAADF, dimensions: (50|179, 161)&gt;,</span>
+<span class="go">&lt;EDSSEMSpectrum, title: EDS, dimensions: (50, 179, 161|1024)&gt;]</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+              </article>
+              
+
+              
+              <footer class="bd-footer-article">
+                  <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+  <a class='left-prev' id="prev-link" href="edax.html" title="previous page">
+      <i class="fas fa-angle-left"></i>
+      <div class="prev-next-info">
+          <p class="prev-next-subtitle">previous</p>
+          <p class="prev-next-title">EDAX TEAM/Genesis (SPC, SPD)</p>
+      </div>
+  </a>
+  <a class='right-next' id="next-link" href="emi_ser.html" title="next page">
+  <div class="prev-next-info">
+      <p class="prev-next-subtitle">next</p>
+      <p class="prev-next-title">FEI TIA (SER &amp; EMI)</p>
+  </div>
+  <i class="fas fa-angle-right"></i>
+  </a>
+</div>
+              </footer>
+              
+          </div>
+          
+      </div>
+    </div>
+
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695"></script>
+
+<footer class="bd-footer"><div class="bd-footer__inner container">
+  
+  <div class="footer-item">
+    <p class="copyright">
+    &copy; Copyright 2022, HyperSpy Developers.<br>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.2.<br>
+</p>
+  </div>
+  
+</div>
+</footer>
+  </body>
+</html>

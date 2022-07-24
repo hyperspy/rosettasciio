@@ -1,0 +1,732 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>NeXus data format &#8212; RosettaSciIO  documentation</title>
+<script>
+  document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+  document.documentElement.dataset.theme = localStorage.getItem("theme") || "light"
+</script>
+
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=92025949c220c2e29695" rel="stylesheet">
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=92025949c220c2e29695" rel="stylesheet">
+
+
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
+
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="CEOS Panta Rhei (PRZ)" href="panta_rhei.html" />
+    <link rel="prev" title="NetCDF (EELSlab) format" href="netcdf.html" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="docsearch:language" content="en">
+  </head>
+  
+  
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="">
+    <div class="bd-header-announcement container-fluid" id="banner">
+      
+
+    </div>
+
+    
+    <nav class="bd-header navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="bd-header__inner container-xl">
+
+  <div id="navbar-start">
+    
+    
+  
+
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    <p class="title logo__title">RosettaSciIO</p>
+  
+</a>
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="fas fa-bars"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 current active nav-item">
+ <a class="reference internal nav-link" href="index.html">
+  Supported formats
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../interoperatibility.html">
+  Interoperability
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <span id="theme-switch" class="btn btn-sm btn-outline-primary navbar-btn rounded-circle">
+    <a class="theme-switch" data-mode="light"><i class="fas fa-sun"></i></a>
+    <a class="theme-switch" data-mode="dark"><i class="far fa-moon"></i></a>
+    <a class="theme-switch" data-mode="auto"><i class="fas fa-adjust"></i></a>
+</span>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/hyperspy/rosettasciio" rel="noopener" target="_blank" title="GitHub"><span><i class="fab fa-github-square"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/hyperspy/rosettasciio" rel="noopener" target="_blank" title="RosettaSciIO"><img src="../" class="icon-link-image" alt="RosettaSciIO"/></a>
+        </li>
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="bd-container container-xl">
+      <div class="bd-container__inner row">
+          
+
+<!-- Only show if we have sidebars configured, else just a small margin  -->
+<div class="bd-sidebar-primary col-12 col-md-3 bd-sidebar">
+  <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    <ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="blockfile.html">
+   Blockfile
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="bruker.html">
+   Bruker formats
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="de5.html">
+   Direct Electron EMD (DE5)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="dens.html">
+   DENSsolutions formats
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="digital_micrograph.html">
+   Gatan Digital Micrograph
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="digitalsurf.html">
+   DigitalSurf format (SUR &amp; PRO)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="edax.html">
+   EDAX TEAM/Genesis (SPC, SPD)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="emd.html">
+   Electron Microscopy Dataset (EMD)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="emi_ser.html">
+   FEI TIA (SER &amp; EMI)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="empad.html">
+   EMPAD format (XML &amp; RAW)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="hspy.html">
+   HSpy - HyperSpy’s HDF5 Specification
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="image.html">
+   Image formats
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="jeol.html">
+   JEOL Analyst Station (ASW, …)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="mrc.html">
+   MRC format
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="mrcz.html">
+   MRCZ format
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="msa.html">
+   EMSA/MSA format
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="netcdf.html">
+   NetCDF (EELSlab) format
+  </a>
+ </li>
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   NeXus data format
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="panta_rhei.html">
+   CEOS Panta Rhei (PRZ)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="phenom.html">
+   Phenom ELID format
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="protochips.html">
+   Protochips logfile
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="ripple.html">
+   Ripple format
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="semper.html">
+   SEMPER binary format (UNF)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tiff.html">
+   Tagges image file format (TIFF)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="tvips.html">
+   TVIPS format
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="usid.html">
+   Universal Spectroscopy and Imaging Data (h5USID)
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="zspy.html">
+   ZSpy - HyperSpy’s Zarr Specification
+  </a>
+ </li>
+</ul>
+
+  </div>
+</nav>
+  </div>
+  <div class="sidebar-end-items">
+  </div>
+</div>
+
+
+          
+
+
+<div class="bd-sidebar-secondary d-none d-xl-block col-xl-2 bd-toc">
+  
+    
+    <div class="toc-item">
+      
+<div class="tocsection onthispage mt-5 pt-1 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#background">
+   Background
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#differences-with-respect-to-hspy">
+   Differences with respect to hspy
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#reading">
+   Reading
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#extra-loading-arguments">
+     Extra loading arguments
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#writing">
+   Writing
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#extra-saving-arguments">
+     Extra saving arguments
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#inspecting">
+   Inspecting
+  </a>
+ </li>
+</ul>
+
+</nav>
+    </div>
+    
+    <div class="toc-item">
+      
+    </div>
+    
+  
+</div>
+
+
+          
+          
+          <div class="bd-content col-12 col-md-9 col-xl-7">
+              
+              <article class="bd-article" role="main">
+                
+  <section id="nexus-data-format">
+<span id="nexus-format"></span><h1>NeXus data format<a class="headerlink" href="#nexus-data-format" title="Permalink to this heading">#</a></h1>
+<section id="background">
+<h2>Background<a class="headerlink" href="#background" title="Permalink to this heading">#</a></h2>
+<p><a class="reference external" href="https://www.nexusformat.org">NeXus</a> is a common data format originally
+developed by the neutron and x-ray science x-ray communities. It is still being
+developed as an international standard by scientists and programmers
+representing major scientific facilities in order to facilitate greater
+cooperation in the analysis and visualization of data.
+NeXus uses a variety of classes to record data, values,
+units and other experimental metadata associated with an experiment.
+For specific types of experiments an Application Definition may exist, which
+defines an agreed common layout that facilities can adhere to.</p>
+<p>NeXus metadata and data are stored in Hierarchical Data Format Files (HDF5) with
+a <code class="docutils literal notranslate"><span class="pre">.nxs</span></code> extension although standards HDF5 extensions are sometimes used.
+Files must use the <code class="docutils literal notranslate"><span class="pre">.nxs</span></code> file extension in order to use this IO plugin.
+Using the <code class="docutils literal notranslate"><span class="pre">.nxs</span></code> extension will default to the NeXus loader. If your file has
+an HDF5 extension, you can also explicitly set the NeXus file reader:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load a NeXus file with a .h5 extension</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;filename.h5&quot;</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="s2">&quot;nxs&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The loader will follow version 3 of the
+<a class="reference external" href="https://manual.nexusformat.org/datarules.html#version-3">NeXus data rules</a>.
+The signal type, Signal1D or Signal2D, will be inferred by the <code class="docutils literal notranslate"><span class="pre">interpretation</span></code>
+attribute, if this is set to <code class="docutils literal notranslate"><span class="pre">spectrum</span></code> or <code class="docutils literal notranslate"><span class="pre">image</span></code>, in the <code class="docutils literal notranslate"><span class="pre">NXdata</span></code>
+description. If the <a class="reference external" href="https://manual.nexusformat.org/design.html#design-attributes">interpretation</a> attribute is
+not set, the loader will return a <code class="docutils literal notranslate"><span class="pre">BaseSignal</span></code>, which must then be converted
+to the appropriate signal type. Following the NeXus data rules, if a <code class="docutils literal notranslate"><span class="pre">default</span></code>
+dataset is not defined, the loader will load NXdata
+and HDF datasets according to the keyword options in the reader.
+A number of the <a class="reference external" href="https://github.com/nexusformat/exampledata">NeXus examples</a>
+from large facilties do not use NXdata or use older versions of the NeXus
+implementation. Data can still be loaded from these files but information or
+associations may be missing. However, this missing information can be recovered
+from within the  <code class="docutils literal notranslate"><span class="pre">original_metadata</span></code> which contains the overall structure of
+the entry.</p>
+<p>As the NeXus format uses the HDF5 format and needs to read both data and
+metadata structured in different ways, the loader is written to be quite
+flexible and can also be used to inspect any hdf5 based file.</p>
+</section>
+<section id="differences-with-respect-to-hspy">
+<h2>Differences with respect to hspy<a class="headerlink" href="#differences-with-respect-to-hspy" title="Permalink to this heading">#</a></h2>
+<p>The <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/metadata_structure.html">HyperSpy metadata structure</a>
+stores arrays as hdf datasets without attributes
+and stores floats, ints and strings as attributes.
+NeXus formats typically use hdf datasets attributes to store additional
+information such as an indication of the units for an axis or the NX_class which
+the dataset structure follows. The metadata, HyperSpy or <code class="docutils literal notranslate"><span class="pre">original_metadata</span></code>,
+therefore needs to be able to indicate the values and attributes of a dataset.
+To implement this structure the <code class="docutils literal notranslate"><span class="pre">value</span></code> and <code class="docutils literal notranslate"><span class="pre">attrs</span></code> of a dataset can also be
+defined. The value of a dataset is set using a <code class="docutils literal notranslate"><span class="pre">value</span></code> key.
+The attributes of a dataset are defined by an <code class="docutils literal notranslate"><span class="pre">attrs</span></code> key.</p>
+<p>For example, to store an array called <code class="docutils literal notranslate"><span class="pre">axis_x</span></code>, with a units attribute within
+<code class="docutils literal notranslate"><span class="pre">original_metadata</span></code>, the following structure would be used:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>├──original_metadata
+│   ├── axis_x
+│   │   ├── value : array([1.0,2.0,3.0,4.0,5.0])
+│   │   ├── attrs
+│   │   │   ├── units : mm
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">original_metadata</span><span class="o">.</span><span class="n">set_item</span><span class="p">(</span><span class="n">axis_x</span><span class="o">.</span><span class="n">value</span><span class="p">,[</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">2.0</span><span class="p">,</span><span class="mf">3.0</span><span class="p">,</span><span class="mf">4.0</span><span class="p">,</span><span class="mf">5.0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">original_metadata</span><span class="o">.</span><span class="n">set_item</span><span class="p">(</span><span class="n">axis_x</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">units</span><span class="p">,</span><span class="s2">&quot;mm&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To access the axis information:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">original_metadata</span><span class="o">.</span><span class="n">axis_x</span><span class="o">.</span><span class="n">value</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">original_metadata</span><span class="o">.</span><span class="n">axis_x</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">units</span>
+</pre></div>
+</div>
+<p>To modify the axis information:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">original_metadata</span><span class="o">.</span><span class="n">axis_x</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="mf">2.0</span><span class="p">,</span><span class="mf">3.0</span><span class="p">,</span><span class="mf">4.0</span><span class="p">,</span><span class="mf">5.0</span><span class="p">,</span><span class="mf">6.0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">original_metadata</span><span class="o">.</span><span class="n">axis_x</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;um&quot;</span>
+</pre></div>
+</div>
+<p>To store data in a NeXus monochromator format, <code class="docutils literal notranslate"><span class="pre">value</span></code>
+and <code class="docutils literal notranslate"><span class="pre">attrs</span></code> keys can define additional attributes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>├── monochromator
+│   ├── energy
+│   │   ├── value : 12.0
+│   │   ├── attrs
+│   │   │   ├── units : keV
+│   │   │   ├── NXclass : NXmonochromator
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">attrs</span></code> key can also be used to define NeXus structures for the definition
+of structures and relationships between data:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>├── mydata
+│   ├── attrs
+│   │   ├── NX_class : &quot;NXdata&quot;
+│   │   ├── axes : [&quot;x&quot;,&quot;.&quot;]
+│   ├── data
+│   │   ├──value : [[30,23...110]
+│   ├── x
+│   │   ├──value : [1,2.....100]
+│   │   ├── attrs
+│   │   │   ├── unit : &quot;mm&quot;
+</pre></div>
+</div>
+<p>The use of <code class="docutils literal notranslate"><span class="pre">attrs</span></code> or <code class="docutils literal notranslate"><span class="pre">value</span></code> to set values within the metadata is optional
+and metadata values can also be set, read or modified in the normal way.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">original_metadata</span><span class="o">.</span><span class="n">monochromator</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="mf">12.5</span>
+</pre></div>
+</div>
+<p>HyperSpy metadata is stored within the NeXus file and should be automatically
+restored when a signal is loaded from a previously saved NeXus file.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Altering the standard metadata structure of a signal
+using <code class="docutils literal notranslate"><span class="pre">attrs</span></code> or <code class="docutils literal notranslate"><span class="pre">value</span></code> keywords is not recommended.</p>
+</div>
+</section>
+<section id="reading">
+<h2>Reading<a class="headerlink" href="#reading" title="Permalink to this heading">#</a></h2>
+<p>NeXus files can contain multiple datasets within the same file, but the
+ordering of datasets can vary depending on the setup of an experiment or
+processing step when the data was collected.
+For example, in one experiment Fe, Ca, P, Pb were collected but in the next experiment
+Ca, P, K, Fe, Pb were collected. RosettaSciIO supports reading in one or more datasets
+and returns a list of signals but in this example case the indexing is different.
+To control which data or metadata is loaded and in what order
+some additional loading arguments are provided.</p>
+<section id="extra-loading-arguments">
+<h3>Extra loading arguments<a class="headerlink" href="#extra-loading-arguments" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dataset_key</span></code>: <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">list</span></code> of strings - Default is <code class="docutils literal notranslate"><span class="pre">None</span></code> . String(s) to search for in the path to find one or more datasets.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dataset_path</span></code>: <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">list</span></code> of strings - Default is <code class="docutils literal notranslate"><span class="pre">None</span></code> . Absolute path(s) to search for in the path to find one or more datasets.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">metadata_key</span></code>: <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">list</span></code> of strings - Default is <code class="docutils literal notranslate"><span class="pre">None</span></code> . Absolute path(s) or string(s) to search for in the path to find metadata.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">skip_array_metadata</span></code>: <code class="docutils literal notranslate"><span class="pre">bool</span></code> - Default is False. Option to skip loading metadata that are arrays to avoid duplicating loading of data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nxdata_only</span></code>: <code class="docutils literal notranslate"><span class="pre">bool</span></code> - Default is False. Option to only convert NXdata formatted data to signals.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hardlinks_only</span></code>: <code class="docutils literal notranslate"><span class="pre">bool</span></code> - Default is False. Option to ignore soft or External links in the file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">use_default</span></code>: <code class="docutils literal notranslate"><span class="pre">bool</span></code> - Default is False. Only load the <code class="docutils literal notranslate"><span class="pre">default</span></code> dataset, if defined, from the file. Otherwise load according to the other keyword options.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Given that HDF5 files can accommodate very large datasets, setting <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code>
+is strongly recommended if the content of the HDF5 file is not known apriori.
+This prevents issues with regard to loading datasets far larger than memory.</p>
+<p>Also note that setting <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code> leaves the file handle to the HDF5 file open
+and it can be closed with <code class="xref py py-meth docutils literal notranslate"><span class="pre">close_file()</span></code>
+or when using <code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code> with <code class="docutils literal notranslate"><span class="pre">close_file=True</span></code>.</p>
+</div>
+<p>Reading a NeXus file (a single NeXus dataset):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sig</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.nxs&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>By default, the loader will look for stored NXdata objects.
+If there are hdf datasets which are not stored as NXdata, but which
+should be loaded as signals, set the <code class="docutils literal notranslate"><span class="pre">nxdata_only</span></code> keyword to False and all
+hdf datasets will be returned as signals:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sig</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.nxs&quot;</span><span class="p">,</span> <span class="n">nxdata_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can load a specific dataset using the <code class="docutils literal notranslate"><span class="pre">dataset_path</span></code> keyword argument.
+Setting it to the absolute path of the desired dataset will cause
+the single dataset to be loaded:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Loading a specific dataset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.nxs&quot;</span><span class="p">,</span> <span class="n">dataset_path</span><span class="o">=</span><span class="s2">&quot;/entry/experiment/EDS/data&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can also choose to load datasets based on a search key using the
+<code class="docutils literal notranslate"><span class="pre">dataset_key</span></code> keyword argument. This can also be used to load NXdata not
+outside of the <code class="docutils literal notranslate"><span class="pre">default</span></code> version 3 rules. Instead of providing an absolute
+path, a string can be provided as well, and datasets with this key will be
+returned. The previous example could also be written as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Loading datasets containing the string &quot;EDS&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.nxs&quot;</span><span class="p">,</span> <span class="n">dataset_key</span><span class="o">=</span><span class="s2">&quot;EDS&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The difference between <code class="docutils literal notranslate"><span class="pre">dataset_path</span></code> and <code class="docutils literal notranslate"><span class="pre">dataset_key</span></code> is illustrated
+here:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Only the dataset /entry/experiment/EDS/data will be loaded</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.nxs&quot;</span><span class="p">,</span> <span class="n">dataset_path</span><span class="o">=</span><span class="s2">&quot;/entry/experiment/EDS/data&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># All datasets contain the entire string &quot;/entry/experiment/EDS/data&quot; will be loaded</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.nxs&quot;</span><span class="p">,</span> <span class="n">dataset_key</span><span class="o">=</span><span class="s2">&quot;/entry/experiment/EDS/data&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Multiple datasets can be loaded by providing a number of keys:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Loading a specific dataset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.nxs&quot;</span><span class="p">,</span> <span class="n">dataset_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;EDS&quot;</span><span class="p">,</span> <span class="s2">&quot;Fe&quot;</span><span class="p">,</span> <span class="s2">&quot;Ca&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Metadata can also be filtered in the same way using <code class="docutils literal notranslate"><span class="pre">metadata_key</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Load data with metadata matching metadata_key</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.nxs&quot;</span><span class="p">,</span> <span class="n">metadata_key</span><span class="o">=</span><span class="s2">&quot;entry/instrument&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The NeXus loader removes any NXdata blocks from the metadata.</p>
+</div>
+<p>Metadata that are arrays can be skipped by using <code class="docutils literal notranslate"><span class="pre">skip_array_metadata</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Load data while skipping metadata that are arrays</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.nxs&quot;</span><span class="p">,</span> <span class="n">skip_array_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>NeXus files also support parameters or dimensions that have been varied
+non-linearly. Since the reading of non-uniform axes is not yet implemented for the
+NeXus plugin, such non-linear information would be lost in the axes manager and
+replaced with indices.
+NeXus and HDF can result in large metadata structures with large datasets within the loaded
+original_metadata. If lazy loading is used this may not be a concern but care must be taken
+when saving the data. To control whether large datasets are loaded or saved,
+use the <code class="docutils literal notranslate"><span class="pre">metadata_key</span></code> to load only the most relevant information. Alternatively,
+set <code class="docutils literal notranslate"><span class="pre">skip_array_metadata</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> to avoid loading those large datasets in original_metadata.</p>
+</section>
+</section>
+<section id="writing">
+<h2>Writing<a class="headerlink" href="#writing" title="Permalink to this heading">#</a></h2>
+<p>Signals can be written to new NeXus files using the standard <code class="xref py py-meth docutils literal notranslate"><span class="pre">save()</span></code>
+function.</p>
+<section id="extra-saving-arguments">
+<h3>Extra saving arguments<a class="headerlink" href="#extra-saving-arguments" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">save_original_metadata</span></code>: <code class="docutils literal notranslate"><span class="pre">bool</span></code> - Default is True, option to save the original_metadata when storing to file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">skip_metadata_key</span></code>: <code class="docutils literal notranslate"><span class="pre">bool</span></code> - <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">list</span></code> of strings - Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>. Option to skip certain metadata keys when storing to file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">use_default</span></code>: <code class="docutils literal notranslate"><span class="pre">bool</span></code> - Default is False. Set the <code class="docutils literal notranslate"><span class="pre">default</span></code> attribute for the NeXus file.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sig</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;output.nxs&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Using the save method will store the nexus file with the following structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>├── entry1
+│   ├── signal_name
+│   │   ├── auxiliary
+│   │   │   ├── original_metadata
+│   │   │   ├── hyperspy_metadata
+│   │   │   ├── learning_results
+│   │   ├── signal_data
+│   │   │   ├── data and axes (NXdata format)
+</pre></div>
+</div>
+<p>The original_metadata can include hdf datasets which you may not wish to store.
+The original_metadata can be omitted using <code class="docutils literal notranslate"><span class="pre">save_original_metadata</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sig</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;output.nxs&quot;</span><span class="p">,</span> <span class="n">save_original_metadata</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If only certain metadata are to be ignored, use <code class="docutils literal notranslate"><span class="pre">skip_metadata_key</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sig</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;output.nxs&quot;</span><span class="p">,</span> <span class="n">skip_metadata_key</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;xsp3&#39;</span><span class="p">,</span> <span class="s1">&#39;solstice_scan&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>To save multiple signals, the file_writer method can be called directly.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hyperspy.io_plugins.nexus</span> <span class="kn">import</span> <span class="n">file_writer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_writer</span><span class="p">(</span><span class="s2">&quot;test.nxs&quot;</span><span class="p">,[</span><span class="n">signal1</span><span class="p">,</span><span class="n">signal2</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>When saving multiple signals, a default signal can be defined. This can be used when storing
+associated data or processing steps along with a final result. All signals can be saved but
+a single signal can be marked as the default for easier loading using RosettaSciIO
+or plotting with NeXus tools.
+The default signal is selected as the first signal in the list:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hyperspy.io_plugins.nexus</span> <span class="kn">import</span> <span class="n">file_writer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">hyperspy.api</span> <span class="k">as</span> <span class="nn">hs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_writer</span><span class="p">(</span><span class="s2">&quot;test.nxs&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">signal1</span><span class="p">,</span> <span class="n">signal2</span><span class="p">],</span> <span class="n">use_default</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;test.nxs&quot;</span><span class="p">,</span> <span class="n">use_default</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The output will be arranged by signal name:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>├── entry1 (NXentry)
+│   ├── signal_name (NXentry)
+│   │   ├── auxiliary (NXentry)
+│   │   │   ├── original_metadata (NXcollection)
+│   │   │   ├── hyperspy_metadata (NXcollection)
+│   │   │   ├── learning_results  (NXcollection)
+│   │   ├── signal_data (NXdata format)
+│   │   │   ├── data and axes
+├── entry2 (NXentry)
+│   ├── signal_name (NXentry)
+│   │   ├── auxiliary (NXentry)
+│   │   │   ├── original_metadata (NXcollection)
+│   │   │   ├── hyperspy_metadata (NXcollection)
+│   │   │   ├── learning_results (NXcollection)
+│   │   ├── signal_data (NXdata)
+│   │   │   ├── data and axes
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Signals saved as <code class="docutils literal notranslate"><span class="pre">.nxs</span></code> by this plugin can be loaded normally and the
+original_metadata, signal data, axes, metadata and learning_results
+will be restored. Model information is not currently stored.
+NeXus does not store how the data should be displayed.
+To preserve the signal details an additional navigation attribute
+is added to each axis to indicate if it is a navigation axis.</p>
+</div>
+</section>
+</section>
+<section id="inspecting">
+<h2>Inspecting<a class="headerlink" href="#inspecting" title="Permalink to this heading">#</a></h2>
+<p>Looking in a NeXus or HDF file for specific metadata is often useful - e.g. to find
+what position a specific stage was at. The methods <code class="docutils literal notranslate"><span class="pre">read_metadata_from_file</span></code>
+and <code class="docutils literal notranslate"><span class="pre">list_datasets_in_file</span></code> can be used to load the file contents or
+list the hdf datasets contained in a file. The inspection methods use the same <code class="docutils literal notranslate"><span class="pre">metadata_key</span></code> or <code class="docutils literal notranslate"><span class="pre">dataset_key</span></code> as when loading.
+For example to search for metadata in a file:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hyperspy.io_plugins.nexus</span> <span class="kn">import</span> <span class="n">read_metadata_from_file</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">read_metadata_from_file</span><span class="p">(</span><span class="s2">&quot;sample.hdf5&quot;</span><span class="p">,</span><span class="n">metadata_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;stage1_z&quot;</span><span class="p">])</span>
+<span class="go">{&#39;entry&#39;: {&#39;instrument&#39;: {&#39;scannables&#39;: {&#39;stage1&#39;: {&#39;stage1_z&#39;: {&#39;value&#39;: -9.871700000000002,</span>
+<span class="go">&#39;attrs&#39;: {&#39;gda_field_name&#39;: &#39;stage1_z&#39;,</span>
+<span class="go">&#39;local_name&#39;: &#39;stage1.stage1_z&#39;,</span>
+<span class="go">&#39;target&#39;: &#39;/entry/instrument/scannables/stage1/stage1_z&#39;,</span>
+<span class="go">&#39;units&#39;: &#39;mm&#39;}}}}}}}</span>
+</pre></div>
+</div>
+<p>To list the datasets stored in the file:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hyperspy.io_plugins.nexus</span> <span class="kn">import</span> <span class="n">read_datasets_from_file</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">list_datasets_in_file</span><span class="p">(</span><span class="s2">&quot;sample.nxs&quot;</span><span class="p">)</span>
+<span class="go">NXdata found</span>
+<span class="go">/entry/xsp3_addetector</span>
+<span class="go">/entry/xsp3_addetector_total</span>
+<span class="go">HDF datasets found</span>
+<span class="go">/entry/solstice_scan/keys/uniqueKeys</span>
+<span class="go">/entry/solstice_scan/scan_shape</span>
+<span class="go">Out[3]:</span>
+<span class="go">([&#39;/entry/xsp3_addetector&#39;, &#39;/entry/xsp3_addetector_total&#39;],</span>
+<span class="go"> [&#39;/entry/solstice_scan/keys/uniqueKeys&#39;, &#39;/entry/solstice_scan/scan_shape&#39;])</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+              </article>
+              
+
+              
+              <footer class="bd-footer-article">
+                  <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+  <a class='left-prev' id="prev-link" href="netcdf.html" title="previous page">
+      <i class="fas fa-angle-left"></i>
+      <div class="prev-next-info">
+          <p class="prev-next-subtitle">previous</p>
+          <p class="prev-next-title">NetCDF (EELSlab) format</p>
+      </div>
+  </a>
+  <a class='right-next' id="next-link" href="panta_rhei.html" title="next page">
+  <div class="prev-next-info">
+      <p class="prev-next-subtitle">next</p>
+      <p class="prev-next-title">CEOS Panta Rhei (PRZ)</p>
+  </div>
+  <i class="fas fa-angle-right"></i>
+  </a>
+</div>
+              </footer>
+              
+          </div>
+          
+      </div>
+    </div>
+
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695"></script>
+
+<footer class="bd-footer"><div class="bd-footer__inner container">
+  
+  <div class="footer-item">
+    <p class="copyright">
+    &copy; Copyright 2022, HyperSpy Developers.<br>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.2.<br>
+</p>
+  </div>
+  
+</div>
+</footer>
+  </body>
+</html>

@@ -1,5 +1,5 @@
 ### Requirements
-* Read the [HyperSpy developer guide](https://hyperspy.org/hyperspy-doc/current/dev_guide/intro.html).
+* Until `RosettaSciIO` has a contributor guide, you can read the [HyperSpy developer guide](https://hyperspy.org/hyperspy-doc/current/dev_guide/intro.html) to familiarise yourself with how to contribute.
 * Base your pull request on the correct branch (so far ``main`` branch)
 * Fill out the template; it helps the review process and it is useful to summarise the PR.
 * This template can be updated during the progression of the PR to summarise its status. 

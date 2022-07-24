@@ -2,13 +2,13 @@ Changelog
 *********
 
 Changelog entries for the development version are available at
-https://hyperspy.readthedocs.io/en/latest/user_guide/changes.html
+https://rosettasciio.readthedocs.io/en/latest/user_guide/changes.html
 
 .. towncrier-draft-entries:: |release| [UNRELEASED]
 
 .. towncrier release notes start
 
-RosettaSciIO v0.0
+0.1.0.dev0 [UNRELEASED]
 =================
 
 - RosettaSciIO was split out of the `HyperSpy repository 

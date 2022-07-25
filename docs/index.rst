@@ -41,4 +41,5 @@ Similarly, it takes a dictionary as input for file writers.
 
    supported_formats/index
    interoperatibility
+   changes
 

@@ -146,7 +146,7 @@ extras_require = {
     "scalebar_export": ["matplotlib>=3.1.3"],
     "tiff": ["tifffile>=2020.2.16", "imagecodecs>=2020.1.31"],
     "tests": ["pytest>=3.6", "pytest-xdist", "pytest-rerunfailures", "pytest-cov"],  # for testing
-    "docs": ["pydata-sphinx-theme"],  # for building the docs
+    "docs": ["pydata-sphinx-theme", "sphinxcontrib-towncrier"],  # for building the docs
 }
 
 # Don't include "tests" and "docs" requirements since "all" is designed to be

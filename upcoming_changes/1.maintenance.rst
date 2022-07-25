@@ -1,0 +1,1 @@
+Initiate GitHub actions for tests and documentation.

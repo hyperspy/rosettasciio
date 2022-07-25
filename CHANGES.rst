@@ -8,8 +8,8 @@ https://rosettasciio.readthedocs.io/en/latest/user_guide/changes.html
 
 .. towncrier release notes start
 
-0.1.0.dev0 [UNRELEASED]
-=================
+RosettaSciIO initiation
+=======================
 
 - RosettaSciIO was split out of the `HyperSpy repository 
   <https://github.com/hyperspy/hyperspy>`_ on July 23, 2022. The IO-plugins

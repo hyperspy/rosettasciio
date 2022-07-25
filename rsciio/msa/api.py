@@ -33,7 +33,7 @@ _logger = logging.getLogger(__name__)
 
 # For a description of the EMSA/MSA format, including the meaning of the
 # following keywords:
-# http://www.amc.anl.gov/ANLSoftwareLibrary/02-MMSLib/XEDS/EMMFF/EMMFF.IBM/Emmff.Total
+# https://www.amc.anl.gov/ANLSoftwareLibrary/02-MMSLib/XEDS/EMMFF/EMMFF.IBM/Emmff.Total
 
 US_MONTHS_D2A = {
     "01" : "JAN",

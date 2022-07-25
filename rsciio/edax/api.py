@@ -17,8 +17,8 @@
 # along with HyperSpy. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 # The details of the format were taken from
-# http://www.biochem.mpg.de/doc_tom/TOM_Release_2008/IOfun/tom_mrcread.html
-# and http://ami.scripps.edu/software/mrctools/mrc_specification.php
+# https://www.biochem.mpg.de/doc_tom/TOM_Release_2008/IOfun/tom_mrcread.html
+# and https://ami.scripps.edu/software/mrctools/mrc_specification.php
 
 import os
 import logging

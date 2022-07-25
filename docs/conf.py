@@ -35,6 +35,8 @@ extensions = [
 
 intersphinx_mapping = {
     "hyperspy": ("https://hyperspy.org/hyperspy-doc/current/", None),
+    "pyusid": ("https://pycroscopy.github.io/pyUSID/", None),
+    "zarr": ("https://zarr.readthedocs.io/en/stable", None),
 }
 
 # Add any paths that contain templates here, relative to this directory.

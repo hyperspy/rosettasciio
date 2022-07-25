@@ -9,7 +9,7 @@ electron diffraction (SPED) measurements, with a limited set of metadata. The
 header of the blockfile contains information about centering and distortions
 of the diffraction patterns, but is not applied to the signal during reading.
 Blockfiles only support data values of type
-`np.uint8 <http://docs.scipy.org/doc/numpy/user/basics.types.html>`_ (integers
+`np.uint8 <https://numpy.org/doc/stable/user/basics.types.html>`_ (integers
 in range 0-255).
 
 .. warning::
@@ -20,7 +20,7 @@ in range 0-255).
 
 Blockfiles are by default loaded in a "copy-on-write" manner using
 `numpy.memmap
-<http://docs.scipy.org/doc/numpy/reference/generated/numpy.memmap.html>`_ .
+<https://numpy.org/doc/stable/reference/generated/numpy.memmap.html>`_ .
 For blockfiles ``load`` takes the ``mmap_mode`` keyword argument enabling
 loading the file using a different mode. However, note that lazy loading
 does not support in-place writing (i.e lazy loading and the "r+" mode

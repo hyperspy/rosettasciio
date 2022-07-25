@@ -95,12 +95,8 @@ signal for each named component in the dataset:
     Signal2D, title: green, dimensions: (|128, 128)>]
 
 h5USID files also support parameters or dimensions that have been varied non-uniformly.
-This capability is important in several spectroscopy techniques where the bias is varied as a
-`bi-polar triangular waveform <https://pycroscopy.github.io/pyUSID/auto_examples/beginner/plot_usi_dataset.html#values-for-each-dimension>`_
-rather than uniformly from the minimum value to the maximum value.
-So far, the reading of non-uniform axes is not implemented in RosettaSciIO and as the non-uniform information
-would be lost in the axes manager, the USID plugin will default to a warning
-when it encounters a parameter that has been varied non-uniformly:
+Currently, the reading of non-uniform axes is not implemented in RosettaSciIO, the USID plugin
+will default to a warning when it encounters a parameter that has been varied non-uniformly:
 
 .. code-block:: python
 
@@ -122,8 +118,7 @@ Writing
 
 Signals can be written to new h5USID files using the standard :py:meth:`~.signal.BaseSignal.save` function.
 Setting the ``overwrite`` keyword argument to ``True`` will append to the specified
-HDF5 file. All other keyword arguments will be passed to
-`pyUSID.hdf_utils.write_main_dataset() <https://pycroscopy.github.io/pyUSID/_autosummary/_autosummary/pyUSID.io.hdf_utils.html#pyUSID.io.hdf_utils.write_main_dataset>`_
+HDF5 file. All other keyword arguments will be passed to :py:func:`pyUSID.io.hdf_utils.model.write_main_dataset`.
 
 .. code-block:: python
 

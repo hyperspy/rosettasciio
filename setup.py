@@ -141,6 +141,19 @@ class Recythonize(Command):
         cythonize(extensions)
 
 
+install_requires = [
+    'dask[array]>=2.11',
+    'h5py>=2.3',
+    'imageio',
+    'numba>=0.52',
+    'numpy>=1.17.1',
+    'pint>=0.8',
+    'python-box>=6.0',
+    'pyyaml',
+    'scipy>=1.1',
+    'sparse',
+]
+
 extras_require = {
     "mrcz": ["blosc>=1.5", 'mrcz>=0.3.6'],
     "scalebar_export": ["matplotlib>=3.1.3"],
@@ -287,18 +300,7 @@ setup(
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=[
-        'dask[array]>=2.11',
-        'h5py>=2.3',
-        'imageio',
-        'numba>=0.52',
-        'numpy>=1.17.1',
-        'pint>=0.8',
-        'python-box>=6.0',
-        'pyyaml',
-        'sparse',
-        'scipy>=1.1',
-    ],  # Optional
+    install_requires=install_requires,  # Optional
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). Users will be able to install these using the "extras"
@@ -366,7 +368,7 @@ setup(
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
-    # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files
+    # https://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files
     #
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
     # data_files=[('my_data', ['data/data_file'])],  # Optional
@@ -396,7 +398,7 @@ setup(
     project_urls={  # Optional
         'Bug Reports': 'https://github.com/hyperspy/rosettasciio/issues',
         # 'Funding': 'https://donate.pypi.org',
-        # 'Say Thanks!': 'http://saythanks.io/to/example',
+        # 'Say Thanks!': 'https://saythanks.io/to/example',
         'Source': 'https://github.com/hyperspy/rosettasciio/',
     },
 )

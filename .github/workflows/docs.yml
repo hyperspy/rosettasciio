@@ -3,8 +3,9 @@ name: Docs
 on: [push, pull_request]
 
 jobs:
-  build_doc:
-    name: Build docs
+  build_doc_PR:
+    # This build is to automatically add comments on PR
+    name: PR comments
     runs-on: ubuntu-latest
     env:
       BUILD_DEPS: python3-dev build-essential graphviz
@@ -23,3 +24,100 @@ jobs:
         with:
           path: ./docs/_build/html/
           name: docs_build
+
+  build_docs:
+    # This build is to check links and update table of supported formats
+    name: Check links and update table
+    runs-on: ubuntu-latest
+    env:
+      DOCS_PATH: ./docs/_build/html/
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v3
+        name: Install Python
+        with:
+          python-version: '3.10'
+
+      - name: Install build docs
+        shell: bash -l {0}
+        run: |
+          pip install .[docs]
+
+      - name: Update packages list
+        shell: bash -l {0}
+        run: |
+          # python generate_supported_format_table.py
+          echo "Table of Supported Format"
+          echo "========================="
+          cat ./docs/supported_formats/supported_formats.rst
+
+      - name: Check links
+        shell: bash -l {0}
+        run: |
+          cd docs
+          make linkcheck
+
+      - name: Build docs
+        shell: bash -l {0}
+        run: |
+          cd docs
+          make html
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path: ${{ env.DOCS_PATH }}
+          name: docs_html
+
+  push_docs:
+    # This build is to push changes to gh-pages branch (https://hyperspy.org/rosettasciio)
+    needs: build_docs
+    name: Push to gh-pages
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' && github.repository == 'hyperspy/rosettasciio' }}
+    permissions:
+      # needs write permission to push the docs to gh-pages
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: gh-pages
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: docs_html
+          path: .
+
+      - name: list files
+        run: |
+          ls
+
+      - name: Git status
+        run: |
+          git status
+          git status -s
+          if [[ $(git status -s) ]]; then
+            HAS_CHANGES='true'
+          else
+            HAS_CHANGES='false'
+          fi
+          echo "HAS_CHANGES=${HAS_CHANGES}" >> $GITHUB_ENV
+
+      - name: Commit files
+        # Skip when there is nothing to commit
+        if: ${{ env.HAS_CHANGES == 'true' }}
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -A
+          git commit -m "Update docs build" -a
+
+      - name: Push changes
+        if: ${{ env.HAS_CHANGES == 'true' }}
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages

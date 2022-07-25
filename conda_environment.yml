@@ -1,0 +1,14 @@
+name: hyperspy-bundle
+channels:
+- conda-forge
+dependencies:
+- dask-core >=2.11
+- h5py
+- imageio
+- numba >=0.52
+- numpy
+- pint
+- python-box
+- pyyaml
+- scipy
+- sparse

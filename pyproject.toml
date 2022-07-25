@@ -12,7 +12,7 @@ testpaths = [
 ]
 
 [tool.towncrier]
-package = "rosettasciio"
+package = "rsciio"
 filename = "CHANGES.rst"
 directory = "upcoming_changes/"
 # see https://github.com/twisted/towncrier/issues/346

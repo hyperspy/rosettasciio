@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>EMSA/MSA format &#8212; RosettaSciIO  documentation</title>
+    <title>Reference File Specification &#8212; RosettaSciIO  documentation</title>
 <script>
   document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
   document.documentElement.dataset.theme = localStorage.getItem("theme") || "light"
@@ -37,8 +37,8 @@
     <script src="../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="NetCDF (EELSlab) format" href="netcdf.html" />
-    <link rel="prev" title="MRCZ format" href="mrcz.html" />
+    <link rel="next" title="Changelog" href="../changes.html" />
+    <link rel="prev" title="Interoperability" href="../interoperatibility.html" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="docsearch:language" content="en">
   </head>
@@ -81,8 +81,8 @@
       
       <div class="navbar-center-item">
         <ul id="navbar-main-elements" class="navbar-nav">
-    <li class="toctree-l1 current active nav-item">
- <a class="reference internal nav-link" href="index.html">
+    <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../supported_formats/index.html">
   Supported formats
  </a>
 </li>
@@ -93,8 +93,8 @@
  </a>
 </li>
 
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../file_specification/index.html">
+<li class="toctree-l1 current active nav-item">
+ <a class="current reference internal nav-link" href="#">
   Reference File Specification
  </a>
 </li>
@@ -150,144 +150,7 @@
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
   <div class="bd-toc-item active">
-    <ul class="current nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="blockfile.html">
-   Blockfile
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="bruker.html">
-   Bruker formats
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="de5.html">
-   Direct Electron EMD (DE5)
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="dens.html">
-   DENSsolutions formats
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="digital_micrograph.html">
-   Gatan Digital Micrograph
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="digitalsurf.html">
-   DigitalSurf format (SUR &amp; PRO)
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="edax.html">
-   EDAX TEAM/Genesis (SPC, SPD)
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="emd.html">
-   Electron Microscopy Dataset (EMD)
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="emi_ser.html">
-   FEI TIA (SER &amp; EMI)
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="empad.html">
-   EMPAD format (XML &amp; RAW)
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="hspy.html">
-   HSpy - HyperSpy’s HDF5 Specification
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="image.html">
-   Image formats
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="jeol.html">
-   JEOL Analyst Station (ASW, …)
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="mrc.html">
-   MRC format
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="mrcz.html">
-   MRCZ format
-  </a>
- </li>
- <li class="toctree-l1 current active">
-  <a class="current reference internal" href="#">
-   EMSA/MSA format
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="netcdf.html">
-   NetCDF (EELSlab) format
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="nexus.html">
-   NeXus data format
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="panta_rhei.html">
-   CEOS Panta Rhei (PRZ)
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="phenom.html">
-   Phenom ELID format
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="protochips.html">
-   Protochips logfile
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="ripple.html">
-   Ripple format
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="semper.html">
-   SEMPER binary format (UNF)
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tiff.html">
-   Tagges image file format (TIFF)
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="tvips.html">
-   TVIPS format
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="usid.html">
-   Universal Spectroscopy and Imaging Data (h5USID)
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="zspy.html">
-   ZSpy - HyperSpy’s Zarr Specification
-  </a>
- </li>
-</ul>
-
+    
   </div>
 </nav>
   </div>
@@ -311,8 +174,8 @@
 <nav id="bd-toc-nav">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#extra-saving-arguments">
-   Extra saving arguments
+  <a class="reference internal nav-link" href="#edax">
+   EDAX
   </a>
  </li>
 </ul>
@@ -334,35 +197,19 @@
               
               <article class="bd-article" role="main">
                 
-  <section id="emsa-msa-format">
-<span id="msa-format"></span><h1>EMSA/MSA format<a class="headerlink" href="#emsa-msa-format" title="Permalink to this heading">#</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">.msa</span></code> format is an <a class="reference external" href="https://www.microscopy.org/resources/scientific_data/index.cfm">open standard format</a>
-widely used to exchange single spectrum data, but does not support
-multidimensional data. It can for example be used to exchange single spectra
-with Gatan’s Digital Micrograph.</p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>If several spectra are loaded and stacked (<code class="docutils literal notranslate"><span class="pre">hs.load('pattern',</span> <span class="pre">stack_signals=True</span></code>)
-the calibration read from the first spectrum and applied to all other spectra.</p>
-</div>
-<section id="extra-saving-arguments">
-<h2>Extra saving arguments<a class="headerlink" href="#extra-saving-arguments" title="Permalink to this heading">#</a></h2>
-<p>For the <code class="docutils literal notranslate"><span class="pre">.msa</span></code> format the <code class="docutils literal notranslate"><span class="pre">format</span></code> argument is used to specify whether the
-energy axis should also be saved with the data.  The default, ‘Y’ omits the
-energy axis in the file.  The alternative, ‘XY’, saves a second column with the
-calibrated energy data. It is possible to personalise the separator with the
-<cite>separator</cite> keyword.</p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>However, if a different separator is chosen the resulting file will not
-comply with the MSA/EMSA standard and RosettaSciIO and other software may not
-be able to read it.</p>
-</div>
-<p>The default encoding is <cite>latin-1</cite>. It is possible to set a different encoding
-using the <cite>encoding</cite> argument, e.g.:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;file.msa&#39;</span><span class="p">,</span> <span class="n">encoding</span> <span class="o">=</span> <span class="s1">&#39;utf8&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
+  <section id="reference-file-specification">
+<h1>Reference File Specification<a class="headerlink" href="#reference-file-specification" title="Permalink to this heading">#</a></h1>
+<p>This section contains reference documentation for file specification available
+publicly.</p>
+<section id="edax">
+<span id="edax-file-specification"></span><h2>EDAX<a class="headerlink" href="#edax" title="Permalink to this heading">#</a></h2>
+<p>The file specifications for the <a class="reference internal" href="../supported_formats/edax.html#edax-format"><span class="std std-ref">edax</span></a> file formats made
+available publicly available from EDAX:</p>
+<ul class="simple">
+<li><p><a class="reference download internal" download="" href="../_downloads/9e2f0ccf5287bb2d17f1b7550e1d626f/SPECTRUM-V70.pdf"><code class="xref download docutils literal notranslate"><span class="pre">spc</span></code></a></p></li>
+<li><p><a class="reference download internal" download="" href="../_downloads/c2e8b23d511a3c44fc30c69114e2873e/SpcMap-spd.file.format.pdf"><code class="xref download docutils literal notranslate"><span class="pre">spd</span></code></a></p></li>
+<li><p><a class="reference download internal" download="" href="../_downloads/3dc1dbb41ea63f6c7dd91456042df619/ImageIPR.pdf"><code class="xref download docutils literal notranslate"><span class="pre">ipr</span></code></a></p></li>
+</ul>
 </section>
 </section>
 
@@ -374,17 +221,17 @@ using the <cite>encoding</cite> argument, e.g.:</p>
               <footer class="bd-footer-article">
                   <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-  <a class='left-prev' id="prev-link" href="mrcz.html" title="previous page">
+  <a class='left-prev' id="prev-link" href="../interoperatibility.html" title="previous page">
       <i class="fas fa-angle-left"></i>
       <div class="prev-next-info">
           <p class="prev-next-subtitle">previous</p>
-          <p class="prev-next-title">MRCZ format</p>
+          <p class="prev-next-title">Interoperability</p>
       </div>
   </a>
-  <a class='right-next' id="next-link" href="netcdf.html" title="next page">
+  <a class='right-next' id="next-link" href="../changes.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">NetCDF (EELSlab) format</p>
+      <p class="prev-next-title">Changelog</p>
   </div>
   <i class="fas fa-angle-right"></i>
   </a>

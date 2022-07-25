@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>Tagges image file format (TIFF) &#8212; RosettaSciIO  documentation</title>
 <script>
@@ -90,6 +90,18 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../interoperatibility.html">
   Interoperability
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../file_specification/index.html">
+  Reference File Specification
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../changes.html">
+  Changelog
  </a>
 </li>
 
@@ -330,12 +342,12 @@
   <section id="tagges-image-file-format-tiff">
 <span id="tiff-format"></span><h1>Tagges image file format (TIFF)<a class="headerlink" href="#tagges-image-file-format-tiff" title="Permalink to this heading">#</a></h1>
 <p>RosettaSciIO can read and write 2D and 3D <code class="docutils literal notranslate"><span class="pre">.tiff</span></code> files using using
-Christoph Gohlke’s <a class="reference external" href="https://github.com/cgohlke/tifffile/">tifffile</a> library.
+Christoph Gohlke’s <a class="reference external" href="https://pypi.org/project/tifffile/">tifffile</a> library.
 In particular, it supports reading and
 writing of TIFF, BigTIFF, OME-TIFF, STK, LSM, NIH, and FluoView files. Most of
 these are uncompressed or losslessly compressed 2**(0 to 6) bit integer, 16, 32
 and 64-bit float, grayscale and RGB(A) images, which are commonly used in
-bio-scientific imaging. See <a class="reference external" href="http://www.lfd.uci.edu/~gohlke/code/tifffile.py.html">the library webpage</a> for more details.</p>
+bio-scientific imaging. See <a class="reference external" href="https://pypi.org/project/tifffile/">the library webpage</a> for more details.</p>
 <p>Currently RosettaSciIO has limited support for reading and saving the TIFF tags.
 However, the way that RosettaSciIO reads and saves the scale and the units of <code class="docutils literal notranslate"><span class="pre">.tiff</span></code>
 files is compatible with ImageJ/Fiji and Gatan Digital Micrograph software.
@@ -457,7 +469,7 @@ compatible with other imaging software.</p>
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.2.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.0.<br>
 </p>
   </div>
   

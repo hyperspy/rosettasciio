@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>MRCZ format &#8212; RosettaSciIO  documentation</title>
 <script>
@@ -90,6 +90,18 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../interoperatibility.html">
   Interoperability
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../file_specification/index.html">
+  Reference File Specification
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../changes.html">
+  Changelog
  </a>
 </li>
 
@@ -330,16 +342,16 @@
   <section id="mrcz-format">
 <span id="id1"></span><h1>MRCZ format<a class="headerlink" href="#mrcz-format" title="Permalink to this heading">#</a></h1>
 <p>The <code class="docutils literal notranslate"><span class="pre">.mrcz</span></code> format is an extension of the CCP-EM MRC2014 file format.
-<a class="reference external" href="http://www.ccpem.ac.uk/mrc_format/mrc2014.php">CCP-EM MRC2014</a> file format.
+<a class="reference external" href="https://www.ccpem.ac.uk/mrc_format/mrc2014.php">CCP-EM MRC2014</a> file format.
 It uses the <cite>blosc</cite> meta-compression library to bitshuffle and compress files in
 a blocked, multi-threaded environment. The supported data types are:</p>
 <p>[<cite>float32</cite>,`int8`,`uint16`,`int16`,`complex64`]</p>
 <p>It supports arbitrary meta-data, which is serialized into JSON.</p>
 <p>MRCZ also supports asynchronous reads and writes.</p>
 <p>Repository: <a class="reference external" href="https://github.com/em-MRCZ">https://github.com/em-MRCZ</a>
-PyPI:       <a class="reference external" href="https://pypi.python.org/pypi/mrcz">https://pypi.python.org/pypi/mrcz</a>
+PyPI:       <a class="reference external" href="https://pypi.org/project/mrcz">https://pypi.org/project/mrcz</a>
 Citation:   Submitted.
-Preprint:   <a class="reference external" href="http://www.biorxiv.org/content/early/2017/03/13/116533">http://www.biorxiv.org/content/early/2017/03/13/116533</a></p>
+Preprint:   <a class="reference external" href="https://www.biorxiv.org/content/10.1101/116533v1">https://www.biorxiv.org/content/10.1101/116533v1</a></p>
 <p>Support for this format is not enabled by default. In order to enable it
 install the <cite>mrcz</cite> and optionally the <cite>blosc</cite> Python packages.</p>
 <section id="extra-saving-arguments">
@@ -427,7 +439,7 @@ not cause crashes.</p>
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.2.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.0.<br>
 </p>
   </div>
   

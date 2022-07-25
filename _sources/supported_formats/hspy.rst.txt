@@ -6,9 +6,9 @@ HSpy - HyperSpy's HDF5 Specification
 This is `HyperSpy's <https://hyperspy.org>`_ default format and it is the only one that guarantees that no
 information will be lost in the writing process and that supports saving data
 of arbitrary dimensions. It is based on the `HDF5 open standard
-<http://www.hdfgroup.org/HDF5/>`_. The HDF5 file format is supported by `many
+<https://www.hdfgroup.org/solutions/hdf5/>`_. The HDF5 file format is supported by `many
 applications
-<http://www.hdfgroup.org/products/hdf5_tools/SWSummarybyName.htm>`_.
+<https://support.hdfgroup.org/products/hdf5_tools/SWSummarybyName.htm>`_.
 Part of the specification is documented in :external+hyperspy:ref:`metadata_structure`.
 
 .. versionadded:: 1.2

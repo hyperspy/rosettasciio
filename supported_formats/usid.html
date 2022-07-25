@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>Universal Spectroscopy and Imaging Data (h5USID) &#8212; RosettaSciIO  documentation</title>
 <script>
@@ -90,6 +90,18 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../interoperatibility.html">
   Interoperability
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../file_specification/index.html">
+  Reference File Specification
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../changes.html">
+  Changelog
  </a>
 </li>
 
@@ -425,12 +437,8 @@ signal for each named component in the dataset:</p>
 </pre></div>
 </div>
 <p>h5USID files also support parameters or dimensions that have been varied non-uniformly.
-This capability is important in several spectroscopy techniques where the bias is varied as a
-<a class="reference external" href="https://pycroscopy.github.io/pyUSID/auto_examples/beginner/plot_usi_dataset.html#values-for-each-dimension">bi-polar triangular waveform</a>
-rather than uniformly from the minimum value to the maximum value.
-So far, the reading of non-uniform axes is not implemented in RosettaSciIO and as the non-uniform information
-would be lost in the axes manager, the USID plugin will default to a warning
-when it encounters a parameter that has been varied non-uniformly:</p>
+Currently, the reading of non-uniform axes is not implemented in RosettaSciIO, the USID plugin
+will default to a warning when it encounters a parameter that has been varied non-uniformly:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.h5&quot;</span><span class="p">)</span>
 <span class="go">UserWarning: Ignoring non-uniformity of dimension: Bias</span>
 <span class="go">&lt;BaseSignal, title: , dimensions: (|7, 3, 5, 2)&gt;</span>
@@ -449,8 +457,7 @@ when it encounters a parameter that has been varied non-uniformly:</p>
 <h2>Writing<a class="headerlink" href="#writing" title="Permalink to this heading">#</a></h2>
 <p>Signals can be written to new h5USID files using the standard <code class="xref py py-meth docutils literal notranslate"><span class="pre">save()</span></code> function.
 Setting the <code class="docutils literal notranslate"><span class="pre">overwrite</span></code> keyword argument to <code class="docutils literal notranslate"><span class="pre">True</span></code> will append to the specified
-HDF5 file. All other keyword arguments will be passed to
-<a class="reference external" href="https://pycroscopy.github.io/pyUSID/_autosummary/_autosummary/pyUSID.io.hdf_utils.html#pyUSID.io.hdf_utils.write_main_dataset">pyUSID.hdf_utils.write_main_dataset()</a></p>
+HDF5 file. All other keyword arguments will be passed to <a class="reference external" href="https://pycroscopy.github.io/pyUSID/_autosummary/pyUSID.io.hdf_utils.model.write_main_dataset.html#pyUSID.io.hdf_utils.model.write_main_dataset" title="(in pyUSID v0.0.10)"><code class="xref py py-func docutils literal notranslate"><span class="pre">pyUSID.io.hdf_utils.model.write_main_dataset()</span></code></a>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sig</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;USID.h5&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -504,7 +511,7 @@ written to the file but these can be implemented at a later stage.</p>
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.2.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.0.<br>
 </p>
   </div>
   

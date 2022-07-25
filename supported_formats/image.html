@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>Image formats &#8212; RosettaSciIO  documentation</title>
 <script>
@@ -90,6 +90,18 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../interoperatibility.html">
   Interoperability
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../file_specification/index.html">
+  Reference File Specification
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../changes.html">
+  Changelog
  </a>
 </li>
 
@@ -324,9 +336,9 @@
                 
   <section id="image-formats">
 <span id="image-format"></span><h1>Image formats<a class="headerlink" href="#image-formats" title="Permalink to this heading">#</a></h1>
-<p>RosettaSciIO can read and write data to <a class="reference external" href="https://imageio.readthedocs.io/en/stable/formats.html">all the image formats</a> supported by
-<a class="reference external" href="https://imageio.readthedocs.io/">imageio</a>, which uses the
-<a class="reference external" href="https://pillow.readthedocs.io">Python Image Library (PIL/pillow)</a>.
+<p>RosettaSciIO can read and write data to <a class="reference external" href="https://imageio.readthedocs.io/en/stable/formats/index.html">all the image formats</a> supported by
+<a class="reference external" href="https://imageio.readthedocs.io/en/stable/">imageio</a>, which uses the
+<a class="reference external" href="https://pillow.readthedocs.io/en/stable/">Python Image Library (PIL/pillow)</a>.
 This includes <code class="docutils literal notranslate"><span class="pre">.jpg</span></code>, <code class="docutils literal notranslate"><span class="pre">.gif</span></code>, <code class="docutils literal notranslate"><span class="pre">.png</span></code>, <code class="docutils literal notranslate"><span class="pre">.pdf</span></code>, <code class="docutils literal notranslate"><span class="pre">.tif</span></code>, etc.
 It is important to note that these image formats only support 8-bit files, and
 therefore have an insufficient dynamic range for most scientific applications.
@@ -360,7 +372,7 @@ used by default and this behaviour can be changed through the
 <code class="xref py py-func docutils literal notranslate"><span class="pre">imshow()</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">**kwds</span></code> : keyword arguments supported by the individual file
 writers as documented at
-<a class="reference external" href="https://imageio.readthedocs.io/en/stable/formats.html">https://imageio.readthedocs.io/en/stable/formats.html</a> when exporting
+<a class="reference external" href="https://imageio.readthedocs.io/en/stable/formats/index.html">imageio</a> when exporting
 an image without scalebar. When exporting with a scalebar, the keyword
 arguments are passed to the <cite>pil_kwargs</cite> dictionary of
 <code class="xref py py-func docutils literal notranslate"><span class="pre">matplotlib.pyplot.savefig()</span></code></p></li>
@@ -431,7 +443,7 @@ to save an image displayed using a matplotlib colormap:</p>
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.2.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.0.<br>
 </p>
   </div>
   

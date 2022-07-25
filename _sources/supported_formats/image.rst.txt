@@ -4,9 +4,9 @@ Image formats
 -------------
 
 RosettaSciIO can read and write data to `all the image formats
-<https://imageio.readthedocs.io/en/stable/formats.html>`_ supported by
-`imageio <https://imageio.readthedocs.io/>`_, which uses the 
-`Python Image Library (PIL/pillow) <https://pillow.readthedocs.io>`_.
+<https://imageio.readthedocs.io/en/stable/formats/index.html>`_ supported by
+`imageio <https://imageio.readthedocs.io/en/stable/>`_, which uses the 
+`Python Image Library (PIL/pillow) <https://pillow.readthedocs.io/en/stable/>`_.
 This includes ``.jpg``, ``.gif``, ``.png``, ``.pdf``, ``.tif``, etc.
 It is important to note that these image formats only support 8-bit files, and
 therefore have an insufficient dynamic range for most scientific applications.
@@ -41,7 +41,7 @@ Extra saving arguments
   :py:func:`~.matplotlib.pyplot.imshow`.
 - ``**kwds`` : keyword arguments supported by the individual file
   writers as documented at
-  https://imageio.readthedocs.io/en/stable/formats.html when exporting
+  `imageio <https://imageio.readthedocs.io/en/stable/formats/index.html>`__ when exporting
   an image without scalebar. When exporting with a scalebar, the keyword
   arguments are passed to the `pil_kwargs` dictionary of
   :py:func:`matplotlib.pyplot.savefig`

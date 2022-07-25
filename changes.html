@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Interoperability &#8212; RosettaSciIO  documentation</title>
+    <title>Changelog &#8212; RosettaSciIO  documentation</title>
 <script>
   document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
   document.documentElement.dataset.theme = localStorage.getItem("theme") || "light"
@@ -37,8 +37,7 @@
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Reference File Specification" href="file_specification/index.html" />
-    <link rel="prev" title="ZSpy - HyperSpy’s Zarr Specification" href="supported_formats/zspy.html" />
+    <link rel="prev" title="Reference File Specification" href="file_specification/index.html" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="docsearch:language" content="en">
   </head>
@@ -87,8 +86,8 @@
  </a>
 </li>
 
-<li class="toctree-l1 current active nav-item">
- <a class="current reference internal nav-link" href="#">
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="interoperatibility.html">
   Interoperability
  </a>
 </li>
@@ -99,8 +98,8 @@
  </a>
 </li>
 
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="changes.html">
+<li class="toctree-l1 current active nav-item">
+ <a class="current reference internal nav-link" href="#">
   Changelog
  </a>
 </li>
@@ -174,26 +173,21 @@
 <nav id="bd-toc-nav">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#reading-data-saved-by-rosettasciio-using-other-software-packages">
-   Reading data saved by RosettaSciIO using other software packages
+  <a class="reference internal nav-link" href="#release-unreleased-2022-07-25">
+   [UNRELEASED] (2022-07-25)
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#importrpl-digital-micrograph-plugin">
-     ImportRPL Digital Micrograph plugin
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#hdf5-reader-plugin-for-digital-micrograph">
-     HDF5 reader plugin for Digital Micrograph
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#readhyperspyh5-matlab-plugin">
-     readHyperSpyH5 MATLAB Plugin
+    <a class="reference internal nav-link" href="#maintenance">
+     Maintenance
     </a>
    </li>
   </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#initiation-2022-07-23">
+   Initiation (2022-07-23)
+  </a>
  </li>
 </ul>
 
@@ -214,44 +208,28 @@
               
               <article class="bd-article" role="main">
                 
-  <section id="interoperability">
-<h1>Interoperability<a class="headerlink" href="#interoperability" title="Permalink to this heading">#</a></h1>
-<section id="reading-data-saved-by-rosettasciio-using-other-software-packages">
-<h2>Reading data saved by RosettaSciIO using other software packages<a class="headerlink" href="#reading-data-saved-by-rosettasciio-using-other-software-packages" title="Permalink to this heading">#</a></h2>
-<p>The following scripts may help reading data saved using RosettaSciIO using
-other software packages, in particular when using the <a class="reference internal" href="supported_formats/hspy.html#hspy-format"><span class="std std-ref">HyperSpy HDF5 format</span></a>.</p>
-<section id="importrpl-digital-micrograph-plugin">
-<span id="import-rpl"></span><h3>ImportRPL Digital Micrograph plugin<a class="headerlink" href="#importrpl-digital-micrograph-plugin" title="Permalink to this heading">#</a></h3>
-<p>This Digital Micrograph plugin is designed to import Ripple files into Digital Micrograph.
-It is used to ease data transit between DigitalMicrograph and e.g. HyperSpy without losing
-the calibration using the extra keywords that HyperSpy adds to the standard format.</p>
-<p>When executed, it will ask for 2 files:</p>
-<ol class="arabic simple">
-<li><p>The ripple file with the data format and calibrations.</p></li>
-<li><p>The data itself in <code class="docutils literal notranslate"><span class="pre">.raw</span></code> format.</p></li>
-</ol>
-<p>If a file with the same name and path as the ripple file exists, which has a
-<code class="docutils literal notranslate"><span class="pre">.raw</span></code> or <code class="docutils literal notranslate"><span class="pre">.bin</span></code> extension, it is opened directly without prompting.
-ImportRPL was written by Luiz Fernando Zagonel.</p>
-<p>Download <code class="docutils literal notranslate"><span class="pre">ImportRPL</span></code> from the <a class="reference external" href="https://github.com/hyperspy/ImportRPL">ImportRPL GitHub repository</a></p>
+  <section id="changelog">
+<h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this heading">#</a></h1>
+<p>Changelog entries for the development version are available at
+<a class="reference external" href="https://rosettasciio.readthedocs.io/en/latest/changes.html">https://rosettasciio.readthedocs.io/en/latest/changes.html</a></p>
+<section id="release-unreleased-2022-07-25">
+<h2> [UNRELEASED] (2022-07-25)<a class="headerlink" href="#release-unreleased-2022-07-25" title="Permalink to this heading">#</a></h2>
+<section id="maintenance">
+<h3>Maintenance<a class="headerlink" href="#maintenance" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Initiate GitHub actions for tests and documentation. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/1">#1</a>)</p></li>
+<li><p>Initiate towncrier changelog and create templates for PRs and issues. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/3">#3</a>)</p></li>
+<li><p>Add github CI workflow to check links, build docs and push to the <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> branch. Fix links and add EDAX reference file specification (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/4">#4</a>)</p></li>
+</ul>
 </section>
-<section id="hdf5-reader-plugin-for-digital-micrograph">
-<span id="dm-import-hdf5"></span><h3>HDF5 reader plugin for Digital Micrograph<a class="headerlink" href="#hdf5-reader-plugin-for-digital-micrograph" title="Permalink to this heading">#</a></h3>
-<p>This Digital Micrograph plugin is designed to import HDF5 files and like the
-<cite>ImportRPL</cite> script above, it can be used to easily transfer data saved using
-RosettaSciIO to Digital Micrograph by using the HDF5 files following the
-<a class="reference internal" href="supported_formats/hspy.html#hspy-format"><span class="std std-ref">HyperSpy format specification</span></a> (<code class="docutils literal notranslate"><span class="pre">.hspy</span></code> extension).</p>
-<p>Download <code class="docutils literal notranslate"><span class="pre">gms_plugin_hdf5</span></code> from the <a class="reference external" href="https://github.com/niermann/gms_plugin_hdf5">gms_plugin_hdf5 GitHub repository</a>.</p>
 </section>
-<section id="readhyperspyh5-matlab-plugin">
-<span id="hyperspy-matlab"></span><h3>readHyperSpyH5 MATLAB Plugin<a class="headerlink" href="#readhyperspyh5-matlab-plugin" title="Permalink to this heading">#</a></h3>
-<p>This MATLAB script is designed to import HDF5 files saved using the <a class="reference internal" href="supported_formats/hspy.html#hspy-format"><span class="std std-ref">HyperSpy
-format specification</span></a> (<code class="docutils literal notranslate"><span class="pre">.hspy</span></code> extension).
-Like the Digital Micrograph script above, it is used to easily transfer data
-saved using RosettaSciIO to MATLAB, while e.g. retaining spatial calibration
-information from HyperSpy.</p>
-<p>Download <code class="docutils literal notranslate"><span class="pre">readHyperSpyH5</span></code> from the <a class="reference external" href="https://github.com/jat255/readHyperSpyH5">readHyperSpyH5 GitHub repository</a>.</p>
-</section>
+<section id="initiation-2022-07-23">
+<h2>Initiation (2022-07-23)<a class="headerlink" href="#initiation-2022-07-23" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>RosettaSciIO was split out of the <a class="reference external" href="https://github.com/hyperspy/hyperspy">HyperSpy repository</a> on July 23, 2022. The IO-plugins
+and related functions so far developed in HyperSpy were moved to this
+new repository.</p></li>
+</ul>
 </section>
 </section>
 
@@ -263,19 +241,12 @@ information from HyperSpy.</p>
               <footer class="bd-footer-article">
                   <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-  <a class='left-prev' id="prev-link" href="supported_formats/zspy.html" title="previous page">
+  <a class='left-prev' id="prev-link" href="file_specification/index.html" title="previous page">
       <i class="fas fa-angle-left"></i>
       <div class="prev-next-info">
           <p class="prev-next-subtitle">previous</p>
-          <p class="prev-next-title">ZSpy - HyperSpy’s Zarr Specification</p>
+          <p class="prev-next-title">Reference File Specification</p>
       </div>
-  </a>
-  <a class='right-next' id="next-link" href="file_specification/index.html" title="next page">
-  <div class="prev-next-info">
-      <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">Reference File Specification</p>
-  </div>
-  <i class="fas fa-angle-right"></i>
   </a>
 </div>
               </footer>

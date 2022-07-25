@@ -19,12 +19,8 @@ Currently, loading an EDAX TEAM spectrum or spectrum image will load an
 open an issue in the `issues tracker <https://github.com/hyperspy/rosettasciio/issues>`_
 to alert the developers of the need.
 
-For further reference, file specifications for the formats are
-available publicly available from EDAX and are on Github
-(`spc <https://github.com/hyperspy/hyperspy/files/29506/SPECTRUM-V70.pdf>`_,
-`spd <https://github.com/hyperspy/hyperspy/files/29505/
-SpcMap-spd.file.format.pdf>`_, and
-`ipr <https://github.com/hyperspy/hyperspy/files/29507/ImageIPR.pdf>`_).
+For reference, :ref:`file specifications <edax-file_specification>`  for the edax
+file formats have been available publicly available from EDAX.
 
 Extra loading arguments for SPD file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

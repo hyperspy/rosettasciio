@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>ZSpy - HyperSpy’s Zarr Specification &#8212; RosettaSciIO  documentation</title>
 <script>
@@ -90,6 +90,18 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../interoperatibility.html">
   Interoperability
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../file_specification/index.html">
+  Reference File Specification
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../changes.html">
+  Changelog
  </a>
 </li>
 
@@ -326,7 +338,7 @@
 <span id="zspy-format"></span><h1>ZSpy - HyperSpy’s Zarr Specification<a class="headerlink" href="#zspy-hyperspy-s-zarr-specification" title="Permalink to this heading">#</a></h1>
 <p>Similarly to the <a class="reference internal" href="hspy.html#hspy-format"><span class="std std-ref">hspy format</span></a>, the <code class="docutils literal notranslate"><span class="pre">.zspy</span></code> format guarantees that no
 information will be lost in the writing process and that supports saving data
-of arbitrary dimensions. It is based on the <a class="reference external" href="https://zarr.readthedocs.io/en/stable/index.html">Zarr project</a>. Which exists as a drop in
+of arbitrary dimensions. It is based on the <a class="reference external" href="https://zarr.readthedocs.io/en/stable">Zarr project</a>. Which exists as a drop in
 replacement for hdf5 with the intention to fix some of the speed and scaling
 issues with the hdf5 format and is therefore suitable for saving
 <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/big_data.html#big-data-saving" title="(in HyperSpy v1.7.1)"><span class="xref std std-ref">big data</span></a>.</p>
@@ -335,14 +347,14 @@ issues with the hdf5 format and is therefore suitable for saving
 <span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;test.zspy&#39;</span><span class="p">)</span> <span class="c1"># loads the directory</span>
 </pre></div>
 </div>
-<p>When saving to <a class="reference external" href="https://zarr.readthedocs.io/en/stable/index.html">zspy</a>, all supported objects in the signal’s
+<p>When saving to <a class="reference external" href="https://zarr.readthedocs.io/en/stable">zspy</a>, all supported objects in the signal’s
 <code class="xref py py-attr docutils literal notranslate"><span class="pre">metadata</span></code> is stored. This includes lists, tuples and signals.
 Please note that in order to increase saving efficiency and speed, if possible,
 the inner-most structures are converted to numpy arrays when saved. This
 procedure homogenizes any types of the objects inside, most notably casting
 numbers as strings if any other strings are present:</p>
-<p>By default, a <code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.NestedDirectoryStore</span></code> is used, but other
-zarr store can be used by providing a <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html">zarr store</a>
+<p>By default, a <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#zarr.storage.NestedDirectoryStore" title="(in zarr v2.12.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.NestedDirectoryStore</span></code></a> is used, but other
+zarr store can be used by providing a <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#module-zarr.storage" title="(in zarr v2.12.0)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">zarr.storage</span></code></a>
 instead as argument to the <code class="xref py py-meth docutils literal notranslate"><span class="pre">save()</span></code> or the
 <code class="xref py py-func docutils literal notranslate"><span class="pre">load()</span></code> function. If a <code class="docutils literal notranslate"><span class="pre">.zspy</span></code> file has been saved with a different
 store, it would need to be loaded by passing a store of the same type:</p>
@@ -362,7 +374,7 @@ store, it would need to be loaded by passing a store of the same type:</p>
 <section id="extra-saving-arguments">
 <h2>Extra saving arguments<a class="headerlink" href="#extra-saving-arguments" title="Permalink to this heading">#</a></h2>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">compressor</span></code>: <a class="reference external" href="https://numcodecs.readthedocs.io/en/stable/index.html?">Numcodecs codec</a>,
+<li><p><code class="docutils literal notranslate"><span class="pre">compressor</span></code>: <a class="reference external" href="https://numcodecs.readthedocs.io/en/stable">Numcodecs codec</a>,
 a compressor can be passed to the save function to compress the data efficiently. The default
 is to call a Blosc compressor object.</p>
 <blockquote>
@@ -383,7 +395,7 @@ read/write with the trade off of slightly more computational work on the CPU.</p
 <li><p><code class="docutils literal notranslate"><span class="pre">chunks</span></code>: tuple of integer or None. Define the chunking used for saving
 the dataset. If None, calculates chunks for the signal, with preferably at
 least one chunk per signal space.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">close_file</span></code>: only relevant for some zarr store (<code class="docutils literal notranslate"><span class="pre">ZipStore</span></code>, <code class="docutils literal notranslate"><span class="pre">DBMStore</span></code>)
+<li><p><code class="docutils literal notranslate"><span class="pre">close_file</span></code>: only relevant for some zarr store (<a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#zarr.storage.ZipStore" title="(in zarr v2.12.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.ZipStore</span></code></a>, <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#zarr.storage.DBMStore" title="(in zarr v2.12.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.DBMStore</span></code></a>)
 requiring store to flush data to disk. If <code class="docutils literal notranslate"><span class="pre">False</span></code>, doesn’t close the file
 after writing. The file should not be closed if the data need to be accessed
 lazily after saving.
@@ -440,7 +452,7 @@ without having to write the whole dataset, which can take time. Default is <code
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.2.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.0.<br>
 </p>
   </div>
   

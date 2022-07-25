@@ -5,7 +5,7 @@ ZSpy - HyperSpy's Zarr Specification
 
 Similarly to the :ref:`hspy format <hspy-format>`, the ``.zspy`` format guarantees that no
 information will be lost in the writing process and that supports saving data
-of arbitrary dimensions. It is based on the `Zarr project <https://zarr.readthedocs.io/en/stable/index.html>`_. Which exists as a drop in
+of arbitrary dimensions. It is based on the `Zarr project <https://zarr.readthedocs.io/en/stable>`_. Which exists as a drop in
 replacement for hdf5 with the intention to fix some of the speed and scaling
 issues with the hdf5 format and is therefore suitable for saving 
 :external+hyperspy:ref:`big data <big_data.saving>`.
@@ -18,7 +18,7 @@ issues with the hdf5 format and is therefore suitable for saving
     >>> hs.load('test.zspy') # loads the directory
 
 
-When saving to `zspy <https://zarr.readthedocs.io/en/stable/index.html>`_, all supported objects in the signal's
+When saving to `zspy <https://zarr.readthedocs.io/en/stable>`_, all supported objects in the signal's
 :py:attr:`~.signal.BaseSignal.metadata` is stored. This includes lists, tuples and signals.
 Please note that in order to increase saving efficiency and speed, if possible,
 the inner-most structures are converted to numpy arrays when saved. This
@@ -26,7 +26,7 @@ procedure homogenizes any types of the objects inside, most notably casting
 numbers as strings if any other strings are present:
 
 By default, a :py:class:`zarr.storage.NestedDirectoryStore` is used, but other
-zarr store can be used by providing a `zarr store <https://zarr.readthedocs.io/en/stable/api/storage.html>`_
+zarr store can be used by providing a :py:mod:`zarr.storage`
 instead as argument to the :py:meth:`~.signal.BaseSignal.save` or the
 :py:func:`~.io.load` function. If a ``.zspy`` file has been saved with a different
 store, it would need to be loaded by passing a store of the same type:
@@ -50,7 +50,7 @@ To load this file again
 Extra saving arguments
 ^^^^^^^^^^^^^^^^^^^^^^
 
-- ``compressor``: `Numcodecs codec <https://numcodecs.readthedocs.io/en/stable/index.html?>`_,
+- ``compressor``: `Numcodecs codec <https://numcodecs.readthedocs.io/en/stable>`_,
   a compressor can be passed to the save function to compress the data efficiently. The default
   is to call a Blosc compressor object.
 
@@ -71,7 +71,7 @@ Extra saving arguments
 - ``chunks``: tuple of integer or None. Define the chunking used for saving
   the dataset. If None, calculates chunks for the signal, with preferably at
   least one chunk per signal space.
-- ``close_file``: only relevant for some zarr store (``ZipStore``, ``DBMStore``)
+- ``close_file``: only relevant for some zarr store (:py:class:`zarr.storage.ZipStore`, :py:class:`zarr.storage.DBMStore`)
   requiring store to flush data to disk. If ``False``, doesn't close the file
   after writing. The file should not be closed if the data need to be accessed
   lazily after saving.

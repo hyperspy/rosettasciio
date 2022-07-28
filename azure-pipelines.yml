@@ -23,6 +23,14 @@ resources:
 
 strategy:
   matrix:
+    Linux_Python310:
+      vmImage: 'ubuntu-latest'
+      PYTHON_VERSION: '3.10'
+      MAMBAFORGE_PATH: $(Agent.BuildDirectory)/mambaforge
+    Linux_Python39:
+      vmImage: 'ubuntu-latest'
+      PYTHON_VERSION: '3.9'
+      MAMBAFORGE_PATH: $(Agent.BuildDirectory)/mambaforge
     Linux_Python38:
       vmImage: 'ubuntu-latest'
       PYTHON_VERSION: '3.8'

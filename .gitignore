@@ -4,3 +4,4 @@
 *__pycache__*
 *test_compilers.obj
 *pyd
+.spyproject/*

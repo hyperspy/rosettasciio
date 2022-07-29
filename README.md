@@ -1,4 +1,4 @@
-<!-- [![Build Status](https://dev.azure.com/Hyperspy/rosettasciio/_apis/build/status/HyperSpy.rosettasciio?branchName=main)](https://dev.azure.com/Hyperspy/rosettasciio/_build/latest?definitionId=3&branchName=main) -->
+[![Build Status](https://dev.azure.com/hyperspy/rosettasciio/_apis/build/status/HyperSpy.rosettasciio?branchName=main)](https://dev.azure.com/Hyperspy/rosettasciio/_build/latest?definitionId=3&branchName=main)
 [![Tests](https://github.com/hyperspy/rosettasciio/workflows/Tests/badge.svg)](https://github.com/hyperspy/rosettasciio/actions)
 [![Codecov Status](https://codecov.io/gh/hyperspy/rosettasciio/branch/main/graph/badge.svg?token=8ZFX8X4Z1I)](https://codecov.io/gh/hyperspy/rosettasciio)
 [![Documentation Status](https://readthedocs.org/projects/rosettasciio/badge/?version=latest)](https://rosettasciio.readthedocs.io/en/latest/?badge=latest)

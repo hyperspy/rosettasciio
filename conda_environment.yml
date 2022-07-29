@@ -1,4 +1,4 @@
-name: hyperspy-bundle
+name: test_env
 channels:
 - conda-forge
 dependencies:
@@ -9,6 +9,7 @@ dependencies:
 - numpy
 - pint
 - python-box
+- python-dateutil
 - pyyaml
 - scipy
 - sparse

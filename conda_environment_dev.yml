@@ -1,0 +1,9 @@
+name: test_env
+channels:
+- conda-forge
+dependencies:
+- cython
+- pytest
+- pytest-xdist
+- pytest-rerunfailures
+- hyperspy-base

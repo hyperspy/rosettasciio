@@ -40,6 +40,29 @@ def dummy_context_manager(*args, **kwargs):
     yield
 
 
+def seek_read(file, dtype, pos):
+    file.seek(pos)
+    return np.squeeze(np.fromfile(file, dtype, count=1))
+
+
+def read_binary_metadata(file, mapping_dict):
+    """ This function reads binary metadata in a batch like process.
+    The mapping dict is passed as dictionary with a "key":[data,location]"
+    format.
+    """
+    try:
+        with open(file, mode='rb') as f:
+            metadata = {m: seek_read(f,
+                                     mapping_dict[m][0],
+                                     mapping_dict[m][1])
+                        for m in mapping_dict}
+    except FileNotFoundError:
+        _logger.warning(msg="File " + file + " not found. Please"
+                            "move it to the same directory to read"
+                            " the metadata ")
+    return metadata
+
+
 def dump_dictionary(
     file, dic, string="root", node_separator=".", value_separator=" = "
 ):

@@ -21,7 +21,7 @@ import numpy as np
 import os
 import logging
 import struct
-
+import xml.etree.ElementTree as ET
 
 import dask.array as da
 
@@ -47,7 +47,7 @@ def file_reader(filename, navigation_size=(), celeritas=False,
             _logger.error(msg="For the Celeritas Camera Top and Bottom "
                               "frames must be explicitly given by passing the"
                               "top and bottom kwargs or the file name must have"
-                              "'Top' or 'bottom' in the file name")
+                              "'Top' or 'Bottom' in the file name")
     elif celeritas and "top" in kwargs and "bottom" in kwargs:
         top = kwargs["top"]
         bottom = kwargs["top"]
@@ -74,26 +74,59 @@ def parse_header(file):
                       "ImageBitDepth":["<u4",556],
                       "ImageBitDepthReal":["<u4",560],
                       "NumFrames":["<i", 572],
-                      "ImgBytes": ["<i", 580],
+                      "TrueImageSize": ["<i", 580],
                       "FPS": ['<d', 584],
                     }
     return read_binary_metadata(file, metadata_dict)
 
 
 def parse_metadata(file):
-    metadata_dict = {"SensorGain": [np.float64, 320],
+    metadata_header_dict = {"Version": ["<u4", 0],
+                     "HeaderSizeAlways": ["<u4", 4],
+                     "IndexCountNumber": ["<u4", 8],
+                     "MetadataSize": ["<u4", 12],
+                     "MetadataInfoSize": ["<u4", 16],
+                     "MetadataLeadSize": ["<u4", 20],
+                     "SensorGain": [np.float64, 320],
                      "Magnification": [np.float64, 328],
                      "PixelSize": [np.float64, 336],
                      "CameraLength": [np.float64, 344],
                      "DiffPixelSize": [np.float64, 352],
                      }
-    return read_binary_metadata(file, metadata_dict)
+    metadata_header_dict = read_binary_metadata(file, metadata_header_dict)
+    print(metadata_header_dict)
+
+    start_read = int(metadata_header_dict["HeaderSizeAlways"][()])
+    metadata_dtype = [("UnitSize", "<u4"),
+                      ("MetadataCount", "<u4"),
+                      ("MetadataUID", "<u4"),
+                      ("Datasize", "<u4"),
+                      ("ID", "<u8"),
+                      ("Data", np.int_),]
+    data = []
+    for i in range(metadata_header_dict["IndexCountNumber"]):
+        metdata_info = np.fromfile(file, dtype=metadata_dtype,
+                                    count=1, offset=start_read)
+        data.append(metdata_info)
+
+        start_read += metadata_header_dict["MetadataSize"]
+    return
 
 
 def parse_xml(file):
     try:
-        with open(file) as f:
-            xml_dict = convert_xml_to_dict(f)
+        tree = ET.parse(file)
+        xml_dict = {}
+        for i in tree.iter():
+            xml_dict[i.tag]=i.attrib
+        #clean_xml
+        for k1 in xml_dict:
+            for k2 in xml_dict[k1]:
+                if k2 =="Value":
+                    try:
+                        xml_dict[k1] = float(xml_dict[k1][k2])
+                    except ValueError:
+                        xml_dict[k1] = xml_dict[k1][k2]
     except FileNotFoundError:
         _logger.warning(msg="File " + file + " not found. Please"
                                              "move it to the same directory to read"
@@ -101,6 +134,35 @@ def parse_xml(file):
     return xml_dict
 
 
+def read_full_seq(file,
+                  ImageWidth,
+                  ImageHeight,
+                  ImageBitDepthReal,
+                  TrueImageSize,
+                  navigation_shape=None):
+    empty = TrueImageSize-((ImageWidth*ImageHeight*2)+8)
+    dtype = [("Array", np.int16, (ImageWidth, ImageHeight)),
+             ("sec", "<u4"),
+             ("ms", "<u2"),
+             ("mis", "<u2"),
+             ("empty", bytes, empty)]
+    data = read_binary_reshape(file,dtypes=dtype, offset=8192)
+    return data
+
+def read_split_seq(top,
+                  ImageWidth,
+                  ImageHeight,
+                  ImageBitDepthReal,
+                  TrueImageSize,
+                  navigation_shape=None):
+    empty = TrueImageSize-((ImageWidth*ImageHeight*2)+8)
+    dtype = [("Array", np.int16, (ImageWidth, ImageHeight)),
+             ("sec", "<u4"),
+             ("ms", "<u2"),
+             ("mis", "<u2"),
+             ("empty", bytes, empty)]
+    data = read_binary_reshape(file,dtypes=dtype, offset=8192)
+    return data
 def read_binary_reshape(file,
                         dtypes,
                         offset,
@@ -127,12 +189,4 @@ def read_stitch_binary(top, bottom, dtypes,offset, navigation_shape):
     bin_data = {k: da.concatenate([top_mapped[k], bottom_mapped[k]], -1)
                 for k in keys}
     return bin_data
-
-
-
-
-
-
-
-
 

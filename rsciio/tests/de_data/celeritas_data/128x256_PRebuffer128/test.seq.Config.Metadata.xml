@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<Configuration>
+    <PixelSize>
+        <!-- Mag Table Examples:		
+        <Property Mag="100" Value="0.04576" />		
+        <Property Mag="500" Value="0.00920" />	
+        
+        Note: Mag="100" => 100 (K)
+              Value="0.04576" => 0.04576 (nm)	
+        -->
+        <Property Mag="10" Value="0.867636" />
+        <Property Mag="13" Value="0.674764" />
+        <Property Mag="15.5" Value="0.534759" />
+        <Property Mag="21" Value="0.427065" />
+        <Property Mag="27" Value="0.331514" />
+        <Property Mag="34" Value="0.265574" />
+        <Property Mag="43" Value="0.235312" />
+        <Property Mag="56" Value="0.181472" />
+        <Property Mag="69" Value="0.129798" />
+        <Property Mag="87" Value="0.099218" />
+        <Property Mag="115" Value="0.075841" />
+        <Property Mag="145" Value="0.060029" />
+        <Property Mag="185" Value="0.045312" />
+        <Property Mag="245" Value="0.033513" />
+        <Property Mag="300" Value="0.027269" />
+        <Property Mag="380" Value="0.021448" />
+        <Property Mag="490" Value="0.016597" />
+        <Property Mag="620" Value="0.013159" />
+        <Property Mag="790" Value="0.009606" />
+        <Property Mag="1000" Value="0.00796" />
+        <Property Mag="1250" Value="0.006368" />
+    </PixelSize>
+    <LowMag>
+        <!-- Mag Table Examples:		
+        <Property Mag="1" Value="0.4576" />		
+        <Property Mag="2" Value="0.0920" />	
+        
+        Note: Mag="1" => 1 (K)
+              Value="0.4576" => 0.4576 (nm)	
+        -->
+    </LowMag>
+    <DiffPixelSize>
+        <!-- Diff Table Examples:
+        <Property CameraLength="0.25" Value="0.00175" />    
+        <Property CameraLength="1.00" Value="0.000248" /> 
+        
+        Note: CameraLength="0.25" => 0.25 (m)
+              value="0.00175" => 0.00175 (nm)        
+        -->
+    </DiffPixelSize>
+    <HT_ADU>
+        <!-- HT/ADU Table Examples:
+        <Property HT="80" Value="700" />    
+        <Property HT="200" Value="300" /> 
+
+        Note: HT="100" => 100 (KV)
+            value="300" => 300 (ADU/electron)        
+        -->
+    </HT_ADU>
+    <BadPixels>
+        <!-- Examples:	
+			<Defect Column="152" Row="109" />
+            <Defect Columns="10-152" Row="109" />
+            <Defect Column="10" Rows="200-220" />
+            <Defect Columns="0-1023" Row="109" pattern="00110011" />
+            <Defect Column="10" Rows="0-1023" pattern="00110011 />
+			<Defect Row="300" />
+			<Defect Column="600" />
+			<Defect Rows="200-220" />
+			<Defect Columns="500-510" />
+		-->
+        <BadPixelMap Rows="1024" Columns="1024">
+            <Defect Column="248" />
+        </BadPixelMap>
+    </BadPixels>
+    <ScanOffset>
+        <PixelsMap RowOffset="0" ColumnOffset="0" />
+    </ScanOffset>
+    <FileInfo>
+        <StreamPixVersion Value="4.3.7.2545" />
+        <CameraType Value="Celeritas Camera" />
+        <GrabberType Value="Kaya" />
+        <FWVersion Value="1.12" />
+        <Temperature Value="-30" />
+        <ImageSizeX Value="256" />
+        <ImageSizeY Value="128" />
+        <ImageOffsetX Value="384" />
+        <ImageOffsetY Value="448" />
+        <RotationMode Value="0" />
+        <ImageDepth Value="12" />
+        <ImageBinning Value="1" />
+        <SWBinning Value="1" />
+        <SensorGain Value="1" />
+        <ShutterMode Value="Rolling" />
+        <OkraMode Value="No" />
+        <OffChipCDS Value="No" />
+        <SensorGainMode Value="0" />
+        <Sequence Value="22" />
+        <FrameRate Value="40000.00" />
+        <DarkRef Value="Yes" />
+        <GainRef Value="Yes" />
+        <Correction Value="Dark And Gain" />
+        <Average Value="None" />
+        <Filter Value="None" />
+        <Scaling Value="Auto" />
+        <Flip Value="Vertical" />
+        <Mag Value="0" />
+        <PixelSize Value="0" />
+        <ScaleBarLength Value="0" />
+        <ScaleBarUnit Value="" />
+        <HT Value="0" />
+        <ADUPerElectron Value="300" />
+        <SegmentPreBuffer Value="128" />
+        <SnapFrames Value="300" />
+        <NumberOfSnaps Value="1" />
+        <TimeIntervalOfSnaps Value="5" />
+        <TotalFrames Value="1" />
+        <TotalMergedFrames Value="0" />
+    </FileInfo>
+</Configuration>

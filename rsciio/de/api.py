@@ -33,7 +33,7 @@ data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}  # Stream Pix data type
 
 
 
-def file_reader(filename, navigation_size=(), celeritas=False,
+def file_reader(filename, navigation_shape=(), celeritas=False,
                 **kwargs):
     if celeritas:
         if "top" not in kwargs and "bottom" not in kwargs:
@@ -48,6 +48,8 @@ def file_reader(filename, navigation_size=(), celeritas=False,
                 leading_str = filename.rsplit('_Bottom', 1)[0]
                 top = glob.glob(leading_str + "_Top*.seq")[0]
                 filename = leading_str+".seq"
+            if "metadata" not in kwargs:
+                kwargs["metadata"]=bottom+".metadata"
             else:
                 _logger.error(msg="For the Celeritas Camera Top and Bottom "
                                   "frames must be explicitly given by passing the"
@@ -67,13 +69,17 @@ def file_reader(filename, navigation_size=(), celeritas=False,
                        "gain": ".gain.mrc",
                        "xml": ".Config.Metadata.xml"}
     for ext in file_extensions:
-        if not ext in kwargs and kwargs[ext] is not None:
+        if not ext in kwargs:
             kwargs[ext] = filename + file_extensions[ext]
 
     if celeritas:
-        read_celeritas(top, bottom,navigation_size=navigation_size, **kwargs)
+        reader = CeleritasReader(file=filename,
+                                 top=top,
+                                 bottom=bottom,
+                                 **kwargs)
     else:
-        SeqReader()
+        reader = SeqReader(file=filename, **kwargs)
+    return reader.read_data(navigation_shape=navigation_shape)
 
 
 class SeqReader:
@@ -155,7 +161,7 @@ class SeqReader:
         return dark_img, gain_img
 
     def _create_axes(self, header, nav_shape=None):
-        if nav_shape is None:
+        if nav_shape is None or len(nav_shape)==1:
             self.axes.append({'name': 'time',
                               'offset': 0,
                               'unit': "sec",
@@ -195,6 +201,8 @@ class SeqReader:
         dark_img, gain_img = self._read_dark_gain()
         self._read_xml()
         self._read_metadata()
+        if navigation_shape is None or navigation_shape== ():
+            navigation_shape = (header["NumFrames"],)
         data, time = read_full_seq(self.file,
                                    ImageWidth=header["ImageWidth"],
                                    ImageHeight=header["ImageHeight"],
@@ -256,11 +264,12 @@ class CeleritasReader(SeqReader):
                                     ImageBitDepth=header["ImageBitDepth"],
                                     TrueImageSize=header["TrueImageSize"],
                                     SegmentPreBuffer=self.buffer,
+                                    total_frames=header["NumFrames"],
                                     navigation_shape=navigation_shape)
         if dark_img is not None:
-            data = np.subtract(data, dark_img)
+            data = np.subtract(data, dark_img[np.newaxis])
         if gain_img is not None:
-            data = np.multiply(data, gain_img)
+            data = np.multiply(data, gain_img[np.newaxis])
         self.original_metadata["Timestamps"] = time
         self.metadata["Timestamps"] = time
         self._create_axes(header=header, nav_shape=navigation_shape)
@@ -303,6 +312,7 @@ def read_split_seq(top,
                    ImageBitDepth,
                    TrueImageSize,
                    SegmentPreBuffer=None,
+                   total_frames=None,
                    navigation_shape=None,):
     data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}
     empty = TrueImageSize-((ImageWidth*ImageHeight*2)+8)
@@ -323,36 +333,35 @@ def read_split_seq(top,
              ("mis", "<u2"),
              ("empty", bytes, empty)]
     if navigation_shape is not None:
-        # need to read out extra frames
-        total_frames = int(np.ceil(np.divide(np.product(navigation_shape),
+        # need to read out extra buffered frames
+        total_buffer_frames = int(np.ceil(np.divide(np.product(navigation_shape),
                                SegmentPreBuffer)))
     else:
-        total_frames =None
+        total_buffer_frames = np.ceil(total_frames/SegmentPreBuffer)
 
     data, time = read_stitch_binary(top, bottom, dtypes=dtype,
-                                    total_frames=total_frames,
+                                    total_buffer_frames=int(total_buffer_frames),
                                     offset=8192,
                                     navigation_shape=navigation_shape)
     return data, time
 
 
 def read_stitch_binary(top, bottom, dtypes, offset,
-                       total_frames=None, navigation_shape=None):
+                       total_buffer_frames=None, navigation_shape=None):
     keys = [d[0] for d in dtypes]
-    print(total_frames)
-    print(navigation_shape)
     top_mapped = np.memmap(top,
                            offset=offset,
                            dtype=dtypes,
-                           shape=total_frames)
+                           shape=total_buffer_frames)
     bottom_mapped = np.memmap(bottom,
                               offset=offset,
                               dtype=dtypes,
-                              shape=total_frames)
+                              shape=total_buffer_frames)
+
     array = da.concatenate([da.flip(top_mapped["Array"].reshape(-1, *top_mapped["Array"].shape[2:]), axis=1),
                             bottom_mapped["Array"].reshape(-1, *bottom_mapped["Array"].shape[2:])],
                             1)
-    if navigation_shape is not None:
+    if navigation_shape is not None and navigation_shape != ():
         cut = np.product(navigation_shape)
         array = array[:cut]
         new_shape = tuple(navigation_shape) + array.shape[1:]
@@ -362,22 +371,16 @@ def read_stitch_binary(top, bottom, dtypes, offset,
     return array, time
 
 
-def read_ref(file_name,
-             ):
+def read_ref(file_name):
     """Reads a reference image from the file using the file name as well as the width and height of the image. """
     if file_name is None:
         return
     try:
-        with open(file_name, mode='rb') as file:
-            file.seek(0)
-            read_bytes = file.read(8)
-            frame_width = struct.unpack('<i', read_bytes[0:4])[0]
-            frame_height = struct.unpack('<i', read_bytes[4:8])[0]
-            file.seek(256 * 4)
-            bytes = file.read(frame_width * frame_height * 4)
-            dark_ref = np.reshape(np.frombuffer(bytes, dtype=np.float32), (frame_height,
-                                                                           frame_width))
-        return dark_ref
+        shape = np.array(np.fromfile(file_name, dtype=np.int32, count=2), dtype=int)
+        shape = tuple(shape[::-1])
+        ref = np.memmap(file_name, dtype=np.float32, shape=shape, offset=1024)
+        ref.shape
+        return ref
     except FileNotFoundError:
         _logger.warning("No Dark Reference image found.  The Dark reference should be in the same directory "
                         "as the image and have the form xxx.seq.dark.mrc")

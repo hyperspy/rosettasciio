@@ -56,11 +56,14 @@ def read_binary_metadata(file, mapping_dict):
                                      mapping_dict[m][0],
                                      mapping_dict[m][1])
                         for m in mapping_dict}
+        return metadata
     except FileNotFoundError:
         _logger.warning(msg="File " + file + " not found. Please"
                             "move it to the same directory to read"
                             " the metadata ")
-    return metadata
+        return None
+
+
 def parse_xml(file):
     try:
         tree = ET.parse(file)

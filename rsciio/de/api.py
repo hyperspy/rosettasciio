@@ -246,7 +246,6 @@ class CeleritasReader(SeqReader):
         xml_dict = parse_xml(self.xml)
 
         self.original_metadata["xml"] = xml_dict
-        print(xml_dict)
         if xml_dict is not None:
             if "SegmentPreBuffer" in xml_dict:
                 self.buffer = xml_dict["SegmentPreBuffer"]
@@ -332,7 +331,8 @@ def read_split_seq(top,
              ("ms", "<u2"),
              ("mis", "<u2"),
              ("empty", bytes, empty)]
-    if navigation_shape is not None:
+    is_n = navigation_shape == ()
+    if navigation_shape is not None and navigation_shape != ():
         # need to read out extra buffered frames
         total_buffer_frames = int(np.ceil(np.divide(np.product(navigation_shape),
                                SegmentPreBuffer)))

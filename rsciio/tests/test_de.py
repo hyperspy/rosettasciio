@@ -84,3 +84,13 @@ def test_load_file():
     data_dict = file_reader("de_data/celeritas_data/128x256_PRebuffer128/test_Top_14-04-59.355.seq",
                             celeritas=True)
     assert data_dict["data"].shape == (128, 128, 256)
+
+def test_load_file2():
+    data_dict = file_reader("de_data/celeritas_data/256x256_Prebuffer1/Movie_00785_Top_13-49-04.160.seq",
+                            celeritas=True)
+    assert data_dict["data"].shape == (5, 256, 256)
+
+def test_load_file3():
+    data_dict = file_reader("de_data/celeritas_data/64x64_Prebuffer256/test_Bottom_14-13-42.822.seq",
+                            celeritas=True)
+    assert data_dict["data"].shape == (256, 64, 64)

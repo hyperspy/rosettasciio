@@ -1,25 +1,62 @@
-
+import matplotlib.pyplot as plt
+import pytest
 from hyperspy.io import load
 import numpy as np
 
-from rsciio.de.api import (parse_header, parse_metadata,
-                           parse_xml, read_full_seq,
-                           read_split_seq,
-                           read_ref)
+from rsciio.de.api import SeqReader,CeleritasReader
 
 
 class TestShared:
-    def test_parse_header(self):
-        header = parse_header("de_data/celeritas_data/test_SS8_Bottom_14-16-01.468.seq")
+    @pytest.fixture
+    def seq(self):
+        return SeqReader(file="de_data/data/test.seq",
+                         dark="de_data/data/test.seq.dark.mrc",
+                         gain="de_data/data/test.seq.gain.mrc",
+                         metadata="de_data/data/test.seq.metadata",
+                         xml="de_data/data/test.seq.se.xml")
+
+    def test_parse_header(self, seq):
+        header = seq._read_file_header()
+        assert header["ImageWidth"] == 2048
+        assert header["ImageHeight"] == 2048
+        assert header["ImageBitDepthReal"] == 12
+        assert header["NumFrames"] == 10
+        assert header["TrueImageSize"] == 8396800
+        np.testing.assert_almost_equal(header["FPS"], 11.111111, 1)  # This value is wrong for the celeritas camera
+
+    def test_parse_metadata(self, seq):
+        metadata = seq._read_metadata()
+
+    def test_read_dark(self, seq):
+        dark,gain = seq._read_dark_gain()
+        assert gain.shape == dark.shape
+
+    def test_read(self, seq):
+        seq.read_data()
+
+
+class TestLoadCeleritas:
+    @pytest.fixture
+    def seq(self):
+        return CeleritasReader(file="de_data/celeritas_data/test_SS8.seq",
+                               top="de_data/celeritas_data/test_SS8_Top_14-16-01.432.seq",
+                               bottom="de_data/celeritas_data/test_SS8_Bottom_14-16-01.468.seq",
+                               dark="de_data/celeritas_data/test_SS8.seq.dark.mrc",
+                               gain="de_data/celeritas_data/test_SS8.seq.gain.mrc",
+                               xml="de_data/celeritas_data/test_SS8.seq.Config.Metadata.xml",
+                               metadata="de_data/celeritas_data/test_SS8_Bottom_14-16-01.468.seq.metadata")
+
+    def test_parse_header(self, seq):
+        header = seq._read_file_header()
         assert header["ImageWidth"] == 256
         assert header["ImageHeight"] == 8192
         assert header["ImageBitDepthReal"] == 12
-        assert header["NumFrames"] == 14
-        assert header["ImgBytes"] == 4202496
-        np.testing.assert_almost_equal(header["FPS"], 309.52, 1)  # This value is wrong for the celeritas camera
+        assert header["NumFrames"] == 14 #this is wrong
+        assert header["TrueImageSize"] == 4202496
+        np.testing.assert_almost_equal(header["FPS"], 309.5, 1)  # This value is wrong for the celeritas camera
 
-    def test_parse_xml(self):
-        xml = parse_xml("de_data/celeritas_data/test_SS8.seq.Config.Metadata.xml")
+    def test_parse_xml(self, seq):
+        xml = seq._read_xml()
         assert xml["ImageSizeX"] == 256
         assert xml["ImageSizeY"] == 256
         assert xml["FrameRate"] == 20000
@@ -27,42 +64,5 @@ class TestShared:
         assert xml["GainRef"] == "Yes"
         assert xml["SegmentPreBuffer"] == 64
 
-    def test_parse_metadata(self):
-        metadata = parse_metadata("de_data/data/test.seq.metadata")
-
-    def test_read_dark(self):
-        dark = read_ref("de_data/data/test.seq.dark.mrc")
-        gain = read_ref("de_data/data/test.seq.gain.mrc")
-        assert gain.shape == dark.shape
-
-
-class TestLoadFull:
-    def test_load(self):
-        header = parse_header("de_data/data/test.seq")
-        data = read_full_seq("de_data/data/test.seq",
-                             ImageWidth=header["ImageWidth"],
-                             ImageHeight=header["ImageHeight"],
-                             ImageBitDepthReal=header["ImageBitDepthReal"],
-                             TrueImageSize=header["TrueImageSize"])
-        assert data["Array"].shape==(10, 2048, 2048)
-
-class TestLoadCeleritas:
-    def test_load(self):
-        header = parse_header("de_data/celeritas_data/test_SS8_Bottom_14-16-01.468.seq")
-        print(header)
-        data,time = read_split_seq(top="de_data/celeritas_data/test_SS8_Top_14-16-01.432.seq",
-                              bottom="de_data/celeritas_data/test_SS8_Bottom_14-16-01.468.seq",
-                              ImageWidth=header["ImageWidth"],
-                              ImageHeight=header["ImageHeight"],
-                              ImageBitDepthReal=header["ImageBitDepthReal"],
-                              TrueImageSize=header["TrueImageSize"],
-                              navigation_shape=(30, 30))
-        import matplotlib.pyplot as plt
-        dark = read_ref("de_data/celeritas_data/test_SS8.seq.dark.mrc")
-        gain = read_ref("de_data/celeritas_data/test_SS8.seq.gain.mrc")
-
-        plt.imshow(dark)
-        plt.show()
-
-        plt.imshow(np.sum((data[0:50]-dark)*gain, axis=0))
-        plt.show()
+    def test_read(self, seq):
+        dict = seq.read_data()

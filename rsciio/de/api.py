@@ -93,23 +93,8 @@ def parse_metadata(file):
                      "CameraLength": [np.float64, 344],
                      "DiffPixelSize": [np.float64, 352],
                      }
-    metadata_header_dict = read_binary_metadata(file, metadata_header_dict)
-    print(metadata_header_dict)
 
-    start_read = int(metadata_header_dict["HeaderSizeAlways"][()])
-    metadata_dtype = [("UnitSize", "<u4"),
-                      ("MetadataCount", "<u4"),
-                      ("MetadataUID", "<u4"),
-                      ("Datasize", "<u4"),
-                      ("ID", "<u8"),
-                      ("Data", np.int_),]
-    data = []
-    for i in range(metadata_header_dict["IndexCountNumber"]):
-        metdata_info = np.fromfile(file, dtype=metadata_dtype,
-                                    count=1, offset=start_read)
-        data.append(metdata_info)
-
-        start_read += metadata_header_dict["MetadataSize"]
+    _logger.warning(msg="Metadata for Celeritas camera not properly loaded")
     return
 
 
@@ -149,20 +134,7 @@ def read_full_seq(file,
     data = read_binary_reshape(file,dtypes=dtype, offset=8192)
     return data
 
-def read_split_seq(top,
-                  ImageWidth,
-                  ImageHeight,
-                  ImageBitDepthReal,
-                  TrueImageSize,
-                  navigation_shape=None):
-    empty = TrueImageSize-((ImageWidth*ImageHeight*2)+8)
-    dtype = [("Array", np.int16, (ImageWidth, ImageHeight)),
-             ("sec", "<u4"),
-             ("ms", "<u2"),
-             ("mis", "<u2"),
-             ("empty", bytes, empty)]
-    data = read_binary_reshape(file,dtypes=dtype, offset=8192)
-    return data
+
 def read_binary_reshape(file,
                         dtypes,
                         offset,
@@ -176,17 +148,84 @@ def read_binary_reshape(file,
     return bin_data
 
 
-def read_stitch_binary(top, bottom, dtypes,offset, navigation_shape):
+def read_split_seq(top,
+                   bottom,
+                   ImageWidth,
+                   ImageHeight,
+                   ImageBitDepthReal,
+                   TrueImageSize,
+                   SegmentPreBuffer=None,
+                   navigation_shape=None):
+    empty = TrueImageSize-((ImageWidth*ImageHeight*2)+8)
+    if SegmentPreBuffer is None:
+        _logger.warning(msg="No XML File given. Guessing Segment PreBuffer "
+                            "This is may not be correct...")
+        if ImageWidth == 512:
+            SegmentPreBuffer = 16
+        elif ImageWidth == 256:
+            SegmentPreBuffer= 64
+        else:
+            SegmentPreBuffer = 4
+    dtype = [("Array", np.int16, (SegmentPreBuffer,
+                                  int(ImageHeight/SegmentPreBuffer),
+                                  int(ImageWidth))),
+             ("sec", "<u4"),
+             ("ms", "<u2"),
+             ("mis", "<u2"),
+             ("empty", bytes, empty)]
+    if navigation_shape is not None:
+        # need to read out extra frames
+        total_frames = np.ceil(np.divide(np.product(navigation_shape),
+                               SegmentPreBuffer))
+
+    data = read_stitch_binary(top, bottom, dtypes=dtype,
+                              total_frames=int(total_frames),
+                              offset=8192)
+    return data
+
+
+def read_stitch_binary(top, bottom, dtypes, offset,
+                       total_frames=None, navigation_shape=None):
     keys = [d[0] for d in dtypes]
     top_mapped = np.memmap(top,
                            offset=offset,
                            dtype=dtypes,
-                           shape=navigation_shape)
+                           shape=total_frames)
     bottom_mapped = np.memmap(bottom,
                               offset=offset,
                               dtype=dtypes,
-                              shape=navigation_shape)
-    bin_data = {k: da.concatenate([top_mapped[k], bottom_mapped[k]], -1)
-                for k in keys}
-    return bin_data
+                              shape=total_frames)
+    array = da.concatenate([da.flip(top_mapped["Array"].reshape(-1, *top_mapped["Array"].shape[2:]), axis=1),
+                            bottom_mapped["Array"].reshape(-1, *bottom_mapped["Array"].shape[2:])],
+                            1)
+    if navigation_shape is not None:
+        cut = np.product(navigation_shape)
+        array = array[:cut].reshape(shape=navigation_shape)
+
+    time = {k: bottom_mapped[k] for k in keys if k not in ["Array", "empty"]}
+    return array, time
+
+
+def read_ref(file_name,
+             ):
+    """Reads a reference image from the file using the file name as well as the width and height of the image. """
+    if file_name is None:
+        return
+    try:
+        with open(file_name, mode='rb') as file:
+            file.seek(0)
+            read_bytes = file.read(8)
+            frame_width = struct.unpack('<i', read_bytes[0:4])[0]
+            frame_height = struct.unpack('<i', read_bytes[4:8])[0]
+            file.seek(256 * 4)
+            bytes = file.read(frame_width * frame_height * 4)
+            dark_ref = np.reshape(np.frombuffer(bytes, dtype=np.float32), (frame_height,
+                                                                           frame_width))
+        return dark_ref
+    except FileNotFoundError:
+        _logger.warning("No Dark Reference image found.  The Dark reference should be in the same directory "
+                        "as the image and have the form xxx.seq.dark.mrc")
+        return
+
+
 

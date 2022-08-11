@@ -22,10 +22,11 @@ import os
 import logging
 import struct
 import xml.etree.ElementTree as ET
+import glob
 
 import dask.array as da
 
-from rsciio.utils.tools import read_binary_metadata, convert_xml_to_dict
+from rsciio.utils.tools import read_binary_metadata, parse_xml
 
 _logger = logging.getLogger(__name__)
 data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}  # Stream Pix data types
@@ -33,24 +34,32 @@ data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}  # Stream Pix data type
 
 def file_reader(filename, navigation_size=(), celeritas=False,
                 **kwargs):
-    if celeritas and ("top" not in kwargs and "bottom" not in kwargs):
-        if "Top" in filename:
-            top = filename
-            bottom = filename.replace("Top", "Bottom", 1)
-            filename = filename[:filename.index("_Top")+".seq"]
+    if celeritas:
+        if "top" not in kwargs and "bottom" not in kwargs:
+            if "Top" in filename:
+                top = filename
+                leading_str = filename.rsplit('_Top', 1)[0]
+                bottom = glob.glob(leading_str+"_Bottom*.seq")[0]
+                filename = leading_str+".seq"
 
-        elif "Bottom" in filename:
-            bottom = filename
-            top = filename.replace("Bottom", "Top",1)
-            filename = filename[:filename.index("_Bottom") + ".seq"]
+            elif "Bottom" in filename:
+                bottom = filename
+                leading_str = filename.rsplit('_Bottom', 1)[0]
+                top = glob.glob(leading_str + "_Top*.seq")[0]
+                filename = leading_str+".seq"
+            else:
+                _logger.error(msg="For the Celeritas Camera Top and Bottom "
+                                  "frames must be explicitly given by passing the"
+                                  "top and bottom kwargs or the file name must have"
+                                  "'Top' or 'Bottom' in the file name")
+        elif celeritas and "top" in kwargs and "bottom" in kwargs:
+            top = kwargs["top"]
+            bottom = kwargs["top"]
         else:
             _logger.error(msg="For the Celeritas Camera Top and Bottom "
                               "frames must be explicitly given by passing the"
                               "top and bottom kwargs or the file name must have"
                               "'Top' or 'Bottom' in the file name")
-    elif celeritas and "top" in kwargs and "bottom" in kwargs:
-        top = kwargs["top"]
-        bottom = kwargs["top"]
 
     file_extensions = {"metadata": ".metadata",
                        "dark": ".dark.mrc",
@@ -61,12 +70,170 @@ def file_reader(filename, navigation_size=(), celeritas=False,
             kwargs[ext] = filename + file_extensions[ext]
 
     if celeritas:
-        read_celeritas(top, bottom, dark, gain, xml, metadata)
+        read_celeritas(top, bottom,navigation_size=navigation_size, **kwargs)
 
 
-def read_celeritas(top, bottom, dark, gain, xml, metadata):
+class SeqReader:
+    def __init__(self, file,
+                 dark=None,
+                 gain=None,
+                 metadata=None,
+                 xml=None):
+        """
+        Initializes a general reader for Binary signals.
+
+        Parameters
+        ----------
+        file: str
+            A file to be read.
+        """
+        self.file = file
+        self.metadata_file=metadata
+        self.dark = dark
+        self.gain = gain
+        self.xml=xml
+        # Output
+        self.original_metadata = {"InputFiles":{"file":file,
+                                                "metadata":self.metadata_file,
+                                                "dark":dark,
+                                                "gain":gain,
+                                                "xml":xml}}
+        self.metadata = {'General': {"filename":file, },
+                         'Signal': {'signal_type': 'Signal2D'}}
+        self.data = None
+        self.axes = []
+        self.buffer = None
+
+    def _read_metadata(self):
+        metadata_header_dict = {"Version": ["<u4", 0],
+                                "HeaderSizeAlways": ["<u4", 4],
+                                "IndexCountNumber": ["<u4", 8],
+                                "MetadataSize": ["<u4", 12],
+                                "MetadataInfoSize": ["<u4", 16],
+                                "MetadataLeadSize": ["<u4", 20],
+                                "SensorGain": [np.float64, 320],
+                                "Magnification": [np.float64, 328],
+                                "PixelSize": [np.float64, 336],
+                                "CameraLength": [np.float64, 344],
+                                "DiffPixelSize": [np.float64, 352],
+                                }
+        metadata_dict = read_binary_metadata(self.metadata_file, metadata_header_dict)
+        self.original_metadata["Metadata"] = metadata_dict
+        self.metadata["acquisition_instrument"] = {"TEM":
+                                                       {'camera_length': metadata_dict["CameraLength"],
+                                                        'magnification': metadata_dict["Magnification"]}}
+        return
+
+    def _read_file_header(self):
+        file_header_dict = {"ImageWidth":["<u4", 548],
+                            "ImageHeight":["<u4", 552],
+                            "ImageBitDepth":["<u4",556],
+                            "ImageBitDepthReal":["<u4",560],
+                            "NumFrames":["<i", 572],
+                            "TrueImageSize": ["<i", 580],
+                            "FPS": ['<d', 584],
+                            }
+        metadata_dict = read_binary_metadata(self.metadata_file, file_header_dict)
+        self.original_metadata["FileHeader"] = metadata_dict
+        self.metadata["ImageHeader"] = metadata_dict
+        return metadata_dict
+
+    def _read_xml(self):
+        xml_dict = parse_xml(self.xml)
+
+        self.original_metadata["xml"] = xml_dict
+        if xml_dict is not None:
+            self.metadata["ImageInfo"] = {"BadPixels":
+                                              xml_dict["Configuration"]["BadPixels"],
+                                          "FileInfo":
+                                              xml_dict["Configuration"]["FileInfo"]}
+            if "SegmentPreBuffer" in self.metadata["ImageInfo"]["FileInfo"]:
+                self.buffer = self.metadata["ImageInfo"]["FileInfo"]["SegmentPreBuffer"]
+
+    def _read_dark_gain(self):
+        gain_img = read_ref(self.gain)
+        dark_img = read_ref(self.dark)
+        self.metadata["Reference"] = {"dark": dark_img,
+                                      "gain": gain_img}
+        return dark_img, gain_img
+
+    def _create_axes(self, header, nav_shape=None):
+        if nav_shape is None:
+            self.axes.append({'name': 'time',
+                              'offset': 0,
+                              'unit': "sec",
+                              'scale': 1 / header["FPS"],
+                              'size': header["NumFrames"],
+                              'navigate': True,
+                              'index_in_array': 0})
+        else:
+            for s in nav_shape:
+                self.axes.append({'offset': 0,
+                                  'scale': 1,
+                                  'size': s,
+                                  'navigate': True,
+                                  'index_in_array': 0}
+                                 )
+        self.axes.append({'name': 'y',
+                          'offset': 0,
+                          'scale': 1,
+                          'size': header["ImageHeight"],
+                          'navigate': False,
+                          'index_in_array': 1})
+        self.axes.append({'name': 'x',
+                          'offset': 0,
+                          'scale': 1,
+                          'size': header["ImageWidth"],
+                          'navigate': False,
+                          'index_in_array': 2})
+        if (self.original_metadata["Metadata"] != {} and
+            self.original_metadata["Metadata"]["PixelSize"] > 1e-30):
+            # need to still determine a way to properly set units and scale
+            self.axes[-2]['scale'] = self.original_metadata["Metadata"]["PixelSize"]
+            self.axes[-1]['scale'] = self.original_metadata["Metadata"]["PixelSize"]
+        return
+
+    def read_data(self, navigation_shape=None):
+        header = self._read_file_header()
+        dark_img, gain_img = self._read_dark_gain()
+        self._read_xml()
+        self._read_metadata()
+        data, time = read_full_seq(self.file,
+                                   ImageWidth=header["ImageWidth"],
+                                   ImageHeight=header["ImageHeight"],
+                                   ImageBitDepthReal=header["ImageBitDepthReal"],
+                                   TrueImageSize=header["TrueImageSize"],
+                                   navigation_shape=navigation_shape)
+        if dark_img is not None:
+            data = np.subtract(data, dark_img)
+        if gain_img is not None:
+            data = np.multiply(data, gain_img)
+        self.original_metadata["Timestamps"] = time
+        self.metadata["Timestamps"] = time
+        self._create_axes(header=header, nav_shape=navigation_shape)
+        return {"data": data,
+                "metadata": self.metadata,
+                "axes": self.axes,
+                "original_metadata": self.original_metadata}
+
+
+def read_celeritas(top, bottom, dark=None,
+                   gain=None,
+                   xml=None,
+                   metadata=None,navigation_size=None):
     header = parse_header(top)
     metadata = parse_metadata(metadata)
+    xml = parse_xml(xml)
+    gain = read_ref(gain)
+    dark = read_ref(dark)
+    data, time = read_split_seq(top,
+                                bottom,
+                                header["ImageWidth"],
+                   header["ImageHeight"],
+                   header["ImageBitDepthReal"],
+                   header["TrueImageSize"],
+                   SegmentPreBuffer=xml["SegmentPreBuffer"],
+                   navigation_shape=navigation_size)
 
 def parse_header(file):
     metadata_dict = {"ImageWidth":["<u4", 548],
@@ -82,41 +249,23 @@ def parse_header(file):
 
 def parse_metadata(file):
     metadata_header_dict = {"Version": ["<u4", 0],
-                     "HeaderSizeAlways": ["<u4", 4],
-                     "IndexCountNumber": ["<u4", 8],
-                     "MetadataSize": ["<u4", 12],
-                     "MetadataInfoSize": ["<u4", 16],
-                     "MetadataLeadSize": ["<u4", 20],
-                     "SensorGain": [np.float64, 320],
-                     "Magnification": [np.float64, 328],
-                     "PixelSize": [np.float64, 336],
-                     "CameraLength": [np.float64, 344],
-                     "DiffPixelSize": [np.float64, 352],
-                     }
+                            "HeaderSizeAlways": ["<u4", 4],
+                            "IndexCountNumber": ["<u4", 8],
+                            "MetadataSize": ["<u4", 12],
+                            "MetadataInfoSize": ["<u4", 16],
+                            "MetadataLeadSize": ["<u4", 20],
+                            "SensorGain": [np.float64, 320],
+                            "Magnification": [np.float64, 328],
+                            "PixelSize": [np.float64, 336],
+                            "CameraLength": [np.float64, 344],
+                            "DiffPixelSize": [np.float64, 352],
+                            }
 
-    _logger.warning(msg="Metadata for Celeritas camera not properly loaded")
-    return
+    return read_binary_metadata(file, metadata_header_dict)
 
 
-def parse_xml(file):
-    try:
-        tree = ET.parse(file)
-        xml_dict = {}
-        for i in tree.iter():
-            xml_dict[i.tag]=i.attrib
-        #clean_xml
-        for k1 in xml_dict:
-            for k2 in xml_dict[k1]:
-                if k2 =="Value":
-                    try:
-                        xml_dict[k1] = float(xml_dict[k1][k2])
-                    except ValueError:
-                        xml_dict[k1] = xml_dict[k1][k2]
-    except FileNotFoundError:
-        _logger.warning(msg="File " + file + " not found. Please"
-                                             "move it to the same directory to read"
-                                             " the metadata ")
-    return xml_dict
+
+
 
 
 def read_full_seq(file,
@@ -131,7 +280,7 @@ def read_full_seq(file,
              ("ms", "<u2"),
              ("mis", "<u2"),
              ("empty", bytes, empty)]
-    data = read_binary_reshape(file,dtypes=dtype, offset=8192)
+    data = read_binary_reshape(file, dtypes=dtype, offset=8192)
     return data
 
 
@@ -178,10 +327,10 @@ def read_split_seq(top,
         total_frames = np.ceil(np.divide(np.product(navigation_shape),
                                SegmentPreBuffer))
 
-    data = read_stitch_binary(top, bottom, dtypes=dtype,
-                              total_frames=int(total_frames),
-                              offset=8192)
-    return data
+    data, time = read_stitch_binary(top, bottom, dtypes=dtype,
+                                    otal_frames=int(total_frames),
+                                    offset=8192)
+    return data, time
 
 
 def read_stitch_binary(top, bottom, dtypes, offset,
@@ -225,7 +374,7 @@ def read_ref(file_name,
     except FileNotFoundError:
         _logger.warning("No Dark Reference image found.  The Dark reference should be in the same directory "
                         "as the image and have the form xxx.seq.dark.mrc")
-        return
+        return None
 
 
 

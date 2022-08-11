@@ -61,6 +61,26 @@ def read_binary_metadata(file, mapping_dict):
                             "move it to the same directory to read"
                             " the metadata ")
     return metadata
+def parse_xml(file):
+    try:
+        tree = ET.parse(file)
+        xml_dict = {}
+        for i in tree.iter():
+            xml_dict[i.tag]=i.attrib
+        #clean_xml
+        for k1 in xml_dict:
+            for k2 in xml_dict[k1]:
+                if k2 =="Value":
+                    try:
+                        xml_dict[k1] = float(xml_dict[k1][k2])
+                    except ValueError:
+                        xml_dict[k1] = xml_dict[k1][k2]
+    except FileNotFoundError:
+        _logger.warning(msg="File " + file + " not found. Please"
+                                             "move it to the same directory to read"
+                                             " the metadata ")
+        return None
+    return xml_dict
 
 
 def dump_dictionary(

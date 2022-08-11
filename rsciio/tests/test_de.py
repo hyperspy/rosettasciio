@@ -2,7 +2,10 @@
 from hyperspy.io import load
 import numpy as np
 
-from rsciio.de.api import parse_header, parse_metadata, parse_xml,read_full_seq
+from rsciio.de.api import (parse_header, parse_metadata,
+                           parse_xml, read_full_seq,
+                           read_split_seq,
+                           read_ref)
 
 
 class TestShared:
@@ -25,7 +28,12 @@ class TestShared:
         assert xml["SegmentPreBuffer"] == 64
 
     def test_parse_metadata(self):
-        metadata = parse_metadata("de_data/celeritas_data/test_SS8_Bottom_14-16-01.468.seq.metadata")
+        metadata = parse_metadata("de_data/data/test.seq.metadata")
+
+    def test_read_dark(self):
+        dark = read_ref("de_data/data/test.seq.dark.mrc")
+        gain = read_ref("de_data/data/test.seq.gain.mrc")
+        assert gain.shape == dark.shape
 
 
 class TestLoadFull:
@@ -36,14 +44,25 @@ class TestLoadFull:
                              ImageHeight=header["ImageHeight"],
                              ImageBitDepthReal=header["ImageBitDepthReal"],
                              TrueImageSize=header["TrueImageSize"])
-        assert data["Array"].shape, (10, 2048, 2048)
+        assert data["Array"].shape==(10, 2048, 2048)
 
 class TestLoadCeleritas:
     def test_load(self):
         header = parse_header("de_data/celeritas_data/test_SS8_Bottom_14-16-01.468.seq")
-        data = read_full_seq("de_data/celeritas_data/test_SS8_Bottom_14-16-01.468.seq",
-                             ImageWidth=header["ImageWidth"],
-                             ImageHeight=header["ImageHeight"],
-                             ImageBitDepthReal=header["ImageBitDepthReal"],
-                             TrueImageSize=header["TrueImageSize"])
-        assert data["Array"].shape, (10, 2048, 2048)
+        print(header)
+        data,time = read_split_seq(top="de_data/celeritas_data/test_SS8_Top_14-16-01.432.seq",
+                              bottom="de_data/celeritas_data/test_SS8_Bottom_14-16-01.468.seq",
+                              ImageWidth=header["ImageWidth"],
+                              ImageHeight=header["ImageHeight"],
+                              ImageBitDepthReal=header["ImageBitDepthReal"],
+                              TrueImageSize=header["TrueImageSize"],
+                              navigation_shape=(30, 30))
+        import matplotlib.pyplot as plt
+        dark = read_ref("de_data/celeritas_data/test_SS8.seq.dark.mrc")
+        gain = read_ref("de_data/celeritas_data/test_SS8.seq.gain.mrc")
+
+        plt.imshow(dark)
+        plt.show()
+
+        plt.imshow(np.sum((data[0:50]-dark)*gain, axis=0))
+        plt.show()

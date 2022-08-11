@@ -32,6 +32,7 @@ _logger = logging.getLogger(__name__)
 data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}  # Stream Pix data types
 
 
+
 def file_reader(filename, navigation_size=(), celeritas=False,
                 **kwargs):
     if celeritas:
@@ -71,6 +72,8 @@ def file_reader(filename, navigation_size=(), celeritas=False,
 
     if celeritas:
         read_celeritas(top, bottom,navigation_size=navigation_size, **kwargs)
+    else:
+        SeqReader()
 
 
 class SeqReader:
@@ -122,7 +125,7 @@ class SeqReader:
         self.metadata["acquisition_instrument"] = {"TEM":
                                                        {'camera_length': metadata_dict["CameraLength"],
                                                         'magnification': metadata_dict["Magnification"]}}
-        return
+        return metadata_dict
 
     def _read_file_header(self):
         file_header_dict = {"ImageWidth":["<u4", 548],
@@ -133,7 +136,7 @@ class SeqReader:
                             "TrueImageSize": ["<i", 580],
                             "FPS": ['<d', 584],
                             }
-        metadata_dict = read_binary_metadata(self.metadata_file, file_header_dict)
+        metadata_dict = read_binary_metadata(self.file, file_header_dict)
         self.original_metadata["FileHeader"] = metadata_dict
         self.metadata["ImageHeader"] = metadata_dict
         return metadata_dict
@@ -142,13 +145,7 @@ class SeqReader:
         xml_dict = parse_xml(self.xml)
 
         self.original_metadata["xml"] = xml_dict
-        if xml_dict is not None:
-            self.metadata["ImageInfo"] = {"BadPixels":
-                                              xml_dict["Configuration"]["BadPixels"],
-                                          "FileInfo":
-                                              xml_dict["Configuration"]["FileInfo"]}
-            if "SegmentPreBuffer" in self.metadata["ImageInfo"]["FileInfo"]:
-                self.buffer = self.metadata["ImageInfo"]["FileInfo"]["SegmentPreBuffer"]
+        return xml_dict
 
     def _read_dark_gain(self):
         gain_img = read_ref(self.gain)
@@ -201,7 +198,7 @@ class SeqReader:
         data, time = read_full_seq(self.file,
                                    ImageWidth=header["ImageWidth"],
                                    ImageHeight=header["ImageHeight"],
-                                   ImageBitDepthReal=header["ImageBitDepthReal"],
+                                   ImageBitDepth=header["ImageBitDepth"],
                                    TrueImageSize=header["TrueImageSize"],
                                    navigation_shape=navigation_shape)
         if dark_img is not None:
@@ -217,94 +214,97 @@ class SeqReader:
                 "original_metadata": self.original_metadata}
 
 
-def read_celeritas(top, bottom, dark=None,
-                   gain=None,
-                   xml=None,
-                   metadata=None,navigation_size=None):
-    header = parse_header(top)
-    metadata = parse_metadata(metadata)
-    xml = parse_xml(xml)
-    gain = read_ref(gain)
-    dark = read_ref(dark)
-    data, time = read_split_seq(top,
-                                bottom,
-                                header["ImageWidth"],
-                   header["ImageHeight"],
-                   header["ImageBitDepthReal"],
-                   header["TrueImageSize"],
-                   SegmentPreBuffer=xml["SegmentPreBuffer"],
-                   navigation_shape=navigation_size)
+class CeleritasReader(SeqReader):
+    def __init__(self, top, bottom,  **kwargs):
+        super().__init__(**kwargs)
+        self.top = top
+        self.bottom = bottom
 
-def parse_header(file):
-    metadata_dict = {"ImageWidth":["<u4", 548],
-                      "ImageHeight":["<u4", 552],
-                      "ImageBitDepth":["<u4",556],
-                      "ImageBitDepthReal":["<u4",560],
-                      "NumFrames":["<i", 572],
-                      "TrueImageSize": ["<i", 580],
-                      "FPS": ['<d', 584],
-                    }
-    return read_binary_metadata(file, metadata_dict)
-
-
-def parse_metadata(file):
-    metadata_header_dict = {"Version": ["<u4", 0],
-                            "HeaderSizeAlways": ["<u4", 4],
-                            "IndexCountNumber": ["<u4", 8],
-                            "MetadataSize": ["<u4", 12],
-                            "MetadataInfoSize": ["<u4", 16],
-                            "MetadataLeadSize": ["<u4", 20],
-                            "SensorGain": [np.float64, 320],
-                            "Magnification": [np.float64, 328],
-                            "PixelSize": [np.float64, 336],
-                            "CameraLength": [np.float64, 344],
-                            "DiffPixelSize": [np.float64, 352],
+    def _read_file_header(self):
+        file_header_dict = {"ImageWidth":["<u4", 548],
+                            "ImageHeight":["<u4", 552],
+                            "ImageBitDepth":["<u4",556],
+                            "ImageBitDepthReal":["<u4",560],
+                            "NumFrames":["<i", 572],
+                            "TrueImageSize": ["<i", 580],
+                            "FPS": ['<d', 584],
                             }
+        metadata_dict = read_binary_metadata(self.top, file_header_dict)
+        self.original_metadata["FileHeader"] = metadata_dict
+        self.metadata["ImageHeader"] = metadata_dict
+        return metadata_dict
 
-    return read_binary_metadata(file, metadata_header_dict)
+    def _read_xml(self):
+        xml_dict = parse_xml(self.xml)
+
+        self.original_metadata["xml"] = xml_dict
+        print(xml_dict)
+        if xml_dict is not None:
+            if "SegmentPreBuffer" in xml_dict:
+                self.buffer = xml_dict["SegmentPreBuffer"]
+        return xml_dict
+
+    def read_data(self, navigation_shape=None):
+        header = self._read_file_header()
+        dark_img, gain_img = self._read_dark_gain()
+        self._read_xml()
+        self._read_metadata()
+        data, time = read_split_seq(self.top,
+                                    self.bottom,
+                                    ImageWidth=header["ImageWidth"],
+                                    ImageHeight=header["ImageHeight"],
+                                    ImageBitDepth=header["ImageBitDepth"],
+                                    TrueImageSize=header["TrueImageSize"],
+                                    SegmentPreBuffer=self.buffer,
+                                    navigation_shape=navigation_shape)
+        if dark_img is not None:
+            data = np.subtract(data, dark_img)
+        if gain_img is not None:
+            data = np.multiply(data, gain_img)
+        self.original_metadata["Timestamps"] = time
+        self.metadata["Timestamps"] = time
+        self._create_axes(header=header, nav_shape=navigation_shape)
+        return {"data": data,
+                "metadata": self.metadata,
+                "axes": self.axes,
+                "original_metadata": self.original_metadata}
 
 
-
-
-
+"""
+Functions for reading the different binary files used.
+"""
 
 def read_full_seq(file,
                   ImageWidth,
                   ImageHeight,
-                  ImageBitDepthReal,
+                  ImageBitDepth,
                   TrueImageSize,
                   navigation_shape=None):
+    data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}
     empty = TrueImageSize-((ImageWidth*ImageHeight*2)+8)
-    dtype = [("Array", np.int16, (ImageWidth, ImageHeight)),
+    dtype = [("Array", data_types[int(ImageBitDepth)], (ImageWidth, ImageHeight)),
              ("sec", "<u4"),
              ("ms", "<u2"),
              ("mis", "<u2"),
              ("empty", bytes, empty)]
-    data = read_binary_reshape(file, dtypes=dtype, offset=8192)
-    return data
-
-
-def read_binary_reshape(file,
-                        dtypes,
-                        offset,
-                        navigation_shape=None):
-    keys = [d[0] for d in dtypes]
-    mapped = np.memmap(file,
-                       offset=offset,
-                       dtype=dtypes,
-                       shape=navigation_shape)
-    bin_data = {k: mapped[k] for k in keys}
-    return bin_data
+    data = np.memmap(file,
+                     offset=8192,
+                     dtype=dtype,
+                     shape=navigation_shape)
+    return data["Array"], {"sec": data["sec"],
+                           "ms": data["ms"],
+                           "mis": data["mis"]}
 
 
 def read_split_seq(top,
                    bottom,
                    ImageWidth,
                    ImageHeight,
-                   ImageBitDepthReal,
+                   ImageBitDepth,
                    TrueImageSize,
                    SegmentPreBuffer=None,
-                   navigation_shape=None):
+                   navigation_shape=None,):
+    data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}
     empty = TrueImageSize-((ImageWidth*ImageHeight*2)+8)
     if SegmentPreBuffer is None:
         _logger.warning(msg="No XML File given. Guessing Segment PreBuffer "
@@ -315,27 +315,32 @@ def read_split_seq(top,
             SegmentPreBuffer= 64
         else:
             SegmentPreBuffer = 4
-    dtype = [("Array", np.int16, (SegmentPreBuffer,
-                                  int(ImageHeight/SegmentPreBuffer),
-                                  int(ImageWidth))),
+    dtype = [("Array", data_types[int(ImageBitDepth)], (int(SegmentPreBuffer),
+                                                        int(ImageHeight/SegmentPreBuffer),
+                                                        int(ImageWidth))),
              ("sec", "<u4"),
              ("ms", "<u2"),
              ("mis", "<u2"),
              ("empty", bytes, empty)]
     if navigation_shape is not None:
         # need to read out extra frames
-        total_frames = np.ceil(np.divide(np.product(navigation_shape),
-                               SegmentPreBuffer))
+        total_frames = int(np.ceil(np.divide(np.product(navigation_shape),
+                               SegmentPreBuffer)))
+    else:
+        total_frames =None
 
     data, time = read_stitch_binary(top, bottom, dtypes=dtype,
-                                    otal_frames=int(total_frames),
-                                    offset=8192)
+                                    total_frames=total_frames,
+                                    offset=8192,
+                                    navigation_shape=navigation_shape)
     return data, time
 
 
 def read_stitch_binary(top, bottom, dtypes, offset,
                        total_frames=None, navigation_shape=None):
     keys = [d[0] for d in dtypes]
+    print(total_frames)
+    print(navigation_shape)
     top_mapped = np.memmap(top,
                            offset=offset,
                            dtype=dtypes,
@@ -349,7 +354,9 @@ def read_stitch_binary(top, bottom, dtypes, offset,
                             1)
     if navigation_shape is not None:
         cut = np.product(navigation_shape)
-        array = array[:cut].reshape(shape=navigation_shape)
+        array = array[:cut]
+        new_shape = tuple(navigation_shape) + array.shape[1:]
+        array = array.reshape(new_shape)
 
     time = {k: bottom_mapped[k] for k in keys if k not in ["Array", "empty"]}
     return array, time

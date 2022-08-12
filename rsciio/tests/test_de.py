@@ -75,7 +75,7 @@ class TestLoadCeleritas:
         assert xml["GainRef"] == "Yes"
         assert xml["SegmentPreBuffer"] == 128
 
-    @pytest.mark.parametrize("nav_shape", [None, (5, 2), (5, 3)])
+    @pytest.mark.parametrize("nav_shape", [None, (50, 200), (5, 3)])
     def test_read(self, seq, nav_shape):
         data_dict = seq.read_data()
         assert data_dict["data"].shape == (128, 128, 256)
@@ -97,3 +97,10 @@ def test_load_file3():
     print(data_dict["data"])
     assert isinstance(data_dict["data"],dask.array.Array)
     assert data_dict["data"].shape == (256, 64, 64)
+
+def test_load_file3():
+    data_dict = file_reader("de_data/celeritas_data/64x64_Prebuffer256/test_Bottom_14-13-42.822.seq",
+                            celeritas=True, lazy=True, navigation_shape=(50,50))
+    print(data_dict["data"])
+    assert isinstance(data_dict["data"], dask.array.Array)
+    assert data_dict["data"].shape == (50, 50, 256, 64, 64)

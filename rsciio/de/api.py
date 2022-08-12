@@ -33,7 +33,7 @@ data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}  # Stream Pix data type
 
 
 
-def file_reader(filename, navigation_shape=(), celeritas=False,
+def file_reader(filename, navigation_shape=(),lazy=False, celeritas=False,
                 **kwargs):
     if celeritas:
         if "top" not in kwargs and "bottom" not in kwargs:
@@ -79,7 +79,7 @@ def file_reader(filename, navigation_shape=(), celeritas=False,
                                  **kwargs)
     else:
         reader = SeqReader(file=filename, **kwargs)
-    return reader.read_data(navigation_shape=navigation_shape)
+    return reader.read_data(navigation_shape=navigation_shape, lazy=lazy)
 
 
 class SeqReader:
@@ -251,7 +251,7 @@ class CeleritasReader(SeqReader):
                 self.buffer = xml_dict["SegmentPreBuffer"]
         return xml_dict
 
-    def read_data(self, navigation_shape=None):
+    def read_data(self, navigation_shape=None, lazy=False):
         header = self._read_file_header()
         dark_img, gain_img = self._read_dark_gain()
         self._read_xml()
@@ -264,7 +264,8 @@ class CeleritasReader(SeqReader):
                                     TrueImageSize=header["TrueImageSize"],
                                     SegmentPreBuffer=self.buffer,
                                     total_frames=header["NumFrames"],
-                                    navigation_shape=navigation_shape)
+                                    navigation_shape=navigation_shape,
+                                    lazy=lazy)
         if dark_img is not None:
             data = np.subtract(data, dark_img[np.newaxis])
         if gain_img is not None:
@@ -312,7 +313,8 @@ def read_split_seq(top,
                    TrueImageSize,
                    SegmentPreBuffer=None,
                    total_frames=None,
-                   navigation_shape=None,):
+                   navigation_shape=None,
+                   lazy=False):
     data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}
     empty = TrueImageSize-((ImageWidth*ImageHeight*2)+8)
     if SegmentPreBuffer is None:
@@ -331,23 +333,25 @@ def read_split_seq(top,
              ("ms", "<u2"),
              ("mis", "<u2"),
              ("empty", bytes, empty)]
-    is_n = navigation_shape == ()
     if navigation_shape is not None and navigation_shape != ():
         # need to read out extra buffered frames
         total_buffer_frames = int(np.ceil(np.divide(np.product(navigation_shape),
                                SegmentPreBuffer)))
     else:
-        total_buffer_frames = np.ceil(total_frames/SegmentPreBuffer)
+        total_buffer_frames = total_frames
 
     data, time = read_stitch_binary(top, bottom, dtypes=dtype,
                                     total_buffer_frames=int(total_buffer_frames),
                                     offset=8192,
-                                    navigation_shape=navigation_shape)
+                                    navigation_shape=navigation_shape,
+                                    lazy=lazy)
     return data, time
 
 
 def read_stitch_binary(top, bottom, dtypes, offset,
-                       total_buffer_frames=None, navigation_shape=None):
+                       total_buffer_frames=None,
+                       navigation_shape=None,
+                       lazy=False):
     keys = [d[0] for d in dtypes]
     top_mapped = np.memmap(top,
                            offset=offset,
@@ -358,7 +362,11 @@ def read_stitch_binary(top, bottom, dtypes, offset,
                               dtype=dtypes,
                               shape=total_buffer_frames)
 
-    array = da.concatenate([da.flip(top_mapped["Array"].reshape(-1, *top_mapped["Array"].shape[2:]), axis=1),
+    if lazy:
+        top_mapped = da.from_array(top_mapped)
+        bottom_mapped = da.from_array(bottom_mapped)
+
+    array = np.concatenate([np.flip(top_mapped["Array"].reshape(-1, *top_mapped["Array"].shape[2:]), axis=1),
                             bottom_mapped["Array"].reshape(-1, *bottom_mapped["Array"].shape[2:])],
                             1)
     if navigation_shape is not None and navigation_shape != ():

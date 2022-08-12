@@ -1,3 +1,4 @@
+import dask.array
 import matplotlib.pyplot as plt
 import pytest
 from hyperspy.io import load
@@ -92,5 +93,7 @@ def test_load_file2():
 
 def test_load_file3():
     data_dict = file_reader("de_data/celeritas_data/64x64_Prebuffer256/test_Bottom_14-13-42.822.seq",
-                            celeritas=True)
+                            celeritas=True, lazy=True)
+    print(data_dict["data"])
+    assert isinstance(data_dict["data"],dask.array.Array)
     assert data_dict["data"].shape == (256, 64, 64)

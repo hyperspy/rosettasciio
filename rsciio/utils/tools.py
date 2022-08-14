@@ -34,9 +34,11 @@ _UREG = UnitRegistry()
 
 _logger = logging.getLogger(__name__)
 
+
 @contextmanager
 def dummy_context_manager(*args, **kwargs):
     yield
+
 
 def dump_dictionary(
     file, dic, string="root", node_separator=".", value_separator=" = "
@@ -101,7 +103,7 @@ def ensure_directory(path):
 
 
 def overwrite(fname):
-    """ If file exists 'fname', ask for overwriting and return True or False,
+    """If file exists 'fname', ask for overwriting and return True or False,
     else return True.
 
     Parameters
@@ -115,8 +117,9 @@ def overwrite(fname):
         Whether to overwrite file.
 
     """
-    if Path(fname).is_file() or (Path(fname).is_dir() and
-                                 os.path.splitext(fname)[1] == '.zspy'):
+    if Path(fname).is_file() or (
+        Path(fname).is_dir() and os.path.splitext(fname)[1] == ".zspy"
+    ):
         message = f"Overwrite '{fname}' (y/n)?\n"
         try:
             answer = input(message)
@@ -160,10 +163,12 @@ class DTBox(Box):
             if self.get(key) is None:
                 self[key] = {}
             self = self[key]
+
     def set_item(self, path, value):
         if self.get(path) is None:
             self.add_node(path)
         self[path] = value
+
     def has_item(self, path):
         return self.get(path) is not None
 
@@ -231,6 +236,7 @@ def dict2sarray(dictionary, sarray=None, dtype=None):
 def convert_units(value, units, to_units):
     return (value * _UREG(units)).to(to_units).magnitude
 
+
 def get_object_package_info(obj):
     """Get info about object package
 
@@ -287,6 +293,8 @@ def get_file_handle(data, warn=True):
             return data.dask[arrkey].file
         except (AttributeError, ValueError):
             if warn:
-                _logger.warning("Failed to retrieve file handle, either "
-                                "the file is already closed or it is not "
-                                "an hdf5 file.")
+                _logger.warning(
+                    "Failed to retrieve file handle, either "
+                    "the file is already closed or it is not "
+                    "an hdf5 file."
+                )

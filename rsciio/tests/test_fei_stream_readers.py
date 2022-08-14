@@ -27,9 +27,11 @@ in order to mimic the usage in the FEI EMD reader.
 import numpy as np
 import pytest
 
-from rsciio.utils.fei_stream_readers import (array_to_stream,
-                                                 stream_to_array,
-                                                 stream_to_sparse_COO_array)
+from rsciio.utils.fei_stream_readers import (
+    array_to_stream,
+    stream_to_array,
+    stream_to_sparse_COO_array,
+)
 
 
 @pytest.mark.parametrize("lazy", (True, False))
@@ -38,14 +40,14 @@ def test_dense_stream(lazy):
     stream = array_to_stream(arr)
     if lazy:
         arrs = stream_to_sparse_COO_array(
-            stream, spatial_shape=(3, 4), sum_frames=False, channels=5,
-            last_frame=2)
+            stream, spatial_shape=(3, 4), sum_frames=False, channels=5, last_frame=2
+        )
         arrs = arrs.compute()
         assert (arrs == arr).all()
     else:
         arrs = stream_to_array(
-            stream, spatial_shape=(3, 4), sum_frames=False, channels=5,
-            last_frame=2)
+            stream, spatial_shape=(3, 4), sum_frames=False, channels=5, last_frame=2
+        )
         assert (arrs == arr).all()
 
 
@@ -55,14 +57,14 @@ def test_empty_stream(lazy):
     stream = array_to_stream(arr)
     if lazy:
         arrs = stream_to_sparse_COO_array(
-            stream, spatial_shape=(3, 4), sum_frames=False, channels=5,
-            last_frame=2)
+            stream, spatial_shape=(3, 4), sum_frames=False, channels=5, last_frame=2
+        )
         arrs = arrs.compute()
         assert not arrs.any()
     else:
         arrs = stream_to_array(
-            stream, spatial_shape=(3, 4), sum_frames=False, channels=5,
-            last_frame=2)
+            stream, spatial_shape=(3, 4), sum_frames=False, channels=5, last_frame=2
+        )
         assert not arrs.any()
 
 
@@ -75,12 +77,12 @@ def test_sparse_stream(lazy):
     stream = array_to_stream(arr)
     if lazy:
         arrs = stream_to_sparse_COO_array(
-            stream, spatial_shape=(3, 4), sum_frames=False, channels=5,
-            last_frame=2)
+            stream, spatial_shape=(3, 4), sum_frames=False, channels=5, last_frame=2
+        )
         arrs = arrs.compute()
         assert (arrs == arr).all()
     else:
         arrs = stream_to_array(
-            stream, spatial_shape=(3, 4), sum_frames=False, channels=5,
-            last_frame=2)
+            stream, spatial_shape=(3, 4), sum_frames=False, channels=5, last_frame=2
+        )
         assert (arrs == arr).all()

@@ -22,39 +22,39 @@
 import numpy as np
 
 dm3_data_types = {
-    1: '<i2',  # 2 byte integer signed ("short")
-    2: '<f4',  # 4 byte real (IEEE 754)
-    3: '<c8',  # 8 byte complex
-    5: '<c8',  # 8 byte complex (packed)
-    6: '<u1',  # 1 byte integer unsigned ("byte")
-    7: '<i4',  # 4 byte integer signed ("long")
-    8: np.dtype([('R', 'u1'), ('G', 'u1'), ('B', 'u1'), ('A', 'u1')]),
-    9: '<i1',  # byte integer signed
-    10: '<u2',  # 2 byte integer unsigned
-    11: '<u4',  # 4 byte integer unsigned
-    12: '<f8',  # 8 byte real
-    13: '<c16',  # byte complex
-    14: 'bool',  # 1 byte binary (ie 0 or 1)
-    23: np.dtype([('R', 'u1'), ('G', 'u1'), ('B', 'u1'), ('A', 'u1')]),
+    1: "<i2",  # 2 byte integer signed ("short")
+    2: "<f4",  # 4 byte real (IEEE 754)
+    3: "<c8",  # 8 byte complex
+    5: "<c8",  # 8 byte complex (packed)
+    6: "<u1",  # 1 byte integer unsigned ("byte")
+    7: "<i4",  # 4 byte integer signed ("long")
+    8: np.dtype([("R", "u1"), ("G", "u1"), ("B", "u1"), ("A", "u1")]),
+    9: "<i1",  # byte integer signed
+    10: "<u2",  # 2 byte integer unsigned
+    11: "<u4",  # 4 byte integer unsigned
+    12: "<f8",  # 8 byte real
+    13: "<c16",  # byte complex
+    14: "bool",  # 1 byte binary (ie 0 or 1)
+    23: np.dtype([("R", "u1"), ("G", "u1"), ("B", "u1"), ("A", "u1")]),
 }
 
 dm4_data_types = {
-    1: '<i2',  # 2 byte integer signed ("short")
-    2: '<f4',  # 4 byte real (IEEE 754)
-    3: '<c8',  # 8 byte complex
-    5: '<c8',  # 8 byte complex (packed)
-    6: '<u1',  # 1 byte integer unsigned ("byte")
-    7: '<i4',  # 4 byte integer signed ("long")
-    8: np.dtype([('R', 'u1'), ('G', 'u1'), ('B', 'u1'), ('A', 'u1')]),
-    9: '<i1',  # byte integer signed
-    10: '<u2',  # 2 byte integer unsigned
-    11: '<u4',  # 4 byte integer unsigned
-    12: '<f8',  # 8 byte real
-    13: '<c16',  # byte complex
-    14: 'bool',  # 1 byte binary (ie 0 or 1)
-    23: np.dtype([('R', 'u1'), ('G', 'u1'), ('B', 'u1'), ('A', 'u1')]),
-    27: 'complex64',  # not numpy: 8-Byte packed complex (FFT data)
-    28: 'complex128',  # not numpy: 16-Byte packed complex (FFT data)
+    1: "<i2",  # 2 byte integer signed ("short")
+    2: "<f4",  # 4 byte real (IEEE 754)
+    3: "<c8",  # 8 byte complex
+    5: "<c8",  # 8 byte complex (packed)
+    6: "<u1",  # 1 byte integer unsigned ("byte")
+    7: "<i4",  # 4 byte integer signed ("long")
+    8: np.dtype([("R", "u1"), ("G", "u1"), ("B", "u1"), ("A", "u1")]),
+    9: "<i1",  # byte integer signed
+    10: "<u2",  # 2 byte integer unsigned
+    11: "<u4",  # 4 byte integer unsigned
+    12: "<f8",  # 8 byte real
+    13: "<c16",  # byte complex
+    14: "bool",  # 1 byte binary (ie 0 or 1)
+    23: np.dtype([("R", "u1"), ("G", "u1"), ("B", "u1"), ("A", "u1")]),
+    27: "complex64",  # not numpy: 8-Byte packed complex (FFT data)
+    28: "complex128",  # not numpy: 16-Byte packed complex (FFT data)
 }
 
 
@@ -66,9 +66,10 @@ def generate_1D_files(f, data_types, dmversion):
             'filename = path+"'
             f'\\\\{subfolder}\\\\test-{key}.dm{dmversion}"\n'
             f'im := NewImage("test", {key}, 2)\n'
-            'im[0,1] = 1\n'
-            'im[1,2] = 2\n'
-            'im.SaveAsGatan(filename)\n')
+            "im[0,1] = 1\n"
+            "im[1,2] = 2\n"
+            "im.SaveAsGatan(filename)\n"
+        )
 
 
 def generate_2D_files(f, data_types, dmversion):
@@ -79,11 +80,12 @@ def generate_2D_files(f, data_types, dmversion):
             'filename = path+"'
             f'\\\\{subfolder}\\\\test-{key}.dm{dmversion}"\n'
             f'im := NewImage("test", {key}, 2, 2)\n'
-            'im[0,0,1,1] = 1\n'
-            'im[0,1,1,2] = 2\n'
-            'im[1,0,2,1] = 3\n'
-            'im[1,1,2,2] = 4\n'
-            'im.SaveAsGatan(filename)\n')
+            "im[0,0,1,1] = 1\n"
+            "im[0,1,1,2] = 2\n"
+            "im[1,0,2,1] = 3\n"
+            "im[1,1,2,2] = 4\n"
+            "im.SaveAsGatan(filename)\n"
+        )
 
 
 def generate_3D_files(f, data_types, dmversion):
@@ -94,15 +96,16 @@ def generate_3D_files(f, data_types, dmversion):
             'filename = path+"'
             f'\\\\{subfolder}\\\\test-{key}.dm{dmversion}"\n'
             f'im := NewImage("test", {key}, 2, 2,2)\n'
-            'im[0,0,0,1,1,1] = 1\n'
-            'im[1,0,0,2,1,1] = 2\n'
-            'im[0,1,0,1,2,1] = 3\n'
-            'im[1,1,0,2,2,1] = 4\n'
-            'im[0,0,1,1,1,2] = 5\n'
-            'im[1,0,1,2,1,2] = 6\n'
-            'im[0,1,1,1,2,2] = 7\n'
-            'im[1,1,1,2,2,2] = 8\n'
-            'im.SaveAsGatan(filename)\n')
+            "im[0,0,0,1,1,1] = 1\n"
+            "im[1,0,0,2,1,1] = 2\n"
+            "im[0,1,0,1,2,1] = 3\n"
+            "im[1,1,0,2,2,1] = 4\n"
+            "im[0,0,1,1,1,2] = 5\n"
+            "im[1,0,1,2,1,2] = 6\n"
+            "im[0,1,1,1,2,2] = 7\n"
+            "im[1,1,1,2,2,2] = 8\n"
+            "im.SaveAsGatan(filename)\n"
+        )
 
 
 def generate_4D_files(f, data_types, dmversion):
@@ -113,33 +116,36 @@ def generate_4D_files(f, data_types, dmversion):
             'filename = path+"'
             f'\\\\{subfolder}\\\\test-{key}.dm{dmversion}"\n'
             f'im := NewImage("test", %i, 2,2,2,2)\n'
-            'im[0,0,0,0,1,1,1,1] = 1\n'
-            'im[1,0,0,0,2,1,1,1] = 2\n'
-            'im[0,1,0,0,1,2,1,1] = 3\n'
-            'im[1,1,0,0,2,2,1,1] = 4\n'
-            'im[0,0,1,0,1,1,2,1] = 5\n'
-            'im[1,0,1,0,2,1,2,1] = 6\n'
-            'im[0,1,1,0,1,2,2,1] = 7\n'
-            'im[1,1,1,0,2,2,2,1] = 8\n'
-            'im[0,0,0,1,1,1,1,2] = 9\n'
-            'im[1,0,0,1,2,1,1,2] = 10\n'
-            'im[0,1,0,1,1,2,1,2] = 11\n'
-            'im[1,1,0,1,2,2,1,2] = 12\n'
-            'im[0,0,1,1,1,1,2,2] = 13\n'
-            'im[1,0,1,1,2,1,2,2] = 14\n'
-            'im[0,1,1,1,1,2,2,2] = 15\n'
-            'im[1,1,1,1,2,2,2,2] = 16\n'
-            'im.SaveAsGatan(filename)\n' % (dmversion, key, dmversion, key))
+            "im[0,0,0,0,1,1,1,1] = 1\n"
+            "im[1,0,0,0,2,1,1,1] = 2\n"
+            "im[0,1,0,0,1,2,1,1] = 3\n"
+            "im[1,1,0,0,2,2,1,1] = 4\n"
+            "im[0,0,1,0,1,1,2,1] = 5\n"
+            "im[1,0,1,0,2,1,2,1] = 6\n"
+            "im[0,1,1,0,1,2,2,1] = 7\n"
+            "im[1,1,1,0,2,2,2,1] = 8\n"
+            "im[0,0,0,1,1,1,1,2] = 9\n"
+            "im[1,0,0,1,2,1,1,2] = 10\n"
+            "im[0,1,0,1,1,2,1,2] = 11\n"
+            "im[1,1,0,1,2,2,1,2] = 12\n"
+            "im[0,0,1,1,1,1,2,2] = 13\n"
+            "im[1,0,1,1,2,1,2,2] = 14\n"
+            "im[0,1,1,1,1,2,2,2] = 15\n"
+            "im[1,1,1,1,2,2,2,2] = 16\n"
+            "im.SaveAsGatan(filename)\n" % (dmversion, key, dmversion, key)
+        )
 
-if __name__ == '__main__':
-    with open("generate_dm3_test_files.s", "w") as f1, open("generate_dm4_test_files.s", "w") as f2:
+
+if __name__ == "__main__":
+    with open("generate_dm3_test_files.s", "w") as f1, open(
+        "generate_dm4_test_files.s", "w"
+    ) as f2:
         for f in (f1, f2):
-            f.write('image im\n')
-            f.write('string filename, path\n')
-            f.write('path = GetApplicationDirectory(2, 0)\n')
+            f.write("image im\n")
+            f.write("string filename, path\n")
+            f.write("path = GetApplicationDirectory(2, 0)\n")
             f.write('result("\\nThe file will be saved to: " + path + "\\n")\n')
-        for f, dmv, dt in zip(
-                (f1, f2), (3, 4), (dm3_data_types, dm4_data_types)):
+        for f, dmv, dt in zip((f1, f2), (3, 4), (dm3_data_types, dm4_data_types)):
             generate_1D_files(f, dt, dmv)
             generate_2D_files(f, dt, dmv)
             generate_3D_files(f, dt, dmv)

@@ -8,9 +8,7 @@ import dask.array as da
 from skimage.exposure.exposure import intensity_range, _output_dtype, DTYPE_RANGE
 
 
-
-
-def rescale_intensity(image, in_range='image', out_range='dtype'):
+def rescale_intensity(image, in_range="image", out_range="dtype"):
     """Return image after stretching or shrinking its intensity levels.
 
     The desired intensity range of the input and output, `in_range` and
@@ -102,21 +100,22 @@ def rescale_intensity(image, in_range='image', out_range='dtype'):
     >>> rescale_intensity(image, out_range=(0, 127)).astype(np.int32)
     array([127, 127, 127], dtype=int32)
     """
-    if out_range in ['dtype', 'image']:
+    if out_range in ["dtype", "image"]:
         out_dtype = _output_dtype(image.dtype.type, image.dtype)
     else:
         out_dtype = _output_dtype(out_range, image.dtype)
 
     imin, imax = map(float, intensity_range(image, in_range))
-    omin, omax = map(float, intensity_range(image, out_range,
-                                            clip_negative=(imin >= 0)))
+    omin, omax = map(
+        float, intensity_range(image, out_range, clip_negative=(imin >= 0))
+    )
 
     if np.any(np.isnan([imin, imax, omin, omax])):
         utils.warn(
             "One or more intensity levels are NaN. Rescaling will broadcast "
             "NaN to the full image. Provide intensity levels yourself to "
             "avoid this. E.g. with np.nanmin(image), np.nanmax(image).",
-            stacklevel=2
+            stacklevel=2,
         )
 
     image = np.clip(image, imin, imax)

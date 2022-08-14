@@ -22,11 +22,7 @@ import numpy as np
 import pytest
 
 import hyperspy.api as hs
-from rsciio.impulse.api import (
-    ImpulseCSV,
-    invalid_file_error,
-    invalid_filenaming_error
-)
+from rsciio.impulse.api import ImpulseCSV, invalid_file_error, invalid_filenaming_error
 
 testdirpath = os.path.dirname(__file__)
 dirpath = os.path.join(testdirpath, "impulse_data")
@@ -34,38 +30,38 @@ dirpath = os.path.join(testdirpath, "impulse_data")
 
 # Load a synchronized data log file
 
+
 def test_read_sync_file():
-    filename = os.path.join(dirpath, 'StubExperiment_Synchronized data.csv')
-    s = hs.load(filename, reader='impulse')
+    filename = os.path.join(dirpath, "StubExperiment_Synchronized data.csv")
+    s = hs.load(filename, reader="impulse")
     assert len(s) == 13
-    assert (s[0].metadata.General.title ==
-            'Temperature Measured (degC)')
-    assert s[0].metadata.Signal.quantity == 'degC'
-    assert s[1].metadata.General.title == 'MixValve'
-    assert s[1].metadata.Signal.quantity == ''
-    assert s[2].metadata.General.title == 'Pin Measured'
-    assert s[2].metadata.Signal.quantity == ''
-    assert s[3].metadata.General.title == 'Pout Measured'
-    assert s[3].metadata.Signal.quantity == ''
-    assert s[4].metadata.General.title == 'Pnr Measured'
-    assert s[4].metadata.Signal.quantity == ''
-    assert s[5].metadata.General.title == 'Fnr'
-    assert s[5].metadata.Signal.quantity == ''
-    assert s[6].metadata.General.title == '% Gas1 Measured'
-    assert s[6].metadata.Signal.quantity == ''
-    assert s[7].metadata.General.title == '% Gas2 Measured'
-    assert s[7].metadata.Signal.quantity == ''
-    assert s[8].metadata.General.title == '% Gas3 Measured'
-    assert s[8].metadata.Signal.quantity == ''
-    assert s[9].metadata.General.title == 'Channel#1'
-    assert s[9].metadata.Signal.quantity == ''
-    assert s[10].metadata.General.title == 'Channel#2'
-    assert s[10].metadata.Signal.quantity == ''
-    assert s[11].metadata.General.title == 'Channel#3'
-    assert s[11].metadata.Signal.quantity == ''
-    assert s[12].metadata.General.title == 'Channel#4'
-    assert s[12].metadata.Signal.quantity == ''
-    
+    assert s[0].metadata.General.title == "Temperature Measured (degC)"
+    assert s[0].metadata.Signal.quantity == "degC"
+    assert s[1].metadata.General.title == "MixValve"
+    assert s[1].metadata.Signal.quantity == ""
+    assert s[2].metadata.General.title == "Pin Measured"
+    assert s[2].metadata.Signal.quantity == ""
+    assert s[3].metadata.General.title == "Pout Measured"
+    assert s[3].metadata.Signal.quantity == ""
+    assert s[4].metadata.General.title == "Pnr Measured"
+    assert s[4].metadata.Signal.quantity == ""
+    assert s[5].metadata.General.title == "Fnr"
+    assert s[5].metadata.Signal.quantity == ""
+    assert s[6].metadata.General.title == "% Gas1 Measured"
+    assert s[6].metadata.Signal.quantity == ""
+    assert s[7].metadata.General.title == "% Gas2 Measured"
+    assert s[7].metadata.Signal.quantity == ""
+    assert s[8].metadata.General.title == "% Gas3 Measured"
+    assert s[8].metadata.Signal.quantity == ""
+    assert s[9].metadata.General.title == "Channel#1"
+    assert s[9].metadata.Signal.quantity == ""
+    assert s[10].metadata.General.title == "Channel#2"
+    assert s[10].metadata.Signal.quantity == ""
+    assert s[11].metadata.General.title == "Channel#3"
+    assert s[11].metadata.Signal.quantity == ""
+    assert s[12].metadata.General.title == "Channel#4"
+    assert s[12].metadata.Signal.quantity == ""
+
 
 class testSyncFile:
     def setup_method(self, method):
@@ -106,7 +102,7 @@ class testSyncFile:
         assert om.Room_temperature == 21
         assert om.Sample == "Gold"
         assert om.System_version == "G+"
-    
+
     def test_read_data(self):
         expected_data = np.load(
             os.path.join(dirpath, "StubExperiment_Synchronized data.npy")
@@ -136,7 +132,6 @@ class testSyncFileCSVreader:
             "Channel#4",
         ]
 
-
     def test_read_data(self):
         dicts = (
             self.isf._data_dictionary[key] for key in self.isf.logged_quantity_name_list
@@ -146,9 +141,6 @@ class testSyncFileCSVreader:
             os.path.join(dirpath, "StubExperiment_Synchronized data.npy")
         )
         np.testing.assert_allclose(data.T, expected_data)
-
-
-
 
 
 # Loading a random csv file
@@ -174,7 +166,7 @@ def test_loading_invalid_impulse_filename():
 # Test raw data file
 
 
-class testRawFile():
+class testRawFile:
     def setup_method(self, method):
         filename = os.path.join(dirpath, "StubExperiment_Heat raw.csv")
         self.s_list = hs.load(filename, reader="impulse")

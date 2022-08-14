@@ -57,7 +57,7 @@ DIRPATH = os.path.join(os.path.dirname(__file__), "tvips_files")
 def fake_metadata_diffraction():
     metadata = {
         "Acquisition_instrument": {
-            "TEM" : {
+            "TEM": {
                 "beam_current": 23,
                 "beam_energy": 200,
                 "camera_length": 80,
@@ -67,7 +67,7 @@ def fake_metadata_diffraction():
             "date": "1993-06-18",
             "time": "12:34:56",
             "time_zone": "CET",
-        }
+        },
     }
     return DictionaryTreeBrowser(metadata)
 
@@ -76,7 +76,7 @@ def fake_metadata_diffraction():
 def fake_metadata_imaging():
     metadata = {
         "Acquisition_instrument": {
-            "TEM" : {
+            "TEM": {
                 "beam_current": 23,
                 "beam_energy": 200,
                 "magnification": 3000,
@@ -86,7 +86,7 @@ def fake_metadata_imaging():
             "date": "1993-06-18",
             "time": "12:34:56",
             "time_zone": "CET",
-        }
+        },
     }
     return DictionaryTreeBrowser(metadata)
 
@@ -95,7 +95,7 @@ def fake_metadata_imaging():
 def fake_metadata_confused():
     metadata = {
         "Acquisition_instrument": {
-            "TEM" : {
+            "TEM": {
                 "beam_current": 23,
                 "beam_energy": 200,
                 "camera_length": 80,
@@ -106,17 +106,20 @@ def fake_metadata_confused():
             "date": "1993-06-18",
             "time": "12:34:56",
             "time_zone": "CET",
-        }
+        },
     }
     return DictionaryTreeBrowser(metadata)
 
 
 @pytest.fixture()
-def fake_metadatas(fake_metadata_diffraction, fake_metadata_imaging, fake_metadata_confused):
-    return {"diffraction": fake_metadata_diffraction,
-            "imaging": fake_metadata_imaging,
-            "confused": fake_metadata_confused,
-            }
+def fake_metadatas(
+    fake_metadata_diffraction, fake_metadata_imaging, fake_metadata_confused
+):
+    return {
+        "diffraction": fake_metadata_diffraction,
+        "imaging": fake_metadata_imaging,
+        "confused": fake_metadata_confused,
+    }
 
 
 @pytest.fixture()
@@ -172,12 +175,9 @@ def fake_signals(fake_signal_3D, fake_signal_4D, fake_signal_5D):
         ("foo", None),
         ("", None),
         ("s", None),
-    ]
+    ],
 )
-@pytest.mark.parametrize(
-    "sig",
-    ["fake_signal_3D", "fake_signal_4D", "fake_signal_5D"]
-)
+@pytest.mark.parametrize("sig", ["fake_signal_3D", "fake_signal_4D", "fake_signal_5D"])
 def test_guess_image_mode(unit, expected_mode, sig, fake_signals):
     signal = fake_signals[sig]
     signal.axes_manager[-1].units = unit
@@ -191,18 +191,20 @@ def test_guess_image_mode(unit, expected_mode, sig, fake_signals):
         ("1/pm", 1e3, 2, 0),
         ("um", 1e3, 1, 60),
         ("foo", 1, 2, 12),
-    ]
+    ],
 )
-@pytest.mark.parametrize(
-    "sig",
-    ["fake_signal_3D", "fake_signal_4D", "fake_signal_5D"]
-)
-@pytest.mark.parametrize(
-    "metadata",
-    ["diffraction", "imaging", "confused", None]
-)
-def test_main_header_from_signal(unit, expected_scale_factor, version, fheb,
-                                 sig, fake_signals, metadata, fake_metadatas):
+@pytest.mark.parametrize("sig", ["fake_signal_3D", "fake_signal_4D", "fake_signal_5D"])
+@pytest.mark.parametrize("metadata", ["diffraction", "imaging", "confused", None])
+def test_main_header_from_signal(
+    unit,
+    expected_scale_factor,
+    version,
+    fheb,
+    sig,
+    fake_signals,
+    metadata,
+    fake_metadatas,
+):
     signal = fake_signals[sig]
     if metadata is not None:
         signal._metadata = fake_metadatas[metadata]
@@ -222,11 +224,20 @@ def test_main_header_from_signal(unit, expected_scale_factor, version, fheb,
     assert header["offsetx"] == 0
     assert header["offsety"] == 0
     assert header["pixelsize"] == original_scale_x * expected_scale_factor
-    assert header["frameheaderbytes"] == np.dtype(TVIPS_RECORDER_FRAME_HEADER).itemsize + fheb
+    assert (
+        header["frameheaderbytes"]
+        == np.dtype(TVIPS_RECORDER_FRAME_HEADER).itemsize + fheb
+    )
     if metadata == "diffraction" and unit == "1/pm":
-        assert header["magtotal"] == signal.metadata.Acquisition_instrument.TEM.camera_length
+        assert (
+            header["magtotal"]
+            == signal.metadata.Acquisition_instrument.TEM.camera_length
+        )
     elif metadata == "imaging" and unit == "um":
-        assert header["magtotal"] == signal.metadata.Acquisition_instrument.TEM.magnification
+        assert (
+            header["magtotal"]
+            == signal.metadata.Acquisition_instrument.TEM.magnification
+        )
     else:
         assert header["magtotal"] == 0
     if metadata is None:
@@ -235,20 +246,20 @@ def test_main_header_from_signal(unit, expected_scale_factor, version, fheb,
         assert header["ht"] == signal.metadata.Acquisition_instrument.TEM.beam_energy
 
 
-@pytest.mark.parametrize(
-    "extra_bytes",
-    [0, 20]
-)
-@pytest.mark.parametrize(
-    "sig",
-    ["fake_signal_3D", "fake_signal_4D", "fake_signal_5D"]
-)
+@pytest.mark.parametrize("extra_bytes", [0, 20])
+@pytest.mark.parametrize("sig", ["fake_signal_3D", "fake_signal_4D", "fake_signal_5D"])
 def test_get_frame_record_dtype(sig, fake_signals, extra_bytes):
     signal = fake_signals[sig]
-    dt_fh = _get_frame_record_dtype_from_signal(signal._to_dictionary(), extra_bytes=extra_bytes)
+    dt_fh = _get_frame_record_dtype_from_signal(
+        signal._to_dictionary(), extra_bytes=extra_bytes
+    )
     dimx = signal.axes_manager[-2].size
     dimy = signal.axes_manager[-1].size
-    total_size = np.dtype(TVIPS_RECORDER_FRAME_HEADER).itemsize + extra_bytes + dimx * dimy * signal.data.itemsize
+    total_size = (
+        np.dtype(TVIPS_RECORDER_FRAME_HEADER).itemsize
+        + extra_bytes
+        + dimx * dimy * signal.data.itemsize
+    )
     assert dt_fh.itemsize == total_size
 
 
@@ -261,7 +272,7 @@ def test_get_frame_record_dtype(sig, fake_signals, extra_bytes):
         pytest.param("foo_0000.TVIPS", marks=pytest.mark.xfail(raises=ValueError)),
         ("foo_000.tvips"),
         ("foo_000.TVIPS"),
-    ]
+    ],
 )
 def test_valid_tvips_file(filename):
     isvalid = _is_valid_first_tvips_file(filename)
@@ -278,7 +289,7 @@ def test_valid_tvips_file(filename):
         (np.array([0, 0, 1, 1, 3, 3, 4, 0]), (2, 6)),
         (np.array([1, 2, 3, 4, 5]), (0, 4)),
         (np.array([0, 0, 0, 0]), (None, None)),
-    ]
+    ],
 )
 def test_auto_scan_start_stop(rotators, expected):
     start, stop = _find_auto_scan_start_stop(rotators)
@@ -289,19 +300,19 @@ def test_auto_scan_start_stop(rotators, expected):
 @pytest.mark.parametrize(
     "rotators, startstop, expected",
     [
-        (np.array([0, 0, 1, 2, 3, 4, 5, 6, 0, 0]),
+        (np.array([0, 0, 1, 2, 3, 4, 5, 6, 0, 0]), None, np.array([2, 3, 4, 5, 6, 7])),
+        (np.array([0, 1, 2, 3, 4, 5, 6, 0, 0]), (2, 5), np.array([2, 2, 3, 4, 5])),
+        (
+            np.array([1, 3, 3, 4, 5, 5, 9, 0, 0]),
             None,
-            np.array([2, 3, 4, 5, 6, 7])),
-        (np.array([0, 1, 2, 3, 4, 5, 6, 0, 0]),
-            (2, 5),
-            np.array([2, 2, 3, 4, 5])),
-        (np.array([1, 3, 3, 4, 5, 5, 9, 0, 0]),
+            np.array([0, 0, 1, 3, 4, 5, 5, 5, 6]),
+        ),
+        (
+            np.array([0, 0, 1, 3, 3, 4, 5, 5, 9, 0, 0]),
             None,
-            np.array([0, 0, 1, 3, 4, 5, 5, 5, 6])),
-        (np.array([0, 0, 1, 3, 3, 4, 5, 5, 9, 0, 0]),
-            None,
-            np.array([2, 2, 3, 5, 6, 7, 7, 7, 8])),
-    ]
+            np.array([2, 2, 3, 5, 6, 7, 7, 7, 8]),
+        ),
+    ],
 )
 def test_guess_scan_index_grid(rotators, startstop, expected):
     if startstop is None:
@@ -329,7 +340,7 @@ def _dask_supports_assignment():
                 "scan_start_frame": 20,
                 "hysteresis": 1,
                 "rechunking": False,
-            }
+            },
         ),
         (
             os.path.join(DIRPATH, "test_tvips_2345_000.tvips"),
@@ -338,7 +349,7 @@ def _dask_supports_assignment():
                 "scan_start_frame": 0,
                 "hysteresis": 0,
                 "rechunking": "auto",
-            }
+            },
         ),
         (
             os.path.join(DIRPATH, "test_tvips_2345_split_000.tvips"),
@@ -347,9 +358,9 @@ def _dask_supports_assignment():
                 "scan_start_frame": 2,
                 "hysteresis": -1,
                 "rechunking": {0: 1, 1: 1, 2: None, 3: None},
-            }
+            },
         ),
-    ]
+    ],
 )
 @pytest.mark.parametrize("wsa", ["x", "y", None])
 @pytest.mark.parametrize("lazy", [True, False])
@@ -370,29 +381,37 @@ def test_tvips_file_reader(filename, lazy, kwargs, wsa):
         signal_test.compute()
         signal_test.data = signal_test.data.copy()
     if wsa == "x":
-        signal_test.data[..., ::2, :, :, :] = signal_test.data[..., ::2, :, :, :][..., :, ::-1, :, :]
-        signal_test.data[..., ::2, :, :, :] = np.roll(signal_test.data[..., ::2, :, :, :], hyst, axis=-3)
+        signal_test.data[..., ::2, :, :, :] = signal_test.data[..., ::2, :, :, :][
+            ..., :, ::-1, :, :
+        ]
+        signal_test.data[..., ::2, :, :, :] = np.roll(
+            signal_test.data[..., ::2, :, :, :], hyst, axis=-3
+        )
     elif wsa == "y":
-        signal_test.data[..., ::2, :, :] = signal_test.data[..., ::2, :, :][..., ::-1, :, :, :]
-        signal_test.data[..., ::2, :, :] = np.roll(signal_test.data[..., ::2, :, :], hyst, axis=-4)
+        signal_test.data[..., ::2, :, :] = signal_test.data[..., ::2, :, :][
+            ..., ::-1, :, :, :
+        ]
+        signal_test.data[..., ::2, :, :] = np.roll(
+            signal_test.data[..., ::2, :, :], hyst, axis=-4
+        )
     assert np.allclose(signal_test.data, signal.data)
 
 
 @pytest.mark.xfail(raises=ValueError)
 def test_read_fail_version():
-    file = os.path.join(DIRPATH, "test_tvips_2345_split_000.tvips"),
+    file = (os.path.join(DIRPATH, "test_tvips_2345_split_000.tvips"),)
     hs.load(file, scan_shape="auto")
 
 
 @pytest.mark.xfail(raises=ValueError)
 def test_read_fail_wind_axis():
-    file = os.path.join(DIRPATH, "test_tvips_2345_split_000.tvips"),
+    file = (os.path.join(DIRPATH, "test_tvips_2345_split_000.tvips"),)
     hs.load(file, scan_shape=(2, 3), winding_scan_axis="z")
 
 
 @pytest.mark.xfail(raises=ValueError)
 def test_read_fail_scan_shape():
-    file = os.path.join(DIRPATH, "test_tvips_2345_split_000.tvips"),
+    file = (os.path.join(DIRPATH, "test_tvips_2345_split_000.tvips"),)
     hs.load(file, scan_shape=(3, 3))
 
 
@@ -413,10 +432,12 @@ def test_write_fail_signal_type():
         ("fake_signal_4D", "diffraction", 100, 0),
         ("fake_signal_5D", "imaging", 100, 20),
         ("fake_signal_5D", None, 700, 10),
-    ]
+    ],
 )
 @pytest.mark.parametrize("lazy", [True, False])
-def test_file_writer(sig, meta, max_file_size, fheb, fake_signals, fake_metadatas, lazy):
+def test_file_writer(
+    sig, meta, max_file_size, fheb, fake_signals, fake_metadatas, lazy
+):
     signal = fake_signals[sig]
     if lazy:
         signal = signal.as_lazy()
@@ -427,20 +448,31 @@ def test_file_writer(sig, meta, max_file_size, fheb, fake_signals, fake_metadata
     with tempfile.TemporaryDirectory() as tmp:
         filepath = os.path.join(tmp, "test_tvips_save_000.tvips")
         scan_shape = signal.axes_manager.navigation_shape
-        file_writer(filepath, signal._to_dictionary(), max_file_size=max_file_size, frame_header_extra_bytes=fheb)
+        file_writer(
+            filepath,
+            signal._to_dictionary(),
+            max_file_size=max_file_size,
+            frame_header_extra_bytes=fheb,
+        )
         if max_file_size is None:
             assert len(os.listdir(tmp)) == 1
         else:
             assert len(os.listdir(tmp)) >= 1
         filepath_load = os.path.join(tmp, "test_tvips_save_000.tvips")
         dtc = file_reader(filepath_load, scan_shape=scan_shape[::-1], lazy=False)[0]
-        np.testing.assert_allclose(signal.data, dtc['data'])
-        assert signal.data.dtype == dtc['data'].dtype
+        np.testing.assert_allclose(signal.data, dtc["data"])
+        assert signal.data.dtype == dtc["data"].dtype
         if metadata and meta is not None:
             assert dtc["metadata"]["General"]["date"] == metadata.General.date
             assert dtc["metadata"]["General"]["time"] == metadata.General.time
-            assert dtc["metadata"]["Acquisition_instrument"]["TEM"]['beam_energy'] == metadata.Acquisition_instrument.TEM.beam_energy
-            assert dtc["metadata"]["Acquisition_instrument"]["TEM"]['beam_current'] == metadata.Acquisition_instrument.TEM.beam_current
+            assert (
+                dtc["metadata"]["Acquisition_instrument"]["TEM"]["beam_energy"]
+                == metadata.Acquisition_instrument.TEM.beam_energy
+            )
+            assert (
+                dtc["metadata"]["Acquisition_instrument"]["TEM"]["beam_current"]
+                == metadata.Acquisition_instrument.TEM.beam_current
+            )
         gc.collect()
 
 

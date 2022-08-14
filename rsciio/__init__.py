@@ -30,9 +30,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 for sub, _, _ in os.walk(here):
     specsf = os.path.join(sub, "specifications.yaml")
     if os.path.isfile(specsf):
-        with open(specsf, 'r') as stream:
+        with open(specsf, "r") as stream:
             specs = yaml.safe_load(stream)
             specs["api"] = "rsciio.%s.api" % os.path.split(sub)[1]
             IO_PLUGINS.append(specs)
-
-

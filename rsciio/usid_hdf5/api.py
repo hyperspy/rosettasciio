@@ -61,23 +61,26 @@ def _get_dim_dict(labels, units, val_func, ignore_non_uniform_dims=True):
             except ValueError:
                 # non-uniform dimension! - see notes above
                 if ignore_non_uniform_dims:
-                    warn('Ignoring non-uniformity of dimension: '
-                         '{}'.format(dim_name))
+                    warn("Ignoring non-uniformity of dimension: " "{}".format(dim_name))
                     step_size = 1
                     dim_vals[0] = 0
                 else:
-                    raise ValueError('Cannot load provided dataset. '
-                                     'Parameter: {} was varied '
-                                     'non-uniformly. Supply keyword '
-                                     'argument "ignore_non_uniform_dims='
-                                     'True" to ignore this '
-                                     'error'.format(dim_name))
+                    raise ValueError(
+                        "Cannot load provided dataset. "
+                        "Parameter: {} was varied "
+                        "non-uniformly. Supply keyword "
+                        'argument "ignore_non_uniform_dims='
+                        'True" to ignore this '
+                        "error".format(dim_name)
+                    )
 
-        dim_dict[dim_name] = {'size': len(dim_vals),
-                              'name': dim_name,
-                              'units': units,
-                              'scale': step_size,
-                              'offset': dim_vals[0]}
+        dim_dict[dim_name] = {
+            "size": len(dim_vals),
+            "name": dim_name,
+            "units": units,
+            "scale": step_size,
+            "offset": dim_vals[0],
+        }
     return dim_dict
 
 
@@ -127,22 +130,30 @@ def _split_descriptor(desc):
         Units corresponding to the physical quantity
     """
     desc = desc.strip()
-    ind = desc.rfind('(')
+    ind = desc.rfind("(")
     if ind < 0:
-        ind = desc.rfind('[')
+        ind = desc.rfind("[")
         if ind < 0:
-            return desc, ''
+            return desc, ""
 
     quant = desc[:ind].strip()
     units = desc[ind:]
-    for item in '()[]':
-        units = units.replace(item, '')
+    for item in "()[]":
+        units = units.replace(item, "")
     return quant, units
 
 
-def _convert_to_signal_dict(ndim_form, quantity, units, dim_dict_list,
-                            h5_path, h5_dset_path, name, sig_type='',
-                            group_attrs={}):
+def _convert_to_signal_dict(
+    ndim_form,
+    quantity,
+    units,
+    dim_dict_list,
+    h5_path,
+    h5_dset_path,
+    name,
+    sig_type="",
+    group_attrs={},
+):
     """
     Packages required components that make up a Signal object
 
@@ -173,26 +184,26 @@ def _convert_to_signal_dict(ndim_form, quantity, units, dim_dict_list,
 
     """
 
-    sig = {'data': ndim_form,
-           'axes': dim_dict_list,
-           'metadata': {
-               'Signal': {'signal_type': sig_type},
-               'General': {'original_filename': h5_path,
-                           'title': name}
-                        },
-           'original_metadata': {'quantity': quantity,
-                                 'units': units,
-                                 'dataset_path': h5_dset_path,
-                                 'original_file_type': 'USID HDF5',
-                                 'pyUSID_version': usid.__version__,
-                                 'parameters': group_attrs
-                                 },
-           }
+    sig = {
+        "data": ndim_form,
+        "axes": dim_dict_list,
+        "metadata": {
+            "Signal": {"signal_type": sig_type},
+            "General": {"original_filename": h5_path, "title": name},
+        },
+        "original_metadata": {
+            "quantity": quantity,
+            "units": units,
+            "dataset_path": h5_dset_path,
+            "original_file_type": "USID HDF5",
+            "pyUSID_version": usid.__version__,
+            "parameters": group_attrs,
+        },
+    }
     return sig
 
 
-def _usidataset_to_signal(h5_main, ignore_non_uniform_dims=True, lazy=True,
-                          *kwds):
+def _usidataset_to_signal(h5_main, ignore_non_uniform_dims=True, lazy=True, *kwds):
     """
     Converts a single specified USIDataset object to one or more Signal objects
 
@@ -220,41 +231,44 @@ def _usidataset_to_signal(h5_main, ignore_non_uniform_dims=True, lazy=True,
     # TODO: Cannot handle data without N-dimensional form yet
     # First get dictionary of axes that HyperSpy likes to see. Ignore singular
     # dimensions
-    pos_dict = _get_dim_dict(h5_main.pos_dim_labels,
-                             usid.hdf_utils.get_attr(h5_main.h5_pos_inds,
-                                                     'units'),
-                             h5_main.get_pos_values,
-                             ignore_non_uniform_dims=ignore_non_uniform_dims)
-    spec_dict = _get_dim_dict(h5_main.spec_dim_labels,
-                              usid.hdf_utils.get_attr(h5_main.h5_spec_inds,
-                                                      'units'),
-                              h5_main.get_spec_values,
-                              ignore_non_uniform_dims=ignore_non_uniform_dims)
+    pos_dict = _get_dim_dict(
+        h5_main.pos_dim_labels,
+        usid.hdf_utils.get_attr(h5_main.h5_pos_inds, "units"),
+        h5_main.get_pos_values,
+        ignore_non_uniform_dims=ignore_non_uniform_dims,
+    )
+    spec_dict = _get_dim_dict(
+        h5_main.spec_dim_labels,
+        usid.hdf_utils.get_attr(h5_main.h5_spec_inds, "units"),
+        h5_main.get_spec_values,
+        ignore_non_uniform_dims=ignore_non_uniform_dims,
+    )
 
     num_spec_dims = len(spec_dict)
     num_pos_dims = len(pos_dict)
-    _logger.info('Dimensions: Positions: {}, Spectroscopic: {}'
-                 '.'.format(num_pos_dims, num_spec_dims))
+    _logger.info(
+        "Dimensions: Positions: {}, Spectroscopic: {}"
+        ".".format(num_pos_dims, num_spec_dims)
+    )
 
-    ret_vals = usid.hdf_utils.reshape_to_n_dims(h5_main, get_labels=True,
-                                                lazy=lazy)
+    ret_vals = usid.hdf_utils.reshape_to_n_dims(h5_main, get_labels=True, lazy=lazy)
     ds_nd, success, dim_labs = ret_vals
 
     if success is not True:
-        raise ValueError('Dataset could not be reshaped!')
+        raise ValueError("Dataset could not be reshaped!")
     ds_nd = ds_nd.squeeze()
-    _logger.info('N-dimensional shape: {}'.format(ds_nd.shape))
-    _logger.info('N-dimensional labels: {}'.format(dim_labs))
+    _logger.info("N-dimensional shape: {}".format(ds_nd.shape))
+    _logger.info("N-dimensional labels: {}".format(dim_labs))
 
     # Capturing metadata present in conventional h5USID files:
     group_attrs = dict()
     h5_chan_grp = h5_main.parent
     if isinstance(h5_chan_grp, h5py.Group):
-        if 'Channel' in h5_chan_grp.name.split('/')[-1]:
+        if "Channel" in h5_chan_grp.name.split("/")[-1]:
             group_attrs = sidpy.hdf_utils.get_attributes(h5_chan_grp)
             h5_meas_grp = h5_main.parent
             if isinstance(h5_meas_grp, h5py.Group):
-                if 'Measurement' in h5_meas_grp.name.split('/')[-1]:
+                if "Measurement" in h5_meas_grp.name.split("/")[-1]:
                     temp = sidpy.hdf_utils.get_attributes(h5_meas_grp)
                     group_attrs.update(temp)
 
@@ -270,12 +284,14 @@ def _usidataset_to_signal(h5_main, ignore_non_uniform_dims=True, lazy=True,
 
     _, is_complex, is_compound, _, _ = sidpy.hdf.dtype_utils.check_dtype(h5_main)
 
-    trunc_func = partial(_convert_to_signal_dict,
-                         dim_dict_list=dim_list,
-                         h5_path=h5_main.file.filename,
-                         h5_dset_path=h5_main.name,
-                         name=h5_main.name.split('/')[-1],
-                         group_attrs=group_attrs)
+    trunc_func = partial(
+        _convert_to_signal_dict,
+        dim_dict_list=dim_list,
+        h5_path=h5_main.file.filename,
+        h5_dset_path=h5_main.name,
+        name=h5_main.name.split("/")[-1],
+        group_attrs=group_attrs,
+    )
 
     # Extracting the quantity and units of the main dataset
     quant, units = _split_descriptor(h5_main.data_descriptor)
@@ -295,7 +311,7 @@ def _usidataset_to_signal(h5_main, ignore_non_uniform_dims=True, lazy=True,
 # ######## UTILITIES THAT SIMPLIFY WRITING TO H5USID FILES ####################
 
 
-def _flatten_dict(nested_dict, parent_key='', sep='-'):
+def _flatten_dict(nested_dict, parent_key="", sep="-"):
     """
     Flattens a nested dictionary
 
@@ -321,8 +337,7 @@ def _flatten_dict(nested_dict, parent_key='', sep='-'):
     for k, v in nested_dict.items():
         new_key = parent_key + sep + k if parent_key else k
         if isinstance(v, MutableMapping):
-            items.extend(_flatten_dict(v, new_key,
-                                       sep=sep).items())
+            items.extend(_flatten_dict(v, new_key, sep=sep).items())
         else:
             items.append((new_key, v))
     return dict(items)
@@ -330,38 +345,40 @@ def _flatten_dict(nested_dict, parent_key='', sep='-'):
 
 def _axes_list_to_dimensions(axes_list, data_shape, is_spec):
     dim_list = []
-    dim_type = 'Pos'
+    dim_type = "Pos"
     if is_spec:
-        dim_type = 'Spec'
+        dim_type = "Spec"
     # for dim_ind, (dim_size, dim) in enumerate(zip(data_shape, axes_list)):
     # we are going by data_shape for order (slowest to fastest)
     # so the order in axes_list does not matter
     for dim_ind, dim in enumerate(axes_list):
         dim = axes_list[dim_ind]
-        dim_name = dim_type + '_Dim_' + str(dim_ind)
-        if isinstance(dim['name'], str):
-            temp = dim['name'].strip()
+        dim_name = dim_type + "_Dim_" + str(dim_ind)
+        if isinstance(dim["name"], str):
+            temp = dim["name"].strip()
             if len(temp) > 0:
                 dim_name = temp
-        dim_units = 'a. u.'
-        if isinstance(dim['units'], str):
-            temp = dim['units'].strip()
+        dim_units = "a. u."
+        if isinstance(dim["units"], str):
+            temp = dim["units"].strip()
             if len(temp) > 0:
                 dim_units = temp
                 # use REAL dimension size rather than what is presented in the
                 # axes manager
         dim_size = data_shape[len(data_shape) - 1 - dim_ind]
-        ar = np.arange(dim_size) * dim['scale'] + dim['offset']
+        ar = np.arange(dim_size) * dim["scale"] + dim["offset"]
         dim_list.append(usid.Dimension(dim_name, dim_units, ar))
     if len(dim_list) == 0:
-        return usid.Dimension('Arb', 'a. u.', 1)
+        return usid.Dimension("Arb", "a. u.", 1)
     return dim_list[::-1]
+
 
 # ####### REQUIRED FUNCTIONS FOR AN IO PLUGIN #################################
 
 
-def file_reader(filename, dataset_path=None, ignore_non_uniform_dims=True,
-                lazy=False, **kwds):
+def file_reader(
+    filename, dataset_path=None, ignore_non_uniform_dims=True, lazy=False, **kwds
+):
     """
     Reads a USID Main dataset present in an HDF5 file into a HyperSpy Signal
 
@@ -387,32 +404,33 @@ def file_reader(filename, dataset_path=None, ignore_non_uniform_dims=True,
     list of hyperspy.signals.Signal object
     """
     if not isinstance(filename, str):
-        raise TypeError('filename should be a string')
+        raise TypeError("filename should be a string")
     if not os.path.isfile(filename):
-        raise FileNotFoundError(f'No file found at: {filename}')
+        raise FileNotFoundError(f"No file found at: {filename}")
 
     # Need to keep h5 file handle open indefinitely if lazy
     # Using "with" will cause the file to be closed
-    h5_f = h5py.File(filename, 'r')
+    h5_f = h5py.File(filename, "r")
     if dataset_path is None:
         all_main_dsets = usid.hdf_utils.get_all_main(h5_f)
         signals = []
         for h5_dset in all_main_dsets:
             # Note that the function returns a list already.
             # Should not append
-            signals += _usidataset_to_signal(h5_dset,
-                                             ignore_non_uniform_dims=
-                                             ignore_non_uniform_dims,
-                                             lazy=lazy, **kwds)
+            signals += _usidataset_to_signal(
+                h5_dset,
+                ignore_non_uniform_dims=ignore_non_uniform_dims,
+                lazy=lazy,
+                **kwds,
+            )
         return signals
     else:
         if not isinstance(dataset_path, str):
             raise TypeError("'dataset_path' should be a string")
         h5_dset = h5_f[dataset_path]
-        return _usidataset_to_signal(h5_dset,
-                                     ignore_non_uniform_dims=
-                                     ignore_non_uniform_dims,
-                                     lazy=lazy, **kwds)
+        return _usidataset_to_signal(
+            h5_dset, ignore_non_uniform_dims=ignore_non_uniform_dims, lazy=lazy, **kwds
+        )
 
     # At least close the file handle if not lazy load
     if not lazy:
@@ -434,24 +452,23 @@ def file_writer(filename, object2save, **kwds):
     if os.path.exists(filename):
         append = True
 
-    hs_shape = object2save['data'].shape
+    hs_shape = object2save["data"].shape
 
-    parm_dict = _flatten_dict(object2save['metadata'])
-    temp = object2save['original_metadata']
-    parm_dict.update(_flatten_dict(temp, parent_key='Original'))
+    parm_dict = _flatten_dict(object2save["metadata"])
+    temp = object2save["original_metadata"]
+    parm_dict.update(_flatten_dict(temp, parent_key="Original"))
 
-    axes = object2save['axes']
-    nav_axes = [ax for ax in axes if ax['navigate']][::-1]
-    sig_axes = [ax for ax in axes if not ax['navigate']][::-1]
+    axes = object2save["axes"]
+    nav_axes = [ax for ax in axes if ax["navigate"]][::-1]
+    sig_axes = [ax for ax in axes if not ax["navigate"]][::-1]
     nav_dim = len(nav_axes)
 
-    data = object2save['data']
+    data = object2save["data"]
     # data is assumed to have dimensions arranged from slowest to fastest
     # varying dimensions
     if nav_dim > 0 and len(sig_axes) > 0:
         # now flatten to 2D:
-        data = data.reshape(np.prod(hs_shape[:nav_dim]),
-                            np.prod(hs_shape[nav_dim:]))
+        data = data.reshape(np.prod(hs_shape[:nav_dim]), np.prod(hs_shape[nav_dim:]))
         pos_dims = _axes_list_to_dimensions(nav_axes, hs_shape[:nav_dim], False)
         spec_dims = _axes_list_to_dimensions(sig_axes, hs_shape[nav_dim:], True)
     elif nav_dim == 0:
@@ -467,23 +484,37 @@ def file_writer(filename, object2save, **kwds):
         spec_dims = _axes_list_to_dimensions(sig_axes, [], True)
 
     #  Does HyperSpy store the physical quantity and units somewhere?
-    phy_quant = 'Unknown Quantity'
-    phy_units = 'Unknown Units'
-    dset_name = 'Raw_Data'
-
-
+    phy_quant = "Unknown Quantity"
+    phy_units = "Unknown Units"
+    dset_name = "Raw_Data"
 
     if not append:
         tran = usid.NumpyTranslator()
-        _ = tran.translate(filename, dset_name, data, phy_quant, phy_units,
-                           pos_dims, spec_dims, parm_dict=parm_dict,
-                           slow_to_fast=True, **kwds)
+        _ = tran.translate(
+            filename,
+            dset_name,
+            data,
+            phy_quant,
+            phy_units,
+            pos_dims,
+            spec_dims,
+            parm_dict=parm_dict,
+            slow_to_fast=True,
+            **kwds,
+        )
     else:
-        with h5py.File(filename, mode='r+') as h5_f:
-            h5_grp = usid.hdf_utils.create_indexed_group(h5_f, 'Measurement')
+        with h5py.File(filename, mode="r+") as h5_f:
+            h5_grp = usid.hdf_utils.create_indexed_group(h5_f, "Measurement")
             usid.hdf_utils.write_simple_attrs(h5_grp, parm_dict)
-            h5_grp = usid.hdf_utils.create_indexed_group(h5_grp, 'Channel')
-            _ = usid.hdf_utils.write_main_dataset(h5_grp, data, dset_name,
-                                                  phy_quant, phy_units,
-                                                  pos_dims,  spec_dims,
-                                                  slow_to_fast=True, **kwds)
+            h5_grp = usid.hdf_utils.create_indexed_group(h5_grp, "Channel")
+            _ = usid.hdf_utils.write_main_dataset(
+                h5_grp,
+                data,
+                dset_name,
+                phy_quant,
+                phy_units,
+                pos_dims,
+                spec_dims,
+                slow_to_fast=True,
+                **kwds,
+            )

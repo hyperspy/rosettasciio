@@ -290,12 +290,12 @@ def test_save_load_cycle(save_path, convert_units):
     )
     # assert file reading tests here, then delete so we can compare
     # entire metadata structure at once:
-    plugin = 'rsciio.blockfile.api'
-    assert signal.metadata.General.FileIO.Number_0.operation == 'load'
+    plugin = "rsciio.blockfile.api"
+    assert signal.metadata.General.FileIO.Number_0.operation == "load"
     assert signal.metadata.General.FileIO.Number_0.io_plugin == plugin
-    assert signal.metadata.General.FileIO.Number_1.operation == 'save'
+    assert signal.metadata.General.FileIO.Number_1.operation == "save"
     assert signal.metadata.General.FileIO.Number_1.io_plugin == plugin
-    assert sig_reload.metadata.General.FileIO.Number_0.operation == 'load'
+    assert sig_reload.metadata.General.FileIO.Number_0.operation == "load"
     assert sig_reload.metadata.General.FileIO.Number_0.io_plugin == plugin
     del signal.metadata.General.FileIO
     del sig_reload.metadata.General.FileIO
@@ -445,7 +445,8 @@ def test_load_readonly():
             # The or statement with both "array-original" and "original-array"
             # is due to dask changing the name of this key. After dask-2022.1.1
             # the key is "original-array", before it is "array-original"
-            lambda x: isinstance(x, str) and (x.startswith("original-array") or x.startswith("array-original")),
+            lambda x: isinstance(x, str)
+            and (x.startswith("original-array") or x.startswith("array-original")),
             s.data.dask.keys(),
         )
     )

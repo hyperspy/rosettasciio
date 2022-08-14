@@ -23,11 +23,9 @@ import scipy
 from datetime import datetime
 
 
-
-
 def _cnv_time(timestr):
     try:
-        t = datetime.strptime(timestr.decode(), '%H:%M:%S.%f')
+        t = datetime.strptime(timestr.decode(), "%H:%M:%S.%f")
         dt = t - datetime(t.year, t.month, t.day)
         r = float(dt.seconds) + float(dt.microseconds) * 1e-6
     except ValueError:
@@ -40,37 +38,38 @@ def _bad_file(filename):
 
 
 def file_reader(filename, *args, **kwds):
-    with open(filename, 'rt') as f:
+    with open(filename, "rt") as f:
         # Strip leading, empty lines
         line = str(f.readline())
-        while line.strip() == '' and not f.closed:
+        while line.strip() == "" and not f.closed:
             line = str(f.readline())
         try:
-            date, version = line.split('\t')
+            date, version = line.split("\t")
         except ValueError:
             _bad_file(filename)
-        if version.strip() != 'Digiheater 3.1':
+        if version.strip() != "Digiheater 3.1":
             _bad_file(filename)
-        calib = str(f.readline()).split('\t')
-        str(f.readline())       # delta_t
+        calib = str(f.readline()).split("\t")
+        str(f.readline())  # delta_t
         header_line = str(f.readline())
         try:
-            R0, a, b, c = [float(v.split('=')[1]) for v in calib]
+            R0, a, b, c = [float(v.split("=")[1]) for v in calib]
             date0 = datetime.strptime(date, "%d/%m/'%y %H:%M")
-            date = '%s' % date0.date()
-            time = '%s' % date0.time()
+            date = "%s" % date0.date()
+            time = "%s" % date0.time()
         except ValueError:
             _bad_file(filename)
-        original_metadata = dict(R0=R0, a=a, b=b, c=c, date=date0,
-                                 version=version)
+        original_metadata = dict(R0=R0, a=a, b=b, c=c, date=date0, version=version)
 
         if header_line.strip() != (
-                'sample\ttime\tTset[C]\tTmeas[C]\tRheat[ohm]\tVheat[V]\t'
-                'Iheat[mA]\tPheat [mW]\tc'):
+            "sample\ttime\tTset[C]\tTmeas[C]\tRheat[ohm]\tVheat[V]\t"
+            "Iheat[mA]\tPheat [mW]\tc"
+        ):
             _bad_file(filename)
         try:
-            rawdata = np.loadtxt(f, converters={1: _cnv_time}, usecols=(1, 3),
-                                 unpack=True)
+            rawdata = np.loadtxt(
+                f, converters={1: _cnv_time}, usecols=(1, 3), unpack=True
+            )
         except ValueError:
             _bad_file(filename)
 
@@ -82,31 +81,40 @@ def file_reader(filename, *args, **kwds):
     # Raw data is not necessarily grid aligned. Interpolate onto grid.
     dt = np.diff(times).mean()
     temp = rawdata[1]
-    interp = scipy.interpolate.interp1d(times, temp, copy=False,
-                                        assume_sorted=True, bounds_error=False)
+    interp = scipy.interpolate.interp1d(
+        times, temp, copy=False, assume_sorted=True, bounds_error=False
+    )
     interp_axis = times[0] + dt * np.array(range(len(times)))
     temp_interp = interp(interp_axis)
 
-    metadata = {'General': {'original_filename': os.path.split(filename)[1],
-                            'date': date,
-                            'time': time},
-                "Signal": {'signal_type': "",
-                           'quantity': "Temperature (Celsius)"}, }
+    metadata = {
+        "General": {
+            "original_filename": os.path.split(filename)[1],
+            "date": date,
+            "time": time,
+        },
+        "Signal": {"signal_type": "", "quantity": "Temperature (Celsius)"},
+    }
 
-    axes = [{
-        'size': len(temp_interp),
-            'index_in_array': 0,
-            'name': 'Time',
-            'scale': dt,
-            'offset': times[0],
-            'units': 's',
-            'navigate': False,
-            }]
+    axes = [
+        {
+            "size": len(temp_interp),
+            "index_in_array": 0,
+            "name": "Time",
+            "scale": dt,
+            "offset": times[0],
+            "units": "s",
+            "navigate": False,
+        }
+    ]
 
-    dictionary = {'data': temp_interp,
-                  'axes': axes,
-                  'metadata': metadata,
-                  'original_metadata': {'DENS_header': original_metadata},
-                  }
+    dictionary = {
+        "data": temp_interp,
+        "axes": axes,
+        "metadata": metadata,
+        "original_metadata": {"DENS_header": original_metadata},
+    }
 
-    return [dictionary, ]
+    return [
+        dictionary,
+    ]

@@ -26,7 +26,7 @@ import numpy as np
 
 
 def test_de5_write_load_cycle(tmp_path):
-    fname = tmp_path / 'test_file.de5'
+    fname = tmp_path / "test_file.de5"
     data = np.arange(20).reshape(2, 10)
     s = hs.signals.Signal1D(data)
     s.save(fname)

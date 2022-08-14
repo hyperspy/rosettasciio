@@ -36,7 +36,6 @@ from hyperspy.defaults_parser import preferences
 from rsciio.utils.tools import _UREG
 
 
-
 _logger = logging.getLogger(__name__)
 
 
@@ -104,8 +103,8 @@ def _guess_image_mode(signal):
 def _get_main_header_from_signal(signal, version=2, frame_header_extra_bytes=0):
     dt = np.dtype(TVIPS_RECORDER_GENERAL_HEADER)
     header = np.zeros((1,), dtype=dt)
-    header['size'] = dt.itemsize
-    header['version'] = version
+    header["size"] = dt.itemsize
+    header["version"] = version
     # original pixel scale
     mode = _guess_image_mode(signal)
     axes = signal["axes"]
@@ -124,31 +123,33 @@ def _get_main_header_from_signal(signal, version=2, frame_header_extra_bytes=0):
         offsetx = round((offsetx * _UREG(unit)).to(to_unit).magnitude)
         offsety = round((offsety * _UREG(unit)).to(to_unit).magnitude)
     else:
-        warnings.warn("Image scale units could not be converted, "
-                      "saving axes scales as is.", UserWarning)
+        warnings.warn(
+            "Image scale units could not be converted, " "saving axes scales as is.",
+            UserWarning,
+        )
     metadata = DTBox(signal["metadata"], box_dots=True)
-    header['dimx'] = axes[-1]["size"]
-    header['dimy'] = axes[-2]["size"]
-    header['offsetx'] = offsetx
-    header['offsety'] = offsety
-    header['pixelsize'] = scale
-    header['bitsperpixel'] = signal["data"].dtype.itemsize * 8
-    header['binx'] = 1
-    header['biny'] = 1
+    header["dimx"] = axes[-1]["size"]
+    header["dimy"] = axes[-2]["size"]
+    header["offsetx"] = offsetx
+    header["offsety"] = offsety
+    header["pixelsize"] = scale
+    header["bitsperpixel"] = signal["data"].dtype.itemsize * 8
+    header["binx"] = 1
+    header["biny"] = 1
     dtf = np.dtype(TVIPS_RECORDER_FRAME_HEADER)
-    header['frameheaderbytes'] = dtf.itemsize + frame_header_extra_bytes
-    header['dummy'] = "HYPERSPY " * 22 + "HYPERS"
-    header['ht'] = metadata.get("Acquisition_instrument.TEM.beam_energy", 0)
+    header["frameheaderbytes"] = dtf.itemsize + frame_header_extra_bytes
+    header["dummy"] = "HYPERSPY " * 22 + "HYPERS"
+    header["ht"] = metadata.get("Acquisition_instrument.TEM.beam_energy", 0)
     cl = metadata.get("Acquisition_instrument.TEM.camera_length", 0)
     mag = metadata.get("Acquisition_instrument.TEM.magnification", 0)
-    if (cl != 0 and mag != 0):
-        header['magtotal'] = 0
-    elif (cl != 0 and mode == 2):
-        header['magtotal'] = cl
-    elif (mag != 0 and mode == 1):
-        header['magtotal'] = mag
+    if cl != 0 and mag != 0:
+        header["magtotal"] = 0
+    elif cl != 0 and mode == 2:
+        header["magtotal"] = cl
+    elif mag != 0 and mode == 1:
+        header["magtotal"] = mag
     else:
-        header['magtotal'] = 0
+        header["magtotal"] = 0
     return header
 
 
@@ -170,13 +171,9 @@ def _is_valid_first_tvips_file(filename):
     if match is not None:
         num, ext = match.groups()
         if ext.lower() != "tvips":
-            raise ValueError(
-                f"Invalid tvips file: extension {ext}, must be tvips"
-            )
+            raise ValueError(f"Invalid tvips file: extension {ext}, must be tvips")
         if int(num) != 0:
-            raise ValueError(
-                "Can only read video sequences starting with part 000"
-            )
+            raise ValueError("Can only read video sequences starting with part 000")
         return True
     else:
         raise ValueError("Could not recognize as a valid tvips file")
@@ -198,30 +195,32 @@ def _find_auto_scan_start_stop(rotidxs):
 @njit
 def _guess_scan_index_grid(rotidx, start, stop):
     indxs = np.zeros(rotidx[stop], dtype=np.int64)
-    rotidx = rotidx[start: stop + 1]
+    rotidx = rotidx[start : stop + 1]
     inv = 0  # index of the value we fill in
     for i in range(rotidx.shape[0]):
         if rotidx[inv] != rotidx[i]:
             # when we encounter a new value, we fill in indices
             pos_start = rotidx[inv] - 1
             pos_end = rotidx[i] - 1
-            stack = np.arange(inv, i)[:pos_end - pos_start]
+            stack = np.arange(inv, i)[: pos_end - pos_start]
             indxs[pos_start:pos_end] = stack[-1]
-            indxs[pos_start:pos_start + stack.shape[0]] = stack
+            indxs[pos_start : pos_start + stack.shape[0]] = stack
             inv = i
     # the last value we fill in at the end
-    indxs[rotidx[inv] - 1:] = inv
+    indxs[rotidx[inv] - 1 :] = inv
     return indxs + start
 
 
-def file_reader(filename,
-                scan_shape=None,
-                scan_start_frame=0,
-                winding_scan_axis=None,
-                hysteresis=0,
-                lazy=True,
-                rechunking="auto",
-                **kwds):
+def file_reader(
+    filename,
+    scan_shape=None,
+    scan_start_frame=0,
+    winding_scan_axis=None,
+    hysteresis=0,
+    lazy=True,
+    rechunking="auto",
+    **kwds,
+):
     """
     TVIPS stream file reader for in-situ and 4D STEM data
 
@@ -275,7 +274,7 @@ def file_reader(filename,
         dimy = header["dimy"][0]
         # the size of the frame header varies with version
         if header["version"][0] == 1:
-            increment = 12 # pragma: no cover
+            increment = 12  # pragma: no cover
         elif header["version"][0] == 2:
             increment = header["frameheaderbytes"][0]
         else:
@@ -283,13 +282,15 @@ def file_reader(filename,
                 f"This version {header.version} is not yet supported"
                 " in HyperSpy. Please report this as an issue at "
                 "https://github.com/hyperspy/hyperspy/issues."
-                )  # pragma: no cover
+            )  # pragma: no cover
         frame_header_dt = np.dtype(TVIPS_RECORDER_FRAME_HEADER)
         # the record must consume less bytes than reported in the main header
         if increment < frame_header_dt.itemsize:
-            raise ValueError("The frame header record consumes more bytes than stated in the main header") # pragma: no cover
+            raise ValueError(
+                "The frame header record consumes more bytes than stated in the main header"
+            )  # pragma: no cover
         # save metadata
-        original_metadata = {'tvips_header': sarray2dict(header)}
+        original_metadata = {"tvips_header": sarray2dict(header)}
         # create custom dtype for memmap padding the frame_header as required
         extra_bytes = increment - frame_header_dt.itemsize
         record_dtype = TVIPS_RECORDER_FRAME_HEADER.copy()
@@ -298,7 +299,9 @@ def file_reader(filename,
         record_dtype.append(("data", dtype, (dimy, dimx)))
 
     # memmap the data
-    records_000 = np.memmap(filename, mode="r", dtype=record_dtype, offset=header["size"][0])
+    records_000 = np.memmap(
+        filename, mode="r", dtype=record_dtype, offset=header["size"][0]
+    )
     # the array data
     all_array_data = [records_000["data"]]
     # in case we also want the frame header metadata later
@@ -332,14 +335,19 @@ def file_reader(filename,
             if scan_start_frame is None or scan_stop_frame is None:
                 raise ValueError(
                     "Scan start and stop information could not be automatically "
-                    "determined. Please supply a scan_shape and scan_start_frame.") # pragma: no cover
+                    "determined. Please supply a scan_shape and scan_start_frame."
+                )  # pragma: no cover
             total_scan_frames = record_idxs[scan_stop_frame]  # last rotator
             scan_dim = int(np.sqrt(total_scan_frames))
             if not np.allclose(scan_dim, np.sqrt(total_scan_frames)):
-                raise ValueError("Scan was not square, please supply a scan_shape and start_frame.")
+                raise ValueError(
+                    "Scan was not square, please supply a scan_shape and start_frame."
+                )
             scan_shape = (scan_dim, scan_dim)
             # there may be discontinuities which must be filled up
-            indices = _guess_scan_index_grid(record_idxs, scan_start_frame, scan_stop_frame).reshape(scan_shape)
+            indices = _guess_scan_index_grid(
+                record_idxs, scan_start_frame, scan_stop_frame
+            ).reshape(scan_shape)
         # scan shape and start are provided
         else:
             total_scan_frames = np.prod(scan_shape)
@@ -357,18 +365,22 @@ def file_reader(filename,
         if winding_scan_axis is not None:
             if winding_scan_axis in ["x", 0]:
                 indices[..., ::2, :] = indices[..., ::2, :][..., :, ::-1]
-                indices[..., ::2, :] = np.roll(indices[..., ::2, :], hysteresis, axis=-1)
+                indices[..., ::2, :] = np.roll(
+                    indices[..., ::2, :], hysteresis, axis=-1
+                )
             elif winding_scan_axis in ["y", 1]:
                 indices[..., :, ::2] = indices[..., :, ::2][..., ::-1, :]
-                indices[..., :, ::2] = np.roll(indices[..., :, ::2], hysteresis, axis=-2)
+                indices[..., :, ::2] = np.roll(
+                    indices[..., :, ::2], hysteresis, axis=-2
+                )
             else:
                 raise ValueError("Invalid winding scan axis")
 
-        with dask.config.set(**{'array.slicing.split_large_chunks': True}):
+        with dask.config.set(**{"array.slicing.split_large_chunks": True}):
             data_stack = data_stack[indices.ravel()]
         data_stack = data_stack.reshape(*indices.shape, dimy, dimx)
-        units = (indices.ndim - 2) * [""] + ['nm', 'nm', DPU, DPU]
-        names = (indices.ndim - 2) * [""] + ['y', 'x', 'dy', 'dx']
+        units = (indices.ndim - 2) * [""] + ["nm", "nm", DPU, DPU]
+        names = (indices.ndim - 2) * [""] + ["y", "x", "dy", "dx"]
         # no scale information stored in the scan!
         scales = (indices.ndim - 2) * [1] + [1, 1, SDP, SDP]
         offsets = (indices.ndim - 2) * [0] + [0, 0, offsety, offsetx]
@@ -376,19 +388,20 @@ def file_reader(filename,
         dim = data_stack.ndim
         axes = [
             {
-                'size': data_stack.shape[i],
-                'index_in_array': i,
-                'name': names[i],
-                'scale': scales[i],
-                'offset': offsets[i],
-                'units': units[i],
-                'navigate': True if i < len(scan_shape) else False,
+                "size": data_stack.shape[i],
+                "index_in_array": i,
+                "name": names[i],
+                "scale": scales[i],
+                "offset": offsets[i],
+                "units": units[i],
+                "navigate": True if i < len(scan_shape) else False,
             }
-            for i in range(dim)]
+            for i in range(dim)
+        ]
     else:
         # we load as a regular image stack
-        units = ['s', DPU, DPU]
-        names = ['time', 'dy', 'dx']
+        units = ["s", DPU, DPU]
+        names = ["time", "dy", "dx"]
         times = np.concatenate([i["timestamp"] + i["ms"] / 1000 for i in all_metadata])
         timescale = 1 if times.shape[0] <= 0 else times[1] - times[0]
         scales = [timescale, SDP, SDP]
@@ -397,15 +410,16 @@ def file_reader(filename,
         dim = data_stack.ndim
         axes = [
             {
-                'size': data_stack.shape[i],
-                'index_in_array': i,
-                'name': names[i],
-                'scale': scales[i],
-                'offset': offsets[i],
-                'units': units[i],
-                'navigate': True if i == 0 else False,
+                "size": data_stack.shape[i],
+                "index_in_array": i,
+                "name": names[i],
+                "scale": scales[i],
+                "offset": offsets[i],
+                "units": units[i],
+                "navigate": True if i == 0 else False,
             }
-            for i in range(dim)]
+            for i in range(dim)
+        ]
     dtobj = datetime.fromtimestamp(all_metadata[0]["timestamp"][0])
     date = dtobj.date().isoformat()
     time = dtobj.time().isoformat()
@@ -418,11 +432,11 @@ def file_reader(filename,
     # mag = all_metadata[0]["mag"][0]  # TODO it is unclear what this value is
     focus = all_metadata[0]["objective"][0]
     metadata = {
-        'General': {
-            'original_filename': os.path.split(filename)[1],
-            'date': date,
-            'time': time,
-            'time_zone': "UTC",
+        "General": {
+            "original_filename": os.path.split(filename)[1],
+            "date": date,
+            "time": time,
+            "time_zone": "UTC",
         },
         "Acquisition_instrument": {
             "TEM": {
@@ -438,7 +452,7 @@ def file_reader(filename,
                     "z": stagez,
                 },
             },
-        }
+        },
     }
 
     if lazy:
@@ -447,7 +461,7 @@ def file_reader(filename,
                 navdims = data_stack.ndim - 2
                 chunks = {ax_index: "auto" for ax_index in range(navdims)}
                 chunks[navdims] = None
-                chunks[navdims+1] = None
+                chunks[navdims + 1] = None
             else:
                 chunks = rechunking
             data_stack = data_stack.rechunk(chunks)
@@ -456,13 +470,17 @@ def file_reader(filename,
         metadata["Signal"] = {"signal_type": "diffraction"}
     # TODO at the moment hyperspy doesn't have a signal type for mode==1, imaging
 
-    dictionary = {'data': data_stack,
-                  'axes': axes,
-                  'metadata': metadata,
-                  'original_metadata': original_metadata,
-                  'mapping': {}, }
+    dictionary = {
+        "data": data_stack,
+        "axes": axes,
+        "metadata": metadata,
+        "original_metadata": original_metadata,
+        "mapping": {},
+    }
 
-    return [dictionary, ]
+    return [
+        dictionary,
+    ]
 
 
 def file_writer(filename, signal, **kwds):
@@ -493,7 +511,7 @@ def file_writer(filename, signal, **kwds):
     axes = signal["axes"]
     metadata = DTBox(signal["metadata"], box_dots=True)
     signal_dim = len([axis for axis in axes if not axis["navigate"]])
-    nav_shape = ([axis["size"] for axis in axes if axis["navigate"]])
+    nav_shape = [axis["size"] for axis in axes if axis["navigate"]]
     num_frames = np.prod(nav_shape) if nav_shape else 0
     if signal_dim != 2:
         raise ValueError("Only Signal2D supported for writing to TVIPS file.")
@@ -511,7 +529,9 @@ def file_writer(filename, signal, **kwds):
         max_file_size = total_file_size
     minimum_file_size = main_header.itemsize + record_dtype.itemsize
     if max_file_size < minimum_file_size:
-        warnings.warn(f"The minimum file size for this dataset is {minimum_file_size} bytes")
+        warnings.warn(
+            f"The minimum file size for this dataset is {minimum_file_size} bytes"
+        )
         max_file_size = minimum_file_size
     # frame metadata
     start_date_str = metadata.get("General.date", "1970-01-01")
@@ -548,7 +568,7 @@ def file_writer(filename, signal, **kwds):
     data = signal["data"]
     if num_frames:
         fdata = data.reshape((num_frames, axes[-2]["size"], axes[-1]["size"]))
-    while (frames_to_save != 0):
+    while frames_to_save != 0:
         suffix = "_" + (f"{file_index}".zfill(3))
         filename = fnb + suffix + ext
         if file_index == 0:
@@ -564,8 +584,11 @@ def file_writer(filename, signal, **kwds):
         if frames_to_save < frames_saved:
             frames_saved = frames_to_save
         file_memmap = np.memmap(
-            filename, dtype=record_dtype, mode=open_mode,
-            offset=file_location, shape=frames_saved,
+            filename,
+            dtype=record_dtype,
+            mode=open_mode,
+            offset=file_location,
+            shape=frames_saved,
         )
         # fill in the metadata
         file_memmap["mode"] = mode
@@ -574,7 +597,7 @@ def file_writer(filename, signal, **kwds):
         file_memmap["stagez"] = stagez
         file_memmap["stagea"] = stagea
         file_memmap["stageb"] = stageb
-        file_memmap['fcurrent'] = fcurrent
+        file_memmap["fcurrent"] = fcurrent
         rotator = np.arange(current_frame, current_frame + frames_saved)
         milliseconds = rotator * time_increment
         timestamps = (timestamp + milliseconds / 1000).astype(int)
@@ -582,9 +605,11 @@ def file_writer(filename, signal, **kwds):
         file_memmap["timestamp"] = timestamps
         file_memmap["ms"] = milliseconds
         file_memmap["rotidx"] = rotator + 1
-        data = fdata[current_frame:current_frame + frames_saved]
-        if signal['attributes']['_lazy']:
-            show_progressbar = kwds.get("show_progressbar", preferences.General.show_progressbar)
+        data = fdata[current_frame : current_frame + frames_saved]
+        if signal["attributes"]["_lazy"]:
+            show_progressbar = kwds.get(
+                "show_progressbar", preferences.General.show_progressbar
+            )
             cm = ProgressBar if show_progressbar else dummy_context_manager
             with cm():
                 data.store(file_memmap["data"])

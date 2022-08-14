@@ -23,9 +23,7 @@ import dask.array as da
 import numcodecs
 import zarr
 
-from rsciio._hierarchical import (
-    HierarchicalWriter, HierarchicalReader, version
-    )
+from rsciio._hierarchical import HierarchicalWriter, HierarchicalReader, version
 
 
 _logger = logging.getLogger(__name__)
@@ -73,28 +71,24 @@ class ZspyWriter(HierarchicalWriter):
 
     target_size = 1e8
 
-    def __init__(self,
-                 file,
-                 signal,
-                 expg, **kwargs):
+    def __init__(self, file, signal, expg, **kwargs):
         super().__init__(file, signal, expg, **kwargs)
         self.Dataset = zarr.Array
         self.unicode_kwds = {"dtype": object, "object_codec": numcodecs.JSON()}
-        self.ragged_kwds = {"dtype": object,
-                            "object_codec": numcodecs.VLenArray(int),
-                            "exact":  True}
+        self.ragged_kwds = {
+            "dtype": object,
+            "object_codec": numcodecs.VLenArray(int),
+            "exact": True,
+        }
 
     @staticmethod
     def _get_object_dset(group, data, key, chunks, **kwds):
         """Creates a Zarr Array object for saving ragged data"""
         these_kwds = kwds.copy()
-        these_kwds.update(dict(dtype=object,
-                               exact=True,
-                               chunks=chunks))
-        dset = group.require_dataset(key,
-                                     data.shape,
-                                     object_codec=numcodecs.VLenArray(int),
-                                     **these_kwds)
+        these_kwds.update(dict(dtype=object, exact=True, chunks=chunks))
+        dset = group.require_dataset(
+            key, data.shape, object_codec=numcodecs.VLenArray(int), **these_kwds
+        )
         return dset
 
     @staticmethod
@@ -135,27 +129,29 @@ def file_writer(filename, signal, close_file=True, **kwds):
     """
     if "compressor" not in kwds:
         kwds["compressor"] = numcodecs.Blosc(
-            cname='zstd', clevel=1, shuffle=numcodecs.Blosc.SHUFFLE
-            )
+            cname="zstd", clevel=1, shuffle=numcodecs.Blosc.SHUFFLE
+        )
 
     if isinstance(filename, MutableMapping):
         store = filename
     else:
-        store = zarr.storage.NestedDirectoryStore(filename,)
-    write_dataset = kwds.get('write_dataset', True)
+        store = zarr.storage.NestedDirectoryStore(
+            filename,
+        )
+    write_dataset = kwds.get("write_dataset", True)
     if not isinstance(write_dataset, bool):
         raise ValueError("`write_dataset` argument must a boolean.")
-    mode = 'w' if kwds.get('write_dataset', True) else 'a'
+    mode = "w" if kwds.get("write_dataset", True) else "a"
 
-    _logger.debug(f'File mode: {mode}')
-    _logger.debug(f'Zarr store: {store}')
+    _logger.debug(f"File mode: {mode}")
+    _logger.debug(f"Zarr store: {store}")
 
     f = zarr.open_group(store=store, mode=mode)
-    f.attrs['file_format'] = "ZSpy"
-    f.attrs['file_format_version'] = version
-    exps = f.require_group('Experiments')
+    f.attrs["file_format"] = "ZSpy"
+    f.attrs["file_format_version"] = version
+    exps = f.require_group("Experiments")
     title = signal["metadata"]["General"]["title"]
-    group_name =  title if title else '__unnamed__'
+    group_name = title if title else "__unnamed__"
     # / is a invalid character, see https://github.com/hyperspy/hyperspy/issues/942
     if "/" in group_name:
         group_name = group_name.replace("/", "-")
@@ -197,7 +193,7 @@ def file_reader(filename, lazy=False, **kwds):
         Load image lazily using dask
     **kwds, optional
     """
-    mode = kwds.pop('mode', 'r')
+    mode = kwds.pop("mode", "r")
     try:
         f = zarr.open(filename, mode=mode, **kwds)
     except BaseException:
@@ -205,7 +201,7 @@ def file_reader(filename, lazy=False, **kwds):
             "The file can't be read. It may be possible that the zspy file is "
             "saved with a different store than a zarr directory store. Try "
             "passing a different zarr store instead of the file name."
-            )
+        )
         raise
 
     reader = ZspyReader(f)

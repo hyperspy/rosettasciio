@@ -35,6 +35,8 @@ Similarly, it takes a dictionary as input for file writers.
    from rsciio.msa import api
    api.file_reader("your_msa_file.msa")
 
+Table of contents
+=================
 
 .. toctree::
    :maxdepth: 2

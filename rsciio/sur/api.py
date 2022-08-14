@@ -1,34 +1,35 @@
 # -*- coding: utf-8 -*-
+# Copyright 2007-2022 The HyperSpy developers
 #
-# This file is part of  HyperSpy.
+# This file is part of RosettaSciIO.
 #
-#  HyperSpy is free software: you can redistribute it and/or modify
+# RosettaSciIO is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-#  HyperSpy is distributed in the hope that it will be useful,
+# RosettaSciIO is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with  HyperSpy.  If not, see <https://www.gnu.org/licenses/#GPL>.
+# along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 # Plugin to read the mountainsmap surface format (sur)
-#Current state can bring support to the surface format if the file is an
-#attolight hyperspectral map, but cannot bring write nor support for other
-#mountainsmap files (.pro etc.). I need to write some tests, check whether the
-#comments can be systematically parsed into metadata and write a support for
-#original_metadata or other
+# Current state can bring support to the surface format if the file is an
+# attolight hyperspectral map, but cannot bring write nor support for other
+# mountainsmap files (.pro etc.). I need to write some tests, check whether the
+# comments can be systematically parsed into metadata and write a support for
+# original_metadata or other
 
 import logging
-#Dateutil allows to parse date but I don't think it's useful here
-#import dateutil.parser
+# Dateutil allows to parse date but I don't think it's useful here
+# import dateutil.parser
 
 import numpy as np
-#Commented for now because I don't know what purpose it serves
-#import traits.api as t
+# Commented for now because I don't know what purpose it serves
+# import traits.api as t
 
 from copy import deepcopy
 import struct
@@ -37,15 +38,15 @@ import zlib
 import os
 import warnings
 
-#Maybe later we can implement reading the class with the io utils tools instead
-#of re-defining read functions in the class
-#import rsciio.utils.utils_readfile as iou
+# Maybe later we can implement reading the class with the io utils tools instead
+# of re-defining read functions in the class
+# import rsciio.utils.utils_readfile as iou
 
-#This module will prove useful when we write the export function
-#import rsciio.utils.tools
+# This module will prove useful when we write the export function
+# import rsciio.utils.tools
 
-#DictionaryTreeBrowser class handles the fancy metadata dictionnaries
-#from hyperspy.misc.utils import DictionaryTreeBrowser
+# DictionaryTreeBrowser class handles the fancy metadata dictionnaries
+# from hyperspy.misc.utils import DictionaryTreeBrowser
 from rsciio.exceptions import MountainsMapFileError
 
 _logger = logging.getLogger(__name__)
@@ -68,7 +69,7 @@ class DigitalSurfHandler(object):
     _object_type : dict key: int containing the mountainsmap object types
 
     """
-    #Object types
+    # Object types
     _mountains_object_types = {
                                 -1: "_ERROR"              ,
                                  0: "_UNKNOWN"            ,
@@ -94,21 +95,21 @@ class DigitalSurfHandler(object):
 
     def __init__(self, filename=None):
 
-        #We do not need to check for file existence here because
-        #io module implements it in the load function
+        # We do not need to check for file existence here because
+        # io module implements it in the load function
         self.filename = filename
 
-        #The signal_dict dictionnary has to be returned by the
-        #file_reader function. Apparently original_metadata needs
-        #to be set
+        # The signal_dict dictionnary has to be returned by the
+        # file_reader function. Apparently original_metadata needs
+        # to be set
         self.signal_dict = {'data': np.empty((0,0,0)),
                             'axes': [],
                             'metadata': {},
                             'original_metadata': {}
                             }
 
-        #Dictionary to store, read and write fields in the binary file
-        #defined in the MountainsMap SDK. Structure is
+        # Dictionary to store, read and write fields in the binary file
+        # defined in the MountainsMap SDK. Structure is
         # _work_dict['Field']['value'] : access field value
         # _work_dict['Field']['b_unpack_fn'](f) : unpack value from file f
         # _work_dict['Field']['b_pack_fn'](f,v): pack value v in file f
@@ -488,16 +489,16 @@ class DigitalSurfHandler(object):
                 },
             }
 
-        #List of all measurement
+        # List of all measurement
         self._list_sur_file_content = []
 
-        #The surface files convention is that when saving multiple data
-        #objects at once, they are all packed in the same binary file.
-        #Every single object contains a full header with all the sections,
+        # The surface files convention is that when saving multiple data
+        # objects at once, they are all packed in the same binary file.
+        # Every single object contains a full header with all the sections,
         # but only the first one contains the relevant infos about
-        #object type, the number of objects in the file and other.
-        #Hence they will be made attributes.
-        #Object type
+        # object type, the number of objects in the file and other.
+        # Hence they will be made attributes.
+        # Object type
         self._Object_type = "_UNKNOWN"
 
         #Number of data objects in the file.
@@ -512,15 +513,15 @@ class DigitalSurfHandler(object):
         first file """
 
         with open(self.filename,'rb') as f:
-            #We read the first object
+            # We read the first object
             self._read_single_sur_object(f)
-            #We append the first object to the content list
+            # We append the first object to the content list
             self._append_work_dict_to_content()
-            #Lookup how many objects are stored in the file and save
+            # Lookup how many objects are stored in the file and save
             self._N_data_object = self._get_work_dict_key_value("_03_Number_of_Objects")
             self._N_data_channels = self._get_work_dict_key_value('_08_P_Size')
 
-            #Determine how many objects we need to read
+            # Determine how many objects we need to read
             if self._N_data_channels>0 and self._N_data_object>0:
                 N_objects_to_read = self._N_data_channels*self._N_data_object
             elif self._N_data_channels>0:
@@ -530,18 +531,18 @@ class DigitalSurfHandler(object):
             else:
                 N_objects_to_read = 1
 
-            #Lookup what object type we are dealing with and save
+            # Lookup what object type we are dealing with and save
             self._Object_type = \
                 DigitalSurfHandler._mountains_object_types[ \
                     self._get_work_dict_key_value("_05_Object_Type")]
 
-            #if more than 1
+            # if more than 1
             if N_objects_to_read > 1:
-                #continue reading until everything is done
+                # continue reading until everything is done
                 for i in range(1,N_objects_to_read):
-                    #We read an object
+                    # We read an object
                     self._read_single_sur_object(f)
-                    #We append it to content list
+                    # We append it to content list
                     self._append_work_dict_to_content()
 
     def _read_single_sur_object(self,file):
@@ -561,7 +562,7 @@ class DigitalSurfHandler(object):
     def _build_sur_dict(self):
         """Create a signal dict with an unpacked object"""
 
-        #If the signal is of the type spectrum or hypercard
+        # If the signal is of the type spectrum or hypercard
         if self._Object_type in ["_HYPCARD",]:
             self._build_hyperspectral_map()
             #self._build_hyperspectral_signal_type()
@@ -627,11 +628,11 @@ class DigitalSurfHandler(object):
         and navigate boolean can be optionally passed. Default 0 and
         True respectively."""
 
-        #The T axis is somewhat special because it is only defined on series
-        #and is thus only navigation. It is only defined on the first object
-        #in a serie.
-        #Here it needs to be checked that the T axis scale is not 0 Otherwise
-        #it raises hyperspy errors
+        # The T axis is somewhat special because it is only defined on series
+        # and is thus only navigation. It is only defined on the first object
+        # in a serie.
+        # Here it needs to be checked that the T axis scale is not 0 Otherwise
+        # it raises hyperspy errors
         scale = unpacked_dict['_56_T_Spacing']
         if scale == 0:
             scale =1
@@ -652,25 +653,25 @@ class DigitalSurfHandler(object):
         """Build a hyperspectral map. Hyperspectral maps are single-object
         files with datapoints of _14_W_Size length"""
 
-        #Check that the object contained only one object.
-        #Probably overkill at this point but better safe than sorry
+        # Check that the object contained only one object.
+        # Probably overkill at this point but better safe than sorry
         if len(self._list_sur_file_content) != 1:
             raise MountainsMapFileError("Input {:s} File is not of Hyperspectral type".format(self._Object_type))
 
-        #We get the dictionary with all the data
+        # We get the dictionary with all the data
         hypdic = self._list_sur_file_content[0]
 
-        #Add all the axes to the signal dict
+        # Add all the axes to the signal dict
         self.signal_dict['axes'].append(\
             self._build_Yax(hypdic,ind=0,nav=True))
         self.signal_dict['axes'].append(\
             self._build_Xax(hypdic,ind=1,nav=True))
-        #Wavelength axis in hyperspectral surface files are stored as T Axis
-        #with length set as _14_W_Size
+        # Wavelength axis in hyperspectral surface files are stored as T Axis
+        # with length set as _14_W_Size
         self.signal_dict['axes'].append(\
             self._build_Tax(hypdic,'_14_W_Size',ind=2,nav=False))
 
-        #We reshape the data in the correct format
+        # We reshape the data in the correct format
         self.signal_dict['data'] = hypdic['_62_points'].reshape(\
             hypdic['_19_Number_of_Lines'],
             hypdic['_18_Number_of_Points'],
@@ -684,42 +685,42 @@ class DigitalSurfHandler(object):
     def _build_general_1D_data(self,):
         """Build general 1D Data objects. Currently work with spectra"""
 
-        #Check that the object contained only one object.
-        #Probably overkill at this point but better safe than sorry
+        # Check that the object contained only one object.
+        # Probably overkill at this point but better safe than sorry
         if len(self._list_sur_file_content) != 1:
             raise MountainsMapFileError("Corrupt file")
 
-        #We get the dictionary with all the data
+        # We get the dictionary with all the data
         hypdic = self._list_sur_file_content[0]
 
-        #Add the axe to the signal dict
+        # Add the axe to the signal dict
         self.signal_dict['axes'].append(\
             self._build_Xax(hypdic,ind=0,nav=False))
 
-        #We reshape the data in the correct format
+        # We reshape the data in the correct format
         self.signal_dict['data'] = hypdic['_62_points']
 
-        #Build the metadata
+        # Build the metadata
         self._set_metadata_and_original_metadata(hypdic)
 
     def _build_spectrum(self,):
         """Build spectra objects. Spectra and 1D series of spectra are
         saved in the same object."""
 
-        #We get the dictionary with all the data
+        # We get the dictionary with all the data
         hypdic = self._list_sur_file_content[0]
 
-        #Add the signal axis_src to the signal dict
+        # Add the signal axis_src to the signal dict
         self.signal_dict['axes'].append(\
             self._build_Xax(hypdic,ind=1,nav=False))
 
-        #If there is more than 1 spectrum also add the navigation axis
+        # If there is more than 1 spectrum also add the navigation axis
         if hypdic['_19_Number_of_Lines'] != 1:
             self.signal_dict['axes'].append(\
                 self._build_Yax(hypdic,ind=0,nav=True))
 
-        #We reshape the data in the correct format.
-        #Edit: the data is now squeezed for unneeded dimensions
+        # We reshape the data in the correct format.
+        # Edit: the data is now squeezed for unneeded dimensions
         self.signal_dict['data'] = np.squeeze(hypdic['_62_points'].reshape(\
             hypdic['_19_Number_of_Lines'],
             hypdic['_18_Number_of_Points'],
@@ -731,21 +732,21 @@ class DigitalSurfHandler(object):
         """Build a series of 1D objects. The T axis is navigation and set from
         the first object"""
 
-        #First object dictionary
+        # First object dictionary
         hypdic = self._list_sur_file_content[0]
 
-        #Metadata are set from first dictionary
+        # Metadata are set from first dictionary
         self._set_metadata_and_original_metadata(hypdic)
 
-        #Add the series-axis to the signal dict
+        # Add the series-axis to the signal dict
         self.signal_dict['axes'].append(\
             self._build_Tax(hypdic,'_03_Number_of_Objects',ind=0,nav=True))
 
-        #All objects must share the same signal axis
+        # All objects must share the same signal axis
         self.signal_dict['axes'].append(\
             self._build_Xax(hypdic,ind=1,nav=False))
 
-        #We put all the data together
+        # We put all the data together
         data = []
         for obj in self._list_sur_file_content:
             data.append(obj['_62_points'])
@@ -755,15 +756,15 @@ class DigitalSurfHandler(object):
     def _build_surface(self,):
         """Build a surface"""
 
-        #Check that the object contained only one object.
-        #Probably overkill at this point but better safe than sorry
+        # Check that the object contained only one object.
+        # Probably overkill at this point but better safe than sorry
         if len(self._list_sur_file_content) != 1:
             raise MountainsMapFileError("CORRUPT {:s} FILE".format(self._Object_type))
 
-        #We get the dictionary with all the data
+        # We get the dictionary with all the data
         hypdic = self._list_sur_file_content[0]
 
-        #Add all the axes to the signal dict
+        # Add all the axes to the signal dict
         self.signal_dict['axes'].append(\
             self._build_Yax(hypdic,ind=0,nav=False))
         self.signal_dict['axes'].append(\
@@ -771,7 +772,7 @@ class DigitalSurfHandler(object):
 
 
 
-        #We reshape the data in the correct format
+        # We reshape the data in the correct format
         shape = (hypdic['_19_Number_of_Lines'],hypdic['_18_Number_of_Points'])
         self.signal_dict['data'] = hypdic['_62_points'].reshape(shape)
 
@@ -781,25 +782,25 @@ class DigitalSurfHandler(object):
         """Build a series of surfaces. The T axis is navigation and set from
         the first object"""
 
-        #First object dictionary
+        # First object dictionary
         hypdic = self._list_sur_file_content[0]
 
-        #Metadata are set from first dictionary
+        # Metadata are set from first dictionary
         self._set_metadata_and_original_metadata(hypdic)
 
-        #Add the series-axis to the signal dict
+        # Add the series-axis to the signal dict
         self.signal_dict['axes'].append(\
             self._build_Tax(hypdic,'_03_Number_of_Objects',ind=0,nav=True))
 
-        #All objects must share the same signal axes
+        # All objects must share the same signal axes
         self.signal_dict['axes'].append(\
                 self._build_Yax(hypdic,ind=1,nav=False))
         self.signal_dict['axes'].append(\
             self._build_Xax(hypdic,ind=2,nav=False))
 
-        #shape of the surfaces in the series
+        # shape of the surfaces in the series
         shape = (hypdic['_19_Number_of_Lines'],hypdic['_18_Number_of_Points'])
-        #We put all the data together
+        # We put all the data together
         data = []
         for obj in self._list_sur_file_content:
             data.append(obj['_62_points'].reshape(shape))
@@ -810,60 +811,60 @@ class DigitalSurfHandler(object):
         """Build a series of surfaces. The T axis is navigation and set from
         P Size"""
 
-        #First object dictionary
+        # First object dictionary
         hypdic = self._list_sur_file_content[0]
 
-        #Metadata are set from first dictionary
+        # Metadata are set from first dictionary
         self._set_metadata_and_original_metadata(hypdic)
 
-        #Add the series-axis to the signal dict
+        # Add the series-axis to the signal dict
         self.signal_dict['axes'].append(\
             self._build_Tax(hypdic,'_08_P_Size',ind=0,nav=True))
 
-        #All objects must share the same signal axes
+        # All objects must share the same signal axes
         self.signal_dict['axes'].append(\
                 self._build_Yax(hypdic,ind=1,nav=False))
         self.signal_dict['axes'].append(\
             self._build_Xax(hypdic,ind=2,nav=False))
 
-        #shape of the surfaces in the series
+        # shape of the surfaces in the series
         shape = (hypdic['_19_Number_of_Lines'],hypdic['_18_Number_of_Points'])
-        #We put all the data together
+        # We put all the data together
         data = []
         for obj in self._list_sur_file_content:
             data.append(obj['_62_points'].reshape(shape))
 
-        #Pushing data into the dictionary
+        # Pushing data into the dictionary
         self.signal_dict['data'] = np.stack(data)
 
     def _build_RGB_image(self,):
         """Build an RGB image. The T axis is navigation and set from
         P Size"""
 
-        #First object dictionary
+        # First object dictionary
         hypdic = self._list_sur_file_content[0]
 
-        #Metadata are set from first dictionary
+        # Metadata are set from first dictionary
         self._set_metadata_and_original_metadata(hypdic)
 
-        #Add the series-axis to the signal dict
+        # Add the series-axis to the signal dict
         self.signal_dict['axes'].append(\
             self._build_Tax(hypdic,'_08_P_Size',ind=0,nav=True))
 
-        #All objects must share the same signal axes
+        # All objects must share the same signal axes
         self.signal_dict['axes'].append(\
                 self._build_Yax(hypdic,ind=1,nav=False))
         self.signal_dict['axes'].append(\
             self._build_Xax(hypdic,ind=2,nav=False))
 
-        #shape of the surfaces in the series
+        # shape of the surfaces in the series
         shape = (hypdic['_19_Number_of_Lines'],hypdic['_18_Number_of_Points'])
-        #We put all the data together
+        # We put all the data together
         data = []
         for obj in self._list_sur_file_content:
             data.append(obj['_62_points'].reshape(shape))
 
-        #Pushing data into the dictionary
+        # Pushing data into the dictionary
         self.signal_dict['data'] = np.stack(data)
 
         self.signal_dict.update({'post_process':[self.post_process_RGB]})
@@ -884,11 +885,11 @@ class DigitalSurfHandler(object):
 
         """
 
-        #Formatting for complicated strings. We add parentheses to units
+        # Formatting for complicated strings. We add parentheses to units
         qty_unit = unpacked_dict['_29_Z_Step_Unit']
-        #We strip unit from any character that might pre-format it
+        # We strip unit from any character that might pre-format it
         qty_unit = qty_unit.strip(' \t\n()[]')
-        #If unit string is still truthy after strip we add parentheses
+        # If unit string is still truthy after strip we add parentheses
         if qty_unit:
             qty_unit = "({:s})".format(qty_unit)
 
@@ -896,7 +897,7 @@ class DigitalSurfHandler(object):
         quantity_str = " ".join([
             unpacked_dict['_26_Name_of_Z_Axis'],qty_unit]).strip()
 
-        #Date and time are set in metadata only if all values are not set to 0
+        # Date and time are set in metadata only if all values are not set to 0
 
         date = [unpacked_dict['_45_Year'],
                 unpacked_dict['_44_Month'],
@@ -915,7 +916,7 @@ class DigitalSurfHandler(object):
         else:
             time_str = ""
 
-        #Metadata dictionary initialization
+        # Metadata dictionary initialization
         metadict = {
             "General":{
                 "authors": unpacked_dict['_07_Operator_Name'],
@@ -937,28 +938,28 @@ class DigitalSurfHandler(object):
 
         Ntot = (self._N_data_object+1)*(self._N_data_channels+1)
 
-        #Iteration over Number of data objects
+        # Iteration over Number of data objects
         for i in range(self._N_data_object):
-            #Iteration over the Number of Data channels
+            # Iteration over the Number of Data channels
             for j in range(self._N_data_channels):
-                #Creating a dictionary key for each object
+                # Creating a dictionary key for each object
                 k = (i+1)*(j+1)
                 key = "Object_{:d}_Channel_{:d}".format(i,j)
                 original_metadata_dict.update({key:{}})
 
-                #We load one full object header
+                # We load one full object header
                 a = self._list_sur_file_content[k-1]
 
-                #Save it as original metadata dictionary
+                # Save it as original metadata dictionary
                 headerdict = {"H"+l.lstrip('_'):a[l] for l in a if l not in \
                     ("_62_points",'_61_Private_zone')}
                 original_metadata_dict[key].update({"Header" : headerdict})
 
-                #The second dictionary might contain custom mountainsmap params
+                # The second dictionary might contain custom mountainsmap params
                 parsedict = {}
 
-                #Check if it is the case and append it to
-                #original metadata if yes
+                # Check if it is the case and append it to
+                # original metadata if yes
 
                 valid_comment = self._check_comments(a["_60_Comment"],'$','=')
                 if valid_comment:
@@ -996,40 +997,40 @@ class DigitalSurfHandler(object):
         valid: boolean
         """
 
-        #Titlestart markers start with Prefix ($) followed by underscore
+        # Titlestart markers start with Prefix ($) followed by underscore
         TITLESTART = '{:s}_'.format(prefix)
 
-        #We start by assuming that the comment string is valid
-        #but contains 0 valid (= parsable) lines
+        # We start by assuming that the comment string is valid
+        # but contains 0 valid (= parsable) lines
         valid = True
         N_valid_lines = 0
 
         for line in commentsstr.splitlines():
-            #Here we ignore any empty line or line starting with @@
+            # Here we ignore any empty line or line starting with @@
             ignore = False
             if not line.strip() or line.startswith('@@'):
                 ignore = True
-            #If the line must not be ignored
+            # If the line must not be ignored
             if not ignore:
-                #If line starts with a titlestart marker we it counts as valid
+                # If line starts with a titlestart marker we it counts as valid
                 if line.startswith(TITLESTART):
                     N_valid_lines += 1
                 # if it does not we check that it has the delimiter and
                 # starts with prefix
                 else:
-                    #We check that line contains delimiter and prefix
-                    #if it does the count of valid line is increased
+                    # We check that line contains delimiter and prefix
+                    #i f it does the count of valid line is increased
                     if delimiter in line and line.startswith(prefix):
                         N_valid_lines += 1
-                    #Otherwise the whole comment string is thrown out
+                    # Otherwise the whole comment string is thrown out
                     else:
                         valid = False
 
-        #finally, it total number of valid line is 0 we throw out this comments
+        # finally, it total number of valid line is 0 we throw out this comments
         if N_valid_lines ==0:
             valid = False
 
-        #return falsiness of the string.
+        # return falsiness of the string.
         return valid
 
     def _MS_parse(self, strMS, prefix, delimiter):
@@ -1049,25 +1050,25 @@ class DigitalSurfHandler(object):
         dictMS: dictionnary in the correct hyperspy metadata format
 
         """
-        #dictMS is created as an empty dictionnary
+        # dictMS is created as an empty dictionnary
         dictMS = {}
-        #Title lines start with an underscore
+        # Title lines start with an underscore
         TITLESTART = '{:s}_'.format(prefix)
 
         for line in strMS.splitlines() :
-            #Here we ignore any empty line or line starting with @@
+            # Here we ignore any empty line or line starting with @@
             ignore = False
             if not line.strip() or line.startswith('@@'):
                 ignore = True
-            #If the line must not be ignored
+            # If the line must not be ignored
             if not ignore:
                 if line.startswith(TITLESTART):
-                    #We strip keys from whitespace at the end and beginning
+                    # We strip keys from whitespace at the end and beginning
                     keyMain = line[len(TITLESTART):].strip()
                     dictMS[keyMain] = {}
                 elif line.startswith(prefix):
                     key, *liValue = line.split(delimiter)
-                    #Key is also stripped from beginning or end whitespace
+                    # Key is also stripped from beginning or end whitespace
                     key = key[len(prefix):].strip()
                     strValue = liValue[0] if len(liValue)>0 else ""
                     # remove whitespace at the beginning of value
@@ -1196,39 +1197,39 @@ class DigitalSurfHandler(object):
         """This needs to be special because it reads until the end of
         file. This causes an error in the series of data"""
 
-        #Size of datapoints in bytes. Always int16 (==2) or 32 (==4)
+        # Size of datapoints in bytes. Always int16 (==2) or 32 (==4)
         Psize = int(self._get_work_dict_key_value('_15_Size_of_Points')/8)
         dtype = np.int16 if Psize == 2 else np.int32
 
         if self._get_work_dict_key_value('_01_Signature') != 'DSCOMPRESSED' :
-            #If the points are not compressed we need to read the exact
-            #size occupied by datapoints
+            # If the points are not compressed we need to read the exact
+            # size occupied by datapoints
 
-            #Datapoints in X and Y dimensions
+            # Datapoints in X and Y dimensions
             Npts_tot = self._get_work_dict_key_value('_20_Total_Nb_of_Pts')
-            #Datasize in WL
+            # Datasize in WL
             Wsize = self._get_work_dict_key_value('_14_W_Size')
 
-            #We need to take into account the fact that Wsize is often
-            #set to 0 instead of 1 in non-spectral data to compute the
-            #space occupied by data in the file
+            # We need to take into account the fact that Wsize is often
+            # set to 0 instead of 1 in non-spectral data to compute the
+            # space occupied by data in the file
             readsize = Npts_tot*Psize
             if Wsize != 0:
                 readsize*=Wsize
-            #if Npts_channel is not 0:
+            # if Npts_channel is not 0:
             #    readsize*=Npts_channel
 
-            #Read the exact size of the data
+            # Read the exact size of the data
             _points = np.frombuffer(file.read(readsize),dtype=dtype)
-            #_points = np.fromstring(file.read(readsize),dtype=dtype)
+            # _points = np.fromstring(file.read(readsize),dtype=dtype)
 
         else:
-            #If the points are compressed do the uncompress magic. There
-            #the space occupied by datapoints is self-taken care of.
-            #Number of streams
+            # If the points are compressed do the uncompress magic. There
+            # the space occupied by datapoints is self-taken care of.
+            # Number of streams
             _directoryCount = self._get_uint32(file)
 
-            #empty lists to store the read sizes
+            # empty lists to store the read sizes
             rawLengthData = []
             zipLengthData = []
             for i in range(_directoryCount):
@@ -1236,32 +1237,32 @@ class DigitalSurfHandler(object):
                 rawLengthData.append(self._get_uint32(file))
                 zipLengthData.append(self._get_uint32(file))
 
-            #We now initialize an empty binary string to store the results
+            # We now initialize an empty binary string to store the results
             rawData = b''
             for i in range(_directoryCount):
-                #And for each stream we uncompress using zip lib
-                #and add it to raw string
+                # And for each stream we uncompress using zip lib
+                # and add it to raw string
                 rawData += zlib.decompress(file.read(zipLengthData[i]))
 
-            #Finally numpy converts it to a numeric object
+            # Finally, numpy converts it to a numeric object
             _points = np.frombuffer(rawData, dtype=dtype)
-            #_points = np.fromstring(rawData, dtype=dtype)
+            # _points = np.fromstring(rawData, dtype=dtype)
 
         # rescale data
-        #We set non measured points to nan according to .sur ways
+        # We set non measured points to nan according to .sur ways
         nm = []
         if self._get_work_dict_key_value("_11_Special_Points") == 1 :
             # has unmeasured points
             nm = _points == self._get_work_dict_key_value("_16_Zmin")-2
 
-        #We set the point in the numeric scale
+        # We set the point in the numeric scale
         _points = _points.astype(float) \
             * self._get_work_dict_key_value("_23_Z_Spacing") \
             * self._get_work_dict_key_value("_35_Z_Unit_Ratio") \
             + self._get_work_dict_key_value("_55_Z_Offset")
 
         _points[nm] = np.nan
-        #Return the points, rescaled
+        # Return the points, rescaled
         return _points
 
     def _pack_data(self,file,val,encoding='latin-1'):

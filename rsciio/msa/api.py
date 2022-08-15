@@ -36,8 +36,8 @@ _logger = logging.getLogger(__name__)
 # https://www.amc.anl.gov/ANLSoftwareLibrary/02-MMSLib/XEDS/EMMFF/EMMFF.IBM/Emmff.Total
 
 US_MONTHS_D2A = {
-    "01" : "JAN",
-    "02" : "FEB",
+    "01": "JAN",
+    "02": "FEB",
     "03": "MAR",
     "04": "APR",
     "05": "MAY",
@@ -47,91 +47,112 @@ US_MONTHS_D2A = {
     "09": "SEP",
     "10": "OCT",
     "11": "NOV",
-    "12": "DEC", }
+    "12": "DEC",
+}
 
 US_MONTH_A2D = dict([reversed(i) for i in US_MONTHS_D2A.items()])
 
 keywords = {
     # Required parameters
-    'FORMAT': {'dtype': str, 'mapped_to': None},
-    'VERSION': {'dtype': str, 'mapped_to': None},
-    'TITLE': {'dtype': str, 'mapped_to': 'General.title'},
-    'DATE': {'dtype': str, 'mapped_to': None},
-    'TIME': {'dtype': str, 'mapped_to': None},
-    'OWNER': {'dtype': str, 'mapped_to': None},
-    'NPOINTS': {'dtype': float, 'mapped_to': None},
-    'NCOLUMNS': {'dtype': float, 'mapped_to': None},
-    'DATATYPE': {'dtype': str, 'mapped_to': None},
-    'XPERCHAN': {'dtype': float, 'mapped_to': None},
-    'OFFSET': {'dtype': float, 'mapped_to': None},
+    "FORMAT": {"dtype": str, "mapped_to": None},
+    "VERSION": {"dtype": str, "mapped_to": None},
+    "TITLE": {"dtype": str, "mapped_to": "General.title"},
+    "DATE": {"dtype": str, "mapped_to": None},
+    "TIME": {"dtype": str, "mapped_to": None},
+    "OWNER": {"dtype": str, "mapped_to": None},
+    "NPOINTS": {"dtype": float, "mapped_to": None},
+    "NCOLUMNS": {"dtype": float, "mapped_to": None},
+    "DATATYPE": {"dtype": str, "mapped_to": None},
+    "XPERCHAN": {"dtype": float, "mapped_to": None},
+    "OFFSET": {"dtype": float, "mapped_to": None},
     # Optional parameters
     # Signal1D characteristics
-    'SIGNALTYPE': {'dtype': str, 'mapped_to':
-                   'Signal.signal_type'},
-    'XLABEL': {'dtype': str, 'mapped_to': None},
-    'YLABEL': {'dtype': str, 'mapped_to': None},
-    'XUNITS': {'dtype': str, 'mapped_to': None},
-    'YUNITS': {'dtype': str, 'mapped_to': None},
-    'CHOFFSET': {'dtype': float, 'mapped_to': None},
-    'COMMENT': {'dtype': str, 'mapped_to': None},
+    "SIGNALTYPE": {"dtype": str, "mapped_to": "Signal.signal_type"},
+    "XLABEL": {"dtype": str, "mapped_to": None},
+    "YLABEL": {"dtype": str, "mapped_to": None},
+    "XUNITS": {"dtype": str, "mapped_to": None},
+    "YUNITS": {"dtype": str, "mapped_to": None},
+    "CHOFFSET": {"dtype": float, "mapped_to": None},
+    "COMMENT": {"dtype": str, "mapped_to": None},
     # Microscope
-    'BEAMKV': {'dtype': float, 'mapped_to':
-               'Acquisition_instrument.TEM.beam_energy'},
-    'EMISSION': {'dtype': float, 'mapped_to': None},
-    'PROBECUR': {'dtype': float, 'mapped_to':
-                 'Acquisition_instrument.TEM.beam_current'},
-    'BEAMDIAM': {'dtype': float, 'mapped_to': None},
-    'MAGCAM': {'dtype': float, 'mapped_to': None},
-    'OPERMODE': {'dtype': str, 'mapped_to': None},
-    'CONVANGLE': {'dtype': float, 'mapped_to':
-                  'Acquisition_instrument.TEM.convergence_angle'},
-
+    "BEAMKV": {"dtype": float, "mapped_to": "Acquisition_instrument.TEM.beam_energy"},
+    "EMISSION": {"dtype": float, "mapped_to": None},
+    "PROBECUR": {
+        "dtype": float,
+        "mapped_to": "Acquisition_instrument.TEM.beam_current",
+    },
+    "BEAMDIAM": {"dtype": float, "mapped_to": None},
+    "MAGCAM": {"dtype": float, "mapped_to": None},
+    "OPERMODE": {"dtype": str, "mapped_to": None},
+    "CONVANGLE": {
+        "dtype": float,
+        "mapped_to": "Acquisition_instrument.TEM.convergence_angle",
+    },
     # Specimen
-    'THICKNESS': {'dtype': float, 'mapped_to':
-                  'Sample.thickness'},
-    'XTILTSTGE': {'dtype': float, 'mapped_to':
-                  'Acquisition_instrument.TEM.Stage.tilt_alpha'},
-    'YTILTSTGE': {'dtype': float, 'mapped_to': None},
-    'XPOSITION': {'dtype': float, 'mapped_to': None},
-    'YPOSITION': {'dtype': float, 'mapped_to': None},
-    'ZPOSITION': {'dtype': float, 'mapped_to': None},
-
+    "THICKNESS": {"dtype": float, "mapped_to": "Sample.thickness"},
+    "XTILTSTGE": {
+        "dtype": float,
+        "mapped_to": "Acquisition_instrument.TEM.Stage.tilt_alpha",
+    },
+    "YTILTSTGE": {"dtype": float, "mapped_to": None},
+    "XPOSITION": {"dtype": float, "mapped_to": None},
+    "YPOSITION": {"dtype": float, "mapped_to": None},
+    "ZPOSITION": {"dtype": float, "mapped_to": None},
     # EELS
     # in ms:
-    'INTEGTIME': {'dtype': float, 'mapped_to':
-                  'Acquisition_instrument.TEM.Detector.EELS.exposure'},
+    "INTEGTIME": {
+        "dtype": float,
+        "mapped_to": "Acquisition_instrument.TEM.Detector.EELS.exposure",
+    },
     # in ms:
-    'DWELLTIME': {'dtype': float, 'mapped_to':
-                  'Acquisition_instrument.TEM.Detector.EELS.dwell_time'},
-    'COLLANGLE': {'dtype': float, 'mapped_to':
-                  'Acquisition_instrument.TEM.Detector.EELS.collection_angle'},
-    'ELSDET': {'dtype': str, 'mapped_to': None},
-
+    "DWELLTIME": {
+        "dtype": float,
+        "mapped_to": "Acquisition_instrument.TEM.Detector.EELS.dwell_time",
+    },
+    "COLLANGLE": {
+        "dtype": float,
+        "mapped_to": "Acquisition_instrument.TEM.Detector.EELS.collection_angle",
+    },
+    "ELSDET": {"dtype": str, "mapped_to": None},
     # EDS
-    'ELEVANGLE': {'dtype': float, 'mapped_to':
-                  'Acquisition_instrument.TEM.Detector.EDS.elevation_angle'},
-    'AZIMANGLE': {'dtype': float, 'mapped_to':
-                  'Acquisition_instrument.TEM.Detector.EDS.azimuth_angle'},
-    'SOLIDANGLE': {'dtype': float, 'mapped_to':
-                   'Acquisition_instrument.TEM.Detector.EDS.solid_angle'},
-    'LIVETIME': {'dtype': float, 'mapped_to':
-                 'Acquisition_instrument.TEM.Detector.EDS.live_time'},
-    'REALTIME': {'dtype': float, 'mapped_to':
-                 'Acquisition_instrument.TEM.Detector.EDS.real_time'},
-    'FWHMMNKA': {'dtype': float, 'mapped_to':
-                 'Acquisition_instrument.TEM.Detector.EDS.' +
-                 'energy_resolution_MnKa'},
-    'TBEWIND': {'dtype': float, 'mapped_to': None},
-    'TAUWIND': {'dtype': float, 'mapped_to': None},
-    'TDEADLYR': {'dtype': float, 'mapped_to': None},
-    'TACTLYR': {'dtype': float, 'mapped_to': None},
-    'TALWIND': {'dtype': float, 'mapped_to': None},
-    'TPYWIND': {'dtype': float, 'mapped_to': None},
-    'TBNWIND': {'dtype': float, 'mapped_to': None},
-    'TDIWIND': {'dtype': float, 'mapped_to': None},
-    'THCWIND': {'dtype': float, 'mapped_to': None},
-    'EDSDET': {'dtype': str, 'mapped_to':
-               'Acquisition_instrument.TEM.Detector.EDS.EDS_det'},
+    "ELEVANGLE": {
+        "dtype": float,
+        "mapped_to": "Acquisition_instrument.TEM.Detector.EDS.elevation_angle",
+    },
+    "AZIMANGLE": {
+        "dtype": float,
+        "mapped_to": "Acquisition_instrument.TEM.Detector.EDS.azimuth_angle",
+    },
+    "SOLIDANGLE": {
+        "dtype": float,
+        "mapped_to": "Acquisition_instrument.TEM.Detector.EDS.solid_angle",
+    },
+    "LIVETIME": {
+        "dtype": float,
+        "mapped_to": "Acquisition_instrument.TEM.Detector.EDS.live_time",
+    },
+    "REALTIME": {
+        "dtype": float,
+        "mapped_to": "Acquisition_instrument.TEM.Detector.EDS.real_time",
+    },
+    "FWHMMNKA": {
+        "dtype": float,
+        "mapped_to": "Acquisition_instrument.TEM.Detector.EDS."
+        + "energy_resolution_MnKa",
+    },
+    "TBEWIND": {"dtype": float, "mapped_to": None},
+    "TAUWIND": {"dtype": float, "mapped_to": None},
+    "TDEADLYR": {"dtype": float, "mapped_to": None},
+    "TACTLYR": {"dtype": float, "mapped_to": None},
+    "TALWIND": {"dtype": float, "mapped_to": None},
+    "TPYWIND": {"dtype": float, "mapped_to": None},
+    "TBNWIND": {"dtype": float, "mapped_to": None},
+    "TDIWIND": {"dtype": float, "mapped_to": None},
+    "THCWIND": {"dtype": float, "mapped_to": None},
+    "EDSDET": {
+        "dtype": str,
+        "mapped_to": "Acquisition_instrument.TEM.Detector.EDS.EDS_det",
+    },
 }
 
 
@@ -164,30 +185,29 @@ def parse_msa_string(string, filename=None):
         if data_section is False:
             if line[0] == "#":
                 try:
-                    key, value = line.split(': ')
+                    key, value = line.split(": ")
                     value = value.strip()
                 except ValueError:
                     key = line
                     value = None
-                key = key.strip('#').strip()
+                key = key.strip("#").strip()
 
-                if key != 'SPECTRUM':
+                if key != "SPECTRUM":
                     parameters[key] = value
                 else:
                     data_section = True
         else:
             # Read the data
             if line[0] != "#" and line.strip():
-                if parameters['DATATYPE'] == 'XY':
-                    xy = line.replace(',', ' ').strip().split()
+                if parameters["DATATYPE"] == "XY":
+                    xy = line.replace(",", " ").strip().split()
                     y.append(float(xy[1]))
-                elif parameters['DATATYPE'] == 'Y':
-                    data = [
-                        float(i) for i in line.replace(',', ' ').strip().split()]
+                elif parameters["DATATYPE"] == "Y":
+                    data = [float(i) for i in line.replace(",", " ").strip().split()]
                     y.extend(data)
     # We rewrite the format value to be sure that it complies with the
     # standard, because it will be used by the writer routine
-    parameters['FORMAT'] = "EMSA/MAS Spectral Data File"
+    parameters["FORMAT"] = "EMSA/MAS Spectral Data File"
 
     # Convert the parameters to the right type and map some
     # TODO: the msa format seems to support specifying the units of some
@@ -195,167 +215,162 @@ def parse_msa_string(string, filename=None):
     for parameter, value in parameters.items():
         # Some parameters names can contain the units information
         # e.g. #AZIMANGLE-dg: 90.
-        if '-' in parameter:
-            clean_par, units = parameter.split('-')
+        if "-" in parameter:
+            clean_par, units = parameter.split("-")
             clean_par, units = clean_par.strip(), units.strip()
         else:
             clean_par, units = parameter, None
         if clean_par in keywords:
-            type_ = keywords[clean_par]['dtype']
+            type_ = keywords[clean_par]["dtype"]
             try:
                 parameters[parameter] = type_(value)
             except BaseException:
                 error = f"The {parameter} keyword value, {value} could \
                     not be converted to the right type."
-                if 'e' in value.lower():
-                    # Normally, the offending misspelling is a space in the 
+                if "e" in value.lower():
+                    # Normally, the offending misspelling is a space in the
                     # scientific notation, e.g. 2.0 E-06
                     try:
-                        parameters[parameter] = type_(value.replace(' ', ''))
+                        parameters[parameter] = type_(value.replace(" ", ""))
                     except BaseException:  # pragma: no cover
                         _logger.exception(error)
                 else:
                     # Some files have two values separated by a space
                     # https://eelsdb.eu/wp-content/uploads/2017/03/Cu4O3-O-K.msa
                     try:
-                        parameters[parameter] = type_(value.split(' ')[0])
+                        parameters[parameter] = type_(value.split(" ")[0])
                     except BaseException:  # pragma: no cover
                         _logger.exception(error)
 
-            if keywords[clean_par]['mapped_to'] is not None:
-                mapped.set_item(keywords[clean_par]['mapped_to'],
-                                parameters[parameter])
+            if keywords[clean_par]["mapped_to"] is not None:
+                mapped.set_item(keywords[clean_par]["mapped_to"], parameters[parameter])
                 if units is not None:
-                    mapped.set_item(keywords[clean_par]['mapped_to'] +
-                                    '_units', units)
-    if 'TIME' in parameters and parameters['TIME']:
+                    mapped.set_item(keywords[clean_par]["mapped_to"] + "_units", units)
+    if "TIME" in parameters and parameters["TIME"]:
         try:
-            time = dt.strptime(parameters['TIME'], "%H:%M")
-            mapped.set_item('General.time', time.time().isoformat())
+            time = dt.strptime(parameters["TIME"], "%H:%M")
+            mapped.set_item("General.time", time.time().isoformat())
         except ValueError as e:
             _logger.warning(
-                'Possible malformed TIME field in msa file. The time '
-                f'information could not be retrieved.: {e}'
-                )
+                "Possible malformed TIME field in msa file. The time "
+                f"information could not be retrieved.: {e}"
+            )
 
-    malformed_date_error = 'Possibly malformed DATE in msa file. The date information could not be retrieved.'
+    malformed_date_error = "Possibly malformed DATE in msa file. The date information could not be retrieved."
     if "DATE" in parameters and parameters["DATE"]:
         try:
             day, month, year = parameters["DATE"].split("-")
             if month.upper() in US_MONTH_A2D:
                 month = US_MONTH_A2D[month.upper()]
                 date = dt.strptime("-".join((day, month, year)), "%d-%m-%Y")
-                mapped.set_item('General.date', date.date().isoformat())
+                mapped.set_item("General.date", date.date().isoformat())
             else:
-                    _logger.warning(malformed_date_error)
-        except ValueError as e: # Error raised if split does not return 3 elements in this case
+                _logger.warning(malformed_date_error)
+        except ValueError as e:  # Error raised if split does not return 3 elements in this case
             _logger.warning(malformed_date_error + ": %s" % e)
 
-
-    axes = [{
-        'size': len(y),
-        'index_in_array': 0,
-        'name': parameters['XLABEL'] if 'XLABEL' in parameters else '',
-        'scale': parameters['XPERCHAN'] if 'XPERCHAN' in parameters else 1,
-        'offset': parameters['OFFSET'] if 'OFFSET' in parameters else 0,
-        'units': parameters['XUNITS'] if 'XUNITS' in parameters else '',
-    }]
+    axes = [
+        {
+            "size": len(y),
+            "index_in_array": 0,
+            "name": parameters["XLABEL"] if "XLABEL" in parameters else "",
+            "scale": parameters["XPERCHAN"] if "XPERCHAN" in parameters else 1,
+            "offset": parameters["OFFSET"] if "OFFSET" in parameters else 0,
+            "units": parameters["XUNITS"] if "XUNITS" in parameters else "",
+        }
+    ]
     if filename is not None:
-        mapped.set_item('General.original_filename',
-                        os.path.split(filename)[1])
-    mapped.set_item('Signal.record_by', 'spectrum')
-    if mapped.has_item('Signal.signal_type'):
-        if mapped.Signal.signal_type == 'ELS':
-            mapped.Signal.signal_type = 'EELS'
-        if mapped.Signal.signal_type in ['EDX', 'XEDS']:
-            mapped.Signal.signal_type = 'EDS'
+        mapped.set_item("General.original_filename", os.path.split(filename)[1])
+    mapped.set_item("Signal.record_by", "spectrum")
+    if mapped.has_item("Signal.signal_type"):
+        if mapped.Signal.signal_type == "ELS":
+            mapped.Signal.signal_type = "EELS"
+        if mapped.Signal.signal_type in ["EDX", "XEDS"]:
+            mapped.Signal.signal_type = "EDS"
     else:
         # Defaulting to EELS looks reasonable
-        mapped.set_item('Signal.signal_type', 'EELS')
-    if 'YUNITS' in parameters.keys():
-        yunits = "(%s)" % parameters['YUNITS']
+        mapped.set_item("Signal.signal_type", "EELS")
+    if "YUNITS" in parameters.keys():
+        yunits = "(%s)" % parameters["YUNITS"]
     else:
         yunits = ""
-    if 'YLABEL' in parameters.keys():
-        quantity = "%s" % parameters['YLABEL']
+    if "YLABEL" in parameters.keys():
+        quantity = "%s" % parameters["YLABEL"]
     else:
-        if mapped.Signal.signal_type == 'EELS':
-            quantity = 'Electrons'
+        if mapped.Signal.signal_type == "EELS":
+            quantity = "Electrons"
             if not yunits:
                 yunits = "(Counts)"
-        elif 'EDS' in mapped.Signal.signal_type:
-            quantity = 'X-rays'
+        elif "EDS" in mapped.Signal.signal_type:
+            quantity = "X-rays"
             if not yunits:
                 yunits = "(Counts)"
         else:
             quantity = ""
     if quantity or yunits:
         quantity_units = "%s %s" % (quantity, yunits)
-        mapped.set_item('Signal.quantity', quantity_units.strip())
+        mapped.set_item("Signal.quantity", quantity_units.strip())
 
     dictionary = {
-        'data': np.array(y),
-        'axes': axes,
-        'metadata': mapped.to_dict(),
-        'original_metadata': parameters
+        "data": np.array(y),
+        "axes": axes,
+        "metadata": mapped.to_dict(),
+        "original_metadata": parameters,
     }
-    file_data_list = [dictionary, ]
+    file_data_list = [
+        dictionary,
+    ]
     return file_data_list
 
 
-def file_reader(filename, encoding='latin-1', **kwds):
-    with codecs.open(
-            filename,
-            encoding=encoding,
-            errors='replace') as spectrum_file:
-        return parse_msa_string(string=spectrum_file,
-                                filename=filename)
+def file_reader(filename, encoding="latin-1", **kwds):
+    with codecs.open(filename, encoding=encoding, errors="replace") as spectrum_file:
+        return parse_msa_string(string=spectrum_file, filename=filename)
 
 
-def file_writer(filename, signal, format=None, separator=', ',
-                encoding='latin-1'):
+def file_writer(filename, signal, format=None, separator=", ", encoding="latin-1"):
     loc_kwds = {}
     FORMAT = "EMSA/MAS Spectral Data File"
     md = DTBox(signal["metadata"], box_dots=True)
     if signal["original_metadata"].get("FORMAT", None) == FORMAT:
         loc_kwds = signal["original_metadata"]
         if format is not None:
-            loc_kwds['DATATYPE'] = format
+            loc_kwds["DATATYPE"] = format
         else:
-            if 'DATATYPE' in loc_kwds:
-                format = loc_kwds['DATATYPE']
+            if "DATATYPE" in loc_kwds:
+                format = loc_kwds["DATATYPE"]
     else:
         if format is None:
-            format = 'Y'
+            format = "Y"
         if "General.date" in md:
             date = dt.strptime(md.General.date, "%Y-%m-%d")
             date_str = date.strftime("%d-%m-%Y")
             day, month, year = date_str.split("-")
             month = US_MONTHS_D2A[month]
-            loc_kwds['DATE'] = "-".join((day, month, year)) 
+            loc_kwds["DATE"] = "-".join((day, month, year))
         if "General.item" in md:
             time = dt.strptime(md.General.time, "%H:%M:%S")
-            loc_kwds['TIME'] = time.strftime("%H:%M")
+            loc_kwds["TIME"] = time.strftime("%H:%M")
     keys_from_signal = {
         # Required parameters
-        'FORMAT': FORMAT,
-        'VERSION': '1.0',
+        "FORMAT": FORMAT,
+        "VERSION": "1.0",
         # 'TITLE' : signal.title[:64] if hasattr(signal, "title") else '',
-        'DATE': '',
-        'TIME': '',
-        'OWNER': '',
-        'NPOINTS': signal["axes"][0]["size"],
-        'NCOLUMNS': 1,
-        'DATATYPE': format,
-        'SIGNALTYPE': md.Signal.signal_type,
-        'XPERCHAN': signal["axes"][0]["scale"],
-        'OFFSET': signal["axes"][0]["offset"],
+        "DATE": "",
+        "TIME": "",
+        "OWNER": "",
+        "NPOINTS": signal["axes"][0]["size"],
+        "NCOLUMNS": 1,
+        "DATATYPE": format,
+        "SIGNALTYPE": md.Signal.signal_type,
+        "XPERCHAN": signal["axes"][0]["scale"],
+        "OFFSET": signal["axes"][0]["offset"],
         # Signal1D characteristics
-        'XLABEL': signal["axes"][0]["name"],
+        "XLABEL": signal["axes"][0]["name"],
         #        'YLABEL' : '',
-        'XUNITS': signal["axes"][0]["units"],
+        "XUNITS": signal["axes"][0]["units"],
         #        'YUNITS' : '',
-        'COMMENT': 'File created by RosettaSciIO version %s' % __version__,
+        "COMMENT": "File created by RosettaSciIO version %s" % __version__,
         # Microscope
         #        'BEAMKV' : ,
         #        'EMISSION' : ,
@@ -381,48 +396,44 @@ def file_writer(filename, signal, format=None, separator=', ',
 
     # Update the loc_kwds with the information retrieved from the signal class
     for key, value in keys_from_signal.items():
-        if key not in loc_kwds or value != '':
+        if key not in loc_kwds or value != "":
             loc_kwds[key] = value
 
     for key, dic in keywords.items():
 
-        if dic['mapped_to'] is not None:
-            if 'SEM' in md.Signal.signal_type:
-                dic['mapped_to'] = dic['mapped_to'].replace('TEM', 'SEM')
-            if dic['mapped_to'] in md:
-                loc_kwds[key] = eval('md.%s' % dic['mapped_to'])
+        if dic["mapped_to"] is not None:
+            if "SEM" in md.Signal.signal_type:
+                dic["mapped_to"] = dic["mapped_to"].replace("TEM", "SEM")
+            if dic["mapped_to"] in md:
+                loc_kwds[key] = eval("md.%s" % dic["mapped_to"])
 
-    with codecs.open(
-            filename,
-            'w',
-            encoding=encoding,
-            errors='ignore') as f:
+    with codecs.open(filename, "w", encoding=encoding, errors="ignore") as f:
         # Remove the following keys from loc_kwds if they are in
         # (although they shouldn't)
-        for key in ['SPECTRUM', 'ENDOFDATA']:
+        for key in ["SPECTRUM", "ENDOFDATA"]:
             if key in loc_kwds:
-                del(loc_kwds[key])
+                del loc_kwds[key]
 
-        f.write('#%-12s: %s\u000D\u000A' % ('FORMAT', loc_kwds.pop('FORMAT')))
-        f.write(
-            '#%-12s: %s\u000D\u000A' %
-            ('VERSION', loc_kwds.pop('VERSION')))
+        f.write("#%-12s: %s\u000D\u000A" % ("FORMAT", loc_kwds.pop("FORMAT")))
+        f.write("#%-12s: %s\u000D\u000A" % ("VERSION", loc_kwds.pop("VERSION")))
         for keyword, value in loc_kwds.items():
-            f.write('#%-12s: %s\u000D\u000A' % (keyword, value))
+            f.write("#%-12s: %s\u000D\u000A" % (keyword, value))
 
-        f.write('#%-12s: Spectral Data Starts Here\u000D\u000A' % 'SPECTRUM')
+        f.write("#%-12s: Spectral Data Starts Here\u000D\u000A" % "SPECTRUM")
 
-        if format == 'XY':
+        if format == "XY":
             axis_dict = signal["axes"][0]
-            axis = axis_dict["offset"] + axis_dict["scale"] * np.arange(axis_dict["size"])
+            axis = axis_dict["offset"] + axis_dict["scale"] * np.arange(
+                axis_dict["size"]
+            )
             for x, y in zip(axis, signal["data"]):
                 f.write("%g%s%g" % (x, separator, y))
-                f.write('\u000D\u000A')
-        elif format == 'Y':
+                f.write("\u000D\u000A")
+        elif format == "Y":
             for y in signal["data"]:
-                f.write('%f%s' % (y, separator))
-                f.write('\u000D\u000A')
+                f.write("%f%s" % (y, separator))
+                f.write("\u000D\u000A")
         else:
-            raise ValueError('format must be one of: None, \'XY\' or \'Y\'')
+            raise ValueError("format must be one of: None, 'XY' or 'Y'")
 
-        f.write('#%-12s: End Of Data and File' % 'ENDOFDATA')
+        f.write("#%-12s: End Of Data and File" % "ENDOFDATA")

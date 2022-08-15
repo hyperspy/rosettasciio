@@ -37,13 +37,8 @@ class DenseSliceCOO(sparse.COO):
 
 @njit(cache=True)
 def _stream_to_sparse_COO_array_sum_frames(
-        stream_data,
-        last_frame,
-        shape,
-        channels,
-        rebin_energy=1,
-        first_frame=0
-    ):  # pragma: no cover
+    stream_data, last_frame, shape, channels, rebin_energy=1, first_frame=0
+):  # pragma: no cover
     navigation_index = 0
     frame_number = 0
     ysize, xsize = shape
@@ -78,10 +73,12 @@ def _stream_to_sparse_COO_array_sum_frames(
                     data += 1
                 else:  # a new channel, same spectrum—requires new coord
                     # Store previous channel
-                    coords_list.append((
-                        int(navigation_index // xsize),
-                        int(navigation_index % xsize),
-                        int(count_channel // rebin_energy))
+                    coords_list.append(
+                        (
+                            int(navigation_index // xsize),
+                            int(navigation_index % xsize),
+                            int(count_channel // rebin_energy),
+                        )
                     )
                     data_list.append(data)
                     # Add a count to new channel
@@ -96,10 +93,12 @@ def _stream_to_sparse_COO_array_sum_frames(
 
         else:  # Advances one pixel
             if data:  # Only store coordinates if the spectrum was not empty
-                coords_list.append((
-                    int(navigation_index // xsize),
-                    int(navigation_index % xsize),
-                    int(count_channel // rebin_energy))
+                coords_list.append(
+                    (
+                        int(navigation_index // xsize),
+                        int(navigation_index % xsize),
+                        int(count_channel // rebin_energy),
+                    )
                 )
                 data_list.append(data)
             navigation_index += 1
@@ -108,10 +107,12 @@ def _stream_to_sparse_COO_array_sum_frames(
     # Store data  at the end if any (there is no final 65535 to mark the end
     # of the stream)
     if data:  # Only store coordinates if the spectrum was not empty
-        coords_list.append((
-            int(navigation_index // xsize),
-            int(navigation_index % xsize),
-            int(count_channel // rebin_energy))
+        coords_list.append(
+            (
+                int(navigation_index // xsize),
+                int(navigation_index % xsize),
+                int(count_channel // rebin_energy),
+            )
         )
         data_list.append(data)
 
@@ -124,13 +125,8 @@ def _stream_to_sparse_COO_array_sum_frames(
 
 @njit(cache=True)
 def _stream_to_sparse_COO_array(
-        stream_data,
-        last_frame,
-        shape,
-        channels,
-        rebin_energy=1,
-        first_frame=0
-    ):  # pragma: no cover
+    stream_data, last_frame, shape, channels, rebin_energy=1, first_frame=0
+):  # pragma: no cover
     navigation_index = 0
     frame_number = 0
     ysize, xsize = shape
@@ -165,11 +161,13 @@ def _stream_to_sparse_COO_array(
                     data += 1
                 else:  # a new channel, same spectrum—requires new coord
                     # Store previous channel
-                    coords.append((
-                        frame_number - first_frame,
-                        int(navigation_index // xsize),
-                        int(navigation_index % xsize),
-                        int(count_channel // rebin_energy))
+                    coords.append(
+                        (
+                            frame_number - first_frame,
+                            int(navigation_index // xsize),
+                            int(navigation_index % xsize),
+                            int(count_channel // rebin_energy),
+                        )
                     )
                     data_list.append(data)
                     # Add a count to new channel
@@ -184,11 +182,13 @@ def _stream_to_sparse_COO_array(
 
         else:  # Advances one pixel
             if data:  # Only store coordinates if the spectrum was not empty
-                coords.append((
-                    frame_number - first_frame,
-                    int(navigation_index // xsize),
-                    int(navigation_index % xsize),
-                    int(count_channel // rebin_energy))
+                coords.append(
+                    (
+                        frame_number - first_frame,
+                        int(navigation_index // xsize),
+                        int(navigation_index % xsize),
+                        int(count_channel // rebin_energy),
+                    )
                 )
                 data_list.append(data)
             navigation_index += 1
@@ -197,16 +197,17 @@ def _stream_to_sparse_COO_array(
     # Store data at the end if any (there is no final 65535 to mark the end of
     # the stream)
     if data:  # Only store coordinates if the spectrum was not empty
-        coords.append((
-            frame_number - first_frame,
-            int(navigation_index // xsize),
-            int(navigation_index % xsize),
-            int(count_channel // rebin_energy))
+        coords.append(
+            (
+                frame_number - first_frame,
+                int(navigation_index // xsize),
+                int(navigation_index % xsize),
+                int(count_channel // rebin_energy),
+            )
         )
         data_list.append(data)
 
-    final_shape = (last_frame - first_frame, ysize, xsize,
-                   channels // rebin_energy)
+    final_shape = (last_frame - first_frame, ysize, xsize, channels // rebin_energy)
     # Remove first element, see comments above
     coords = np.array(coords)[1:].T
     data = np.array(data_list)[1:]
@@ -214,8 +215,14 @@ def _stream_to_sparse_COO_array(
 
 
 def stream_to_sparse_COO_array(
-        stream_data, spatial_shape, channels, last_frame, rebin_energy=1,
-        sum_frames=True, first_frame=0, ):
+    stream_data,
+    spatial_shape,
+    channels,
+    last_frame,
+    rebin_energy=1,
+    sum_frames=True,
+    first_frame=0,
+):
     """Returns data stored in a FEI stream as a nd COO array
 
     Parameters
@@ -256,12 +263,8 @@ def stream_to_sparse_COO_array(
 
 @njit(cache=True)
 def _fill_array_with_stream_sum_frames(
-        spectrum_image,
-        stream,
-        first_frame,
-        last_frame,
-        rebin_energy=1
-    ):  # pragma: no cover
+    spectrum_image, stream, first_frame, last_frame, rebin_energy=1
+):  # pragma: no cover
     # jit speeds up this function by a factor of ~ 30
     navigation_index = 0
     frame_number = 0
@@ -277,21 +280,19 @@ def _fill_array_with_stream_sum_frames(
         # if different of ‘65535’, add a count to the corresponding channel
         if count_channel != 65535:
             if first_frame <= frame_number:
-                spectrum_image[navigation_index // shape[1],
-                               navigation_index % shape[1],
-                               count_channel // rebin_energy] += 1
+                spectrum_image[
+                    navigation_index // shape[1],
+                    navigation_index % shape[1],
+                    count_channel // rebin_energy,
+                ] += 1
         else:
             navigation_index += 1
 
 
 @njit(cache=True)
 def _fill_array_with_stream(
-        spectrum_image,
-        stream,
-        first_frame,
-        last_frame,
-        rebin_energy=1
-    ):  # pragma: no cover
+    spectrum_image, stream, first_frame, last_frame, rebin_energy=1
+):  # pragma: no cover
     navigation_index = 0
     frame_number = 0
     shape = spectrum_image.shape
@@ -306,17 +307,27 @@ def _fill_array_with_stream(
         # if different of ‘65535’, add a count to the corresponding channel
         if count_channel != 65535:
             if first_frame <= frame_number:
-                spectrum_image[frame_number - first_frame,
-                               navigation_index // shape[2],
-                               navigation_index % shape[2],
-                               count_channel // rebin_energy] += 1
+                spectrum_image[
+                    frame_number - first_frame,
+                    navigation_index // shape[2],
+                    navigation_index % shape[2],
+                    count_channel // rebin_energy,
+                ] += 1
         else:
             navigation_index += 1
 
 
 def stream_to_array(
-        stream, spatial_shape, channels, last_frame, first_frame=0,
-        rebin_energy=1, sum_frames=True, dtype="uint16", spectrum_image=None):
+    stream,
+    spatial_shape,
+    channels,
+    last_frame,
+    first_frame=0,
+    rebin_energy=1,
+    sum_frames=True,
+    dtype="uint16",
+    spectrum_image=None,
+):
     """Returns data stored in a FEI stream as a nd COO array
 
     Parameters
@@ -343,28 +354,35 @@ def stream_to_array(
     if not sum_frames:
         if spectrum_image is None:
             spectrum_image = np.zeros(
-                (frames, spatial_shape[0], spatial_shape[1],
-                 int(channels / rebin_energy)),
-                dtype=dtype)
+                (
+                    frames,
+                    spatial_shape[0],
+                    spatial_shape[1],
+                    int(channels / rebin_energy),
+                ),
+                dtype=dtype,
+            )
 
             _fill_array_with_stream(
                 spectrum_image=spectrum_image,
                 stream=stream,
                 first_frame=first_frame,
                 last_frame=last_frame,
-                rebin_energy=rebin_energy)
+                rebin_energy=rebin_energy,
+            )
     else:
         if spectrum_image is None:
             spectrum_image = np.zeros(
-                (spatial_shape[0], spatial_shape[1],
-                 int(channels / rebin_energy)),
-                dtype=dtype)
+                (spatial_shape[0], spatial_shape[1], int(channels / rebin_energy)),
+                dtype=dtype,
+            )
         _fill_array_with_stream_sum_frames(
             spectrum_image=spectrum_image,
             stream=stream,
             first_frame=first_frame,
             last_frame=last_frame,
-            rebin_energy=rebin_energy)
+            rebin_energy=rebin_energy,
+        )
     return spectrum_image
 
 

@@ -23,14 +23,11 @@ from pathlib import Path
 import dask.array as da
 import h5py
 
-from rsciio._hierarchical import (
-    HierarchicalWriter, HierarchicalReader, version
-    )
+from rsciio._hierarchical import HierarchicalWriter, HierarchicalReader, version
 from rsciio.utils.tools import get_file_handle
 
 
 _logger = logging.getLogger(__name__)
-
 
 
 # -----------------------
@@ -83,7 +80,7 @@ _logger = logging.getLogger(__name__)
 # ----
 # - Added support for lists, tuples and binary strings
 
-not_valid_format = 'The file is not a valid HyperSpy hdf5 file'
+not_valid_format = "The file is not a valid HyperSpy hdf5 file"
 
 current_file_version = None  # Format version of the file being read
 default_version = Version(version)
@@ -105,6 +102,7 @@ class HyperspyWriter(HierarchicalWriter):
     An object used to simplify and organize the process for
     writing a hyperspy signal.  (.hspy format)
     """
+
     target_size = 1e6
 
     def __init__(self, file, signal, expg, **kwds):
@@ -113,7 +111,6 @@ class HyperspyWriter(HierarchicalWriter):
         self.Group = h5py.Group
         self.unicode_kwds = {"dtype": h5py.special_dtype(vlen=str)}
         self.ragged_kwds = {"dtype": h5py.special_dtype(vlen=signal["data"][0].dtype)}
-
 
     @staticmethod
     def _store_data(data, dset, group, key, chunks):
@@ -132,10 +129,9 @@ class HyperspyWriter(HierarchicalWriter):
         # For saving ragged array
         if chunks is None:
             chunks = 1
-        dset = group.require_dataset(key,
-                                     chunks,
-                                     dtype=h5py.special_dtype(vlen=data[0].dtype),
-                                     **kwds)
+        dset = group.require_dataset(
+            key, chunks, dtype=h5py.special_dtype(vlen=data[0].dtype), **kwds
+        )
         return dset
 
 
@@ -154,7 +150,7 @@ def file_reader(filename, lazy=False, **kwds):
         import hdf5plugin
     except ImportError:
         pass
-    mode = kwds.pop('mode', 'r')
+    mode = kwds.pop("mode", "r")
     f = h5py.File(filename, mode=mode, **kwds)
 
     reader = HyperspyReader(f)
@@ -187,44 +183,45 @@ def file_writer(filename, signal, close_file=True, **kwds):
         The keyword argument are passed to the
         :py:meth:`h5py.Group.require_dataset` function.
     """
-    if 'compression' not in kwds:
-        kwds['compression'] = 'gzip'
+    if "compression" not in kwds:
+        kwds["compression"] = "gzip"
 
     if "shuffle" not in kwds:
         # Use shuffle by default to improve compression
         kwds["shuffle"] = True
 
-    folder = signal["tmp_parameters"].get('original_folder', '')
-    fname = signal["tmp_parameters"].get('original_filename', '')
-    ext = signal["tmp_parameters"].get('original_extension', '')
+    folder = signal["tmp_parameters"].get("original_folder", "")
+    fname = signal["tmp_parameters"].get("original_filename", "")
+    ext = signal["tmp_parameters"].get("original_extension", "")
     original_path = Path(folder, f"{fname}.{ext}")
 
     f = None
-    if (signal['attributes']['_lazy'] and Path(filename).absolute() == original_path):
+    if signal["attributes"]["_lazy"] and Path(filename).absolute() == original_path:
         f = get_file_handle(signal["data"], warn=False)
-        if f is not None and f.mode == 'r':
+        if f is not None and f.mode == "r":
             # when the file is read only, force to reopen it in writing mode
-            raise OSError("File opened in read only mode. To overwrite file "
-                          "with lazy signal, use `mode='a'` when loading the "
-                          "signal.")
+            raise OSError(
+                "File opened in read only mode. To overwrite file "
+                "with lazy signal, use `mode='a'` when loading the "
+                "signal."
+            )
 
     if f is None:
-        write_dataset = kwds.get('write_dataset', True)
+        write_dataset = kwds.get("write_dataset", True)
         if not isinstance(write_dataset, bool):
             raise ValueError("`write_dataset` argument must a boolean.")
         # with "write_dataset=False", we need mode='a', otherwise the dataset
         # will be flushed with using 'w' mode
-        mode = kwds.get('mode', 'w' if write_dataset else 'a')
-        if mode != 'a' and not write_dataset:
-            raise ValueError("`mode='a'` is required to use "
-                             "`write_dataset=False`.")
+        mode = kwds.get("mode", "w" if write_dataset else "a")
+        if mode != "a" and not write_dataset:
+            raise ValueError("`mode='a'` is required to use " "`write_dataset=False`.")
         f = h5py.File(filename, mode=mode)
 
-    f.attrs['file_format'] = "HyperSpy"
-    f.attrs['file_format_version'] = version
-    exps = f.require_group('Experiments')
+    f.attrs["file_format"] = "HyperSpy"
+    f.attrs["file_format_version"] = version
+    exps = f.require_group("Experiments")
     title = signal["metadata"]["General"]["title"]
-    group_name =  title if title else '__unnamed__'
+    group_name = title if title else "__unnamed__"
     # / is a invalid character, see https://github.com/hyperspy/hyperspy/issues/942
     if "/" in group_name:
         group_name = group_name.replace("/", "-")
@@ -249,5 +246,6 @@ def file_writer(filename, signal, close_file=True, **kwds):
 
     if close_file:
         f.close()
+
 
 overwrite_dataset = HyperspyWriter.overwrite_dataset

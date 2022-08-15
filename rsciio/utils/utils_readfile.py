@@ -35,38 +35,38 @@ _logger = logging.getLogger(__name__)
 # type = (u)short, (u)long, float, double, bool (unsigned char),
 # byte (signed char), char
 
-B_short = struct.Struct('>h')
-L_short = struct.Struct('<h')
+B_short = struct.Struct(">h")
+L_short = struct.Struct("<h")
 
-B_ushort = struct.Struct('>H')
-L_ushort = struct.Struct('<H')
+B_ushort = struct.Struct(">H")
+L_ushort = struct.Struct("<H")
 
-B_long = struct.Struct('>l')
-L_long = struct.Struct('<l')
+B_long = struct.Struct(">l")
+L_long = struct.Struct("<l")
 
-B_long_long = struct.Struct('>q')
-L_long_long = struct.Struct('<q')
+B_long_long = struct.Struct(">q")
+L_long_long = struct.Struct("<q")
 
-B_ulong = struct.Struct('>L')
-L_ulong = struct.Struct('<L')
+B_ulong = struct.Struct(">L")
+L_ulong = struct.Struct("<L")
 
-B_ulong_long = struct.Struct('>Q')
-L_ulong_long = struct.Struct('<Q')
+B_ulong_long = struct.Struct(">Q")
+L_ulong_long = struct.Struct("<Q")
 
-B_float = struct.Struct('>f')
-L_float = struct.Struct('<f')
+B_float = struct.Struct(">f")
+L_float = struct.Struct("<f")
 
-B_double = struct.Struct('>d')
-L_double = struct.Struct('<d')
+B_double = struct.Struct(">d")
+L_double = struct.Struct("<d")
 
-B_bool = struct.Struct('>B')    # use unsigned char
-L_bool = struct.Struct('<B')
+B_bool = struct.Struct(">B")  # use unsigned char
+L_bool = struct.Struct("<B")
 
-B_byte = struct.Struct('>b')    # use signed char
-L_byte = struct.Struct('<b')
+B_byte = struct.Struct(">b")  # use signed char
+L_byte = struct.Struct("<b")
 
-B_char = struct.Struct('>c')
-L_char = struct.Struct('<c')
+B_char = struct.Struct(">c")
+L_char = struct.Struct("<c")
 
 
 def read_short(f, endian):
@@ -74,14 +74,14 @@ def read_short(f, endian):
     with a given endianness (byte order).
     endian can be either 'big' or 'little'.
     """
-    if (endian != 'little') and (endian != 'big'):
-        _logger.debug('File address:', f.tell())
+    if (endian != "little") and (endian != "big"):
+        _logger.debug("File address:", f.tell())
         raise ByteOrderError(endian)
     else:
-        data = f.read(2)      # hexadecimal representation
-        if endian == 'big':
+        data = f.read(2)  # hexadecimal representation
+        if endian == "big":
             s = B_short
-        elif endian == 'little':
+        elif endian == "little":
             s = L_short
         return s.unpack(data)[0]  # struct.unpack returns a tuple
 
@@ -91,14 +91,14 @@ def read_ushort(f, endian):
     with a given endianness (byte order).
     endian can be either 'big' or 'little'.
     """
-    if (endian != 'little') and (endian != 'big'):
-        _logger.debug('File address:', f.tell())
+    if (endian != "little") and (endian != "big"):
+        _logger.debug("File address:", f.tell())
         raise ByteOrderError(endian)
     else:
         data = f.read(2)
-        if endian == 'big':
+        if endian == "big":
             s = B_ushort
-        elif endian == 'little':
+        elif endian == "little":
             s = L_ushort
         return s.unpack(data)[0]
 
@@ -108,14 +108,14 @@ def read_long(f, endian):
     with a given endianness (byte order).
     endian can be either 'big' or 'little'.
     """
-    if (endian != 'little') and (endian != 'big'):
-        _logger.debug('File address:', f.tell())
+    if (endian != "little") and (endian != "big"):
+        _logger.debug("File address:", f.tell())
         raise ByteOrderError(endian)
     else:
         data = f.read(4)
-        if endian == 'big':
+        if endian == "big":
             s = B_long
-        elif endian == 'little':
+        elif endian == "little":
             s = L_long
         return s.unpack(data)[0]
 
@@ -125,14 +125,14 @@ def read_long_long(f, endian):
     with a given endianness (byte order).
     endian can be either 'big' or 'little'.
     """
-    if (endian != 'little') and (endian != 'big'):
-        _logger.debug('File address:', f.tell())
+    if (endian != "little") and (endian != "big"):
+        _logger.debug("File address:", f.tell())
         raise ByteOrderError(endian)
     else:
         data = f.read(8)
-        if endian == 'big':
+        if endian == "big":
             s = B_long_long
-        elif endian == 'little':
+        elif endian == "little":
             s = L_long_long
         return s.unpack(data)[0]
 
@@ -142,14 +142,14 @@ def read_ulong(f, endian):
     with a given endianness (byte order).
     endian can be either 'big' or 'little'.
     """
-    if (endian != 'little') and (endian != 'big'):
-        _logger.debug('File address:', f.tell())
+    if (endian != "little") and (endian != "big"):
+        _logger.debug("File address:", f.tell())
         raise ByteOrderError(endian)
     else:
         data = f.read(4)
-        if endian == 'big':
+        if endian == "big":
             s = B_ulong
-        elif endian == 'little':
+        elif endian == "little":
             s = L_ulong
         return s.unpack(data)[0]
 
@@ -159,14 +159,14 @@ def read_ulong_long(f, endian):
     with a given endianness (byte order).
     endian can be either 'big' or 'little'.
     """
-    if (endian != 'little') and (endian != 'big'):
-        _logger.debug('File address:', f.tell())
+    if (endian != "little") and (endian != "big"):
+        _logger.debug("File address:", f.tell())
         raise ByteOrderError(endian)
     else:
         data = f.read(8)
-        if endian == 'big':
+        if endian == "big":
             s = B_ulong_long
-        elif endian == 'little':
+        elif endian == "little":
             s = L_ulong_long
         return s.unpack(data)[0]
 
@@ -176,14 +176,14 @@ def read_float(f, endian):
     with a given endianness (byte order).
     endian can be either 'big' or 'little'.
     """
-    if (endian != 'little') and (endian != 'big'):
-        _logger.debug('File address:', f.tell())
+    if (endian != "little") and (endian != "big"):
+        _logger.debug("File address:", f.tell())
         raise ByteOrderError(endian)
     else:
         data = f.read(4)
-        if endian == 'big':
+        if endian == "big":
             s = B_float
-        elif endian == 'little':
+        elif endian == "little":
             s = L_float
         return s.unpack(data)[0]
 
@@ -193,14 +193,14 @@ def read_double(f, endian):
     with a given endianness (byte order).
     endian can be either 'big' or 'little'.
     """
-    if (endian != 'little') and (endian != 'big'):
-        _logger.debug('File address:', f.tell())
+    if (endian != "little") and (endian != "big"):
+        _logger.debug("File address:", f.tell())
         raise ByteOrderError(endian)
     else:
         data = f.read(8)
-        if endian == 'big':
+        if endian == "big":
             s = B_double
-        elif endian == 'little':
+        elif endian == "little":
             s = L_double
         return s.unpack(data)[0]
 
@@ -210,14 +210,14 @@ def read_boolean(f, endian):
     with a given endianness (byte order).
     endian can be either 'big' or 'little'.
     """
-    if (endian != 'little') and (endian != 'big'):
-        _logger.debug('File address:', f.tell())
+    if (endian != "little") and (endian != "big"):
+        _logger.debug("File address:", f.tell())
         raise ByteOrderError(endian)
     else:
         data = f.read(1)
-        if endian == 'big':
+        if endian == "big":
             s = B_bool
-        elif endian == 'little':
+        elif endian == "little":
             s = L_bool
         return s.unpack(data)[0]
 
@@ -227,14 +227,14 @@ def read_byte(f, endian):
     with a given endianness (byte order).
     endian can be either 'big' or 'little'.
     """
-    if (endian != 'little') and (endian != 'big'):
-        _logger.debug('File address:', f.tell())
+    if (endian != "little") and (endian != "big"):
+        _logger.debug("File address:", f.tell())
         raise ByteOrderError(endian)
     else:
         data = f.read(1)
-        if endian == 'big':
+        if endian == "big":
             s = B_byte
-        elif endian == 'little':
+        elif endian == "little":
             s = L_byte
         return s.unpack(data)[0]
 
@@ -244,13 +244,13 @@ def read_char(f, endian):
     with a given endianness (byte order).
     endian can be either 'big' or 'little'.
     """
-    if (endian != 'little') and (endian != 'big'):
-        _logger.debug('File address:', f.tell())
+    if (endian != "little") and (endian != "big"):
+        _logger.debug("File address:", f.tell())
         raise ByteOrderError(endian)
     else:
         data = f.read(1)
-        if endian == 'big':
+        if endian == "big":
             s = B_char
-        elif endian == 'little':
+        elif endian == "little":
             s = L_char
         return s.unpack(data)[0]

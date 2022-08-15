@@ -238,7 +238,7 @@ def file_reader(filename, endianess="<", mmap_mode=None, lazy=False, **kwds):
     if header["SDP"]:
         SDP = 100.0 / header["SDP"]
     else:
-        SDP = 1 #  Set default scale to 1
+        SDP = 1  #  Set default scale to 1
     original_metadata = {"blockfile_header": header}
 
     # Get data:
@@ -367,7 +367,7 @@ def file_writer(filename, signal, **kwds):
     elif scale_strategy == "minmax":
         minimum = signal["data"].min()
         maximum = signal["data"].max()
-        if signal['attributes']['_lazy']:
+        if signal["attributes"]["_lazy"]:
             minimum, maximum = dask.compute(minimum, maximum)
         original_scale = (minimum, maximum)
     elif scale_strategy == "crop":
@@ -422,7 +422,11 @@ def file_writer(filename, signal, **kwds):
         file_location = f.tell()
 
     if scale_strategy is not None:
-        array_data = rescale_intensity(signal["data"], in_range=original_scale, out_range=np.uint8,)
+        array_data = rescale_intensity(
+            signal["data"],
+            in_range=original_scale,
+            out_range=np.uint8,
+        )
     else:
         array_data = signal["data"]
     array_data = array_data.astype(endianess + "u1")
@@ -442,7 +446,7 @@ def file_writer(filename, signal, **kwds):
     )
     file_memmap["MAGIC"] = magics
     file_memmap["ID"] = ids
-    if signal['attributes']['_lazy']:
+    if signal["attributes"]["_lazy"]:
         cm = ProgressBar if show_progressbar else dummy_context_manager
         with cm():
             array_data.store(file_memmap["IMG"])

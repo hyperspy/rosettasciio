@@ -28,8 +28,15 @@ from rsciio.utils.tools import _UREG
 _logger = logging.getLogger(__name__)
 
 
-def file_writer(filename, signal, scalebar=False, scalebar_kwds=None,
-                output_size=None, imshow_kwds=None, **kwds):
+def file_writer(
+    filename,
+    signal,
+    scalebar=False,
+    scalebar_kwds=None,
+    output_size=None,
+    imshow_kwds=None,
+    **kwds,
+):
     """Writes data to any format supported by pillow. When ``output_size``
     or ``scalebar`` or ``imshow_kwds`` is used,
     :py:func:`~.matplotlib.pyplot.imshow` is used to generate a figure.
@@ -72,17 +79,18 @@ def file_writer(filename, signal, scalebar=False, scalebar_kwds=None,
         :py:func:`~matplotlib.pyplot.savefig`
 
     """
-    data = signal['data']
-    sig_axes = [ax for ax in signal['axes'] if not ax['navigate']]
-    nav_axes = [ax for ax in signal['axes'] if ax['navigate']]
+    data = signal["data"]
+    sig_axes = [ax for ax in signal["axes"] if not ax["navigate"]]
+    nav_axes = [ax for ax in signal["axes"] if ax["navigate"]]
 
     if scalebar_kwds is None:
         scalebar_kwds = dict()
-    scalebar_kwds.setdefault('box_alpha', 0.75)
-    scalebar_kwds.setdefault('location', 'lower left')
+    scalebar_kwds.setdefault("box_alpha", 0.75)
+    scalebar_kwds.setdefault("location", "lower left")
 
     # HyperSpy uses struct arrays to store RGBA data
     from rsciio.utils import rgb_tools
+
     if rgb_tools.is_rgbx(data):
         data = rgb_tools.rgbx2regular_array(data)
 
@@ -91,15 +99,17 @@ def file_writer(filename, signal, scalebar=False, scalebar_kwds=None,
             from matplotlib_scalebar.scalebar import ScaleBar
         except ImportError:  # pragma: no cover
             scalebar = False
-            _logger.warning("Exporting image with scalebar requires the "
-                            "matplotlib-scalebar library.")
+            _logger.warning(
+                "Exporting image with scalebar requires the "
+                "matplotlib-scalebar library."
+            )
 
     if scalebar or output_size or imshow_kwds:
         dpi = 100
 
         if imshow_kwds is None:
             imshow_kwds = dict()
-        imshow_kwds.setdefault('cmap', 'gray')
+        imshow_kwds.setdefault("cmap", "gray")
 
         if len(sig_axes) == 2:
             axes = sig_axes
@@ -107,14 +117,14 @@ def file_writer(filename, signal, scalebar=False, scalebar_kwds=None,
             # Use navigation axes
             axes = nav_axes
 
-        aspect_ratio = imshow_kwds.get('aspect', None)
+        aspect_ratio = imshow_kwds.get("aspect", None)
         if not isinstance(aspect_ratio, (int, float)):
             aspect_ratio = data.shape[0] / data.shape[1]
 
         if output_size is None:
             # fall back to image size taking into account aspect_ratio
-            ratio = (1,  aspect_ratio)
-            output_size = [axis['size'] * r for axis, r in zip(axes, ratio)]
+            ratio = (1, aspect_ratio)
+            output_size = [axis["size"] * r for axis, r in zip(axes, ratio)]
         elif isinstance(output_size, (int, float)):
             output_size = [output_size, output_size * aspect_ratio]
 
@@ -122,38 +132,44 @@ def file_writer(filename, signal, scalebar=False, scalebar_kwds=None,
 
         # List of format supported by matplotlib
         supported_format = sorted(fig.canvas.get_supported_filetypes())
-        if os.path.splitext(filename)[1].replace('.', '') not in supported_format:
+        if os.path.splitext(filename)[1].replace(".", "") not in supported_format:
             if scalebar:
-                raise ValueError("Exporting image with scalebar is supported "
-                                 f"only with {', '.join(supported_format)}.")
+                raise ValueError(
+                    "Exporting image with scalebar is supported "
+                    f"only with {', '.join(supported_format)}."
+                )
             if output_size:
-                raise ValueError("Setting the output size is only supported "
-                                 f"with {', '.join(supported_format)}.")
+                raise ValueError(
+                    "Setting the output size is only supported "
+                    f"with {', '.join(supported_format)}."
+                )
 
     if scalebar:
         # Sanity check of the axes
         # This plugin doesn't support non-uniform axes, we don't need to check
         # if the axes have a scale attribute
-        if axes[0]['scale'] != axes[1]['scale'] or axes[0]['units'] != axes[1]['units']:
-            raise ValueError("Scale and units must be the same for each axes "
-                             "to export images with a scale bar.")
+        if axes[0]["scale"] != axes[1]["scale"] or axes[0]["units"] != axes[1]["units"]:
+            raise ValueError(
+                "Scale and units must be the same for each axes "
+                "to export images with a scale bar."
+            )
 
     if scalebar or output_size:
         ax = fig.add_axes([0, 0, 1, 1])
-        ax.axis('off')
+        ax.axis("off")
         ax.imshow(data, **imshow_kwds)
 
         if scalebar:
             # Add scalebar
             axis = axes[0]
-            units = axis['units']
+            units = axis["units"]
             if units is None:
                 units = "px"
-                scalebar_kwds['dimension'] = "pixel-length"
-            if _UREG.Quantity(units).check('1/[length]'):
-                scalebar_kwds['dimension'] = "si-length-reciprocal"
+                scalebar_kwds["dimension"] = "pixel-length"
+            if _UREG.Quantity(units).check("1/[length]"):
+                scalebar_kwds["dimension"] = "si-length-reciprocal"
 
-            scalebar = ScaleBar(axis['scale'], units, **scalebar_kwds)
+            scalebar = ScaleBar(axis["scale"], units, **scalebar_kwds)
             ax.add_artist(scalebar)
 
         fig.savefig(filename, dpi=dpi, pil_kwargs=kwds)
@@ -180,22 +196,27 @@ def file_reader(filename, **kwds):
 
     """
     dc = _read_data(filename, **kwds)
-    lazy = kwds.pop('lazy', False)
+    lazy = kwds.pop("lazy", False)
     if lazy:
         # load the image fully to check the dtype and shape, should be cheap.
         # Then store this info for later re-loading when required
         from dask.array import from_delayed
         from dask import delayed
+
         val = delayed(_read_data, pure=True)(filename)
         dc = from_delayed(val, shape=dc.shape, dtype=dc.dtype)
-    return [{'data': dc,
-             'metadata':
-             {
-                 'General': {'original_filename': os.path.split(filename)[1]},
-                 "Signal": {'signal_type': "",
-                            'record_by': 'image', },
-             }
-             }]
+    return [
+        {
+            "data": dc,
+            "metadata": {
+                "General": {"original_filename": os.path.split(filename)[1]},
+                "Signal": {
+                    "signal_type": "",
+                    "record_by": "image",
+                },
+            },
+        }
+    ]
 
 
 def _read_data(filename, **kwds):
@@ -203,12 +224,12 @@ def _read_data(filename, **kwds):
     if len(dc.shape) > 2:
         # It may be a grayscale image that was saved in the RGB or RGBA
         # format
-        if (dc[:, :, 1] == dc[:, :, 2]).all() and \
-                (dc[:, :, 1] == dc[:, :, 2]).all():
+        if (dc[:, :, 1] == dc[:, :, 2]).all() and (dc[:, :, 1] == dc[:, :, 2]).all():
             dc = dc[:, :, 0]
         else:
             # HyperSpy uses struct arrays to store RGB data
             from rsciio.utils import rgb_tools
+
             dc = rgb_tools.regular_array2rgbx(dc)
 
     return dc

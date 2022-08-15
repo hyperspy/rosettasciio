@@ -22,20 +22,12 @@ from dask.array import Array
 from hyperspy.misc.utils import get_numpy_kwargs
 
 
-rgba8 = np.dtype({'names': ['R', 'G', 'B', 'A'],
-                  'formats': ['u1', 'u1', 'u1', 'u1']})
-rgb8 = np.dtype({'names': ['R', 'G', 'B'],
-                 'formats': ['u1', 'u1', 'u1']})
+rgba8 = np.dtype({"names": ["R", "G", "B", "A"], "formats": ["u1", "u1", "u1", "u1"]})
+rgb8 = np.dtype({"names": ["R", "G", "B"], "formats": ["u1", "u1", "u1"]})
 
-rgba16 = np.dtype({'names': ['R', 'G', 'B', 'A'],
-                   'formats': ['u2', 'u2', 'u2', 'u2']})
-rgb16 = np.dtype({'names': ['R', 'G', 'B'],
-                  'formats': ['u2', 'u2', 'u2']})
-rgb_dtypes = {
-    'rgb8': rgb8,
-    'rgb16': rgb16,
-    'rgba8': rgba8,
-    'rgba16': rgba16}
+rgba16 = np.dtype({"names": ["R", "G", "B", "A"], "formats": ["u2", "u2", "u2", "u2"]})
+rgb16 = np.dtype({"names": ["R", "G", "B"], "formats": ["u2", "u2", "u2"]})
+rgb_dtypes = {"rgb8": rgb8, "rgb16": rgb16, "rgba8": rgba8, "rgba16": rgba16}
 
 
 def is_rgba(array):
@@ -73,33 +65,34 @@ def rgbx2regular_array(data, plot_friendly=False):
     # Make sure that the data is contiguous
     if isinstance(data, Array):
         from dask.diagnostics import ProgressBar
+
         # an expensive thing, but nothing to be done for now...
         with ProgressBar():
             data = data.compute()
-    if data.flags['C_CONTIGUOUS'] is False:
+    if data.flags["C_CONTIGUOUS"] is False:
         if np.ma.is_masked(data):
-            data = data.copy(order='C')
+            data = data.copy(order="C")
         else:
             data = np.ascontiguousarray(data, **get_numpy_kwargs(data))
     if is_rgba(data) is True:
-        dt = data.dtype.fields['B'][0]
+        dt = data.dtype.fields["B"][0]
         data = data.view((dt, 4))
     elif is_rgb(data) is True:
-        dt = data.dtype.fields['B'][0]
+        dt = data.dtype.fields["B"][0]
         data = data.view((dt, 3))
     else:
         return data
     if plot_friendly is True and data.dtype == np.dtype("uint16"):
         data = data.astype("float")
-        data /= 2 ** 16 - 1
+        data /= 2**16 - 1
     return data
 
 
 def regular_array2rgbx(data):
     # Make sure that the data is contiguous
-    if data.flags['C_CONTIGUOUS'] is False:
+    if data.flags["C_CONTIGUOUS"] is False:
         if np.ma.is_masked(data):
-            data = data.copy(order='C')
+            data = data.copy(order="C")
         else:
             data = np.ascontiguousarray(data, **get_numpy_kwargs(data))
     if data.shape[-1] == 3:
@@ -112,5 +105,6 @@ def regular_array2rgbx(data):
         formats = [data.dtype] * len(names)
     else:
         raise ValueError("The data dtype must be uint16 or uint8")
-    return data.view(np.dtype({"names": names,
-                               "formats": formats})).reshape(data.shape[:-1])
+    return data.view(np.dtype({"names": names, "formats": formats})).reshape(
+        data.shape[:-1]
+    )

@@ -11,10 +11,11 @@ from hyperspy.io import load
 from rsciio.ripple import api as ripple
 
 # Tuple of tuples (data shape, signal_dimensions)
-SHAPES_SDIM = (((3,), (1, )),
-               ((2, 3), (1, 2)),
-               ((2, 3, 4), (1, 2)),
-               )
+SHAPES_SDIM = (
+    ((3,), (1,)),
+    ((2, 3), (1, 2)),
+    ((2, 3, 4), (1, 2)),
+)
 
 MYPATH = os.path.dirname(__file__)
 
@@ -23,14 +24,14 @@ def test_write_unsupported_data_shape():
     data = np.arange(5 * 10 * 15 * 20).reshape((5, 10, 15, 20))
     s = signals.Signal1D(data)
     with pytest.raises(TypeError):
-        s.save('test_write_unsupported_data_shape.rpl')
+        s.save("test_write_unsupported_data_shape.rpl")
 
 
 def test_write_unsupported_data_type():
     data = np.arange(5 * 10 * 15).reshape((5, 10, 15)).astype(np.float16)
     s = signals.Signal1D(data)
     with pytest.raises(IOError):
-        s.save('test_write_unsupported_data_type.rpl')
+        s.save("test_write_unsupported_data_type.rpl")
 
 
 # Test failing
@@ -48,7 +49,7 @@ def test_write_without_metadata():
     data = np.arange(5 * 10 * 15).reshape((5, 10, 15))
     s = signals.Signal1D(data)
     with tempfile.TemporaryDirectory() as tmpdir:
-        fname = os.path.join(tmpdir, 'test_write_without_metadata.rpl')
+        fname = os.path.join(tmpdir, "test_write_without_metadata.rpl")
         s.save(fname)
         s2 = load(fname)
         np.testing.assert_allclose(s.data, s2.data)
@@ -60,17 +61,17 @@ def test_write_without_metadata():
 def test_write_with_metadata():
     data = np.arange(5 * 10).reshape((5, 10))
     s = signals.Signal1D(data)
-    s.metadata.set_item('General.date', "2016-08-06")
-    s.metadata.set_item('General.time', "10:55:00")
-    s.metadata.set_item('General.title', "Test title")
+    s.metadata.set_item("General.date", "2016-08-06")
+    s.metadata.set_item("General.time", "10:55:00")
+    s.metadata.set_item("General.title", "Test title")
     with tempfile.TemporaryDirectory() as tmpdir:
-        fname = os.path.join(tmpdir, 'test_write_with_metadata.rpl')
+        fname = os.path.join(tmpdir, "test_write_with_metadata.rpl")
         s.save(fname)
         s2 = load(fname)
         np.testing.assert_allclose(s.data, s2.data)
         assert s.metadata.General.date == s2.metadata.General.date
-        assert (s.metadata.General.title == s2.metadata.General.title)
-        assert (s.metadata.General.time == s2.metadata.General.time)
+        assert s.metadata.General.title == s2.metadata.General.title
+        assert s.metadata.General.time == s2.metadata.General.time
         del s2
         gc.collect()
 
@@ -81,11 +82,14 @@ def generate_parameters():
         for shape, dims in SHAPES_SDIM:
             for dim in dims:
                 for metadata in [True, False]:
-                    parameters.append({
-                        "dtype": dtype,
-                        "shape": shape,
-                        "dim": dim,
-                        "metadata": metadata, })
+                    parameters.append(
+                        {
+                            "dtype": dtype,
+                            "shape": shape,
+                            "dim": dim,
+                            "metadata": metadata,
+                        }
+                    )
     return parameters
 
 
@@ -94,31 +98,31 @@ def _get_filename(s, metadata):
         s.axes_manager.signal_dimension,
         s.axes_manager.navigation_dimension,
         s.data.dtype.name,
-        "_meta" if metadata else "")
+        "_meta" if metadata else "",
+    )
     return filename
 
 
 def _create_signal(shape, dim, dtype, metadata):
-    data = np.arange(np.product(shape)).reshape(
-        shape).astype(dtype)
+    data = np.arange(np.product(shape)).reshape(shape).astype(dtype)
     if dim == 1:
         if len(shape) > 2:
             s = signals.EELSSpectrum(data)
             if metadata:
                 s.set_microscope_parameters(
-                    beam_energy=100.,
-                    convergence_angle=1.,
-                    collection_angle=10.)
+                    beam_energy=100.0, convergence_angle=1.0, collection_angle=10.0
+                )
         else:
             s = signals.EDSTEMSpectrum(data)
             if metadata:
                 s.set_microscope_parameters(
-                    beam_energy=100.,
-                    live_time=1.,
-                    tilt_stage=2.,
-                    azimuth_angle=3.,
-                    elevation_angle=4.,
-                    energy_resolution_MnKa=5.)
+                    beam_energy=100.0,
+                    live_time=1.0,
+                    tilt_stage=2.0,
+                    azimuth_angle=3.0,
+                    elevation_angle=4.0,
+                    energy_resolution_MnKa=5.0,
+                )
     else:
         s = signals.BaseSignal(data).transpose(signal_axes=dim)
     if metadata:
@@ -141,13 +145,13 @@ def _create_signal(shape, dim, dtype, metadata):
 @pytest.mark.parametrize("pdict", generate_parameters())
 def test_data(pdict):
     dtype, shape, dim, metadata = (
-        pdict["dtype"], pdict["shape"], pdict["dim"], pdict["metadata"])
+        pdict["dtype"],
+        pdict["shape"],
+        pdict["dim"],
+        pdict["metadata"],
+    )
     with tempfile.TemporaryDirectory() as tmpdir:
-        s = _create_signal(
-            shape=shape,
-            dim=dim,
-            dtype=dtype,
-            metadata=metadata)
+        s = _create_signal(shape=shape, dim=dim, dtype=dtype, metadata=metadata)
         filename = _get_filename(s, metadata)
         s.save(os.path.join(tmpdir, filename))
         s_just_saved = load(os.path.join(tmpdir, filename))
@@ -156,16 +160,17 @@ def test_data(pdict):
             for stest in (s_just_saved, s_ref):
                 npt.assert_array_equal(s.data, stest.data)
                 assert s.data.dtype == stest.data.dtype
-                assert (s.axes_manager.signal_dimension ==
-                        stest.axes_manager.signal_dimension)
-                assert (s.metadata.General.title ==
-                        stest.metadata.General.title)
-                mdpaths = ("Signal.signal_type", )
+                assert (
+                    s.axes_manager.signal_dimension
+                    == stest.axes_manager.signal_dimension
+                )
+                assert s.metadata.General.title == stest.metadata.General.title
+                mdpaths = ("Signal.signal_type",)
                 if s.metadata.Signal.signal_type == "EELS" and metadata:
                     mdpaths += (
                         "Acquisition_instrument.TEM.convergence_angle",
                         "Acquisition_instrument.TEM.beam_energy",
-                        "Acquisition_instrument.TEM.Detector.EELS.collection_angle"
+                        "Acquisition_instrument.TEM.Detector.EELS.collection_angle",
                     )
                 elif "EDS" in s.metadata.Signal.signal_type and metadata:
                     mdpaths += (
@@ -180,13 +185,13 @@ def test_data(pdict):
                     mdpaths = (
                         "General.date",
                         "General.time",
-                        "General.title",)
+                        "General.title",
+                    )
                 for mdpath in mdpaths:
-                    assert (
-                        s.metadata.get_item(mdpath) ==
-                        stest.metadata.get_item(mdpath))
-                for saxis, taxis in zip(
-                        s.axes_manager._axes, stest.axes_manager._axes):
+                    assert s.metadata.get_item(mdpath) == stest.metadata.get_item(
+                        mdpath
+                    )
+                for saxis, taxis in zip(s.axes_manager._axes, stest.axes_manager._axes):
                     taxis.convert_to_units()
                     assert saxis.scale == taxis.scale
                     assert saxis.offset == taxis.offset
@@ -217,8 +222,9 @@ def generate_files():
         for shape, dims in SHAPES_SDIM:
             for dim in dims:
                 for metadata in [True, False]:
-                    s = _create_signal(shape=shape, dim=dim, dtype=dtype,
-                                       metadata=metadata)
+                    s = _create_signal(
+                        shape=shape, dim=dim, dtype=dtype, metadata=metadata
+                    )
                     filename = _get_filename(s, metadata)
                     filepath = os.path.join(MYPATH, "ripple_files", filename)
                     s.save(filepath, overwrite=True)

@@ -25,7 +25,6 @@ import numpy as np
 _logger = logging.getLogger(__name__)
 
 
-
 def serial_date_to_ISO_format(serial):
     """
     Convert serial_date to a tuple of string (date, time, time_zone) in ISO
@@ -36,19 +35,16 @@ def serial_date_to_ISO_format(serial):
     return dt_local.date().isoformat(), dt_local.time().isoformat(), dt_local.tzname()
 
 
-def ISO_format_to_serial_date(date, time, timezone='UTC'):
-    """ Convert ISO format to a serial date. """
-    if timezone is None or timezone == 'Coordinated Universal Time':
-        timezone = 'UTC'
-    dt = parser.parse(
-        '%sT%s' %
-        (date, time)).replace(
-        tzinfo=tz.gettz(timezone))
+def ISO_format_to_serial_date(date, time, timezone="UTC"):
+    """Convert ISO format to a serial date."""
+    if timezone is None or timezone == "Coordinated Universal Time":
+        timezone = "UTC"
+    dt = parser.parse("%sT%s" % (date, time)).replace(tzinfo=tz.gettz(timezone))
     return datetime_to_serial_date(dt)
 
 
 def datetime_to_serial_date(dt):
-    """ Convert datetime.datetime object to a serial date. """
+    """Convert datetime.datetime object to a serial date."""
     if dt.tzname() is None:
         dt = dt.replace(tzinfo=tz.tzutc())
     origin = datetime.datetime(1899, 12, 30, tzinfo=tz.tzutc())
@@ -57,7 +53,7 @@ def datetime_to_serial_date(dt):
 
 
 def serial_date_to_datetime(serial):
-    """ Convert serial date to a datetime.datetime object. """
+    """Convert serial date to a datetime.datetime object."""
     # Excel date&time format
     origin = datetime.datetime(1899, 12, 30, tzinfo=tz.tzutc())
     secs = (serial % 1.0) * 86400
@@ -65,7 +61,7 @@ def serial_date_to_datetime(serial):
     return origin + delta
 
 
-def get_date_time_from_metadata(metadata, formatting='ISO'):
+def get_date_time_from_metadata(metadata, formatting="ISO"):
     """
     Get the date and time from a metadata tree.
 
@@ -83,30 +79,30 @@ def get_date_time_from_metadata(metadata, formatting='ISO'):
         string, datetime.datetime or numpy.datetime64 object
 
     """
-    md_gen = metadata['General']
-    date, time = md_gen.get('date'), md_gen.get('time')
+    md_gen = metadata["General"]
+    date, time = md_gen.get("date"), md_gen.get("time")
     if date and time:
-        dt = parser.parse(f'{date}T{time}')
-        time_zone = md_gen.get('time_zone')
+        dt = parser.parse(f"{date}T{time}")
+        time_zone = md_gen.get("time_zone")
         if time_zone:
             dt = dt.replace(tzinfo=tz.gettz(time_zone))
             if dt.tzinfo is None:
                 # time_zone metadata must be offset string
-                dt = parser.parse(f'{date}T{time}{time_zone}')
+                dt = parser.parse(f"{date}T{time}{time_zone}")
 
     elif not date and time:
-        dt = parser.parse(f'{time}').time()
+        dt = parser.parse(f"{time}").time()
     elif date and not time:
-        dt = parser.parse(f'{date}').date()
+        dt = parser.parse(f"{date}").date()
     else:
         return
 
-    if formatting == 'ISO':
+    if formatting == "ISO":
         res = dt.isoformat()
-    if formatting == 'datetime':
+    if formatting == "datetime":
         res = dt
     # numpy.datetime64 doesn't support time zone
-    if formatting == 'datetime64':
-        res = np.datetime64(f'{date}T{time}')
+    if formatting == "datetime64":
+        res = np.datetime64(f"{date}T{time}")
 
     return res

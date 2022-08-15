@@ -194,53 +194,60 @@ def test_datetime_to_serial_date():
 
 
 def _get_example(date, time, time_zone=None):
-    md = {'General': {'date': date, 'time': time}}
+    md = {"General": {"date": date, "time": time}}
     if time_zone:
-        md['General']['time_zone'] = time_zone
-        dt = parser.parse(f'{date}T{time}')
+        md["General"]["time_zone"] = time_zone
+        dt = parser.parse(f"{date}T{time}")
         dt = dt.replace(tzinfo=tz.gettz(time_zone))
         iso = dt.isoformat()
     else:
-        iso = f'{date}T{time}'
+        iso = f"{date}T{time}"
         dt = parser.parse(iso)
     return md, dt, iso
 
 
-md1, dt1, iso1 = _get_example('2014-12-27', '00:00:00', 'UTC')
+md1, dt1, iso1 = _get_example("2014-12-27", "00:00:00", "UTC")
 serial1 = 42000.00
 
-md2, dt2, iso2 = _get_example('2124-03-25', '10:04:48', 'EST')
+md2, dt2, iso2 = _get_example("2124-03-25", "10:04:48", "EST")
 serial2 = 81900.62833333334
 
-md3, dt3, iso3 = _get_example('2016-07-12', '22:57:32')
+md3, dt3, iso3 = _get_example("2016-07-12", "22:57:32")
 serial3 = 42563.95662037037
 
 
 def test_get_date_time_from_metadata():
-    assert (dtt.get_date_time_from_metadata(md1) ==
-            '2014-12-27T00:00:00+00:00')
-    assert (dtt.get_date_time_from_metadata(md1, formatting='ISO') ==
-            '2014-12-27T00:00:00+00:00')
-    assert (dtt.get_date_time_from_metadata(md1, formatting='datetime64') ==
-            np.datetime64('2014-12-27T00:00:00.000000'))
-    assert (dtt.get_date_time_from_metadata(md1, formatting='datetime') ==
-            dt1)
+    assert dtt.get_date_time_from_metadata(md1) == "2014-12-27T00:00:00+00:00"
+    assert (
+        dtt.get_date_time_from_metadata(md1, formatting="ISO")
+        == "2014-12-27T00:00:00+00:00"
+    )
+    assert dtt.get_date_time_from_metadata(
+        md1, formatting="datetime64"
+    ) == np.datetime64("2014-12-27T00:00:00.000000")
+    assert dtt.get_date_time_from_metadata(md1, formatting="datetime") == dt1
 
-    assert (dtt.get_date_time_from_metadata(md2) ==
-            '2124-03-25T10:04:48-05:00')
-    assert (dtt.get_date_time_from_metadata(md2, formatting='datetime') ==
-            dt2)
-    assert (dtt.get_date_time_from_metadata(md2, formatting='datetime64') ==
-            np.datetime64('2124-03-25T10:04:48'))
+    assert dtt.get_date_time_from_metadata(md2) == "2124-03-25T10:04:48-05:00"
+    assert dtt.get_date_time_from_metadata(md2, formatting="datetime") == dt2
+    assert dtt.get_date_time_from_metadata(
+        md2, formatting="datetime64"
+    ) == np.datetime64("2124-03-25T10:04:48")
 
-    assert (dtt.get_date_time_from_metadata(md3) ==
-            '2016-07-12T22:57:32')
-    assert (dtt.get_date_time_from_metadata(md3, formatting='datetime') ==
-            dt3)
-    assert (dtt.get_date_time_from_metadata(md3, formatting='datetime64') ==
-            np.datetime64('2016-07-12T22:57:32.000000'))
+    assert dtt.get_date_time_from_metadata(md3) == "2016-07-12T22:57:32"
+    assert dtt.get_date_time_from_metadata(md3, formatting="datetime") == dt3
+    assert dtt.get_date_time_from_metadata(
+        md3, formatting="datetime64"
+    ) == np.datetime64("2016-07-12T22:57:32.000000")
 
-    assert dtt.get_date_time_from_metadata({'General': {}}) is None
-    assert dtt.get_date_time_from_metadata({'General': {'date': '2016-07-12'}}) == '2016-07-12'
-    assert dtt.get_date_time_from_metadata({'General': {'time': '12:00'}}) == '12:00:00'
-    assert dtt.get_date_time_from_metadata({'General': {'time': '12:00', 'time_zone': 'CET'}}) == '12:00:00'
+    assert dtt.get_date_time_from_metadata({"General": {}}) is None
+    assert (
+        dtt.get_date_time_from_metadata({"General": {"date": "2016-07-12"}})
+        == "2016-07-12"
+    )
+    assert dtt.get_date_time_from_metadata({"General": {"time": "12:00"}}) == "12:00:00"
+    assert (
+        dtt.get_date_time_from_metadata(
+            {"General": {"time": "12:00", "time_zone": "CET"}}
+        )
+        == "12:00:00"
+    )

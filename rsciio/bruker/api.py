@@ -53,12 +53,15 @@ warn_once = True
 
 try:
     from rsciio.bruker import unbcf_fast
+
     fast_unbcf = True
     _logger.info("The fast cython based bcf unpacking library were found")
 except ImportError:  # pragma: no cover
     fast_unbcf = False
-    _logger.info("""unbcf_fast library is not present...
-Falling back to slow python only backend.""")
+    _logger.info(
+        """unbcf_fast library is not present...
+Falling back to slow python only backend."""
+    )
 
 # define re with two capturing groups with comma in between
 # firstgroup looks for numeric value after <tag> (the '>' char) with or
@@ -66,7 +69,7 @@ Falling back to slow python only backend.""")
 # closing <\tag> (the '<' char); '([Ee]-?\d*)' part (optionally a third group)
 # checks for scientific notation (e.g. 8,843E-7 -> 'E-7');
 # compiled pattern is binary, as raw xml string is binary.:
-fix_dec_patterns = re.compile(b'(>-?\\d+),(\\d*([Ee]-?\\d*)?<)')
+fix_dec_patterns = re.compile(b"(>-?\\d+),(\\d*([Ee]-?\\d*)?<)")
 
 
 class Container(object):
@@ -90,14 +93,24 @@ class SFSTreeItem(object):
 
     def __init__(self, item_raw_string, parent):
         self.sfs = parent
-        self._pointer_to_pointer_table, self.size, create_time, \
-            mod_time, some_time, self.permissions, \
-            self.parent, _, self.is_dir, _, name, _ = strct_unp(
-                '<iQQQQIi176s?3s256s32s', item_raw_string)
+        (
+            self._pointer_to_pointer_table,
+            self.size,
+            create_time,
+            mod_time,
+            some_time,
+            self.permissions,
+            self.parent,
+            _,
+            self.is_dir,
+            _,
+            name,
+            _,
+        ) = strct_unp("<iQQQQIi176s?3s256s32s", item_raw_string)
         self.create_time = self._filetime_to_unix(create_time)
         self.mod_time = self._filetime_to_unix(mod_time)
         self.some_time = self._filetime_to_unix(some_time)
-        self.name = name.strip(b'\x00').decode('utf-8')
+        self.name = name.strip(b"\x00").decode("utf-8")
         self.size_in_chunks = self._calc_pointer_table_size()
         if self.is_dir == 0:
             self._fill_pointer_table()
@@ -125,30 +138,32 @@ class SFSTreeItem(object):
         consecutive.
         """
         # table size in number of chunks:
-        n_of_chunks = ceil(self.size_in_chunks /
-                           (self.sfs.usable_chunk // 4))
-        with open(self.sfs.filename, 'rb') as fn:
+        n_of_chunks = ceil(self.size_in_chunks / (self.sfs.usable_chunk // 4))
+        with open(self.sfs.filename, "rb") as fn:
             if n_of_chunks > 1:
                 next_chunk = self._pointer_to_pointer_table
                 temp_string = io.BytesIO()
                 for dummy1 in range(n_of_chunks):
                     fn.seek(self.sfs.chunksize * next_chunk + 0x118)
-                    next_chunk = strct_unp('<I', fn.read(4))[0]
+                    next_chunk = strct_unp("<I", fn.read(4))[0]
                     fn.seek(28, 1)
                     temp_string.write(fn.read(self.sfs.usable_chunk))
                 temp_string.seek(0)
                 temp_table = temp_string.read()
                 temp_string.close()
             else:
-                fn.seek(self.sfs.chunksize *
-                        self._pointer_to_pointer_table + 0x138)
+                fn.seek(self.sfs.chunksize * self._pointer_to_pointer_table + 0x138)
                 temp_table = fn.read(self.sfs.usable_chunk)
-            self.pointers = np.frombuffer(temp_table[:self.size_in_chunks * 4],
-                                          dtype='uint32').astype(np.int64) *\
-                self.sfs.chunksize + 0x138
+            self.pointers = (
+                np.frombuffer(
+                    temp_table[: self.size_in_chunks * 4], dtype="uint32"
+                ).astype(np.int64)
+                * self.sfs.chunksize
+                + 0x138
+            )
 
     def read_piece(self, offset, length):
-        """ Read and returns raw byte string of the file without applying
+        """Read and returns raw byte string of the file without applying
         any decompression.
 
         Arguments:
@@ -167,11 +182,11 @@ class SFSTreeItem(object):
         lb_idx = (offset + length) // self.sfs.usable_chunk
         # last block cut off:
         lbco = (offset + length) % self.sfs.usable_chunk
-        with open(self.sfs.filename, 'rb') as fn:
+        with open(self.sfs.filename, "rb") as fn:
             if fb_idx != lb_idx:
                 fn.seek(self.pointers[fb_idx] + fbo)
                 data.write(fn.read(self.sfs.usable_chunk - fbo))
-                for i in self.pointers[fb_idx + 1:lb_idx]:
+                for i in self.pointers[fb_idx + 1 : lb_idx]:
                     fn.seek(i)
                     data.write(fn.read(self.sfs.usable_chunk))
                 if lbco > 0:
@@ -196,7 +211,7 @@ class SFSTreeItem(object):
         chunks -- the number of chunks to read. (default False)
         """
         last = self.size_in_chunks
-        with open(self.sfs.filename, 'rb') as fn:
+        with open(self.sfs.filename, "rb") as fn:
             for idx in range(first, last - 1):
                 fn.seek(self.pointers[idx])
                 yield fn.read(self.sfs.usable_chunk)
@@ -208,7 +223,7 @@ class SFSTreeItem(object):
                 yield fn.read(self.sfs.usable_chunk)
 
     def setup_compression_metadata(self):
-        """ parse and setup the number of compression chunks
+        """parse and setup the number of compression chunks
 
         and uncompressed chunk size as class attributes.
 
@@ -216,16 +231,18 @@ class SFSTreeItem(object):
         self.uncompressed_blk_size, self.no_of_compr_blk
 
         """
-        with open(self.sfs.filename, 'rb') as fn:
+        with open(self.sfs.filename, "rb") as fn:
             fn.seek(self.pointers[0])
             # AACS signature, uncompressed size, undef var, number of blocks
-            aacs, uc_size, _, n_of_blocks = strct_unp('<IIII', fn.read(16))
+            aacs, uc_size, _, n_of_blocks = strct_unp("<IIII", fn.read(16))
         if aacs == 0x53434141:  # AACS as string
             self.uncompressed_blk_size = uc_size
             self.no_of_compr_blk = n_of_blocks
         else:
-            raise ValueError("""The file is marked to be compressed,
-but compression signature is missing in the header. Aborting....""")
+            raise ValueError(
+                """The file is marked to be compressed,
+but compression signature is missing in the header. Aborting...."""
+            )
 
     def _iter_read_compr_chunks(self):
         """Generate and return reader and decompressor iterator
@@ -237,7 +254,7 @@ but compression signature is missing in the header. Aborting....""")
 
         offset = 0x80  # the 1st compression block header
         for dummy1 in range(self.no_of_compr_blk):
-            cpr_size = strct_unp('<I12x', self.read_piece(offset, 16))[0]
+            cpr_size = strct_unp("<I12x", self.read_piece(offset, 16))[0]
             # cpr_size, dum_size, dum_unkn, dum_size2 = strct_unp('<IIII',...
             # dum_unkn is probably some kind of checksum but
             # none of known (crc16, crc32, adler32) algorithm could match.
@@ -259,21 +276,26 @@ but compression signature is missing in the header. Aborting....""")
         Returns:
             (iterator, chunk_size, number_of_chunks)
         """
-        if self.sfs.compression == 'None':
-            return self._iter_read_chunks(), self.sfs.usable_chunk,\
-                self.size_in_chunks
-        elif self.sfs.compression == 'zlib':
-            return self._iter_read_compr_chunks(), self.uncompressed_blk_size,\
-                self.no_of_compr_blk
+        if self.sfs.compression == "None":
+            return self._iter_read_chunks(), self.sfs.usable_chunk, self.size_in_chunks
+        elif self.sfs.compression == "zlib":
+            return (
+                self._iter_read_compr_chunks(),
+                self.uncompressed_blk_size,
+                self.no_of_compr_blk,
+            )
         else:
-            raise RuntimeError('file', str(self.sfs.filename),
-                               ' is compressed by not known and not',
-                               'implemented algorithm.\n Aborting...')
+            raise RuntimeError(
+                "file",
+                str(self.sfs.filename),
+                " is compressed by not known and not",
+                "implemented algorithm.\n Aborting...",
+            )
 
     def get_as_BytesIO_string(self):
         """Get the whole file as io.BytesIO object (in memory!)."""
         data = io.BytesIO()
-        data.write(b''.join(self.get_iter_and_properties()[0]))
+        data.write(b"".join(self.get_iter_and_properties()[0]))
         return data
 
 
@@ -297,22 +319,22 @@ class SFS_reader(object):
     def __init__(self, filename):
         self.filename = filename
         # read the file header
-        with open(filename, 'rb') as fn:
+        with open(filename, "rb") as fn:
             a = fn.read(8)
-            if a != b'AAMVHFSS':
-                raise TypeError(
-                    "file '{0}' is not SFS container".format(filename))
+            if a != b"AAMVHFSS":
+                raise TypeError("file '{0}' is not SFS container".format(filename))
             fn.seek(0x124)  # this looks to be version, as float value is always
             # nicely rounded and at older bcf versions (<1.9) it was 2.40,
             # at new (v2) - 2.60
-            version, self.chunksize = strct_unp('<fI', fn.read(8))
-            self.sfs_version = '{0:4.2f}'.format(version)
+            version, self.chunksize = strct_unp("<fI", fn.read(8))
+            self.sfs_version = "{0:4.2f}".format(version)
             self.usable_chunk = self.chunksize - 32
             fn.seek(0x140)
             # the sfs tree and number of the items / files + directories in it,
             # and the number in chunks of whole sfs:
-            self.tree_address, self.n_tree_items, self.sfs_n_of_chunks =\
-                strct_unp('<III', fn.read(12))
+            self.tree_address, self.n_tree_items, self.sfs_n_of_chunks = strct_unp(
+                "<III", fn.read(12)
+            )
         self._setup_vfs()
 
     def _setup_vfs(self):
@@ -323,10 +345,11 @@ class SFS_reader(object):
         --------
         SFSTreeItem
         """
-        with open(self.filename, 'rb') as fn:
+        with open(self.filename, "rb") as fn:
             # check if file tree do not exceed one chunk:
-            n_file_tree_chunks = ceil((self.n_tree_items * 0x200) /
-                                      (self.chunksize - 0x20))
+            n_file_tree_chunks = ceil(
+                (self.n_tree_items * 0x200) / (self.chunksize - 0x20)
+            )
             if n_file_tree_chunks == 1:
                 # file tree do not exceed one chunk in bcf:
                 fn.seek(self.chunksize * self.tree_address + 0x138)
@@ -339,26 +362,28 @@ class SFS_reader(object):
                     # jump to tree/list address:
                     fn.seek(self.chunksize * tree_address + 0x118)
                     # next tree/list address:
-                    tree_address = strct_unp('<I', fn.read(4))[0]
+                    tree_address = strct_unp("<I", fn.read(4))[0]
                     fn.seek(28, 1)
                     temp_str.write(fn.read(tree_items_in_chunk * 0x200))
                 temp_str.seek(0)
                 raw_tree = temp_str.read(self.n_tree_items * 0x200)
                 temp_str.close()
-            temp_item_list = [SFSTreeItem(raw_tree[i * 0x200:(i + 1) * 0x200],
-                                          self) for i in range(self.n_tree_items)]
+            temp_item_list = [
+                SFSTreeItem(raw_tree[i * 0x200 : (i + 1) * 0x200], self)
+                for i in range(self.n_tree_items)
+            ]
             # temp list with parents of items
             paths = [[h.parent] for h in temp_item_list]
         # checking the compression header which can be different per file:
         self._check_the_compresion(temp_item_list)
-        if self.compression == 'zlib':
+        if self.compression == "zlib":
             for c in temp_item_list:
                 if not c.is_dir:
                     c.setup_compression_metadata()
         # convert the items to virtual file system tree
         dict_tree = self._flat_items_to_dict(paths, temp_item_list)
         # and finaly set the Virtual file system:
-        self.vfs = dict_tree['root']
+        self.vfs = dict_tree["root"]
 
     def _flat_items_to_dict(self, paths, temp_item_list):
         """place items from flat list into dictionary tree
@@ -369,7 +394,7 @@ class SFS_reader(object):
                 if paths[f][-1] != -1:
                     paths[f].extend(paths[paths[f][-1]])
         names = [j.name for j in temp_item_list]
-        names.append('root')  # temp root item in dictionary
+        names.append("root")  # temp root item in dictionary
         for p in paths:
             for r in range(len(p)):
                 p[r] = names[p[r]]
@@ -393,15 +418,15 @@ class SFS_reader(object):
 
     def _check_the_compresion(self, temp_item_list):
         """parse, check and setup the self.compression"""
-        with open(self.filename, 'rb') as fn:
+        with open(self.filename, "rb") as fn:
             # Find if there is compression:
             for c in temp_item_list:
                 if not c.is_dir:
                     fn.seek(c.pointers[0])
-                    if fn.read(4) == b'\x41\x41\x43\x53':  # string AACS
-                        self.compression = 'zlib'
+                    if fn.read(4) == b"\x41\x41\x43\x53":  # string AACS
+                        self.compression = "zlib"
                     else:
-                        self.compression = 'None'
+                        self.compression = "None"
                     # compression is global, can't be diferent per file in sfs
                     break
 
@@ -434,7 +459,7 @@ class SFS_reader(object):
         """
         item = self.vfs
 
-        for i in path.split('/'):
+        for i in path.split("/"):
             item = item[i]
         return item
 
@@ -459,26 +484,26 @@ def dictionarize(t):
         for dc in map(dictionarize, children):
             for k, v in dc.items():
                 dd[k].append(v)
-        d = {t.tag: {k: interpret(v[0]) if len(
-            v) == 1 else v for k, v in dd.items()}}
+        d = {t.tag: {k: interpret(v[0]) if len(v) == 1 else v for k, v in dd.items()}}
     if t.attrib:
-        d[t.tag].update(('XmlClass' + k if list(t) else k, interpret(v))
-                        for k, v in t.attrib.items())
+        d[t.tag].update(
+            ("XmlClass" + k if list(t) else k, interpret(v))
+            for k, v in t.attrib.items()
+        )
     if t.text:
         text = t.text.strip()
         if children or t.attrib:
             if text:
-                d[t.tag]['#text'] = interpret(text)
+                d[t.tag]["#text"] = interpret(text)
         else:
             d[t.tag] = interpret(text)
-    if 'ClassInstance' in d:
-        return d['ClassInstance']
+    if "ClassInstance" in d:
+        return d["ClassInstance"]
     else:
         return d
 
 
 class EDXSpectrum(object):
-
     def __init__(self, spectrum):
         """
         Wrap the objectified bruker EDS spectrum xml part
@@ -490,34 +515,32 @@ class EDXSpectrum(object):
             etree xml object, where spectrum.attrib['Type'] should
             be 'TRTSpectrum'.
         """
-        TRTHeader = spectrum.find('./TRTHeaderedClass')
+        TRTHeader = spectrum.find("./TRTHeaderedClass")
         hardware_header = TRTHeader.find(
-            "./ClassInstance[@Type='TRTSpectrumHardwareHeader']")
-        detector_header = TRTHeader.find(
-            "./ClassInstance[@Type='TRTDetectorHeader']")
-        esma_header = TRTHeader.find(
-            "./ClassInstance[@Type='TRTESMAHeader']")
+            "./ClassInstance[@Type='TRTSpectrumHardwareHeader']"
+        )
+        detector_header = TRTHeader.find("./ClassInstance[@Type='TRTDetectorHeader']")
+        esma_header = TRTHeader.find("./ClassInstance[@Type='TRTESMAHeader']")
         # what TRT means?
         # ESMA could stand for Electron Scanning Microscope Analysis
-        spectrum_header = spectrum.find(
-            "./ClassInstance[@Type='TRTSpectrumHeader']")
+        spectrum_header = spectrum.find("./ClassInstance[@Type='TRTSpectrumHeader']")
         xrf_header = TRTHeader.find("./ClassInstance[@Type='TRTXrfHeader']")
 
         # map stuff from harware xml branch:
         self.hardware_metadata = dictionarize(hardware_header)
-        self.amplification = self.hardware_metadata['Amplification']  # USED
+        self.amplification = self.hardware_metadata["Amplification"]  # USED
 
         # map stuff from detector xml branch
         self.detector_metadata = dictionarize(detector_header)
-        self.detector_type = self.detector_metadata['Type']  # USED
+        self.detector_type = self.detector_metadata["Type"]  # USED
 
         # decode silly hidden detector layer info:
-        det_l_str = self.detector_metadata['DetLayers']
-        dec_det_l_str = codecs.decode(det_l_str.encode('ascii'), 'base64')
+        det_l_str = self.detector_metadata["DetLayers"]
+        dec_det_l_str = codecs.decode(det_l_str.encode("ascii"), "base64")
         mini_xml = ET.fromstring(unzip_block(dec_det_l_str))
-        self.detector_metadata['DetLayers'] = {}  # Overwrite with dict
+        self.detector_metadata["DetLayers"] = {}  # Overwrite with dict
         for i in list(mini_xml):
-            self.detector_metadata['DetLayers'][i.tag] = dict(i.attrib)
+            self.detector_metadata["DetLayers"][i.tag] = dict(i.attrib)
 
         # map stuff from esma xml branch:
         if esma_header:
@@ -525,34 +548,33 @@ class EDXSpectrum(object):
         if xrf_header:
             xrf_header_dict = dictionarize(xrf_header)
             self.esma_metadata = {
-                'PrimaryEnergy':xrf_header_dict['Voltage'],
-                'ElevationAngle':xrf_header_dict['ExcitationAngle']
-                }
+                "PrimaryEnergy": xrf_header_dict["Voltage"],
+                "ElevationAngle": xrf_header_dict["ExcitationAngle"],
+            }
         # USED:
-        self.hv = self.esma_metadata['PrimaryEnergy']
-        self.elev_angle = self.esma_metadata['ElevationAngle']
+        self.hv = self.esma_metadata["PrimaryEnergy"]
+        self.elev_angle = self.esma_metadata["ElevationAngle"]
         date_time = gen_iso_date_time(spectrum_header)
         if date_time is not None:
             self.date, self.time = date_time
 
         self.spectrum_metadata = dictionarize(spectrum_header)
-        self.offset = self.spectrum_metadata['CalibAbs']
-        self.scale = self.spectrum_metadata['CalibLin']
+        self.offset = self.spectrum_metadata["CalibAbs"]
+        self.scale = self.spectrum_metadata["CalibLin"]
 
         # main data:
-        self.data = np.fromstring(spectrum.find('./Channels').text,
-                                  dtype='Q', sep=",")
+        self.data = np.fromstring(spectrum.find("./Channels").text, dtype="Q", sep=",")
 
     def last_non_zero_channel(self):
         """return index of last nonzero channel"""
         return self.data.nonzero()[0][-1]
 
     def energy_to_channel(self, energy, kV=True):
-        """ convert energy to channel index,
+        """convert energy to channel index,
         optional kwarg 'kV' (default: True) should be set to False
         if given energy units is in V"""
         if not kV:
-            en_temp = energy / 1000.
+            en_temp = energy / 1000.0
         else:
             en_temp = energy
         return int(round((en_temp - self.offset) / self.scale))
@@ -582,23 +604,23 @@ class HyperHeader(object):
         root = ET.fromstring(xml_str)
         root = root.find("./ClassInstance[@Type='TRTSpectrumDatabase']")
         try:
-            self.name = str(root.attrib['Name'])
+            self.name = str(root.attrib["Name"])
         except KeyError:
-            self.name = 'Undefined'
+            self.name = "Undefined"
             _logger.info("hypermap have no name. Giving it 'Undefined' name")
         hd = root.find("./Header")
         self.date, self.time = gen_iso_date_time(hd)
-        self.version = int(literal_eval(hd.find('./FileVersion').text))
+        self.version = int(literal_eval(hd.find("./FileVersion").text))
         # fill the sem and stage attributes:
         self._set_microscope(root)
         self._set_mode(instrument)
         self._set_images(root)
         self.elements = {}
         self._set_elements(root)
-        self.line_counter = interpret(root.find('./LineCounter').text)
-        self.channel_count = int(root.find('./ChCount').text)
-        self.mapping_count = int(root.find('./DetectorCount').text)
-        #self.channel_factors = {}
+        self.line_counter = interpret(root.find("./LineCounter").text)
+        self.channel_count = int(root.find("./ChCount").text)
+        self.mapping_count = int(root.find("./DetectorCount").text)
+        # self.channel_factors = {}
         self.spectra_data = {}
         self._set_sum_edx(root, indexes)
 
@@ -616,14 +638,14 @@ class HyperHeader(object):
         semData = root.find("./ClassInstance[@Type='TRTSEMData']")
         self.sem_metadata = dictionarize(semData)
         # parse values for use in hspy metadata:
-        self.hv = self.sem_metadata.get('HV', 0.0)  # in kV
+        self.hv = self.sem_metadata.get("HV", 0.0)  # in kV
         # image/hypermap resolution in um/pixel:
-        if 'DX' in self.sem_metadata:
-            self.units = 'µm'
+        if "DX" in self.sem_metadata:
+            self.units = "µm"
         else:
-            self.units = 'pix'
-        self.x_res = self.sem_metadata.get('DX', 1.0)
-        self.y_res = self.sem_metadata.get('DY', 1.0)
+            self.units = "pix"
+        self.x_res = self.sem_metadata.get("DX", 1.0)
+        self.y_res = self.sem_metadata.get("DY", 1.0)
         # stage position:
         semStageData = root.find("./ClassInstance[@Type='TRTSEMStageData']")
         self.stage_metadata = dictionarize(semStageData)
@@ -641,61 +663,64 @@ class HyperHeader(object):
         """return python dictionary with aquisition instrument
         mandatory data
         """
-        acq_inst = {'beam_energy': self.hv}
-        if 'Mag' in self.sem_metadata:
-            acq_inst['magnification'] = self.sem_metadata['Mag']
+        acq_inst = {"beam_energy": self.hv}
+        if "Mag" in self.sem_metadata:
+            acq_inst["magnification"] = self.sem_metadata["Mag"]
         if detector:
             eds_metadata = self.get_spectra_metadata(**kwargs)
             det = gen_detector_node(eds_metadata)
-            det['EDS']['real_time'] = self.calc_real_time()
-            acq_inst['Detector'] = det
+            det["EDS"]["real_time"] = self.calc_real_time()
+            acq_inst["Detector"] = det
         return acq_inst
 
     def _parse_image(self, xml_node, overview=False):
         """parse image from bruker xml image node."""
         if overview:
-            rect_node = xml_node.find("./ChildClassInstances"
-                                      "/ClassInstance["
-                                      #"@Type='TRTRectangleOverlayElement' and "
-                                      "@Name='Map']/TRTSolidOverlayElement/"
-                                      "TRTBasicLineOverlayElement/TRTOverlayElement")
+            rect_node = xml_node.find(
+                "./ChildClassInstances"
+                "/ClassInstance["
+                # "@Type='TRTRectangleOverlayElement' and "
+                "@Name='Map']/TRTSolidOverlayElement/"
+                "TRTBasicLineOverlayElement/TRTOverlayElement"
+            )
             if rect_node is not None:
-                over_rect = dictionarize(rect_node)[
-                    'TRTOverlayElement']['Rect']
-                rect = {'y1': over_rect['Top'] * self.y_res,
-                        'x1': over_rect['Left'] * self.x_res,
-                        'y2': over_rect['Bottom'] * self.y_res,
-                        'x2': over_rect['Right'] * self.x_res}
-                over_dict = {'marker_type': 'Rectangle',
-                             'plot_on_signal': True,
-                             'data': rect,
-                             'marker_properties': {'color': 'yellow',
-                                                   'linewidth': 2}}
+                over_rect = dictionarize(rect_node)["TRTOverlayElement"]["Rect"]
+                rect = {
+                    "y1": over_rect["Top"] * self.y_res,
+                    "x1": over_rect["Left"] * self.x_res,
+                    "y2": over_rect["Bottom"] * self.y_res,
+                    "x2": over_rect["Right"] * self.x_res,
+                }
+                over_dict = {
+                    "marker_type": "Rectangle",
+                    "plot_on_signal": True,
+                    "data": rect,
+                    "marker_properties": {"color": "yellow", "linewidth": 2},
+                }
         image = Container()
-        image.width = int(xml_node.find('./Width').text)  # in pixels
-        image.height = int(xml_node.find('./Height').text)  # in pixels
+        image.width = int(xml_node.find("./Width").text)  # in pixels
+        image.height = int(xml_node.find("./Height").text)  # in pixels
         # in bytes ('u1','u2','u4')
-        image.dtype = 'u' + xml_node.find('./ItemSize').text
-        image.plane_count = int(xml_node.find('./PlaneCount').text)
+        image.dtype = "u" + xml_node.find("./ItemSize").text
+        image.plane_count = int(xml_node.find("./PlaneCount").text)
         image.images = []
         for i in range(image.plane_count):
             img = xml_node.find("./Plane" + str(i))
-            raw = codecs.decode(
-                (img.find('./Data').text).encode('ascii'), 'base64')
+            raw = codecs.decode((img.find("./Data").text).encode("ascii"), "base64")
             array1 = np.frombuffer(raw, dtype=image.dtype)
             if any(array1):
                 item = self.gen_hspy_item_dict_basic()
                 data = array1.reshape((image.height, image.width))
-                desc = img.find('./Description')
-                item['data'] = data
-                item['axes'][0]['size'] = image.height
-                item['axes'][1]['size'] = image.width
-                item['metadata']['Signal'] = {'record_by': 'image'}
-                item['metadata']['General'] = {}
+                desc = img.find("./Description")
+                item["data"] = data
+                item["axes"][0]["size"] = image.height
+                item["axes"][1]["size"] = image.width
+                item["metadata"]["Signal"] = {"record_by": "image"}
+                item["metadata"]["General"] = {}
                 if desc is not None:
-                    item['metadata']['General']['title'] = str(desc.text)
+                    item["metadata"]["General"]["title"] = str(desc.text)
                 if overview and (rect_node is not None):
-                    item['metadata']['Markers'] = {'overview': over_dict}
+                    item["metadata"]["Markers"] = {"overview": over_dict}
                 image.images.append(item)
         return image
 
@@ -705,7 +730,7 @@ class HyperHeader(object):
         """
         image_nodes = root.findall("./ClassInstance[@Type='TRTImageData']")
         for n in image_nodes:
-            if not(n.get('Name')):
+            if not (n.get("Name")):
                 image_node = n
         self.image = self._parse_image(image_node)
         if self.version == 2:
@@ -713,13 +738,13 @@ class HyperHeader(object):
                 "./ClassInstance[@Type='TRTContainerClass']"
                 "/ChildClassInstances"
                 "/ClassInstance["
-                #"@Type='TRTContainerClass' and "
+                # "@Type='TRTContainerClass' and "
                 "@Name='OverviewImages']"
                 "/ChildClassInstances"
-                "/ClassInstance[@Type='TRTImageData']")
+                "/ClassInstance[@Type='TRTImageData']"
+            )
             if len(overview_node) > 0:  # in case there is no image
-                self.overview = self._parse_image(
-                    overview_node[0], overview=True)
+                self.overview = self._parse_image(overview_node[0], overview=True)
 
     def _set_elements(self, root):
         """wrap objectified xml part with selection of elements to
@@ -731,22 +756,23 @@ class HyperHeader(object):
                 "/ChildClassInstances"
                 "/ClassInstance[@Type='TRTElementInformationList']"
                 "/ClassInstance[@Type='TRTSpectrumRegionList']"
-                "/ChildClassInstances")
-            for j in elements.findall(
-                    "./ClassInstance[@Type='TRTSpectrumRegion']"):
+                "/ChildClassInstances"
+            )
+            for j in elements.findall("./ClassInstance[@Type='TRTSpectrumRegion']"):
                 tmp_d = dictionarize(j)
                 # In case no information on the specific selected X-ray line is
                 # available, assume it is a 'Ka' line, reflecting the fact that element
                 # tables in Bruker Esprit (1.9 and 2.1) store a single K line for Li-Al
-                self.elements[tmp_d['XmlClassName']] = {'line': tmp_d.get('Line', 'Ka'),
-                                                        'energy': tmp_d.get('Energy')}
+                self.elements[tmp_d["XmlClassName"]] = {
+                    "line": tmp_d.get("Line", "Ka"),
+                    "energy": tmp_d.get("Energy"),
+                }
         except AttributeError:
-            _logger.info('no element selection present in the spectra..')
+            _logger.info("no element selection present in the spectra..")
 
     def _set_sum_edx(self, root, indexes):
         for i in indexes:
-            spec_node = root.find(
-                "./SpectrumData{0}/ClassInstance".format(str(i)))
+            spec_node = root.find("./SpectrumData{0}/ClassInstance".format(str(i)))
             self.spectra_data[i] = EDXSpectrum(spec_node)
 
     def get_consistent_min_channels(self, index=0):
@@ -769,9 +795,11 @@ class HyperHeader(object):
         if hasattr(self, "hv") and (self.hv > 0) and (self.hv < eds_max_energy):
             return self.spectra_data[index].energy_to_channel(self.hv)
         if (not hasattr(self, "hv")) or (self.hv == 0):
-            logging.warn('bcf header contains no node for electron beam '
-                         'voltage or such node is absent.\n'
-                         'Using full range of recorded channels.')
+            logging.warn(
+                "bcf header contains no node for electron beam "
+                "voltage or such node is absent.\n"
+                "Using full range of recorded channels."
+            )
         return self.spectra_data[index].data.shape[0]
 
     def estimate_map_depth(self, index=0, downsample=1, for_numpy=False):
@@ -804,8 +832,14 @@ class HyperHeader(object):
         """
         sum_eds = self.spectra_data[index].data
         # the most intensive peak is Bruker reference peak at 0kV:
-        roof = np.max(sum_eds) // self.image.width // self.image.height * 2 *\
-            downsample * downsample
+        roof = (
+            np.max(sum_eds)
+            // self.image.width
+            // self.image.height
+            * 2
+            * downsample
+            * downsample
+        )
         # this complicated nonsence bellow is due to numpy regression in adding
         # integer inplace to unsigned integer array. (python integers is
         # signed)
@@ -848,33 +882,39 @@ class HyperHeader(object):
         in seconds
         """
         line_cnt_sum = np.sum(self.line_counter, dtype=float)
-        line_avg = self.dsp_metadata['LineAverage']
-        pix_avg = self.dsp_metadata['PixelAverage']
-        pix_time = self.dsp_metadata['PixelTime']
+        line_avg = self.dsp_metadata["LineAverage"]
+        pix_avg = self.dsp_metadata["PixelAverage"]
+        pix_time = self.dsp_metadata["PixelTime"]
         width = self.image.width
-        real_time = line_cnt_sum * line_avg * pix_avg * pix_time * width * 1E-6
+        real_time = line_cnt_sum * line_avg * pix_avg * pix_time * width * 1e-6
         return float(real_time)
 
     def gen_hspy_item_dict_basic(self):
-        i = {'axes': [{'name': 'height',
-                       'offset': 0,
-                       'scale': self.y_res,
-                       'units': self.units},
-                      {'name': 'width',
-                       'offset': 0,
-                       'scale': self.x_res,
-                       'units': self.units}],
-             'metadata': {
-            'Acquisition_instrument':
-            {self.mode: self.get_acq_instrument_dict()},
-                'Sample': {'name': self.name},
-        },
-            'original_metadata': {
-                 'Microscope': self.sem_metadata,
-                 'DSP Configuration': self.dsp_metadata,
-                 'Stage': self.stage_metadata
-        },
-             'mapping': get_mapping(self.mode)
+        i = {
+            "axes": [
+                {
+                    "name": "height",
+                    "offset": 0,
+                    "scale": self.y_res,
+                    "units": self.units,
+                },
+                {
+                    "name": "width",
+                    "offset": 0,
+                    "scale": self.x_res,
+                    "units": self.units,
+                },
+            ],
+            "metadata": {
+                "Acquisition_instrument": {self.mode: self.get_acq_instrument_dict()},
+                "Sample": {"name": self.name},
+            },
+            "original_metadata": {
+                "Microscope": self.sem_metadata,
+                "DSP Configuration": self.dsp_metadata,
+                "Stage": self.stage_metadata,
+            },
+            "mapping": get_mapping(self.mode),
         }
         return i
 
@@ -897,18 +937,19 @@ class BCF_reader(SFS_reader):
 
     def __init__(self, filename, instrument=None):
         SFS_reader.__init__(self, filename)
-        header_file = self.get_file('EDSDatabase/HeaderData')
+        header_file = self.get_file("EDSDatabase/HeaderData")
         self.available_indexes = []
         # get list of presented indexes from file tree of binary sfs container
         # while looking for file names containg the hypercube data:
-        for i in self.vfs['EDSDatabase'].keys():
-            if 'SpectrumData' in i:
+        for i in self.vfs["EDSDatabase"].keys():
+            if "SpectrumData" in i:
                 self.available_indexes.append(int(i[-1]))
         self.def_index = min(self.available_indexes)
         header_byte_str = header_file.get_as_BytesIO_string().getvalue()
-        hd_bt_str = fix_dec_patterns.sub(b'\\1.\\2', header_byte_str)
+        hd_bt_str = fix_dec_patterns.sub(b"\\1.\\2", header_byte_str)
         self.header = HyperHeader(
-            hd_bt_str, self.available_indexes, instrument=instrument)
+            hd_bt_str, self.available_indexes, instrument=instrument
+        )
         self.hypermap = {}
 
     def check_index_valid(self, index):
@@ -916,13 +957,15 @@ class BCF_reader(SFS_reader):
         if not isinstance(index, int):
             raise TypeError("provided index should be integer")
         if index not in self.available_indexes:
-            raise IndexError("requisted index is not in the list of available indexes. "
-                             "Available maps are under indexes: {0}".format(str(self.available_indexes)))
+            raise IndexError(
+                "requisted index is not in the list of available indexes. "
+                "Available maps are under indexes: {0}".format(
+                    str(self.available_indexes)
+                )
+            )
         return index
 
-    def parse_hypermap(self, index=None,
-                       downsample=1, cutoff_at_kV=None,
-                       lazy=False):
+    def parse_hypermap(self, index=None, downsample=1, cutoff_at_kV=None, lazy=False):
         """Unpack the Delphi/Bruker binary spectral map and return
         numpy array in memory efficient way.
 
@@ -961,97 +1004,108 @@ class BCF_reader(SFS_reader):
         if type(cutoff_at_kV) in (int, float):
             eds = self.header.spectra_data[index]
             n_channels = eds.energy_to_channel(cutoff_at_kV)
-        elif cutoff_at_kV == 'zealous':
+        elif cutoff_at_kV == "zealous":
             n_channels = self.header.spectra_data[index].last_non_zero_channel() + 1
-        elif cutoff_at_kV == 'auto':
+        elif cutoff_at_kV == "auto":
             n_channels = self.header.get_consistent_min_channels(index=index)
         else:  # None
             n_channels = self.header.spectra_data[index].data.size
 
-        shape = (ceil(self.header.image.height / downsample),
-                 ceil(self.header.image.width / downsample),
-                 n_channels)
+        shape = (
+            ceil(self.header.image.height / downsample),
+            ceil(self.header.image.width / downsample),
+            n_channels,
+        )
         sfs_file = SFS_reader(self.filename)
-        vrt_file_hand = sfs_file.get_file(
-            'EDSDatabase/SpectrumData' + str(index))
+        vrt_file_hand = sfs_file.get_file("EDSDatabase/SpectrumData" + str(index))
         if fast_unbcf:
             parse_func = unbcf_fast.parse_to_numpy
-            dtype = self.header.estimate_map_depth(index=index,
-                                                   downsample=downsample,
-                                                   for_numpy=False)
+            dtype = self.header.estimate_map_depth(
+                index=index, downsample=downsample, for_numpy=False
+            )
         else:
             parse_func = py_parse_hypermap
-            dtype = self.header.estimate_map_depth(index=index,
-                                                   downsample=downsample,
-                                                   for_numpy=True)
+            dtype = self.header.estimate_map_depth(
+                index=index, downsample=downsample, for_numpy=True
+            )
         if lazy:
-            value = dd(parse_func)(vrt_file_hand, shape,
-                                   dtype, downsample=downsample)
+            value = dd(parse_func)(vrt_file_hand, shape, dtype, downsample=downsample)
             result = da.from_delayed(value, shape=shape, dtype=dtype)
         else:
-            result = parse_func(vrt_file_hand, shape,
-                                dtype, downsample=downsample)
+            result = parse_func(vrt_file_hand, shape, dtype, downsample=downsample)
         return result
 
     def add_filename_to_general(self, item):
         """hypy helper method"""
-        item['metadata']['General']['original_filename'] = \
-            basename(self.filename)
+        item["metadata"]["General"]["original_filename"] = basename(self.filename)
 
 
 def spx_reader(filename, lazy=False):
-    with open(filename, 'br') as fn:
+    with open(filename, "br") as fn:
         xml_str = fn.read()
     root = ET.fromstring(xml_str)
     sp_node = root.find("./ClassInstance[@Type='TRTSpectrum']")
     try:
-        name = str(sp_node.attrib['Name'])
+        name = str(sp_node.attrib["Name"])
     except KeyError:
-        name = 'Undefinded'
+        name = "Undefinded"
         _logger.info("spectra have no name. Giving it 'Undefined' name")
     spectrum = EDXSpectrum(sp_node)
     mode = guess_mode(spectrum.hv)
     results_xml = sp_node.find("./ClassInstance[@Type='TRTResult']")
     elements_xml = sp_node.find("./ClassInstance[@Type='TRTPSEElementList']")
-    hy_spec = {'data': spectrum.data,
-               'axes': [{'name': 'Energy',
-                         'size': len(spectrum.data),
-                         'offset': spectrum.offset,
-                         'scale': spectrum.scale,
-                         'units': 'keV'}],
-               'metadata':
-               # where is no way to determine what kind of instrument was used:
-               # TEM or SEM
-               {'Acquisition_instrument': {
-                   mode: {'Detector':
-                          gen_detector_node(spectrum),
-                          'beam_energy': spectrum.hv}
-               },
-                   'General': {'original_filename': basename(filename),
-                               'title': 'EDX',
-                               'date': spectrum.date,
-                               'time': spectrum.time},
-                   'Sample': {'name': name},
-                   'Signal': {'signal_type': 'EDS_%s' % mode,
-                              'record_by': 'spectrum',
-                              'quantity': 'X-rays (Counts)'}
-               },
-               'original_metadata': {'Hardware': spectrum.hardware_metadata,
-                                     'Detector': spectrum.detector_metadata,
-                                     'Analysis': spectrum.esma_metadata,
-                                     'Spectrum': spectrum.spectrum_metadata, }
-               }
+    hy_spec = {
+        "data": spectrum.data,
+        "axes": [
+            {
+                "name": "Energy",
+                "size": len(spectrum.data),
+                "offset": spectrum.offset,
+                "scale": spectrum.scale,
+                "units": "keV",
+            }
+        ],
+        "metadata":
+        # where is no way to determine what kind of instrument was used:
+        # TEM or SEM
+        {
+            "Acquisition_instrument": {
+                mode: {
+                    "Detector": gen_detector_node(spectrum),
+                    "beam_energy": spectrum.hv,
+                }
+            },
+            "General": {
+                "original_filename": basename(filename),
+                "title": "EDX",
+                "date": spectrum.date,
+                "time": spectrum.time,
+            },
+            "Sample": {"name": name},
+            "Signal": {
+                "signal_type": "EDS_%s" % mode,
+                "record_by": "spectrum",
+                "quantity": "X-rays (Counts)",
+            },
+        },
+        "original_metadata": {
+            "Hardware": spectrum.hardware_metadata,
+            "Detector": spectrum.detector_metadata,
+            "Analysis": spectrum.esma_metadata,
+            "Spectrum": spectrum.spectrum_metadata,
+        },
+    }
     if results_xml is not None:
-        hy_spec['original_metadata']['Results'] = dictionarize(results_xml)
+        hy_spec["original_metadata"]["Results"] = dictionarize(results_xml)
     if elements_xml is not None:
-        elem = dictionarize(elements_xml)['ChildClassInstances']
-        hy_spec['original_metadata']['Selected_elements'] = elem
-        hy_spec['metadata']['Sample']['elements'] = elem['XmlClassName']
+        elem = dictionarize(elements_xml)["ChildClassInstances"]
+        hy_spec["original_metadata"]["Selected_elements"] = elem
+        hy_spec["metadata"]["Sample"]["elements"] = elem["XmlClassName"]
     return [hy_spec]
 
 
 # dict of nibbles to struct notation for reading:
-st = {1: 'B', 2: 'B', 4: 'H', 8: 'I', 16: 'Q'}
+st = {1: "B", 2: "B", 4: "H", 8: "I", 16: "Q"}
 
 
 def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
@@ -1088,7 +1142,7 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
     dwn_factor = downsample
     max_chan = shape[2]
     buffer1 = next(iter_data)
-    height, width = strct_unp('<ii', buffer1[:8])
+    height, width = strct_unp("<ii", buffer1[:8])
     # hyper map as very flat array:
     vfa = np.zeros(shape[0] * shape[1] * shape[2], dtype=dtype)
     offset = 0x1A0
@@ -1098,7 +1152,7 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
             size = size_chnk + size - offset
             buffer1 = buffer1[offset:] + next(iter_data)
             offset = 0
-        line_head = strct_unp('<i', buffer1[offset:offset + 4])[0]
+        line_head = strct_unp("<i", buffer1[offset : offset + 4])[0]
         offset += 4
         for dummy1 in range(line_head):
             if (offset + 22) >= size:
@@ -1118,38 +1172,47 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
             #      additional pulses to the instructively packed data;
             # packed data size (32bit) (without additional pulses) \
             #       next header is after that amount of bytes;
-            x_pix, chan1, chan2, dummy1, flag, dummy_size1, n_of_pulses,\
-                data_size2 = strct_unp('<IHHIHHHI',
-                                       buffer1[offset:offset + 22])
-            pix_idx = (x_pix // dwn_factor) + (ceil(width / dwn_factor) *
-                                               (line_cnt // dwn_factor))
+            (
+                x_pix,
+                chan1,
+                chan2,
+                dummy1,
+                flag,
+                dummy_size1,
+                n_of_pulses,
+                data_size2,
+            ) = strct_unp("<IHHIHHHI", buffer1[offset : offset + 22])
+            pix_idx = (x_pix // dwn_factor) + (
+                ceil(width / dwn_factor) * (line_cnt // dwn_factor)
+            )
             offset += 22
             if (offset + data_size2) >= size:
                 buffer1 = buffer1[offset:] + next(iter_data)
                 size = size_chnk + size - offset
                 offset = 0
             if flag == 0:
-                data1 = buffer1[offset:offset + data_size2]
+                data1 = buffer1[offset : offset + data_size2]
                 arr16 = np.frombuffer(data1, dtype=np.uint16)
                 pixel = np.bincount(arr16, minlength=chan1 - 1)
                 offset += data_size2
             elif flag == 1:  # and (chan1 != chan2)
                 # Unpack packed 12-bit data to 16-bit uints:
-                data1 = buffer1[offset:offset + data_size2]
-                switched_i2 = np.frombuffer(data1,
-                                            dtype='<u2'
-                                            ).copy().byteswap(True)
-                data2 = np.frombuffer(switched_i2.tobytes(),
-                                      dtype=np.uint8
-                                      ).copy().repeat(2)
+                data1 = buffer1[offset : offset + data_size2]
+                switched_i2 = np.frombuffer(data1, dtype="<u2").copy().byteswap(True)
+                data2 = (
+                    np.frombuffer(switched_i2.tobytes(), dtype=np.uint8)
+                    .copy()
+                    .repeat(2)
+                )
                 mask = np.ones_like(data2, dtype=bool)
                 mask[0::6] = mask[5::6] = False
                 # Reinterpret expanded as 16-bit:
                 # string representation of array after switch will have
                 # always BE independently from endianess of machine
-                exp16 = np.frombuffer(data2[mask].tobytes(),
-                                      dtype='>u2', count=n_of_pulses).copy()
-                exp16[0::2] >>= 4           # Shift every second short by 4
+                exp16 = np.frombuffer(
+                    data2[mask].tobytes(), dtype=">u2", count=n_of_pulses
+                ).copy()
+                exp16[0::2] >>= 4  # Shift every second short by 4
                 exp16 &= np.uint16(0x0FFF)  # Mask all shorts to 12bit
                 pixel = np.bincount(exp16, minlength=chan1 - 1)
                 offset += data_size2
@@ -1159,33 +1222,36 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
                 the_end = offset + data_size2 - 4
                 while offset < the_end:
                     # this would work on py3
-                    #size_p, channels = buffer1[offset:offset + 2]
+                    # size_p, channels = buffer1[offset:offset + 2]
                     # this is needed on py2:
-                    size_p, channels = strct_unp('<BB',
-                                                 buffer1[offset:offset + 2])
+                    size_p, channels = strct_unp("<BB", buffer1[offset : offset + 2])
                     offset += 2
                     if size_p == 0:
                         pixel += channels * [0]
                     else:
-                        gain = strct_unp('<' + st[size_p * 2],
-                                         buffer1[offset:offset + size_p])[0]
+                        gain = strct_unp(
+                            "<" + st[size_p * 2], buffer1[offset : offset + size_p]
+                        )[0]
                         offset += size_p
                         if size_p == 1:
                             # special case with nibble switching
                             length = ceil(channels / 2)
                             # valid py3 code
-                            #a = list(buffer1[offset:offset + length])
+                            # a = list(buffer1[offset:offset + length])
                             # this have to be used on py2:
-                            a = strct_unp('<' + 'B' * length,
-                                          buffer1[offset:offset + length])
+                            a = strct_unp(
+                                "<" + "B" * length, buffer1[offset : offset + length]
+                            )
                             g = []
                             for i in a:
                                 g += (i & 0x0F) + gain, (i >> 4) + gain
                             pixel += g[:channels]
                         else:
                             length = int(channels * size_p / 2)
-                            temp = strct_unp('<' + channels * st[size_p],
-                                             buffer1[offset:offset + length])
+                            temp = strct_unp(
+                                "<" + channels * st[size_p],
+                                buffer1[offset : offset + length],
+                            )
                             pixel += [l + gain for l in temp]
                         offset += length
                 if chan2 < chan1:
@@ -1193,15 +1259,16 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
                     pixel += rest * [0]
                 # additional data size:
                 if n_of_pulses > 0:
-                    add_s = strct_unp('<I', buffer1[offset:offset + 4])[0]
+                    add_s = strct_unp("<I", buffer1[offset : offset + 4])[0]
                     offset += 4
                     if (offset + add_s) >= size:
                         buffer1 = buffer1[offset:] + next(iter_data)
                         size = size_chnk + size - offset
                         offset = 0
                     # the additional pulses:
-                    add_pulses = strct_unp('<' + 'H' * n_of_pulses,
-                                           buffer1[offset:offset + add_s])
+                    add_pulses = strct_unp(
+                        "<" + "H" * n_of_pulses, buffer1[offset : offset + add_s]
+                    )
                     offset += add_s
                     for i in add_pulses:
                         pixel[i] += 1
@@ -1212,32 +1279,35 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
             # use assigment, which is ~4 times faster, than inplace add
             if max_chan < chan1:  # if pixel have more channels than we need
                 chan1 = max_chan
-            if (dwn_factor == 1):
-                vfa[max_chan * pix_idx:chan1 + max_chan * pix_idx] =\
-                    pixel[:chan1]
+            if dwn_factor == 1:
+                vfa[max_chan * pix_idx : chan1 + max_chan * pix_idx] = pixel[:chan1]
             else:
-                vfa[max_chan * pix_idx:chan1 + max_chan * pix_idx] +=\
-                    pixel[:chan1]
-    vfa.resize((ceil(height / dwn_factor),
-                ceil(width / dwn_factor),
-                max_chan))
+                vfa[max_chan * pix_idx : chan1 + max_chan * pix_idx] += pixel[:chan1]
+    vfa.resize((ceil(height / dwn_factor), ceil(width / dwn_factor), max_chan))
     # check if array is signed, and convert to unsigned
-    if str(vfa.dtype)[0] == 'i':
-        new_dtype = ''.join(['u', str(vfa.dtype)])
+    if str(vfa.dtype)[0] == "i":
+        new_dtype = "".join(["u", str(vfa.dtype)])
         vfa.dtype = new_dtype
     return vfa
 
 
 def file_reader(filename, *args, **kwds):
     ext = splitext(filename)[1][1:]
-    if ext == 'bcf':
+    if ext == "bcf":
         return bcf_reader(filename, *args, **kwds)
-    elif ext == 'spx':
+    elif ext == "spx":
         return spx_reader(filename, *args, **kwds)
 
 
-def bcf_reader(filename, select_type=None, index=None,  # noqa
-               downsample=1, cutoff_at_kV=None, instrument=None, lazy=False):
+def bcf_reader(
+    filename,
+    select_type=None,
+    index=None,  # noqa
+    downsample=1,
+    cutoff_at_kV=None,
+    instrument=None,
+    lazy=False,
+):
     """Reads a bruker bcf file and loads the data into the appropriate class,
     then wraps it into appropriate hyperspy required list of dictionaries
     used by hyperspy.api.load() method.
@@ -1266,59 +1336,67 @@ def bcf_reader(filename, select_type=None, index=None,  # noqa
 
     # objectified bcf file:
     obj_bcf = BCF_reader(filename, instrument=instrument)
-    if select_type == 'spectrum':
-        select_type = 'spectrum_image'
+    if select_type == "spectrum":
+        select_type = "spectrum_image"
         msg = (
             "The 'spectrum' option for the `select_type` parameter is "
             "deprecated and will be removed in v2.0. Use 'spectrum_image' "
-            "instead.")
+            "instead."
+        )
         warnings.warn(msg, VisibleDeprecationWarning)
-    if select_type == 'image':
+    if select_type == "image":
         return bcf_images(obj_bcf)
-    elif select_type == 'spectrum_image':
-        return bcf_hyperspectra(obj_bcf, index=index,
-                                downsample=downsample,
-                                cutoff_at_kV=cutoff_at_kV,
-                                lazy=lazy)
+    elif select_type == "spectrum_image":
+        return bcf_hyperspectra(
+            obj_bcf,
+            index=index,
+            downsample=downsample,
+            cutoff_at_kV=cutoff_at_kV,
+            lazy=lazy,
+        )
     else:
         return bcf_images(obj_bcf) + bcf_hyperspectra(
             obj_bcf,
             index=index,
             downsample=downsample,
             cutoff_at_kV=cutoff_at_kV,
-            lazy=lazy)
+            lazy=lazy,
+        )
 
 
 def bcf_images(obj_bcf):
-    """ return hyperspy required list of dict with sem
+    """return hyperspy required list of dict with sem
     images and metadata.
     """
     images_list = []
     for img in obj_bcf.header.image.images:
         obj_bcf.add_filename_to_general(img)
         images_list.append(img)
-    if hasattr(obj_bcf.header, 'overview'):
+    if hasattr(obj_bcf.header, "overview"):
         for img2 in obj_bcf.header.overview.images:
             obj_bcf.add_filename_to_general(img2)
             images_list.append(img2)
     return images_list
 
 
-def bcf_hyperspectra(obj_bcf, index=None, downsample=None, cutoff_at_kV=None,  # noqa
-                     lazy=False):
-    """ Return hyperspy required list of dict with eds
+def bcf_hyperspectra(
+    obj_bcf, index=None, downsample=None, cutoff_at_kV=None, lazy=False  # noqa
+):
+    """Return hyperspy required list of dict with eds
     hyperspectra and metadata.
     """
     global warn_once
     if (fast_unbcf == False) and warn_once:
-        _logger.warning("""unbcf_fast library is not present...
+        _logger.warning(
+            """unbcf_fast library is not present...
 Parsing BCF with Python-only backend, which is slow... please wait.
 If parsing is uncomfortably slow, first install cython, then reinstall hyperspy.
-For more information, check the 'Installing HyperSpy' section in the documentation.""")
+For more information, check the 'Installing HyperSpy' section in the documentation."""
+        )
         warn_once = False
     if index is None:
         indexes = [obj_bcf.def_index]
-    elif index == 'all':
+    elif index == "all":
         indexes = obj_bcf.available_indexes
     else:
         indexes = [obj_bcf.check_index_valid(index)]
@@ -1326,62 +1404,80 @@ For more information, check the 'Installing HyperSpy' section in the documentati
     mode = obj_bcf.header.mode
     mapping = get_mapping(mode)
     for index in indexes:
-        hypermap = obj_bcf.parse_hypermap(index=index,
-                                          downsample=downsample,
-                                          cutoff_at_kV=cutoff_at_kV,
-                                          lazy=lazy)
+        hypermap = obj_bcf.parse_hypermap(
+            index=index, downsample=downsample, cutoff_at_kV=cutoff_at_kV, lazy=lazy
+        )
         eds_metadata = obj_bcf.header.get_spectra_metadata(index=index)
         hyperspectra.append(
-            {'data': hypermap,
-             'axes': [{'name': 'height',
-                       'size': hypermap.shape[0],
-                       'offset': 0,
-                       'scale': obj_bcf.header.y_res * downsample,
-                       'units': obj_bcf.header.units},
-                      {'name': 'width',
-                       'size': hypermap.shape[1],
-                       'offset': 0,
-                       'scale': obj_bcf.header.y_res * downsample,
-                       'units': obj_bcf.header.units},
-                      {'name': 'Energy',
-                       'size': hypermap.shape[2],
-                       'offset': eds_metadata.offset,
-                       'scale': eds_metadata.scale,
-                       'units': 'keV'}],
-             'metadata':
-             # where is no way to determine what kind of instrument was used:
-             # TEM or SEM
-             {'Acquisition_instrument': {
-                 mode: obj_bcf.header.get_acq_instrument_dict(
-                     detector=True,
-                     index=index)
-             },
-                 'General': {'original_filename': basename(obj_bcf.filename),
-                             'title': 'EDX',
-                             'date': obj_bcf.header.date,
-                             'time': obj_bcf.header.time},
-                 'Sample': {'name': obj_bcf.header.name,
-                            'elements': sorted(list(obj_bcf.header.elements)),
-                            'xray_lines': sorted(gen_elem_list(obj_bcf.header.elements))},
-                 'Signal': {'signal_type': 'EDS_%s' % mode,
-                            'record_by': 'spectrum',
-                            'quantity': 'X-rays (Counts)'}
-             },
-                'original_metadata': {'Hardware': eds_metadata.hardware_metadata,
-                                      'Detector': eds_metadata.detector_metadata,
-                                      'Analysis': eds_metadata.esma_metadata,
-                                      'Spectrum': eds_metadata.spectrum_metadata,
-                                      'DSP Configuration': obj_bcf.header.dsp_metadata,
-                                      'Line counter': obj_bcf.header.line_counter,
-                                      'Stage': obj_bcf.header.stage_metadata,
-                                      'Microscope': obj_bcf.header.sem_metadata},
-                'mapping': mapping,
-             })
+            {
+                "data": hypermap,
+                "axes": [
+                    {
+                        "name": "height",
+                        "size": hypermap.shape[0],
+                        "offset": 0,
+                        "scale": obj_bcf.header.y_res * downsample,
+                        "units": obj_bcf.header.units,
+                    },
+                    {
+                        "name": "width",
+                        "size": hypermap.shape[1],
+                        "offset": 0,
+                        "scale": obj_bcf.header.y_res * downsample,
+                        "units": obj_bcf.header.units,
+                    },
+                    {
+                        "name": "Energy",
+                        "size": hypermap.shape[2],
+                        "offset": eds_metadata.offset,
+                        "scale": eds_metadata.scale,
+                        "units": "keV",
+                    },
+                ],
+                "metadata":
+                # where is no way to determine what kind of instrument was used:
+                # TEM or SEM
+                {
+                    "Acquisition_instrument": {
+                        mode: obj_bcf.header.get_acq_instrument_dict(
+                            detector=True, index=index
+                        )
+                    },
+                    "General": {
+                        "original_filename": basename(obj_bcf.filename),
+                        "title": "EDX",
+                        "date": obj_bcf.header.date,
+                        "time": obj_bcf.header.time,
+                    },
+                    "Sample": {
+                        "name": obj_bcf.header.name,
+                        "elements": sorted(list(obj_bcf.header.elements)),
+                        "xray_lines": sorted(gen_elem_list(obj_bcf.header.elements)),
+                    },
+                    "Signal": {
+                        "signal_type": "EDS_%s" % mode,
+                        "record_by": "spectrum",
+                        "quantity": "X-rays (Counts)",
+                    },
+                },
+                "original_metadata": {
+                    "Hardware": eds_metadata.hardware_metadata,
+                    "Detector": eds_metadata.detector_metadata,
+                    "Analysis": eds_metadata.esma_metadata,
+                    "Spectrum": eds_metadata.spectrum_metadata,
+                    "DSP Configuration": obj_bcf.header.dsp_metadata,
+                    "Line counter": obj_bcf.header.line_counter,
+                    "Stage": obj_bcf.header.stage_metadata,
+                    "Microscope": obj_bcf.header.sem_metadata,
+                },
+                "mapping": mapping,
+            }
+        )
     return hyperspectra
 
 
 def gen_elem_list(the_dict):
-    return ['_'.join([i, parse_line(the_dict[i]['line'])]) for i in the_dict]
+    return ["_".join([i, parse_line(the_dict[i]["line"])]) for i in the_dict]
 
 
 def parse_line(line_string):
@@ -1391,7 +1487,7 @@ def parse_line(line_string):
     and omits the type if only one exists instead of
     using alfa"""
     if len(line_string) == 1:
-        line_string = line_string + 'a'
+        line_string = line_string + "a"
     elif len(line_string) > 2:
         line_string = line_string[:2]
     return line_string.capitalize()
@@ -1399,16 +1495,11 @@ def parse_line(line_string):
 
 def get_mapping(mode):
     return {
-        'Stage.Rotation':
-        ("Acquisition_instrument.%s.Stage.rotation" % mode, None),
-        'Stage.Tilt':
-        ("Acquisition_instrument.%s.Stage.tilt_alpha" % mode, None),
-        'Stage.X':
-        ("Acquisition_instrument.%s.Stage.x" % mode, None),
-        'Stage.Y':
-        ("Acquisition_instrument.%s.Stage.y" % mode, None),
-        'Stage.Z':
-        ("Acquisition_instrument.%s.Stage.z" % mode, None),
+        "Stage.Rotation": ("Acquisition_instrument.%s.Stage.rotation" % mode, None),
+        "Stage.Tilt": ("Acquisition_instrument.%s.Stage.tilt_alpha" % mode, None),
+        "Stage.X": ("Acquisition_instrument.%s.Stage.x" % mode, None),
+        "Stage.Y": ("Acquisition_instrument.%s.Stage.y" % mode, None),
+        "Stage.Z": ("Acquisition_instrument.%s.Stage.z" % mode, None),
     }
 
 
@@ -1418,34 +1509,40 @@ def guess_mode(hv):
     However simple guess can be made using the acceleration
     voltage, assuming that SEM is <= 30kV or TEM is >30kV"""
     if hv > 30.0:
-        mode = 'TEM'
+        mode = "TEM"
     else:
-        mode = 'SEM'
+        mode = "SEM"
     _logger.info(
-        "Guessing that the acquisition instrument is %s " % mode +
-        "because the beam energy is %i keV. If this is wrong, " % hv +
-        "please provide the right instrument using the 'instrument' " +
-        "keyword.")
+        "Guessing that the acquisition instrument is %s " % mode
+        + "because the beam energy is %i keV. If this is wrong, " % hv
+        + "please provide the right instrument using the 'instrument' "
+        + "keyword."
+    )
     return mode
 
 
 def gen_detector_node(spectrum):
-    eds_dict = {'EDS': {'elevation_angle': spectrum.elev_angle,
-                        'detector_type': spectrum.detector_type, }}
-    if 'AzimutAngle' in spectrum.esma_metadata:
-        eds_dict['EDS']['azimuth_angle'] = spectrum.esma_metadata['AzimutAngle']
-    if 'RealTime' in spectrum.hardware_metadata:
-        eds_dict['EDS']['real_time'] = spectrum.hardware_metadata['RealTime'] / 1000
-        eds_dict['EDS']['live_time'] = spectrum.hardware_metadata['LifeTime'] / 1000
+    eds_dict = {
+        "EDS": {
+            "elevation_angle": spectrum.elev_angle,
+            "detector_type": spectrum.detector_type,
+        }
+    }
+    if "AzimutAngle" in spectrum.esma_metadata:
+        eds_dict["EDS"]["azimuth_angle"] = spectrum.esma_metadata["AzimutAngle"]
+    if "RealTime" in spectrum.hardware_metadata:
+        eds_dict["EDS"]["real_time"] = spectrum.hardware_metadata["RealTime"] / 1000
+        eds_dict["EDS"]["live_time"] = spectrum.hardware_metadata["LifeTime"] / 1000
     return eds_dict
 
 
 def gen_iso_date_time(node):
-    date_xml = node.find('./Date')
-    time_xml = node.find('./Time')
+    date_xml = node.find("./Date")
+    time_xml = node.find("./Time")
     if date_xml is not None:
-        dt = datetime.strptime(' '.join([date_xml.text, time_xml.text]),
-                               "%d.%m.%Y %H:%M:%S")
+        dt = datetime.strptime(
+            " ".join([date_xml.text, time_xml.text]), "%d.%m.%Y %H:%M:%S"
+        )
         date = dt.date().isoformat()
         time = dt.time().isoformat()
         return date, time

@@ -5,7 +5,6 @@ import csv
 import logging
 
 
-
 _logger = logging.getLogger(__name__)
 
 
@@ -26,11 +25,13 @@ def file_reader(filename, *args, **kwds):
     csv_file = ImpulseCSV(filename)
     return _impulseCSV_log_reader(csv_file)
 
+
 def _impulseCSV_log_reader(csv_file):
     csvs = []
     for key in csv_file.logged_quantity_name_list:
         csvs.append(csv_file.get_dictionary(key))
     return csvs
+
 
 class ImpulseCSV:
     def __init__(self, filename):
@@ -73,8 +74,12 @@ class ImpulseCSV:
 
     def _parse_quantity_units(self, quantity):
         quantity_split = quantity.strip().split(" ")
-        if len(quantity_split) > 1 and quantity_split[-1][0] == "(" and quantity_split[-1][-1] == ")":
-            return quantity_split[-1].replace("(","").replace(")","")
+        if (
+            len(quantity_split) > 1
+            and quantity_split[-1][0] == "("
+            and quantity_split[-1][-1] == ")"
+        ):
+            return quantity_split[-1].replace("(", "").replace(")", "")
         else:
             return ""
 
@@ -142,7 +147,7 @@ class ImpulseCSV:
                     self.original_metadata["Notes"] = notes
 
             else:
-                _logger.warning('No metadata file found in folder')
+                _logger.warning("No metadata file found in folder")
         else:
             raise IOError(invalid_filenaming_error)
 

@@ -108,6 +108,6 @@ def test_parse_xml_1_2_0():
     # xml file version 1.2.0 (2020-10-29)
     filename = os.path.join(DATA_DIR, "map128x128_version1.2.0.xml")
     om, info = _parse_xml(filename)
-    assert info['scan_x'] == 128
-    assert info['scan_y'] == 128
-    assert info['raw_filename'] == 'scan_x128_y128.raw'
+    assert info["scan_x"] == 128
+    assert info["scan_y"] == 128
+    assert info["raw_filename"] == "scan_x128_y128.raw"

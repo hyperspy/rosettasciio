@@ -26,12 +26,10 @@ import logging
 import dateutil.parser
 
 import numpy as np
-import traits.api as t
 from copy import deepcopy
 
 import rsciio.utils.utils_readfile as iou
 from rsciio.exceptions import DM3TagIDError, DM3DataTypeError, DM3TagTypeError
-import rsciio.utils.tools
 from box import Box
 
 

@@ -154,6 +154,7 @@ class Recythonize(Command):
 
 install_requires = [
     "dask[array]>=2.11",
+    "python-dateutil",
     "h5py>=2.3",
     "imageio",
     "numba>=0.52",
@@ -166,9 +167,11 @@ install_requires = [
 ]
 
 extras_require = {
+    "blockfile": ["scikit-image"],
     "mrcz": ["blosc>=1.5", "mrcz>=0.3.6"],
     "scalebar_export": ["matplotlib>=3.1.3"],
     "tiff": ["tifffile>=2020.2.16", "imagecodecs>=2020.1.31"],
+    "zspy": ['zarr'],
     "tests": [
         "pytest>=3.6",
         "pytest-xdist",

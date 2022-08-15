@@ -27,7 +27,7 @@ def test_import_version():
 
 
 @pytest.mark.no_hyperspy
-def test_import_minimal_no_hyperspy():
+def test_import_with_minimal_dependencies_no_hyperspy():
     from rsciio import IO_PLUGINS
 
     for plugin in IO_PLUGINS:
@@ -47,6 +47,41 @@ def test_import_minimal_no_hyperspy():
 
 def test_import_all():
     from rsciio import IO_PLUGINS
+
+    plugin_name_to_remove = []
+
+    # Remove plugins which requires optional dependencies, which is installed
+    try:
+        import skimage
+    except:
+        plugin_name_to_remove.append("Blockfile")
+
+    try:
+        import mrcz
+    except:
+        plugin_name_to_remove.append("MRCZ")
+
+    try:
+        import tifffile
+    except:
+        plugin_name_to_remove.append("TIFF")
+
+    try:
+        import pyUSID
+    except:
+        plugin_name_to_remove.append("USID")
+
+    try:
+        import zarr
+    except:
+        plugin_name_to_remove.append("ZSpy")
+
+    IO_PLUGINS = list(
+        filter(
+            lambda plugin: plugin["format_name"] not in plugin_name_to_remove,
+            IO_PLUGINS,
+        )
+    )
 
     for plugin in IO_PLUGINS:
         importlib.import_module(plugin["api"])

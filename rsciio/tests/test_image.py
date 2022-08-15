@@ -22,14 +22,6 @@ import pytest
 import hyperspy.api as hs
 
 
-try:
-    from matplotlib_scalebar.scalebar import ScaleBar
-
-    matplotlib_scalebar_installed = True
-except ImportError:  # pragma: no cover
-    matplotlib_scalebar_installed = False
-
-
 @pytest.mark.parametrize(("dtype"), ["uint8", "uint32"])
 @pytest.mark.parametrize(("ext"), ["png", "bmp", "gif", "jpg"])
 def test_save_load_cycle_grayscale(dtype, ext, tmp_path):
@@ -85,13 +77,14 @@ def test_save_load_cycle_kwds(dtype, ext, tmp_path):
 
 @pytest.mark.parametrize(("ext"), ["png", "bmp", "gif", "jpg"])
 def test_export_scalebar(ext, tmp_path):
+    pytest.importorskip("matplotlib_scalebar")
     data = np.arange(1e6).reshape((1000, 1000))
     s = hs.signals.Signal2D(data)
     s.axes_manager[0].units = "nm"
     s.axes_manager[1].units = "nm"
 
     filename = tmp_path / f"test_scalebar_export.{ext}"
-    if ext in ["bmp", "gif"] and matplotlib_scalebar_installed:
+    if ext in ["bmp", "gif"]:
         with pytest.raises(ValueError):
             s.save(filename, scalebar=True)
         with pytest.raises(ValueError):
@@ -136,10 +129,8 @@ def test_non_uniform(tmp_path):
         s.save(filename)
 
 
-@pytest.mark.skipif(
-    not matplotlib_scalebar_installed, reason="matplotlib_scalebar is not installed"
-)
 def test_export_scalebar_different_scale_units(tmp_path):
+    pytest.importorskip("matplotlib_scalebar")
     pixels = 16
     s = hs.signals.Signal2D(np.arange(pixels**2).reshape((pixels, pixels)))
     s.axes_manager[0].scale = 2
@@ -205,3 +196,18 @@ def test_save_image_navigation(tmp_path):
 
     fname = tmp_path / "test_save_image_navigation.jpg"
     s.T.save(fname, scalebar=True)
+
+
+def test_error_library_no_installed(tmp_path):
+    s = hs.signals.Signal2D(np.arange(128 * 128).reshape(128, 128))
+
+    try:
+        import matplotlib
+    except:
+        # When matplotlib is not installed, raises an error to inform user
+        # that matplotlib is necessary
+        with pytest.raises(ValueError):
+            s.save(tmp_path / "test_image_error.jpg", output_size=64)
+
+        with pytest.raises(ValueError):
+            s.save(tmp_path / "test_image_error.jpg", imshow_kwds={"a": "b"})

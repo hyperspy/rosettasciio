@@ -169,8 +169,9 @@ install_requires = [
 extras_require = {
     "blockfile": ["scikit-image"],
     "mrcz": ["blosc>=1.5", "mrcz>=0.3.6"],
-    "scalebar_export": ["matplotlib>=3.1.3"],
+    "scalebar_export": ["matplotlib-scalebar", "matplotlib>=3.1.3"],
     "tiff": ["tifffile>=2020.2.16", "imagecodecs>=2020.1.31"],
+    "usid": ["pyUSID"],
     "zspy": ['zarr'],
     "tests": [
         "pytest>=3.6",

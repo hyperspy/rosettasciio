@@ -212,7 +212,7 @@ class SeqReader:
         self.metadata["Reference"] = {"dark": dark_img, "gain": gain_img}
         return dark_img, gain_img
 
-    def _create_axes(self, header, nav_shape=None):
+    def _create_axes(self, header, nav_shape=None, prebuffer=None):
         if nav_shape is None or nav_shape == ():
             self.axes.append(
                 {
@@ -236,16 +236,28 @@ class SeqReader:
                         "index_in_array": 0,
                     }
                 )
-        self.axes.append(
-            {
-                "name": "y",
-                "offset": 0,
-                "scale": 1,
-                "size": header["ImageHeight"],
-                "navigate": False,
-                "index_in_array": 1,
-            }
-        )
+        if prebuffer is not None:
+            self.axes.append(
+                {
+                    "name": "y",
+                    "offset": 0,
+                    "scale": 1,
+                    "size": int(header["ImageHeight"] * 2 / prebuffer),
+                    "navigate": False,
+                    "index_in_array": 1,
+                }
+            )
+        else:
+            self.axes.append(
+                {
+                    "name": "y",
+                    "offset": 0,
+                    "scale": 1,
+                    "size": header["ImageHeight"],
+                    "navigate": False,
+                    "index_in_array": 1,
+                }
+            )
         self.axes.append(
             {
                 "name": "x",
@@ -377,7 +389,9 @@ class CeleritasReader(SeqReader):
             data = np.multiply(data, gain_img[np.newaxis])
         self.original_metadata["Timestamps"] = time
         self.metadata["Timestamps"] = time
-        self._create_axes(header=header, nav_shape=navigation_shape)
+        self._create_axes(
+            header=header, nav_shape=navigation_shape, prebuffer=self.buffer
+        )
         return {
             "data": data,
             "metadata": self.metadata,

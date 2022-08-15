@@ -1,7 +1,23 @@
+# -*- coding: utf-8 -*-
+# Copyright 2007-2022 The HyperSpy developers
+#
+# This file is part of RosettaSciIO.
+#
+# RosettaSciIO is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# RosettaSciIO is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
+
 import dask.array
-import matplotlib.pyplot as plt
 import pytest
-from hyperspy.io import load
 import numpy as np
 import glob
 from rsciio.de.api import SeqReader, CeleritasReader, file_reader
@@ -111,7 +127,6 @@ def test_load_file3():
         celeritas=True,
         lazy=True,
     )
-    print(data_dict["data"])
     assert isinstance(data_dict["data"], dask.array.Array)
     assert data_dict["data"].shape == (256, 64, 64)
 
@@ -123,6 +138,5 @@ def test_load_file3():
         lazy=True,
         navigation_shape=(50, 50),
     )
-    print(data_dict["data"])
     assert isinstance(data_dict["data"], dask.array.Array)
     assert data_dict["data"].shape == (50, 50, 256, 64, 64)

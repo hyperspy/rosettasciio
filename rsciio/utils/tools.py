@@ -51,16 +51,18 @@ def read_binary_metadata(file, mapping_dict):
     format.
     """
     try:
-        with open(file, mode='rb') as f:
-            metadata = {m: seek_read(f,
-                                     mapping_dict[m][0],
-                                     mapping_dict[m][1])
-                        for m in mapping_dict}
+        with open(file, mode="rb") as f:
+            metadata = {
+                m: seek_read(f, mapping_dict[m][0], mapping_dict[m][1])
+                for m in mapping_dict
+            }
         return metadata
     except FileNotFoundError:
-        _logger.warning(msg="File " + file + " not found. Please"
-                            "move it to the same directory to read"
-                            " the metadata ")
+        _logger.warning(
+            msg="File " + file + " not found. Please"
+            "move it to the same directory to read"
+            " the metadata "
+        )
         return None
 
 
@@ -69,19 +71,21 @@ def parse_xml(file):
         tree = ET.parse(file)
         xml_dict = {}
         for i in tree.iter():
-            xml_dict[i.tag]=i.attrib
-        #clean_xml
+            xml_dict[i.tag] = i.attrib
+        # clean_xml
         for k1 in xml_dict:
             for k2 in xml_dict[k1]:
-                if k2 =="Value":
+                if k2 == "Value":
                     try:
                         xml_dict[k1] = float(xml_dict[k1][k2])
                     except ValueError:
                         xml_dict[k1] = xml_dict[k1][k2]
     except FileNotFoundError:
-        _logger.warning(msg="File " + file + " not found. Please"
-                                             "move it to the same directory to read"
-                                             " the metadata ")
+        _logger.warning(
+            msg="File " + file + " not found. Please"
+            "move it to the same directory to read"
+            " the metadata "
+        )
         return None
     return xml_dict
 

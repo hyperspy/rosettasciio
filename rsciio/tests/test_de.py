@@ -99,10 +99,15 @@ class TestLoadCeleritas:
         assert xml["GainRef"] == "Yes"
         assert xml["SegmentPreBuffer"] == 128
 
-    @pytest.mark.parametrize("nav_shape", [None, (50, 200), (5, 3)])
+    @pytest.mark.parametrize("nav_shape", [(), (5, 4), (5, 3)])
     def test_read(self, seq, nav_shape):
-        data_dict = seq.read_data()
-        assert data_dict["data"].shape == (128, 128, 256)
+        data_dict = seq.read_data(navigation_shape=nav_shape)
+        shape = (512, 128, 256)
+        if nav_shape != ():
+            shape = nav_shape + shape[1:]
+        assert data_dict["data"].shape == shape
+        assert data_dict["axes"][-1]["size"] == data_dict["data"].shape[-1]
+        assert data_dict["axes"][-2]["size"] == data_dict["data"].shape[-2]
 
 
 def test_load_file():

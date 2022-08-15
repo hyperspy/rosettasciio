@@ -18,10 +18,7 @@
 
 
 import numpy as np
-import os
 import logging
-import struct
-import xml.etree.ElementTree as ET
 import glob
 
 import dask.array as da
@@ -32,9 +29,50 @@ _logger = logging.getLogger(__name__)
 data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}  # Stream Pix data types
 
 
-
-def file_reader(filename, navigation_shape=(),lazy=False, celeritas=False,
+def file_reader(filename,
+                navigation_shape=(),
+                lazy=False,
+                celeritas=False,
                 **kwargs):
+    """ Reads the .seq file format from the DE 16 and DE Celeritas cameras.  This file
+    format is generic and used by the 3rd party software StreamPix.  While this
+    file loader may load data saved from other cameras it is not guaranteed  to
+
+    Parameters
+    ----------
+    filename: str
+        The file name to be loaded. This should have a `.seq` ending to the file.
+        All additional information (dark, gain, metadata) should be in the same
+        file with the same naming scheme.
+
+        If celeritas ==True either the bottom or top frame can be passed and the other frame
+        will automatically be found if it is in the same folder with the same naming
+        scheme.
+    navigation_shape: tuple
+        The shape of the navigation axis. This will coerce the data into the shape
+        given. Adding extra dimensions as necessary
+    lazy: bool
+        If the data should be loaded lazily using dask
+    celeritas: bool
+        If the data came from the celeritas camera.  Important for loading
+        data saved with a prebuffer and split between top and bottom frames.
+    kwargs:
+        Any additional parameters such as:
+            top: str
+                The name of the top filename if passed directly
+            bottom: str
+                The name of the bottom file if passed directly
+            gain: str
+                The name of the gain image if passed directly
+            metadata: str
+                The name of the metadata file if passed directly
+            xml: str
+                The name of the xml file if passed directly
+
+    Returns
+    -------
+
+    """
     if celeritas:
         if "top" not in kwargs and "bottom" not in kwargs:
             if "Top" in filename:
@@ -89,18 +127,27 @@ class SeqReader:
                  metadata=None,
                  xml=None):
         """
-        Initializes a general reader for Binary signals.
+        Initializes a general reader for the .seq file format. Some functions are
+        overwritten with the CeleritasSEQ reader
 
         Parameters
         ----------
         file: str
-            A file to be read.
+            The signal to be read.
+        dark: str
+            The file path for the dark reference to be read.
+        gain: str
+            The file path for the gain reference to be read.
+        metadata: str
+            The file path for the metadata to be read
+        xml: str
+            The file path for the xml file to be read.
         """
         self.file = file
         self.metadata_file=metadata
         self.dark = dark
         self.gain = gain
-        self.xml=xml
+        self.xml = xml
         # Output
         self.original_metadata = {"InputFiles":{"file":file,
                                                 "metadata":self.metadata_file,
@@ -161,7 +208,7 @@ class SeqReader:
         return dark_img, gain_img
 
     def _create_axes(self, header, nav_shape=None):
-        if nav_shape is None or len(nav_shape)==1:
+        if nav_shape is None or nav_shape == ():
             self.axes.append({'name': 'time',
                               'offset': 0,
                               'unit': "sec",
@@ -197,6 +244,13 @@ class SeqReader:
         return
 
     def read_data(self, navigation_shape=None):
+        """Reads the data from self.file given a navigation shape.
+        Parameters
+        ----------
+        navigation_shape: None or tuple
+            Reads the data and then coerces it into the navigation shape
+            given
+        """
         header = self._read_file_header()
         dark_img, gain_img = self._read_dark_gain()
         self._read_xml()
@@ -223,7 +277,28 @@ class SeqReader:
 
 
 class CeleritasReader(SeqReader):
+
     def __init__(self, top, bottom,  **kwargs):
+        """
+        Initializes a reader for the .seq file format written from the celeritas camera
+
+        Parameters
+        ----------
+        file: str
+            The signal to be read.
+        dark: str
+            The file path for the dark reference to be read.
+        gain: str
+            The file path for the gain reference to be read.
+        metadata: str
+            The file path for the metadata to be read
+        xml: str
+            The file path for the xml file to be read.
+        top: str
+            The signal from the top half of the camera
+        bottom: str
+            The signal from the bottom half of the camera.
+        """
         super().__init__(**kwargs)
         self.top = top
         self.bottom = bottom
@@ -247,6 +322,8 @@ class CeleritasReader(SeqReader):
 
         self.original_metadata["xml"] = xml_dict
         if xml_dict is not None:
+            # The segment prebuffer is used to save data more
+            # quickly as multiple images are saved in one buffer
             if "SegmentPreBuffer" in xml_dict:
                 self.buffer = xml_dict["SegmentPreBuffer"]
         return xml_dict
@@ -289,6 +366,23 @@ def read_full_seq(file,
                   ImageBitDepth,
                   TrueImageSize,
                   navigation_shape=None):
+    """Read a full seq file.
+    Parameters
+    ----------
+    file: str
+        The file name to be read
+    ImageWidth:int
+        The width of one of the frames
+    ImageHeight: int
+        The height of one of the frames
+    ImageBitDepth: int
+        The bit depth of the image. This should be 16 in most cases
+    TrueImageSize: int
+        The size of each frame in bytes.  This includes the time stamp and
+        empty bytes after the frame
+    navigation_shape: tuple
+        The navigation shape of the data.
+    """
     data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}
     empty = TrueImageSize-((ImageWidth*ImageHeight*2)+8)
     dtype = [("Array", data_types[int(ImageBitDepth)], (ImageWidth, ImageHeight)),
@@ -315,11 +409,34 @@ def read_split_seq(top,
                    total_frames=None,
                    navigation_shape=None,
                    lazy=False):
+    """Read a split top/bottom seq file.
+    Parameters
+    ----------
+    top: str
+        The filename of the top of the frame
+    bottom: str
+        The filename of the bottom of the frame
+    ImageWidth:int
+        The width of one of the frames
+    ImageHeight: int
+        The height of one of the frame buffers
+    ImageBitDepth: int
+        The bit depth of the image. This should be 16 in most cases
+    TrueImageSize: int
+        The size of each frame buffersin bytes.  This includes the time stamp and
+        empty bytes after the frame
+    SegmentPreBuffer: int
+        The size of the segment pre buffer.  This should be an int based on the
+         size of each of the frames and the FPS.
+    navigation_shape: tuple
+        The navigation shape of the data.
+    """
     data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}
     empty = TrueImageSize-((ImageWidth*ImageHeight*2)+8)
     if SegmentPreBuffer is None:
         _logger.warning(msg="No XML File given. Guessing Segment PreBuffer "
                             "This is may not be correct...")
+        # This might be better to guess based on the FPS. Much safer just to use the XML.
         if ImageWidth == 512:
             SegmentPreBuffer = 16
         elif ImageWidth == 256:
@@ -352,6 +469,21 @@ def read_stitch_binary(top, bottom, dtypes, offset,
                        total_buffer_frames=None,
                        navigation_shape=None,
                        lazy=False):
+    """Read adn stitch the top and bottom files
+    Parameters
+    ----------
+    top: str
+        The filename of the top of the frame
+    bottom: str
+        The filename of the bottom of the frame
+    total_buffer_frames: int
+        The size of the segment pre buffer.  This should be an int based on the
+         size of each of the frames and the FPS.
+    navigation_shape: tuple
+        The navigation shape of the data.
+    lazy: bool
+        If the data should be cast to a dask array.
+    """
     keys = [d[0] for d in dtypes]
     top_mapped = np.memmap(top,
                            offset=offset,
@@ -367,8 +499,7 @@ def read_stitch_binary(top, bottom, dtypes, offset,
         bottom_mapped = da.from_array(bottom_mapped)
 
     array = np.concatenate([np.flip(top_mapped["Array"].reshape(-1, *top_mapped["Array"].shape[2:]), axis=1),
-                            bottom_mapped["Array"].reshape(-1, *bottom_mapped["Array"].shape[2:])],
-                            1)
+                            bottom_mapped["Array"].reshape(-1, *bottom_mapped["Array"].shape[2:])], 1)
     if navigation_shape is not None and navigation_shape != ():
         cut = np.product(navigation_shape)
         array = array[:cut]

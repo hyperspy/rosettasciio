@@ -1,0 +1,1 @@
+Fix minimum install, add corresponding tests build and tidy up leftover code

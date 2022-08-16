@@ -46,8 +46,7 @@ jobs:
 
       - name: Set Environment Variable
         shell: bash
-        # Set PIP_SELECTOR and PYTEST_ARGS environment variable
-        # depending on matrix.LABEL
+        # Set PIP_SELECTOR environment variable according to matrix.LABEL
         run: |
           if [[ -n "${{ matrix.LABEL }}" && "${{ matrix.LABEL }}" == *"minimum"* ]]; then
             PIP_SELECTOR="[tests]"
@@ -55,13 +54,6 @@ jobs:
             PIP_SELECTOR="[all, tests]"
           fi
           echo "PIP_SELECTOR=${PIP_SELECTOR}" >> $GITHUB_ENV
-
-          if [[ -n "${{ matrix.LABEL }}" && "${{ matrix.LABEL }}" == *"wo-hyperspy"* ]]; then
-            PYTEST_ARGS="--pyargs rsciio.tests.test_import -m no_hyperspy"
-          else
-            PYTEST_ARGS="--pyargs rsciio --reruns 3 -n 2 --cov=. --cov-report=xml"
-          fi
-          echo "PYTEST_ARGS=${PYTEST_ARGS}" >> $GITHUB_ENV
 
       - name: Display version
         run: |
@@ -90,7 +82,7 @@ jobs:
 
       - name: Run test suite
         run: |
-          pytest ${{ env.PYTEST_ARGS }}
+          pytest --pyargs rsciio --reruns 3 -n 2 --cov=. --cov-report=xml
 
       - name: Upload coverage to Codecov
         if: ${{ always() }}

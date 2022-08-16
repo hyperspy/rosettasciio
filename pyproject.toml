@@ -10,9 +10,6 @@ minversion = "6.0"
 testpaths = [
     "rsciio/tests",
 ]
-markers = [
-    "no_hyperspy: marks tests to run without hyperspy",
-]
 
 [tool.towncrier]
 package = "rsciio"

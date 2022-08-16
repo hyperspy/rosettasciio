@@ -26,13 +26,12 @@ from datetime import datetime, timezone
 import numpy as np
 import dask.array as da
 import dask
-import pint
 from dask.diagnostics import ProgressBar
+import pint
 from numba import njit
 
 from rsciio.utils.tools import DTBox, sarray2dict
 from rsciio.utils.tools import dummy_context_manager
-from hyperspy.defaults_parser import preferences
 from rsciio.utils.tools import _UREG
 
 
@@ -607,9 +606,13 @@ def file_writer(filename, signal, **kwds):
         file_memmap["rotidx"] = rotator + 1
         data = fdata[current_frame : current_frame + frames_saved]
         if signal["attributes"]["_lazy"]:
-            show_progressbar = kwds.get(
-                "show_progressbar", preferences.General.show_progressbar
-            )
+            try:
+                from hyperspy.defaults_parser import preferences
+
+                hs_show_progressbar = preferences.General.show_progressbar
+            except:
+                hs_show_progressbar = None
+            show_progressbar = kwds.get("show_progressbar", hs_show_progressbar)
             cm = ProgressBar if show_progressbar else dummy_context_manager
             with cm():
                 data.store(file_memmap["data"])

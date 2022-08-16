@@ -18,30 +18,9 @@
 
 import importlib
 
-import pytest
 
-
-@pytest.mark.no_hyperspy
 def test_import_version():
     from rsciio import __version__
-
-
-@pytest.mark.no_hyperspy
-def test_import_with_minimal_dependencies_no_hyperspy():
-    from rsciio import IO_PLUGINS
-
-    for plugin in IO_PLUGINS:
-        if plugin["format_name"] not in [
-            "Blockfile",
-            "Electron Microscopy Data (EMD)",
-            "MRCZ",
-            "Phenom Element Identification (ELID)",
-            "TIFF",
-            "TVIPS",
-            "USID",
-            "ZSpy",
-        ]:
-            importlib.import_module(plugin["api"])
 
 
 def test_import_all():
@@ -64,6 +43,7 @@ def test_import_all():
         import tifffile
     except:
         plugin_name_to_remove.append("TIFF")
+        plugin_name_to_remove.append("Phenom Element Identification (ELID)")
 
     try:
         import pyUSID

@@ -20,6 +20,7 @@ import os
 
 import numpy as np
 import pytest
+import gc
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -39,12 +40,15 @@ def _create_raw_data(filename, shape):
     data.tofile(filename)
 
 
-def setup_module():
+def setup_module(module):
     _create_raw_data(FILENAME_STACK_RAW, (166400,))
     _create_raw_data(FILENAME_MAP_RAW, (4 * 4 * 130 * 128))
 
 
-def teardown_module():
+def teardown_module(module):
+    # run garbage collection to release file on windows
+    gc.collect()
+
     fs = [f for f in [FILENAME_STACK_RAW, FILENAME_MAP_RAW] if os.path.exists(f)]
 
     for f in fs:
@@ -77,6 +81,7 @@ def test_read_stack(lazy):
     assert s.metadata.General.date == "2019-06-07"
     assert s.metadata.General.time == "13:17:22.590279"
     assert s.metadata.Signal.signal_type == "electron_diffraction"
+    del s
 
 
 @pytest.mark.parametrize("lazy", (False, True))

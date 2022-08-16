@@ -368,6 +368,7 @@ setup(
             "tests/protochips_data/*.npy",
             "tests/protochips_data/*.csv",
             "tests/nexus_files/*.nxs",
+            "tests/empad_data/*.xml",
         ]
     },
     # Although 'package_data' is the preferred approach, in some case you may

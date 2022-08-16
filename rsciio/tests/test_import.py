@@ -23,6 +23,12 @@ def test_import_version():
     from rsciio import __version__
 
 
+def test_rsciio_dir():
+    import rsciio
+
+    assert dir(rsciio) == ["IO_PLUGINS", "__version__"]
+
+
 def test_import_all():
     from rsciio import IO_PLUGINS
 

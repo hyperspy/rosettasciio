@@ -185,9 +185,7 @@ extras_require = {
 # Don't include "tests" and "docs" requirements since "all" is designed to be
 # used for user installation.
 runtime_extras_require = {
-    x: extras_require[x]
-    for x in extras_require.keys()
-    if x not in ["tests", "coverage", "build-doc"]
+    x: extras_require[x] for x in extras_require.keys() if x not in ["tests", "docs"]
 }
 extras_require["all"] = list(itertools.chain(*list(runtime_extras_require.values())))
 
@@ -324,6 +322,7 @@ setup(
     # MANIFEST.in as well.
     package_data={
         "rsciio": [
+            "*/specifications.yaml",
             "tests/blockfile_data/*.blo",
             "tests/dens_data/*.dens",
             "tests/dm_stackbuilder_plugin/test_stackbuilder_imagestack.dm3",
@@ -363,6 +362,10 @@ setup(
             "tests/bruker_data/*.spx",
             "tests/ripple_files/*.rpl",
             "tests/ripple_files/*.raw",
+            "tests/panta_rhei_files/*.prz",
+            "tests/phenom_data/*.elid",
+            "tests/sur_data/*.sur",
+            "tests/sur_data/*.pro",
             "tests/emd_files/*.emd",
             "tests/emd_files/fei_emd_files.zip",
             "tests/protochips_data/*.npy",

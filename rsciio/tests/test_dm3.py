@@ -23,11 +23,11 @@ import os
 import numpy as np
 import pytest
 
-from hyperspy import __version__ as hs_version
-from hyperspy.io import load
 from rsciio.digital_micrograph.api import DigitalMicrographReader, ImageObject
-from hyperspy.signals import Signal1D, Signal2D
 from rsciio.tests.generate_dm_testing_files import dm3_data_types, dm4_data_types
+
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
 
 MY_PATH = os.path.dirname(__file__)
 
@@ -77,7 +77,7 @@ def test_missing_tag():
     fname = os.path.join(
         MY_PATH, "dm3_2D_data", "test_diffraction_pattern_tags_removed.dm3"
     )
-    s = load(fname)
+    s = hs.load(fname)
     md = s.metadata
     np.testing.assert_allclose(md.Acquisition_instrument.TEM.beam_energy, 200.0)
     np.testing.assert_allclose(md.Acquisition_instrument.TEM.Camera.exposure, 0.2)
@@ -88,7 +88,7 @@ def test_missing_tag():
 
 def test_read_TEM_metadata():
     fname = os.path.join(MY_PATH, "tiff_files", "test_dm_image_um_unit.dm3")
-    s = load(fname)
+    s = hs.load(fname)
     md = s.metadata
     assert md.Acquisition_instrument.TEM.acquisition_mode == "TEM"
     np.testing.assert_allclose(md.Acquisition_instrument.TEM.beam_energy, 200.0)
@@ -105,7 +105,7 @@ def test_read_TEM_metadata():
 
 def test_read_Diffraction_metadata():
     fname = os.path.join(MY_PATH, "dm3_2D_data", "test_diffraction_pattern.dm3")
-    s = load(fname)
+    s = hs.load(fname)
     md = s.metadata
     assert md.Acquisition_instrument.TEM.acquisition_mode == "TEM"
     np.testing.assert_allclose(md.Acquisition_instrument.TEM.beam_energy, 200.0)
@@ -122,7 +122,7 @@ def test_read_Diffraction_metadata():
 
 def test_read_STEM_metadata():
     fname = os.path.join(MY_PATH, "dm3_2D_data", "test_STEM_image.dm3")
-    s = load(fname)
+    s = hs.load(fname)
     md = s.metadata
     assert md.Acquisition_instrument.TEM.acquisition_mode == "STEM"
     np.testing.assert_allclose(md.Acquisition_instrument.TEM.beam_energy, 200.0)
@@ -140,7 +140,7 @@ def test_read_STEM_metadata():
 
 def test_read_EELS_metadata():
     fname = os.path.join(MY_PATH, "dm3_1D_data", "test-EELS_spectrum.dm3")
-    s = load(fname)
+    s = hs.load(fname)
     md = s.metadata
     assert md.Acquisition_instrument.TEM.acquisition_mode == "STEM"
     np.testing.assert_allclose(md.Acquisition_instrument.TEM.beam_energy, 200.0)
@@ -187,7 +187,7 @@ def test_read_EELS_metadata():
 
 def test_read_SI_metadata():
     fname = os.path.join(MY_PATH, "dm4_3D_data", "EELS_SI.dm4")
-    s = load(fname)
+    s = hs.load(fname)
     md = s.metadata
     assert md.Acquisition_instrument.TEM.acquisition_mode == "STEM"
     assert md.General.date == "2019-05-14"
@@ -209,7 +209,7 @@ def test_read_SI_metadata():
 
 def test_read_EDS_metadata():
     fname = os.path.join(MY_PATH, "dm3_1D_data", "test-EDS_spectrum.dm3")
-    s = load(fname)
+    s = hs.load(fname)
     md = s.metadata
     assert md.Acquisition_instrument.TEM.acquisition_mode == "STEM"
     np.testing.assert_allclose(
@@ -251,7 +251,7 @@ def test_read_EDS_metadata():
 
 def test_read_MonoCL_pmt_metadata():
     fname = os.path.join(MY_PATH, "dm4_1D_data", "test-MonoCL_spectrum-pmt.dm4")
-    s = load(fname)
+    s = hs.load(fname)
     md = s.metadata
     assert md.Signal.signal_type == "CL"
     assert md.Signal.format == "Spectrum"
@@ -273,7 +273,7 @@ def test_read_MonoCL_pmt_metadata():
 
 def test_read_MonarcCL_pmt_metadata():
     fname = os.path.join(MY_PATH, "dm4_1D_data", "test-MonarcCL_spectrum-pmt.dm4")
-    s = load(fname)
+    s = hs.load(fname)
     md = s.metadata
     assert md.Signal.signal_type == "CL"
     assert md.Signal.format == "Spectrum"
@@ -295,7 +295,7 @@ def test_read_MonarcCL_pmt_metadata():
 
 def test_read_MonoCL_ccd_metadata():
     fname = os.path.join(MY_PATH, "dm4_1D_data", "test-MonoCL_spectrum-ccd.dm4")
-    s = load(fname)
+    s = hs.load(fname)
     md = s.metadata
     assert md.Signal.signal_type == "CL"
     assert md.Signal.format == "Spectrum"
@@ -330,7 +330,7 @@ def test_read_MonoCL_ccd_metadata():
 
 def test_read_MonarcCL_ccd_metadata():
     fname = os.path.join(MY_PATH, "dm4_1D_data", "test-MonarcCL_spectrum-ccd.dm4")
-    s = load(fname)
+    s = hs.load(fname)
     md = s.metadata
     assert md.Signal.signal_type == "CL"
     assert md.Signal.format == "Spectrum"
@@ -366,7 +366,7 @@ def test_read_MonarcCL_ccd_metadata():
 
 def test_read_MonoCL_SI_metadata():
     fname = os.path.join(MY_PATH, "dm4_2D_data", "test-MonoCL_spectrum-SI.dm4")
-    s = load(fname)
+    s = hs.load(fname)
     md = s.metadata
     assert md.Signal.signal_type == "CL"
     assert md.Signal.format == "Spectrum image"
@@ -412,7 +412,7 @@ def test_read_MonoCL_SI_metadata():
 
 def test_read_MonarcCL_SI_metadata():
     fname = os.path.join(MY_PATH, "dm4_2D_data", "test-MonarcCL_spectrum-SI.dm4")
-    s = load(fname)
+    s = hs.load(fname)
     md = s.metadata
     assert md.Signal.signal_type == "CL"
     assert md.Signal.format == "Spectrum image"
@@ -455,7 +455,7 @@ def test_read_MonarcCL_SI_metadata():
 
 def test_read_MonarcCL_image_metadata():
     fname = os.path.join(MY_PATH, "dm4_2D_data", "test-MonarcCL_mono-image.dm4")
-    s = load(fname)
+    s = hs.load(fname)
     md = s.metadata
     assert md.Signal.signal_type == "CL"
     assert md.Signal.quantity == "Intensity (counts)"
@@ -483,23 +483,23 @@ def test_location():
         "Fei HAADF-MX_location.dm3",
         "Fei HAADF-UK_location.dm3",
     ]
-    s = load(os.path.join(MY_PATH, "dm3_locale", fname_list[0]))
+    s = hs.load(os.path.join(MY_PATH, "dm3_locale", fname_list[0]))
     assert s.metadata.General.date == "2016-08-27"
     assert s.metadata.General.time == "20:54:33"
-    s = load(os.path.join(MY_PATH, "dm3_locale", fname_list[1]))
+    s = hs.load(os.path.join(MY_PATH, "dm3_locale", fname_list[1]))
     assert s.metadata.General.date == "2016-08-27"
     assert s.metadata.General.time == "20:55:20"
-    s = load(os.path.join(MY_PATH, "dm3_locale", fname_list[2]))
+    s = hs.load(os.path.join(MY_PATH, "dm3_locale", fname_list[2]))
     assert s.metadata.General.date == "2016-08-27"
     #    assert_equal(s.metadata.General.time, "20:55:20") # MX not working
-    s = load(os.path.join(MY_PATH, "dm3_locale", fname_list[3]))
+    s = hs.load(os.path.join(MY_PATH, "dm3_locale", fname_list[3]))
     assert s.metadata.General.date == "2016-08-27"
     assert s.metadata.General.time == "20:52:30"
 
 
 def test_multi_signal():
     fname = os.path.join(MY_PATH, "dm3_2D_data", "multi_signal.dm3")
-    s = load(fname)
+    s = hs.load(fname)
 
     # Make sure file is read as a list, and exactly two signals are found
     assert isinstance(s, list)
@@ -508,8 +508,8 @@ def test_multi_signal():
     s1, s2 = s
 
     # First signal is an image, second is a plot
-    assert isinstance(s1, Signal2D)
-    assert isinstance(s2, Signal1D)
+    assert isinstance(s1, hs.signals.Signal2D)
+    assert isinstance(s2, hs.signals.Signal1D)
 
     s1_md_truth = {
         "_HyperSpy": {
@@ -529,7 +529,7 @@ def test_multi_signal():
             "FileIO": {
                 "0": {
                     "operation": "load",
-                    "hyperspy_version": hs_version,
+                    "hyperspy_version": hs.__version__,
                     "io_plugin": "rsciio.digital_micrograph.api",
                 }
             },
@@ -576,7 +576,7 @@ def test_multi_signal():
             "FileIO": {
                 "0": {
                     "operation": "load",
-                    "hyperspy_version": hs_version,
+                    "hyperspy_version": hs.__version__,
                     "io_plugin": "rsciio.digital_micrograph.api",
                 }
             },
@@ -643,7 +643,7 @@ def generate_parameters():
 @pytest.mark.parametrize("pdict", generate_parameters())
 @pytest.mark.parametrize("lazy", (True, False))
 def test_data(pdict, lazy):
-    s = load(pdict["filename"], lazy=lazy)
+    s = hs.load(pdict["filename"], lazy=lazy)
     if lazy:
         s.compute(close_file=True)
     key = pdict["key"]
@@ -671,5 +671,5 @@ def test_data(pdict, lazy):
 
 def test_axes_bug_for_image():
     fname = os.path.join(MY_PATH, "dm3_2D_data", "test_STEM_image.dm3")
-    s = load(fname)
+    s = hs.load(fname)
     assert s.axes_manager[1].name == "y"

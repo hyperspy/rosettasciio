@@ -20,9 +20,11 @@ import os
 
 import numpy as np
 import pytest
+
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
 import traits.api as t
 
-import hyperspy.api as hs
 from rsciio.empad.api import _parse_xml
 
 

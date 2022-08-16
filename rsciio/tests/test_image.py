@@ -19,7 +19,12 @@
 import numpy as np
 import pytest
 
-import hyperspy.api as hs
+try:
+    import hyperspy.api as hs
+except:
+    pass
+
+from rsciio.image.api import file_writer
 
 
 @pytest.mark.parametrize(("dtype"), ["uint8", "uint32"])
@@ -198,8 +203,19 @@ def test_save_image_navigation(tmp_path):
     s.T.save(fname, scalebar=True)
 
 
+@pytest.mark.no_hyperspy
 def test_error_library_no_installed(tmp_path):
-    s = hs.signals.Signal2D(np.arange(128 * 128).reshape(128, 128))
+    axis = {
+        "_type": "UniformDataAxis",
+        "name": None,
+        "units": None,
+        "navigate": False,
+        "is_binned": False,
+        "size": 128,
+        "scale": 1.0,
+        "offset": 0.0,
+    }
+    signal_dict = {"data": np.arange(128 * 128).reshape(128, 128), "axes": [axis, axis]}
 
     try:
         import matplotlib
@@ -207,7 +223,9 @@ def test_error_library_no_installed(tmp_path):
         # When matplotlib is not installed, raises an error to inform user
         # that matplotlib is necessary
         with pytest.raises(ValueError):
-            s.save(tmp_path / "test_image_error.jpg", output_size=64)
+            file_writer(tmp_path / "test_image_error.jpg", signal_dict, output_size=64)
 
         with pytest.raises(ValueError):
-            s.save(tmp_path / "test_image_error.jpg", imshow_kwds={"a": "b"})
+            file_writer(
+                tmp_path / "test_image_error.jpg", signal_dict, imshow_kwds={"a": "b"}
+            )

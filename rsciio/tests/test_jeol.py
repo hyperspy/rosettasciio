@@ -22,8 +22,7 @@ from pathlib import Path
 import pytest
 import numpy as np
 
-import hyperspy.api as hs
-from hyperspy import __version__ as hs_version
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 
 def teardown_module(module):
@@ -287,7 +286,7 @@ def test_load_eds_file(filename_as_string):
         "FileIO": {
             "0": {
                 "operation": "load",
-                "hyperspy_version": hs_version,
+                "hyperspy_version": hs.__version__,
                 "io_plugin": "rsciio.jeol.api",
             }
         },

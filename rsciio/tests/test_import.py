@@ -34,7 +34,6 @@ def test_import_with_minimal_dependencies_no_hyperspy():
         if plugin["format_name"] not in [
             "Blockfile",
             "Electron Microscopy Data (EMD)",
-            "image",
             "MRCZ",
             "Phenom Element Identification (ELID)",
             "TIFF",

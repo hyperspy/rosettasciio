@@ -172,7 +172,7 @@ extras_require = {
     "scalebar_export": ["matplotlib-scalebar", "matplotlib>=3.1.3"],
     "tiff": ["tifffile>=2020.2.16", "imagecodecs>=2020.1.31"],
     "usid": ["pyUSID"],
-    "zspy": ['zarr'],
+    "zspy": ["zarr"],
     "tests": [
         "pytest>=3.6",
         "pytest-xdist",

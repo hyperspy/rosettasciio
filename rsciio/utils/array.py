@@ -16,23 +16,24 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-
-# The EMD format is a hdf5 standard proposed at Lawrence Berkeley
-# National Lab (see https://emdatasets.com/ for more information).
-# NOT to be confused with the FEI EMD format which was developed later.
+from packaging.version import Version
 
 import numpy as np
-import pytest
-
-hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 
-def test_de5_write_load_cycle(tmp_path):
-    fname = tmp_path / "test_file.de5"
-    data = np.arange(20).reshape(2, 10)
-    s = hs.signals.Signal1D(data)
-    s.save(fname)
-    assert fname.is_file()
+def get_numpy_kwargs(array):
+    """
+    Convenience funtion to return a dictionary containing the `like` keyword
+    if numpy>=1.20.
 
-    s2 = hs.load(fname)
-    np.testing.assert_allclose(s2.data, s.data)
+    Note
+    ----
+    `like` keyword is an experimental feature introduced in numpy 1.20 and is
+    pending on acceptance of NEP 35
+
+    """
+    kw = {}
+    if Version(np.__version__) >= Version("1.20"):
+        kw["like"] = array
+
+    return kw

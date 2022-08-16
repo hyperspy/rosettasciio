@@ -6,8 +6,8 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-import hyperspy.signals as signals
-from hyperspy.io import load
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
 from rsciio.ripple import api as ripple
 
 # Tuple of tuples (data shape, signal_dimensions)
@@ -22,14 +22,14 @@ MYPATH = os.path.dirname(__file__)
 
 def test_write_unsupported_data_shape():
     data = np.arange(5 * 10 * 15 * 20).reshape((5, 10, 15, 20))
-    s = signals.Signal1D(data)
+    s = hs.signals.Signal1D(data)
     with pytest.raises(TypeError):
         s.save("test_write_unsupported_data_shape.rpl")
 
 
 def test_write_unsupported_data_type():
     data = np.arange(5 * 10 * 15).reshape((5, 10, 15)).astype(np.float16)
-    s = signals.Signal1D(data)
+    s = hs.signals.Signal1D(data)
     with pytest.raises(IOError):
         s.save("test_write_unsupported_data_type.rpl")
 
@@ -38,20 +38,20 @@ def test_write_unsupported_data_type():
 # def test_write_scalar():
 #    data = np.array([2])
 #    with tempfile.TemporaryDirectory() as tmpdir:
-#        s = signals.BaseSignal(data)
+#        s = hs.signals.BaseSignal(data)
 #        fname = os.path.join(tmpdir, 'test_write_scalar_data.rpl')
 #        s.save(fname)
-#        s2 = load(fname)
+#        s2 = hs.load(fname)
 #        np.testing.assert_allclose(s.data, s2.data)
 
 
 def test_write_without_metadata():
     data = np.arange(5 * 10 * 15).reshape((5, 10, 15))
-    s = signals.Signal1D(data)
+    s = hs.signals.Signal1D(data)
     with tempfile.TemporaryDirectory() as tmpdir:
         fname = os.path.join(tmpdir, "test_write_without_metadata.rpl")
         s.save(fname)
-        s2 = load(fname)
+        s2 = hs.load(fname)
         np.testing.assert_allclose(s.data, s2.data)
         # for windows
         del s2
@@ -60,14 +60,14 @@ def test_write_without_metadata():
 
 def test_write_with_metadata():
     data = np.arange(5 * 10).reshape((5, 10))
-    s = signals.Signal1D(data)
+    s = hs.signals.Signal1D(data)
     s.metadata.set_item("General.date", "2016-08-06")
     s.metadata.set_item("General.time", "10:55:00")
     s.metadata.set_item("General.title", "Test title")
     with tempfile.TemporaryDirectory() as tmpdir:
         fname = os.path.join(tmpdir, "test_write_with_metadata.rpl")
         s.save(fname)
-        s2 = load(fname)
+        s2 = hs.load(fname)
         np.testing.assert_allclose(s.data, s2.data)
         assert s.metadata.General.date == s2.metadata.General.date
         assert s.metadata.General.title == s2.metadata.General.title
@@ -107,13 +107,13 @@ def _create_signal(shape, dim, dtype, metadata):
     data = np.arange(np.product(shape)).reshape(shape).astype(dtype)
     if dim == 1:
         if len(shape) > 2:
-            s = signals.EELSSpectrum(data)
+            s = hs.signals.EELSSpectrum(data)
             if metadata:
                 s.set_microscope_parameters(
                     beam_energy=100.0, convergence_angle=1.0, collection_angle=10.0
                 )
         else:
-            s = signals.EDSTEMSpectrum(data)
+            s = hs.signals.EDSTEMSpectrum(data)
             if metadata:
                 s.set_microscope_parameters(
                     beam_energy=100.0,
@@ -124,7 +124,7 @@ def _create_signal(shape, dim, dtype, metadata):
                     energy_resolution_MnKa=5.0,
                 )
     else:
-        s = signals.BaseSignal(data).transpose(signal_axes=dim)
+        s = hs.signals.BaseSignal(data).transpose(signal_axes=dim)
     if metadata:
         s.metadata.General.date = "2016-08-06"
         s.metadata.General.time = "10:55:00"
@@ -154,8 +154,8 @@ def test_data(pdict):
         s = _create_signal(shape=shape, dim=dim, dtype=dtype, metadata=metadata)
         filename = _get_filename(s, metadata)
         s.save(os.path.join(tmpdir, filename))
-        s_just_saved = load(os.path.join(tmpdir, filename))
-        s_ref = load(os.path.join(MYPATH, "ripple_files", filename))
+        s_just_saved = hs.load(os.path.join(tmpdir, filename))
+        s_ref = hs.load(os.path.join(MYPATH, "ripple_files", filename))
         try:
             for stest in (s_just_saved, s_ref):
                 npt.assert_array_equal(s.data, stest.data)

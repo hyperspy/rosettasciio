@@ -25,14 +25,12 @@ import numpy.testing as npt
 import pytest
 from datetime import datetime
 
-from hyperspy import signals
-from hyperspy.io import load, save
-from hyperspy.misc.test_utils import assert_deep_almost_equal
-from hyperspy import __version__ as hs_version
 
-
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 mrcz = pytest.importorskip("mrcz", reason="mrcz not installed")
 
+
+from hyperspy.misc.test_utils import assert_deep_almost_equal
 
 # ==============================================================================
 # MRCZ Test
@@ -69,6 +67,7 @@ class TestPythonMrcz:
         do_async=False,
         **kwargs
     ):
+
         # This is the main function which reads and writes from disk.
         mrcName = os.path.join(tmpDir, "testMage_{}_lazy_{}.mrcz".format(dtype, lazy))
 
@@ -82,7 +81,7 @@ class TestPythonMrcz:
         else:  # integers
             testData = np.random.randint(10, size=testShape).astype(dtype)
 
-        testSignal = signals.Signal2D(testData)
+        testSignal = hs.signals.Signal2D(testData)
         if lazy:
             testSignal = testSignal.as_lazy()
 
@@ -92,7 +91,7 @@ class TestPythonMrcz:
                 "FileIO": {
                     "0": {
                         "operation": "load",
-                        "hyperspy_version": hs_version,
+                        "hyperspy_version": hs.__version__,
                         "io_plugin": "rsciio.mrcz",
                         "timestamp": datetime.now().astimezone().isoformat(),
                     }
@@ -120,13 +119,8 @@ class TestPythonMrcz:
             "Signal.Noise_properties.Variance_linear_model.gain_factor", 1.0
         )
 
-        save(
-            mrcName,
-            testSignal,
-            compressor=compressor,
-            clevel=clevel,
-            do_async=do_async,
-            **kwargs
+        testSignal.save(
+            mrcName, compressor=compressor, clevel=clevel, do_async=do_async, **kwargs
         )
         if do_async:
             # Poll file on disk since we don't return the
@@ -147,7 +141,7 @@ class TestPythonMrcz:
             )
             sleep(0.1)
 
-        reSignal = load(mrcName)
+        reSignal = hs.load(mrcName)
         try:
             os.remove(mrcName)
         except IOError:
@@ -178,9 +172,9 @@ class TestPythonMrcz:
             )
 
         if dtype == "complex64":
-            assert isinstance(reSignal, signals.ComplexSignal2D)
+            assert isinstance(reSignal, hs.signals.ComplexSignal2D)
         else:
-            assert isinstance(reSignal, signals.Signal2D)
+            assert isinstance(reSignal, hs.signals.Signal2D)
 
         # delete last load operation from reSignal metadata so we can compare
         del reSignal.metadata.General.FileIO.Number_2
@@ -232,9 +226,7 @@ class TestPythonMrcz:
 
     @pytest.mark.parametrize("dtype", dtype_list)
     def test_Async(self, dtype):
-        blosc = pytest.importorskip(
-            "blosc", reason="skipping test_async, requires blosc"
-        )
+        _ = pytest.importorskip("blosc", reason="skipping test_async, requires blosc")
         t_start = perf_counter()
         self.compareSaveLoad(
             [2, 64, 32], dtype=dtype, compressor="zstd", clevel=1, do_async=True

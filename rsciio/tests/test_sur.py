@@ -19,8 +19,10 @@
 import os
 
 import numpy as np
+import pytest
 
-from hyperspy.io import load
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
 
 MY_PATH = os.path.dirname(__file__)
 
@@ -140,7 +142,7 @@ atto_scan_keys = [
 def test_load_profile():
     # Signal loading
     fname = os.path.join(MY_PATH, "sur_data", "test_profile.pro")
-    s = load(fname)
+    s = hs.load(fname)
 
     # Verifying signal shape and axes dimensions, navigation (not data themselves)
     assert s.data.shape == (128,)
@@ -166,7 +168,7 @@ def test_load_profile():
 
 def test_load_RGB():
     fname = os.path.join(MY_PATH, "sur_data", "test_RGB.sur")
-    s = load(fname)
+    s = hs.load(fname)
     assert s.data.shape == (200, 200)
     assert s.data.dtype == np.dtype([("R", "u1"), ("G", "u1"), ("B", "u1")])
 
@@ -198,7 +200,7 @@ def test_load_RGB():
 
 def test_load_spectra():
     fname = os.path.join(MY_PATH, "sur_data", "test_spectra.pro")
-    s = load(fname)
+    s = hs.load(fname)
 
     assert s.data.shape == (65, 512)
     assert s.data.dtype == np.dtype("float64")
@@ -228,7 +230,7 @@ def test_load_spectra():
 
 def test_load_spectral_map_compressed():
     fname = os.path.join(MY_PATH, "sur_data", "test_spectral_map_compressed.sur")
-    s = load(fname)
+    s = hs.load(fname)
 
     assert s.data.shape == (12, 10, 281)
     assert s.data.dtype == np.dtype("float64")
@@ -276,7 +278,7 @@ def test_load_spectral_map_compressed():
 
 def test_load_spectral_map():
     fname = os.path.join(MY_PATH, "sur_data", "test_spectral_map.sur")
-    s = load(fname)
+    s = hs.load(fname)
 
     assert s.data.shape == (12, 10, 310)
     assert s.data.dtype == np.dtype("float64")
@@ -324,7 +326,7 @@ def test_load_spectral_map():
 
 def test_load_spectrum_compressed():
     fname = os.path.join(MY_PATH, "sur_data", "test_spectrum_compressed.pro")
-    s = load(fname)
+    s = hs.load(fname)
     md = s.metadata
     assert md.Signal.quantity == "CL Intensity (a.u.)"
     assert s.data.shape == (512,)
@@ -350,7 +352,7 @@ def test_load_spectrum_compressed():
 
 def test_load_spectrum():
     fname = os.path.join(MY_PATH, "sur_data", "test_spectrum.pro")
-    s = load(fname)
+    s = hs.load(fname)
     assert s.data.shape == (512,)
 
     md = s.metadata
@@ -377,7 +379,7 @@ def test_load_spectrum():
 
 def test_load_surface():
     fname = os.path.join(MY_PATH, "sur_data", "test_surface.sur")
-    s = load(fname)
+    s = hs.load(fname)
     md = s.metadata
     assert md.Signal.quantity == "CL Intensity (a.u.)"
     assert s.data.shape == (128, 128)

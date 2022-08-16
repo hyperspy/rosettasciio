@@ -20,14 +20,18 @@
 import gc
 import os
 import tempfile
-import traits.api as traits
 from packaging import version as pversion
 
 import numpy as np
 import pytest
 import dask
 
-import hyperspy.api as hs
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
+import traits.api as t
+
+from hyperspy.misc.utils import DictionaryTreeBrowser
+
 from rsciio.tvips.api import (
     _guess_image_mode,
     _get_main_header_from_signal,
@@ -40,7 +44,6 @@ from rsciio.tvips.api import (
     file_writer,
     file_reader,
 )
-from hyperspy.misc.utils import DictionaryTreeBrowser
 from rsciio.utils.tools import dummy_context_manager
 
 
@@ -171,7 +174,7 @@ def fake_signals(fake_signal_3D, fake_signal_4D, fake_signal_5D):
         ("1/m", 2),
         ("nm", 1),
         ("m", 1),
-        (traits.Undefined, None),
+        (t.Undefined, None),
         ("foo", None),
         ("", None),
         ("s", None),

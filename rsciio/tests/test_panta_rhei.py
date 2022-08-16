@@ -18,9 +18,11 @@
 
 
 from pathlib import Path
-import numpy as np
 
-import hyperspy.api as hs
+import numpy as np
+import pytest
+
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 from hyperspy.misc.test_utils import assert_deep_almost_equal
 
 my_path = Path(__file__).parent

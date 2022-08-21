@@ -20,9 +20,11 @@ import os
 
 import numpy as np
 import pytest
+
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
 import traits.api as t
 
-import hyperspy.api as hs
 
 FILES_PATH = os.path.join(os.path.dirname(__file__), "emd_files")
 

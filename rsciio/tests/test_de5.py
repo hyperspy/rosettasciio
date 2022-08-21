@@ -21,8 +21,10 @@
 # National Lab (see https://emdatasets.com/ for more information).
 # NOT to be confused with the FEI EMD format which was developed later.
 
-import hyperspy.api as hs
 import numpy as np
+import pytest
+
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 
 def test_de5_write_load_cycle(tmp_path):

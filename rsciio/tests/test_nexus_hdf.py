@@ -20,15 +20,15 @@ import os.path
 
 import numpy as np
 import pytest
+
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
 import traits.api as t
 import h5py
 
-import hyperspy.api as hs
-from hyperspy._signals.signal1d import Signal1D
-from hyperspy._signals.signal2d import Signal2D
-from rsciio.exceptions import VisibleDeprecationWarning
 from hyperspy.exceptions import VisibleDeprecationWarning as HSVisibleDeprecationWarning
-from hyperspy.io import load
+
+from rsciio.exceptions import VisibleDeprecationWarning
 from rsciio.nexus.api import (
     _byte_to_string,
     _fix_exclusion_keys,
@@ -62,7 +62,7 @@ my_path = os.path.dirname(__file__)
 class TestDLSNexus:
     def setup_method(self, method):
         self.file = file3
-        self.s = load(
+        self.s = hs.load(
             file3,
             metadata_key=None,
             dataset_key=None,
@@ -73,7 +73,7 @@ class TestDLSNexus:
     @pytest.mark.parametrize("nxdata_only", [True, False])
     @pytest.mark.parametrize("hardlinks_only", [True, False])
     def test_nxdata_only(self, nxdata_only, hardlinks_only):
-        s = load(self.file, nxdata_only=nxdata_only, hardlinks_only=hardlinks_only)
+        s = hs.load(self.file, nxdata_only=nxdata_only, hardlinks_only=hardlinks_only)
         if nxdata_only and not hardlinks_only:
             assert len(s) == 2
         if nxdata_only and hardlinks_only:
@@ -85,7 +85,7 @@ class TestDLSNexus:
 
     @pytest.mark.parametrize("metadata_key", ["m1_y", "xxxx"])
     def test_metadata_keys(self, metadata_key):
-        s = load(file3, nxdata_only=True, metadata_key=metadata_key)
+        s = hs.load(file3, nxdata_only=True, metadata_key=metadata_key)
         # hardlinks are false - soft linked data is loaded
         if metadata_key == "m1_y":
             assert s[1].original_metadata.alias_metadata.m1_y.attrs.units == "mm"
@@ -119,12 +119,12 @@ class TestDLSNexus:
         ("/entry1/testdata/nexustest", ["/entry1/testdata/nexustest", "wrong"]),
     )
     def test_dataset_paths(self, dataset_path):
-        s = load(self.file, dataset_path=dataset_path)
+        s = hs.load(self.file, dataset_path=dataset_path)
         title = s.metadata.General.title
         assert title == "nexustest"
 
     def test_skip_load_array_metadata(self):
-        s = load(
+        s = hs.load(
             self.file,
             nxdata_only=True,
             hardlinks_only=True,
@@ -136,25 +136,25 @@ class TestDLSNexus:
 
     def test_deprecated_metadata_keys(self):
         with pytest.warns(VisibleDeprecationWarning):
-            load(self.file, metadata_keys="stage1_x")
+            _ = hs.load(self.file, metadata_keys="stage1_x")
 
     def test_deprecated_dataset_keys(self):
         with pytest.warns(VisibleDeprecationWarning):
-            load(self.file, dataset_keys="rocks")
+            _ = hs.load(self.file, dataset_keys="rocks")
 
     def test_deprecated_dataset_paths(self):
         with pytest.warns(VisibleDeprecationWarning):
-            load(self.file, dataset_paths="/entry1/testdata/nexustest/data")
+            _ = hs.load(self.file, dataset_paths="/entry1/testdata/nexustest/data")
 
 
 class TestDLSNexusNoAxes:
     def setup_method(self, method):
         self.file = file4
-        self.s = load(file4, hardlinks_only=True, nxdata_only=True)
+        self.s = hs.load(file4, hardlinks_only=True, nxdata_only=True)
 
     @pytest.mark.parametrize("metadata_key", [None, "m1_x"])
     def test_meta_keys(self, metadata_key):
-        s = load(file3, nxdata_only=True, metadata_key=metadata_key)
+        s = hs.load(file3, nxdata_only=True, metadata_key=metadata_key)
         # hardlinks are false - soft linked data is loaded
         if metadata_key is None:
             assert (
@@ -195,7 +195,7 @@ class TestDLSNexusNoAxes:
 class TestSavedSignalLoad:
     def setup_method(self, method):
         with pytest.warns(HSVisibleDeprecationWarning):
-            self.s = load(file1, nxdata_only=True)
+            self.s = hs.load(file1, nxdata_only=True)
 
     def test_string(self):
         assert self.s.original_metadata.instrument.energy.attrs.units == "keV"
@@ -226,7 +226,7 @@ class TestSavedSignalLoad:
 class TestSavedMultiSignalLoad:
     def setup_method(self, method):
         with pytest.warns(HSVisibleDeprecationWarning):
-            self.s = load(
+            self.s = hs.load(
                 file2, nxdata_only=True, hardlinks_only=True, use_default=False
             )
 
@@ -288,7 +288,7 @@ class TestSavingMetadataContainers:
         s.original_metadata.set_item("test3", 64.0)
         fname = tmp_path / "test.nxs"
         s.save(fname)
-        lin = load(fname, nxdata_only=True)
+        lin = hs.load(fname, nxdata_only=True)
         assert isinstance(lin.original_metadata.test1, float)
         assert isinstance(lin.original_metadata.test2, float)
         assert isinstance(lin.original_metadata.test3, float)
@@ -301,7 +301,7 @@ class TestSavingMetadataContainers:
         s.original_metadata.set_item("testarray3", np.array([1, 2, 3, 4, 5]))
         fname = tmp_path / "test.nxs"
         s.save(fname)
-        lin = load(fname, nxdata_only=True)
+        lin = hs.load(fname, nxdata_only=True)
         np.testing.assert_array_equal(
             lin.original_metadata.testarray1, np.array([b"a", b"2", b"b", b"4", b"5"])
         )
@@ -319,7 +319,7 @@ class TestSavingMetadataContainers:
         s.original_metadata.set_item("testarray3", np.array([1, 2, 3, 4, 5]))
         fname = tmp_path / "test.nxs"
         s.save(fname, save_original_metadata=False)
-        lin = load(fname, nxdata_only=True)
+        lin = hs.load(fname, nxdata_only=True)
         with pytest.raises(AttributeError):
             lin.original_metadata.testarray1
 
@@ -330,7 +330,7 @@ class TestSavingMetadataContainers:
         s.original_metadata.set_item("testarray3", np.array([1, 2, 3, 4, 5]))
         fname = tmp_path / "test.nxs"
         s.save(fname, skip_metadata_key="testarray2")
-        lin = load(fname, nxdata_only=True)
+        lin = hs.load(fname, nxdata_only=True)
         with pytest.raises(AttributeError):
             lin.original_metadata.testarray2
 
@@ -346,7 +346,7 @@ class TestSavingMetadataContainers:
         s = self.s
         fname = tmp_path / "test.nxs"
         s.save(fname, use_default=False)
-        lin = load(fname, nxdata_only=True, use_default=True)
+        lin = hs.load(fname, nxdata_only=True, use_default=True)
         assert np.isclose(lin.data, s.data).all()
 
     def test_save_metadata_as_dict(self, tmp_path):
@@ -367,7 +367,7 @@ class TestSavingMetadataContainers:
 
         fname = tmp_path / "test.nxs"
         s.save(fname)
-        lin = load(fname, nxdata_only=True)
+        lin = hs.load(fname, nxdata_only=True)
         np.testing.assert_array_equal(
             lin.original_metadata.testarray1, np.array([b"a", b"2", b"b", b"4", b"5"])
         )
@@ -382,10 +382,12 @@ class TestSavingMetadataContainers:
         s = self.s
         s.original_metadata.set_item("testarray1", BaseSignal([1.2, 2.3, 3.4]))
         s.original_metadata.set_item("testarray2", (1, 2, 3, 4, 5))
-        s.original_metadata.set_item("testarray3", Signal2D(np.ones((2, 3, 5, 4))))
+        s.original_metadata.set_item(
+            "testarray3", hs.signals.Signal2D(np.ones((2, 3, 5, 4)))
+        )
         fname = tmp_path / "test.nxs"
         s.save(fname)
-        lin = load(fname, nxdata_only=True)
+        lin = hs.load(fname, nxdata_only=True)
         np.testing.assert_allclose(
             lin.original_metadata.testarray1.data, np.array([1.2, 2.3, 3.4])
         )
@@ -400,7 +402,7 @@ class TestSavingMetadataContainers:
         s = BaseSignal(np.zeros((2, 3, 4)))
         fname = tmp_path / "test.nxs"
         s.save(fname)
-        lin = load(fname, nxdata_only=True)
+        lin = hs.load(fname, nxdata_only=True)
         assert lin.axes_manager.signal_dimension == 3
         np.testing.assert_array_equal(lin.data, np.zeros((2, 3, 4)))
 
@@ -409,7 +411,7 @@ class TestSavingMetadataContainers:
         s.metadata.General.title = "/entry/something"
         fname = tmp_path / "test.nxs"
         s.save(fname)
-        lin = load(fname, nxdata_only=True)
+        lin = hs.load(fname, nxdata_only=True)
         assert lin.metadata.General.title == "_entry_something"
 
     def test_save_title_double_underscore(self, tmp_path):
@@ -417,7 +419,7 @@ class TestSavingMetadataContainers:
         s.metadata.General.title = "__entry/something"
         fname = tmp_path / "test.nxs"
         s.save(fname)
-        lin = load(fname, nxdata_only=True)
+        lin = hs.load(fname, nxdata_only=True)
         assert lin.metadata.General.title == "entry_something"
 
 
@@ -439,14 +441,14 @@ def test_saving_multi_signals(tmp_path):
     fname = tmp_path / "test.nxs"
     sig.save(fname)
     file_writer(fname, [sig._to_dictionary(), sig2._to_dictionary()])
-    lin = load(fname, nxdata_only=True)
+    lin = hs.load(fname, nxdata_only=True)
     assert len(lin) == 2
     assert lin[0].original_metadata.stage_y.value == 4.0
     assert lin[0].axes_manager[0].name == "stage_y_axis"
     assert lin[1].original_metadata.stage_x.value == 8.0
     assert lin[1].original_metadata.stage_x.attrs.units == "mm"
-    assert isinstance(lin[0], Signal2D)
-    assert isinstance(lin[1], Signal1D)
+    assert isinstance(lin[0], hs.signals.Signal2D)
+    assert isinstance(lin[1], hs.signals.Signal1D)
     # test the metadata haven't merged
     with pytest.raises(AttributeError):
         lin[1].original_metadata.stage_y.value
@@ -608,8 +610,8 @@ def test_dataset_with_chunks_attrs():
 
 
 def test_extract_hdf5():
-    s = load(file5, lazy=False)
-    s_lazy = load(file5, lazy=True)
+    s = hs.load(file5, lazy=False)
+    s_lazy = hs.load(file5, lazy=True)
 
     assert len(s) == 6
     assert len(s_lazy) == 6

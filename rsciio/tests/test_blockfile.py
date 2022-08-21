@@ -23,14 +23,15 @@ import tempfile
 import warnings
 
 import numpy as np
-from skimage.exposure import rescale_intensity
 import pytest
 
-import hyperspy.api as hs
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
+from hyperspy.misc.test_utils import assert_deep_almost_equal
+
 from rsciio.blockfile.api import get_default_header
 from rsciio.utils.tools import sarray2dict
 from rsciio.utils.date_time_tools import serial_date_to_ISO_format
-from hyperspy.misc.test_utils import assert_deep_almost_equal
 
 try:
     WindowsError
@@ -370,9 +371,12 @@ def test_crop_lims(save_path, fake_signal):
 
 
 def test_tuple_limits(save_path, fake_signal):
+    skimage = pytest.importorskip("skimage", reason="scikit-image not installed")
     fake_signal.save(save_path, intensity_scaling=(5, 200), overwrite=True)
     sig_reload = hs.load(save_path)
-    compare = rescale_intensity(fake_signal.data, in_range=(5, 200), out_range=np.uint8)
+    compare = skimage.exposure.rescale_intensity(
+        fake_signal.data, in_range=(5, 200), out_range=np.uint8
+    )
     np.testing.assert_allclose(sig_reload.data, compare)
 
 

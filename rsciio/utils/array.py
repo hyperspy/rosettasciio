@@ -10,37 +10,30 @@
 #
 # RosettaSciIO is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import logging
-import yaml
-import os
+from packaging.version import Version
 
-from rsciio.version import __version__
-
-IO_PLUGINS = []
-_logger = logging.getLogger(__name__)
-
-here = os.path.abspath(os.path.dirname(__file__))
-
-for sub, _, _ in os.walk(here):
-    specsf = os.path.join(sub, "specifications.yaml")
-    if os.path.isfile(specsf):
-        with open(specsf, "r") as stream:
-            specs = yaml.safe_load(stream)
-            specs["api"] = "rsciio.%s.api" % os.path.split(sub)[1]
-            IO_PLUGINS.append(specs)
+import numpy as np
 
 
-__all__ = [
-    "__version__",
-    "IO_PLUGINS",
-]
+def get_numpy_kwargs(array):
+    """
+    Convenience funtion to return a dictionary containing the `like` keyword
+    if numpy>=1.20.
 
+    Note
+    ----
+    `like` keyword is an experimental feature introduced in numpy 1.20 and is
+    pending on acceptance of NEP 35
 
-def __dir__():
-    return sorted(__all__)
+    """
+    kw = {}
+    if Version(np.__version__) >= Version("1.20"):
+        kw["like"] = array
+
+    return kw

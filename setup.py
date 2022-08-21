@@ -154,6 +154,7 @@ class Recythonize(Command):
 
 install_requires = [
     "dask[array]>=2.11",
+    "python-dateutil",
     "h5py>=2.3",
     "imageio",
     "numba>=0.52",
@@ -166,9 +167,12 @@ install_requires = [
 ]
 
 extras_require = {
+    "blockfile": ["scikit-image"],
     "mrcz": ["blosc>=1.5", "mrcz>=0.3.6"],
-    "scalebar_export": ["matplotlib>=3.1.3"],
+    "scalebar_export": ["matplotlib-scalebar", "matplotlib>=3.1.3"],
     "tiff": ["tifffile>=2020.2.16", "imagecodecs>=2020.1.31"],
+    "usid": ["pyUSID"],
+    "zspy": ["zarr"],
     "tests": [
         "pytest>=3.6",
         "pytest-xdist",
@@ -181,9 +185,7 @@ extras_require = {
 # Don't include "tests" and "docs" requirements since "all" is designed to be
 # used for user installation.
 runtime_extras_require = {
-    x: extras_require[x]
-    for x in extras_require.keys()
-    if x not in ["tests", "coverage", "build-doc"]
+    x: extras_require[x] for x in extras_require.keys() if x not in ["tests", "docs"]
 }
 extras_require["all"] = list(itertools.chain(*list(runtime_extras_require.values())))
 
@@ -320,6 +322,7 @@ setup(
     # MANIFEST.in as well.
     package_data={
         "rsciio": [
+            "*/specifications.yaml",
             "tests/blockfile_data/*.blo",
             "tests/dens_data/*.dens",
             "tests/dm_stackbuilder_plugin/test_stackbuilder_imagestack.dm3",
@@ -359,11 +362,16 @@ setup(
             "tests/bruker_data/*.spx",
             "tests/ripple_files/*.rpl",
             "tests/ripple_files/*.raw",
+            "tests/panta_rhei_files/*.prz",
+            "tests/phenom_data/*.elid",
+            "tests/sur_data/*.sur",
+            "tests/sur_data/*.pro",
             "tests/emd_files/*.emd",
             "tests/emd_files/fei_emd_files.zip",
             "tests/protochips_data/*.npy",
             "tests/protochips_data/*.csv",
             "tests/nexus_files/*.nxs",
+            "tests/empad_data/*.xml",
         ]
     },
     # Although 'package_data' is the preferred approach, in some case you may

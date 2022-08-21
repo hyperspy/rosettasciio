@@ -16,31 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import logging
-import yaml
-import os
+from packaging.version import Version
 
-from rsciio.version import __version__
+try:
+    import hyperspy
 
-IO_PLUGINS = []
-_logger = logging.getLogger(__name__)
-
-here = os.path.abspath(os.path.dirname(__file__))
-
-for sub, _, _ in os.walk(here):
-    specsf = os.path.join(sub, "specifications.yaml")
-    if os.path.isfile(specsf):
-        with open(specsf, "r") as stream:
-            specs = yaml.safe_load(stream)
-            specs["api"] = "rsciio.%s.api" % os.path.split(sub)[1]
-            IO_PLUGINS.append(specs)
-
-
-__all__ = [
-    "__version__",
-    "IO_PLUGINS",
-]
-
-
-def __dir__():
-    return sorted(__all__)
+    if Version(hyperspy.__version__) < Version("2.0.dev"):
+        raise Exception(
+            "To run the test suite using hyperspy, \
+            hyperspy 2.0 or higher is required."
+        )
+except ImportError:
+    pass

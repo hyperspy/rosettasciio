@@ -1,6 +1,6 @@
 include *.txt
 include *.rst
-recursive-include rsciio *.pyx
-recursive-include docs *.txt *.rst *.pdf *py *bat makefile
+recursive-include rsciio *.pyx *specifications.yaml
+recursive-include docs *.txt *.rst *.pdf *.py *.bat makefile
 include rsciio/tests/bruker_data/test_compilers.c
 

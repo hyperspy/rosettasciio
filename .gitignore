@@ -1,5 +1,6 @@
 /docs/_build/*
 /build/*
+/dist/*
 /RosettaSciIO.egg-info/*
 *__pycache__*
 *test_compilers.obj

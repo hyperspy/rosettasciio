@@ -20,7 +20,6 @@ import os
 import logging
 
 from imageio import imread, imwrite
-from matplotlib.figure import Figure
 
 from rsciio.utils.tools import _UREG
 
@@ -105,6 +104,14 @@ def file_writer(
             )
 
     if scalebar or output_size or imshow_kwds:
+        try:
+            from matplotlib.figure import Figure
+        except ImportError:
+            raise ValueError(
+                "Using the `output_size`, `imshow_kwds` arguments or "
+                "exporting with a scalebar requires the matplotlib library."
+            )
+
         dpi = 100
 
         if imshow_kwds is None:

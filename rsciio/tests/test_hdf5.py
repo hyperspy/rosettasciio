@@ -26,18 +26,13 @@ import h5py
 import numpy as np
 import pytest
 
-from hyperspy import __version__ as hs_version
-from hyperspy.io import load
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
 from hyperspy.axes import DataAxis, UniformDataAxis, FunctionalDataAxis, AxesManager
-from hyperspy.signal import BaseSignal
-from hyperspy._signals.signal1d import Signal1D
-from hyperspy._signals.signal2d import Signal2D
-from hyperspy.datasets.example_signals import EDS_TEM_Spectrum
 from hyperspy.decorators import lazifyTestClass
 from hyperspy.misc.test_utils import assert_deep_almost_equal
 from hyperspy.misc.test_utils import sanitize_dict as san_dict
-from hyperspy.roi import Point2DROI
-from hyperspy.utils import markers
+
 from rsciio._hierarchical import get_signal_chunks
 from rsciio.utils.tools import get_file_handle
 
@@ -145,7 +140,7 @@ class Example1:
 
 class TestExample1_12(Example1):
     def setup_method(self, method):
-        self.s = load(my_path / "hdf5_files" / "example1_v1.2.hdf5", reader="HSPY")
+        self.s = hs.load(my_path / "hdf5_files" / "example1_v1.2.hdf5", reader="HSPY")
 
     def test_date(self):
         assert self.s.metadata.General.date == "1991-10-01"
@@ -156,17 +151,17 @@ class TestExample1_12(Example1):
 
 class TestExample1_10(Example1):
     def setup_method(self, method):
-        self.s = load(my_path / "hdf5_files" / "example1_v1.0.hdf5", reader="HSPY")
+        self.s = hs.load(my_path / "hdf5_files" / "example1_v1.0.hdf5", reader="HSPY")
 
 
 class TestExample1_11(Example1):
     def setup_method(self, method):
-        self.s = load(my_path / "hdf5_files" / "example1_v1.1.hdf5", reader="HSPY")
+        self.s = hs.load(my_path / "hdf5_files" / "example1_v1.1.hdf5", reader="HSPY")
 
 
 class TestLoadingNewSavedMetadata:
     def setup_method(self, method):
-        self.s = load(my_path / "hdf5_files" / "with_lists_etc.hdf5", reader="HSPY")
+        self.s = hs.load(my_path / "hdf5_files" / "with_lists_etc.hdf5", reader="HSPY")
 
     def test_signal_inside(self):
         np.testing.assert_array_almost_equal(
@@ -199,7 +194,7 @@ class TestLoadingNewSavedMetadata:
 
 class TestSavingMetadataContainers:
     def setup_method(self, method):
-        self.s = BaseSignal([0.1])
+        self.s = hs.signals.BaseSignal([0.1])
 
     @zspy_marker
     def test_save_unicode(self, tmp_path, file):
@@ -207,7 +202,7 @@ class TestSavingMetadataContainers:
         s.metadata.set_item("test", ["a", "b", "\u6f22\u5b57"])
         fname = tmp_path / file
         s.save(fname)
-        l = load(fname)
+        l = hs.load(fname)
         assert isinstance(l.metadata.test[0], str)
         assert isinstance(l.metadata.test[1], str)
         assert isinstance(l.metadata.test[2], str)
@@ -231,7 +226,7 @@ class TestSavingMetadataContainers:
         s.metadata.set_item("test", [[1.0, 2], ("3", 4)])
         fname = tmp_path / file
         s.save(fname)
-        l = load(fname)
+        l = hs.load(fname)
         assert isinstance(l.metadata.test, list)
         assert isinstance(l.metadata.test[0], list)
         assert isinstance(l.metadata.test[1], tuple)
@@ -243,7 +238,7 @@ class TestSavingMetadataContainers:
         s.metadata.set_item("test", np.array([[1.0, 2], ["3", 4]]))
         fname = tmp_path / file
         s.save(fname)
-        l = load(fname)
+        l = hs.load(fname)
         np.testing.assert_array_equal(l.metadata.test, s.metadata.test)
 
     @pytest.mark.xfail(sys.platform == "win32", reason="randomly fails in win32")
@@ -253,7 +248,7 @@ class TestSavingMetadataContainers:
         s.metadata.set_item("test", [[1.0, 2], ["3", 4]])
         fname = tmp_path / file
         s.save(fname)
-        l = load(fname)
+        l = hs.load(fname)
         assert isinstance(l.metadata.test[0][0], float)
         assert isinstance(l.metadata.test[0][1], float)
         assert isinstance(l.metadata.test[1][0], str)
@@ -263,22 +258,22 @@ class TestSavingMetadataContainers:
     @zspy_marker
     def test_general_type_not_working(self, tmp_path, file):
         s = self.s
-        s.metadata.set_item("test", (BaseSignal([1]), 0.1, "test_string"))
+        s.metadata.set_item("test", (hs.signals.BaseSignal([1]), 0.1, "test_string"))
         fname = tmp_path / file
         s.save(fname)
-        l = load(fname)
+        l = hs.load(fname)
         assert isinstance(l.metadata.test, tuple)
-        assert isinstance(l.metadata.test[0], Signal1D)
+        assert isinstance(l.metadata.test[0], hs.signals.Signal1D)
         assert isinstance(l.metadata.test[1], float)
         assert isinstance(l.metadata.test[2], str)
 
     @zspy_marker
     def test_unsupported_type(self, tmp_path, file):
         s = self.s
-        s.metadata.set_item("test", Point2DROI(1, 2))
+        s.metadata.set_item("test", hs.roi.Point2DROI(1, 2))
         fname = tmp_path / file
         s.save(fname)
-        l = load(fname)
+        l = hs.load(fname)
         assert "test" not in l.metadata
 
     @zspy_marker
@@ -289,7 +284,7 @@ class TestSavingMetadataContainers:
         s.metadata.General.time = time
         fname = tmp_path / file
         s.save(fname)
-        l = load(fname)
+        l = hs.load(fname)
         assert l.metadata.General.date == date
         assert l.metadata.General.time == time
 
@@ -304,7 +299,7 @@ class TestSavingMetadataContainers:
         s.metadata.General.doi = doi
         fname = tmp_path / file
         s.save(fname)
-        l = load(fname)
+        l = hs.load(fname)
         assert l.metadata.General.notes == notes
         assert l.metadata.General.authors == authors
         assert l.metadata.General.doi == doi
@@ -316,7 +311,7 @@ class TestSavingMetadataContainers:
         s.metadata.Signal.quantity = quantity
         fname = tmp_path / file
         s.save(fname)
-        l = load(fname)
+        l = hs.load(fname)
         assert l.metadata.Signal.quantity == quantity
 
     @zspy_marker
@@ -325,7 +320,7 @@ class TestSavingMetadataContainers:
         s.metadata.set_item("test", s.axes_manager)
         fname = tmp_path / file
         s.save(fname)
-        l = load(fname)
+        l = hs.load(fname)
         # strange becuase you need the encoding...
         assert isinstance(l.metadata.test, AxesManager)
 
@@ -335,7 +330,7 @@ class TestSavingMetadataContainers:
         fname = tmp_path / file
         s.metadata.General.title = "__unnamed__"
         s.save(fname)
-        l = load(fname)
+        l = hs.load(fname)
         assert l.metadata.General.title == ""
 
     @zspy_marker
@@ -344,7 +339,7 @@ class TestSavingMetadataContainers:
         s.metadata.set_item("test", ())
         fname = tmp_path / file
         s.save(fname)
-        l = load(fname)
+        l = hs.load(fname)
         # strange becuase you need the encoding...
         assert l.metadata.test == s.metadata.test
 
@@ -355,12 +350,12 @@ class TestSavingMetadataContainers:
         s.metadata.set_item("test", byte_message)
         fname = tmp_path / file
         s.save(fname)
-        l = load(fname)
+        l = hs.load(fname)
         assert l.metadata.test == s.metadata.test.decode()
 
     def test_metadata_binned_deprecate(self):
         with pytest.warns(UserWarning, match="Loading old file"):
-            s = load(my_path / "hdf5_files" / "example2_v2.2.hspy")
+            s = hs.load(my_path / "hdf5_files" / "example2_v2.2.hspy")
         assert s.metadata.has_item("Signal.binned") == False
         assert s.axes_manager[-1].is_binned == False
 
@@ -386,7 +381,7 @@ class TestSavingMetadataContainers:
                 "FileIO": {
                     "0": {
                         "operation": "load",
-                        "hyperspy_version": hs_version,
+                        "hyperspy_version": hs.__version__,
                         "io_plugin": "rsciio.hspy.api",
                     }
                 },
@@ -407,20 +402,20 @@ class TestSavingMetadataContainers:
                 }
             },
         }
-        s = load(my_path / "hdf5_files" / "example2_v3.1.hspy")
+        s = hs.load(my_path / "hdf5_files" / "example2_v3.1.hspy")
         # delete timestamp from metadata since it's runtime dependent
         del s.metadata.General.FileIO.Number_0.timestamp
         assert_deep_almost_equal(s.metadata.as_dictionary(), md)
 
 
 def test_none_metadata():
-    s = load(my_path / "hdf5_files" / "none_metadata.hdf5", reader="HSPY")
+    s = hs.load(my_path / "hdf5_files" / "none_metadata.hdf5", reader="HSPY")
     assert s.metadata.should_be_None is None
 
 
 def test_rgba16():
     print(my_path)
-    s = load(my_path / "hdf5_files" / "test_rgba16.hdf5", reader="HSPY")
+    s = hs.load(my_path / "hdf5_files" / "test_rgba16.hdf5", reader="HSPY")
     data = np.load(my_path / "npz_files" / "test_rgba16.npz")["a"]
     assert (s.data == data).all()
 
@@ -434,7 +429,7 @@ def test_non_valid_hspy(tmp_path, caplog):
 
     with pytest.raises(IOError):
         with caplog.at_level(logging.ERROR):
-            _ = load(filename)
+            _ = hs.load(filename)
 
 
 @zspy_marker
@@ -443,11 +438,11 @@ def test_nonuniformaxis(tmp_path, file, lazy):
     fname = tmp_path / file
     data = np.arange(10)
     axis = DataAxis(axis=1 / np.arange(1, data.size + 1), navigate=False)
-    s = Signal1D(data, axes=(axis.get_axis_dictionary(),))
+    s = hs.signals.Signal1D(data, axes=(axis.get_axis_dictionary(),))
     if lazy:
         s = s.as_lazy()
     s.save(fname, overwrite=True)
-    s2 = load(fname)
+    s2 = hs.load(fname)
     np.testing.assert_array_almost_equal(
         s.axes_manager[0].axis, s2.axes_manager[0].axis
     )
@@ -463,12 +458,12 @@ def test_nonuniformFDA(tmp_path, file, lazy):
     data = np.arange(10)
     x0 = UniformDataAxis(size=data.size, offset=1)
     axis = FunctionalDataAxis(expression="1/x", x=x0, navigate=False)
-    s = Signal1D(data, axes=(axis.get_axis_dictionary(),))
+    s = hs.signals.Signal1D(data, axes=(axis.get_axis_dictionary(),))
     if lazy:
         s = s.as_lazy()
     print(axis.get_axis_dictionary())
     s.save(fname, overwrite=True)
-    s2 = load(fname)
+    s2 = hs.load(fname)
     np.testing.assert_array_almost_equal(
         s.axes_manager[0].axis, s2.axes_manager[0].axis
     )
@@ -478,7 +473,7 @@ def test_nonuniformFDA(tmp_path, file, lazy):
 
 
 def test_lazy_loading(tmp_path):
-    s = BaseSignal(np.empty((5, 5, 5)))
+    s = hs.signals.BaseSignal(np.empty((5, 5, 5)))
     fname = tmp_path / "tmp.hdf5"
     s.save(fname, overwrite=True, file_format="HSPY")
     shape = (10000, 10000, 100)
@@ -489,7 +484,7 @@ def test_lazy_loading(tmp_path):
     s.create_dataset("data", shape=shape, dtype="float64", chunks=True)
     f.close()
 
-    s = load(fname, lazy=True, reader="HSPY")
+    s = hs.load(fname, lazy=True, reader="HSPY")
     assert shape == s.data.shape
     assert isinstance(s.data, da.Array)
     assert s._lazy
@@ -498,7 +493,9 @@ def test_lazy_loading(tmp_path):
 
 def test_passing_compression_opts_saving(tmp_path):
     filename = tmp_path / "testfile.hdf5"
-    BaseSignal([1, 2, 3]).save(filename, compression_opts=8, file_format="HSPY")
+    hs.signals.BaseSignal([1, 2, 3]).save(
+        filename, compression_opts=8, file_format="HSPY"
+    )
 
     f = h5py.File(filename, mode="r+")
     d = f["Experiments/__unnamed__/data"]
@@ -510,12 +507,12 @@ def test_passing_compression_opts_saving(tmp_path):
 @zspy_marker
 def test_axes_configuration(tmp_path, file):
     fname = tmp_path / file
-    s = BaseSignal(np.zeros((2, 2, 2, 2, 2)))
+    s = hs.signals.BaseSignal(np.zeros((2, 2, 2, 2, 2)))
     s.axes_manager.signal_axes[0].navigate = True
     s.axes_manager.signal_axes[0].navigate = True
 
     s.save(fname, overwrite=True)
-    s = load(fname)
+    s = hs.load(fname)
     assert s.axes_manager.navigation_axes[0].index_in_array == 4
     assert s.axes_manager.navigation_axes[1].index_in_array == 3
     assert s.axes_manager.signal_dimension == 3
@@ -524,25 +521,25 @@ def test_axes_configuration(tmp_path, file):
 @zspy_marker
 def test_axes_configuration_binning(tmp_path, file):
     fname = tmp_path / file
-    s = BaseSignal(np.zeros((2, 2, 2)))
+    s = hs.signals.BaseSignal(np.zeros((2, 2, 2)))
     s.axes_manager.signal_axes[-1].is_binned = True
     s.save(fname)
 
-    s = load(fname)
+    s = hs.load(fname)
     assert s.axes_manager.signal_axes[-1].is_binned
 
 
 @lazifyTestClass
 class Test_permanent_markers_io:
     def setup_method(self, method):
-        s = Signal2D(np.arange(100).reshape(10, 10))
+        s = hs.signals.Signal2D(np.arange(100).reshape(10, 10))
         self.s = s
 
     @zspy_marker
     def test_save_permanent_marker(self, tmp_path, file):
         filename = tmp_path / file
         s = self.s
-        m = markers.point(x=5, y=5)
+        m = hs.markers.point(x=5, y=5)
         s.add_marker(m, permanent=True)
         s.save(filename)
 
@@ -550,12 +547,12 @@ class Test_permanent_markers_io:
     def test_save_load_empty_metadata_markers(self, tmp_path, file):
         filename = tmp_path / file
         s = self.s
-        m = markers.point(x=5, y=5)
+        m = hs.markers.point(x=5, y=5)
         m.name = "test"
         s.add_marker(m, permanent=True)
         del s.metadata.Markers.test
         s.save(filename)
-        s1 = load(filename)
+        s1 = hs.load(filename)
         assert len(s1.metadata.Markers) == 0
 
     @zspy_marker
@@ -566,11 +563,11 @@ class Test_permanent_markers_io:
         color = "red"
         size = 10
         name = "testname"
-        m = markers.point(x=x, y=y, color=color, size=size)
+        m = hs.markers.point(x=x, y=y, color=color, size=size)
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
-        s1 = load(filename)
+        s1 = hs.load(filename)
         assert s1.metadata.Markers.has_item(name)
         m1 = s1.metadata.Markers.get_item(name)
         assert m1.get_data_position("x1") == x
@@ -585,19 +582,19 @@ class Test_permanent_markers_io:
         s = self.s
         x1, y1, x2, y2 = 5, 2, 1, 8
         m0_list = [
-            markers.point(x=x1, y=y1),
-            markers.horizontal_line(y=y1),
-            markers.horizontal_line_segment(x1=x1, x2=x2, y=y1),
-            markers.line_segment(x1=x1, x2=x2, y1=y1, y2=y2),
-            markers.rectangle(x1=x1, x2=x2, y1=y1, y2=y2),
-            markers.text(x=x1, y=y1, text="test"),
-            markers.vertical_line(x=x1),
-            markers.vertical_line_segment(x=x1, y1=y1, y2=y2),
+            hs.markers.point(x=x1, y=y1),
+            hs.markers.horizontal_line(y=y1),
+            hs.markers.horizontal_line_segment(x1=x1, x2=x2, y=y1),
+            hs.markers.line_segment(x1=x1, x2=x2, y1=y1, y2=y2),
+            hs.markers.rectangle(x1=x1, x2=x2, y1=y1, y2=y2),
+            hs.markers.text(x=x1, y=y1, text="test"),
+            hs.markers.vertical_line(x=x1),
+            hs.markers.vertical_line_segment(x=x1, y1=y1, y2=y2),
         ]
         for m in m0_list:
             s.add_marker(m, permanent=True)
         s.save(filename)
-        s1 = load(filename)
+        s1 = hs.load(filename)
         markers_dict = s1.metadata.Markers
         m0_dict_list = []
         m1_dict_list = []
@@ -618,11 +615,11 @@ class Test_permanent_markers_io:
         color = "blue"
         linewidth = 2.5
         name = "horizontal_line_test"
-        m = markers.horizontal_line(y=y, color=color, linewidth=linewidth)
+        m = hs.markers.horizontal_line(y=y, color=color, linewidth=linewidth)
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
-        s1 = load(filename)
+        s1 = hs.load(filename)
         m1 = s1.metadata.Markers.get_item(name)
         assert san_dict(m1._to_dictionary()) == san_dict(m._to_dictionary())
 
@@ -634,13 +631,13 @@ class Test_permanent_markers_io:
         color = "red"
         linewidth = 1.2
         name = "horizontal_line_segment_test"
-        m = markers.horizontal_line_segment(
+        m = hs.markers.horizontal_line_segment(
             x1=x1, x2=x2, y=y, color=color, linewidth=linewidth
         )
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
-        s1 = load(filename)
+        s1 = hs.load(filename)
         m1 = s1.metadata.Markers.get_item(name)
         assert san_dict(m1._to_dictionary()) == san_dict(m._to_dictionary())
 
@@ -652,11 +649,11 @@ class Test_permanent_markers_io:
         color = "black"
         linewidth = 3.5
         name = "vertical_line_test"
-        m = markers.vertical_line(x=x, color=color, linewidth=linewidth)
+        m = hs.markers.vertical_line(x=x, color=color, linewidth=linewidth)
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
-        s1 = load(filename)
+        s1 = hs.load(filename)
         m1 = s1.metadata.Markers.get_item(name)
         assert san_dict(m1._to_dictionary()) == san_dict(m._to_dictionary())
 
@@ -668,13 +665,13 @@ class Test_permanent_markers_io:
         color = "white"
         linewidth = 4.2
         name = "vertical_line_segment_test"
-        m = markers.vertical_line_segment(
+        m = hs.markers.vertical_line_segment(
             x=x, y1=y1, y2=y2, color=color, linewidth=linewidth
         )
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
-        s1 = load(filename)
+        s1 = hs.load(filename)
         m1 = s1.metadata.Markers.get_item(name)
         assert san_dict(m1._to_dictionary()) == san_dict(m._to_dictionary())
 
@@ -686,13 +683,13 @@ class Test_permanent_markers_io:
         color = "cyan"
         linewidth = 0.7
         name = "line_segment_test"
-        m = markers.line_segment(
+        m = hs.markers.line_segment(
             x1=x1, x2=x2, y1=y1, y2=y2, color=color, linewidth=linewidth
         )
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
-        s1 = load(filename)
+        s1 = hs.load(filename)
         m1 = s1.metadata.Markers.get_item(name)
         assert san_dict(m1._to_dictionary()) == san_dict(m._to_dictionary())
 
@@ -703,11 +700,11 @@ class Test_permanent_markers_io:
         x, y = 9, 8
         color = "purple"
         name = "point test"
-        m = markers.point(x=x, y=y, color=color)
+        m = hs.markers.point(x=x, y=y, color=color)
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
-        s1 = load(filename)
+        s1 = hs.load(filename)
         m1 = s1.metadata.Markers.get_item(name)
         assert san_dict(m1._to_dictionary()) == san_dict(m._to_dictionary())
 
@@ -719,13 +716,13 @@ class Test_permanent_markers_io:
         color = "yellow"
         linewidth = 5
         name = "rectangle_test"
-        m = markers.rectangle(
+        m = hs.markers.rectangle(
             x1=x1, x2=x2, y1=y1, y2=y2, color=color, linewidth=linewidth
         )
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
-        s1 = load(filename)
+        s1 = hs.load(filename)
         m1 = s1.metadata.Markers.get_item(name)
         assert san_dict(m1._to_dictionary()) == san_dict(m._to_dictionary())
 
@@ -737,11 +734,11 @@ class Test_permanent_markers_io:
         color = "brown"
         name = "text_test"
         text = "a text"
-        m = markers.text(x=x, y=y, text=text, color=color)
+        m = hs.markers.text(x=x, y=y, text=text, color=color)
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
-        s1 = load(filename)
+        s1 = hs.load(filename)
         m1 = s1.metadata.Markers.get_item(name)
         assert san_dict(m1._to_dictionary()) == san_dict(m._to_dictionary())
 
@@ -751,14 +748,14 @@ class Test_permanent_markers_io:
         filename = tmp_path / file
         x, y = (1, 2, 3), (5, 6, 7)
         name = "test point"
-        s = Signal2D(np.arange(300).reshape(3, 10, 10))
+        s = hs.signals.Signal2D(np.arange(300).reshape(3, 10, 10))
         if lazy:
             s = s.as_lazy()
-        m = markers.point(x=x, y=y)
+        m = hs.markers.point(x=x, y=y)
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
-        s1 = load(filename)
+        s1 = hs.load(filename)
         m1 = s1.metadata.Markers.get_item(name)
         assert san_dict(m1._to_dictionary()) == san_dict(m._to_dictionary())
         assert m1.get_data_position("x1") == x[0]
@@ -774,7 +771,7 @@ class Test_permanent_markers_io:
         # test_marker_bad_marker_type.hdf5 has 5 markers,
         # where one of them has an unknown marker type
         fname = my_path / "hdf5_files" / "test_marker_bad_marker_type.hdf5"
-        s = load(fname, reader="HSPY")
+        s = hs.load(fname, reader="HSPY")
         assert len(s.metadata.Markers) == 4
 
     def test_load_missing_y2_value(self):
@@ -783,7 +780,7 @@ class Test_permanent_markers_io:
         # the point marker only needs the x1 and y1 value to work
         # so this should load
         fname = my_path / "hdf5_files" / "test_marker_point_y2_data_deleted.hdf5"
-        s = load(fname, reader="HSPY")
+        s = hs.load(fname, reader="HSPY")
         assert len(s.metadata.Markers) == 5
 
 
@@ -793,27 +790,27 @@ def test_save_load_model(tmp_path, file, lazy):
     from hyperspy._components.gaussian import Gaussian
 
     filename = tmp_path / file
-    s = Signal1D(np.ones((10, 10, 10, 10)))
+    s = hs.signals.Signal1D(np.ones((10, 10, 10, 10)))
     if lazy:
         s = s.as_lazy()
     m = s.create_model()
     m.append(Gaussian())
     m.store("test")
     s.save(filename)
-    signal2 = load(filename)
+    signal2 = hs.load(filename)
     m2 = signal2.models.restore("test")
     assert m.signal == m2.signal
 
 
 @pytest.mark.parametrize("compression", (None, "gzip", "lzf"))
 def test_compression(compression, tmp_path):
-    s = Signal1D(np.ones((3, 3)))
+    s = hs.signals.Signal1D(np.ones((3, 3)))
     s.save(tmp_path / "test_compression.hspy", overwrite=True, compression=compression)
-    load(tmp_path / "test_compression.hspy")
+    _ = hs.load(tmp_path / "test_compression.hspy")
 
 
 def test_strings_from_py2():
-    s = EDS_TEM_Spectrum()
+    s = hs.datasets.example_signals.EDS_TEM_Spectrum()
     assert isinstance(s.metadata.Sample.elements, list)
 
 
@@ -821,10 +818,10 @@ def test_strings_from_py2():
 def test_save_ragged_array(tmp_path, file):
     a = np.array([0, 1])
     b = np.array([0, 1, 2])
-    s = BaseSignal(np.array([a, b], dtype=object), ragged=True)
+    s = hs.signals.BaseSignal(np.array([a, b], dtype=object), ragged=True)
     fname = tmp_path / file
     s.save(fname)
-    s1 = load(fname)
+    s1 = hs.load(fname)
     for i in range(len(s.data)):
         np.testing.assert_allclose(s.data[i], s1.data[i])
     assert s.__class__ == s1.__class__
@@ -836,11 +833,11 @@ def test_save_ragged_dim2(tmp_path, file):
     for i in range(1, 6):
         x[i - 1] = np.array([list(range(i)), list(range(i))])
 
-    s = BaseSignal(x, ragged=True)
+    s = hs.signals.BaseSignal(x, ragged=True)
 
     filename = tmp_path / file
     s.save(filename)
-    s2 = load(filename)
+    s2 = hs.load(filename)
 
     for i, j in zip(s.data, s2.data):
         np.testing.assert_array_equal(i, j)
@@ -849,7 +846,7 @@ def test_save_ragged_dim2(tmp_path, file):
 def test_load_missing_extension(caplog):
     path = my_path / "hdf5_files" / "hspy_ext_missing.hspy"
     with pytest.warns(UserWarning):
-        s = load(path)
+        s = hs.load(path)
     assert "This file contains a signal provided by the hspy_ext_missing" in caplog.text
     with pytest.raises(ImportError):
         _ = s.models.restore("a")
@@ -859,7 +856,7 @@ def test_load_missing_extension(caplog):
 def test_save_chunks_signal_metadata(tmp_path, file):
     N = 10
     dim = 3
-    s = Signal1D(np.arange(N**dim).reshape([N] * dim))
+    s = hs.signals.Signal1D(np.arange(N**dim).reshape([N] * dim))
     s.navigator = s.sum(-1)
     s.change_dtype("float")
     s.decomposition()
@@ -867,53 +864,53 @@ def test_save_chunks_signal_metadata(tmp_path, file):
     filename = tmp_path / file
     chunks = (5, 5, 10)
     s.save(filename, chunks=chunks)
-    s2 = load(filename, lazy=True)
+    s2 = hs.load(filename, lazy=True)
     assert tuple([c[0] for c in s2.data.chunks]) == chunks
 
 
 @zspy_marker
 def test_chunking_saving_lazy(tmp_path, file):
-    s = Signal2D(da.zeros((50, 100, 100))).as_lazy()
+    s = hs.signals.Signal2D(da.zeros((50, 100, 100))).as_lazy()
     s.data = s.data.rechunk([50, 25, 25])
 
     filename = tmp_path / "test_chunking_saving_lazy.hspy"
     filename2 = tmp_path / "test_chunking_saving_lazy_chunks_True.hspy"
     filename3 = tmp_path / "test_chunking_saving_lazy_chunks_specified.hspy"
     s.save(filename)
-    s1 = load(filename, lazy=True)
+    s1 = hs.load(filename, lazy=True)
     assert s.data.chunks == s1.data.chunks
 
     # with chunks=True, use h5py chunking
     s.save(filename2, chunks=True)
-    s2 = load(filename2, lazy=True)
+    s2 = hs.load(filename2, lazy=True)
     assert tuple([c[0] for c in s2.data.chunks]) == (7, 25, 25)
 
     # specify chunks
     chunks = (50, 10, 10)
     s.save(filename3, chunks=chunks)
-    s3 = load(filename3, lazy=True)
+    s3 = hs.load(filename3, lazy=True)
     assert tuple([c[0] for c in s3.data.chunks]) == chunks
 
 
 def test_saving_close_file(tmp_path):
     # Setup that we will reopen
-    s = Signal1D(da.zeros((10, 100))).as_lazy()
+    s = hs.signals.Signal1D(da.zeros((10, 100))).as_lazy()
     fname = tmp_path / "test.hspy"
     s.save(fname, close_file=True)
 
-    s2 = load(fname, lazy=True, mode="a")
+    s2 = hs.load(fname, lazy=True, mode="a")
     assert get_file_handle(s2.data) is not None
     s2.save(fname, close_file=True, overwrite=True)
     assert get_file_handle(s2.data) is None
 
-    s3 = load(fname, lazy=True, mode="a")
+    s3 = hs.load(fname, lazy=True, mode="a")
     assert get_file_handle(s3.data) is not None
     s3.save(fname, close_file=False, overwrite=True)
     assert get_file_handle(s3.data) is not None
     s3.close_file()
     assert get_file_handle(s3.data) is None
 
-    s4 = load(fname, lazy=True)
+    s4 = hs.load(fname, lazy=True)
     assert get_file_handle(s4.data) is not None
     with pytest.raises(OSError):
         s4.save(fname, overwrite=True)
@@ -921,22 +918,22 @@ def test_saving_close_file(tmp_path):
 
 @zspy_marker
 def test_saving_overwrite_data(tmp_path, file):
-    s = Signal1D(da.zeros((10, 100))).as_lazy()
+    s = hs.signals.Signal1D(da.zeros((10, 100))).as_lazy()
     kwds = dict(close_file=True) if file == "test.hspy" else {}
     fname = tmp_path / file
     s.save(fname, **kwds)
 
-    s2 = load(fname, lazy=True, mode="a")
+    s2 = hs.load(fname, lazy=True, mode="a")
     s2.axes_manager[0].units = "nm"
     s2.data = da.ones((10, 100))
     s2.save(fname, overwrite=True, write_dataset=False)
 
-    s3 = load(fname)
+    s3 = hs.load(fname)
     assert s3.axes_manager[0].units == "nm"
     # Still old data
     np.testing.assert_allclose(s3.data, np.zeros((10, 100)))
 
-    s4 = load(fname)
+    s4 = hs.load(fname)
     s4.data = da.ones((10, 100))
     if file == "test.hspy":
         # try with opening non-lazily to check opening mode
@@ -946,17 +943,17 @@ def test_saving_overwrite_data(tmp_path, file):
 
     s4.save(fname, overwrite=True, write_dataset=True)
     # make sure we can open it after, file haven't been corrupted
-    _ = load(fname)
+    _ = hs.load(fname)
     # now new data
     @zspy_marker
     def test_chunking_saving_lazy_specify(self, tmp_path, file):
         filename = tmp_path / file
-        s = Signal2D(da.zeros((50, 100, 100))).as_lazy()
+        s = hs.signals.Signal2D(da.zeros((50, 100, 100))).as_lazy()
         # specify chunks
         chunks = (50, 10, 10)
         s.data = s.data.rechunk([50, 25, 25])
         s.save(filename, chunks=chunks)
-        s1 = load(filename, lazy=True)
+        s1 = hs.load(filename, lazy=True)
         assert tuple([c[0] for c in s1.data.chunks]) == chunks
 
 
@@ -994,7 +991,7 @@ def test_get_signal_chunks_small_dataset():
 @zspy_marker
 def test_error_saving(tmp_path, file):
     filename = tmp_path / file
-    s = Signal1D(np.arange(10))
+    s = hs.signals.Signal1D(np.arange(10))
 
     with pytest.raises(ValueError):
         s.save(filename, write_dataset="unsupported_type")
@@ -1003,12 +1000,12 @@ def test_error_saving(tmp_path, file):
 
 def test_more_recent_version_warning(tmp_path):
     filename = tmp_path / "test.hspy"
-    s = Signal1D(np.arange(10))
+    s = hs.signals.Signal1D(np.arange(10))
     s.save(filename)
 
     with h5py.File(filename, mode="a") as f:
         f.attrs["file_format_version"] = "99999999"
 
     with pytest.warns(UserWarning):
-        s2 = load(filename)
+        s2 = hs.load(filename)
     np.testing.assert_allclose(s.data, s2.data)

@@ -4,9 +4,10 @@ import os
 import numpy as np
 import pytest
 
-from hyperspy import __version__ as hs_version
-from hyperspy import signals
-from hyperspy.io import load
+from rsciio.exceptions import VisibleDeprecationWarning
+
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
 from hyperspy.misc.test_utils import assert_deep_almost_equal
 
 test_files = [
@@ -26,12 +27,12 @@ my_path = os.path.dirname(__file__)
 
 
 def test_load_16bit():
-    # test bcf from hyperspy load function level
+    # test bcf from hyperspy hs.load function level
     # some of functions can be not covered
     # it cant use cython parsing implementation, as it is not compiled
     filename = os.path.join(my_path, "bruker_data", test_files[0])
     print("testing bcf instructively packed 16bit...")
-    s = load(filename)
+    s = hs.load(filename)
     bse, hype = s
     # Bruker saves all images in true 16bit:
     assert bse.data.dtype == np.uint16
@@ -46,7 +47,7 @@ def test_load_16bit():
 def test_load_16bit_reduced():
     filename = os.path.join(my_path, "bruker_data", test_files[0])
     print("testing downsampled 16bit bcf...")
-    s = load(filename, downsample=4, cutoff_at_kV=10)
+    s = hs.load(filename, downsample=4, cutoff_at_kV=10)
     bse, hype = s
     # sem images are never downsampled
     assert bse.data.shape == (30, 30)
@@ -62,14 +63,14 @@ def test_load_16bit_reduced():
 def test_load_16bit_cutoff_zealous():
     filename = os.path.join(my_path, "bruker_data", test_files[0])
     print("testing downsampled 16bit bcf with cutoff_at_kV=zealous...")
-    hype = load(filename, cutoff_at_kV="zealous", select_type="spectrum_image")
+    hype = hs.load(filename, cutoff_at_kV="zealous", select_type="spectrum_image")
     assert hype.data.shape == (30, 30, 2048)
 
 
 def test_load_16bit_cutoff_auto():
     filename = os.path.join(my_path, "bruker_data", test_files[0])
     print("testing downsampled 16bit bcf with cutoff_at_kV=auto...")
-    hype = load(filename, cutoff_at_kV="auto", select_type="spectrum_image")
+    hype = hs.load(filename, cutoff_at_kV="auto", select_type="spectrum_image")
     assert hype.data.shape == (30, 30, 2048)
 
 
@@ -77,7 +78,7 @@ def test_load_8bit():
     for bcffile in test_files[1:3]:
         filename = os.path.join(my_path, "bruker_data", bcffile)
         print("testing simple 8bit bcf...")
-        s = load(filename)
+        s = hs.load(filename)
         bse, hype = s[0], s[-1]
         # Bruker saves all images in true 16bit:
         assert bse.data.dtype == np.uint16
@@ -88,11 +89,10 @@ def test_load_8bit():
 def test_hyperspy_wrap():
     filename = os.path.join(my_path, "bruker_data", test_files[0])
     print("testing bcf wrap to hyperspy signal...")
-    from rsciio.exceptions import VisibleDeprecationWarning
 
     with pytest.warns(VisibleDeprecationWarning):
-        hype = load(filename, select_type="spectrum")
-    hype = load(filename, select_type="spectrum_image")
+        hype = hs.load(filename, select_type="spectrum")
+    hype = hs.load(filename, select_type="spectrum_image")
     np.testing.assert_allclose(hype.axes_manager[0].scale, 1.66740910949362, atol=1e-12)
     np.testing.assert_allclose(hype.axes_manager[1].scale, 1.66740910949362, atol=1e-12)
     assert hype.axes_manager[1].units == "µm"
@@ -132,7 +132,7 @@ def test_hyperspy_wrap():
             "FileIO": {
                 "0": {
                     "operation": "load",
-                    "hyperspy_version": hs_version,
+                    "hyperspy_version": hs.__version__,
                     "io_plugin": "rsciio.bruker.api",
                 }
             },
@@ -203,7 +203,7 @@ def test_hyperspy_wrap():
 def test_hyperspy_wrap_downsampled():
     filename = os.path.join(my_path, "bruker_data", test_files[0])
     print("testing bcf wrap to hyperspy signal...")
-    hype = load(filename, select_type="spectrum_image", downsample=5)
+    hype = hs.load(filename, select_type="spectrum_image", downsample=5)
     np.testing.assert_allclose(
         hype.axes_manager[0].scale, 8.337045547468101, atol=1e-12
     )
@@ -215,30 +215,30 @@ def test_hyperspy_wrap_downsampled():
 
 def test_get_mode():
     filename = os.path.join(my_path, "bruker_data", test_files[0])
-    s = load(filename, select_type="spectrum_image", instrument="SEM")
+    s = hs.load(filename, select_type="spectrum_image", instrument="SEM")
     assert s.metadata.Signal.signal_type == "EDS_SEM"
-    assert isinstance(s, signals.EDSSEMSpectrum)
+    assert isinstance(s, hs.signals.EDSSEMSpectrum)
 
     filename = os.path.join(my_path, "bruker_data", test_files[0])
-    s = load(filename, select_type="spectrum_image", instrument="TEM")
+    s = hs.load(filename, select_type="spectrum_image", instrument="TEM")
     assert s.metadata.Signal.signal_type == "EDS_TEM"
-    assert isinstance(s, signals.EDSTEMSpectrum)
+    assert isinstance(s, hs.signals.EDSTEMSpectrum)
 
     filename = os.path.join(my_path, "bruker_data", test_files[0])
-    s = load(filename, select_type="spectrum_image")
+    s = hs.load(filename, select_type="spectrum_image")
     assert s.metadata.Signal.signal_type == "EDS_SEM"
-    assert isinstance(s, signals.EDSSEMSpectrum)
+    assert isinstance(s, hs.signals.EDSSEMSpectrum)
 
     filename = os.path.join(my_path, "bruker_data", test_files[3])
-    s = load(filename, select_type="spectrum_image")
+    s = hs.load(filename, select_type="spectrum_image")
     assert s.metadata.Signal.signal_type == "EDS_TEM"
-    assert isinstance(s, signals.EDSTEMSpectrum)
+    assert isinstance(s, hs.signals.EDSTEMSpectrum)
 
 
 def test_wrong_file():
     filename = os.path.join(my_path, "bruker_data", "Nope.bcf")
     with pytest.raises(TypeError):
-        load(filename)
+        hs.load(filename)
 
 
 def test_fast_bcf():
@@ -280,14 +280,14 @@ def test_decimal_regex():
 def test_all_spx_loads():
     for spxfile in spx_files:
         filename = os.path.join(my_path, "bruker_data", spxfile)
-        s = load(filename)
+        s = hs.load(filename)
         assert s.data.dtype == np.uint64
         assert s.metadata.Signal.signal_type == "EDS_SEM"
 
 
 def test_stand_alone_spx():
     filename = os.path.join(my_path, "bruker_data", "bruker_nano.spx")
-    s = load(filename)
+    s = hs.load(filename)
     assert s.metadata.Sample.elements == ["Fe", "S", "Cu"]
     assert s.metadata.Acquisition_instrument.SEM.Detector.EDS.live_time == 7.385
 
@@ -298,6 +298,6 @@ def test_bruker_XRF():
     filename = os.path.join(
         my_path, "bruker_data", "bruker_m6_jetstream_file_example.spx"
     )
-    s = load(filename)
+    s = hs.load(filename)
     assert s.metadata.Acquisition_instrument.TEM.Detector.EDS.live_time == 28.046
     assert s.metadata.Acquisition_instrument.TEM.beam_energy == 50

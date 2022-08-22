@@ -148,7 +148,6 @@ def get_data_dtype_list(file, offset, record_by):
         data_type = readLEShort(file)
         array_size_x = readLELong(file)
         array_size_y = readLELong(file)
-        array_size = array_size_x * array_size_y
         header = [
             ("CalibrationOffsetX", ("<f8")),
             ("CalibrationDeltaX", "<f8"),

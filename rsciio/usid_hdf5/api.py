@@ -432,10 +432,6 @@ def file_reader(
             h5_dset, ignore_non_uniform_dims=ignore_non_uniform_dims, lazy=lazy, **kwds
         )
 
-    # At least close the file handle if not lazy load
-    if not lazy:
-        h5_f.close()
-
 
 def file_writer(filename, object2save, **kwds):
     """

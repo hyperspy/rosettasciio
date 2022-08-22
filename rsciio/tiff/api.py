@@ -939,7 +939,7 @@ def _get_scale_unit(axes, encoding=None):
     units = [ax["units"] for ax in axes]
     offsets = [ax["offset"] for ax in axes]
     for i, unit in enumerate(units):
-        if unit == None:
+        if unit is None:
             units[i] = ""
         if encoding is not None:
             units[i] = units[i].encode(encoding)

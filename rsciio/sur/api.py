@@ -1122,7 +1122,7 @@ class DigitalSurfHandler(object):
             return default
         return struct.unpack("<f", file.read(4))[0]
 
-    def _set_float(file, val):
+    def _set_float(self,file, val):
         """write a 4-bytes (single precision) float in a file"""
         file.write(struct.pack("<f", val))
 

@@ -895,8 +895,6 @@ class DigitalSurfHandler(object):
         """Builds a metadata dictionnary from the header"""
         original_metadata_dict = {}
 
-        Ntot = (self._N_data_object + 1) * (self._N_data_channels + 1)
-
         # Iteration over Number of data objects
         for i in range(self._N_data_object):
             # Iteration over the Number of Data channels
@@ -1122,7 +1120,7 @@ class DigitalSurfHandler(object):
             return default
         return struct.unpack("<f", file.read(4))[0]
 
-    def _set_float(self,file, val):
+    def _set_float(self, file, val):
         """write a 4-bytes (single precision) float in a file"""
         file.write(struct.pack("<f", val))
 
@@ -1161,7 +1159,7 @@ class DigitalSurfHandler(object):
 
     def _pack_private(self, file, val, encoding="latin-1"):
         privatesize = self._get_work_dict_key_value("_51_Private_size")
-        self._set_str(file, val, commentsize)
+        self._set_str(file, val, privatesize)
 
     def _unpack_data(self, file, encoding="latin-1"):
         """This needs to be special because it reads until the end of

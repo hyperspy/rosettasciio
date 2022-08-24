@@ -66,20 +66,26 @@ def read_binary_metadata(file, mapping_dict):
         return None
 
 
+def xml_branch(child):
+    new_dict = {}
+    if len(child) != 0:
+        for c in child:
+            new_dict[c.tag] = xml_branch(c)
+        return new_dict
+    else:
+        new_dict = child.attrib
+        for key in new_dict:
+            try:
+                new_dict[key] = float(new_dict[key])
+            except ValueError:
+                pass
+        return new_dict
+
+
 def parse_xml(file):
     try:
         tree = ET.parse(file)
-        xml_dict = {}
-        for i in tree.iter():
-            xml_dict[i.tag] = i.attrib
-        # clean_xml
-        for k1 in xml_dict:
-            for k2 in xml_dict[k1]:
-                if k2 == "Value":
-                    try:
-                        xml_dict[k1] = float(xml_dict[k1][k2])
-                    except ValueError:
-                        xml_dict[k1] = xml_dict[k1][k2]
+        xml_dict = xml_branch(tree.getroot())
     except FileNotFoundError:
         _logger.warning(
             msg="File " + file + " not found. Please"

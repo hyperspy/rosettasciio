@@ -423,11 +423,15 @@ def file_reader(
                 lazy=lazy,
                 **kwds,
             )
+        if not lazy:
+            h5_f.close()
         return signals
     else:
         if not isinstance(dataset_path, str):
             raise TypeError("'dataset_path' should be a string")
         h5_dset = h5_f[dataset_path]
+        if not lazy:
+            h5_f.close()
         return _usidataset_to_signal(
             h5_dset, ignore_non_uniform_dims=ignore_non_uniform_dims, lazy=lazy, **kwds
         )

@@ -362,9 +362,43 @@ class CeleritasReader(SeqReader):
         if xml_dict is not None:
             # The segment prebuffer is used to save data more
             # quickly as multiple images are saved in one buffer
-            if "SegmentPreBuffer" in xml_dict:
-                self.buffer = xml_dict["SegmentPreBuffer"]
+            if "SegmentPreBuffer" in xml_dict["FileInfo"]:
+                self.buffer = int(xml_dict["FileInfo"]["SegmentPreBuffer"]["Value"])
         return xml_dict
+
+    def _read_metadata(self):
+        metadata_header_dict = {
+            "Version": ["<u4", 0],
+            "MetadataVersion": [np.uintc, 276],
+            "UnbinnedFrameWidth": [np.uintc, 280],
+            "UnbinnedFrameHeight": ["<u4", 284],
+            "HardwareBinning": ["<u4", 296],
+            "CameraBitRate": ["<u4", 300],
+            "FrameRate": [np.float64, 304],
+            "ImageRotation": ["<u4", 312],
+            "ImageFlipping": ["<u4", 316],
+            "OKRA": [bool, 320],
+            "GlobalShutter": [bool, 321],
+            "OffChipCDS": [bool, 322],
+            "AKRA": [bool, 323],
+            "SensorSequence": ["<u4", 324],
+            "CameraType": ["<u4", 328],
+            "SensorGainMode": ["<u4", 332],
+            "SensorGain": [np.float64, 336],
+            "Magnification": [np.float64, 344],
+            "PixelSize": [np.float64, 352],
+            "CameraLength": [np.float64, 360],
+            "DiffPixelSize": [np.float64, 368],
+        }
+        metadata_dict = read_binary_metadata(self.metadata_file, metadata_header_dict)
+        self.original_metadata["Metadata"] = metadata_dict
+        self.metadata["acquisition_instrument"] = {
+            "TEM": {
+                "camera_length": metadata_dict["CameraLength"],
+                "magnification": metadata_dict["Magnification"],
+            }
+        }
+        return metadata_dict
 
     def read_data(self, navigation_shape=None, lazy=False):
         header = self._read_file_header()
@@ -530,7 +564,7 @@ def read_stitch_binary(
     navigation_shape=None,
     lazy=False,
 ):
-    """Read adn stitch the top and bottom files
+    """Read and stitch the top and bottom files
     Parameters
     ----------
     top: str

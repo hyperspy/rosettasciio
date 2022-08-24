@@ -74,7 +74,7 @@ class TestLoadCeleritas:
             "dark": files[2],
             "gain": files[3],
             "xml": files[0],
-            "metadata": files[7],
+            "metadata": files[5],
         }
         return CeleritasReader(**kws)
 
@@ -90,14 +90,19 @@ class TestLoadCeleritas:
             header["FPS"], 300, 1
         )  # This value is wrong for the celeritas camera
 
+    def test_parse_metadata(self, seq):
+        print(seq.metadata_file)
+        header = seq._read_metadata()
+        print(header)
+
     def test_parse_xml(self, seq):
         xml = seq._read_xml()
-        assert xml["ImageSizeX"] == 256
-        assert xml["ImageSizeY"] == 128
-        assert xml["FrameRate"] == 40000  # correct FPS
-        assert xml["DarkRef"] == "Yes"
-        assert xml["GainRef"] == "Yes"
-        assert xml["SegmentPreBuffer"] == 128
+        assert xml["FileInfo"]["ImageSizeX"]["Value"] == 256
+        assert xml["FileInfo"]["ImageSizeY"]["Value"] == 128
+        assert xml["FileInfo"]["FrameRate"]["Value"] == 40000  # correct FPS
+        assert xml["FileInfo"]["DarkRef"]["Value"] == "Yes"
+        assert xml["FileInfo"]["GainRef"]["Value"] == "Yes"
+        assert xml["FileInfo"]["SegmentPreBuffer"]["Value"] == 128
 
     @pytest.mark.parametrize("nav_shape", [(), (5, 4), (5, 3)])
     def test_read(self, seq, nav_shape):
@@ -115,6 +120,7 @@ def test_load_file():
         "de_data/celeritas_data/128x256_PRebuffer128/test_Top_14-04-59.355.seq",
         celeritas=True,
     )
+
     assert data_dict["data"].shape == (128, 128, 256)
 
 

@@ -696,10 +696,8 @@ def write_raw(filename, signal, record_by, sig_axes, nav_axes):
                 filename
             )
         elif record_by == "image":
-            data = (
-                np.rollaxis(data, signal["axes"].index(nav_axes[0]), 0)
-                .ravel()
-                .tofile(filename)
+            np.rollaxis(data, signal["axes"].index(nav_axes[0]), 0).ravel().tofile(
+                filename
             )
     elif len(dshape) == 2:
         if record_by == "vector":

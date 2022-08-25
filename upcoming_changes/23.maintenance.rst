@@ -1,0 +1,1 @@
+Fixes and code consistency improvements based on analysis provided by lgtm.org

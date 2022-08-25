@@ -750,8 +750,6 @@ def _readcube(
     frame_num = 0
     p_start = 0
     target_frame_num = 0
-    eof = rawdata.size
-    countup = 1
     has_em_image = False
     for frame_idx in frame_list:
         if frame_idx < 0:

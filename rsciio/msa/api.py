@@ -20,7 +20,6 @@ from datetime import datetime as dt
 import codecs
 import os
 import logging
-from pydoc import doc
 from turtle import dot
 
 import numpy as np

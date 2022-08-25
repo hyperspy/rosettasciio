@@ -66,7 +66,7 @@ def cythonize_extensions(extensions):
     try:
         from Cython.Build import cythonize
 
-        return cythonize(extensions)
+        return cythonize(extensions, language_level="3")
     except ImportError:
         warnings.warn(
             """WARNING: cython required to generate fast c code is not found on this system.
@@ -148,7 +148,7 @@ class Recythonize(Command):
 
         global raw_extensions
         global extensions
-        cythonize(extensions)
+        cythonize(extensions, language_level="3")
 
 
 install_requires = [

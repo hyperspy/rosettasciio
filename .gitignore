@@ -6,3 +6,4 @@
 *test_compilers.obj
 *pyd
 .spyproject/*
+rsciio/bruker/unbcf_fast.c

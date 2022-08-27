@@ -78,7 +78,6 @@ def test_read_stack(lazy):
     assert s.metadata.General.date == "2019-06-07"
     assert s.metadata.General.time == "13:17:22.590279"
     assert s.metadata.Signal.signal_type == "electron_diffraction"
-    del s
 
 
 @pytest.mark.parametrize("lazy", (False, True))

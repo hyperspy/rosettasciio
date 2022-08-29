@@ -147,8 +147,8 @@ def test_load_file3():
         "de_data/celeritas_data/64x64_Prebuffer256/test_Bottom_14-13-42.822.seq",
         celeritas=True,
         lazy=True,
-        navigation_shape=(50, 50),
+        navigation_shape=(513,),
     )
     assert isinstance(data_dict["data"], dask.array.Array)
-    assert data_dict["data"].shape == (50, 50, 64, 64)
-    assert np.max(data_dict["data"]) < 20
+    assert data_dict["data"].shape == (513, 64, 64)
+    assert np.max(data_dict["data"][0]).compute() < 35

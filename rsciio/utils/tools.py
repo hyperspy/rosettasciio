@@ -44,9 +44,9 @@ def dummy_context_manager(*args, **kwargs):
 def seek_read(file, dtype, pos):
     file.seek(pos)
     data = np.squeeze(np.fromfile(file, dtype, count=1))[()]
-    if data.type == np.uint32:
+    if type(data) == np.uint32:
         data = int(data)
-    return
+    return data
 
 
 def read_binary_metadata(file, mapping_dict):

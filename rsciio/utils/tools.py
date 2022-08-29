@@ -25,6 +25,7 @@ from collections import OrderedDict
 from contextlib import contextmanager
 import importlib
 
+import dask.array as da
 import numpy as np
 from box import Box
 from pint import UnitRegistry
@@ -94,6 +95,27 @@ def parse_xml(file):
         )
         return None
     return xml_dict
+
+
+def get_chunk_index(shape,
+                    signal_axes=(-1, -2),
+                    chunks="auto",
+                    block_size_limit=None,
+                    dtype=None,
+                    ):
+    nav_shape = np.delete(np.array(shape), signal_axes)
+    num_frames = np.prod(nav_shape)
+    indexes = da.arange(num_frames)
+    indexes = da.reshape(indexes, nav_shape)
+    chunks = da.core.normalize_chunks(chunks=chunks,
+                                      shape=shape,
+                                      limit=block_size_limit,
+                                      dtype=dtype)
+
+    nav_chunks = tuple(np.delete(np.array(chunks, dtype=object), signal_axes))
+    indexes = da.rechunk(indexes, chunks=nav_chunks)
+    return indexes
+
 
 
 def dump_dictionary(

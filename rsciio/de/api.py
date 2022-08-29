@@ -638,6 +638,7 @@ def read_stitch_binary_distributed(
         gain=gain,
         dark=dark,
         dtype=np.float32,
+        new_axis=(len(indexes.shape), len(indexes.shape)+1),
         chunks=indexes.chunks + (shape[-2], shape[-1]),
     )
     return data

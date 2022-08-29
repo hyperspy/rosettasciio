@@ -46,6 +46,8 @@ def seek_read(file, dtype, pos):
     data = np.squeeze(np.fromfile(file, dtype, count=1))[()]
     if type(data) == np.uint32:
         data = int(data)
+    if type(data) == np.bool_:
+        data =bool(data)
     return data
 
 

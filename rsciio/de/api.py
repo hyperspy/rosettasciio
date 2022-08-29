@@ -29,7 +29,7 @@ _logger = logging.getLogger(__name__)
 data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}  # Stream Pix data types
 
 
-def file_reader(filename, navigation_shape=(), lazy=False, celeritas=False, **kwargs):
+def file_reader(filename, navigation_shape=None, lazy=False, celeritas=False, **kwargs):
     """ Reads the .seq file format from the DE 16 and DE Celeritas cameras.  This file
     format is generic and used by the 3rd party software StreamPix.  While this
     file loader may load data saved from other cameras it is not guaranteed  to

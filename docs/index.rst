@@ -42,6 +42,7 @@ Table of contents
    :maxdepth: 2
 
    supported_formats/index
+   api
    interoperatibility
    file_specification/index
    changes

@@ -11,8 +11,9 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 API Removal
 -----------
 
-Following the deprecation cycle, the following keywords and attributes have been
-removed:
+Following the deprecation cycle announced in `HyperSpy
+<https://hyperspy.org/hyperspy-doc/current/user_guide/changes.html>`_,
+the following keywords and attributes have been removed:
 
 - :ref:`Bruker composite file (BCF) <bcf-format>`: The 'spectrum' option for the
   `select_type` parameter was removed. Use 'spectrum_image' instead.

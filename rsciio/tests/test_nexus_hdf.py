@@ -134,7 +134,6 @@ class TestDLSNexus:
             s.original_metadata.entry1.instrument.stage1_x.value_set.value
 
 
-
 class TestDLSNexusNoAxes:
     def setup_method(self, method):
         self.file = file4

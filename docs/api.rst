@@ -87,9 +87,9 @@ following files:
       * (optional) A function called ``file_writer`` with at least two attributes: 
         ``filename`` and ``object2save`` (a python dictionary) in that order.
 
-Tests covering the functionality covering the reader should be added to the
+Tests covering the functionality of the plugin should be added to the
 ``tests`` directory with the naming ``test_spamandeggs.py`` corresponsing to
-the reader residing in the directory ``spamandeggs``. Data files for the tests
+the plugin residing in the directory ``spamandeggs``. Data files for the tests
 should be placed in a corresponding subdirectory [change for pooch].
 
 .. Note ::

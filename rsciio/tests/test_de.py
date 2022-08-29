@@ -104,11 +104,11 @@ class TestLoadCeleritas:
         assert xml["FileInfo"]["GainRef"]["Value"] == "Yes"
         assert xml["FileInfo"]["SegmentPreBuffer"]["Value"] == 128
 
-    @pytest.mark.parametrize("nav_shape", [(), (5, 4), (5, 3)])
+    @pytest.mark.parametrize("nav_shape", [None, (5, 4), (5, 3)])
     def test_read(self, seq, nav_shape):
         data_dict = seq.read_data(navigation_shape=nav_shape)
         shape = (512, 128, 256)
-        if nav_shape != ():
+        if nav_shape != None:
             shape = nav_shape + shape[1:]
         assert data_dict["data"].shape == shape
         assert data_dict["axes"][-1]["size"] == data_dict["data"].shape[-1]
@@ -150,4 +150,5 @@ def test_load_file3():
         navigation_shape=(50, 50),
     )
     assert isinstance(data_dict["data"], dask.array.Array)
-    assert data_dict["data"].shape == (50, 50, 256, 64, 64)
+    assert data_dict["data"].shape == (50, 50, 64, 64)
+    assert np.max(data_dict["data"]) < 20

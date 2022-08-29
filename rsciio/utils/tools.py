@@ -97,9 +97,12 @@ def parse_xml(file):
     return xml_dict
 
 
-def get_chunk_index(
-    shape, signal_axes=(-1, -2), chunks="auto", block_size_limit=None, dtype=None,
-):
+def get_chunk_index(shape,
+                    signal_axes=(-1, -2),
+                    chunks="auto",
+                    block_size_limit=None,
+                    dtype=None,
+                    ):
     nav_shape = np.delete(np.array(shape), signal_axes)
     num_frames = np.prod(nav_shape)
     indexes = da.arange(num_frames)

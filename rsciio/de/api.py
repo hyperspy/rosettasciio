@@ -29,7 +29,7 @@ _logger = logging.getLogger(__name__)
 data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}  # Stream Pix data types
 
 
-def file_reader(filename, navigation_shape=None, lazy=False, celeritas=False, **kwargs):
+def file_reader(filename, navigation_shape=None, lazy=False, celeritas=False,chunks="auto", **kwargs):
     """ Reads the .seq file format from the DE 16 and DE Celeritas cameras.  This file
     format is generic and used by the 3rd party software StreamPix.  While this
     file loader may load data saved from other cameras it is not guaranteed  to
@@ -116,7 +116,7 @@ def file_reader(filename, navigation_shape=None, lazy=False, celeritas=False, **
         reader = CeleritasReader(file=filename, top=top, bottom=bottom, **kwargs)
     else:
         reader = SeqReader(file=filename, **kwargs)
-    return reader.read_data(navigation_shape=navigation_shape, lazy=lazy)
+    return reader.read_data(navigation_shape=navigation_shape, lazy=lazy, chunks=chunks)
 
 
 class SeqReader:
@@ -637,6 +637,7 @@ def read_stitch_binary_distributed(
         total_buffer_frames=total_buffer_frames,
         gain=gain,
         dark=dark,
+        dtype=np.float32,
         chunks=indexes.chunks + (shape[-2], shape[-1]),
     )
     return data

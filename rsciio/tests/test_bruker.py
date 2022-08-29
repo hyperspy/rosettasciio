@@ -4,8 +4,6 @@ import os
 import numpy as np
 import pytest
 
-from rsciio.exceptions import VisibleDeprecationWarning
-
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 from hyperspy.misc.test_utils import assert_deep_almost_equal
@@ -90,8 +88,6 @@ def test_hyperspy_wrap():
     filename = os.path.join(my_path, "bruker_data", test_files[0])
     print("testing bcf wrap to hyperspy signal...")
 
-    with pytest.warns(VisibleDeprecationWarning):
-        hype = hs.load(filename, select_type="spectrum")
     hype = hs.load(filename, select_type="spectrum_image")
     np.testing.assert_allclose(hype.axes_manager[0].scale, 1.66740910949362, atol=1e-12)
     np.testing.assert_allclose(hype.axes_manager[1].scale, 1.66740910949362, atol=1e-12)

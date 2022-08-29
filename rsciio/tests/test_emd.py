@@ -173,11 +173,6 @@ class TestDatasetName:
                 dataset_path=[self.dataset_path_list[0], "a_wrong_name"],
             )
 
-    def test_deprecated_dataset_name(self):
-        with pytest.warns(UserWarning):
-            dataset_name = os.path.dirname(self.dataset_path_list[0])
-            hs.load(self.hdf5_dataset_path, dataset_name=dataset_name)
-
 
 def test_minimal_save():
     signal = hs.signals.Signal1D([0, 1])

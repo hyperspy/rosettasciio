@@ -466,6 +466,7 @@ class CeleritasReader(SeqReader):
         data = read_stitch_binary_distributed(
             top=self.top,
             bottom=self.bottom,
+            buffer_size=self.buffer,
             shape=shape,
             offset=8192,
             dtypes=dtype,
@@ -615,6 +616,7 @@ def read_stitch_binary_distributed(
     dtypes,
     offset,
     total_buffer_frames=None,
+    buffer_size=None,
     chunks=None,
     dark=None,
     gain=None,
@@ -635,6 +637,7 @@ def read_stitch_binary_distributed(
         dtypes=dtypes,
         offset=offset,
         total_buffer_frames=total_buffer_frames,
+        buffer_size=buffer_size,
         gain=gain,
         dark=dark,
         dtype=np.float32,
@@ -651,20 +654,23 @@ def slic_stitch_binary(
     dtypes,
     offset=8192,
     total_buffer_frames=None,
+    buffer_size=None,
     gain=None,
     dark=None,
 ):
     top_mapped = np.memmap(
         top, offset=offset, dtype=dtypes, shape=total_buffer_frames, mode="r"
     )["Array"]
-    top_flat = top_mapped.reshape(-1, *top_mapped.shape[2:])  # memmap object
+    #top_flat = top_mapped.reshape(-1, *top_mapped.shape[2:])  # memmap object
     bottom_mapped = np.memmap(
         bottom, offset=offset, dtype=dtypes, shape=total_buffer_frames, mode="r",
     )["Array"]
-    bottom_flat = bottom_mapped.reshape(-1, *bottom_mapped.shape[2:])  # memmap object
+    #bottom_flat = bottom_mapped.reshape(-1, *bottom_mapped.shape[2:])  # memmap object
+    if buffer_size != None:
+        indexes = np.divmod(indexes, buffer_size)
 
-    bottom = bottom_flat[indexes]
-    top = np.flip(top_flat[indexes], axis=-2)
+    bottom = bottom_mapped[indexes]
+    top = np.flip(top_mapped[indexes], axis=-2)
     chunk = np.concatenate([top, bottom], axis=-2)
     if dark is not None:
         chunk = chunk - dark

@@ -1,9 +1,9 @@
-=======================================
-Application Programming Interface (API)
-=======================================
+===
+API
+===
 
-The RosettaSciIO API allows other python packages to use its input/output (IO)
-capabilities.
+The RosettaSciIO Application Programming Interface allows other python packages
+to use its input/output (IO) capabilities.
 
 .. _interfacing-api:
 
@@ -86,6 +86,11 @@ following files:
 
       * (optional) A function called ``file_writer`` with at least two attributes: 
         ``filename`` and ``object2save`` (a python dictionary) in that order.
+
+Tests covering the functionality covering the reader should be added to the
+``tests`` directory with the naming ``test_spamandeggs.py`` corresponsing to
+the reader residing in the directory ``spamandeggs``. Data files for the tests
+should be placed in a corresponding subdirectory [change for pooch].
 
 .. Note ::
     It is advisable to clone the files of an existing plugin when initiating a new

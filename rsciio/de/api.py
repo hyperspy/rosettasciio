@@ -405,74 +405,75 @@ class CeleritasReader(SeqReader):
         dark_img, gain_img = self._read_dark_gain()
         self._read_xml()
         self._read_metadata()
-        if self.buffer is None: # could be improved based on the image bit size
+        if self.buffer is None:  # could be improved based on the image bit size
             _logger.warning(
                 msg="No XML File given. Guessing Segment PreBuffer "
-                    "This is may not be correct..."
+                "This is may not be correct..."
             )
-            self.buffer = int(header["ImageHeight"]/header["ImageWidth"])
+            self.buffer = int(header["ImageHeight"] / header["ImageWidth"])
         num_frames = header["NumFrames"] * self.buffer
 
         data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}
-        empty = header["TrueImageSize"] - ((header["ImageWidth"] *
-                                            header["ImageHeight"] * 2)
-                                           + 8)
+        empty = header["TrueImageSize"] - (
+            (header["ImageWidth"] * header["ImageHeight"] * 2) + 8
+        )
         dtype = [
-            ("Array",
-             data_types[int(header["ImageBitDepth"])],
-             (
-                 int(self.buffer),
-                 int(header["ImageHeight"] / self.buffer),
-                 int(header["ImageWidth"]),
-             )
-             )
-             ,
+            (
+                "Array",
+                data_types[int(header["ImageBitDepth"])],
+                (
+                    int(self.buffer),
+                    int(header["ImageHeight"] / self.buffer),
+                    int(header["ImageWidth"]),
+                ),
+            ),
             ("sec", "<u4"),
             ("ms", "<u2"),
             ("mis", "<u2"),
             ("empty", bytes, empty),
         ]
 
-        signal_shape = (int(header["ImageHeight"] *2 / self.buffer),
-                        int(header["ImageWidth"]))
+        signal_shape = (
+            int(header["ImageHeight"] * 2 / self.buffer),
+            int(header["ImageWidth"]),
+        )
 
         if navigation_shape is not None and np.product(navigation_shape) > num_frames:
-            _logger.warning("The number of frames and the navigation shape are not "
-                            "equal. Adding frames to the end of the dataset. ")
-            buffer_frames = int(np.ceil(np.divide(np.product(navigation_shape),
-                                                  self.buffer)
-                                        )
-                                )
-            t = np.memmap(self.top,
-                          offset=8192,
-                          dtype=dtype,
-                          shape=buffer_frames,
-                          mode="r+")
+            _logger.warning(
+                "The number of frames and the navigation shape are not "
+                "equal. Adding frames to the end of the dataset. "
+            )
+            buffer_frames = int(
+                np.ceil(np.divide(np.product(navigation_shape), self.buffer))
+            )
+            t = np.memmap(
+                self.top, offset=8192, dtype=dtype, shape=buffer_frames, mode="r+"
+            )
             t.flush()
-            b = np.memmap(self.bottom,
-                          offset=8192,
-                          dtype=dtype,
-                          shape=buffer_frames,
-                          mode="r+")
+            b = np.memmap(
+                self.bottom, offset=8192, dtype=dtype, shape=buffer_frames, mode="r+"
+            )
             b.flush()
         else:
             buffer_frames = header["NumFrames"]
         if navigation_shape is not None:
-            shape = navigation_shape+signal_shape
+            shape = navigation_shape + signal_shape
 
         else:
             buffer_frames = header["NumFrames"]
-            shape = (buffer_frames*self.buffer,)+signal_shape
+            shape = (buffer_frames * self.buffer,) + signal_shape
 
-        data = read_stitch_binary_distributed(top=self.top,
-                                              bottom=self.bottom,
-                                              shape=shape,
-                                              offset=8192,
-                                              dtypes=dtype,
-                                              total_buffer_frames=buffer_frames,
-                                              chunks=chunks,
-                                              dark=dark_img,
-                                              gain=gain_img)
+        data = read_stitch_binary_distributed(
+            top=self.top,
+            bottom=self.bottom,
+            shape=shape,
+            offset=8192,
+            dtypes=dtype,
+            total_buffer_frames=buffer_frames,
+            chunks=chunks,
+            dark=dark_img,
+            gain=gain_img,
+        )
 
         self._create_axes(
             header=header, nav_shape=navigation_shape, prebuffer=self.buffer
@@ -607,67 +608,66 @@ def read_split_seq(
     return data, time
 
 
-def read_stitch_binary_distributed(top,
-                                   bottom,
-                                   shape,
-                                   dtypes,
-                                   offset,
-                                   total_buffer_frames=None,
-                                   chunks=None,
-                                   dark=None,
-                                   gain=None,
-                                   ):
+def read_stitch_binary_distributed(
+    top,
+    bottom,
+    shape,
+    dtypes,
+    offset,
+    total_buffer_frames=None,
+    chunks=None,
+    dark=None,
+    gain=None,
+):
 
-    indexes = get_chunk_index(shape=shape,
-                              signal_axes=(-1, -2),
-                              chunks=chunks,
-                              block_size_limit=None,
-                              dtype=np.float32,
-                              )
-    data = da.map_blocks(slic_stitch_binary,
-                         indexes,
-                         top=top,
-                         bottom=bottom,
-                         dtypes=dtypes,
-                         offset=offset,
-                         total_buffer_frames=total_buffer_frames,
-                         gain=gain,
-                         dark=dark,
-                         chunks=indexes.chunks +(shape[-2], shape[-1])
-                         )
+    indexes = get_chunk_index(
+        shape=shape,
+        signal_axes=(-1, -2),
+        chunks=chunks,
+        block_size_limit=None,
+        dtype=np.float32,
+    )
+    data = da.map_blocks(
+        slic_stitch_binary,
+        indexes,
+        top=top,
+        bottom=bottom,
+        dtypes=dtypes,
+        offset=offset,
+        total_buffer_frames=total_buffer_frames,
+        gain=gain,
+        dark=dark,
+        chunks=indexes.chunks + (shape[-2], shape[-1]),
+    )
     return data
 
 
-def slic_stitch_binary(indexes,
-                       top,
-                       bottom,
-                       dtypes,
-                       offset=8192,
-                       total_buffer_frames=None,
-                       gain=None,
-                       dark=None,
-                       ):
-    top_mapped = np.memmap(top,
-                           offset=offset,
-                           dtype=dtypes,
-                           shape=total_buffer_frames,
-                           mode="r")["Array"]
+def slic_stitch_binary(
+    indexes,
+    top,
+    bottom,
+    dtypes,
+    offset=8192,
+    total_buffer_frames=None,
+    gain=None,
+    dark=None,
+):
+    top_mapped = np.memmap(
+        top, offset=offset, dtype=dtypes, shape=total_buffer_frames, mode="r"
+    )["Array"]
     top_flat = top_mapped.reshape(-1, *top_mapped.shape[2:])  # memmap object
-    bottom_mapped = np.memmap(bottom,
-                              offset=offset,
-                              dtype=dtypes,
-                              shape=total_buffer_frames,
-                              mode="r",
-                              )["Array"]
+    bottom_mapped = np.memmap(
+        bottom, offset=offset, dtype=dtypes, shape=total_buffer_frames, mode="r",
+    )["Array"]
     bottom_flat = bottom_mapped.reshape(-1, *bottom_mapped.shape[2:])  # memmap object
 
     bottom = bottom_flat[indexes]
     top = np.flip(top_flat[indexes], axis=-2)
     chunk = np.concatenate([top, bottom], axis=-2)
     if dark is not None:
-        chunk = chunk-dark
+        chunk = chunk - dark
     if gain is not None:
-        chunk = chunk*gain
+        chunk = chunk * gain
     return chunk
 
 
@@ -696,8 +696,9 @@ def read_stitch_binary(
         If the data should be cast to a dask array.
     """
     keys = [d[0] for d in dtypes]
-    top_mapped = np.memmap(top, offset=offset, dtype=dtypes,
-                           shape=total_buffer_frames, mode="r")
+    top_mapped = np.memmap(
+        top, offset=offset, dtype=dtypes, shape=total_buffer_frames, mode="r"
+    )
     bottom_mapped = np.memmap(
         bottom, offset=offset, dtype=dtypes, shape=total_buffer_frames, mode="r",
     )

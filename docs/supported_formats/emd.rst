@@ -29,12 +29,12 @@ Extra loading arguments
   See the ``chunks`` arguments of the ``hspy`` file format for more details.
 
 
-For files containing several datasets, the `dataset_name` argument can be
+For files containing several datasets, the `dataset_path` argument can be
 used to select a specific one:
 
 .. code-block:: python
 
-    >>> s = hs.load("adatafile.emd", dataset_name="/experimental/science_data_1/data")
+    >>> s = hs.load("adatafile.emd", dataset_path="/experimental/science_data_1/data")
 
 
 Or several by using a list:
@@ -42,7 +42,7 @@ Or several by using a list:
 .. code-block:: python
 
     >>> s = hs.load("adatafile.emd",
-    ...             dataset_name=[
+    ...             dataset_path=[
     ...                 "/experimental/science_data_1/data",
     ...                 "/experimental/science_data_2/data"])
 

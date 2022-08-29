@@ -121,7 +121,7 @@ def test_load_file():
         celeritas=True,
     )
 
-    assert data_dict["data"].shape == (128, 128, 256)
+    assert data_dict["data"].shape == (512, 128, 256)
 
 
 def test_load_file2():

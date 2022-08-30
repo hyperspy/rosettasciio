@@ -178,7 +178,12 @@ extras_require = {
         "pytest-rerunfailures",
         "pytest-cov",
     ],  # for testing
-    "docs": ["pydata-sphinx-theme", "sphinxcontrib-towncrier"],  # for building the docs
+    "docs": [
+        "pydata-sphinx-theme",
+        "sphinxcontrib-towncrier",
+        # pin towncrier until https://github.com/sphinx-contrib/sphinxcontrib-towncrier/issues/60 is fixed
+        "towncrier<22.8",
+    ],  # for building the docs
 }
 
 # Don't include "tests" and "docs" requirements since "all" is designed to be

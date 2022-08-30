@@ -44,8 +44,6 @@ import dask.delayed as dd
 import dask.array as da
 import numpy as np
 
-from rsciio.exceptions import VisibleDeprecationWarning
-
 
 _logger = logging.getLogger(__name__)
 
@@ -1336,14 +1334,6 @@ def bcf_reader(
 
     # objectified bcf file:
     obj_bcf = BCF_reader(filename, instrument=instrument)
-    if select_type == "spectrum":
-        select_type = "spectrum_image"
-        msg = (
-            "The 'spectrum' option for the `select_type` parameter is "
-            "deprecated and will be removed in v2.0. Use 'spectrum_image' "
-            "instead."
-        )
-        warnings.warn(msg, VisibleDeprecationWarning)
     if select_type == "image":
         return bcf_images(obj_bcf)
     elif select_type == "spectrum_image":

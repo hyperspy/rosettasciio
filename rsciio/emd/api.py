@@ -39,7 +39,6 @@ import dask.array as da
 from dateutil import tz
 
 from rsciio.utils.tools import _UREG, DTBox
-from rsciio.exceptions import VisibleDeprecationWarning
 from rsciio.utils.elements import atomic_number2name
 import rsciio.utils.fei_stream_readers as stream_readers
 from rsciio._hierarchical import get_signal_chunks
@@ -1547,14 +1546,6 @@ def file_reader(filename, lazy=False, **kwds):
             emd_reader.read_file(file)
         elif is_EMD_NCEM(file):
             _logger.debug("EMD file is a Berkeley variant.")
-            dataset_name = kwds.pop("dataset_name", None)
-            if dataset_name is not None:
-                msg = (
-                    "Using 'dataset_name' is deprecated and will be removed "
-                    "in HyperSpy 2.0, use 'dataset_path' instead."
-                )
-                warnings.warn(msg, VisibleDeprecationWarning)
-                dataset_path = f"{dataset_name}/data"
             dataset_path = kwds.pop("dataset_path", None)
             stack_group = kwds.pop("stack_group", None)
             emd_reader = EMD_NCEM(**kwds)

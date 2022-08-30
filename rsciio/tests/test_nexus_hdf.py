@@ -26,7 +26,7 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 import traits.api as t
 import h5py
 
-from hyperspy.exceptions import VisibleDeprecationWarning as VisibleDeprecationWarning
+from hyperspy.exceptions import VisibleDeprecationWarning
 
 from rsciio.nexus.api import (
     _byte_to_string,

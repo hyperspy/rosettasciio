@@ -197,7 +197,7 @@ def test_data(pdict):
                     assert saxis.offset == taxis.offset
                     assert saxis.units == taxis.units
                     assert saxis.name == taxis.name
-        except BaseException:
+        except Exception:
             raise
         finally:
             # As of v0.8.5 the data in the ripple files are loaded as memmaps

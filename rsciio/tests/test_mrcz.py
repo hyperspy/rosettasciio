@@ -198,7 +198,7 @@ class TestPythonMrcz:
             import blosc
 
             blosc_installed = True
-        except BaseException:
+        except Exception:
             blosc_installed = False
 
         if not blosc_installed and compressor is not None:

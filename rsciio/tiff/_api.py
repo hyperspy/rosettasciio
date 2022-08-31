@@ -277,7 +277,7 @@ def _read_serie(
         axes = _parse_scale_unit(
             tiff, page, op, shape, force_read_resolution, names, **kwds
         )
-    except BaseException:
+    except Exception:
         _logger.info("Scale and units could not be imported")
         axes = _build_axes_dictionaries(shape, names)
 
@@ -949,7 +949,7 @@ def _get_dm_kwargs_extratag(signal, scales, units, offsets, nav_dim):
         try:
             intensity_offset = dic.gain_offset
             intensity_scale = dic.gain_factor
-        except BaseException:
+        except Exception:
             _logger.info(
                 "The scale or the offset of the 'intensity axes'"
                 "couldn't be retrieved, please report the bug."

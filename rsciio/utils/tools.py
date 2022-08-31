@@ -271,7 +271,7 @@ def ensure_unicode(stuff, encoding="utf8", encoding2="latin-1"):
         string = stuff
     try:
         string = string.decode(encoding)
-    except BaseException:
+    except Exception:
         string = string.decode(encoding2, errors="ignore")
     return string
 

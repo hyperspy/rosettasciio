@@ -1043,7 +1043,7 @@ class DigitalSurfHandler(object):
                             ]  # we don't want to eval this one
                         else:
                             dictMS[keyMain][key] = eval(liValue[0])
-                    except:
+                    except Exception:
                         dictMS[keyMain][key] = liValue[0]
                     if len(liValue) > 1:
                         dictMS[keyMain][key + "_units"] = liValue[1]

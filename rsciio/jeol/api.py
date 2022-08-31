@@ -1380,7 +1380,7 @@ extension_to_reader_mapping = {
 def _decode(bytes_string):
     try:
         string = bytes_string.decode("utf-8")
-    except:
+    except Exception:
         # See https://github.com/hyperspy/hyperspy/issues/2812
         string = bytes_string.decode("shift_jis")
 

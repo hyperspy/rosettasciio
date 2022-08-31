@@ -785,7 +785,7 @@ class HierarchicalWriter:
             else:
                 try:
                     group.attrs[key] = value
-                except BaseException:
+                except Exception:
                     _logger.exception(
                         "The writer could not write the following "
                         f"information in the file: {key} : {value}"

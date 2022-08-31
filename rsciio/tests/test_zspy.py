@@ -72,7 +72,7 @@ class TestZspy:
         np.testing.assert_array_equal(s2.data, signal.data)
 
         store2 = zarr.NestedDirectoryStore(path=filename)
-        with pytest.raises(BaseException):
+        with pytest.raises(Exception):
             with caplog.at_level(logging.ERROR):
                 _ = hs.load(store2)
 

@@ -148,7 +148,7 @@ def file_reader(filename, lazy=False, **kwds):
             for i in range(2):
                 value = fov[i] / sizes[i]
                 scales[i], units[i] = _convert_scale_units(value, "m", sizes[i])
-        except BaseException:
+        except Exception:
             _logger.warning("The scale of the navigation axes cannot be read.")
 
     try:
@@ -156,7 +156,7 @@ def file_reader(filename, lazy=False, **kwds):
         for i in [-1, -2]:
             scales[i] = pixel_size
             units[i] = "1/nm"
-    except BaseException:
+    except Exception:
         _logger.warning("The scale of the signal axes cannot be read.")
 
     for i in range(len(names)):

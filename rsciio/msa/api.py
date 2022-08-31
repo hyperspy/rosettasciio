@@ -223,7 +223,7 @@ def parse_msa_string(string, filename=None):
             type_ = keywords[clean_par]["dtype"]
             try:
                 parameters[parameter] = type_(value)
-            except BaseException:
+            except Exception:
                 error = f"The {parameter} keyword value, {value} could \
                     not be converted to the right type."
                 if "e" in value.lower():
@@ -231,14 +231,14 @@ def parse_msa_string(string, filename=None):
                     # scientific notation, e.g. 2.0 E-06
                     try:
                         parameters[parameter] = type_(value.replace(" ", ""))
-                    except BaseException:  # pragma: no cover
+                    except Exception:  # pragma: no cover
                         _logger.exception(error)
                 else:
                     # Some files have two values separated by a space
                     # https://eelsdb.eu/wp-content/uploads/2017/03/Cu4O3-O-K.msa
                     try:
                         parameters[parameter] = type_(value.split(" ")[0])
-                    except BaseException:  # pragma: no cover
+                    except Exception:  # pragma: no cover
                         _logger.exception(error)
 
             if keywords[clean_par]["mapped_to"] is not None:

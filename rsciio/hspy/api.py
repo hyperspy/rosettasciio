@@ -239,7 +239,7 @@ def file_writer(filename, signal, close_file=True, **kwds):
     try:
         writer = HyperspyWriter(f, signal, expg, **kwds)
         writer.write()
-    except BaseException:
+    except Exception:
         raise
     finally:
         del smd["record_by"]

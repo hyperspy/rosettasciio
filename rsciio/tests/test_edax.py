@@ -58,7 +58,7 @@ if not TEST_FILES_OK:
                 "wrong sha256sum of downloaded file. Expected: %s, got: %s" % SHA256SUM,
                 SHA256SUM_GOT,
             )
-    except BaseException as e:
+    except Exception as e:
         REASON = "download of EDAX test files failed: %s" % e
 
 

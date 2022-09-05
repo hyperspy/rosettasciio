@@ -18,7 +18,6 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 #
 import logging
-import warnings
 import os
 
 import dask.array as da
@@ -26,7 +25,6 @@ import h5py
 import numpy as np
 import pprint
 
-from rsciio.exceptions import VisibleDeprecationWarning
 from rsciio._hierarchical import get_signal_chunks
 from rsciio.hspy.api import overwrite_dataset
 from rsciio.utils.tools import DTBox
@@ -504,27 +502,6 @@ def file_reader(
     learning = {}
     fin = h5py.File(filename, "r")
     signal_dict_list = []
-
-    if "dataset_keys" in kwds:
-        warnings.warn(
-            "The `dataset_keys` keyword is deprecated. " "Use `dataset_key` instead.",
-            VisibleDeprecationWarning,
-        )
-        dataset_key = kwds["dataset_keys"]
-
-    if "dataset_paths" in kwds:
-        warnings.warn(
-            "The `dataset_paths` keyword is deprecated. " "Use `dataset_path` instead.",
-            VisibleDeprecationWarning,
-        )
-        dataset_path = kwds["dataset_paths"]
-
-    if "metadata_keys" in kwds:
-        warnings.warn(
-            "The `metadata_keys` keyword is deprecated. " "Use `metadata_key` instead.",
-            VisibleDeprecationWarning,
-        )
-        metadata_key = kwds["metadata_keys"]
 
     dataset_key = _check_search_keys(dataset_key)
     dataset_path = _check_search_keys(dataset_path)

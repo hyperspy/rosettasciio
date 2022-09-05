@@ -26,9 +26,8 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 import traits.api as t
 import h5py
 
-from hyperspy.exceptions import VisibleDeprecationWarning as HSVisibleDeprecationWarning
+from hyperspy.exceptions import VisibleDeprecationWarning
 
-from rsciio.exceptions import VisibleDeprecationWarning
 from rsciio.nexus.api import (
     _byte_to_string,
     _fix_exclusion_keys,
@@ -134,18 +133,6 @@ class TestDLSNexus:
         with pytest.raises(AttributeError):
             s.original_metadata.entry1.instrument.stage1_x.value_set.value
 
-    def test_deprecated_metadata_keys(self):
-        with pytest.warns(VisibleDeprecationWarning):
-            _ = hs.load(self.file, metadata_keys="stage1_x")
-
-    def test_deprecated_dataset_keys(self):
-        with pytest.warns(VisibleDeprecationWarning):
-            _ = hs.load(self.file, dataset_keys="rocks")
-
-    def test_deprecated_dataset_paths(self):
-        with pytest.warns(VisibleDeprecationWarning):
-            _ = hs.load(self.file, dataset_paths="/entry1/testdata/nexustest/data")
-
 
 class TestDLSNexusNoAxes:
     def setup_method(self, method):
@@ -194,7 +181,7 @@ class TestDLSNexusNoAxes:
 
 class TestSavedSignalLoad:
     def setup_method(self, method):
-        with pytest.warns(HSVisibleDeprecationWarning):
+        with pytest.warns(VisibleDeprecationWarning):
             self.s = hs.load(file1, nxdata_only=True)
 
     def test_string(self):
@@ -225,7 +212,7 @@ class TestSavedSignalLoad:
 
 class TestSavedMultiSignalLoad:
     def setup_method(self, method):
-        with pytest.warns(HSVisibleDeprecationWarning):
+        with pytest.warns(VisibleDeprecationWarning):
             self.s = hs.load(
                 file2, nxdata_only=True, hardlinks_only=True, use_default=False
             )
@@ -455,19 +442,19 @@ def test_saving_multi_signals(tmp_path):
 
 
 def test_read_file2_dataset_key_test():
-    with pytest.warns(HSVisibleDeprecationWarning):
+    with pytest.warns(VisibleDeprecationWarning):
         s = hs.load(file2, nxdata_only=True, dataset_key=["rocks"])
     assert not isinstance(s, list)
 
 
 def test_read_file2_signal1():
-    with pytest.warns(HSVisibleDeprecationWarning):
+    with pytest.warns(VisibleDeprecationWarning):
         s = hs.load(file2, nxdata_only=True, dataset_key=["rocks"])
     assert s.metadata.General.title == "rocks"
 
 
 def test_read_file2_default():
-    with pytest.warns(HSVisibleDeprecationWarning):
+    with pytest.warns(VisibleDeprecationWarning):
         s = hs.load(
             file2,
             use_default=False,
@@ -476,7 +463,7 @@ def test_read_file2_default():
             dataset_key=["unnamed__1"],
         )
     assert s.metadata.General.title == "unnamed__1"
-    with pytest.warns(HSVisibleDeprecationWarning):
+    with pytest.warns(VisibleDeprecationWarning):
         s = hs.load(
             file2,
             use_default=True,
@@ -488,7 +475,7 @@ def test_read_file2_default():
 
 
 def test_read_file2_metadata_keys():
-    with pytest.warns(HSVisibleDeprecationWarning):
+    with pytest.warns(VisibleDeprecationWarning):
         s = hs.load(
             file2, nxdata_only=True, dataset_key=["rocks"], metadata_key=["energy"]
         )

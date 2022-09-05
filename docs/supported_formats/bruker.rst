@@ -25,8 +25,8 @@ currently supported by RosettaSciIO.
 Extra loading arguments
 +++++++++++++++++++++++
 
-- ``select_type`` : one of (None, 'spectrum', 'image'). If specified, only the
-  corresponding type of data, either spectrum or image, is returned.
+- ``select_type`` : one of (None, 'spectrum_image', 'image'). If specified, only
+  the corresponding type of data, either spectrum image or image, is returned.
   By default (None), all data are loaded.
 - ``index`` : one of (None, int, "all"). Allow to select the index of the dataset
   in the ``.bcf`` file, which can contains several datasets. Default None value
@@ -55,7 +55,7 @@ Example of loading reduced (downsampled, and with energy range cropped)
 
 .. code-block:: python
 
-    >>> hs.load("sample80kv.bcf", select_type='spectrum', downsample=2, cutoff_at_kV=10)
+    >>> hs.load("sample80kv.bcf", select_type='spectrum_image', downsample=2, cutoff_at_kV=10)
     <EDSSEMSpectrum, title: EDX, dimensions: (50, 38|595)>
 
 load the same file with limiting array size to SEM acceleration voltage:

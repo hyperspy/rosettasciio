@@ -15,22 +15,32 @@ for scientific data formats to other python libraries. The IO plugins have a
 common interface through the ``file_reader`` and ``file_writer`` (optionally)
 functions. Beyond the ``filename`` and in the case of writers ``object2save``, the
 accepted keywords are specific to the different plugins. The object returned in
-the case of a reader and passed to a writer is a python dictionary.
+the case of a reader and passed to a writer is a **python dictionary**.
 
-## Add more details on the dictionary used ##
+The **dictionary** contains the following fields:
+* `'data'` -- multidimensional numpy array
+* `'axes'` -- list of dictionaries describing the axes containing the fields
+  `'name'`, `'units'`, `'index_in_array'`, and
+  - either `'size'`, `'offset'`, and `'scale'`
+  - or a numpy array `'axis'` containing the full axes vector
+* `'metadata'` -- dictionary containing the parsed metadata
+* `'original_metadata'` -- dictionary containing the full metadata tree from the
+  input file
 
-Importing the IO plugins:
+Interfacing the reader from one of the IO plugins:
 
 .. code-block:: python
 
-    from rsciio import IO_PLUGINS
+    from rsciio.hspy.api import file_reader
+    fdict = file_reader("norwegianblue.hspy")
 
-Interfacing the IO plugins from a python package:
+Interfacing the writer from one of the IO plugins:
 
 .. code-block:: python
 
-    # sample code
-
+    from rsciio.hspy.api import file_writer
+    file_writer("beautifulplumage.hspy", fdict)
+   
 
 .. _using-rsciio:
 
@@ -91,6 +101,11 @@ Tests covering the functionality of the plugin should be added to the
 ``tests`` directory with the naming ``test_spamandeggs.py`` corresponsing to
 the plugin residing in the directory ``spamandeggs``. Data files for the tests
 should be placed in a corresponding subdirectory [change for pooch].
+
+Documentation should be added both as **docstring**, as well as to the user guide,
+for which a corresponding `.rst` file should be created in the directory
+`docs/supported_formats/` and the format added to the lists in
+`docs/supported_formats/index.rst` and `docs/supported_formats/supported_formats.rst`.
 
 .. Note ::
     It is advisable to clone the files of an existing plugin when initiating a new

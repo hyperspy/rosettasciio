@@ -18,13 +18,16 @@ accepted keywords are specific to the different plugins. The object returned in
 the case of a reader and passed to a writer is a **python dictionary**.
 
 The **dictionary** contains the following fields:
-* `'data'` -- multidimensional numpy array
-* `'axes'` -- list of dictionaries describing the axes containing the fields
-  `'name'`, `'units'`, `'index_in_array'`, and
-  - either `'size'`, `'offset'`, and `'scale'`
-  - or a numpy array `'axis'` containing the full axes vector
-* `'metadata'` -- dictionary containing the parsed metadata
-* `'original_metadata'` -- dictionary containing the full metadata tree from the
+
+* ``'data'`` -- multidimensional numpy array
+* ``'axes'`` -- list of dictionaries describing the axes containing the fields
+  ``'name'``, ``'units'``, ``'index_in_array'``, and
+  
+  - either ``'size'``, ``'offset'``, and ``'scale'``
+  - or a numpy array ``'axis'`` containing the full axes vector
+
+* ``'metadata'`` -- dictionary containing the parsed metadata
+* ``'original_metadata'`` -- dictionary containing the full metadata tree from the
   input file
 
 Interfacing the reader from one of the IO plugins:
@@ -76,26 +79,25 @@ following files:
 
 * ``specifications.yaml`` -- The characteristics of the IO plugin in yaml format:
 
-.. code-block:: yaml
+  .. code-block:: yaml
 
-    format_name: <String>
-    description: <String>
-    full_support: <Bool>	# Whether all the Hyperspy features are supported
-    # Recognised file extension
-    file_extensions: <Tuple of string>
-    default_extension: <Int>	# Index of the extension that will be used by default
-    # Writing capabilities
-    writes: <Bool>
-    # Support for non-uniform axis
-    non_uniform_axis = <Bool>
+      format_name: <String>
+      description: <String>
+      full_support: <Bool>	# Whether all the Hyperspy features are supported
+      # Recognised file extension
+      file_extensions: <Tuple of string>
+      default_extension: <Int>	# Index of the extension that will be used by default
+      # Writing capabilities
+      writes: <Bool>
+      # Support for non-uniform axis
+      non_uniform_axis = <Bool>
 
 * ``api.py`` -- Python file that implements the actual reader. The IO functionality
   should be interfaced with the following functions:
 
-      * A function called ``file_reader`` with at least one attribute: ``filename``
-
-      * (optional) A function called ``file_writer`` with at least two attributes: 
-        ``filename`` and ``object2save`` (a python dictionary) in that order.
+  * A function called ``file_reader`` with at least one attribute: ``filename``
+  * (optional) A function called ``file_writer`` with at least two attributes: 
+    ``filename`` and ``object2save`` (a python dictionary) in that order.
 
 Tests covering the functionality of the plugin should be added to the
 ``tests`` directory with the naming ``test_spamandeggs.py`` corresponsing to

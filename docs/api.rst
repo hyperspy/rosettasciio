@@ -59,11 +59,11 @@ for reading/writing of data files:
 * Any `HyperSpy extension <https://github.com/hyperspy/hyperspy-extensions-list>`_
   that inherits the IO capabilities:
 
-      * `LumiSpy <https://lumispy.org>`_: Luminescence analysis with HyperSpy
-      * `Kikuchipy <https://kikuchipy.org>`_: Processing, simulating and analyzing
-        electron backscatter diffraction (EBSD) patterns in Python 
-      * `PyXem <https://pyxem.readthedocs.io>`_: An open-source Python library for
-        multi-dimensional diffraction microscopy. 
+  * `LumiSpy <https://lumispy.org>`_: Luminescence analysis with HyperSpy
+  * `Kikuchipy <https://kikuchipy.org>`_: Processing, simulating and analyzing
+    electron backscatter diffraction (EBSD) patterns in Python 
+  * `PyXem <https://pyxem.readthedocs.io>`_: An open-source Python library for
+    multi-dimensional diffraction microscopy. 
 
 
 .. _defining-plugins:

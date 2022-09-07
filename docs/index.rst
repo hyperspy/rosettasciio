@@ -45,5 +45,6 @@ Table of contents
    api
    interoperatibility
    file_specification/index
+   contributing
    changes
 

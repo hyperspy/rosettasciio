@@ -1,5 +1,5 @@
-Reference File Specification
-============================
+File Specifications
+===================
 
 This section contains reference documentation for file specification available
 publicly.

@@ -1,6 +1,6 @@
 format_name: PhenomELID
 format_alias: Phenom Element Identification (ELID)
-description: Read data from Phenom ELID files
+description: Read data from Phenom Element Identification (ELID) files.
 full_support: False
 file_extensions: [elid, ELID]
 default_extension: 0

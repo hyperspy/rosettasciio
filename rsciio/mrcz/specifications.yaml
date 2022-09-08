@@ -1,5 +1,5 @@
 format_name: MRCZ
-description: Compressed MRC file format extension with blosc meta-compression
+description: Compressed MRC file format extension with blosc meta-compression.
 full_support: False
 file_extensions: [mrc, MRC, mrcz, MRCZ]
 default_extension: 2

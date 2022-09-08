@@ -1,6 +1,6 @@
 format_name: EMD
 format_alias: Electron Microscopy Data (EMD)
-description: Read data from Berkeley's EMD files.
+description: Read data from Berkeley's Electron Microscopy Data (EMD) files.
 full_support: False  # Hopefully?
 # Recognised file extension
 file_extensions: ['emd', 'EMD', 'de5', 'DE5']

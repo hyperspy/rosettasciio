@@ -1,5 +1,5 @@
 format_name: TIFF
-description: Import/Export standard image formats Christoph Gohlke's tifffile library
+description: Import/Export standard image formats using Christoph Gohlke's tifffile library.
 full_support: False
 file_extensions: [tif, tiff]
 default_extension: 0  # tif

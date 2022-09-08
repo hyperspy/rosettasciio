@@ -1,9 +1,5 @@
 format_name: Ripple
-description: >
-  RPL file contains the information on how to read
-  the RAW file with the same name.
-  This format may not provide information on the calibration.
-  If so, you should add that after loading the file.
+description: RPL file contains the information on how to read the RAW file with the same name.
 full_support: True
 file_extensions: [rpl, RPL]
 default_extension: 0

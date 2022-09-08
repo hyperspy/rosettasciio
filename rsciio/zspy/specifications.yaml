@@ -1,6 +1,6 @@
 format_name: ZSPY
 format_alias: ZSpy
-description: A default file format for HyperSpy based on the zarr standard
+description: HyperSpy file format definition based on the zarr standard, particularly suited for big data sets.
 full_support: True
 file_extensions: ['zspy', 'ZSPY']
 default_extension: 0

@@ -1,4 +1,5 @@
 format_name: MSA
+description: Open standard format for single spectra defined by the Microscopy Society of America.
 full_support: False
 file_extensions: [msa, ems, mas, emsa, EMS, MAS, EMSA, MSA]
 default_extension: 0

@@ -244,10 +244,9 @@ def test_file_reader_options():
         np.testing.assert_allclose(t.data, np.arange(10))
 
         # Test alias reader
-        # Uncomment once alias naming works in HyperSpy IO
-        #t = hs.load(Path(dirpath, "temp.emd"), reader="Electron Microscopy Data (EMD)")
-        #assert len(t) == 1
-        #np.testing.assert_allclose(t.data, np.arange(10))
+        t = hs.load(Path(dirpath, "temp.emd"), reader="Electron Microscopy Data (EMD)")
+        assert len(t) == 1
+        np.testing.assert_allclose(t.data, np.arange(10))
 
         # Test object reader
         from rsciio import hspy

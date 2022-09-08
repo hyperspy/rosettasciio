@@ -1,4 +1,5 @@
 format_name: HSPY
+format_alias: HSpy
 description: The default file format for HyperSpy based on the HDF5 standard.
 full_support: False
 file_extensions: ['hspy', 'hdf5']

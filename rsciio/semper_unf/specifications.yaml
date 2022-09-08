@@ -1,4 +1,5 @@
-format_name: SEMPER UNF (unformatted)
+format_name: Semper
+format_alias: SEMPER UNF (unformatted)
 description: Read data from SEMPER UNF files.
 full_support: True 
 file_extensions: [unf, UNF]

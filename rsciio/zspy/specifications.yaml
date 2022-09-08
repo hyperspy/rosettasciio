@@ -1,4 +1,5 @@
-format_name: ZSpy
+format_name: ZSPY
+format_alias: ZSpy
 description: A default file format for HyperSpy based on the zarr standard
 full_support: True
 file_extensions: ['zspy', 'ZSPY']

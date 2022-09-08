@@ -59,7 +59,7 @@ def test_import_all():
     try:
         import zarr
     except:
-        plugin_name_to_remove.append("ZSpy")
+        plugin_name_to_remove.append("ZSPY")
 
     IO_PLUGINS = list(
         filter(

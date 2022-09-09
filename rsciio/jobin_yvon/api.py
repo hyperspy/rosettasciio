@@ -422,3 +422,38 @@ class JobinYvonXMLReader:
 
         self._sort_nav_axes()
 
+    def get_data(self):
+        """Extract data from file."""
+        data_raw = self._lsx_matrix.findall("LSX_Row")
+        ## lexicographical ordering -> 3x3 map -> 9 rows
+        num_rows = len(data_raw)
+        if num_rows == 0:
+            _logger.critical("No data found.")  # pragma: no cover
+        elif num_rows == 1:
+            ## Spectrum
+            self.data = np.fromstring(data_raw[0].text.strip(), sep=" ")
+            if self._reverse_signal:
+                self.data = self.data[::-1]
+        else:
+            ## linescan or map
+            num_cols = self._get_size(data_raw[0])
+            self.data = np.empty((num_rows, num_cols))
+            for i, row in enumerate(data_raw):
+                row_array = np.fromstring(row.text.strip(), sep=" ")
+                if self._reverse_signal:
+                    row_array = row_array[::-1]
+                self.data[i, :] = row_array
+            ## reshape the array (lexicographic -> cartesian)
+            ## reshape depends on available axes
+            if self._has_nav2:
+                if self._has_nav1:
+                    self.data = np.reshape(
+                        self.data, (self._nav2_size, self._nav1_size, num_cols)
+                    )
+                else:
+                    self.data = np.reshape(
+                        self.data, (self._nav2_size, num_cols)
+                    )  # pragma: no cover
+            elif self._has_nav1 and not self._has_nav2:
+                self.data = np.reshape(self.data, (self._nav1_size, num_cols))
+

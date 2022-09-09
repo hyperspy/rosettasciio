@@ -28,6 +28,7 @@ big datasets is supported.
    hspy
    image
    jeol
+   jobin_yvon
    mrc
    mrcz
    msa

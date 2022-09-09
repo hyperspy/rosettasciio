@@ -28,6 +28,32 @@ _logger = logging.getLogger(__name__)
 
 
 class JobinYvonXMLReader:
+    """Class to read Jobin Yvon .xml-files.
+
+    The file is read using xml.etree.ElementTree.
+    Each element can have the following attributes: attrib, tag, text.
+    Moreover, non-leaf-elements are iterable (iterate over child-nodes).
+    In this specific format, the tags do not contain useful information.
+    Instead, the "ID"-entry in attrib is used to identify the sort of information.
+    The IDs are consistent for the tested files.
+
+    Parameters
+    ----------
+    file_path: pathlib.Path
+        Path to the to be read file.
+
+    use_uniform_signal_axis: bool, default=False
+        Decides whether to use uniform or non-uniform signal-axis.
+
+    Attributes
+    ----------
+    data, metadata, original_metadata, axes
+
+    Methods
+    -------
+    parse_file, get_original_metadata, get_axes, get_data, map_metadata
+    """
+
     def __init__(self, file_path, use_uniform_signal_axis=False):
         self._file_path = file_path
         self._use_uniform_signal_axis = use_uniform_signal_axis
@@ -763,3 +789,31 @@ class JobinYvonXMLReader:
         except KeyError:
             pass  # pragma: no cover
 
+
+def file_reader(filename, use_uniform_signal_axis=False, **kwds):
+    """Read data from .xml files saved using Horiba Jobin Yvon's LabSpec software.
+
+    Parameters
+    ----------
+    use_uniform_signal_axis: bool, default=True
+        Can be specified to choose between non-uniform or uniform signal-axis.
+    """
+    if not isinstance(filename, Path):
+        filename = Path(filename)
+    jy = JobinYvonXMLReader(
+        file_path=filename, use_uniform_signal_axis=use_uniform_signal_axis
+    )
+    jy.parse_file()
+    jy.get_original_metadata()
+    jy.get_axes()
+    jy.get_data()
+    jy.map_metadata()
+    dictionary = {
+        "data": jy.data,
+        "axes": jy.axes,
+        "metadata": deepcopy(jy.metadata),
+        "original_metadata": deepcopy(jy.original_metadata),
+    }
+    return [
+        dictionary,
+    ]

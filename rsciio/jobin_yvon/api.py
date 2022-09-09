@@ -21,12 +21,15 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from copy import deepcopy
 
+import numpy as np
+
 _logger = logging.getLogger(__name__)
 
 
 class JobinYvonXMLReader:
     def __init__(self, file_path, use_uniform_signal_axis=False):
         self._file_path = file_path
+        self._use_uniform_signal_axis = use_uniform_signal_axis
 
     @staticmethod
     def _get_id(xml_element):
@@ -275,4 +278,147 @@ class JobinYvonXMLReader:
                 self.original_metadata["experimental_setup"][
                     "signal units"
                 ] = child.text
+
+    def _get_scale(self, array, name):
+        """Get scale for navigation/signal axes.
+
+        Furthermore, checks whether the axis is uniform. Throws warning when this not the case.
+        This check is performed by comparing the difference between the first 2 and last 2 values.
+        The decision to use a non-uniform/uniform data-axis is left to the user
+        (use_uniform_wavelength_axis).
+
+        Parameters
+        ----------
+        array: np.ndarray
+            Contains the axes data points.
+        name: Str
+            Name of the axis.
+        """
+        scale = np.abs(array[0] - array[-1]) / (array.size - 1)
+        if array.size >= 3:
+            abs_diff_begin = np.abs(array[0] - array[1])
+            abs_diff_end = np.abs(array[-1] - array[-2])
+            rel_diff_compare = np.abs(abs_diff_begin - abs_diff_end) / scale
+            if rel_diff_compare > 0.01 and self._use_uniform_signal_axis:
+                _logger.warning(
+                    f"The relative variation of the {name}-axis-scale ({rel_diff_compare:.3f}%) exceeds 1%.\n"
+                    "                              "
+                    f"Difference between first 2 entrys: {abs_diff_begin:.3f}.\n"
+                    "                              "
+                    f"Difference between last 2 entrys: {abs_diff_end:.3f}.\n"
+                    "                              "
+                    "Using a non-uniform-axis is recommended."
+                )
+        return scale
+
+    def _set_nav_axis(self, xml_element, tag):
+        """Helper method for setting navigation axes.
+
+        Parameters
+        ----------
+        xml_element: xml.etree.ElementTree.Element
+            Head level metadata element.
+        tag: Str
+            Axis name.
+        """
+        has_nav = True
+        nav_dict = dict()
+        for child in xml_element:
+            id = self._get_id(child)
+            if id == "0x6D707974":
+                nav_dict["name"] = child.text
+            if id == "0x7C696E75":
+                nav_dict["units"] = child.text
+            if id == "0x7D6CD4DB":
+                nav_array = np.fromstring(child.text.strip(), sep=" ")
+                nav_size = nav_array.size
+                if nav_size < 2:
+                    has_nav = False
+                else:
+                    nav_dict["scale"] = self._get_scale(nav_array, tag)
+                    nav_dict["offset"] = nav_array[0]
+                    nav_dict["size"] = nav_size
+                    nav_dict["navigate"] = True
+        if has_nav:
+            self.axes[tag] = nav_dict
+        return has_nav, nav_size
+
+    def _set_signal_axis(self, xml_element):
+        """Helper method to extract signal-axis information.
+
+        Parameters
+        ----------
+        xml_element: xml.etree.ElementTree.Element
+            Head level metadata element.
+        tag: Str
+            Axis name.
+        """
+        signal_dict = dict()
+        signal_dict["navigate"] = False
+        for child in xml_element:
+            id = self._get_id(child)
+            if id == "0x7D6CD4DB":
+                signal_array = np.fromstring(child.text.strip(), sep=" ")
+                if signal_array[0] > signal_array[1]:
+                    signal_array = signal_array[::-1]
+                    self._reverse_signal = True
+                else:
+                    self._reverse_signal = False
+                if self._use_uniform_signal_axis:
+                    signal_dict["scale"] = self._get_scale(signal_array, "signal")
+                    signal_dict["offset"] = signal_array[0]
+                    signal_dict["size"] = signal_array.size
+                else:
+                    signal_dict["axis"] = signal_array
+            if id == "0x7C696E75":
+                units = child.text
+                if "/" in units and units[-3:] == "abs":
+                    signal_dict["name"] = "Wavenumber"
+                    signal_dict["units"] = units[:-4]
+                elif "/" in units and units[-1] == "m":
+                    signal_dict["name"] = "Raman Shift"
+                    signal_dict["units"] = units
+                elif units[-2:] == "eV":
+                    signal_dict["name"] = "Energy"
+                    signal_dict["units"] = units
+                elif "/" not in units and units[-1] == "m":
+                    signal_dict["name"] = "Wavelength"
+                    signal_dict["units"] = units
+                else:
+                    _logger.warning(
+                        "Cannot extract type of signal axis from units, using wavelength as name."
+                    )  # pragma: no cover
+                    signal_dict["name"] = "Wavelength"  # pragma: no cover
+                    signal_dict["units"] = units  # pragma: no cover
+        self.axes["signal_dict"] = signal_dict
+
+    def _sort_nav_axes(self):
+        """Sort the navigation/signal axes, such that (X, Y, Spectrum) = (1, 0, 2) (for map)
+        or (X/Y, Spectrum) = (0, 1) or (Spectrum) = (0) (for linescan/spectrum).
+        """
+        self.axes["signal_dict"]["index_in_array"] = len(self.axes) - 1
+        if self._has_nav2:
+            self.axes["nav2_dict"]["index_in_array"] = 0
+            if self._has_nav1:
+                self.axes["nav1_dict"]["index_in_array"] = 1
+        elif self._has_nav1 and not self._has_nav2:
+            self.axes["nav1_dict"]["index_in_array"] = 0
+        self.axes = sorted(self.axes.values(), key=lambda item: item["index_in_array"])
+
+    def get_axes(self):
+        """Extract navigation/signal axes data from file."""
+        self.axes = dict()
+        self._has_nav1 = False
+        self._has_nav2 = False
+        for child in self._axis_root:
+            if self._get_id(child) == "0x0":
+                self._set_signal_type(child)
+            if self._get_id(child) == "0x1":
+                self._set_signal_axis(child)
+            if self._get_id(child) == "0x2":
+                self._has_nav1, self._nav1_size = self._set_nav_axis(child, "nav1_dict")
+            if self._get_id(child) == "0x3":
+                self._has_nav2, self._nav2_size = self._set_nav_axis(child, "nav2_dict")
+
+        self._sort_nav_axes()
 

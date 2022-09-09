@@ -52,16 +52,13 @@ def teardown_module(module):
     fs = [f for f in [FILENAME_STACK_RAW, FILENAME_MAP_RAW] if os.path.exists(f)]
 
     for f in fs:
-        try:
-            os.remove(f)
-        except Exception as e:
-            print(e)
+        os.remove(f)
 
 
 @pytest.mark.parametrize("lazy", (False, True))
 def test_read_stack(lazy):
     # xml file version 0.51 211118
-    s = hs.load(os.path.join(DATA_DIR, "stack_images.xml"), lazy=lazy)
+    s = hs.load(os.path.join(DATA_DIR, "stack_images.xml"), lazy=lazy, reader="EMPAD")
     assert s.data.dtype == "float32"
     ref_data = np.arange(166400).reshape((10, 130, 128))[..., :128, :]
     np.testing.assert_allclose(s.data, ref_data.astype("float32"))
@@ -87,7 +84,7 @@ def test_read_stack(lazy):
 @pytest.mark.parametrize("lazy", (False, True))
 def test_read_map(lazy):
     # xml file version 0.51 211118
-    s = hs.load(os.path.join(DATA_DIR, "map4x4.xml"), lazy=lazy)
+    s = hs.load(os.path.join(DATA_DIR, "map4x4.xml"), lazy=lazy, reader="EMPAD")
     assert s.data.dtype == "float32"
     ref_data = np.arange(266240).reshape((4, 4, 130, 128))[..., :128, :]
     np.testing.assert_allclose(s.data, ref_data.astype("float32"))

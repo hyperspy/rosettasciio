@@ -1,5 +1,5 @@
-format_name: FEI-TIA
-format_alias: FEI TIA
+format_name: TIA
+format_name_aliases: [FEI TIA, FEI-TIA]
 description: Read sets of .ser & .emi files from the FEI TIA software.
 full_support: False
 file_extensions: [ser, SER, emi, EMI]

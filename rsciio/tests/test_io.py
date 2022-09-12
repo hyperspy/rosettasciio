@@ -238,13 +238,26 @@ def test_file_reader_options():
         assert len(t) == 1
         np.testing.assert_allclose(t.data, np.arange(10))
 
-        # Test name reader
+        # Test string reader uppercase
+        t = hs.load(Path(dirpath, "temp.hspy"), reader="HSpy")
+        assert len(t) == 1
+        np.testing.assert_allclose(t.data, np.arange(10))
+
+        # Test string reader alias
+        t = hs.load(Path(dirpath, "temp.hspy"), reader="hyperspy")
+        assert len(t) == 1
+        np.testing.assert_allclose(t.data, np.arange(10))
+
+        # Test string reader name
         t = hs.load(Path(dirpath, "temp.emd"), reader="emd")
         assert len(t) == 1
         np.testing.assert_allclose(t.data, np.arange(10))
 
-        # Test alias reader
+        # Test string reader aliases
         t = hs.load(Path(dirpath, "temp.emd"), reader="Electron Microscopy Data (EMD)")
+        assert len(t) == 1
+        np.testing.assert_allclose(t.data, np.arange(10))
+        t = hs.load(Path(dirpath, "temp.emd"), reader="Electron Microscopy Data")
         assert len(t) == 1
         np.testing.assert_allclose(t.data, np.arange(10))
 

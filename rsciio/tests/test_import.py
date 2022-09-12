@@ -49,7 +49,7 @@ def test_import_all():
         import tifffile
     except:
         plugin_name_to_remove.append("TIFF")
-        plugin_name_to_remove.append("PhenomELID")
+        plugin_name_to_remove.append("Phenom")
 
     try:
         import pyUSID

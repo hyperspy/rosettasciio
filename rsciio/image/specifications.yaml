@@ -1,5 +1,4 @@
 format_name: Image
-format_alias: image
 description: Import/Export standard image formats using PIL or freeimage.
 full_support: False
 file_extensions: ['png', 'bmp', 'dib', 'gif', 'jpeg', 'jpe', 'jpg',

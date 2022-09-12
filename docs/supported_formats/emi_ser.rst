@@ -1,4 +1,4 @@
-.. _fei-format:
+.. _tia-format:
 
 FEI TIA (SER & EMI)
 -------------------

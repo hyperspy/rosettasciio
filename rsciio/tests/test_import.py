@@ -34,7 +34,7 @@ def test_import_all():
 
     plugin_name_to_remove = []
 
-    # Remove plugins which requires optional dependencies, which is installed
+    # Remove plugins which require not installed optional dependencies
     try:
         import skimage
     except:
@@ -70,3 +70,26 @@ def test_import_all():
 
     for plugin in IO_PLUGINS:
         importlib.import_module(plugin["api"])
+
+
+def test_format_name_aliases():
+    from rsciio import IO_PLUGINS
+
+    for reader in IO_PLUGINS:
+        assert isinstance(reader["format_name"], str)
+        if reader.get("format_name_aliases"):
+            assert isinstance(reader["format_name_aliases"], list)
+            for aliases in reader["format_name_aliases"]:
+                assert isinstance(aliases, str)
+        assert isinstance(reader["description"], str)
+        assert isinstance(reader["full_support"], bool)
+        assert isinstance(reader["file_extensions"], list)
+        for extensions in reader["file_extensions"]:
+            assert isinstance(extensions, str)
+        assert isinstance(reader["default_extension"], int)
+        if isinstance(reader["writes"], list):
+            for i in reader["writes"]:
+                assert isinstance(i, list)
+        else:
+            assert isinstance(reader["writes"], bool)
+        assert isinstance(reader["non_uniform_axis"], bool)

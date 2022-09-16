@@ -44,7 +44,9 @@ jobs:
 
       - name: Install HyperSpy (dev)
         run: |
-          pip install https://github.com/hyperspy/hyperspy/archive/refs/heads/RELEASE_next_major.zip
+          #pip install https://github.com/hyperspy/hyperspy/archive/refs/heads/RELEASE_next_major.zip
+          # Remove once https://github.com/hyperspy/hyperspy/pull/3009 is merged
+          pip install https://github.com/jlaehne/hyperspy/archive/refs/heads/rsciio-format-alias.zip
 
       - name: Test distribution
         run: |

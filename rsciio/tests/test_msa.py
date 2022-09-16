@@ -379,3 +379,48 @@ class TestExample2:
 def test_minimum_metadata_example():
     s = hs.load(os.path.join(my_path, "msa_files", "minimum_metadata.msa"))
     assert minimum_md_om == s.original_metadata.as_dictionary()
+
+
+class TestSignalType:
+    def setup_method(self, method):
+        self.s = hs.load(os.path.join(my_path, "msa_files", "minimum_metadata.msa"))
+        # delete timestamp from metadata since it's runtime dependent
+        del self.s.metadata.General.FileIO.Number_0.timestamp
+
+    @pytest.mark.parametrize(
+        "signaltype", ("EDS_SEM", "EDS_TEM", "CL", "EELS", "PES", "brian")
+    )
+    def test_write_minimum_metadata_signaltype(self, signaltype):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            fname2 = os.path.join(tmpdir, "example-min-export.msa")
+            self.s.metadata.Signal.signal_type = signaltype
+            self.s.save(fname2)
+            s2 = hs.load(fname2)
+            if "EDS" in signaltype:
+                assert s2.original_metadata["SIGNALTYPE"] == "EDS"
+            elif signaltype == "CL":
+                assert s2.original_metadata["SIGNALTYPE"] == "CLS"
+            elif signaltype == "EELS":
+                assert s2.original_metadata["SIGNALTYPE"] == "ELS"
+            elif signaltype not in [
+                "EDS",
+                "WDS",
+                "ELS",
+                "AES",
+                "PES",
+                "XRF",
+                "CLS",
+                "GAM",
+            ]:
+                assert s2.original_metadata["SIGNALTYPE"] == ""
+            else:
+                assert s2.original_metadata["SIGNALTYPE"] in [
+                    "EDS",
+                    "WDS",
+                    "ELS",
+                    "AES",
+                    "PES",
+                    "XRF",
+                    "CLS",
+                    "GAM",
+                ]

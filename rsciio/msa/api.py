@@ -287,7 +287,7 @@ def parse_msa_string(string, filename=None):
             mapped.set_item("Signal.signal_type", "EELS")
         elif parameters["SIGNALTYPE"] == "CLS":
             mapped.set_item("Signal.signal_type", "CL")
-        else:
+        else:  # pragma: no cover
             if parameters["SIGNALTYPE"] not in [
                 "EDS",
                 "WDS",

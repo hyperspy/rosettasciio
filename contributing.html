@@ -407,21 +407,21 @@ other member of the development team before being merged.</p>
 <section id="defining-new-rosettasciio-plugins">
 <span id="id1"></span><span id="defining-plugins"></span><h2>Defining new RosettaSciIO plugins<a class="headerlink" href="#defining-new-rosettasciio-plugins" title="Permalink to this heading">#</a></h2>
 <p>Each read/write plugin resides in a separate directory, the name of which should
-be descriptive of the file type/manufacturer. This directory should contain the
-following files:</p>
+be descriptive of the file type/manufacturer/software. This directory should
+contain the following files:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> – May usually be empty</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">specifications.yaml</span></code> – The characteristics of the IO plugin in yaml format:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">format_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;String&gt;</span><span class="w"></span>
+<li><p><code class="docutils literal notranslate"><span class="pre">specifications.yaml</span></code> – The characteristics of the IO plugin in <em>yaml</em> format:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;String&gt;</span><span class="w"> </span><span class="c1"># unique, concise, no whitespace; usually corresponding to directory name</span><span class="w"></span>
+<span class="nt">name_aliases</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">&lt;String&gt;</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># List of strings, may contain whitespaces (empty if no alias defined)</span><span class="w"></span>
 <span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;String&gt;</span><span class="w"></span>
 <span class="nt">full_support</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;Bool&gt;</span><span class="w">      </span><span class="c1"># Whether all the Hyperspy features are supported</span><span class="w"></span>
-<span class="c1"># Recognised file extension</span><span class="w"></span>
-<span class="nt">file_extensions</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;Tuple of string&gt;</span><span class="w"></span>
+<span class="nt">file_extensions</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;Tuple of string&gt;</span><span class="w">  </span><span class="c1"># Recognised file extension</span><span class="w"></span>
 <span class="nt">default_extension</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;Int&gt;</span><span class="w">  </span><span class="c1"># Index of the extension that will be used by default</span><span class="w"></span>
-<span class="c1"># Writing capabilities</span><span class="w"></span>
-<span class="nt">writes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;Bool&gt;</span><span class="w"></span>
-<span class="c1"># Support for non-uniform axis</span><span class="w"></span>
-<span class="l l-Scalar l-Scalar-Plain">non_uniform_axis = &lt;Bool&gt;</span><span class="w"></span>
+<span class="nt">writes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;Bool&gt;/[Nested list]</span><span class="w">  </span><span class="c1"># Writing capabilities</span><span class="w"></span>
+<span class="c1"># if only limited dimensions are supported, the supported combinations of signal</span><span class="w"></span>
+<span class="c1"># dimensions (sd) and navigation dimensions (nd) are given as list [[sd, nd], ...]</span><span class="w"></span>
+<span class="nt">non_uniform_axis</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;Bool&gt;</span><span class="w">  </span><span class="c1"># Support for non-uniform axis</span><span class="w"></span>
 </pre></div>
 </div>
 </li>
@@ -434,14 +434,14 @@ should be interfaced with the following functions:</p>
 </ul>
 </li>
 </ul>
-<p>Tests covering the functionality of the plugin should be added to the
+<p><strong>Tests</strong> covering the functionality of the plugin should be added to the
 <code class="docutils literal notranslate"><span class="pre">tests</span></code> directory with the naming <code class="docutils literal notranslate"><span class="pre">test_spamandeggs.py</span></code> corresponsing to
 the plugin residing in the directory <code class="docutils literal notranslate"><span class="pre">spamandeggs</span></code>. Data files for the tests
 should be placed in a corresponding subdirectory [change for pooch].</p>
-<p>Documentation should be added both as <strong>docstring</strong>, as well as to the user guide,
-for which a corresponding <cite>.rst</cite> file should be created in the directory
-<cite>docs/supported_formats/</cite> and the format added to the lists in
-<cite>docs/supported_formats/index.rst</cite> and <cite>docs/supported_formats/supported_formats.rst</cite>.</p>
+<p><strong>Documentation</strong> should be added both as <strong>docstring</strong>, as well as to the <strong>user guide</strong>,
+for which a corresponding <code class="docutils literal notranslate"><span class="pre">.rst</span></code> file should be created in the directory
+<code class="docutils literal notranslate"><span class="pre">docs/supported_formats/</span></code> and the format added to the lists in
+<code class="docutils literal notranslate"><span class="pre">docs/supported_formats/index.rst</span></code> and <code class="docutils literal notranslate"><span class="pre">docs/supported_formats/supported_formats.rst</span></code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>It is advisable to clone the files of an existing plugin when initiating a new

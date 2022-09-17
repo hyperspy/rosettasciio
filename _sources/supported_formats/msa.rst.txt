@@ -35,3 +35,9 @@ using the `encoding` argument, e.g.:
 .. code-block:: python
 
     >>> s.save('file.msa', encoding = 'utf8')
+
+Reference
+^^^^^^^^^
+
+For specifications of the format, see the `documentation by the Microscopy Society
+of America <https://www.microscopy.org/resources/scientific_data/>`_.

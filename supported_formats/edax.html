@@ -530,14 +530,21 @@ file will still be loaded, but with no spatial or energy calibration.
 When using <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, if elemental information has been
 defined in the spectrum image, those
 elements will automatically be added to the signal loaded by HyperSpy.</p>
-<p>Currently, loading an EDAX TEAM spectrum or spectrum image will load an
-<code class="docutils literal notranslate"><span class="pre">EDSSEMSpectrum</span></code> Signal. If support for TEM EDS data is needed, please
-open an issue in the <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues">issues tracker</a>
-to alert the developers of the need.</p>
-<p>For reference, <a class="reference internal" href="../file_specification/index.html#edax-file-specification"><span class="std std-ref">file specifications</span></a>  for the edax
-file formats have been available publicly available from EDAX.</p>
-<section id="extra-loading-arguments-for-spd-file">
-<h2>Extra loading arguments for SPD file<a class="headerlink" href="#extra-loading-arguments-for-spd-file" title="Permalink to this heading">#</a></h2>
+<p>In HyperSpy, if an <code class="docutils literal notranslate"><span class="pre">.spd</span></code> file is loaded, the result will be a Hyperspy
+<code class="docutils literal notranslate"><span class="pre">EDSSEMSpectrum</span></code> map, and the calibration will be loaded from the appropriate
+<code class="docutils literal notranslate"><span class="pre">.spc</span></code> and <code class="docutils literal notranslate"><span class="pre">.ipr</span></code> files (if available). If an <code class="docutils literal notranslate"><span class="pre">.spc</span></code> file is loaded, the
+result will be a single <code class="docutils literal notranslate"><span class="pre">EDSSEMSpectrum</span></code> with no other files needed for
+calibration.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Currently, HyperSpy will load an <code class="docutils literal notranslate"><span class="pre">EDSSEMSpectrum</span></code> signal. If support for
+TEM EDS data is needed, please open an issue in the <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues">issues tracker</a> to alert the developers
+of the need.</p>
+</div>
+<p>For reference, <a class="reference internal" href="../file_specification/index.html#edax-file-specification"><span class="std std-ref">file specifications</span></a> for the EDAX
+file formats have been publicly available from EDAX.</p>
+<section id="extra-loading-arguments-for-spd-files">
+<h2>Extra loading arguments for SPD files<a class="headerlink" href="#extra-loading-arguments-for-spd-files" title="Permalink to this heading">#</a></h2>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">spc_fname</span></code>: {None, str}, name of file from which to read the spectral
 calibration. If data was exported fully from EDAX TEAM software, an <code class="docutils literal notranslate"><span class="pre">.spc</span></code>
@@ -600,8 +607,8 @@ read, or just the important parts for import into HyperSpy.</p></li>
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#extra-loading-arguments-for-spd-file">
-   Extra loading arguments for SPD file
+  <a class="reference internal nav-link" href="#extra-loading-arguments-for-spd-files">
+   Extra loading arguments for SPD files
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">

@@ -1,4 +1,4 @@
-.. _dm3-format:
+.. _dm-format:
 
 Gatan Digital Micrograph
 ------------------------

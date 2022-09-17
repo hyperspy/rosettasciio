@@ -1,5 +1,6 @@
-format_name: 'FEI TIA'
-description: ''
+name: TIA
+name_aliases: [FEI TIA, FEI-TIA]
+description: Read sets of .ser & .emi files from the FEI TIA software.
 full_support: False
 file_extensions: [ser, SER, emi, EMI]
 default_extension: 0

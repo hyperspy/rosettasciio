@@ -1,4 +1,5 @@
-format_name: TVIPS
+name: TVIPS
+name_aliases: []
 description: Read support for TVIPS CMOS camera stream/movie files. Can be used for in-situ movies or 4D-STEM datasets.
 full_support: False
 file_extensions: [tvips, TVIPS]

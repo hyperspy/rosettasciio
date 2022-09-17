@@ -111,7 +111,7 @@ class TestNonUniformAxisCheck:
         for plugin in IO_PLUGINS:
             if not "non_uniform_axis" in plugin:
                 print(
-                    plugin.format_name + " IO-plugin is missing the "
+                    plugin.name + " IO-plugin is missing the "
                     "characteristic `non_uniform_axis`"
                 )
 
@@ -230,9 +230,34 @@ def test_file_reader_options():
     with tempfile.TemporaryDirectory() as dirpath:
         f = os.path.join(dirpath, "temp.hspy")
         s.save(f)
+        f2 = os.path.join(dirpath, "temp.emd")
+        s.save(f2)
 
         # Test string reader
         t = hs.load(Path(dirpath, "temp.hspy"), reader="hspy")
+        assert len(t) == 1
+        np.testing.assert_allclose(t.data, np.arange(10))
+
+        # Test string reader uppercase
+        t = hs.load(Path(dirpath, "temp.hspy"), reader="HSpy")
+        assert len(t) == 1
+        np.testing.assert_allclose(t.data, np.arange(10))
+
+        # Test string reader alias
+        t = hs.load(Path(dirpath, "temp.hspy"), reader="hyperspy")
+        assert len(t) == 1
+        np.testing.assert_allclose(t.data, np.arange(10))
+
+        # Test string reader name
+        t = hs.load(Path(dirpath, "temp.emd"), reader="emd")
+        assert len(t) == 1
+        np.testing.assert_allclose(t.data, np.arange(10))
+
+        # Test string reader aliases
+        t = hs.load(Path(dirpath, "temp.emd"), reader="Electron Microscopy Data (EMD)")
+        assert len(t) == 1
+        np.testing.assert_allclose(t.data, np.arange(10))
+        t = hs.load(Path(dirpath, "temp.emd"), reader="Electron Microscopy Data")
         assert len(t) == 1
         np.testing.assert_allclose(t.data, np.arange(10))
 

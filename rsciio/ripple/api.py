@@ -263,11 +263,11 @@ def file_reader(
     All of the numbers are in the same format, such as 16 bit signed integer,
     IEEE 8-byte real, 8-bit unsigned byte, etc.
 
-    The "raw" file should be accompanied by text file with the same name and
+    The "raw" file should be accompanied by a text file with the same name and
     ".rpl" extension. This file lists the characteristics of the raw file so
     that it can be loaded without human intervention.
 
-    Alternatively, dictionary 'rpl_info' containing the information can
+    Alternatively, a dictionary 'rpl_info' containing the information can
     be given.
 
     Some keys are specific to HyperSpy and will be ignored by other software.

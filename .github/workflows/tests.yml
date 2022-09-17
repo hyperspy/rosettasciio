@@ -74,9 +74,7 @@ jobs:
         if: "!contains(matrix.LABEL, 'wo-hyperspy')"
         # Need to install hyperspy dev until hyperspy 2.0 is released
         run: |
-          #pip install https://github.com/hyperspy/hyperspy/archive/refs/heads/RELEASE_next_major.zip
-          # Remove once https://github.com/hyperspy/hyperspy/pull/3009 is merged
-          pip install https://github.com/jlaehne/hyperspy/archive/refs/heads/rsciio-format-alias.zip
+          pip install https://github.com/hyperspy/hyperspy/archive/refs/heads/RELEASE_next_major.zip
 
       - name: Pip list
         run: |

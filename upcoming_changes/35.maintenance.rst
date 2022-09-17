@@ -1,1 +1,1 @@
-Unify the ``format_name`` scheme of IO plugins and add ``format_name_aliases`` (list) for backwards compatibility.
+Unify the ``format_name`` scheme of IO plugins using ``name`` instead and add ``name_aliases`` (list) for backwards compatibility.

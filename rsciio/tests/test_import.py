@@ -63,7 +63,7 @@ def test_import_all():
 
     IO_PLUGINS = list(
         filter(
-            lambda plugin: plugin["format_name"] not in plugin_name_to_remove,
+            lambda plugin: plugin["name"] not in plugin_name_to_remove,
             IO_PLUGINS,
         )
     )
@@ -76,10 +76,10 @@ def test_format_name_aliases():
     from rsciio import IO_PLUGINS
 
     for reader in IO_PLUGINS:
-        assert isinstance(reader["format_name"], str)
-        if reader.get("format_name_aliases"):
-            assert isinstance(reader["format_name_aliases"], list)
-            for aliases in reader["format_name_aliases"]:
+        assert isinstance(reader["name"], str)
+        assert isinstance(reader["name_aliases"], list)
+        if reader["name_aliases"]:
+            for aliases in reader["name_aliases"]:
                 assert isinstance(aliases, str)
         assert isinstance(reader["description"], str)
         assert isinstance(reader["full_support"], bool)

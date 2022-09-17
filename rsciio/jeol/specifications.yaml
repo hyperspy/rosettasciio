@@ -1,4 +1,5 @@
-format_name: JEOL
+name: JEOL
+name_aliases: []
 description: Read JEOL files output by the Analysis Station software.
 full_support: False
 file_extensions: [ASW, asw, img, map, pts, eds]

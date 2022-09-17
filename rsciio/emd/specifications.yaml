@@ -1,5 +1,5 @@
-format_name: EMD
-format_name_aliases: [Electron Microscopy Data, Electron Microscopy Data (EMD)]
+name: EMD
+name_aliases: [Electron Microscopy Data, Electron Microscopy Data (EMD)]
 description: Read data from Berkeley's Electron Microscopy Data (EMD) files.
 full_support: False  # Hopefully?
 # Recognised file extension

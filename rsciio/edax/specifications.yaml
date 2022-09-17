@@ -1,5 +1,5 @@
-format_name: EDAX
-format_name_aliases: [EDAX TEAM, EDAX-TEAM]
+name: EDAX
+name_aliases: [EDAX TEAM, EDAX-TEAM]
 description: >
   Reader for EDS maps and spectra saved by the EDAX TEAM
   or Genesis software.

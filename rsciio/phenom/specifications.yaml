@@ -1,5 +1,5 @@
-format_name: Phenom
-format_name_aliases: [PhenomELID, Phenom Element Identification, Phenom Element Identification (ELID)]
+name: Phenom
+name_aliases: [PhenomELID, Phenom Element Identification, Phenom Element Identification (ELID)]
 description: Read data from Phenom Element Identification (ELID) files.
 full_support: False
 file_extensions: [elid, ELID]

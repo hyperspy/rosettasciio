@@ -1,5 +1,5 @@
-format_name: ZSPY
-format_name_aliases: [HyperSpyZarr]
+name: ZSPY
+name_aliases: [HyperSpyZarr]
 description: HyperSpy file format definition based on the zarr standard, particularly suited for big data sets.
 full_support: True
 file_extensions: [zspy, ZSPY]

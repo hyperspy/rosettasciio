@@ -1,4 +1,5 @@
-format_name: Blockfile
+name: Blockfile
+name_aliases: []
 description: Read/write support for ASTAR blockfiles.
 full_support: False
 file_extensions: [blo, BLO]

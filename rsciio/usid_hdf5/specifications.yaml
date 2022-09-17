@@ -1,5 +1,5 @@
-format_name: USID
-format_name_aliases: [Universal Spectroscopic and Imaging Data]
+name: USID
+name_aliases: [Universal Spectroscopic and Imaging Data]
 description: Data structured according to the Universal Spectroscopic and Imaging Data (USID) model, written into Hierarchical Data Format (HDF5) files.
 full_support: False
 file_extensions: ["h5", "hdf5"]

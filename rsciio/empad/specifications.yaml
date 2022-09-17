@@ -1,4 +1,5 @@
-format_name: EMPAD
+name: EMPAD
+name_aliases: []
 description: File format used by the Electron Microscope Pixel Array Detector (EMPAD).
 full_support: False
 # Recognised file extension

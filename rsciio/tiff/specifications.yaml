@@ -1,4 +1,5 @@
-format_name: TIFF
+name: TIFF
+name_aliases: []
 description: Import/Export standard image formats using Christoph Gohlke's tifffile library.
 full_support: False
 file_extensions: [tif, tiff]

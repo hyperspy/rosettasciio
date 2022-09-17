@@ -111,7 +111,7 @@ class TestNonUniformAxisCheck:
         for plugin in IO_PLUGINS:
             if not "non_uniform_axis" in plugin:
                 print(
-                    plugin.format_name + " IO-plugin is missing the "
+                    plugin.name + " IO-plugin is missing the "
                     "characteristic `non_uniform_axis`"
                 )
 

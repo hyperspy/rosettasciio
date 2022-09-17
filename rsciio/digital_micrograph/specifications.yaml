@@ -1,5 +1,5 @@
-format_name: DigitalMicrograph
-format_name_aliases: [Digital Micrograph dm3, Digital Micrograph, Gatan]
+name: DigitalMicrograph
+name_aliases: [Digital Micrograph dm3, Digital Micrograph, Gatan]
 description: Read data from Gatan Digital Micrograph (TM) files.
 full_support: False
 file_extensions: ['dm3', 'DM3', 'dm4', 'DM4']

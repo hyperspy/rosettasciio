@@ -1,4 +1,5 @@
-format_name: PantaRhei
+name: PantaRhei
+name_aliases: []
 description: File format used by CEOS PantaRhei, based on simple numpy arrays and dictionaries.
 full_support: False
 file_extensions: [prz, PRZ]

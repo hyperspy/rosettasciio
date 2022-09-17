@@ -1,4 +1,5 @@
-format_name: Protochips
+name: Protochips
+name_aliases: []
 description: Reads Protochips log files (heating/baising and gas cell).
 full_support: False
 file_extensions: [csv, CSV]

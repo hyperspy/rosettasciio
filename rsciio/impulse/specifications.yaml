@@ -1,4 +1,5 @@
-format_name: Impulse
+name: Impulse
+name_aliases: []
 description: Reads DENSsolutions Impulse log files.
 full_support: False
 file_extensions: [csv, CSV]

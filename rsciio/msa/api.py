@@ -21,7 +21,6 @@ import codecs
 import os
 import logging
 import warnings
-from turtle import dot
 
 import numpy as np
 

@@ -197,7 +197,21 @@ def get_header_from_signal(signal, endianess="<"):
     return header, note
 
 
-def file_reader(filename, endianess="<", mmap_mode=None, lazy=False, **kwds):
+def file_reader(filename, lazy=False, mmap_mode="r", endianess="<"):
+    """
+    Read a blockfile.
+
+    Parameters
+    ----------
+    lazy : bool
+        Whether to open the file lazily or not
+    mmap_mode : str
+        Argument passed to :py:func:`numpy.memmap`. If None (default), the
+        value is ``'r'`` when not lazy, otherwise it is ``'c'``.
+    endianess : str
+        ``'<'`` (default) or ``'>'`` depending on how the bits are written to the file
+    """
+
     _logger.debug("Reading blockfile: %s" % filename)
     metadata = {}
     if mmap_mode is None:
@@ -317,7 +331,14 @@ def file_reader(filename, endianess="<", mmap_mode=None, lazy=False, **kwds):
     ]
 
 
-def file_writer(filename, signal, **kwds):
+def file_writer(
+    filename,
+    signal,
+    intensity_scaling=None,
+    navigator="navigator",
+    show_progressbar=True,
+    endianess="<",
+):
     """
     Write signal to blockfile.
 
@@ -327,31 +348,33 @@ def file_writer(filename, signal, **kwds):
         Filename of the file to write to
     signal : instance of hyperspy Signal2D
         The signal to save.
-    endianess : str
-        '<' (default) or '>' determining how the bits are written to the file
     intensity_scaling : str or 2-Tuple of float/int
-        If the signal datatype is not uint8 this argument provides intensity
-        linear scaling strategies. If 'dtyTraduit avec www.DeepL.com/Translator (version gratuite)pe', the entire dtype range is mapped
-        to 0-255, if 'minmax' the range between the minimum and maximum intensity is
-        mapped to 0-255, if 'crop' the range between 0-255 is conserved without
-        overflow, if a tuple of values the values between this range is mapped
-        to 0-255. If None (default) no rescaling is performed and overflow is
-        permitted.
-    navigator_signal : str or Signal2D
-        A blo file also saves a virtual bright field image for navigation.
+        If the signal datatype is not :py:class:`numpy.uint8`, casting to this
+        datatype without intensity rescaling results in overflow errors (default behavior)
+        This argument provides intensity scaling strategies and the options are:
+
+        - ``'dtype'``: the limits of the datatype of the dataset, e.g. 0-65535 for
+          :py:class:`numpy.uint16`, are mapped onto 0-255, respectively. Does not work
+          for ``float`` data types.
+        - ``'minmax'``: the minimum and maximum in the dataset are mapped to 0-255.
+        - ``'crop'``: everything below 0 and above 255 is set to 0 and 255, respectively
+        - 2-tuple of `floats` or `ints`: the intensities between these values are
+          scaled between 0-255, everything below is 0 and everything above is 255.
+    navigator : str or array-like
+        A ``.blo`` file also saves a virtual bright field image for navigation.
         This option determines what kind of data is stored for this image.
-        The default option "navigator" uses the navigator image if it was
-        previously calculated, else it is calculated here which can take
-        some time for large datasets. Alternatively, a Signal2D of the right
-        shape may also be provided. If set to None, a zero array is stored
-        in the file.
+        By default this is set to ``'navigator'``, which results in using the
+        :py:attr:`hyperspy.signal.BaseSignal.navigator` attribute if used with HyperSpy.
+        Otherwise it is calculated during saving which can take  some time for large
+        datasets. Alternatively, an array-like of the right shape may also be provided.
+        If set to None, a zero array is stored in the file.
+    show_progressbar : bool
+        Whether to show the progressbar or not.
+    endianess : str
+        ``'<'`` (default) or ``'>'`` determining how the bits are written to the file
     """
-    endianess = kwds.pop("endianess", "<")
-    scale_strategy = kwds.pop("intensity_scaling", None)
-    vbf_strategy = kwds.pop("navigator_signal", "navigator")
-    show_progressbar = kwds.pop("show_progressbar", None)
     smetadata = DTBox(signal["metadata"], box_dots=True)
-    if scale_strategy is None:
+    if intensity_scaling is None:
         # to distinguish from the tuple case
         if signal["data"].dtype != "u1":
             warnings.warn(
@@ -360,21 +383,21 @@ def file_writer(filename, signal, **kwds):
                 "use the 'intensity_scaling' keyword argument.",
                 UserWarning,
             )
-    elif scale_strategy == "dtype":
+    elif intensity_scaling == "dtype":
         original_scale = dtype_limits(signal["data"])
         if original_scale[1] == 1.0:
             raise ValueError("Signals with float dtype can not use 'dtype'")
-    elif scale_strategy == "minmax":
+    elif intensity_scaling == "minmax":
         minimum = signal["data"].min()
         maximum = signal["data"].max()
         if signal["attributes"]["_lazy"]:
             minimum, maximum = dask.compute(minimum, maximum)
         original_scale = (minimum, maximum)
-    elif scale_strategy == "crop":
+    elif intensity_scaling == "crop":
         original_scale = (0, 255)
     else:
         # we leave the error checking for incorrect tuples to skimage
-        original_scale = scale_strategy
+        original_scale = intensity_scaling
 
     header, note = get_header_from_signal(signal, endianess=endianess)
     with open(filename, "wb") as f:
@@ -388,30 +411,29 @@ def file_writer(filename, signal, **kwds):
         zero_pad = int(header["Data_offset_1"]) - f.tell()
         np.zeros((zero_pad,), np.byte).tofile(f)
         # Write virtual bright field
-        if vbf_strategy is None:
-            vbf = np.zeros((signal["data"].shape[0], signal["data"].shape[1]))
-        elif isinstance(vbf_strategy, str) and (vbf_strategy == "navigator"):
+        if navigator is None:
+            navigator = np.zeros((signal["data"].shape[0], signal["data"].shape[1]))
+        elif isinstance(navigator, str) and (navigator == "navigator"):
             if smetadata.get("_HyperSpy._sig_navigator", False):
-                vbf = smetadata["_HyperSpy._sig_navigator.data"]
+                navigator = smetadata["_HyperSpy._sig_navigator.data"]
             else:
-                vbf = signal["data"].mean(axis=(-2, -1))
-        else:
-            if hasattr(vbf_strategy, "shape"):
-                # Is numpy array-like
-                vbf = vbf_strategy
-            else:
-                # Is Hyperspy signal. For compatibility with HyperSpy <2.0
-                vbf = vbf_strategy.data
+                navigator = signal["data"].mean(axis=(-2, -1))
+        elif hasattr(navigator, "shape"):
+            # Is numpy array-like
             # check that the shape is ok
-            if vbf.shape != signal["data"].shape[:2]:
+            if navigator.shape != signal["data"].shape[:2]:
                 raise ValueError(
-                    "Size of the provided VBF does not match the "
+                    "Size of the provided `navigator` does not match the "
                     "navigation dimensions of the dataset."
                 )
-        if scale_strategy is not None:
-            vbf = rescale_intensity(vbf, in_range=original_scale, out_range=np.uint8)
-        vbf = vbf.astype(endianess + "u1")
-        np.asanyarray(vbf).tofile(f)
+        else:
+            raise ValueError("The `navigator` argument is expected to be array-like")
+        if intensity_scaling is not None:
+            navigator = rescale_intensity(
+                navigator, in_range=original_scale, out_range=np.uint8
+            )
+        navigator = navigator.astype(endianess + "u1")
+        np.asanyarray(navigator).tofile(f)
         # Zero pad until next data block
         if f.tell() > int(header["Data_offset_2"]):
             raise ValueError(
@@ -421,7 +443,7 @@ def file_writer(filename, signal, **kwds):
         np.zeros((zero_pad,), np.byte).tofile(f)
         file_location = f.tell()
 
-    if scale_strategy is not None:
+    if intensity_scaling is not None:
         array_data = rescale_intensity(
             signal["data"],
             in_range=original_scale,

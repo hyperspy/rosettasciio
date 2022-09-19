@@ -3,18 +3,14 @@
 Bruker formats
 --------------
 
-.. _bcf-format:
-
-Bruker composite file (BCF)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-RosettaSciIO can read "hypermaps" saved with Bruker's Esprit v1.x or v2.x in ``.bcf``
+RosettaSciIO can read ``.spx`` single spectrum and ``.bcf`` "hypermaps" file
+formats saved with Bruker's Esprit v1.x or v2.x in ``.bcf``
 hybrid (virtual file system/container with xml and binary data, optionally
-compressed) format. Most ``.bcf``` import functionality is implemented. Both
+compressed) format. Most ``.bcf`` import functionality is implemented. Both
 high-resolution 16-bit SEM images and hyperspectral EDX data can be retrieved
 simultaneously.
 
-BCF can look as all inclusive format, however it does not save some key EDX
+BCF can look as all inclusive format, however it does not save some key EDS
 parameters: any of dead/live/real times, FWHM at Mn_Ka line. However, real time
 for whole map is calculated from pixelAverage, lineAverage, pixelTime,
 lineCounter and map height parameters.
@@ -22,35 +18,22 @@ lineCounter and map height parameters.
 Note that Bruker Esprit uses a similar format for EBSD data, but it is not
 currently supported by RosettaSciIO.
 
-Extra loading arguments
-+++++++++++++++++++++++
+The format contains extensive list of details and parameters of EDS analyses
+which in `HyperSpy <https://hyperspy.org>`_ are mapped to ``metadata`` and
+``original_metadata`` dictionaries.
 
-- ``select_type`` : one of (None, 'spectrum_image', 'image'). If specified, only
-  the corresponding type of data, either spectrum image or image, is returned.
-  By default (None), all data are loaded.
-- ``index`` : one of (None, int, "all"). Allow to select the index of the dataset
-  in the ``.bcf`` file, which can contains several datasets. Default None value
-  result in loading the first dataset. When set to 'all', all available datasets
-  will be loaded and returned as separate signals.
-- ``downsample`` : the downsample ratio of hyperspectral array (height and width
-  only), can be integer >=1, where '1' results in no downsampling (default 1).
-  The underlying method of downsampling is unchangeable: sum. Differently than
-  ``block_reduce`` from skimage.measure it is memory efficient (does not creates
-  intermediate arrays, works inplace).
-- ``cutoff_at_kV`` : if set (can be None, int, float (kV), one of 'zealous'
-  or 'auto') can be used either to crop or enlarge energy (or number of
-  channels) range at max values. It can be used to conserve memory or enlarge
-  the range if needed to mach the size of other file. Default value is None
-  (which does not influence size). Numerical values should be in kV.
-  'zealous' truncates to the last non zero channel (this option
-  should not be used for stacks, as low beam current EDS can have different
-  last non zero channel per slice). 'auto' truncates channels to SEM/TEM
-  acceleration voltage or energy at last channel, depending which is smaller.
-  In case the hv info is not there or hv is off (0 kV) then it fallbacks to
-  full channel range.
+Parameters
+++++++++++
+
+.. automodule:: rsciio.bruker
+   :members:
+
+
+Example
++++++++
 
 Example of loading reduced (downsampled, and with energy range cropped)
-"spectrum only" data from ``.bcf`` (original shape: 80keV EDS range (4096 channels),
+"spectrum only" data from ``bcf`` (original shape: 80 keV EDS range (4096 channels),
 100x75 pixels; SEM acceleration voltage: 20kV):
 
 .. code-block:: python
@@ -77,16 +60,6 @@ recorded by setting the 'cutoff_at_kV' kwarg to higher value:
     <Signal2D, title: SE, dimensions: (|100, 75)>,
     <EDSSEMSpectrum, title: EDX, dimensions: (100, 75|3072)>]
 
-loading without setting cutoff_at_kV value would return data with all 4096
-channels. Note that setting downsample to >1 currently locks out using SEM
+loading without setting ``cutoff_at_kV`` value would return data with all 4096
+channels. Note that setting ``downsample`` higher than 1 currently locks out using SEM
 images for navigation in the plotting.
-
-.. _spx-format:
-
-SPX (xml) format
-^^^^^^^^^^^^^^^^
-
-RosettaSciIO can read Bruker's ``.spx`` format (single spectra format based on XML).
-The format contains extensive list of details and parameters of EDS analyses
-which in `HyperSpy <https://hyperspy.org>`_ are mapped to ``metadata`` and 
-``original_metadata`` dictionaries.

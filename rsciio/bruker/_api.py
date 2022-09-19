@@ -32,7 +32,6 @@ import re
 import logging
 from zlib import decompress as unzip_block
 from struct import unpack as strct_unp
-import warnings
 from datetime import datetime, timedelta
 from ast import literal_eval
 import codecs
@@ -1290,6 +1289,42 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
 
 
 def file_reader(filename, *args, **kwds):
+    """
+    Read a bruker ``.bcf`` or ``.spx`` file.
+
+    Parameters
+    ----------
+    select_type : ``'spectrum_image'``, ``'image'`` or None
+        If specified, only the corresponding type of data, either spectrum
+        image or image, is returned.
+        By default (None), all data are loaded.
+    index : int, None or str
+        Allow to select the index of the dataset in the ``.bcf`` file, which
+        can contain several datasets. The default value (``None``) results in
+        loading the first dataset. When set to ``'all'``, all available datasets
+        will be loaded and returned as separate signals.
+    downsample : int
+        The downsampling ratio of a hyperspectral array (height and width only),
+        can be an integer >=1, where value of 1 results in no downsampling .
+        The default is 1.
+        The underlying method of downsampling is unchangeable: sum. Differently
+        than :py:func:``skimage.measure.block_reduce``, it is memory efficient
+        as it doesn't create intermediate arrays
+    cutoff_at_kV : int, float, ``'zealous'``, ``'auto'`` or None
+        It can be used either to crop or enlarge the energy (or number of channels)
+        range at max values. It can be used to conserve memory or enlarge
+        the range if needed to mach the size of other file. The default value
+        (``None``) does not influence the size. Numerical values should be in kV.
+        ``'zealous'`` truncates to the last non zero channel (this option
+        should not be used for stacks, as low beam current EDS can have a different
+        last non zero channel per slice). ``'auto'`` truncates channels to SEM/TEM
+        acceleration voltage or energy at last channel, depending which is smaller.
+        In case the hv info is not there or hv is off (0 kV) then it falls back to
+        the full channel range.
+    instrument : str or None
+        Can be either ``'TEM'`` or ``'SEM'``. Default is ``None``.
+
+    """
     ext = splitext(filename)[1][1:]
     if ext == "bcf":
         return bcf_reader(filename, *args, **kwds)
@@ -1306,9 +1341,10 @@ def bcf_reader(
     instrument=None,
     lazy=False,
 ):
-    """Reads a bruker bcf file and loads the data into the appropriate class,
-    then wraps it into appropriate hyperspy required list of dictionaries
-    used by hyperspy.api.load() method.
+    """
+    Reads a bruker ``.bcf`` file and loads the data into the appropriate class,
+    then wraps it into a list of dictionaries typically used by the
+    :py:func:`hyperspy.api.load` function.
 
     Parameters
     ----------

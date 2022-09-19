@@ -86,3 +86,11 @@ for which a corresponding ``.rst`` file should be created in the directory
 .. Note ::
     It is advisable to clone the files of an existing plugin when initiating a new
     plugin.
+
+
+Maintenance
+===========
+
+Please refer to the 
+`HyperSpy developer guide <http://hyperspy.org/hyperspy-doc/current/dev_guide/intro.html>`_
+for maintenance guidelines.

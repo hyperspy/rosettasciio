@@ -26,8 +26,5 @@ loading the file using a different mode. However, note that lazy loading
 does not support in-place writing (i.e lazy loading and the "r+" mode
 are incompatible).
 
-Parameters
-++++++++++
-
 .. automodule:: rsciio.blockfile
    :members:

@@ -1324,6 +1324,34 @@ def file_reader(filename, *args, **kwds):
     instrument : str or None
         Can be either ``'TEM'`` or ``'SEM'``. Default is ``None``.
 
+    Examples
+    --------
+    Example of loading reduced (downsampled, and with energy range cropped)
+    "spectrum only" data from ``bcf`` (original shape: 80 keV EDS range (4096 channels),
+    100x75 pixels; SEM acceleration voltage: 20kV):
+
+    >>> hs.load("sample80kv.bcf", select_type='spectrum_image',
+                downsample=2, cutoff_at_kV=10)
+    ... <EDSSEMSpectrum, title: EDX, dimensions: (50, 38|595)>
+
+    Load the same file with limiting array size to SEM acceleration voltage:
+
+    >>> hs.load("sample80kv.bcf", cutoff_at_kV='auto')
+    ... [<Signal2D, title: BSE, dimensions: (|100, 75)>,
+    ...  <Signal2D, title: SE, dimensions: (|100, 75)>,
+    ...  <EDSSEMSpectrum, title: EDX, dimensions: (100, 75|1024)>]
+
+    The loaded array energy dimension can by forced to be larger than the data
+    recorded by setting the 'cutoff_at_kV' kwarg to higher value:
+
+    >>> hs.load("sample80kv.bcf", cutoff_at_kV=60)
+    ... [<Signal2D, title: BSE, dimensions: (|100, 75)>,
+    ...  <Signal2D, title: SE, dimensions: (|100, 75)>,
+    ...  <EDSSEMSpectrum, title: EDX, dimensions: (100, 75|3072)>]
+
+    Loading without setting ``cutoff_at_kV`` value would return data with all 4096
+    channels. Note that setting ``downsample`` higher than 1 currently locks out using SEM
+    images for navigation in the plotting.
     """
     ext = splitext(filename)[1][1:]
     if ext == "bcf":

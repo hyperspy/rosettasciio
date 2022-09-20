@@ -365,7 +365,7 @@ def file_writer(
         This option determines what kind of data is stored for this image.
         By default this is set to ``'navigator'``, which results in using the
         :py:attr:`hyperspy.signal.BaseSignal.navigator` attribute if used with HyperSpy.
-        Otherwise it is calculated during saving which can take  some time for large
+        Otherwise, it is calculated during saving which can take  some time for large
         datasets. Alternatively, an array-like of the right shape may also be provided.
         If set to None, a zero array is stored in the file.
     show_progressbar : bool

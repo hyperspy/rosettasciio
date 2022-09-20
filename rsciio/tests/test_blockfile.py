@@ -388,12 +388,16 @@ def test_lazy_save(save_path, fake_signal):
     np.testing.assert_allclose(sig_reload.data, compare)
 
 
-@pytest.mark.parametrize("vbf", [None, "navigator"])
-def test_vbfs(save_path, fake_signal, vbf):
+@pytest.mark.parametrize("navigator", [None, "navigator", "array"])
+def test_vbfs(save_path, fake_signal, navigator):
     fake_signal = fake_signal.as_lazy()
-    if vbf == "navigator":
+    if navigator in ["navigator", "array"]:
         fake_signal.compute_navigator()
-    fake_signal.save(save_path, intensity_scaling=None, navigator=vbf, overwrite=True)
+    if navigator == "array":
+        navigator = fake_signal.navigator.data
+    fake_signal.save(
+        save_path, intensity_scaling=None, navigator=navigator, overwrite=True
+    )
     sig_reload = hs.load(save_path)
     compare = (fake_signal.data % 256).astype(np.uint8)
     np.testing.assert_allclose(sig_reload.data, compare)

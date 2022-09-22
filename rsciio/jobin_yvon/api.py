@@ -27,6 +27,14 @@ import numpy as np
 _logger = logging.getLogger(__name__)
 
 
+def _remove_none_from_dict(dict_in):
+    for key, value in list(dict_in.items()):
+        if isinstance(value, dict):
+            _remove_none_from_dict(value)
+        elif value is None:
+            del dict_in[key]
+
+
 class JobinYvonXMLReader:
     """Class to read Jobin Yvon .xml-files.
 
@@ -80,14 +88,6 @@ class JobinYvonXMLReader:
     @staticmethod
     def _get_size(xml_element):
         return int(xml_element.attrib["Size"])
-
-    @staticmethod
-    def _set_metadata(dict_out, key_out, dict_in, key_in):
-        """Sets key in dict_out, when key_in exists in dict_in."""
-        try:
-            dict_out[key_out] = dict_in[key_in]
-        except KeyError:
-            pass
 
     def parse_file(self):
         """First parse through file to extract data/metadata positions."""
@@ -255,23 +255,19 @@ class JobinYvonXMLReader:
                 pass
 
         ## move the unit from grating to the key name
-        new_grating_key_name = "Grating (gr/mm)"
         try:
             self.original_metadata["experimental_setup"][
-                new_grating_key_name
-            ] = self.original_metadata["experimental_setup"]["Grating"]
-            del self.original_metadata["experimental_setup"]["Grating"]
-        except KeyError:
+                "Grating (gr/mm)"
+            ] = self.original_metadata["experimental_setup"].pop("Grating")
+        except KeyError:  # pragma: no cover
             pass  # pragma: no cover
 
         ## add percentage for filter key name
-        new_filter_key_name = "ND Filter (%)"
         try:
             self.original_metadata["experimental_setup"][
-                new_filter_key_name
-            ] = self.original_metadata["experimental_setup"]["ND Filter"]
-            del self.original_metadata["experimental_setup"]["ND Filter"]
-        except KeyError:
+                "ND Filter (%)"
+            ] = self.original_metadata["experimental_setup"].pop("ND Filter")
+        except KeyError:  # pragma: no cover
             pass  # pragma: no cover
 
     def get_original_metadata(self):
@@ -295,11 +291,11 @@ class JobinYvonXMLReader:
             self.original_metadata["experimental_setup"][
                 "measurement_type"
             ] = self._measurement_type
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
             pass  # pragma: no cover
         try:
             self.original_metadata["experimental_setup"]["title"] = self._title
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
             pass  # pragma: no cover
         try:
             self.original_metadata["experimental_setup"][
@@ -394,7 +390,7 @@ class JobinYvonXMLReader:
         return has_nav, nav_size
 
     def _set_signal_axis(self, xml_element):
-        """Helper method to extract signal-axis information.
+        """Helper method to extract signal axis information.
 
         Parameters
         ----------
@@ -507,45 +503,37 @@ class JobinYvonXMLReader:
             elif self._has_nav1 and not self._has_nav2:
                 self.data = np.reshape(self.data, (self._nav1_size, num_cols))
 
-    ## account for missing keys in original metadata (try/except)
     def map_metadata(self):
         """Maps original_metadata to metadata dictionary."""
-        self.metadata = dict()
-        if "General" not in self.metadata:
-            self.metadata["General"] = {}
-        if "Signal" not in self.metadata:
-            self.metadata["Signal"] = {}
-        if "Sample" not in self.metadata:
-            self.metadata["Sample"] = {}
-        if "Acquisition_instrument" not in self.metadata:
-            self.metadata["Acquisition_instrument"] = {
-                "Laser": {"Filter": {}, "Polarizer": {}},
-                "Spectrometer": {"Grating": {}, "Polarizer": {}},
-                "Detector": {"processing": {}},
-                "Spectral_image": {},
-            }
+        general = {}
+        signal = {}
+        laser = {"Filter": {}, "Polarizer": {}}
+        spectrometer = {"Grating": {}, "Polarizer": {}}
+        detector = {"processing": {}}
+        spectral_image = {}
+        sample = {}
 
-        self.metadata["General"]["title"] = self._title
-        self.metadata["General"]["original_filename"] = self._file_path.name
-        self._set_metadata(
-            self.metadata["General"],
-            "notes",
-            self.original_metadata["file_information"],
-            "Remark",
-        )
+        sample["description"] = self.original_metadata["file_information"].get("Sample")
+
+        general["title"] = self._title
+        general["original_filename"] = self._file_path.name
+        general["notes"] = self.original_metadata["file_information"].get("Remark")
         try:
             date, time = self.original_metadata["date"]["Acquired"].split(" ")
-            self.metadata["General"]["date"] = date
-            self.metadata["General"]["time"] = time
-        except KeyError:
+        except KeyError:  # pragma: no cover
             pass  # pragma: no cover
+        else:
+            general["date"] = date
+            general["time"] = time
 
+        signal["signal_type"] = self._signal_type
+        signal["signal_dimension"] = 1
         try:
             intensity_axis = self.original_metadata["experimental_setup"]["signal type"]
             intensity_units = self.original_metadata["experimental_setup"][
                 "signal units"
             ]
-        except KeyError:
+        except KeyError:  # pragma: no cover
             pass  # pragma: no cover
         else:
             if intensity_axis == "Intens":
@@ -554,198 +542,102 @@ class JobinYvonXMLReader:
                 intensity_units = "Counts/s"
             if intensity_units == "Cnt":
                 intensity_units = "Counts"
-            self.metadata["Signal"][
-                "quantity"
-            ] = f"{intensity_axis} ({intensity_units})"
+            signal["quantity"] = f"{intensity_axis} ({intensity_units})"
 
-        self.metadata["Signal"]["signal_type"] = self._signal_type
-        self.metadata["Signal"]["signal_dimension"] = 1
-
-        self._set_metadata(
-            self.metadata["Sample"],
-            "description",
-            self.original_metadata["file_information"],
-            "Sample",
+        laser["wavelength"] = self.original_metadata["experimental_setup"].get(
+            "Laser (nm)"
         )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Laser"],
-            "wavelength",
-            self.original_metadata["experimental_setup"],
-            "Laser (nm)",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Laser"],
-            "objective_magnification",
-            self.original_metadata["experimental_setup"],
-            "Objective",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Laser"]["Filter"],
-            "optical_density",
-            self.original_metadata["experimental_setup"],
-            "ND Filter (%)",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Spectrometer"],
-            "central_wavelength",
-            self.original_metadata["experimental_setup"],
-            "Spectro (nm)",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Spectrometer"],
-            "model",
-            self.original_metadata["experimental_setup"],
-            "Instrument",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Spectrometer"]["Grating"],
-            "groove_density",
-            self.original_metadata["experimental_setup"],
-            "Grating (gr/mm)",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Spectrometer"],
-            "entrance_slit_width",
-            self.original_metadata["experimental_setup"],
-            "Hole",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Spectrometer"],
-            "spectral_range",
-            self.original_metadata["experimental_setup"],
-            "Range",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Detector"],
-            "model",
-            self.original_metadata["experimental_setup"],
-            "Detector",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Detector"],
-            "delay_time",
-            self.original_metadata["experimental_setup"],
-            "Delay time (s)",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Detector"],
-            "binning",
-            self.original_metadata["experimental_setup"],
-            "Binning",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Detector"],
-            "temperature",
-            self.original_metadata["experimental_setup"],
-            "Detector temperature (°C)",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Detector"],
-            "exposure_per_frame",
-            self.original_metadata["experimental_setup"],
-            "Acq. time (s)",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Detector"],
-            "frames",
-            self.original_metadata["experimental_setup"],
-            "Accumulations",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Detector"]["processing"],
-            "autofocus",
-            self.original_metadata["experimental_setup"],
-            "Autofocus",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Detector"]["processing"],
-            "swift",
-            self.original_metadata["experimental_setup"],
-            "SWIFT",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Detector"]["processing"],
-            "auto_exposure",
-            self.original_metadata["experimental_setup"],
-            "AutoExposure",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Detector"]["processing"],
-            "spike_filter",
-            self.original_metadata["experimental_setup"],
-            "Spike filter",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Detector"]["processing"],
-            "de_noise",
-            self.original_metadata["experimental_setup"],
-            "DeNoise",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Detector"]["processing"],
-            "ics_correction",
-            self.original_metadata["experimental_setup"],
-            "ICS correction",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Detector"]["processing"],
-            "dark_correction",
-            self.original_metadata["experimental_setup"],
-            "Dark correction",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Detector"]["processing"],
-            "inst_process",
-            self.original_metadata["experimental_setup"],
-            "Inst. Process",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Laser"]["Polarizer"],
-            "polarizer_type",
-            self.original_metadata["experimental_setup"],
-            "Laser. Pol.",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Spectrometer"]["Polarizer"],
-            "polarizer_type",
-            self.original_metadata["experimental_setup"],
-            "Raman. Pol.",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Laser"]["Polarizer"],
-            "angle",
-            self.original_metadata["experimental_setup"],
-            "Laser Pol. (°)",
-        )
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Spectrometer"]["Polarizer"],
-            "angle",
-            self.original_metadata["experimental_setup"],
-            "Raman Pol. (°)",
+        laser["objective_magnification"] = self.original_metadata[
+            "experimental_setup"
+        ].get("Objective")
+        laser["Filter"]["optical_density"] = self.original_metadata[
+            "experimental_setup"
+        ].get("ND Filter (%)")
+        laser["Polarizer"]["polarizer_type"] = self.original_metadata[
+            "experimental_setup"
+        ].get("Laser. Pol.")
+        laser["Polarizer"]["angle"] = self.original_metadata["experimental_setup"].get(
+            "Laser Pol. (°)"
         )
 
-        self._set_metadata(
-            self.metadata["Acquisition_instrument"]["Spectral_image"],
-            "rotation_angle",
-            self.original_metadata["experimental_setup"],
-            "rotation angle (rad)",
+        spectrometer["central_wavelength"] = self.original_metadata[
+            "experimental_setup"
+        ].get("Spectro (nm)")
+        spectrometer["model"] = self.original_metadata["experimental_setup"].get(
+            "Instrument"
         )
+        spectrometer["Grating"]["groove_density"] = self.original_metadata[
+            "experimental_setup"
+        ].get("Grating (gr/mm)")
+        spectrometer["entrance_slit_width"] = self.original_metadata[
+            "experimental_setup"
+        ].get("Hole")
+        spectrometer["spectral_range"] = self.original_metadata[
+            "experimental_setup"
+        ].get("Range")
+        spectrometer["Polarizer"]["polarizer_type"] = self.original_metadata[
+            "experimental_setup"
+        ].get("Raman. Pol.")
+        spectrometer["Polarizer"]["angle"] = self.original_metadata[
+            "experimental_setup"
+        ].get("Raman Pol. (°)")
+
+        detector["model"] = self.original_metadata["experimental_setup"].get("Detector")
+        detector["delay_time"] = self.original_metadata["experimental_setup"].get(
+            "Delay time (s)"
+        )
+        detector["binning"] = self.original_metadata["experimental_setup"].get(
+            "Binning"
+        )
+        detector["temperature"] = self.original_metadata["experimental_setup"].get(
+            "Detector temperature (°C)"
+        )
+        detector["exposure_per_frame"] = self.original_metadata[
+            "experimental_setup"
+        ].get("Acq. time (s)")
+        detector["frames"] = self.original_metadata["experimental_setup"].get(
+            "Accumulations"
+        )
+        detector["processing"]["autofocus"] = self.original_metadata[
+            "experimental_setup"
+        ].get("Autofocus")
+        detector["processing"]["swift"] = self.original_metadata[
+            "experimental_setup"
+        ].get("SWIFT")
+        detector["processing"]["auto_exposure"] = self.original_metadata[
+            "experimental_setup"
+        ].get("AutoExposure")
+        detector["processing"]["spike_filter"] = self.original_metadata[
+            "experimental_setup"
+        ].get("Spike filter")
+        detector["processing"]["de_noise"] = self.original_metadata[
+            "experimental_setup"
+        ].get("DeNoise")
+        detector["processing"]["ics_correction"] = self.original_metadata[
+            "experimental_setup"
+        ].get("ICS correction")
+        detector["processing"]["dark_correction"] = self.original_metadata[
+            "experimental_setup"
+        ].get("Dark correction")
+        detector["processing"]["inst_process"] = self.original_metadata[
+            "experimental_setup"
+        ].get("Inst. Process")
 
         ## extra units here, because rad vs. deg
         if "rotation angle (rad)" in self.original_metadata["experimental_setup"]:
-            self.metadata["Acquisition_instrument"]["Spectral_image"][
-                "rotation_angle_units"
-            ] = "°"
+            spectral_image["rotation_angle"] = self.original_metadata[
+                "experimental_setup"
+            ]["rotation angle (rad)"] * (180 / np.pi)
+            spectral_image["rotation_angle_units"] = "°"
 
+        ## settings for glued spectra
         if "Windows" in self.original_metadata["experimental_setup"]:
-            self.metadata["Acquisition_instrument"]["Detector"]["glued_spectrum"] = True
-            self.metadata["Acquisition_instrument"]["Detector"][
-                "glued_spectrum_windows"
-            ] = self.original_metadata["experimental_setup"]["Windows"]
+            detector["glued_spectrum"] = True
+            detector["glued_spectrum_windows"] = self.original_metadata[
+                "experimental_setup"
+            ]["Windows"]
         else:
-            self.metadata["Acquisition_instrument"]["Detector"][
-                "glued_spectrum"
-            ] = False
+            detector["glued_spectrum"] = False
 
         ## calculate and set integration time
         try:
@@ -753,41 +645,37 @@ class JobinYvonXMLReader:
                 self.original_metadata["experimental_setup"]["Accumulations"]
                 * self.original_metadata["experimental_setup"]["Acq. time (s)"]
             )
-        except KeyError:
+        except KeyError:  # pragma: no cover
             pass  # pragma: no cover
         else:
-            self.metadata["Acquisition_instrument"]["Detector"][
-                "integration_time"
-            ] = integration_time
+            detector["integration_time"] = integration_time
 
         ## convert filter range from percentage (0-100) to (0-1)
         try:
-            self.metadata["Acquisition_instrument"]["Laser"]["Filter"][
-                "optical_density"
-            ] /= 100
-        except KeyError:
+            laser["Filter"]["optical_density"] /= 100
+        except KeyError:  # pragma: no cover
             pass  # pragma: no cover
-
-        ## convert angle units from rad to degrees
-        try:
-            self.metadata["Acquisition_instrument"]["Spectral_image"][
-                "rotation_angle"
-            ] *= (180 / np.pi)
-        except KeyError:
-            pass
 
         ## convert entrance_hole_width to mm
         try:
-            self.metadata["Acquisition_instrument"]["Spectrometer"][
-                "entrance_slit_width"
-            ] /= 100
-            self.metadata["Acquisition_instrument"]["Spectrometer"][
-                "pinhole"
-            ] = self.metadata["Acquisition_instrument"]["Spectrometer"][
-                "entrance_slit_width"
-            ]
-        except KeyError:
+            spectrometer["entrance_slit_width"] /= 100
+            spectrometer["pinhole"] = spectrometer["entrance_slit_width"]
+        except KeyError:  # pragma: no cover
             pass  # pragma: no cover
+
+        self.metadata = {
+            "General": general,
+            "Signal": signal,
+            "Sample": sample,
+            "Acquisition_instrument": {
+                "Laser": laser,
+                "Spectrometer": spectrometer,
+                "Detector": detector,
+                "Spectral_image": spectral_image,
+            },
+        }
+
+        _remove_none_from_dict(self.metadata)
 
 
 def file_reader(filename, use_uniform_signal_axis=False, **kwds):

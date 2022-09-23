@@ -23,6 +23,7 @@ from pathlib import Path
 from copy import deepcopy
 
 import numpy as np
+from numpy.polynomial.polynomial import polyfit
 
 _logger = logging.getLogger(__name__)
 
@@ -325,38 +326,6 @@ class JobinYvonXMLReader:
                     "signal units"
                 ] = child.text
 
-    def _get_scale(self, array, name):
-        """Get scale for navigation/signal axes.
-
-        Furthermore, checks whether the axis is uniform. Throws warning when this not the case.
-        This check is performed by comparing the difference between the first 2 and last 2 values.
-        The decision to use a non-uniform/uniform data-axis is left to the user
-        (use_uniform_wavelength_axis).
-
-        Parameters
-        ----------
-        array: np.ndarray
-            Contains the axes data points.
-        name: Str
-            Name of the axis.
-        """
-        scale = np.abs(array[0] - array[-1]) / (array.size - 1)
-        if array.size >= 3:
-            abs_diff_begin = np.abs(array[0] - array[1])
-            abs_diff_end = np.abs(array[-1] - array[-2])
-            rel_diff_compare = np.abs(abs_diff_begin - abs_diff_end) / scale
-            if rel_diff_compare > 0.01 and self._use_uniform_signal_axis:
-                _logger.warning(
-                    f"The relative variation of the {name}-axis-scale ({rel_diff_compare:.3f}%) exceeds 1%.\n"
-                    "                              "
-                    f"Difference between first 2 entrys: {abs_diff_begin:.3f}.\n"
-                    "                              "
-                    f"Difference between last 2 entrys: {abs_diff_end:.3f}.\n"
-                    "                              "
-                    "Using a non-uniform-axis is recommended."
-                )
-        return scale
-
     def _set_nav_axis(self, xml_element, tag):
         """Helper method for setting navigation axes.
 
@@ -381,7 +350,7 @@ class JobinYvonXMLReader:
                 if nav_size < 2:
                     has_nav = False
                 else:
-                    nav_dict["scale"] = self._get_scale(nav_array, tag)
+                    nav_dict["scale"] = nav_array[1] - nav_array[0]
                     nav_dict["offset"] = nav_array[0]
                     nav_dict["size"] = nav_size
                     nav_dict["navigate"] = True
@@ -405,17 +374,38 @@ class JobinYvonXMLReader:
             id = self._get_id(child)
             if id == "0x7D6CD4DB":
                 signal_array = np.fromstring(child.text.strip(), sep=" ")
-                if signal_array[0] > signal_array[1]:
-                    signal_array = signal_array[::-1]
-                    self._reverse_signal = True
-                else:
-                    self._reverse_signal = False
-                if self._use_uniform_signal_axis:
-                    signal_dict["scale"] = self._get_scale(signal_array, "signal")
-                    signal_dict["offset"] = signal_array[0]
-                    signal_dict["size"] = signal_array.size
-                else:
-                    signal_dict["axis"] = signal_array
+                if signal_array.size > 1:
+                    if signal_array[0] > signal_array[1]:
+                        signal_array = signal_array[::-1]
+                        self._reverse_signal = True
+                    else:
+                        self._reverse_signal = False
+                    if self._use_uniform_signal_axis:
+                        offset, scale = polyfit(
+                            np.arange(signal_array.size), signal_array, deg=1
+                        )
+                        signal_dict["offset"] = offset
+                        signal_dict["scale"] = scale
+                        signal_dict["size"] = signal_array.size
+                        scale_compare = 100 * np.max(
+                            np.abs(np.diff(signal_array) - scale) / scale
+                        )
+                        if scale_compare > 1:
+                            _logger.warning(
+                                f"The relative variation of the signal-axis-scale ({scale_compare:.2f}%) exceeds 1%.\n"
+                                "                              "
+                                "Using a non-uniform-axis is recommended."
+                            )
+                    else:
+                        signal_dict["axis"] = signal_array
+                else:  # pragma: no cover
+                    if self._use_uniform_signal_axis:  # pragma: no cover
+                        _logger.warning(  # pragma: no cover
+                            "Signal only contains one entry.\n"  # pragma: no cover
+                            "                              "  # pragma: no cover
+                            "Using non-uniform-axis independent of use_uniform_signal_axis setting"  # pragma: no cover
+                        )  # pragma: no cover
+                    signal_dict["axis"] = signal_array  # pragma: no cover
             if id == "0x7C696E75":
                 units = child.text
                 if "/" in units and units[-3:] == "abs":
@@ -683,8 +673,10 @@ def file_reader(filename, use_uniform_signal_axis=False, **kwds):
 
     Parameters
     ----------
-    use_uniform_signal_axis: bool, default=True
-        Can be specified to choose between non-uniform or uniform signal-axis.
+    use_uniform_signal_axis: bool, default=False
+        Can be specified to choose between non-uniform or uniform signal axis.
+        If `True`, the ``scale`` attribute is calculated from the average delta along the signal axis
+        and a warning is raised in case the delta varies by more than 1%.
     """
     if not isinstance(filename, Path):
         filename = Path(filename)

@@ -192,8 +192,6 @@ class TestSpec:
                 "navigate": False,
                 "is_binned": False,
                 "size": 34,
-                "scale": 0.44809090909091015,
-                "offset": 522.574,
             }
         }
 
@@ -246,15 +244,22 @@ class TestSpec:
             ]
         )
 
+        uniform_axis_manager = deepcopy(self.s.axes_manager.as_dictionary())
         non_uniform_axis_manager = deepcopy(
             self.s_non_uniform.axes_manager.as_dictionary()
+        )
+        np.testing.assert_allclose(
+            uniform_axis_manager["axis-0"].pop("scale"), 0.4481, atol=0.0001
+        )
+        np.testing.assert_allclose(
+            uniform_axis_manager["axis-0"].pop("offset"), 522.6, atol=0.05
         )
 
         np.testing.assert_allclose(
             non_uniform_axis_values[::-1],
             non_uniform_axis_manager["axis-0"].pop("axis"),
         )
-        assert spec_axes == self.s.axes_manager.as_dictionary()
+        assert spec_axes == uniform_axis_manager
         assert spec_axes_non_uniform == non_uniform_axis_manager
 
     def test_original_metadata(self):
@@ -597,8 +602,6 @@ class TestLinescan:
                 "navigate": False,
                 "is_binned": False,
                 "size": 34,
-                "scale": 0.44809090909091015,
-                "offset": 522.574,
             },
         }
 
@@ -661,16 +664,23 @@ class TestLinescan:
             ]
         )
 
+        uniform_axis_manager = deepcopy(self.s.axes_manager.as_dictionary())
         non_uniform_axis_manager = deepcopy(
             self.s_non_uniform.axes_manager.as_dictionary()
         )
 
         np.testing.assert_allclose(
+            uniform_axis_manager["axis-1"].pop("scale"), 0.4481, atol=0.0001
+        )
+        np.testing.assert_allclose(
+            uniform_axis_manager["axis-1"].pop("offset"), 522.6, atol=0.05
+        )
+        np.testing.assert_allclose(
             non_uniform_axis_values[::-1],
             non_uniform_axis_manager["axis-1"].pop("axis"),
         )
         assert linescan_axes_non_uniform == non_uniform_axis_manager
-        assert linescan_axes == self.s.axes_manager.as_dictionary()
+        assert linescan_axes == uniform_axis_manager
 
 
 class TestMap:
@@ -965,12 +975,19 @@ class TestMap:
                 "navigate": False,
                 "is_binned": False,
                 "size": 34,
-                "scale": 1.541606060606062,
-                "offset": 720.924,
             },
         }
 
-        assert map_axes == self.s.axes_manager.as_dictionary()
+        uniform_axis_manager = deepcopy(self.s.axes_manager.as_dictionary())
+
+        np.testing.assert_allclose(
+            uniform_axis_manager["axis-2"].pop("scale"), 1.5416, atol=0.0001
+        )
+        np.testing.assert_allclose(
+            uniform_axis_manager["axis-2"].pop("offset"), 720.967, atol=0.05
+        )
+
+        assert map_axes == uniform_axis_manager
 
 
 class TestGlue:

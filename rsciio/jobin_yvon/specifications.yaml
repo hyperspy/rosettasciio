@@ -1,0 +1,8 @@
+name: 'JobinYvon'
+name_aliases: []
+description: "Read data from .xml files saved using Horiba Jobin Yvon's LabSpec software."
+full_support: False
+file_extensions: ['xml', 'XML']
+default_extension: 0
+writes: False
+non_uniform_axis: True

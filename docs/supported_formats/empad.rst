@@ -13,9 +13,11 @@ use the ``.xml`` file:
 
 .. code-block:: python
 
-    >>> sig = hs.load("file.xml")
+    >>> sig = hs.load("file.xml", reader="EMPAD")
 
 
 which will automatically read the raw data from the ``.raw`` file too. The
 filename of the ``.raw`` file is defined in the ``.xml`` file, which implies
 changing the file name of the ``.raw`` file will break reading the file.
+Specifying the reader is necessary as the :ref:`Jobin-Yvon format <jobin_yvon-format>`
+also uses the ``.xml`` file-extension.

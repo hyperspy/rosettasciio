@@ -35,6 +35,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/index';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -419,6 +420,11 @@
   </a>
  </li>
  <li class="toctree-l1">
+  <a class="reference internal" href="jobin_yvon.html">
+   Horiba Jobin Yvon LabSpec
+  </a>
+ </li>
+ <li class="toctree-l1">
   <a class="reference internal" href="mrc.html">
    MRC format
   </a>
@@ -615,103 +621,109 @@ big datasets is supported.</p>
 <td><p>No</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="hspy.html#hspy-format"><span class="std std-ref">HSpy - HyperSpy HDF5</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="jobin_yvon.html#jobin-yvon-format"><span class="std std-ref">Horiba Jobin Yvon LabSpec</span></a></p></td>
+<td><p>xml</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="hspy.html#hspy-format"><span class="std std-ref">HSpy - HyperSpy hdf5</span></a></p></td>
 <td><p>hspy</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="image.html#image-format"><span class="std std-ref">Images (imageio)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="image.html#image-format"><span class="std std-ref">Images (imageio)</span></a></p></td>
 <td><p>jpg, png, tif, …</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="jeol.html#jeol-format"><span class="std std-ref">JEOL</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="jeol.html#jeol-format"><span class="std std-ref">JEOL</span></a></p></td>
 <td><p>asw, map, img, pts, eds</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="mrc.html#mrc-format"><span class="std std-ref">MRC</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="mrc.html#mrc-format"><span class="std std-ref">MRC</span></a></p></td>
 <td><p>mrc</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="mrcz.html#mrcz-format"><span class="std std-ref">MRCZ (compressed)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="mrcz.html#mrcz-format"><span class="std std-ref">MRCZ (compressed)</span></a></p></td>
 <td><p>mrcz</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="msa.html#msa-format"><span class="std std-ref">EMSA/MSA</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="msa.html#msa-format"><span class="std std-ref">EMSA/MSA</span></a></p></td>
 <td><p>emsa/msa</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="netcdf.html#netcdf-format"><span class="std std-ref">NetCDF (EELSlab)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="netcdf.html#netcdf-format"><span class="std std-ref">NetCDF (EELSlab)</span></a></p></td>
 <td><p>nc</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="nexus.html#nexus-format"><span class="std std-ref">NeXus</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="nexus.html#nexus-format"><span class="std std-ref">NeXus</span></a></p></td>
 <td><p>nxs</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="panta_rhei.html#prz-format"><span class="std std-ref">CEOS Phanta Rhei</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="panta_rhei.html#prz-format"><span class="std std-ref">CEOS Phanta Rhei</span></a></p></td>
 <td><p>prz</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="phenom.html#elid-format"><span class="std std-ref">Phenom ELID</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="phenom.html#elid-format"><span class="std std-ref">Phenom ELID</span></a></p></td>
 <td><p>elid</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="protochips.html#protochips-format"><span class="std std-ref">Protochips logfile</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="protochips.html#protochips-format"><span class="std std-ref">Protochips logfile</span></a></p></td>
 <td><p>csv &amp; log</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="ripple.html#ripple-format"><span class="std std-ref">Ripple</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="ripple.html#ripple-format"><span class="std std-ref">Ripple</span></a></p></td>
 <td><p>rpl</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="semper.html#unf-format"><span class="std std-ref">SEMPER binary UNF</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="semper.html#unf-format"><span class="std std-ref">SEMPER binary UNF</span></a></p></td>
 <td><p>unf</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tiff.html#tiff-format"><span class="std std-ref">TIFF (tiffile)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tiff.html#tiff-format"><span class="std std-ref">TIFF (tiffile)</span></a></p></td>
 <td><p>tif, tiff</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tvips.html#tvips-format"><span class="std std-ref">TVIPS</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tvips.html#tvips-format"><span class="std std-ref">TVIPS</span></a></p></td>
 <td><p>tvips</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="usid.html#usid-format"><span class="std std-ref">Universal Spectroscopy and Imaging Data (USID)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="usid.html#usid-format"><span class="std std-ref">Universal Spectroscopy and Imaging Data (USID)</span></a></p></td>
 <td><p>h5, hdf5</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="zspy.html#zspy-format"><span class="std std-ref">ZSpy - HyperSpy ZARR</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="zspy.html#zspy-format"><span class="std std-ref">ZSpy - HyperSpy ZARR</span></a></p></td>
 <td><p>zspy</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
@@ -802,7 +814,7 @@ big datasets is supported.</p>
   <div class="footer-item">
     
 <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.1.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.2.<br>
 </p>
 
   </div>

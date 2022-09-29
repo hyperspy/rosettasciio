@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>MRC format &#8212; RosettaSciIO  documentation</title>
+    <title>Horiba Jobin Yvon LabSpec &#8212; RosettaSciIO  documentation</title>
   <script>
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
@@ -36,11 +36,11 @@
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/mrc';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/jobin_yvon';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="MRCZ format" href="mrcz.html" />
-    <link rel="prev" title="Horiba Jobin Yvon LabSpec" href="jobin_yvon.html" />
+    <link rel="next" title="MRC format" href="mrc.html" />
+    <link rel="prev" title="JEOL Analyst Station (ASW, …)" href="jeol.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="en">
   </head>
@@ -419,13 +419,13 @@
    JEOL Analyst Station (ASW, …)
   </a>
  </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="jobin_yvon.html">
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
    Horiba Jobin Yvon LabSpec
   </a>
  </li>
- <li class="toctree-l1 current active">
-  <a class="current reference internal" href="#">
+ <li class="toctree-l1">
+  <a class="reference internal" href="mrc.html">
    MRC format
   </a>
  </li>
@@ -524,19 +524,42 @@
             
             <article class="bd-article" role="main">
               
-  <section id="mrc-format">
-<span id="id1"></span><h1>MRC format<a class="headerlink" href="#mrc-format" title="Permalink to this heading">#</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">.mrc</span></code> format is widely used for tomographic data. Our implementation is based
-on <a class="reference external" href="https://www2.mrc-lmb.cam.ac.uk/research/locally-developed-software/image-processing-software/">this specification</a>. We also
-partly support FEI’s custom header. We do not provide writing features for this
-format, but, as it is an open format, we may implement this feature in the
-future on demand.</p>
-<p>For mrc files <code class="docutils literal notranslate"><span class="pre">load</span></code> takes the <code class="docutils literal notranslate"><span class="pre">mmap_mode</span></code> keyword argument enabling
-loading the file using a different mode (default is copy-on-write) . However,
-note that lazy loading does not support in-place writing (i.e lazy loading and
-the “r+” mode are incompatible).</p>
-<p>See also the <a class="reference external" href="https://www.ccpem.ac.uk/mrc_format/mrc_format.php">format documentation</a>
-by the Collaborative Computational Project for Electron cryo-Microscopy (CCP-EM).</p>
+  <section id="horiba-jobin-yvon-labspec">
+<span id="jobin-yvon-format"></span><h1>Horiba Jobin Yvon LabSpec<a class="headerlink" href="#horiba-jobin-yvon-labspec" title="Permalink to this heading">#</a></h1>
+<p>Reader for spectroscopy data saved using Horiba Jobin Yvon’s LabSpec software.
+Currently, RosettaSciIO can only read the <code class="docutils literal notranslate"><span class="pre">.xml</span></code> format from Jobin Yvon.
+However, this format supports spectral maps and contains all relevant metadata.
+Therefore, it is a good alternative to the binary <code class="docutils literal notranslate"><span class="pre">.l5s</span></code> or <code class="docutils literal notranslate"><span class="pre">.l6s</span></code> formats
+in order to transfer data to python or other analysis software.</p>
+<p>If <a class="reference external" href="https://lumispy.org">LumiSpy</a> is installed, <code class="docutils literal notranslate"><span class="pre">LumiSpectrum</span></code> will be
+used as the <code class="docutils literal notranslate"><span class="pre">signal_type</span></code>.</p>
+<p>When working with <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, a file can be read using
+the following code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">hyperspy.api</span> <span class="k">as</span> <span class="nn">hs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sig</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;file.xml&quot;</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="s2">&quot;JobinYvon&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Specifying the reader is necessary as the <a class="reference internal" href="empad.html#empad-format"><span class="std std-ref">EMPAD format</span></a>
+also uses the <code class="docutils literal notranslate"><span class="pre">.xml</span></code> file-extension.</p>
+<p>The reader supports all signal axis units exported by LabSpec, i.e. wavelengths,
+wavenumbers (absolute), Raman shift (relative wavenumbers),
+as well as energy.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The wavelength-to-energy conversion is not documented for LabSpec, i.e. it is
+not clear whether the refractive index of air is taken into account. When working
+with energy axes, it is therefore recommended to import the data using the
+wavelength axis and doing the <a class="reference external" href="https://lumispy.readthedocs.io/en/latest/user_guide/signal_axis.html#the-energy-axis">conversion using the LumiSpy package</a>.
+Additionally, to our knowledge, LabSpec does not have an option to take into
+account the <a class="reference external" href="https://lumispy.readthedocs.io/en/latest/user_guide/signal_axis.html#jacobian-transformation">Jacobian transformation of the intensity</a>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>From LabSpec 6.3, an alternative export to an open HDF5 data format is
+available. In the future, this plugin may be extended to support this format,
+as well as to writing data to the open Horiba Jobin Yvon formats.
+Contributions are welcome.</p>
+</div>
 </section>
 
 
@@ -547,17 +570,17 @@ by the Collaborative Computational Project for Electron cryo-Microscopy (CCP-EM)
             <footer class="bd-footer-article">
                 <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-  <a class='left-prev' id="prev-link" href="jobin_yvon.html" title="previous page">
+  <a class='left-prev' id="prev-link" href="jeol.html" title="previous page">
       <i class="fas fa-angle-left"></i>
       <div class="prev-next-info">
           <p class="prev-next-subtitle">previous</p>
-          <p class="prev-next-title">Horiba Jobin Yvon LabSpec</p>
+          <p class="prev-next-title">JEOL Analyst Station (ASW, …)</p>
       </div>
   </a>
-  <a class='right-next' id="next-link" href="mrcz.html" title="next page">
+  <a class='right-next' id="next-link" href="mrc.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">MRCZ format</p>
+      <p class="prev-next-title">MRC format</p>
   </div>
   <i class="fas fa-angle-right"></i>
   </a>
@@ -577,7 +600,7 @@ by the Collaborative Computational Project for Electron cryo-Microscopy (CCP-EM)
 <div class="toc-item">
   
 <div class="tocsection sourcelink">
-    <a href="../_sources/supported_formats/mrc.rst.txt">
+    <a href="../_sources/supported_formats/jobin_yvon.rst.txt">
         <i class="fas fa-file-alt"></i> Show Source
     </a>
 </div>

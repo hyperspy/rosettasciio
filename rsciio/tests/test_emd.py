@@ -752,3 +752,18 @@ def test_fei_dpc_loading():
     assert isinstance(signals[6], hs.signals.Signal2D)
     assert isinstance(signals[7], hs.signals.Signal2D)
     assert isinstance(signals[8], hs.signals.Signal2D)
+
+
+@pytest.mark.parametrize("fname", ["FFTComplexEven.emd", "FFTComplexOdd.emd"])
+def test_velox_fft_odd_number(fname):
+    print("0", fname)
+    print(os.path.join(my_path, "emd_files", fname))
+    s = hs.load(os.path.join(my_path, "emd_files", fname))
+    assert len(s) == 2
+
+    shape = (36, 70) if fname == "FFTComplexEven.emd" else (32, 64)
+    assert s[0].axes_manager.signal_shape == shape
+    assert np.issubdtype(s[0].data.dtype, np.complex64)
+
+    assert s[1].axes_manager.signal_shape == (128, 128)
+    assert np.issubdtype(s[1].data.dtype, float)

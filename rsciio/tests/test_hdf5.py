@@ -539,7 +539,7 @@ class Test_permanent_markers_io:
     def test_save_permanent_marker(self, tmp_path, file):
         filename = tmp_path / file
         s = self.s
-        m = hs.markers.point(x=5, y=5)
+        m = hs.plot.markers.Point(x=5, y=5)
         s.add_marker(m, permanent=True)
         s.save(filename)
 
@@ -547,7 +547,7 @@ class Test_permanent_markers_io:
     def test_save_load_empty_metadata_markers(self, tmp_path, file):
         filename = tmp_path / file
         s = self.s
-        m = hs.markers.point(x=5, y=5)
+        m = hs.plot.markers.Point(x=5, y=5)
         m.name = "test"
         s.add_marker(m, permanent=True)
         del s.metadata.Markers.test
@@ -563,7 +563,7 @@ class Test_permanent_markers_io:
         color = "red"
         size = 10
         name = "testname"
-        m = hs.markers.point(x=x, y=y, color=color, size=size)
+        m = hs.plot.markers.Point(x=x, y=y, color=color, size=size)
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
@@ -582,14 +582,14 @@ class Test_permanent_markers_io:
         s = self.s
         x1, y1, x2, y2 = 5, 2, 1, 8
         m0_list = [
-            hs.markers.point(x=x1, y=y1),
-            hs.markers.horizontal_line(y=y1),
-            hs.markers.horizontal_line_segment(x1=x1, x2=x2, y=y1),
-            hs.markers.line_segment(x1=x1, x2=x2, y1=y1, y2=y2),
-            hs.markers.rectangle(x1=x1, x2=x2, y1=y1, y2=y2),
-            hs.markers.text(x=x1, y=y1, text="test"),
-            hs.markers.vertical_line(x=x1),
-            hs.markers.vertical_line_segment(x=x1, y1=y1, y2=y2),
+            hs.plot.markers.Point(x=x1, y=y1),
+            hs.plot.markers.HorizontalLine(y=y1),
+            hs.plot.markers.HorizontalLineSegment(x1=x1, x2=x2, y=y1),
+            hs.plot.markers.LineSegment(x1=x1, x2=x2, y1=y1, y2=y2),
+            hs.plot.markers.Rectangle(x1=x1, x2=x2, y1=y1, y2=y2),
+            hs.plot.markers.Text(x=x1, y=y1, text="test"),
+            hs.plot.markers.VerticalLine(x=x1),
+            hs.plot.markers.VerticalLineSegment(x=x1, y1=y1, y2=y2),
         ]
         for m in m0_list:
             s.add_marker(m, permanent=True)
@@ -615,7 +615,7 @@ class Test_permanent_markers_io:
         color = "blue"
         linewidth = 2.5
         name = "horizontal_line_test"
-        m = hs.markers.horizontal_line(y=y, color=color, linewidth=linewidth)
+        m = hs.plot.markers.HorizontalLine(y=y, color=color, linewidth=linewidth)
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
@@ -631,7 +631,7 @@ class Test_permanent_markers_io:
         color = "red"
         linewidth = 1.2
         name = "horizontal_line_segment_test"
-        m = hs.markers.horizontal_line_segment(
+        m = hs.plot.markers.HorizontalLineSegment(
             x1=x1, x2=x2, y=y, color=color, linewidth=linewidth
         )
         m.name = name
@@ -649,7 +649,7 @@ class Test_permanent_markers_io:
         color = "black"
         linewidth = 3.5
         name = "vertical_line_test"
-        m = hs.markers.vertical_line(x=x, color=color, linewidth=linewidth)
+        m = hs.plot.markers.VerticalLine(x=x, color=color, linewidth=linewidth)
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
@@ -665,7 +665,7 @@ class Test_permanent_markers_io:
         color = "white"
         linewidth = 4.2
         name = "vertical_line_segment_test"
-        m = hs.markers.vertical_line_segment(
+        m = hs.plot.markers.VerticalLineSegment(
             x=x, y1=y1, y2=y2, color=color, linewidth=linewidth
         )
         m.name = name
@@ -683,7 +683,7 @@ class Test_permanent_markers_io:
         color = "cyan"
         linewidth = 0.7
         name = "line_segment_test"
-        m = hs.markers.line_segment(
+        m = hs.plot.markers.LineSegment(
             x1=x1, x2=x2, y1=y1, y2=y2, color=color, linewidth=linewidth
         )
         m.name = name
@@ -700,7 +700,7 @@ class Test_permanent_markers_io:
         x, y = 9, 8
         color = "purple"
         name = "point test"
-        m = hs.markers.point(x=x, y=y, color=color)
+        m = hs.plot.markers.Point(x=x, y=y, color=color)
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
@@ -716,7 +716,7 @@ class Test_permanent_markers_io:
         color = "yellow"
         linewidth = 5
         name = "rectangle_test"
-        m = hs.markers.rectangle(
+        m = hs.plot.markers.Rectangle(
             x1=x1, x2=x2, y1=y1, y2=y2, color=color, linewidth=linewidth
         )
         m.name = name
@@ -734,7 +734,7 @@ class Test_permanent_markers_io:
         color = "brown"
         name = "text_test"
         text = "a text"
-        m = hs.markers.text(x=x, y=y, text=text, color=color)
+        m = hs.plot.markers.Text(x=x, y=y, text=text, color=color)
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
@@ -751,7 +751,7 @@ class Test_permanent_markers_io:
         s = hs.signals.Signal2D(np.arange(300).reshape(3, 10, 10))
         if lazy:
             s = s.as_lazy()
-        m = hs.markers.point(x=x, y=y)
+        m = hs.plot.markers.Point(x=x, y=y)
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)

@@ -40,8 +40,6 @@ other member of the development team before being merged.
 
 .. _defining-plugins:
 
-.. _defining-plugins:
-
 Defining new RosettaSciIO plugins
 =================================
 

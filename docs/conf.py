@@ -81,7 +81,7 @@ html_theme_options = {
     "favicons": [
       {
          "rel": "icon",
-         "href": "rosettasciio.ico",
+         "href": "logo_sq.svg",
       },
    ]
 }

@@ -11,7 +11,7 @@
 
 # RosettaSciIO
 
-<img src="https://github.com/jordiferrero/rosettasciio/tree/main/docs/_static/logo_rec_oct22.svg" width="300" alt="RosettaSciIO">
+<img src="https://github.com/hyperspy/rosettasciio/tree/main/docs/_static/logo_rec_oct22.svg" width="300" alt="RosettaSciIO">
 
 The **Rosetta Scientific Input Output library** aims at providing easy reading and
 writing capabilities in Python for a wide range of

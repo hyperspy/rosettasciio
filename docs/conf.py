@@ -72,21 +72,20 @@ html_theme_options = {
             # The type of image to be used (see below for details)
             "type": "fontawesome",
         },
-        {
-            # Label for this link
-            "name": "RosettaSciIO",
-            # URL where the link will redirect
-            "url": "https://github.com/hyperspy/rosettasciio",  # required
-            # Icon class (if "type": "fontawesome"), or path to local image (if "type": "local")
-            "icon": "",
-            # The type of image to be used (see below for details)
-            "type": "local",
-        },
     ],
     "logo": {
-        "text": "RosettaSciIO",
+        "image_light": "logo_rec_oct22.svg",
+        "image_dark": "logo_rec_dark_oct22.svg",
     },
+
+    "favicons": [
+      {
+         "rel": "icon",
+         "href": "rosettasciio.ico",
+      },
+   ]
 }
+
 
 # If you’re hosting your documentation on ReadTheDocs, you should consider
 # adding an explicit placement for their ethical advertisements. These are

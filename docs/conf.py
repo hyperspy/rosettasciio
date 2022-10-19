@@ -77,13 +77,12 @@ html_theme_options = {
         "image_light": "logo_rec_oct22.svg",
         "image_dark": "logo_rec_dark_oct22.svg",
     },
-
     "favicons": [
-      {
-         "rel": "icon",
-         "href": "logo_sq.svg",
-      },
-   ]
+        {
+            "rel": "icon",
+            "href": "logo_sq.svg",
+        },
+    ],
 }
 
 

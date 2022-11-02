@@ -53,52 +53,58 @@ def file_reader(filename, **kwds):
     """
     File reader for JEOL format
     """
-    dictionary = []
     file_ext = os.path.splitext(filename)[-1][1:].lower()
-    if file_ext == "asw":
-        fd = open(filename, "br")
-        file_magic = np.fromfile(fd, "<I", 1)[0]
-        if file_magic == 0:
-            fd.seek(12)
-            filetree = _parsejeol(fd)
-            fd.close()
-            filepath, filen = os.path.split(os.path.abspath(filename))
-            if "SampleInfo" in filetree.keys():
-                for i in filetree["SampleInfo"].keys():
-                    if "ViewInfo" in filetree["SampleInfo"][i].keys():
-                        for j in filetree["SampleInfo"][i]["ViewInfo"].keys():
-                            node = filetree["SampleInfo"][i]["ViewInfo"][j]
-                            if "ViewData" in node.keys():
-                                scale = node["PositionMM"] * 1000
-                                for k in node["ViewData"].keys():
-                                    # path tuple contains:
-                                    # root, sample_folder, view_folder, data_file
-                                    path = node["ViewData"][k]["Filename"].split("\\")
-                                    subfile = os.path.join(*path)
-                                    sub_ext = os.path.splitext(subfile)[-1][1:]
-                                    file_path = os.path.join(filepath, subfile)
-                                    if sub_ext in extension_to_reader_mapping.keys():
-                                        reader_function = extension_to_reader_mapping[
-                                            sub_ext
-                                        ]
-                                        d = reader_function(file_path, scale, **kwds)
-                                        if isinstance(d, list):
-                                            dictionary.extend(d)
-                                        else:
-                                            dictionary.append(d)
-        else:
-            _logger.warning("Not a valid JEOL asw format")
-            fd.close()
-    else:
-        d = extension_to_reader_mapping[file_ext](filename, **kwds)
-        if isinstance(d, list):
-            dictionary.extend(d)
-        else:
-            dictionary.append(d)
-    return dictionary
+    return extension_to_reader_mapping[file_ext](filename, **kwds)
 
 
-def _read_img(filename, scale=None, **kwargs):
+def _read_asw(filename, **kwargs):
+    image_list = []
+    fd = open(filename, "br")
+    file_magic = np.fromfile(fd, "<I", 1)[0]
+    if file_magic != 0:
+        _logger.warning("Not a valid JEOL asw format")
+        fd.close()
+        return None
+    fd.seek(12)
+    filetree = _parsejeol(fd)
+    fd.close()
+    filepath, filen = os.path.split(os.path.abspath(filename))
+    if "SampleInfo" in filetree.keys():
+        for i in filetree["SampleInfo"].keys():
+            if "ViewInfo" in filetree["SampleInfo"][i].keys():
+                for j in filetree["SampleInfo"][i]["ViewInfo"].keys():
+                    node = filetree["SampleInfo"][i]["ViewInfo"][j]
+                    if "ViewData" in node.keys():
+                        for k in node["ViewData"].keys():
+                            node2 = node["ViewData"][k]
+                            # path tuple contains:
+                            # root, sample_folder, view_folder, data_file
+                            path = node["ViewData"][k]["Filename"].split("\\")
+                            subfile = os.path.join(*path)
+                            file_path = os.path.join(filepath, subfile)
+                            dict_list = file_reader(file_path)
+                            for d in dict_list:
+                                d["original_metadata"]["asw"] = filetree
+                                d["original_metadata"]["asw_viewdata"] = node2
+                                image_list.append(d)
+    return image_list
+
+
+def _read_img(filename, **kwargs):
+    """
+    Parameters
+    ----------
+    filename : str
+        img file name
+    kwargs :
+        not used
+
+    Returns
+    -------
+    image_list : list of images(dict)
+        (Always len(image_list) == 1)
+    """
+
     fd = open(filename, "br")
     file_magic = np.fromfile(fd, "<I", 1)[0]
     if file_magic == 52:
@@ -110,19 +116,15 @@ def _read_img(filename, scale=None, **kwargs):
         width, height = header_long["Image"]["Size"]
         header_long["Image"]["Bits"].resize((height, width))
         data = header_long["Image"]["Bits"]
-        if scale is not None:
-            xscale = -scale[2] / width
-            yscale = scale[3] / height
-            units = "µm"
-        else:
-            scale = (
-                header_long["Instrument"]["ScanSize"]
-                / header_long["Instrument"]["Mag"]
-                * 1.0e3
-            )
-            xscale = scale / width
-            yscale = scale / height
-            units = "µm"
+
+        scale = (
+            header_long["Instrument"]["ScanSize"]
+            / header_long["Instrument"]["Mag"]
+            * 1.0e3
+        )
+        xscale = scale / width
+        yscale = scale / height
+        units = "µm"
 
         axes = [
             {
@@ -179,12 +181,11 @@ def _read_img(filename, scale=None, **kwargs):
 
     fd.close()
 
-    return dictionary
+    return [dictionary]
 
 
 def _read_pts(
     filename,
-    scale=None,
     rebin_energy=1,
     sum_frames=True,
     SI_dtype=np.uint8,
@@ -201,11 +202,8 @@ def _read_pts(
     """
     Parameters
     ----------
-    rawdata : numpy.ndarray of uint16
-        spectrum image part of pts file
-    scale : list of float
-        -scale[2], scale[3] are the positional scale from asw data,
-        default is None, calc from pts internal data
+    filename : str
+        pts file name
     rebin_energy : int
         Binning parameter along energy axis. Must be 2^n.
     sum_frames : bool
@@ -240,7 +238,7 @@ def _read_pts(
 
     Returns
     -------
-    dictionary : dict or list of dict
+    image_list : list of images(dict)
         The dictionary used to create the signals, list of dictionaries of
         spectrum image and SEM/STEM image if read_em_image == True
     """
@@ -303,19 +301,14 @@ def _read_pts(
         rawdata = np.fromfile(fd, dtype="u2")
         fd.close()
 
-        if scale is not None:
-            xscale = -scale[2] / width
-            yscale = scale[3] / height
-            units = "µm"
-        else:
-            scale = (
-                header["PTTD Param"]["Params"]["PARAMPAGE0_SEM"]["ScanSize"]
-                / meas_data_header["MeasCond"]["Mag"]
-                * 1.0e3
-            )
-            xscale = scale / width
-            yscale = scale / height
-            units = "µm"
+        scale = (
+            header["PTTD Param"]["Params"]["PARAMPAGE0_SEM"]["ScanSize"]
+            / meas_data_header["MeasCond"]["Mag"]
+            * 1.0e3
+        )
+        xscale = scale / width
+        yscale = scale / height
+        units = "µm"
 
         ch_mod = meas_data_header["Meas Cond"]["Tpl"]
         ch_res = meas_data_header["Doc"]["CoefA"]
@@ -537,27 +530,28 @@ def _read_pts(
             },
         }
 
-        dictionary = {
-            "data": data,
-            "axes": axes,
-            "metadata": metadata,
-            "original_metadata": header,
-        }
+        image_list = [
+            {
+                "data": data,
+                "axes": axes,
+                "metadata": metadata,
+                "original_metadata": header,
+            }
+        ]
         if read_em_image and has_em_image:
-            dictionary = [
-                dictionary,
+            image_list.append(
                 {
                     "data": em_data,
                     "axes": axes_em,
                     "metadata": metadata_em,
                     "original_metadata": header,
                 },
-            ]
+            )
+        return image_list
     else:
         _logger.warning("Not a valid JEOL pts format")
         fd.close()
-
-    return dictionary
+        return None
 
 
 def _parsejeol(fd):
@@ -1130,6 +1124,19 @@ def _readframe_dummy(rawdata):
 
 
 def _read_eds(filename, **kwargs):
+    """
+    Parameters
+    ----------
+    filename : str
+        path of .eds file
+
+    Returns
+    -------
+    image_list : list of 1D signal (dict)
+        list of dictionarys used to create the signals
+        Always len(image_list) == 1
+        None on read error
+    """
     header = {}
     fd = open(filename, "br")
     # file_magic
@@ -1364,7 +1371,7 @@ def _read_eds(filename, **kwargs):
         "original_metadata": {"Header": header, "Footer": footer},
     }
 
-    return dictionary
+    return [dictionary]
 
 
 extension_to_reader_mapping = {
@@ -1372,6 +1379,7 @@ extension_to_reader_mapping = {
     "map": _read_img,
     "pts": _read_pts,
     "eds": _read_eds,
+    "asw": _read_asw,
 }
 
 

@@ -49,12 +49,16 @@ jTYPE = {
 }
 
 
-def file_reader(filename, **kwds):
+def file_reader(filename, **kwargs):
     """
     File reader for JEOL format
     """
     file_ext = os.path.splitext(filename)[-1][1:].lower()
-    return extension_to_reader_mapping[file_ext](filename, **kwds)
+    if file_ext in extension_to_reader_mapping:
+        return extension_to_reader_mapping[file_ext](filename, **kwargs)
+    else:
+        _logger.info(f"{filename} : File type {file_ext} is not supported. Skipping")
+        return []
 
 
 def _read_asw(filename, **kwargs):
@@ -82,7 +86,7 @@ def _read_asw(filename, **kwargs):
                             path = node["ViewData"][k]["Filename"].split("\\")
                             subfile = os.path.join(*path)
                             file_path = os.path.join(filepath, subfile)
-                            dict_list = file_reader(file_path)
+                            dict_list = file_reader(file_path, **kwargs)
                             for d in dict_list:
                                 d["original_metadata"]["asw"] = filetree
                                 d["original_metadata"]["asw_viewdata"] = node2

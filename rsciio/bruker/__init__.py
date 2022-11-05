@@ -1,4 +1,4 @@
-from ._api import file_reader
+from rsciio.bruker._api import file_reader
 
 
 __all__ = [

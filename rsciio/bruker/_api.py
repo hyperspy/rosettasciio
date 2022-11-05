@@ -43,6 +43,7 @@ import dask.delayed as dd
 import dask.array as da
 import numpy as np
 
+from rsciio.docstrings import FILENAME_DOC, RETURNS_DOC
 
 _logger = logging.getLogger(__name__)
 
@@ -1290,10 +1291,11 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
 
 def file_reader(filename, *args, **kwds):
     """
-    Read a bruker ``.bcf`` or ``.spx`` file.
+    Read a Bruker ``.bcf`` or ``.spx`` file.
 
     Parameters
     ----------
+    %s
     select_type : ``'spectrum_image'``, ``'image'`` or None
         If specified, only the corresponding type of data, either spectrum
         image or image, is returned.
@@ -1324,30 +1326,25 @@ def file_reader(filename, *args, **kwds):
     instrument : str or None
         Can be either ``'TEM'`` or ``'SEM'``. Default is ``None``.
 
+    %s
+
     Examples
     --------
     Example of loading reduced (downsampled, and with energy range cropped)
     "spectrum only" data from ``bcf`` (original shape: 80 keV EDS range (4096 channels),
     100x75 pixels; SEM acceleration voltage: 20kV):
 
-    >>> hs.load("sample80kv.bcf", select_type='spectrum_image',
-                downsample=2, cutoff_at_kV=10)
-    ... <EDSSEMSpectrum, title: EDX, dimensions: (50, 38|595)>
+    >>> file_reader("sample80kv.bcf", select_type='spectrum_image',
+                    downsample=2, cutoff_at_kV=10)
 
     Load the same file with limiting array size to SEM acceleration voltage:
 
-    >>> hs.load("sample80kv.bcf", cutoff_at_kV='auto')
-    ... [<Signal2D, title: BSE, dimensions: (|100, 75)>,
-    ...  <Signal2D, title: SE, dimensions: (|100, 75)>,
-    ...  <EDSSEMSpectrum, title: EDX, dimensions: (100, 75|1024)>]
+    >>> file_reader("sample80kv.bcf", cutoff_at_kV='auto')
 
     The loaded array energy dimension can by forced to be larger than the data
     recorded by setting the 'cutoff_at_kV' kwarg to higher value:
 
-    >>> hs.load("sample80kv.bcf", cutoff_at_kV=60)
-    ... [<Signal2D, title: BSE, dimensions: (|100, 75)>,
-    ...  <Signal2D, title: SE, dimensions: (|100, 75)>,
-    ...  <EDSSEMSpectrum, title: EDX, dimensions: (100, 75|3072)>]
+    >>> file_reader("sample80kv.bcf", cutoff_at_kV=60)
 
     Loading without setting ``cutoff_at_kV`` value would return data with all 4096
     channels. Note that setting ``downsample`` higher than 1 currently locks out using SEM
@@ -1358,6 +1355,9 @@ def file_reader(filename, *args, **kwds):
         return bcf_reader(filename, *args, **kwds)
     elif ext == "spx":
         return spx_reader(filename, *args, **kwds)
+
+
+file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
 
 
 def bcf_reader(

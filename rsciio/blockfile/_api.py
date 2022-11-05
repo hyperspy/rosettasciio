@@ -27,6 +27,12 @@ import dask
 from dask.diagnostics import ProgressBar
 from skimage import dtype_limits
 
+from rsciio.docstrings import (
+    FILENAME_DOC,
+    LAZY_DOC,
+    RETURNS_DOC,
+    SIGNAL_DOC,
+)
 from rsciio.utils.skimage_exposure import rescale_intensity
 from rsciio.utils.tools import DTBox, sarray2dict, dict2sarray
 from rsciio.utils.date_time_tools import (
@@ -197,19 +203,21 @@ def get_header_from_signal(signal, endianess="<"):
     return header, note
 
 
-def file_reader(filename, lazy=False, mmap_mode="r", endianess="<"):
+def file_reader(filename, lazy=False, mmap_mode=None, endianess="<"):
     """
     Read a blockfile.
 
     Parameters
     ----------
-    lazy : bool
-        Whether to open the file lazily or not
+    %s
+    %s
     mmap_mode : str
         Argument passed to :py:func:`numpy.memmap`. If None (default), the
         value is ``'r'`` when not lazy, otherwise it is ``'c'``.
     endianess : str
-        ``'<'`` (default) or ``'>'`` depending on how the bits are written to the file
+        ``'<'`` (default) or ``'>'`` depending on how the bits are written to the file.
+
+    %s
     """
 
     _logger.debug("Reading blockfile: %s" % filename)
@@ -331,6 +339,9 @@ def file_reader(filename, lazy=False, mmap_mode="r", endianess="<"):
     ]
 
 
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+
+
 def file_writer(
     filename,
     signal,
@@ -344,10 +355,8 @@ def file_writer(
 
     Parameters
     ----------
-    file : str
-        Filename of the file to write to
-    signal : instance of hyperspy Signal2D
-        The signal to save.
+    %s
+    %s
     intensity_scaling : str or 2-Tuple of float/int
         If the signal datatype is not :py:class:`numpy.uint8`, casting to this
         datatype without intensity rescaling results in overflow errors (default behavior)
@@ -372,6 +381,8 @@ def file_writer(
         Whether to show the progressbar or not.
     endianess : str
         ``'<'`` (default) or ``'>'`` determining how the bits are written to the file
+
+    %s
     """
     smetadata = DTBox(signal["metadata"], box_dots=True)
     if intensity_scaling is None:
@@ -475,3 +486,10 @@ def file_writer(
     else:
         file_memmap["IMG"] = array_data
     file_memmap.flush()
+
+
+file_writer.__doc__ %= (
+    FILENAME_DOC.replace("read", "write to"),
+    SIGNAL_DOC,
+    RETURNS_DOC,
+)

@@ -29,6 +29,12 @@ import numpy as np
 from tifffile import imwrite, TiffFile, TIFF
 from tifffile import __version__ as tiffversion
 
+from rsciio.docstrings import (
+    FILENAME_DOC,
+    LAZY_DOC,
+    RETURNS_DOC,
+    SIGNAL_DOC,
+)
 from rsciio.utils.tools import DTBox, _UREG
 from rsciio.utils.date_time_tools import get_date_time_from_metadata
 
@@ -62,11 +68,8 @@ def file_writer(filename, signal, export_scale=True, extratags=[], **kwds):
 
     Parameters
     ----------
-    filename: str
-        Filename of the file to write to.
-    signal: dict
-        Dictionary containing the signal object as defined in the `API guide
-        <https://hyperspy.org/rosettasciio/api.html>`_.
+    %s
+    %s
     export_scale: bool, default=True
         Export the scale and the units (compatible with DM and ImageJ) to
         appropriate tags.
@@ -123,6 +126,9 @@ def file_writer(filename, signal, export_scale=True, extratags=[], **kwds):
     imwrite(filename, data, software="hyperspy", photometric=photometric, **kwds)
 
 
+file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
+
+
 def file_reader(filename, lazy=False, force_read_resolution=False, **kwds):
     """
     Read data from tif files using Christoph Gohlke's tifffile library.
@@ -132,10 +138,8 @@ def file_reader(filename, lazy=False, force_read_resolution=False, **kwds):
 
     Parameters
     ----------
-    filename: str
-        Name of the file to read.
-    lazy : bool, Default=False
-        Load the data lazily.
+    %s
+    %s
     force_read_resolution: bool, Default=False
         Force read image resolution using the ``x_resolution``, ``y_resolution``
         and ``resolution_unit`` tiff tags. Beware: most software don't (properly)
@@ -159,11 +163,7 @@ def file_reader(filename, lazy=False, force_read_resolution=False, **kwds):
         Additional arguments to be passed to the `tifffile library
         <https://github.com/cgohlke/tifffile/#examples>`_.
 
-    Returns
-    -------
-    dict
-        Dictionary containing the signal object as defined in the `API guide
-        <https://hyperspy.org/rosettasciio/api.html>`_.
+    %s
 
     Examples
     --------
@@ -184,6 +184,9 @@ def file_reader(filename, lazy=False, force_read_resolution=False, **kwds):
         ]
 
     return dict_list
+
+
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
 
 
 def _order_axes_by_name(names: list, scales: dict, offsets: dict, units: dict):

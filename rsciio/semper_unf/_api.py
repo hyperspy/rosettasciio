@@ -81,6 +81,12 @@ from datetime import datetime
 
 import numpy as np
 
+from rsciio.docstrings import (
+    FILENAME_DOC,
+    LAZY_DOC,
+    RETURNS_DOC,
+    SIGNAL_DOC,
+)
 from rsciio.utils.tools import sarray2dict, DTBox
 
 
@@ -669,20 +675,17 @@ def file_reader(filename, lazy=False):
 
     Parameters
     ----------
-    filename : str
-        Filename of the file to read.
-    lazy : bool, default=False
-        Whether to open the file lazily or not.
+    %s
+    %s
 
-    Returns
-    -------
-    dict
-        Dictionary containing the signal object as defined in the `API guide
-        <https://hyperspy.org/rosettasciio/api.html>`_.
+    %s
     """
     semper = SemperFormat.load_from_unf(filename, lazy=lazy)
     semper.log_info()
     return [semper.to_dictionary(lazy=lazy)]
+
+
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
 
 
 def file_writer(filename, signal, **kwds):
@@ -691,14 +694,14 @@ def file_writer(filename, signal, **kwds):
 
     Parameters
     ----------
-    filename : str
-        Filename of the file to write to.
-    signal: dict
-        Dictionary containing the signal object as defined in the `API guide
-        <https://hyperspy.org/rosettasciio/api.html>`_.
+    %s
+    %s
     skip_header : bool, default=False
         Determines if the header, title and label should be skipped (useful
         for some other programs).
     """
     semper = SemperFormat.from_signal(signal)
     semper.save_to_unf(filename)
+
+
+file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)

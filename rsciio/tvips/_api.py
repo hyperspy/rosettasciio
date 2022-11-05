@@ -30,6 +30,12 @@ from dask.diagnostics import ProgressBar
 import pint
 from numba import njit
 
+from rsciio.docstrings import (
+    FILENAME_DOC,
+    LAZY_DOC,
+    RETURNS_DOC,
+    SIGNAL_DOC,
+)
 from rsciio.utils.tools import DTBox, sarray2dict
 from rsciio.utils.tools import dummy_context_manager
 from rsciio.utils.tools import _UREG
@@ -225,10 +231,8 @@ def file_reader(
 
     Parameters
     ----------
-    filename : str
-        Filename of the file to read.
-    lazy : bool, default=True
-        Whether to open the file lazily or not.
+    %s
+    %s
     scan_shape : str or tuple of int, optional
         By default the data is loaded as an image stack (1 navigation axis).
         A tuple of integers can be provided to indicate the shape of the
@@ -257,17 +261,13 @@ def file_reader(
         points to align even and odd scan rows. Default is 0, no hysteresis.
     rechunking: bool, str, or Dict, Default="auto"
         Only relevant when using lazy loading. If set to False each tvips file is
-        a single chunk. For a better experience, with the default setting of 
+        a single chunk. For a better experience, with the default setting of
         ``"auto"`` rechunking is performed such that the navigation axes
         are optimally chunked and the signal axes are not chunked.
         If set to anything else, e.g. a dictionary, the value will be passed to
         the chunks argument in dask.array.rechunk.
 
-    Returns
-    -------
-    dict
-        Dictionary containing the signal object as defined in the `API guide
-        <https://hyperspy.org/rosettasciio/api.html>`_.
+    %s
     """
     # check whether we start at the first tvips file
     _is_valid_first_tvips_file(filename)
@@ -503,18 +503,21 @@ def file_reader(
     ]
 
 
+file_reader.__doc__ %= (
+    FILENAME_DOC,
+    LAZY_DOC.replace("False", "True"),
+    RETURNS_DOC,
+)
+
+
 def file_writer(filename, signal, **kwds):
     """
     Write signal to TVIPS file.
 
     Parameters
     ----------
-    filename: str
-        Filename of the file to write to. If not supplied, a _000 suffix will
-        automatically be appended before the extension.
-    signal: dict
-        Dictionary containing the signal object as defined in the `API guide
-        <https://hyperspy.org/rosettasciio/api.html>`_.
+    %s
+    %s
     max_file_size: int, optional
         Approximate maximum size of individual files in bytes. In this way a
         dataset can be split into multiple files. A file needs to be at least the
@@ -647,3 +650,6 @@ def file_writer(filename, signal, **kwds):
         file_index += 1
         frames_to_save -= frames_saved
         current_frame += frames_saved
+
+
+file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)

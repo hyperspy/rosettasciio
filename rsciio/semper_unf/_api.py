@@ -545,7 +545,7 @@ class SemperFormat(object):
 
     def to_dictionary(self, lazy=False):
         """Export a :class:`~.SemperFormat` object to a
-        :class:`~hyperspy.signals.Signal` object.
+        signal dictionary.
 
         Parameters
         ----------
@@ -553,7 +553,7 @@ class SemperFormat(object):
 
         Returns
         -------
-        signal: :class:`~hyperspy.signals.Signal`
+        signal: dict
             The exported signal.
 
         """

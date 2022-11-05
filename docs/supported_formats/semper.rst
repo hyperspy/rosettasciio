@@ -16,5 +16,5 @@ Currently version 7 of the format should be fully supported.
 API functions
 ^^^^^^^^^^^^^
 
-.. automodule:: rsciio.blockfile
+.. automodule:: rsciio.semper_unf
    :members:

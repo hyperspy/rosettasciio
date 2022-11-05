@@ -404,8 +404,7 @@ def file_reader(
     Returns
     -------
     list of dicts
-        List of dictionaries, each containing the elements ``data``, ``axes``,
-        ``metadata`` and ``original_metadata``. See `API guide
+        Dictionary containing the signal object as defined in the `API guide
         <https://hyperspy.org/rosettasciio/api.html>`_.
         
     """

@@ -162,8 +162,7 @@ def file_reader(filename, lazy=False, force_read_resolution=False, **kwds):
     Returns
     -------
     dict
-        Dictionary containing the elements ``data``, ``axes``, ``metadata``,
-        and ``original_metadata``. See `API guide
+        Dictionary containing the signal object as defined in the `API guide
         <https://hyperspy.org/rosettasciio/api.html>`_.
 
     Examples

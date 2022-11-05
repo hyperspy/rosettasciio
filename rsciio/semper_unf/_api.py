@@ -677,8 +677,7 @@ def file_reader(filename, lazy=False):
     Returns
     -------
     dict
-        Dictionary containing the elements ``data``, ``axes``, ``metadata``,
-        ``original_metadata`` and ``attributes``. See `API guide
+        Dictionary containing the signal object as defined in the `API guide
         <https://hyperspy.org/rosettasciio/api.html>`_.
     """
     semper = SemperFormat.load_from_unf(filename, lazy=lazy)

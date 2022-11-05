@@ -670,7 +670,7 @@ def file_reader(filename, lazy=False):
     Parameters
     ----------
     lazy : bool, default=False
-        Whether to open the file lazily or not (default ``False``).
+        Whether to open the file lazily or not.
 
     Returns
     -------

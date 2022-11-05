@@ -118,3 +118,7 @@ def test_dir_plugins():
     from rsciio import tiff
 
     assert dir(tiff) == ["file_reader", "file_writer"]
+
+    from rsciio import tvips
+
+    assert dir(tvips) == ["file_reader", "file_writer"]

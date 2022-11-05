@@ -212,11 +212,11 @@ def _guess_scan_index_grid(rotidx, start, stop):
 
 def file_reader(
     filename,
+    lazy=True,
     scan_shape=None,
     scan_start_frame=0,
     winding_scan_axis=None,
     hysteresis=0,
-    lazy=True,
     rechunking="auto",
     **kwds,
 ):
@@ -225,28 +225,48 @@ def file_reader(
 
     Parameters
     ----------
-    scan_shape : str or tuple of int
+    lazy : bool, default=True
+        Whether to open the file lazily or not.
+    scan_shape : str or tuple of int, optional
         By default the data is loaded as an image stack (1 navigation axis).
-        If it concerns a 4D-STEM dataset, the (..., scan_y, scan_x) dimension can
-        be provided. "auto" can also be selected, in which case the rotidx
-        information in the frame headers will be used to try to reconstruct
-        the scan. Additional navigation axes must be prepended.
-    scan_start_frame : int
-        First frame where the scan starts. If scan_shape = "auto" this is
-        ignored.
-    winding_scan_axis : str
-        "x" or "y" if the scan was performed with winding scan along an axis
-        as opposed to flyback scan. By default (None), flyback scan is assumed
-        with "x" the fast and "y" the slow scan directions.
-    hysteresis: int
-        Only applicable if winding_scan_axis is not None. This parameter allows
-        every second column or row to be shifted to correct for hysteresis that
-        occurs during a winding scan.
-    rechunking: bool, str, or Dict
-        If set to False each tvips file is a single chunk. For a better experience
-        working with the dataset, an automatic rechunking is recommended (default).
-        If set to anything else, e.g. a Dictionary, the value will be passed to the
-        chunks argument in dask.array.rechunk.
+        A tuple of integers can be provided to indicate the shape of the
+        navigation axes. For example, `(3, 4)` will have 3 scan points in the y
+        direction and 4 in the x direction.
+        If it concerns a 4D-STEM dataset, the (..., ``scan_y``, ``scan_x)``
+        dimension can be provided. ``"auto"`` can also be selected, in which case
+        the ``rotidx`` information in the frame headers will be used to try to
+        reconstruct the scan. Additional navigation axes must be prepended. Since
+        this only works for square scan grids and is prone to failure, this option
+        is not recommended.
+    scan_start_frame : int, optional
+        Index of the first frame of the dataset to consider. Mainly relevant for
+        4D-STEM datasets.If ``scan_shape = "auto"`` this is ignored.
+    winding_scan_axis : str, optional
+        If the acquisition software collected data without beam flyback but with
+        a winding "snake" scan, then every second scan row or column needs to be
+        reversed to make sense of the data. This can be indicated with values
+        ``"x"`` or ``"y"``, depending on whether winding happened along the
+        primary or secondary axis. By default, flyback scan without winding
+        is assumed with ``x`` the fast scan and ``y`` the slow scan direction.
+    hysteresis: int, optional
+        Only applicable if ``winding_scan_axis`` is not ``None``, as it is likely
+        there is an overshoot of a few pixels (2-5) every second scan row. This
+        parameter allows shifts every second row by the indicated number of scan
+        points to align even and odd scan rows. Default is 0, no hysteresis.
+    rechunking: bool, str, or Dict, Default="auto"
+        Only relevant when using lazy loading. If set to False each tvips file is
+        a single chunk. For a better experience, with the default setting of 
+        ``"auto"`` rechunking is performed such that the navigation axes
+        are optimally chunked and the signal axes are not chunked.
+        If set to anything else, e.g. a dictionary, the value will be passed to
+        the chunks argument in dask.array.rechunk.
+
+    Returns
+    -------
+    dict
+        Dictionary containing the elements ``data``, ``axes``, ``metadata``
+        and ``original_metadata``. See `API guide
+        <https://hyperspy.org/rosettasciio/api.html>`_.
     """
     # check whether we start at the first tvips file
     _is_valid_first_tvips_file(filename)
@@ -488,22 +508,26 @@ def file_writer(filename, signal, **kwds):
 
     Parameters
     ----------
-    file: str
+    filename: str
         Filename of the file to write to. If not supplied, a _000 suffix will
         automatically be appended before the extension.
-    signal : instance of hyperspy Signal2D
-        The signal to save.
+    signal: dict
+        Dictionary containing the signal object as defined in the `API guide
+        <https://hyperspy.org/rosettasciio/api.html>`_.
     max_file_size: int, optional
-        Maximum size of individual files in bytes. By default there is no
-        maximum and everything is stored in a single file. Otherwise, files
-        are split into sequential parts denoted by a suffix _xxx starting
-        from _000.
+        Approximate maximum size of individual files in bytes. In this way a
+        dataset can be split into multiple files. A file needs to be at least the
+        size of the main header in the first file plus one frame and its frame
+        header. Sequential files are denoted by a suffix _xxx starting from _000.
+        By default there is no maximum and the entire dataset is stored in a
+        single file.
     version: int, optional
-        TVIPS file format version (1 or 2), defaults to 2
+        TVIPS file format version (only version ``1`` or ``2`` supported),
+        defaults to version ``2``.
     frame_header_extra_bytes: int, optional
         Number of bytes to pad the frame headers with, defaults to 0
     mode: int, optional
-        Imaging mode. 1 is imaging, 2 is diffraction. By default the mode is
+        ``1`` for imaging, ``2`` for diffraction. By default, the mode is
         guessed from signal type and signal units.
     """
     # only signal2d is allowed

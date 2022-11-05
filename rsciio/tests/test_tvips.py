@@ -32,7 +32,7 @@ import traits.api as t
 
 from hyperspy.misc.utils import DictionaryTreeBrowser
 
-from rsciio.tvips.api import (
+from rsciio.tvips._api import (
     _guess_image_mode,
     _get_main_header_from_signal,
     _get_frame_record_dtype_from_signal,

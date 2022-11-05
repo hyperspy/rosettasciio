@@ -122,3 +122,9 @@ def test_dir_plugins():
     from rsciio import tvips
 
     assert dir(tvips) == ["file_reader", "file_writer"]
+
+    # tifffile is an optional dependency
+    pytest.importorskip("pyUSID")
+    from rsciio import usid_hdf5
+
+    assert dir(tvips) == ["file_reader", "file_writer"]

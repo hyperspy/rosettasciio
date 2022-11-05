@@ -669,6 +669,8 @@ def file_reader(filename, lazy=False):
 
     Parameters
     ----------
+    filename : str
+        Filename of the file to read.
     lazy : bool, default=False
         Whether to open the file lazily or not.
 

@@ -377,7 +377,7 @@ def _axes_list_to_dimensions(axes_list, data_shape, is_spec):
 
 
 def file_reader(
-    filename, dataset_path=None, ignore_non_uniform_dims=True, lazy=False, **kwds
+    filename, lazy=False, dataset_path=None, ignore_non_uniform_dims=True, **kwds
 ):
     """
     Reads a USID Main dataset present in an HDF5 file into a HyperSpy Signal
@@ -385,23 +385,29 @@ def file_reader(
     Parameters
     ----------
     filename : str
-        path to HDF5 file
-    dataset_path : str, Optional
+        Filename of the HDF5 file.
+    lazy : bool, default=False
+        Whether to open the file lazily or not.
+    dataset_path : str, optional
         Absolute path of USID Main HDF5 dataset.
-        Default - None - all Main Datasets will be read. Given that HDF5 files
-        can accommodate very large datasets, lazy reading is strongly
+        Default is ``None`` - all Main Datasets will be read. Given that HDF5
+        files can accommodate very large datasets, lazy reading is strongly
         recommended.
-        If a string like ``'/Measurement_000/Channel_000/My_Dataset'`` is
+        If a string like ``"/Measurement_000/Channel_000/My_Dataset"`` is
         provided, the specific dataset will be loaded.
-    ignore_non_uniform_dims : bool, Optional
-        If True, parameters that were varied non-uniformly in the desired
-        dataset will result in Exceptions.
+    ignore_non_uniform_dims : bool, optional
+        If ``True`` (default), parameters that were varied non-uniformly in the
+        desired dataset will result in Exceptions.
         Else, all such non-uniformly varied parameters will be treated as
         uniformly varied parameters and a Signal object will be generated.
 
     Returns
     -------
-    list of hyperspy.signals.Signal object
+    list of dicts
+        List of dictionaries, each containing the elements ``data``, ``axes``,
+        ``metadata`` and ``original_metadata``. See `API guide
+        <https://hyperspy.org/rosettasciio/api.html>`_.
+        
     """
     if not isinstance(filename, str):
         raise TypeError("filename should be a string")
@@ -435,33 +441,40 @@ def file_reader(
     return signals
 
 
-def file_writer(filename, object2save, **kwds):
+def file_writer(filename, signal, **kwds):
     """
-    Writes a HyperSpy Signal object to a HDF5 file formatted according to USID
+    Writes a HyperSpy Signal object to a HDF5 file formatted according to USID.
 
     Parameters
     ----------
-    filename : str
-        Path to target HDF5 file
-    object2save : hyperspy.signals.Signal
-        A HyperSpy signal
+    filename: str
+        Filename of the target HDF5 file.
+    signal: dict
+        Dictionary containing the signal object as defined in the `API guide
+        <https://hyperspy.org/rosettasciio/api.html>`_.
+    overwrite: bool, optional
+        If set to ``True``, the writer will append the data to the specified
+        HDF5 file. 
+    **kwds: optional
+        All other keyword arguments will be passed to
+        :py:func:`pyUSID.io.hdf_utils.model.write_main_dataset`.
     """
     append = False
     if os.path.exists(filename):
         append = True
 
-    hs_shape = object2save["data"].shape
+    hs_shape = signal["data"].shape
 
-    parm_dict = _flatten_dict(object2save["metadata"])
-    temp = object2save["original_metadata"]
+    parm_dict = _flatten_dict(signal["metadata"])
+    temp = signal["original_metadata"]
     parm_dict.update(_flatten_dict(temp, parent_key="Original"))
 
-    axes = object2save["axes"]
+    axes = signal["axes"]
     nav_axes = [ax for ax in axes if ax["navigate"]][::-1]
     sig_axes = [ax for ax in axes if not ax["navigate"]][::-1]
     nav_dim = len(nav_axes)
 
-    data = object2save["data"]
+    data = signal["data"]
     # data is assumed to have dimensions arranged from slowest to fastest
     # varying dimensions
     if nav_dim > 0 and len(sig_axes) > 0:

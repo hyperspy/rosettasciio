@@ -225,6 +225,8 @@ def file_reader(
 
     Parameters
     ----------
+    filename : str
+        Filename of the file to read.
     lazy : bool, default=True
         Whether to open the file lazily or not.
     scan_shape : str or tuple of int, optional

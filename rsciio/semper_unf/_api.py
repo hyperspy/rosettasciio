@@ -663,13 +663,41 @@ def _read_data(fobj, fname, position, data_format, shape):
     return data
 
 
-def file_reader(filename, **kwds):
-    lazy = kwds.get("lazy", False)
+def file_reader(filename, lazy=False):
+    """
+    Read a Semper ``.unf`` file.
+
+    Parameters
+    ----------
+    lazy : bool, default=False
+        Whether to open the file lazily or not (default ``False``).
+
+    Returns
+    -------
+    dict
+        Dictionary containing the elements ``data``, ``axes``, ``metadata``,
+        ``original_metadata`` and ``attributes``. See `API guide
+        <https://hyperspy.org/rosettasciio/api.html>`_.
+    """
     semper = SemperFormat.load_from_unf(filename, lazy=lazy)
     semper.log_info()
     return [semper.to_dictionary(lazy=lazy)]
 
 
 def file_writer(filename, signal, **kwds):
+    """
+    Write signal to a Semper ``.unf`` file.
+
+    Parameters
+    ----------
+    filename : str
+        Filename of the file to write to.
+    signal: dict
+        Dictionary containing the signal object as defined in the `API guide
+        <https://hyperspy.org/rosettasciio/api.html>`_.
+    skip_header : bool, default=False
+        Determines if the header, title and label should be skipped (useful
+        for some other programs).
+    """
     semper = SemperFormat.from_signal(signal)
     semper.save_to_unf(filename)

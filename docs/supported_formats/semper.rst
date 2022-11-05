@@ -11,3 +11,10 @@ binary format with an extensive header for up to 3 dimensional data.
 RosettaSciIO can read and write ``.unf``-files and will try to convert the data into a
 fitting BaseSignal subclass, based on the information stored in the label.
 Currently version 7 of the format should be fully supported.
+
+
+API functions
+^^^^^^^^^^^^^
+
+.. automodule:: rsciio.blockfile
+   :members:

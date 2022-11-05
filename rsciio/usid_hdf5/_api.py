@@ -1,3 +1,21 @@
+# -*- coding: utf-8 -*-
+# Copyright 2007-2022 The HyperSpy developers
+#
+# This file is part of RosettaSciIO.
+#
+# RosettaSciIO is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# RosettaSciIO is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
+
 import os
 import logging
 from warnings import warn
@@ -7,6 +25,14 @@ import h5py
 import numpy as np
 import pyUSID as usid
 import sidpy
+
+from rsciio.docstrings import (
+    FILENAME_DOC,
+    LAZY_DOC,
+    RETURNS_DOC,
+    SIGNAL_DOC,
+)
+
 
 _logger = logging.getLogger(__name__)
 
@@ -384,10 +410,8 @@ def file_reader(
 
     Parameters
     ----------
-    filename : str
-        Filename of the HDF5 file.
-    lazy : bool, default=False
-        Whether to open the file lazily or not.
+    %s
+    %s
     dataset_path : str, optional
         Absolute path of USID Main HDF5 dataset.
         Default is ``None`` - all Main Datasets will be read. Given that HDF5
@@ -401,12 +425,7 @@ def file_reader(
         Else, all such non-uniformly varied parameters will be treated as
         uniformly varied parameters and a Signal object will be generated.
 
-    Returns
-    -------
-    list of dicts
-        Dictionary containing the signal object as defined in the `API guide
-        <https://hyperspy.org/rosettasciio/api.html>`_.
-        
+    %s
     """
     if not isinstance(filename, str):
         raise TypeError("filename should be a string")
@@ -440,20 +459,20 @@ def file_reader(
     return signals
 
 
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+
+
 def file_writer(filename, signal, **kwds):
     """
     Writes a HyperSpy Signal object to a HDF5 file formatted according to USID.
 
     Parameters
     ----------
-    filename: str
-        Filename of the target HDF5 file.
-    signal: dict
-        Dictionary containing the signal object as defined in the `API guide
-        <https://hyperspy.org/rosettasciio/api.html>`_.
+    %s
+    %s
     overwrite: bool, optional
         If set to ``True``, the writer will append the data to the specified
-        HDF5 file. 
+        HDF5 file.
     **kwds: optional
         All other keyword arguments will be passed to
         :py:func:`pyUSID.io.hdf_utils.model.write_main_dataset`.
@@ -528,3 +547,6 @@ def file_writer(filename, signal, **kwds):
                 slow_to_fast=True,
                 **kwds,
             )
+
+
+file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)

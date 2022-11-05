@@ -23,6 +23,12 @@ import dask.array as da
 import numcodecs
 import zarr
 
+from rsciio.docstrings import (
+    FILENAME_DOC,
+    LAZY_DOC,
+    RETURNS_DOC,
+    SIGNAL_DOC,
+)
 from rsciio._hierarchical import HierarchicalWriter, HierarchicalReader, version
 
 
@@ -108,11 +114,8 @@ def file_writer(filename, signal, close_file=True, **kwds):
 
     Parameters
     ----------
-    filename : str
-        The name of the file used to save the signal.
-    signal : dict
-        Dictionary containing the signal object as defined in the `API guide
-        <https://hyperspy.org/rosettasciio/api.html>`_.
+    %s
+    %s
     close_file : bool, default=True
         Close the file after writing. Only relevant for some zarr storages
         (:py:class:`zarr.storage.ZipStore`, :py:class:`zarr.storage.DBMStore`)
@@ -196,24 +199,21 @@ def file_writer(filename, signal, close_file=True, **kwds):
             store.flush()
 
 
+file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
+
+
 def file_reader(filename, lazy=False, **kwds):
     """Read data from zspy files saved with the HyperSpy zarr format
     specification.
 
     Parameters
     ----------
-    filename: str
-        Filename of the file to read.
-    lazy: bool, Default=False
-        Load image lazily using dask.
-    **kwds, optional
+    %s
+    %s
+    **kwds: optional
         Pass keyword arguments to the :py:meth:`zarr.open` function.
 
-    Returns
-    -------
-    dict
-        Dictionary containing the signal object as defined in the `API guide
-        <https://hyperspy.org/rosettasciio/api.html>`_.
+    %s
     """
     mode = kwds.pop("mode", "r")
     try:
@@ -229,3 +229,6 @@ def file_reader(filename, lazy=False, **kwds):
     reader = ZspyReader(f)
 
     return reader.read(lazy=lazy)
+
+
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)

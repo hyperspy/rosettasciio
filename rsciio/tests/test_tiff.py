@@ -28,7 +28,7 @@ import numpy as np
 import pytest
 
 tifffile = pytest.importorskip("tifffile", reason="tifffile not installed")
-hs = pytest.importorskip("hyperspy._api", reason="hyperspy not installed")
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 import traits.api as t
 
@@ -414,7 +414,7 @@ FEI_Helios_metadata = {
             "0": {
                 "operation": "load",
                 "hyperspy_version": hs.__version__,
-                "io_plugin": "rsciio.tiff._api",
+                "io_plugin": "rsciio.tiff",
             }
         },
     },
@@ -444,7 +444,7 @@ FEI_navcam_metadata = {
         "date": "2022-05-17",
         "time": "09:07:08",
         "authors": "user",
-        "FileIO": {"0": {"operation": "load", "io_plugin": "rsciio.tiff._api"}},
+        "FileIO": {"0": {"operation": "load", "io_plugin": "rsciio.tiff"}},
     },
     "Signal": {"signal_type": ""},
     "Acquisition_instrument": {
@@ -589,7 +589,7 @@ class TestReadZeissSEM:
                     "0": {
                         "operation": "load",
                         "hyperspy_version": hs.__version__,
-                        "io_plugin": "rsciio.tiff._api",
+                        "io_plugin": "rsciio.tiff",
                     }
                 },
             },
@@ -643,7 +643,7 @@ class TestReadZeissSEM:
                     "0": {
                         "operation": "load",
                         "hyperspy_version": hs.__version__,
-                        "io_plugin": "rsciio.tiff._api",
+                        "io_plugin": "rsciio.tiff",
                     }
                 },
             },
@@ -685,7 +685,7 @@ def test_read_RGB_Zeiss_optical_scale_metadata():
     assert s.metadata.General.date == "2016-06-13"
     assert s.metadata.General.time == "15:59:52"
     assert s.metadata.General.FileIO.Number_0.hyperspy_version == hs.__version__
-    assert s.metadata.General.FileIO.Number_0.io_plugin == "rsciio.tiff._api"
+    assert s.metadata.General.FileIO.Number_0.io_plugin == "rsciio.tiff"
 
 
 def test_read_BW_Zeiss_optical_scale_metadata():
@@ -762,7 +762,7 @@ def test_read_TVIPS_metadata():
                 "0": {
                     "operation": "load",
                     "hyperspy_version": hs.__version__,
-                    "io_plugin": "rsciio.tiff._api",
+                    "io_plugin": "rsciio.tiff",
                 }
             },
         },

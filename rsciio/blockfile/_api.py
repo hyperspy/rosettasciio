@@ -381,8 +381,6 @@ def file_writer(
         Whether to show the progressbar or not.
     endianess : str
         ``'<'`` (default) or ``'>'`` determining how the bits are written to the file
-
-    %s
     """
     smetadata = DTBox(signal["metadata"], box_dots=True)
     if intensity_scaling is None:
@@ -488,8 +486,4 @@ def file_writer(
     file_memmap.flush()
 
 
-file_writer.__doc__ %= (
-    FILENAME_DOC.replace("read", "write to"),
-    SIGNAL_DOC,
-    RETURNS_DOC,
-)
+file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)

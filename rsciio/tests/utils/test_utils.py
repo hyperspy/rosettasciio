@@ -3,7 +3,7 @@ from dateutil import parser, tz
 import numpy as np
 import pytest
 
-from rsciio.utils.tools import DTBox, dict2sarray
+from rsciio.utils.tools import DTBox, dict2sarray, memmap_distributed, get_chunk_slice
 import rsciio.utils.date_time_tools as dtt
 
 dt = [("x", np.uint8), ("y", np.uint16), ("text", (bytes, 6))]
@@ -30,6 +30,28 @@ serial2 = 81900.62833333334
 
 md3, dt3, iso3 = _get_example("2016-07-12", "22:57:32")
 serial3 = 42563.95662037037
+
+
+class TestDistributedMemmapTools:
+
+    def test_get_chunk_slices(self):
+        chunked_slices, chunks = get_chunk_slice(shape=(10, 20, 30),
+                                 chunks=(10, 10, 10))
+        assert chunks == ((10,), (10, 10), (10, 10, 10))
+        assert chunked_slices.shape == (1, 2, 3)
+
+    def test_distributed_memmap(self, tmp_path):
+        arr = np.random.random(size=(2, 10, 10))
+        file = tmp_path / "test.bin"
+        new = np.memmap(file, dtype=float, mode="w+", offset=16, shape=(2, 10, 10))
+        new[:] = arr
+        new.flush
+
+        read_data = np.memmap(file, dtype=float, offset=16,  shape=(2, 10, 10))
+        np.testing.assert_array_equal(read_data, arr)
+
+        distributed_data = memmap_distributed(file, dtype=float, offset=16, shape=(2, 10, 10), chunks=(1, 5, 5), key=None)
+        np.testing.assert_array_equal(distributed_data, arr)
 
 
 def test_d2s_fail():

@@ -110,7 +110,7 @@ def get_chunk_slice(shape,
     chunks = da.core.normalize_chunks(
         chunks=chunks, shape=shape, limit=block_size_limit, dtype=dtype
     )
-    chunks_shape = tuple([len(c) for c in zip(chunks, shape)])
+    chunks_shape = tuple([len(c) for c in chunks])
     slices = np.empty(shape=chunks_shape, dtype=object)
     for ind in np.ndindex(chunks_shape):
         current_chunk = [chunk[i] for i, chunk in zip(ind, chunks)]

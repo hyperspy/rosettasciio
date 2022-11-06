@@ -108,7 +108,7 @@ class TestLoadCeleritas:
         assert xml["FileInfo"]["GainRef"]["Value"] == "Yes"
         assert xml["FileInfo"]["SegmentPreBuffer"]["Value"] == 128
 
-    @pytest.mark.parametrize("nav_shape", [None, (5, 4), (5, 3), (20, 20, 20)])
+    @pytest.mark.parametrize("nav_shape", [None, (5, 4), (5, 3)])
     def test_read(self, seq, nav_shape):
         if nav_shape ==(20, 20, 20):
             data_dict = seq.read_data(navigation_shape=nav_shape, chunks=(10, 10, 10, -1, -1))
@@ -146,18 +146,6 @@ def test_load_file3():
         lazy=True,
     )
     assert isinstance(data_dict["data"], dask.array.Array)
-    assert data_dict["data"].shape == (256, 64, 64)
-
-
-def test_load_file3():
-    data_dict = file_reader(
-        "de_data/celeritas_data/64x64_Prebuffer256/test_Bottom_14-13-42.822.seq",
-        celeritas=True,
-        lazy=True,
-        navigation_shape=(513,),
-    )
-    assert isinstance(data_dict["data"], dask.array.Array)
-    assert data_dict["data"].shape == (513, 64, 64)
-    assert np.max(data_dict["data"][0]).compute() < 35
+    assert data_dict["data"].shape == (512, 64, 64)
 
 

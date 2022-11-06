@@ -293,7 +293,7 @@ class SeqReader:
             self.axes[-1]["scale"] = self.original_metadata["Metadata"]["PixelSize"]
         return
 
-    def read_data(self, navigation_shape=None, chunks=None, distributed=False, lazy=False):
+    def read_data(self, navigation_shape=None, chunks="auto", distributed=False, lazy=False):
         """Reads the data from self.file given a navigation shape.
         Parameters
         ----------
@@ -348,9 +348,13 @@ class SeqReader:
             time = {"sec": data["sec"], "ms": data["ms"], "mis": data["mis"]}
             data = data["Array"]
             if lazy:
-                data = da.from_array(data["Array"], chunks=chunks)
+                data = da.from_array(data, chunks=chunks)
             self.original_metadata["Timestamps"] = time
             self.metadata["Timestamps"] = time
+        if dark_img is not None:
+            data = data-dark_img
+        if gain_img is not None:
+            data = data*gain_img
         self._create_axes(header=header, nav_shape=navigation_shape)
         return {
             "data": data,

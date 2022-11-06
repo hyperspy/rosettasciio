@@ -23,13 +23,19 @@ import glob
 
 import dask.array as da
 
-from rsciio.utils.tools import read_binary_metadata, parse_xml, get_chunk_index
+from rsciio.utils.tools import read_binary_metadata, parse_xml, get_chunk_index, memmap_distributed
 
 _logger = logging.getLogger(__name__)
 data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}  # Stream Pix data types
 
 
-def file_reader(filename, navigation_shape=None, lazy=False, celeritas=False,chunks="auto", **kwargs):
+def file_reader(filename,
+                navigation_shape=None,
+                lazy=False,
+                celeritas=False,
+                chunks="auto",
+                distributed=False,
+                **kwargs):
     """ Reads the .seq file format from the DE 16 and DE Celeritas cameras.  This file
     format is generic and used by the 3rd party software StreamPix.  While this
     file loader may load data saved from other cameras it is not guaranteed  to
@@ -52,6 +58,10 @@ def file_reader(filename, navigation_shape=None, lazy=False, celeritas=False,chu
     celeritas: bool
         If the data came from the celeritas camera.  Important for loading
         data saved with a prebuffer and split between top and bottom frames.
+    distributed: bool
+        If the data should be loaded in a way that is supported by the distributed
+        backend. Slightly slower for smaller datasets but could potentially see
+        gains on larger datasets or more extensive hardware.
     kwargs:
         Any additional parameters such as:
             top: str
@@ -113,10 +123,16 @@ def file_reader(filename, navigation_shape=None, lazy=False, celeritas=False,chu
             kwargs[ext] = filename + file_extensions[ext]
 
     if celeritas:
-        reader = CeleritasReader(file=filename, top=top, bottom=bottom, **kwargs)
+        reader = CeleritasReader(file=filename,
+                                 top=top,
+                                 bottom=bottom,
+                                 **kwargs)
     else:
         reader = SeqReader(file=filename, **kwargs)
-    return reader.read_data(navigation_shape=navigation_shape, lazy=lazy, chunks=chunks)
+    return reader.read_data(navigation_shape=navigation_shape,
+                            lazy=lazy,
+                            distributed=distributed,
+                            chunks=chunks)
 
 
 class SeqReader:
@@ -277,7 +293,7 @@ class SeqReader:
             self.axes[-1]["scale"] = self.original_metadata["Metadata"]["PixelSize"]
         return
 
-    def read_data(self, navigation_shape=None):
+    def read_data(self, navigation_shape=None, chunks=None, distributed=False, lazy=False):
         """Reads the data from self.file given a navigation shape.
         Parameters
         ----------
@@ -289,22 +305,52 @@ class SeqReader:
         dark_img, gain_img = self._read_dark_gain()
         self._read_xml()
         self._read_metadata()
+        signal_shape = (header["ImageWidth"], header["ImageHeight"])
+        num_frames = header["NumFrames"]
         if navigation_shape is None or navigation_shape == ():
             navigation_shape = (header["NumFrames"],)
-        data, time = read_full_seq(
-            self.file,
-            ImageWidth=header["ImageWidth"],
-            ImageHeight=header["ImageHeight"],
-            ImageBitDepth=header["ImageBitDepth"],
-            TrueImageSize=header["TrueImageSize"],
-            navigation_shape=navigation_shape,
-        )
-        if dark_img is not None:
-            data = np.subtract(data, dark_img)
-        if gain_img is not None:
-            data = np.multiply(data, gain_img)
-        self.original_metadata["Timestamps"] = time
-        self.metadata["Timestamps"] = time
+
+        data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}
+        empty = header["TrueImageSize"] - ((header["ImageWidth"] * header["ImageHeight"] * 2) + 8)
+        dtype = [
+            ("Array", data_types[int(header["ImageBitDepth"])],
+             (header["ImageWidth"],
+              header["ImageHeight"])),
+            ("sec", "<u4"),
+            ("ms", "<u2"),
+            ("mis", "<u2"),
+            ("empty", bytes, empty),
+        ]
+
+        # This is useful if the camera drops frames at the end of an acquisition.
+        if navigation_shape is not None and np.product(navigation_shape) > num_frames:
+            _logger.warning(
+                "The number of frames and the navigation shape are not "
+                "equal. Adding frames to the end of the dataset. ")
+            t = np.memmap(self.file, offset=8192,
+                          dtype=dtype, shape=num_frames,
+                          mode="r+")
+            t.flush()
+            num_frames = np.product(navigation_shape)
+
+        if navigation_shape is not None:
+            shape = navigation_shape + signal_shape
+        else:
+            shape = (num_frames,) + signal_shape
+
+
+        if distributed:
+            data = memmap_distributed(self.file, dtype, offset=8192,
+                                      shape=navigation_shape, key="Array",
+                                      chunks=chunks)
+        else:
+            data = np.memmap(self.file, dtype=dtype, offset=8192, shape=navigation_shape)
+            time = {"sec": data["sec"], "ms": data["ms"], "mis": data["mis"]}
+            data = data["Array"]
+            if lazy:
+                data = da.from_array(data["Array"], chunks=chunks)
+            self.original_metadata["Timestamps"] = time
+            self.metadata["Timestamps"] = time
         self._create_axes(header=header, nav_shape=navigation_shape)
         return {
             "data": data,
@@ -367,6 +413,7 @@ class CeleritasReader(SeqReader):
         return xml_dict
 
     def _read_metadata(self):
+        # metadata specification might not always work as intended.
         metadata_header_dict = {
             "Version": ["<u4", 0],
             "MetadataVersion": [np.uintc, 276],
@@ -400,7 +447,8 @@ class CeleritasReader(SeqReader):
         }
         return metadata_dict
 
-    def read_data(self, navigation_shape=None, chunks="auto", lazy=False):
+    def read_data(self, navigation_shape=None, chunks="auto",
+                  lazy=False, distributed=False):
         header = self._read_file_header()
         dark_img, gain_img = self._read_dark_gain()
         self._read_xml()
@@ -463,18 +511,27 @@ class CeleritasReader(SeqReader):
             buffer_frames = header["NumFrames"]
             shape = (buffer_frames * self.buffer,) + signal_shape
 
-        data = read_stitch_binary_distributed(
-            top=self.top,
-            bottom=self.bottom,
-            buffer_size=self.buffer,
-            shape=shape,
-            offset=8192,
-            dtypes=dtype,
-            total_buffer_frames=buffer_frames,
-            chunks=chunks,
-            dark=dark_img,
-            gain=gain_img,
-        )
+        if distributed:
+            data = read_stitch_binary_distributed(
+                top=self.top,
+                bottom=self.bottom,
+                buffer_size=self.buffer,
+                shape=shape,
+                offset=8192,
+                dtypes=dtype,
+                total_buffer_frames=buffer_frames,
+                chunks=chunks,
+                dark=dark_img,
+                gain=gain_img,
+            )
+        else:
+            data, time = read_stitch_binary(top=self.top,
+                                            bottom=self.bottom,
+                                            dtypes=dtype,
+                                            offset=8192,
+                                            total_buffer_frames=buffer_frames,
+                                            navigation_shape=navigation_shape,
+                                            lazy=lazy)
 
         self._create_axes(
             header=header, nav_shape=navigation_shape, prebuffer=self.buffer
@@ -488,41 +545,9 @@ class CeleritasReader(SeqReader):
 
 
 """
-Functions for reading the different binary files used.
+Functions for reading split binary files. Generic binary distributed readers are
+located in rosettasciio.utils.tools
 """
-
-
-def read_full_seq(
-    file, ImageWidth, ImageHeight, ImageBitDepth, TrueImageSize, navigation_shape=None
-):
-    """Read a full seq file.
-    Parameters
-    ----------
-    file: str
-        The file name to be read
-    ImageWidth:int
-        The width of one of the frames
-    ImageHeight: int
-        The height of one of the frames
-    ImageBitDepth: int
-        The bit depth of the image. This should be 16 in most cases
-    TrueImageSize: int
-        The size of each frame in bytes.  This includes the time stamp and
-        empty bytes after the frame
-    navigation_shape: tuple
-        The navigation shape of the data.
-    """
-    data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}
-    empty = TrueImageSize - ((ImageWidth * ImageHeight * 2) + 8)
-    dtype = [
-        ("Array", data_types[int(ImageBitDepth)], (ImageWidth, ImageHeight)),
-        ("sec", "<u4"),
-        ("ms", "<u2"),
-        ("mis", "<u2"),
-        ("empty", bytes, empty),
-    ]
-    data = np.memmap(file, offset=8192, dtype=dtype, shape=navigation_shape)
-    return data["Array"], {"sec": data["sec"], "ms": data["ms"], "mis": data["mis"]}
 
 
 def read_split_seq(
@@ -677,6 +702,27 @@ def slic_stitch_binary(
     if gain is not None:
         chunk = chunk * gain
     return chunk
+
+def slic_binary(
+    indexes,
+    file,
+    navigation_shape,
+    dtypes,
+    offset=8192,
+    gain=None,
+    dark=None,
+):
+    mapped = np.memmap(file,
+                       offset=offset,
+                       dtype=dtypes,
+                       shape=navigation_shape,
+                       mode="r")["Array"]
+    mapped = mapped[indexes]
+    if dark is not None:
+        mapped = mapped - dark
+    if gain is not None:
+        mapped = mapped * gain
+    return mapped
 
 
 def read_stitch_binary(

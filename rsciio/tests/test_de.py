@@ -56,11 +56,15 @@ class TestShared:
         assert gain is None
 
     @pytest.mark.parametrize("nav_shape", [None, (5, 2), (5, 3)])
-    def test_read(self, seq, nav_shape):
+    @pytest.mark.parametrize("distributed", [True, False])
+    @pytest.mark.parametrize("lazy", [True, False])
+    def test_read(self, seq, nav_shape, distributed, lazy):
         data = seq.read_data(navigation_shape=nav_shape)
+        data2 = seq.read_data(navigation_shape=nav_shape, distributed=distributed, lazy=lazy)
         if nav_shape is None:
             nav_shape = (10,)
         assert data["data"].shape == (*nav_shape, 64, 64)
+        np.testing.assert_array_equal(data["data"], data2["data"])
 
 
 class TestLoadCeleritas:

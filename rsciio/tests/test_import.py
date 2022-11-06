@@ -18,6 +18,8 @@
 
 import importlib
 
+import pytest
+
 
 def test_import_version():
     from rsciio import __version__
@@ -93,3 +95,16 @@ def test_format_name_aliases():
         else:
             assert isinstance(reader["writes"], bool)
         assert isinstance(reader["non_uniform_axis"], bool)
+
+
+def test_dir_plugins():
+
+    from rsciio import bruker
+
+    assert dir(bruker) == ["file_reader"]
+
+    # skimage is optional dependencies
+    pytest.importorskip("skimage")
+    from rsciio import blockfile
+
+    assert dir(blockfile) == ["file_reader", "file_writer"]

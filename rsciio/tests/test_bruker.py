@@ -129,7 +129,7 @@ def test_hyperspy_wrap():
                 "0": {
                     "operation": "load",
                     "hyperspy_version": hs.__version__,
-                    "io_plugin": "rsciio.bruker.api",
+                    "io_plugin": "rsciio.bruker",
                 }
             },
         },
@@ -239,22 +239,22 @@ def test_wrong_file():
 
 def test_fast_bcf():
     thingy = pytest.importorskip("rsciio.bruker.unbcf_fast")
-    from rsciio.bruker import api as bruker
+    from rsciio.bruker import _api
 
     for bcffile in test_files:
         filename = os.path.join(my_path, "bruker_data", bcffile)
-        thingy = bruker.BCF_reader(filename)
+        thingy = _api.BCF_reader(filename)
         for j in range(2, 5, 1):
             print("downsampling:", j)
-            bruker.fast_unbcf = True  # manually enabling fast parsing
+            _api.fast_unbcf = True  # manually enabling fast parsing
             hmap1 = thingy.parse_hypermap(downsample=j)  # using cython
-            bruker.fast_unbcf = False  # manually disabling fast parsing
+            _api.fast_unbcf = False  # manually disabling fast parsing
             hmap2 = thingy.parse_hypermap(downsample=j)  # py implementation
             np.testing.assert_array_equal(hmap1, hmap2)
 
 
 def test_decimal_regex():
-    from rsciio.bruker.api import fix_dec_patterns
+    from rsciio.bruker._api import fix_dec_patterns
 
     dummy_xml_positive = [
         b"<dummy_tag>85,658</dummy_tag>",

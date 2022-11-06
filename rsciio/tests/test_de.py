@@ -106,7 +106,7 @@ class TestLoadCeleritas:
 
     @pytest.mark.parametrize("nav_shape", [None, (5, 4), (5, 3), (20, 20, 20)])
     def test_read(self, seq, nav_shape):
-        if nav_shape ==(20,20,20):
+        if nav_shape ==(20, 20, 20):
             data_dict = seq.read_data(navigation_shape=nav_shape, chunks=(10, 10, 10, -1, -1))
         else:
             data_dict = seq.read_data(navigation_shape=nav_shape, )

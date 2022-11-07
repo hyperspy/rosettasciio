@@ -68,7 +68,7 @@ def _read_asw(filename, **kwargs):
     if file_magic != 0:
         _logger.warning("Not a valid JEOL asw format")
         fd.close()
-        return None
+        return []
     fd.seek(12)
     filetree = _parsejeol(fd)
     fd.close()
@@ -555,7 +555,7 @@ def _read_pts(
     else:
         _logger.warning("Not a valid JEOL pts format")
         fd.close()
-        return None
+        return []
 
 
 def _parsejeol(fd):

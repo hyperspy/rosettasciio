@@ -21,6 +21,7 @@ from pathlib import Path
 
 import pytest
 import numpy as np
+import tempfile
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -507,3 +508,15 @@ def test_pts_frame_shift():
             pos = [origin[0] + sfts0[1], origin[1] + sfts0[0], origin[2] + sfts0[2]]
             d2[frame] = dt[frame, pos[1], pos[0], pos[2]]
             assert d2[frame] == d0[frame]
+
+
+def test_broken_files():
+    test_files = ["test.asw", "test.pts"]
+    with tempfile.TemporaryDirectory() as tmpdir:
+        for _file in test_files:
+            file = Path(tmpdir) / _file
+            fd = open(file, "w")
+            fd.write("aaaaaaaa")
+            fd.close()
+            s = hs.load(file)
+            assert s == []

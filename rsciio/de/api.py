@@ -23,19 +23,26 @@ import glob
 
 import dask.array as da
 
-from rsciio.utils.tools import read_binary_metadata, parse_xml, get_chunk_index, memmap_distributed
+from rsciio.utils.tools import (
+    read_binary_metadata,
+    parse_xml,
+    get_chunk_index,
+    memmap_distributed,
+)
 
 _logger = logging.getLogger(__name__)
 data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}  # Stream Pix data types
 
 
-def file_reader(filename,
-                navigation_shape=None,
-                lazy=False,
-                celeritas=False,
-                chunks="auto",
-                distributed=False,
-                **kwargs):
+def file_reader(
+    filename,
+    navigation_shape=None,
+    lazy=False,
+    celeritas=False,
+    chunks="auto",
+    distributed=False,
+    **kwargs
+):
     """ Reads the .seq file format from the DE 16 and DE Celeritas cameras.  This file
     format is generic and used by the 3rd party software StreamPix.  While this
     file loader may load data saved from other cameras it is not guaranteed  to
@@ -123,16 +130,15 @@ def file_reader(filename,
             kwargs[ext] = filename + file_extensions[ext]
 
     if celeritas:
-        reader = CeleritasReader(file=filename,
-                                 top=top,
-                                 bottom=bottom,
-                                 **kwargs)
+        reader = CeleritasReader(file=filename, top=top, bottom=bottom, **kwargs)
     else:
         reader = SeqReader(file=filename, **kwargs)
-    return reader.read_data(navigation_shape=navigation_shape,
-                            lazy=lazy,
-                            distributed=distributed,
-                            chunks=chunks)
+    return reader.read_data(
+        navigation_shape=navigation_shape,
+        lazy=lazy,
+        distributed=distributed,
+        chunks=chunks,
+    )
 
 
 class SeqReader:
@@ -293,7 +299,9 @@ class SeqReader:
             self.axes[-1]["scale"] = self.original_metadata["Metadata"]["PixelSize"]
         return
 
-    def read_data(self, navigation_shape=None, chunks="auto", distributed=False, lazy=False):
+    def read_data(
+        self, navigation_shape=None, chunks="auto", distributed=False, lazy=False
+    ):
         """Reads the data from self.file given a navigation shape.
         Parameters
         ----------
@@ -311,11 +319,15 @@ class SeqReader:
             navigation_shape = (header["NumFrames"],)
 
         data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}
-        empty = header["TrueImageSize"] - ((header["ImageWidth"] * header["ImageHeight"] * 2) + 8)
+        empty = header["TrueImageSize"] - (
+            (header["ImageWidth"] * header["ImageHeight"] * 2) + 8
+        )
         dtype = [
-            ("Array", data_types[int(header["ImageBitDepth"])],
-             (header["ImageWidth"],
-              header["ImageHeight"])),
+            (
+                "Array",
+                data_types[int(header["ImageBitDepth"])],
+                (header["ImageWidth"], header["ImageHeight"]),
+            ),
             ("sec", "<u4"),
             ("ms", "<u2"),
             ("mis", "<u2"),
@@ -326,10 +338,11 @@ class SeqReader:
         if navigation_shape is not None and np.product(navigation_shape) > num_frames:
             _logger.warning(
                 "The number of frames and the navigation shape are not "
-                "equal. Adding frames to the end of the dataset. ")
-            t = np.memmap(self.file, offset=8192,
-                          dtype=dtype, shape=num_frames,
-                          mode="r+")
+                "equal. Adding frames to the end of the dataset. "
+            )
+            t = np.memmap(
+                self.file, offset=8192, dtype=dtype, shape=num_frames, mode="r+"
+            )
             t.flush()
             num_frames = np.product(navigation_shape)
 
@@ -338,13 +351,19 @@ class SeqReader:
         else:
             shape = (num_frames,) + signal_shape
 
-
         if distributed:
-            data = memmap_distributed(self.file, dtype, offset=8192,
-                                      shape=navigation_shape, key="Array",
-                                      chunks=chunks)
+            data = memmap_distributed(
+                self.file,
+                dtype,
+                offset=8192,
+                shape=navigation_shape,
+                key="Array",
+                chunks=chunks,
+            )
         else:
-            data = np.memmap(self.file, dtype=dtype, offset=8192, shape=navigation_shape)
+            data = np.memmap(
+                self.file, dtype=dtype, offset=8192, shape=navigation_shape
+            )
             time = {"sec": data["sec"], "ms": data["ms"], "mis": data["mis"]}
             data = data["Array"]
             if lazy:
@@ -352,9 +371,9 @@ class SeqReader:
             self.original_metadata["Timestamps"] = time
             self.metadata["Timestamps"] = time
         if dark_img is not None:
-            data = data-dark_img
+            data = data - dark_img
         if gain_img is not None:
-            data = data*gain_img
+            data = data * gain_img
         self._create_axes(header=header, nav_shape=navigation_shape)
         return {
             "data": data,
@@ -389,6 +408,7 @@ class CeleritasReader(SeqReader):
         super().__init__(**kwargs)
         self.top = top
         self.bottom = bottom
+        self.bad_pixels = None
 
     def _read_file_header(self):
         file_header_dict = {
@@ -414,6 +434,63 @@ class CeleritasReader(SeqReader):
             # quickly as multiple images are saved in one buffer
             if "SegmentPreBuffer" in xml_dict["FileInfo"]:
                 self.buffer = int(xml_dict["FileInfo"]["SegmentPreBuffer"]["Value"])
+            try:  # try handling bad pixels
+                # rows = int(xml_dict["BadPixels"]["BadPixelMap"]["Rows"])
+                # columns = int(xml_dict["BadPixels"]["BadPixelMap"]["Columns"])
+                defects = xml_dict["BadPixels"]["BadPixelMap"]["Defect"]
+                if not isinstance(defects, list):
+                    defects = [
+                        defects,
+                    ]
+                x_offset = xml_dict["FileInfo"]["ImageOffsetX"]["Value"]
+                y_offset = xml_dict["FileInfo"]["ImageOffsetY"]["Value"]
+                x_size = int(xml_dict["FileInfo"]["ImageSizeX"]["Value"])
+                y_size = int(xml_dict["FileInfo"]["ImageSizeY"]["Value"])
+                bad_pixels = np.zeros(shape=(y_size, x_size), dtype=bool)
+                slices = []
+                for defect in defects:
+                    if "Column" in defect:
+                        start = defect["Column"]
+                        start = int(start) - int(x_offset)
+                        col_slic = (start,) if 0 < start < x_size else ()
+                    elif "Columns" in defect:
+                        start, stop = defect["Columns"].split("-")
+                        start = int(start) - int(x_offset)
+                        start = start if 0 < start < x_size else None
+                        stop = int(stop) - int(x_offset)
+                        stop = stop if 0 < stop < x_size else None
+                        col_slic = (
+                            slice(start, stop)
+                            if start is not None and stop is not None
+                            else ()
+                        )
+                    else:
+                        col_slic = slice(None)
+
+                    if "Row" in defect:
+                        start = defect["Row"]
+                        start = int(start) - int(y_offset)
+                        row_slic = (start,) if 0 < start < y_size else ()
+                    elif "Rows" in defect:
+                        start, stop = defect["Rows"].split("-")
+                        start = int(start) - int(y_offset)
+                        start = start if 0 < start < y_size else None
+                        stop = int(stop) - int(y_offset)
+                        stop = stop if 0 < stop < y_size else None
+                        row_slic = (
+                            slice(start, stop)
+                            if start is not None and stop is not None
+                            else ()
+                        )
+                    else:
+                        row_slic = slice(None)
+                    slices.append((row_slic, col_slic))
+                for s in slices:
+                    bad_pixels[s] = True
+                self.original_metadata["BadPixels"] = bad_pixels
+                self.metadata["Signal"]["BadPixels"] = bad_pixels
+            except IndexError:
+                _logger.info("Bad Pixel correction not preformed")
         return xml_dict
 
     def _read_metadata(self):
@@ -451,8 +528,9 @@ class CeleritasReader(SeqReader):
         }
         return metadata_dict
 
-    def read_data(self, navigation_shape=None, chunks="auto",
-                  lazy=False, distributed=False):
+    def read_data(
+        self, navigation_shape=None, chunks="auto", lazy=False, distributed=False
+    ):
         header = self._read_file_header()
         dark_img, gain_img = self._read_dark_gain()
         self._read_xml()
@@ -529,13 +607,19 @@ class CeleritasReader(SeqReader):
                 gain=gain_img,
             )
         else:
-            data, time = read_stitch_binary(top=self.top,
-                                            bottom=self.bottom,
-                                            dtypes=dtype,
-                                            offset=8192,
-                                            total_buffer_frames=buffer_frames,
-                                            navigation_shape=navigation_shape,
-                                            lazy=lazy)
+            data, time = read_stitch_binary(
+                top=self.top,
+                bottom=self.bottom,
+                dtypes=dtype,
+                offset=8192,
+                total_buffer_frames=buffer_frames,
+                navigation_shape=navigation_shape,
+                lazy=lazy,
+            )
+            if dark_img is not None:
+                data = data - dark_img
+            if gain_img is not None:
+                data = data * gain_img
 
         self._create_axes(
             header=header, nav_shape=navigation_shape, prebuffer=self.buffer
@@ -670,7 +754,7 @@ def read_stitch_binary_distributed(
         gain=gain,
         dark=dark,
         dtype=np.float32,
-        new_axis=(len(indexes.shape), len(indexes.shape)+1),
+        new_axis=(len(indexes.shape), len(indexes.shape) + 1),
         chunks=indexes.chunks + (shape[-2], shape[-1]),
     )
     return data
@@ -690,11 +774,9 @@ def slic_stitch_binary(
     top_mapped = np.memmap(
         top, offset=offset, dtype=dtypes, shape=total_buffer_frames, mode="r"
     )["Array"]
-    #top_flat = top_mapped.reshape(-1, *top_mapped.shape[2:])  # memmap object
     bottom_mapped = np.memmap(
         bottom, offset=offset, dtype=dtypes, shape=total_buffer_frames, mode="r",
     )["Array"]
-    #bottom_flat = bottom_mapped.reshape(-1, *bottom_mapped.shape[2:])  # memmap object
     if buffer_size != None:
         indexes = np.divmod(indexes, buffer_size)
 
@@ -707,20 +789,13 @@ def slic_stitch_binary(
         chunk = chunk * gain
     return chunk
 
+
 def slic_binary(
-    indexes,
-    file,
-    navigation_shape,
-    dtypes,
-    offset=8192,
-    gain=None,
-    dark=None,
+    indexes, file, navigation_shape, dtypes, offset=8192, gain=None, dark=None,
 ):
-    mapped = np.memmap(file,
-                       offset=offset,
-                       dtype=dtypes,
-                       shape=navigation_shape,
-                       mode="r")["Array"]
+    mapped = np.memmap(
+        file, offset=offset, dtype=dtypes, shape=navigation_shape, mode="r"
+    )["Array"]
     mapped = mapped[indexes]
     if dark is not None:
         mapped = mapped - dark

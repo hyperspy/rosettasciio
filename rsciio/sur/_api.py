@@ -49,6 +49,8 @@ import warnings
 
 # DictionaryTreeBrowser class handles the fancy metadata dictionnaries
 # from hyperspy.misc.utils import DictionaryTreeBrowser
+
+from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 from rsciio.exceptions import MountainsMapFileError
 
 _logger = logging.getLogger(__name__)
@@ -1245,17 +1247,14 @@ class DigitalSurfHandler(object):
 
 def file_reader(filename, **kwds):
     """Read a mountainsmap .sur file and return a dictionnary containing the
-    information necessary for creating the data object
+    information necessary for creating the data object.
 
     Parameters
     ----------
-    filename: name of the .sur file to be read
+    %s
+    %s
 
-    Returns
-    -------
-    signal_dict: dictionnary in the appropriate format. The dictionnary can
-    contain several keys including 'data', 'axes', 'metadata', 'original_metadata',
-    'post_process', 'mapping', 'attributes'.
+    %s
     """
 
     ds = DigitalSurfHandler(filename)
@@ -1267,3 +1266,6 @@ def file_reader(filename, **kwds):
     return [
         surdict,
     ]
+
+
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)

@@ -113,6 +113,10 @@ def test_dir_plugins():
 
     assert dir(semper_unf) == ["file_reader", "file_writer"]
 
+    from rsciio import sur
+
+    assert dir(sur) == ["file_reader"]
+
     # tifffile is an optional dependency
     pytest.importorskip("tifffile")
     from rsciio import tiff

@@ -34,6 +34,7 @@ for sub, _, _ in os.walk(os.path.abspath(os.path.dirname(__file__))):
             if _specs["name"] in [
                 "Blockfile",
                 "BrukerComposite",
+                "DigitalSurfSurface",
                 "Semper",
                 "TIFF",
                 "TVIPS",

@@ -389,6 +389,7 @@ class CeleritasReader(SeqReader):
         super().__init__(**kwargs)
         self.top = top
         self.bottom = bottom
+        self.bad_pixels = None
 
     def _read_file_header(self):
         file_header_dict = {
@@ -414,6 +415,53 @@ class CeleritasReader(SeqReader):
             # quickly as multiple images are saved in one buffer
             if "SegmentPreBuffer" in xml_dict["FileInfo"]:
                 self.buffer = int(xml_dict["FileInfo"]["SegmentPreBuffer"]["Value"])
+            try:  # try handling bad pixels
+                #rows = int(xml_dict["BadPixels"]["BadPixelMap"]["Rows"])
+                #columns = int(xml_dict["BadPixels"]["BadPixelMap"]["Columns"])
+                defects = xml_dict["BadPixels"]["BadPixelMap"]["Defect"]
+                if not isinstance(defects, list):
+                    defects = [defects,]
+                x_offset = xml_dict["FileInfo"]["ImageOffsetX"]["Value"]
+                y_offset = xml_dict["FileInfo"]["ImageOffsetY"]["Value"]
+                x_size = int(xml_dict["FileInfo"]["ImageSizeX"]["Value"])
+                y_size = int(xml_dict["FileInfo"]["ImageSizeY"]["Value"])
+                bad_pixels = np.zeros(shape=(y_size, x_size), dtype=bool)
+                slices = []
+                for defect in defects:
+                    if "Column" in defect:
+                        start = defect["Column"]
+                        start = int(start)-int(x_offset)
+                        col_slic = (start,) if 0 < start < x_size else ()
+                    elif "Columns" in defect:
+                        start, stop = defect["Columns"].split("-")
+                        start = int(start) - int(x_offset)
+                        start = start if 0 < start < x_size else None
+                        stop = int(stop) - int(x_offset)
+                        stop = stop if 0 < stop < x_size else None
+                        col_slic = slice(start, stop) if start is not None and stop is not None else ()
+                    else:
+                        col_slic = slice(None)
+
+                    if "Row" in defect:
+                        start = defect["Row"]
+                        start = int(start) - int(y_offset)
+                        row_slic = (start,) if 0 < start < y_size else ()
+                    elif "Rows" in defect:
+                        start, stop = defect["Rows"].split("-")
+                        start = int(start) - int(y_offset)
+                        start = start if 0 < start < y_size else None
+                        stop = int(stop) - int(y_offset)
+                        stop = stop if 0 < stop < y_size else None
+                        row_slic = slice(start, stop) if start is not None and stop is not None else ()
+                    else:
+                        row_slic = slice(None)
+                    slices.append((row_slic, col_slic))
+                for s in slices:
+                    bad_pixels[s] = True
+                self.original_metadata["BadPixels"] = bad_pixels
+                self.metadata["Signal"]["BadPixels"] = bad_pixels
+            except IndexError:
+                _logger.info("Bad Pixel correction not preformed")
         return xml_dict
 
     def _read_metadata(self):
@@ -536,6 +584,10 @@ class CeleritasReader(SeqReader):
                                             total_buffer_frames=buffer_frames,
                                             navigation_shape=navigation_shape,
                                             lazy=lazy)
+            if dark_img is not None:
+                data = data-dark_img
+            if gain_img is not None:
+                data = data*gain_img
 
         self._create_axes(
             header=header, nav_shape=navigation_shape, prebuffer=self.buffer
@@ -690,11 +742,9 @@ def slic_stitch_binary(
     top_mapped = np.memmap(
         top, offset=offset, dtype=dtypes, shape=total_buffer_frames, mode="r"
     )["Array"]
-    #top_flat = top_mapped.reshape(-1, *top_mapped.shape[2:])  # memmap object
     bottom_mapped = np.memmap(
         bottom, offset=offset, dtype=dtypes, shape=total_buffer_frames, mode="r",
     )["Array"]
-    #bottom_flat = bottom_mapped.reshape(-1, *bottom_mapped.shape[2:])  # memmap object
     if buffer_size != None:
         indexes = np.divmod(indexes, buffer_size)
 

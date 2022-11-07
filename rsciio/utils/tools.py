@@ -47,7 +47,7 @@ def seek_read(file, dtype, pos):
     if type(data) == np.uint32 or np.int32:
         data = int(data)
     if type(data) == np.bool_:
-        data =bool(data)
+        data = bool(data)
     return data
 
 
@@ -75,8 +75,19 @@ def read_binary_metadata(file, mapping_dict):
 def xml_branch(child):
     new_dict = {}
     if len(child) != 0:
+        for k in child.keys():
+            try:
+                new_dict[k] = float(child.get(key=k))
+            except ValueError:
+                new_dict[k] = child.get(key=k)
         for c in child:
-            new_dict[c.tag] = xml_branch(c)
+            if c.tag not in new_dict:
+                new_dict[c.tag] = xml_branch(c)
+            else:
+                if isinstance(new_dict[c.tag], list):
+                    new_dict[c.tag].append(xml_branch(c))
+                else:
+                    new_dict[c.tag] = [new_dict[c.tag], xml_branch(c)]
         return new_dict
     else:
         new_dict = child.attrib
@@ -84,7 +95,7 @@ def xml_branch(child):
             try:
                 new_dict[key] = float(new_dict[key])
             except ValueError:
-                pass
+                new_dict[key] = new_dict[key]
         return new_dict
 
 
@@ -102,11 +113,9 @@ def parse_xml(file):
     return xml_dict
 
 
-def get_chunk_slice(shape,
-                    chunks="auto",
-                    block_size_limit=None,
-                    dtype=None,
-                    ):
+def get_chunk_slice(
+    shape, chunks="auto", block_size_limit=None, dtype=None,
+):
     chunks = da.core.normalize_chunks(
         chunks=chunks, shape=shape, limit=block_size_limit, dtype=dtype
     )
@@ -115,8 +124,8 @@ def get_chunk_slice(shape,
     for ind in np.ndindex(chunks_shape):
         current_chunk = [chunk[i] for i, chunk in zip(ind, chunks)]
         starts = [int(np.sum(chunk[:i])) for i, chunk in zip(ind, chunks)]
-        stops = [s+c for s, c in zip(starts, current_chunk)]
-        slices[ind] = tuple([slice(start, stop)for start, stop in zip(starts, stops)])
+        stops = [s + c for s, c in zip(starts, current_chunk)]
+        slices[ind] = tuple([slice(start, stop) for start, stop in zip(starts, stops)])
     return da.from_array(slices, chunks=1), chunks
 
 
@@ -130,10 +139,16 @@ def slice_memmap(slice, file, dtypes, key=None, **kwargs):
     return data[slice]
 
 
-def memmap_distributed(file, dtype,
-                       offset=0, shape=None,
-                       order="C", chunks="auto", block_size_limit=None,
-                       key="Array"):
+def memmap_distributed(
+    file,
+    dtype,
+    offset=0,
+    shape=None,
+    order="C",
+    chunks="auto",
+    block_size_limit=None,
+    key="Array",
+):
     """ Drop in replacement for `np.memmap` allowing for distributed loading of data.
     This always loads the data using dask which can be beneficial in many cases, but
     may not be ideal in others.
@@ -158,37 +173,38 @@ def memmap_distributed(file, dtype,
         sub_array_shape = dtype.shape
     if shape is None:
         unit_size = np.dtype(dtype).itemsize
-        shape = int(os.path.getsize(file)/unit_size)
+        shape = int(os.path.getsize(file) / unit_size)
     if not isinstance(shape, tuple):
         shape = (shape,)
     full_shape = shape + sub_array_shape
 
     # Separates slices into appropriately sized chunks.
-    chunked_slices, data_chunks = get_chunk_slice(shape=full_shape,
-                                     chunks=chunks,
-                                     block_size_limit=block_size_limit,
-                                     dtype=array_dtype)
+    chunked_slices, data_chunks = get_chunk_slice(
+        shape=full_shape,
+        chunks=chunks,
+        block_size_limit=block_size_limit,
+        dtype=array_dtype,
+    )
 
-    data = da.map_blocks(slice_memmap,
-                         chunked_slices,
-                         file=file,
-                         dtype=array_dtype,
-                         shape=shape,
-                         order=order,
-                         mode="r",
-                         dtypes=dtype,
-                         offset=offset,
-                         chunks=data_chunks,
-                         key=key)
+    data = da.map_blocks(
+        slice_memmap,
+        chunked_slices,
+        file=file,
+        dtype=array_dtype,
+        shape=shape,
+        order=order,
+        mode="r",
+        dtypes=dtype,
+        offset=offset,
+        chunks=data_chunks,
+        key=key,
+    )
     return data
 
 
-def get_chunk_index(shape,
-                    signal_axes=(-1, -2),
-                    chunks="auto",
-                    block_size_limit=None,
-                    dtype=None,
-                    ):
+def get_chunk_index(
+    shape, signal_axes=(-1, -2), chunks="auto", block_size_limit=None, dtype=None,
+):
     """Returns a chunk index for distributed chunking of some dataset. This is
     particularly useful with np.memmap and creating arrays from binary data
     which work with dask.distributed.  Note that for almost all cases `get_chunk_slice`

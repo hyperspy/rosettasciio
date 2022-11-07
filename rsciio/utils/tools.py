@@ -75,8 +75,19 @@ def read_binary_metadata(file, mapping_dict):
 def xml_branch(child):
     new_dict = {}
     if len(child) != 0:
+        for k in child.keys():
+            try:
+                new_dict[k] = float(child.get(key=k))
+            except ValueError:
+                new_dict[k] = child.get(key=k)
         for c in child:
-            new_dict[c.tag] = xml_branch(c)
+            if c.tag not in new_dict:
+                new_dict[c.tag] = xml_branch(c)
+            else:
+                if isinstance(new_dict[c.tag], list):
+                    new_dict[c.tag].append(xml_branch(c))
+                else:
+                    new_dict[c.tag] = [new_dict[c.tag], xml_branch(c)]
         return new_dict
     else:
         new_dict = child.attrib
@@ -84,7 +95,7 @@ def xml_branch(child):
             try:
                 new_dict[key] = float(new_dict[key])
             except ValueError:
-                pass
+                new_dict[key] = new_dict[key]
         return new_dict
 
 

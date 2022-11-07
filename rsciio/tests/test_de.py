@@ -43,8 +43,8 @@ class TestShared:
         assert header["TrueImageSize"] == 16384
         np.testing.assert_almost_equal(
             header["FPS"], 30, 1
-        )  # Note this value is very wrong for Celeritas Camera
-        # Read from the xml file...
+        )  # Note this value wrong for Celeritas Camera
+        # Read from the xml file... Factor of the frame buffer off
 
     def test_parse_metadata(self, seq):
         metadata = seq._read_metadata()
@@ -70,15 +70,14 @@ class TestShared:
 class TestLoadCeleritas:
     @pytest.fixture
     def seq(self):
-        files = sorted(glob.glob("de_data/celeritas_data/128x256_PRebuffer128/*"))
         kws = {
             "file": "de_data/celeritas_data/128x256_PRebuffer128/test.seq",
-            "top": files[6],
-            "bottom": files[4],
-            "dark": files[2],
-            "gain": files[3],
-            "xml": files[0],
-            "metadata": files[5],
+            "top": "de_data/celeritas_data/128x256_PRebuffer128/test_Top_14-04-59.355.seq",
+            "bottom": "de_data/celeritas_data/128x256_PRebuffer128/test_Bottom_14-04-59.396.seq",
+            "dark": "de_data/celeritas_data/128x256_PRebuffer128/test.seq.dark.mrc",
+            "gain": "de_data/celeritas_data/128x256_PRebuffer128/test.seq.gain.mrc",
+            "xml": "de_data/celeritas_data/128x256_PRebuffer128/test.seq.Config.Metadata.xml",
+            "metadata": "de_data/celeritas_data/128x256_PRebuffer128/test_Top_14-04-59.355.seq.metadata",
         }
         return CeleritasReader(**kws)
 
@@ -100,6 +99,7 @@ class TestLoadCeleritas:
         print(header)
 
     def test_parse_xml(self, seq):
+
         xml = seq._read_xml()
         assert xml["FileInfo"]["ImageSizeX"]["Value"] == 256
         assert xml["FileInfo"]["ImageSizeY"]["Value"] == 128
@@ -107,19 +107,38 @@ class TestLoadCeleritas:
         assert xml["FileInfo"]["DarkRef"]["Value"] == "Yes"
         assert xml["FileInfo"]["GainRef"]["Value"] == "Yes"
         assert xml["FileInfo"]["SegmentPreBuffer"]["Value"] == 128
+        assert not np.any(seq.metadata["Signal"]["BadPixels"])
+
+    def test_bad_pixels_xml(self, seq):
+        seq.xml = "de_data/celeritas_data/128x256_PRebuffer128/test2.seq.Config.Metadata.xml"
+        xml = seq._read_xml()
+        assert xml["FileInfo"]["ImageSizeX"]["Value"] == 256
+        assert xml["FileInfo"]["ImageSizeY"]["Value"] == 128
+        assert xml["FileInfo"]["FrameRate"]["Value"] == 40000  # correct FPS
+        assert xml["FileInfo"]["DarkRef"]["Value"] == "Yes"
+        assert xml["FileInfo"]["GainRef"]["Value"] == "Yes"
+        assert xml["FileInfo"]["SegmentPreBuffer"]["Value"] == 128
+        data_dict = seq.read_data()
+        data_dict["data"][:, seq.metadata["Signal"]["BadPixels"]] = 0
+        assert np.any(seq.metadata["Signal"]["BadPixels"])
+
+
 
     @pytest.mark.parametrize("nav_shape", [None, (5, 4), (5, 3)])
-    def test_read(self, seq, nav_shape):
-        if nav_shape ==(20, 20, 20):
-            data_dict = seq.read_data(navigation_shape=nav_shape, chunks=(10, 10, 10, -1, -1))
-        else:
-            data_dict = seq.read_data(navigation_shape=nav_shape, )
+    @pytest.mark.parametrize("distributed", [True, False])
+    @pytest.mark.parametrize("lazy", [True, False])
+    def test_read(self, seq, nav_shape, distributed, lazy):
+        data_dict = seq.read_data(navigation_shape=nav_shape, )
+
+        data_dict2 = seq.read_data(navigation_shape=nav_shape, lazy=lazy, distributed=distributed)
         shape = (512, 128, 256)
         if nav_shape != None:
             shape = nav_shape + shape[1:]
         assert data_dict["data"].shape == shape
         assert data_dict["axes"][-1]["size"] == data_dict["data"].shape[-1]
         assert data_dict["axes"][-2]["size"] == data_dict["data"].shape[-2]
+
+        np.testing.assert_array_equal(data_dict["data"], data_dict2["data"])
 
 
 def test_load_file():

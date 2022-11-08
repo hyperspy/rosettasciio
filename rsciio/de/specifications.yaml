@@ -1,4 +1,5 @@
-format_name: DE
+name: DE
+name_aliases: []
 description: Reads .seq files from Direct Electron Detectors
 version: '1.0'
 full_support: False

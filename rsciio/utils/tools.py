@@ -158,9 +158,9 @@ def memmap_distributed(
 
     Notes
     -----
-    Currently `da.map_blocks` does not allow for multiple outputs.  As a result one "Key" is
-    allowed which can be used when the give dtpye has a keyed input.  For example:
-    dtype = (("Array", int, (128,128)),
+    Currently `da.map_blocks` does not allow for multiple outputs.  As a result one
+    "Key" is allowed which can be used when the give dtpye has a keyed input.
+    For example: dtype = (("Array", int, (128,128)),
              ("sec", "<u4"),("ms", "<u2"),("mis", "<u2"),("empty", bytes, empty),)
     """
     if not isinstance(dtype, np.dtype):

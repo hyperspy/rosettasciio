@@ -60,7 +60,9 @@ class TestShared:
     @pytest.mark.parametrize("lazy", [True, False])
     def test_read(self, seq, nav_shape, distributed, lazy):
         data = seq.read_data(navigation_shape=nav_shape)
-        data2 = seq.read_data(navigation_shape=nav_shape, distributed=distributed, lazy=lazy)
+        data2 = seq.read_data(
+            navigation_shape=nav_shape, distributed=distributed, lazy=lazy
+        )
         if nav_shape is None:
             nav_shape = (10,)
         assert data["data"].shape == (*nav_shape, 64, 64)
@@ -110,7 +112,9 @@ class TestLoadCeleritas:
         assert not np.any(seq.metadata["Signal"]["BadPixels"])
 
     def test_bad_pixels_xml(self, seq):
-        seq.xml = "de_data/celeritas_data/128x256_PRebuffer128/test2.seq.Config.Metadata.xml"
+        seq.xml = (
+            "de_data/celeritas_data/128x256_PRebuffer128/test2.seq.Config.Metadata.xml"
+        )
         xml = seq._read_xml()
         assert xml["FileInfo"]["ImageSizeX"]["Value"] == 256
         assert xml["FileInfo"]["ImageSizeY"]["Value"] == 128
@@ -122,15 +126,15 @@ class TestLoadCeleritas:
         data_dict["data"][:, seq.metadata["Signal"]["BadPixels"]] = 0
         assert np.any(seq.metadata["Signal"]["BadPixels"])
 
-
-
     @pytest.mark.parametrize("nav_shape", [None, (5, 4), (5, 3)])
     @pytest.mark.parametrize("distributed", [True, False])
     @pytest.mark.parametrize("lazy", [True, False])
     def test_read(self, seq, nav_shape, distributed, lazy):
-        data_dict = seq.read_data(navigation_shape=nav_shape, )
+        data_dict = seq.read_data(navigation_shape=nav_shape,)
 
-        data_dict2 = seq.read_data(navigation_shape=nav_shape, lazy=lazy, distributed=distributed)
+        data_dict2 = seq.read_data(
+            navigation_shape=nav_shape, lazy=lazy, distributed=distributed
+        )
         shape = (512, 128, 256)
         if nav_shape != None:
             shape = nav_shape + shape[1:]
@@ -166,5 +170,3 @@ def test_load_file3():
     )
     assert isinstance(data_dict["data"], dask.array.Array)
     assert data_dict["data"].shape == (512, 64, 64)
-
-

@@ -19,19 +19,33 @@
 import dask.array
 import pytest
 import numpy as np
-import glob
+import os
 from rsciio.de.api import SeqReader, CeleritasReader, file_reader
 
+celeritas1_path = str(os.path.join(os.path.dirname(__file__),
+                                  "de_data",
+                                  "celeritas_data",
+                                  "128x256_PRebuffer128"))
+celeritas2_path = str(os.path.join(os.path.dirname(__file__),
+                                  "de_data",
+                                  "celeritas_data",
+                                  "256x256_Prebuffer1"))
+celeritas3_path = str(os.path.join(os.path.dirname(__file__),
+                                   "de_data",
+                                   "celeritas_data",
+                                   "64x64_Prebuffer256"))
+
+data_path = os.path.join(os.path.dirname(__file__), "de_data", "data")
 
 class TestShared:
     @pytest.fixture
     def seq(self):
         return SeqReader(
-            file="de_data/data/test.seq",
-            dark="de_data/data/test.seq.dark.mrc",
-            gain="de_data/data/test.seq.gain.mrc",
-            metadata="de_data/data/test.seq.metadata",
-            xml="de_data/data/test.seq.se.xml",
+            file=data_path+"/test.seq",
+            dark=data_path+"/test.seq.dark.mrc",
+            gain=data_path+"/test.seq.gain.mrc",
+            metadata=data_path+"/test.seq.metadata",
+            xml=data_path+"/test.seq.se.xml",
         )
 
     def test_parse_header(self, seq):
@@ -72,15 +86,15 @@ class TestShared:
 class TestLoadCeleritas:
     @pytest.fixture
     def seq(self):
-        folder = "de_data/celeritas_data/128x256_PRebuffer128/"
+        folder = celeritas1_path
         kws = {
-            "file": folder + "test.seq",
-            "top": folder + "test_Top_14-04-59.355.seq",
-            "bottom": folder + "test_Bottom_14-04-59.396.seq",
-            "dark": folder + "test.seq.dark.mrc",
-            "gain": folder + "test.seq.gain.mrc",
-            "xml": folder + "test.seq.Config.Metadata.xml",
-            "metadata": folder + "test_Top_14-04-59.355.seq.metadata",
+            "file": folder + "/test.seq",
+            "top": folder + "/test_Top_14-04-59.355.seq",
+            "bottom": folder + "/test_Bottom_14-04-59.396.seq",
+            "dark": folder + "/test.seq.dark.mrc",
+            "gain": folder + "/test.seq.gain.mrc",
+            "xml": folder + "/test.seq.Config.Metadata.xml",
+            "metadata": folder + "/test_Top_14-04-59.355.seq.metadata",
         }
         return CeleritasReader(**kws)
 
@@ -113,8 +127,8 @@ class TestLoadCeleritas:
         assert not np.any(seq.metadata["Signal"]["BadPixels"])
 
     def test_bad_pixels_xml(self, seq):
-        folder = "de_data/celeritas_data/128x256_PRebuffer128/"
-        seq.xml = folder + "test2.seq.Config.Metadata.xml"
+        folder = celeritas1_path
+        seq.xml = folder + "/test2.seq.Config.Metadata.xml"
         xml = seq._read_xml()
         assert xml["FileInfo"]["ImageSizeX"]["Value"] == 256
         assert xml["FileInfo"]["ImageSizeY"]["Value"] == 128
@@ -146,8 +160,7 @@ class TestLoadCeleritas:
 
 
 def test_load_file():
-    data_dict = file_reader(
-        "de_data/celeritas_data/128x256_PRebuffer128/test_Top_14-04-59.355.seq",
+    data_dict = file_reader(celeritas1_path+"/test_Top_14-04-59.355.seq",
         celeritas=True,
     )
 
@@ -155,17 +168,15 @@ def test_load_file():
 
 
 def test_load_file2():
-    folder = "de_data/celeritas_data/256x256_Prebuffer1/"
-    data_dict = file_reader(
-        folder + "Movie_00785_Top_13-49-04.160.seq", celeritas=True,
-    )
+    data_dict = file_reader(celeritas2_path + "/Movie_00785_Top_13-49-04.160.seq",
+                            celeritas=True,)
     assert data_dict["data"].shape == (5, 256, 256)
 
 
 def test_load_file3():
-    folder = "de_data/celeritas_data/64x64_Prebuffer256/"
-    data_dict = file_reader(
-        folder + "test_Bottom_14-13-42.822.seq", celeritas=True, lazy=True,
-    )
+    data_dict = file_reader(celeritas3_path + "/test_Bottom_14-13-42.822.seq",
+                            celeritas=True,
+                            lazy=True,
+                            )
     assert isinstance(data_dict["data"], dask.array.Array)
     assert data_dict["data"].shape == (512, 64, 64)

@@ -101,21 +101,22 @@ def file_reader(
                 leading_str = filename.rsplit("_Bottom", 1)[0]
                 top = glob.glob(leading_str + "_Top*.seq")[0]
                 filename = leading_str + ".seq"
-            if "metadata" not in kwargs:
-                kwargs["metadata"] = bottom + ".metadata"
             else:
-                _logger.error(
-                    msg="For the Celeritas Camera Top and Bottom "
+                raise ValueError(
+                    "For the Celeritas Camera Top and Bottom "
                     "frames must be explicitly given by passing the"
                     "top and bottom kwargs or the file name must have"
                     "'Top' or 'Bottom' in the file name"
                 )
+            if "metadata" not in kwargs:
+                kwargs["metadata"] = bottom + ".metadata"
+
         elif celeritas and "top" in kwargs and "bottom" in kwargs:
             top = kwargs["top"]
             bottom = kwargs["top"]
         else:
-            _logger.error(
-                msg="For the Celeritas Camera Top and Bottom "
+            raise ValueError(
+                "For the Celeritas Camera Top and Bottom "
                 "frames must be explicitly given by passing the"
                 "top and bottom kwargs or the file name must have"
                 "'Top' or 'Bottom' in the file name"
@@ -225,10 +226,13 @@ class SeqReader:
         return metadata_dict
 
     def _read_xml(self):
-        xml_dict = parse_xml(self.xml)
+        if self.xml is not None:
+            xml_dict = parse_xml(self.xml)
 
-        self.original_metadata["xml"] = xml_dict
-        return xml_dict
+            self.original_metadata["xml"] = xml_dict
+            return xml_dict
+        else:
+            return None
 
     def _read_dark_gain(self):
         gain_img = read_ref(self.gain)
@@ -348,11 +352,6 @@ class SeqReader:
             t.flush()
             num_frames = np.product(navigation_shape)
 
-        if navigation_shape is not None:
-            shape = navigation_shape + signal_shape
-        else:
-            shape = (num_frames,) + signal_shape
-
         if distributed:
             data = memmap_distributed(
                 self.file,
@@ -429,6 +428,8 @@ class CeleritasReader(SeqReader):
         return metadata_dict
 
     def _read_xml(self):
+        if self.xml is None:
+            return None
         xml_dict = parse_xml(self.xml)
 
         self.original_metadata["xml"] = xml_dict
@@ -543,7 +544,8 @@ class CeleritasReader(SeqReader):
                 msg="No XML File given. Guessing Segment PreBuffer "
                 "This is may not be correct..."
             )
-            self.buffer = int(header["ImageHeight"] / header["ImageWidth"])
+            # assume a square?
+            self.buffer = int(header["ImageHeight"] / header["ImageWidth"]) * 2
         num_frames = header["NumFrames"] * self.buffer
 
         data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}
@@ -641,91 +643,6 @@ located in rosettasciio.utils.tools
 """
 
 
-def read_split_seq(
-    top,
-    bottom,
-    ImageWidth,
-    ImageHeight,
-    ImageBitDepth,
-    TrueImageSize,
-    SegmentPreBuffer=None,
-    total_frames=None,
-    navigation_shape=None,
-    lazy=False,
-):
-    """Read a split top/bottom seq file.
-    Parameters
-    ----------
-    top: str
-        The filename of the top of the frame
-    bottom: str
-        The filename of the bottom of the frame
-    ImageWidth:int
-        The width of one of the frames
-    ImageHeight: int
-        The height of one of the frame buffers
-    ImageBitDepth: int
-        The bit depth of the image. This should be 16 in most cases
-    TrueImageSize: int
-        The size of each frame buffersin bytes.  This includes the time stamp
-        and empty bytes after the frame
-    SegmentPreBuffer: int
-        The size of the segment pre buffer.  This should be an int based on the
-         size of each of the frames and the FPS.
-    navigation_shape: tuple
-        The navigation shape of the data.
-    """
-    data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}
-    empty = TrueImageSize - ((ImageWidth * ImageHeight * 2) + 8)
-    if SegmentPreBuffer is None:
-        _logger.warning(
-            msg="No XML File given. Guessing Segment PreBuffer "
-            "This is may not be correct..."
-        )
-        # This might be better to guess based on the FPS.
-        # Much safer just to use the XML.
-        if ImageWidth == 512:
-            SegmentPreBuffer = 16
-        elif ImageWidth == 256:
-            SegmentPreBuffer = 64
-        else:
-            SegmentPreBuffer = 4
-    dtype = [
-        (
-            "Array",
-            data_types[int(ImageBitDepth)],
-            (
-                int(SegmentPreBuffer),
-                int(ImageHeight / SegmentPreBuffer),
-                int(ImageWidth),
-            ),
-        ),
-        ("sec", "<u4"),
-        ("ms", "<u2"),
-        ("mis", "<u2"),
-        ("empty", bytes, empty),
-    ]
-    if navigation_shape is not None and navigation_shape != ():
-        # need to read out extra buffered frames
-        total_buffer_frames = int(
-            np.ceil(np.divide(np.product(navigation_shape), SegmentPreBuffer))
-        )
-        # add in extra for adding frames.
-    else:
-        total_buffer_frames = total_frames
-
-    data, time = read_stitch_binary(
-        top,
-        bottom,
-        dtypes=dtype,
-        total_buffer_frames=int(total_buffer_frames),
-        offset=8192,
-        navigation_shape=navigation_shape,
-        lazy=lazy,
-    )
-    return data, time
-
-
 def read_stitch_binary_distributed(
     top,
     bottom,
@@ -792,20 +709,6 @@ def slic_stitch_binary(
     if gain is not None:
         chunk = chunk * gain
     return chunk
-
-
-def slic_binary(
-    indexes, file, navigation_shape, dtypes, offset=8192, gain=None, dark=None,
-):
-    mapped = np.memmap(
-        file, offset=offset, dtype=dtypes, shape=navigation_shape, mode="r"
-    )["Array"]
-    mapped = mapped[indexes]
-    if dark is not None:
-        mapped = mapped - dark
-    if gain is not None:
-        mapped = mapped * gain
-    return mapped
 
 
 def read_stitch_binary(

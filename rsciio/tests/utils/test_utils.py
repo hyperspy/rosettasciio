@@ -33,10 +33,10 @@ serial3 = 42563.95662037037
 
 
 class TestDistributedMemmapTools:
-
     def test_get_chunk_slices(self):
-        chunked_slices, chunks = get_chunk_slice(shape=(10, 20, 30),
-                                 chunks=(10, 10, 10))
+        chunked_slices, chunks = get_chunk_slice(
+            shape=(10, 20, 30), chunks=(10, 10, 10)
+        )
         assert chunks == ((10,), (10, 10), (10, 10, 10))
         assert chunked_slices.shape == (1, 2, 3)
 
@@ -47,10 +47,12 @@ class TestDistributedMemmapTools:
         new[:] = arr
         new.flush
 
-        read_data = np.memmap(file, dtype=float, offset=16,  shape=(2, 10, 10))
+        read_data = np.memmap(file, dtype=float, offset=16, shape=(2, 10, 10))
         np.testing.assert_array_equal(read_data, arr)
 
-        distributed_data = memmap_distributed(file, dtype=float, offset=16, shape=(2, 10, 10), chunks=(1, 5, 5), key=None)
+        distributed_data = memmap_distributed(
+            file, dtype=float, offset=16, shape=(2, 10, 10), chunks=(1, 5, 5), key=None
+        )
         np.testing.assert_array_equal(distributed_data, arr)
 
 
@@ -155,18 +157,10 @@ def test_d2s_arrayX():
     sa = np.zeros((4,), dtype=dt2)
     sa = dict2sarray(d, sarray=sa)
     np.testing.assert_array_equal(
-        sa["z"],
-        [
-            [2, 2, 2, 2],
-        ]
-        * 4,
+        sa["z"], [[2, 2, 2, 2],] * 4,
     )
     np.testing.assert_array_equal(
-        sa["u"],
-        [
-            [1, 2, 3, 4],
-        ]
-        * 4,
+        sa["u"], [[1, 2, 3, 4],] * 4,
     )
 
 

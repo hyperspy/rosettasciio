@@ -72,14 +72,15 @@ class TestShared:
 class TestLoadCeleritas:
     @pytest.fixture
     def seq(self):
+        folder = "de_data/celeritas_data/128x256_PRebuffer128/"
         kws = {
-            "file": "de_data/celeritas_data/128x256_PRebuffer128/test.seq",
-            "top": "de_data/celeritas_data/128x256_PRebuffer128/test_Top_14-04-59.355.seq",
-            "bottom": "de_data/celeritas_data/128x256_PRebuffer128/test_Bottom_14-04-59.396.seq",
-            "dark": "de_data/celeritas_data/128x256_PRebuffer128/test.seq.dark.mrc",
-            "gain": "de_data/celeritas_data/128x256_PRebuffer128/test.seq.gain.mrc",
-            "xml": "de_data/celeritas_data/128x256_PRebuffer128/test.seq.Config.Metadata.xml",
-            "metadata": "de_data/celeritas_data/128x256_PRebuffer128/test_Top_14-04-59.355.seq.metadata",
+            "file": folder + "test.seq",
+            "top": folder + "test_Top_14-04-59.355.seq",
+            "bottom": folder + "test_Bottom_14-04-59.396.seq",
+            "dark": folder + "test.seq.dark.mrc",
+            "gain": folder + "test.seq.gain.mrc",
+            "xml": folder + "test.seq.Config.Metadata.xml",
+            "metadata": folder + "test_Top_14-04-59.355.seq.metadata",
         }
         return CeleritasReader(**kws)
 
@@ -112,9 +113,8 @@ class TestLoadCeleritas:
         assert not np.any(seq.metadata["Signal"]["BadPixels"])
 
     def test_bad_pixels_xml(self, seq):
-        seq.xml = (
-            "de_data/celeritas_data/128x256_PRebuffer128/test2.seq.Config.Metadata.xml"
-        )
+        folder = "de_data/celeritas_data/128x256_PRebuffer128/"
+        seq.xml = folder + "test2.seq.Config.Metadata.xml"
         xml = seq._read_xml()
         assert xml["FileInfo"]["ImageSizeX"]["Value"] == 256
         assert xml["FileInfo"]["ImageSizeY"]["Value"] == 128
@@ -136,7 +136,7 @@ class TestLoadCeleritas:
             navigation_shape=nav_shape, lazy=lazy, distributed=distributed
         )
         shape = (512, 128, 256)
-        if nav_shape != None:
+        if nav_shape is not None:
             shape = nav_shape + shape[1:]
         assert data_dict["data"].shape == shape
         assert data_dict["axes"][-1]["size"] == data_dict["data"].shape[-1]
@@ -155,18 +155,17 @@ def test_load_file():
 
 
 def test_load_file2():
+    folder = "de_data/celeritas_data/256x256_Prebuffer1/"
     data_dict = file_reader(
-        "de_data/celeritas_data/256x256_Prebuffer1/Movie_00785_Top_13-49-04.160.seq",
-        celeritas=True,
+        folder + "Movie_00785_Top_13-49-04.160.seq", celeritas=True,
     )
     assert data_dict["data"].shape == (5, 256, 256)
 
 
 def test_load_file3():
+    folder = "de_data/celeritas_data/64x64_Prebuffer256/"
     data_dict = file_reader(
-        "de_data/celeritas_data/64x64_Prebuffer256/test_Bottom_14-13-42.822.seq",
-        celeritas=True,
-        lazy=True,
+        folder + "test_Bottom_14-13-42.822.seq", celeritas=True, lazy=True,
     )
     assert isinstance(data_dict["data"], dask.array.Array)
     assert data_dict["data"].shape == (512, 64, 64)

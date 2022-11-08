@@ -31,7 +31,8 @@ from rsciio.utils.tools import (
 )
 
 _logger = logging.getLogger(__name__)
-data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}  # Stream Pix data types
+# Stream Pix data types
+data_types = {8: np.uint8, 16: np.uint16, 32: np.uint32}
 
 
 def file_reader(
@@ -43,32 +44,33 @@ def file_reader(
     distributed=False,
     **kwargs
 ):
-    """ Reads the .seq file format from the DE 16 and DE Celeritas cameras.  This file
-    format is generic and used by the 3rd party software StreamPix.  While this
-    file loader may load data saved from other cameras it is not guaranteed  to
+    """ Reads the .seq file format from the DE 16 and DE Celeritas cameras.
+    This file format is generic and used by the 3rd party software StreamPix.
+    While this file loader may load data saved from other cameras it is not
+    guaranteed to load files other than those from Direct Electron.
 
     Parameters
     ----------
     filename: str
-        The file name to be loaded. This should have a `.seq` ending to the file.
-        All additional information (dark, gain, metadata) should be in the same
-        file with the same naming scheme.
+        The file name to be loaded. This should have a `.seq` ending to the
+        file. All additional information (dark, gain, metadata) should be in the
+        same file with the same naming scheme.
 
-        If celeritas ==True either the bottom or top frame can be passed and the other frame
-        will automatically be found if it is in the same folder with the same naming
-        scheme.
+        If celeritas ==True either the bottom or top frame can be passed and
+        the other frame will automatically be found if it is in the same folder
+        with the same naming scheme.
     navigation_shape: tuple
-        The shape of the navigation axis. This will coerce the data into the shape
-        given. Adding extra dimensions as necessary
+        The shape of the navigation axis. This will coerce the data into the
+        shape given. Adding extra dimensions as necessary
     lazy: bool
         If the data should be loaded lazily using dask
     celeritas: bool
         If the data came from the celeritas camera.  Important for loading
         data saved with a prebuffer and split between top and bottom frames.
     distributed: bool
-        If the data should be loaded in a way that is supported by the distributed
-        backend. Slightly slower for smaller datasets but could potentially see
-        gains on larger datasets or more extensive hardware.
+        If the data should be loaded in a way that is supported by the
+        distributed backend. Slightly slower for smaller datasets but could
+        potentially see gains on larger datasets or more extensive hardware.
     kwargs:
         Any additional parameters such as:
             top: str
@@ -144,8 +146,8 @@ def file_reader(
 class SeqReader:
     def __init__(self, file, dark=None, gain=None, metadata=None, xml=None):
         """
-        Initializes a general reader for the .seq file format. Some functions are
-        overwritten with the CeleritasSEQ reader
+        Initializes a general reader for the .seq file format.
+        Some functions are overwritten with the CeleritasSEQ reader
 
         Parameters
         ----------
@@ -334,7 +336,7 @@ class SeqReader:
             ("empty", bytes, empty),
         ]
 
-        # This is useful if the camera drops frames at the end of an acquisition.
+        # This is useful if the camera drops frames at the end of an acquisition
         if navigation_shape is not None and np.product(navigation_shape) > num_frames:
             _logger.warning(
                 "The number of frames and the navigation shape are not "
@@ -386,7 +388,8 @@ class SeqReader:
 class CeleritasReader(SeqReader):
     def __init__(self, top, bottom, **kwargs):
         """
-        Initializes a reader for the .seq file format written from the celeritas camera
+        Initializes a reader for the .seq file format written from the
+         celeritas camera
 
         Parameters
         ----------
@@ -664,8 +667,8 @@ def read_split_seq(
     ImageBitDepth: int
         The bit depth of the image. This should be 16 in most cases
     TrueImageSize: int
-        The size of each frame buffersin bytes.  This includes the time stamp and
-        empty bytes after the frame
+        The size of each frame buffersin bytes.  This includes the time stamp
+        and empty bytes after the frame
     SegmentPreBuffer: int
         The size of the segment pre buffer.  This should be an int based on the
          size of each of the frames and the FPS.
@@ -679,7 +682,8 @@ def read_split_seq(
             msg="No XML File given. Guessing Segment PreBuffer "
             "This is may not be correct..."
         )
-        # This might be better to guess based on the FPS. Much safer just to use the XML.
+        # This might be better to guess based on the FPS.
+        # Much safer just to use the XML.
         if ImageWidth == 512:
             SegmentPreBuffer = 16
         elif ImageWidth == 256:
@@ -830,7 +834,7 @@ def read_stitch_binary(
     """
     keys = [d[0] for d in dtypes]
     top_mapped = np.memmap(
-        top, offset=offset, dtype=dtypes, shape=total_buffer_frames, mode="r"
+        top, offset=offset, dtype=dtypes, shape=total_buffer_frames, mode="r",
     )
     bottom_mapped = np.memmap(
         bottom, offset=offset, dtype=dtypes, shape=total_buffer_frames, mode="r",
@@ -860,7 +864,8 @@ def read_stitch_binary(
 
 
 def read_ref(file_name):
-    """Reads a reference image from the file using the file name as well as the width and height of the image. """
+    """Reads a reference image from the file using the file
+     name as well as the width and height of the image. """
     if file_name is None:
         return
     try:
@@ -873,7 +878,8 @@ def read_ref(file_name):
         _logger.warning(
             "No Reference image: "
             + file_name
-            + " found.  The dark/gain references should be in the same directory "
-            "as the image and have the form xxx.seq.dark.mrc or xxx.seq.gain.mrc"
+            + " found.  The dark/gain references should be in the same "
+            "directory as the image and have the form xxx.seq.dark.mrc "
+            "or xxx.seq.gain.mrc"
         )
         return None

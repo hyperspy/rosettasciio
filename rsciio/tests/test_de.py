@@ -19,19 +19,37 @@
 import dask.array
 import pytest
 import numpy as np
-import glob
+import os
 from rsciio.de.api import SeqReader, CeleritasReader, file_reader
+
+celeritas1_path = str(
+    os.path.join(
+        os.path.dirname(__file__), "de_data", "celeritas_data", "128x256_PRebuffer128"
+    )
+)
+celeritas2_path = str(
+    os.path.join(
+        os.path.dirname(__file__), "de_data", "celeritas_data", "256x256_Prebuffer1"
+    )
+)
+celeritas3_path = str(
+    os.path.join(
+        os.path.dirname(__file__), "de_data", "celeritas_data", "64x64_Prebuffer256"
+    )
+)
+
+data_path = os.path.join(os.path.dirname(__file__), "de_data", "data")
 
 
 class TestShared:
     @pytest.fixture
     def seq(self):
         return SeqReader(
-            file="de_data/data/test.seq",
-            dark="de_data/data/test.seq.dark.mrc",
-            gain="de_data/data/test.seq.gain.mrc",
-            metadata="de_data/data/test.seq.metadata",
-            xml="de_data/data/test.seq.se.xml",
+            file=data_path + "/test.seq",
+            dark=data_path + "/test.seq.dark.mrc",
+            gain=data_path + "/test.seq.gain.mrc",
+            metadata=data_path + "/test.seq.metadata",
+            xml=data_path + "/test.seq.se.xml",
         )
 
     def test_parse_header(self, seq):
@@ -53,6 +71,11 @@ class TestShared:
     def test_read_dark(self, seq):
         dark, gain = seq._read_dark_gain()
         assert dark.shape == (64, 64)
+        assert gain.shape == (64, 64)
+
+    def test_read_ref_none(self, seq):
+        seq.gain = None
+        dark, gain = seq._read_dark_gain()
         assert gain is None
 
     @pytest.mark.parametrize("nav_shape", [None, (5, 2), (5, 3)])
@@ -68,19 +91,38 @@ class TestShared:
         assert data["data"].shape == (*nav_shape, 64, 64)
         np.testing.assert_array_equal(data["data"], data2["data"])
 
+    def test_file_reader(self, seq):
+        file = data_path + "/test.seq"
+        data_dict = file_reader(file)
+        data_dict2 = seq.read_data()
+        np.testing.assert_array_equal(data_dict["data"], data_dict2["data"])
+
 
 class TestLoadCeleritas:
     @pytest.fixture
     def seq(self):
-        folder = "de_data/celeritas_data/128x256_PRebuffer128/"
+        folder = celeritas1_path
         kws = {
-            "file": folder + "test.seq",
-            "top": folder + "test_Top_14-04-59.355.seq",
-            "bottom": folder + "test_Bottom_14-04-59.396.seq",
-            "dark": folder + "test.seq.dark.mrc",
-            "gain": folder + "test.seq.gain.mrc",
-            "xml": folder + "test.seq.Config.Metadata.xml",
-            "metadata": folder + "test_Top_14-04-59.355.seq.metadata",
+            "file": folder + "/test.seq",
+            "top": folder + "/test_Top_14-04-59.355.seq",
+            "bottom": folder + "/test_Bottom_14-04-59.396.seq",
+            "dark": folder + "/test.seq.dark.mrc",
+            "gain": folder + "/test.seq.gain.mrc",
+            "xml": folder + "/test.seq.Config.Metadata.xml",
+            "metadata": folder + "/test_Top_14-04-59.355.seq.metadata",
+        }
+        return CeleritasReader(**kws)
+
+    @pytest.fixture
+    def seq2(self):
+        folder = celeritas3_path
+        kws = {
+            "file": folder + "/test.seq",
+            "top": folder + "/test_Top_14-13-42.780.seq",
+            "bottom": folder + "/test_Bottom_14-13-42.822.seq",
+            "dark": folder + "/test.seq.dark.mrc",
+            "xml": folder + "/test.seq.Config.Metadata.xml",
+            "metadata": folder + "/test_Top_14-13-42.780.seq",
         }
         return CeleritasReader(**kws)
 
@@ -102,7 +144,6 @@ class TestLoadCeleritas:
         print(header)
 
     def test_parse_xml(self, seq):
-
         xml = seq._read_xml()
         assert xml["FileInfo"]["ImageSizeX"]["Value"] == 256
         assert xml["FileInfo"]["ImageSizeY"]["Value"] == 128
@@ -113,8 +154,8 @@ class TestLoadCeleritas:
         assert not np.any(seq.metadata["Signal"]["BadPixels"])
 
     def test_bad_pixels_xml(self, seq):
-        folder = "de_data/celeritas_data/128x256_PRebuffer128/"
-        seq.xml = folder + "test2.seq.Config.Metadata.xml"
+        folder = celeritas1_path
+        seq.xml = folder + "/test2.seq.Config.Metadata.xml"
         xml = seq._read_xml()
         assert xml["FileInfo"]["ImageSizeX"]["Value"] == 256
         assert xml["FileInfo"]["ImageSizeY"]["Value"] == 128
@@ -125,6 +166,12 @@ class TestLoadCeleritas:
         data_dict = seq.read_data()
         data_dict["data"][:, seq.metadata["Signal"]["BadPixels"]] = 0
         assert np.any(seq.metadata["Signal"]["BadPixels"])
+
+    def test_bad_pixel_failure(self, seq):
+        with pytest.raises(KeyError):
+            folder = celeritas1_path
+            seq.xml = folder + "/test3.seq.Config.Metadata.xml"
+            xml = seq._read_xml()
 
     @pytest.mark.parametrize("nav_shape", [None, (5, 4), (5, 3)])
     @pytest.mark.parametrize("distributed", [True, False])
@@ -144,28 +191,47 @@ class TestLoadCeleritas:
 
         np.testing.assert_array_equal(data_dict["data"], data_dict2["data"])
 
-
-def test_load_file():
-    data_dict = file_reader(
-        "de_data/celeritas_data/128x256_PRebuffer128/test_Top_14-04-59.355.seq",
-        celeritas=True,
+    @pytest.mark.parametrize(
+        "kwargs",
+        (
+            {"filename": celeritas1_path + "/test_14-04-59.355.seq"},
+            {"filename": None, "top": celeritas1_path + "/test_14-04-59.355.seq"},
+        ),
     )
+    def test_file_loader_failures(self, kwargs):
+        with pytest.raises(ValueError):
+            data_dict = file_reader(**kwargs, celeritas=True,)
 
-    assert data_dict["data"].shape == (512, 128, 256)
+    def test_load_top_bottom(self,):
+        data_dict_top = file_reader(
+            celeritas1_path + "/test_Top_14-04-59.355.seq", celeritas=True,
+        )
+        data_dict_bottom = file_reader(
+            celeritas1_path + "/test_Bottom_14-04-59.396.seq", celeritas=True,
+        )
+        np.testing.assert_array_equal(data_dict_top["data"], data_dict_bottom["data"])
 
+    def test_read_data_no_xml(self, seq2):
+        seq2.xml = None
+        seq2.read_data()
 
-def test_load_file2():
-    folder = "de_data/celeritas_data/256x256_Prebuffer1/"
-    data_dict = file_reader(
-        folder + "Movie_00785_Top_13-49-04.160.seq", celeritas=True,
-    )
-    assert data_dict["data"].shape == (5, 256, 256)
+    def test_load_file(self):
+        data_dict = file_reader(
+            celeritas1_path + "/test_Top_14-04-59.355.seq", celeritas=True,
+        )
+        assert data_dict["data"].shape == (512, 128, 256)
 
+    def test_load_file2(self):
+        data_dict = file_reader(
+            celeritas2_path + "/Movie_00785_Top_13-49-04.160.seq", celeritas=True,
+        )
+        assert data_dict["data"].shape == (5, 256, 256)
 
-def test_load_file3():
-    folder = "de_data/celeritas_data/64x64_Prebuffer256/"
-    data_dict = file_reader(
-        folder + "test_Bottom_14-13-42.822.seq", celeritas=True, lazy=True,
-    )
-    assert isinstance(data_dict["data"], dask.array.Array)
-    assert data_dict["data"].shape == (512, 64, 64)
+    def test_load_file3(self):
+        data_dict = file_reader(
+            celeritas3_path + "/test_Bottom_14-13-42.822.seq",
+            celeritas=True,
+            lazy=True,
+        )
+        assert isinstance(data_dict["data"], dask.array.Array)
+        assert data_dict["data"].shape == (512, 64, 64)

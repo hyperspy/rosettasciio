@@ -44,7 +44,7 @@ def file_reader(
     distributed=False,
     **kwargs
 ):
-    """ Reads the .seq file format from the DE 16 and DE Celeritas cameras.
+    """Reads the .seq file format from the DE 16 and DE Celeritas cameras.
     This file format is generic and used by the 3rd party software StreamPix.
     While this file loader may load data saved from other cameras it is not
     guaranteed to load files other than those from Direct Electron.
@@ -179,7 +179,9 @@ class SeqReader:
             }
         }
         self.metadata = {
-            "General": {"filename": file,},
+            "General": {
+                "filename": file,
+            },
             "Signal": {"signal_type": "Signal2D"},
         }
         self.data = None
@@ -696,7 +698,11 @@ def slic_stitch_binary(
         top, offset=offset, dtype=dtypes, shape=total_buffer_frames, mode="r"
     )["Array"]
     bottom_mapped = np.memmap(
-        bottom, offset=offset, dtype=dtypes, shape=total_buffer_frames, mode="r",
+        bottom,
+        offset=offset,
+        dtype=dtypes,
+        shape=total_buffer_frames,
+        mode="r",
     )["Array"]
     if buffer_size != None:
         indexes = np.divmod(indexes, buffer_size)
@@ -737,10 +743,18 @@ def read_stitch_binary(
     """
     keys = [d[0] for d in dtypes]
     top_mapped = np.memmap(
-        top, offset=offset, dtype=dtypes, shape=total_buffer_frames, mode="r",
+        top,
+        offset=offset,
+        dtype=dtypes,
+        shape=total_buffer_frames,
+        mode="r",
     )
     bottom_mapped = np.memmap(
-        bottom, offset=offset, dtype=dtypes, shape=total_buffer_frames, mode="r",
+        bottom,
+        offset=offset,
+        dtype=dtypes,
+        shape=total_buffer_frames,
+        mode="r",
     )
 
     if lazy:
@@ -768,7 +782,7 @@ def read_stitch_binary(
 
 def read_ref(file_name):
     """Reads a reference image from the file using the file
-     name as well as the width and height of the image. """
+    name as well as the width and height of the image."""
     if file_name is None:
         return
     try:

@@ -177,7 +177,9 @@ class TestLoadCeleritas:
     @pytest.mark.parametrize("distributed", [True, False])
     @pytest.mark.parametrize("lazy", [True, False])
     def test_read(self, seq, nav_shape, distributed, lazy):
-        data_dict = seq.read_data(navigation_shape=nav_shape,)
+        data_dict = seq.read_data(
+            navigation_shape=nav_shape,
+        )
 
         data_dict2 = seq.read_data(
             navigation_shape=nav_shape, lazy=lazy, distributed=distributed
@@ -200,14 +202,21 @@ class TestLoadCeleritas:
     )
     def test_file_loader_failures(self, kwargs):
         with pytest.raises(ValueError):
-            data_dict = file_reader(**kwargs, celeritas=True,)
+            data_dict = file_reader(
+                **kwargs,
+                celeritas=True,
+            )
 
-    def test_load_top_bottom(self,):
+    def test_load_top_bottom(
+        self,
+    ):
         data_dict_top = file_reader(
-            celeritas1_path + "/test_Top_14-04-59.355.seq", celeritas=True,
+            celeritas1_path + "/test_Top_14-04-59.355.seq",
+            celeritas=True,
         )
         data_dict_bottom = file_reader(
-            celeritas1_path + "/test_Bottom_14-04-59.396.seq", celeritas=True,
+            celeritas1_path + "/test_Bottom_14-04-59.396.seq",
+            celeritas=True,
         )
         np.testing.assert_array_equal(data_dict_top["data"], data_dict_bottom["data"])
 
@@ -217,13 +226,15 @@ class TestLoadCeleritas:
 
     def test_load_file(self):
         data_dict = file_reader(
-            celeritas1_path + "/test_Top_14-04-59.355.seq", celeritas=True,
+            celeritas1_path + "/test_Top_14-04-59.355.seq",
+            celeritas=True,
         )
         assert data_dict["data"].shape == (512, 128, 256)
 
     def test_load_file2(self):
         data_dict = file_reader(
-            celeritas2_path + "/Movie_00785_Top_13-49-04.160.seq", celeritas=True,
+            celeritas2_path + "/Movie_00785_Top_13-49-04.160.seq",
+            celeritas=True,
         )
         assert data_dict["data"].shape == (5, 256, 256)
 

@@ -157,10 +157,18 @@ def test_d2s_arrayX():
     sa = np.zeros((4,), dtype=dt2)
     sa = dict2sarray(d, sarray=sa)
     np.testing.assert_array_equal(
-        sa["z"], [[2, 2, 2, 2],] * 4,
+        sa["z"],
+        [
+            [2, 2, 2, 2],
+        ]
+        * 4,
     )
     np.testing.assert_array_equal(
-        sa["u"], [[1, 2, 3, 4],] * 4,
+        sa["u"],
+        [
+            [1, 2, 3, 4],
+        ]
+        * 4,
     )
 
 

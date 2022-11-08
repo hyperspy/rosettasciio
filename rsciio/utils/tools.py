@@ -52,7 +52,7 @@ def seek_read(file, dtype, pos):
 
 
 def read_binary_metadata(file, mapping_dict):
-    """ This function reads binary metadata in a batch like process.
+    """This function reads binary metadata in a batch like process.
     The mapping dict is passed as dictionary with a "key":[data,location]"
     format.
     """
@@ -114,7 +114,10 @@ def parse_xml(file):
 
 
 def get_chunk_slice(
-    shape, chunks="auto", block_size_limit=None, dtype=None,
+    shape,
+    chunks="auto",
+    block_size_limit=None,
+    dtype=None,
 ):
     chunks = da.core.normalize_chunks(
         chunks=chunks, shape=shape, limit=block_size_limit, dtype=dtype
@@ -149,7 +152,7 @@ def memmap_distributed(
     block_size_limit=None,
     key="Array",
 ):
-    """ Drop in replacement for `np.memmap` allowing for distributed loading of data.
+    """Drop in replacement for `np.memmap` allowing for distributed loading of data.
     This always loads the data using dask which can be beneficial in many cases, but
     may not be ideal in others.
 
@@ -203,7 +206,11 @@ def memmap_distributed(
 
 
 def get_chunk_index(
-    shape, signal_axes=(-1, -2), chunks="auto", block_size_limit=None, dtype=None,
+    shape,
+    signal_axes=(-1, -2),
+    chunks="auto",
+    block_size_limit=None,
+    dtype=None,
 ):
     """Returns a chunk index for distributed chunking of some dataset. This is
     particularly useful with np.memmap and creating arrays from binary data

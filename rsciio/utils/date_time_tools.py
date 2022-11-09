@@ -99,10 +99,10 @@ def get_date_time_from_metadata(metadata, formatting="ISO"):
 
     if formatting == "ISO":
         res = dt.isoformat()
-    if formatting == "datetime":
+    elif formatting == "datetime":
         res = dt
     # numpy.datetime64 doesn't support time zone
-    if formatting == "datetime64":
+    elif formatting == "datetime64":
         res = np.datetime64(f"{date}T{time}")
 
     return res

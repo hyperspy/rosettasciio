@@ -95,7 +95,7 @@ def get_date_time_from_metadata(metadata, formatting="ISO"):
     elif date and not time:
         dt = parser.parse(f"{date}").date()
     else:
-        return
+        return None
 
     if formatting == "ISO":
         res = dt.isoformat()

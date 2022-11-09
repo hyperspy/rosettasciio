@@ -225,6 +225,8 @@ class EMD_NCEM:
             ]
             version = ".".join(version)
             return version
+        else:
+            return None
 
     def _read_data_from_groups(
         self, group_path, dataset_name, stack_key=None, original_metadata={}
@@ -555,6 +557,7 @@ def _get_detector_metadata_dict(om, detector_name):
     for key in detectors_dict:
         if detectors_dict[key]["DetectorName"] == detector_name:
             return detectors_dict[key]
+    return None
 
 
 class FeiEMDReader(object):

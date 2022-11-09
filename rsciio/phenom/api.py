@@ -529,6 +529,8 @@ class ElidReader:
     def _get_datetime(self, metadata):
         if "time" in metadata:
             return metadata["time"].split("T")
+        else:
+            return None
 
     def _make_line_spectrum_dict(self, om, offset, dispersion, data, title):
         axes = [

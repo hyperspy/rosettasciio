@@ -773,6 +773,7 @@ class ImageObject(object):
             return dt.time().isoformat()
         except Exception:
             _logger.warning(f"Time string '{time}' could not be parsed.")
+            return None 
 
     def _get_date(self, date):
         try:
@@ -780,6 +781,7 @@ class ImageObject(object):
             return dt.date().isoformat()
         except Exception:
             _logger.warning(f"Date string '{date}' could not be parsed.")
+            return None
 
     def _get_microscope_name(self, ImageTags):
         locations = (
@@ -831,6 +833,7 @@ class ImageObject(object):
             return float(tags["Exposure_s"]) * frame_number
         else:
             _logger.info("EELS/CL exposure time can't be read.")
+            return None
 
     def _get_CL_detector_type(self, tags):
         if (
@@ -845,6 +848,7 @@ class ImageObject(object):
             return "PMT"
         else:
             _logger.info("CL detector type can't be read.")
+            return None
 
     def get_mapping(self):
         if "source" in self.imdict.ImageTags.keys():

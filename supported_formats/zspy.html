@@ -343,7 +343,7 @@
   <div class="bd-toc-item navbar-nav">
     <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="blockfile.html">Blockfile</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bruker.html">Bruker formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bruker.html">Bruker</a></li>
 <li class="toctree-l1"><a class="reference internal" href="de5.html">Direct Electron EMD (DE5)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dens.html">DENSsolutions formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="digital_micrograph.html">Gatan Digital Micrograph</a></li>
@@ -407,7 +407,7 @@ information will be lost in the writing process and that supports saving data
 of arbitrary dimensions. It is based on the <a class="reference external" href="https://zarr.readthedocs.io/en/stable">Zarr project</a>. Which exists as a drop in
 replacement for hdf5 with the intention to fix some of the speed and scaling
 issues with the hdf5 format and is therefore suitable for saving
-<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/big_data.html#big-data-saving" title="(in HyperSpy v1.7.2)"><span class="xref std std-ref">big data</span></a>.</p>
+<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/big_data.html#big-data-saving" title="(in HyperSpy v1.7.3)"><span class="xref std std-ref">big data</span></a>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">BaseSignal</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;test.zspy&#39;</span><span class="p">)</span> <span class="c1"># will save in nested directory</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;test.zspy&#39;</span><span class="p">)</span> <span class="c1"># loads the directory</span>

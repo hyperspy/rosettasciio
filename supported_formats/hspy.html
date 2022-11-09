@@ -343,7 +343,7 @@
   <div class="bd-toc-item navbar-nav">
     <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="blockfile.html">Blockfile</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bruker.html">Bruker formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bruker.html">Bruker</a></li>
 <li class="toctree-l1"><a class="reference internal" href="de5.html">Direct Electron EMD (DE5)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dens.html">DENSsolutions formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="digital_micrograph.html">Gatan Digital Micrograph</a></li>
@@ -406,7 +406,7 @@
 information will be lost in the writing process and that supports saving data
 of arbitrary dimensions. It is based on the <a class="reference external" href="https://www.hdfgroup.org/solutions/hdf5/">HDF5 open standard</a>. The HDF5 file format is supported by <a class="reference external" href="https://support.hdfgroup.org/products/hdf5_tools/SWSummarybyName.htm">many
 applications</a>.
-Part of the specification is documented in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/metadata_structure.html#metadata-structure" title="(in HyperSpy v1.7.2)"><span>Metadata structure</span></a>.</p>
+Part of the specification is documented in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/metadata_structure.html#metadata-structure" title="(in HyperSpy v1.7.3)"><span>Metadata structure</span></a>.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 1.2: </span>Enable saving HSpy files with the <code class="docutils literal notranslate"><span class="pre">.hspy</span></code> extension. Previously only the
 <code class="docutils literal notranslate"><span class="pre">.hdf5</span></code> extension was recognised.</p>
@@ -444,7 +444,7 @@ numbers as strings if any other strings are present:</p>
 <p>The change of type is done using numpy “safe” rules, so no information is lost,
 as numbers are represented to full machine precision.</p>
 <p>This feature is particularly useful when using
-<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/api/hyperspy._signals.eds.html#hyperspy._signals.eds.EDSSpectrum.get_lines_intensity" title="(in HyperSpy v1.7.2)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_lines_intensity()</span></code></a>:</p>
+<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/api/hyperspy._signals.eds.html#hyperspy._signals.eds.EDSSpectrum.get_lines_intensity" title="(in HyperSpy v1.7.3)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_lines_intensity()</span></code></a>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">example_signals</span><span class="o">.</span><span class="n">EDS_SEM_Spectrum</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">Sample</span><span class="o">.</span><span class="n">intensities</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">get_lines_intensity</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;EDS_spectrum.hspy&#39;</span><span class="p">)</span>
@@ -479,7 +479,7 @@ what, for large signal spaces usually leads to smaller chunks as <code class="do
 constrain of storing at least one signal per chunks. For example, for the signal in the example above
 passing <code class="docutils literal notranslate"><span class="pre">chunks=True</span></code> results in <code class="docutils literal notranslate"><span class="pre">(7,</span> <span class="pre">7,</span> <span class="pre">256)</span></code> chunks.</p>
 <p>Choosing the correct chunk-size can significantly affect the speed of reading, writing and performance of many HyperSpy algorithms.
-See the <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/big_data.html#big-data-chunking" title="(in HyperSpy v1.7.2)"><span class="xref std std-ref">chunking section</span></a> for more information.</p>
+See the <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/big_data.html#big-data-chunking" title="(in HyperSpy v1.7.3)"><span class="xref std std-ref">chunking section</span></a> for more information.</p>
 <section id="extra-saving-arguments">
 <h2>Extra saving arguments<a class="headerlink" href="#extra-saving-arguments" title="Permalink to this heading">#</a></h2>
 <ul>

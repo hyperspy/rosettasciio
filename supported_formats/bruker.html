@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Bruker formats &#8212; RosettaSciIO  documentation</title>
+    <title>Bruker &#8212; RosettaSciIO  documentation</title>
   <script>
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
@@ -39,6 +39,7 @@
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/bruker';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -343,7 +344,7 @@
   <div class="bd-toc-item navbar-nav">
     <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="blockfile.html">Blockfile</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Bruker formats</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Bruker</a></li>
 <li class="toctree-l1"><a class="reference internal" href="de5.html">Direct Electron EMD (DE5)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dens.html">DENSsolutions formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="digital_micrograph.html">Gatan Digital Micrograph</a></li>
@@ -400,82 +401,92 @@
             
             <article class="bd-article" role="main">
               
-  <section id="bruker-formats">
-<span id="bruker-format"></span><h1>Bruker formats<a class="headerlink" href="#bruker-formats" title="Permalink to this heading">#</a></h1>
-<section id="bruker-composite-file-bcf">
-<span id="bcf-format"></span><h2>Bruker composite file (BCF)<a class="headerlink" href="#bruker-composite-file-bcf" title="Permalink to this heading">#</a></h2>
-<p>RosettaSciIO can read “hypermaps” saved with Bruker’s Esprit v1.x or v2.x in <code class="docutils literal notranslate"><span class="pre">.bcf</span></code>
+  <section id="bruker">
+<span id="bruker-format"></span><h1>Bruker<a class="headerlink" href="#bruker" title="Permalink to this heading">#</a></h1>
+<p>RosettaSciIO can read <code class="docutils literal notranslate"><span class="pre">.spx</span></code> single spectrum and <code class="docutils literal notranslate"><span class="pre">.bcf</span></code> “hypermaps” file
+formats saved with Bruker’s Esprit v1.x or v2.x in <code class="docutils literal notranslate"><span class="pre">.bcf</span></code>
 hybrid (virtual file system/container with xml and binary data, optionally
-compressed) format. Most <code class="docutils literal notranslate"><span class="pre">.bcf`</span></code> import functionality is implemented. Both
+compressed) format. Most <code class="docutils literal notranslate"><span class="pre">.bcf</span></code> import functionality is implemented. Both
 high-resolution 16-bit SEM images and hyperspectral EDX data can be retrieved
 simultaneously.</p>
-<p>BCF can look as all inclusive format, however it does not save some key EDX
-parameters: any of dead/live/real times, FWHM at Mn_Ka line. However, real time
-for whole map is calculated from pixelAverage, lineAverage, pixelTime,
-lineCounter and map height parameters.</p>
+<p>BCF can look as all inclusive format, however it does not save some key EDS
+parameters: any of dead/live/real times, full width at half maximum (FWHM)
+at <span class="math notranslate nohighlight">\(Mn_{K\alpha}\)</span> line. However, real time for whole map is calculated from metadata
+(pixelAverage, lineAverage, pixelTime, lineCounter and map height).</p>
 <p>Note that Bruker Esprit uses a similar format for EBSD data, but it is not
 currently supported by RosettaSciIO.</p>
-<section id="extra-loading-arguments">
-<h3>Extra loading arguments<a class="headerlink" href="#extra-loading-arguments" title="Permalink to this heading">#</a></h3>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">select_type</span></code> : one of (None, ‘spectrum_image’, ‘image’). If specified, only
-the corresponding type of data, either spectrum image or image, is returned.
+<p>The format contains an extensive list of details and parameters of EDS analyses
+which in <a class="reference external" href="https://hyperspy.org">HyperSpy</a> are mapped to the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> and
+<code class="docutils literal notranslate"><span class="pre">original_metadata</span></code> dictionaries.</p>
+<span class="target" id="module-rsciio.bruker"></span><dl class="py function">
+<dt class="sig sig-object py" id="rsciio.bruker.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.bruker.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.bruker.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Read a Bruker <code class="docutils literal notranslate"><span class="pre">.bcf</span></code> or <code class="docutils literal notranslate"><span class="pre">.spx</span></code> file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – Filename of the file to read.</p></li>
+<li><p><strong>select_type</strong> (<code class="docutils literal notranslate"><span class="pre">'spectrum_image'</span></code>, <code class="docutils literal notranslate"><span class="pre">'image'</span></code> or None) – If specified, only the corresponding type of data, either spectrum
+image or image, is returned.
 By default (None), all data are loaded.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">index</span></code> : one of (None, int, “all”). Allow to select the index of the dataset
-in the <code class="docutils literal notranslate"><span class="pre">.bcf</span></code> file, which can contains several datasets. Default None value
-result in loading the first dataset. When set to ‘all’, all available datasets
+<li><p><strong>index</strong> (<em>int</em><em>, </em><em>None</em><em> or </em><em>str</em>) – Allow to select the index of the dataset in the <code class="docutils literal notranslate"><span class="pre">.bcf</span></code> file, which
+can contain several datasets. The default value (<code class="docutils literal notranslate"><span class="pre">None</span></code>) results in
+loading the first dataset. When set to <code class="docutils literal notranslate"><span class="pre">'all'</span></code>, all available datasets
 will be loaded and returned as separate signals.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">downsample</span></code> : the downsample ratio of hyperspectral array (height and width
-only), can be integer &gt;=1, where ‘1’ results in no downsampling (default 1).
-The underlying method of downsampling is unchangeable: sum. Differently than
-<code class="docutils literal notranslate"><span class="pre">block_reduce</span></code> from skimage.measure it is memory efficient (does not creates
-intermediate arrays, works inplace).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">cutoff_at_kV</span></code> : if set (can be None, int, float (kV), one of ‘zealous’
-or ‘auto’) can be used either to crop or enlarge energy (or number of
-channels) range at max values. It can be used to conserve memory or enlarge
-the range if needed to mach the size of other file. Default value is None
-(which does not influence size). Numerical values should be in kV.
-‘zealous’ truncates to the last non zero channel (this option
-should not be used for stacks, as low beam current EDS can have different
-last non zero channel per slice). ‘auto’ truncates channels to SEM/TEM
+<li><p><strong>downsample</strong> (<em>int</em>) – The downsampling ratio of a hyperspectral array (height and width only),
+can be an integer &gt;=1, where value of 1 results in no downsampling .
+The default is 1.
+The underlying method of downsampling is unchangeable: sum. Differently
+than :py:func:<code class="docutils literal notranslate"><span class="pre">skimage.measure.block_reduce</span></code>, it is memory efficient
+as it doesn’t create intermediate arrays</p></li>
+<li><p><strong>cutoff_at_kV</strong> (int, float, <code class="docutils literal notranslate"><span class="pre">'zealous'</span></code>, <code class="docutils literal notranslate"><span class="pre">'auto'</span></code> or None) – It can be used either to crop or enlarge the energy (or number of channels)
+range at max values. It can be used to conserve memory or enlarge
+the range if needed to mach the size of other file. The default value
+(<code class="docutils literal notranslate"><span class="pre">None</span></code>) does not influence the size. Numerical values should be in kV.
+<code class="docutils literal notranslate"><span class="pre">'zealous'</span></code> truncates to the last non zero channel (this option
+should not be used for stacks, as low beam current EDS can have a different
+last non zero channel per slice). <code class="docutils literal notranslate"><span class="pre">'auto'</span></code> truncates channels to SEM/TEM
 acceleration voltage or energy at last channel, depending which is smaller.
-In case the hv info is not there or hv is off (0 kV) then it fallbacks to
-full channel range.</p></li>
+In case the hv info is not there or hv is off (0 kV) then it falls back to
+the full channel range.</p></li>
+<li><p><strong>instrument</strong> (<em>str</em><em> or </em><em>None</em>) – Can be either <code class="docutils literal notranslate"><span class="pre">'TEM'</span></code> or <code class="docutils literal notranslate"><span class="pre">'SEM'</span></code>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>List of dictionaries containing the following fields</em></p></li>
+<li><p><em>- ‘data’ – multidimensional numpy array</em></p></li>
+<li><p><em>- ‘axes’ – list of dictionaries describing the axes</em> – containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p><em>- ‘metadata’ – dictionary containing the parsed metadata</em></p></li>
+<li><p><em>- ‘original_metadata’ – dictionary containing the full metadata tree from the input file</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
 <p>Example of loading reduced (downsampled, and with energy range cropped)
-“spectrum only” data from <code class="docutils literal notranslate"><span class="pre">.bcf</span></code> (original shape: 80keV EDS range (4096 channels),
+“spectrum only” data from <code class="docutils literal notranslate"><span class="pre">bcf</span></code> (original shape: 80 keV EDS range (4096 channels),
 100x75 pixels; SEM acceleration voltage: 20kV):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample80kv.bcf&quot;</span><span class="p">,</span> <span class="n">select_type</span><span class="o">=</span><span class="s1">&#39;spectrum_image&#39;</span><span class="p">,</span> <span class="n">downsample</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">cutoff_at_kV</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-<span class="go">&lt;EDSSEMSpectrum, title: EDX, dimensions: (50, 38|595)&gt;</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;sample80kv.bcf&quot;</span><span class="p">,</span> <span class="n">select_type</span><span class="o">=</span><span class="s1">&#39;spectrum_image&#39;</span><span class="p">,</span>
+<span class="go">                downsample=2, cutoff_at_kV=10)</span>
 </pre></div>
 </div>
-<p>load the same file with limiting array size to SEM acceleration voltage:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample80kv.bcf&quot;</span><span class="p">,</span> <span class="n">cutoff_at_kV</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
-<span class="go">[&lt;Signal2D, title: BSE, dimensions: (|100, 75)&gt;,</span>
-<span class="go">&lt;Signal2D, title: SE, dimensions: (|100, 75)&gt;,</span>
-<span class="go">&lt;EDSSEMSpectrum, title: EDX, dimensions: (100, 75|1024)&gt;]</span>
+<p>Load the same file with limiting array size to SEM acceleration voltage:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;sample80kv.bcf&quot;</span><span class="p">,</span> <span class="n">cutoff_at_kV</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The loaded array energy dimension can by forced to be larger than the data
 recorded by setting the ‘cutoff_at_kV’ kwarg to higher value:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample80kv.bcf&quot;</span><span class="p">,</span> <span class="n">cutoff_at_kV</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
-<span class="go">[&lt;Signal2D, title: BSE, dimensions: (|100, 75)&gt;,</span>
-<span class="go">&lt;Signal2D, title: SE, dimensions: (|100, 75)&gt;,</span>
-<span class="go">&lt;EDSSEMSpectrum, title: EDX, dimensions: (100, 75|3072)&gt;]</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;sample80kv.bcf&quot;</span><span class="p">,</span> <span class="n">cutoff_at_kV</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>loading without setting cutoff_at_kV value would return data with all 4096
-channels. Note that setting downsample to &gt;1 currently locks out using SEM
+<p>Loading without setting <code class="docutils literal notranslate"><span class="pre">cutoff_at_kV</span></code> value would return data with all 4096
+channels. Note that setting <code class="docutils literal notranslate"><span class="pre">downsample</span></code> higher than 1 currently locks out using SEM
 images for navigation in the plotting.</p>
-</section>
-</section>
-<section id="spx-xml-format">
-<span id="spx-format"></span><h2>SPX (xml) format<a class="headerlink" href="#spx-xml-format" title="Permalink to this heading">#</a></h2>
-<p>RosettaSciIO can read Bruker’s <code class="docutils literal notranslate"><span class="pre">.spx</span></code> format (single spectra format based on XML).
-The format contains extensive list of details and parameters of EDS analyses
-which in <a class="reference external" href="https://hyperspy.org">HyperSpy</a> are mapped to <code class="docutils literal notranslate"><span class="pre">metadata</span></code> and
-<code class="docutils literal notranslate"><span class="pre">original_metadata</span></code> dictionaries.</p>
-</section>
+</dd></dl>
+
 </section>
 
 
@@ -517,20 +528,12 @@ which in <a class="reference external" href="https://hyperspy.org">HyperSpy</a> 
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#bruker-composite-file-bcf">
-   Bruker composite file (BCF)
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#extra-loading-arguments">
-     Extra loading arguments
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#spx-xml-format">
-   SPX (xml) format
+  <a class="reference internal nav-link" href="#rsciio.bruker.file_reader">
+   <code class="docutils literal notranslate">
+    <span class="pre">
+     file_reader()
+    </span>
+   </code>
   </a>
  </li>
 </ul>

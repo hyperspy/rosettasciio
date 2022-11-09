@@ -131,6 +131,8 @@ def overwrite(fname):
                 return True
             elif answer.lower() == "n":
                 return False
+            else:
+                return True
         except Exception:
             # We are running in the IPython notebook that does not
             # support raw_input
@@ -298,3 +300,4 @@ def get_file_handle(data, warn=True):
                     "the file is already closed or it is not "
                     "an hdf5 file."
                 )
+    return None

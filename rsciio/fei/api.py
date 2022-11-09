@@ -292,6 +292,8 @@ def file_reader(filename, *args, **kwds):
         ]
     elif ext in emi_extensions:
         return emi_reader(filename, *args, **kwds)
+    else:
+        raise IOError("The file does not have a valid extension.")
 
 
 def load_ser_file(filename):

@@ -773,7 +773,7 @@ class ImageObject(object):
             return dt.time().isoformat()
         except Exception:
             _logger.warning(f"Time string '{time}' could not be parsed.")
-            return None 
+            return None
 
     def _get_date(self, date):
         try:

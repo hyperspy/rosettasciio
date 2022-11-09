@@ -582,7 +582,6 @@ def file_writer(filename, signal, encoding="latin-1", *args, **kwds):
             width_axis = nav_axes[0]
             depth, width, height = depth_axis["size"], width_axis["size"], 1
         elif dimension == 1:
-            record_by == "dont-care"
             depth, width, height = depth_axis["size"], 1, 1
 
     elif len(sig_axes) == 2:

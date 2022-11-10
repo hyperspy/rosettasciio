@@ -42,7 +42,6 @@ from rsciio.nexus.api import (
     _parse_from_file,
     _nexus_dataset_to_signal,
 )
-from hyperspy.misc.utils import DictionaryTreeBrowser
 from hyperspy.signals import BaseSignal
 
 

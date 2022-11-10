@@ -822,8 +822,6 @@ def _readcube(
                     "The last frame (sweep) is incomplete because the acquisition stopped during this frame. The partially acquired frame is ignored. Use 'sum_frames=False, only_valid_data=False' to read all frames individually, including the last partially completed frame."
                 )
             break
-            # else:
-            #    pass
 
         p_start += length
     if not lazy:

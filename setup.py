@@ -9,7 +9,6 @@ https://github.com/pypa/sampleproject
 from setuptools import setup, find_packages, Extension, Command
 import os
 import warnings
-from os import path
 
 # io.open is needed for projects that support Python 2.7
 # It ensures open() defaults to text mode with universal newlines,
@@ -26,10 +25,10 @@ import itertools
 
 from rsciio.version import __version__
 
-setup_path = path.abspath(path.dirname(__file__))
+setup_path = os.path.abspath(os.path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(setup_path, "README.md"), encoding="utf-8") as f:
+with open(os.path.join(setup_path, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 # Extensions. Add your extension here:
@@ -67,7 +66,7 @@ def cythonize_extensions(extensions):
     try:
         from Cython.Build import cythonize
 
-        return cythonize(extensions)
+        return cythonize(extensions, language_level="3")
     except ImportError:
         warnings.warn(
             """WARNING: cython required to generate fast c code is not found on this system.
@@ -149,11 +148,12 @@ class Recythonize(Command):
 
         global raw_extensions
         global extensions
-        cythonize(extensions)
+        cythonize(extensions, language_level="3")
 
 
 install_requires = [
     "dask[array]>=2.11",
+    "python-dateutil",
     "h5py>=2.3",
     "imageio",
     "numba>=0.52",
@@ -166,24 +166,30 @@ install_requires = [
 ]
 
 extras_require = {
+    "blockfile": ["scikit-image"],
     "mrcz": ["blosc>=1.5", "mrcz>=0.3.6"],
-    "scalebar_export": ["matplotlib>=3.1.3"],
+    "scalebar_export": ["matplotlib-scalebar", "matplotlib>=3.1.3"],
     "tiff": ["tifffile>=2020.2.16", "imagecodecs>=2020.1.31"],
+    "usid": ["pyUSID"],
+    "zspy": ["zarr"],
     "tests": [
         "pytest>=3.6",
         "pytest-xdist",
         "pytest-rerunfailures",
         "pytest-cov",
     ],  # for testing
-    "docs": ["pydata-sphinx-theme", "sphinxcontrib-towncrier"],  # for building the docs
+    "docs": [
+        "pydata-sphinx-theme",
+        "sphinxcontrib-towncrier",
+        # pin towncrier until https://github.com/sphinx-contrib/sphinxcontrib-towncrier/issues/60 is fixed
+        "towncrier<22.8",
+    ],  # for building the docs
 }
 
 # Don't include "tests" and "docs" requirements since "all" is designed to be
 # used for user installation.
 runtime_extras_require = {
-    x: extras_require[x]
-    for x in extras_require.keys()
-    if x not in ["tests", "coverage", "build-doc"]
+    x: extras_require[x] for x in extras_require.keys() if x not in ["tests", "docs"]
 }
 extras_require["all"] = list(itertools.chain(*list(runtime_extras_require.values())))
 
@@ -320,6 +326,7 @@ setup(
     # MANIFEST.in as well.
     package_data={
         "rsciio": [
+            "*/specifications.yaml",
             "tests/blockfile_data/*.blo",
             "tests/dens_data/*.dens",
             "tests/dm_stackbuilder_plugin/test_stackbuilder_imagestack.dm3",
@@ -359,11 +366,16 @@ setup(
             "tests/bruker_data/*.spx",
             "tests/ripple_files/*.rpl",
             "tests/ripple_files/*.raw",
+            "tests/panta_rhei_files/*.prz",
+            "tests/phenom_data/*.elid",
+            "tests/sur_data/*.sur",
+            "tests/sur_data/*.pro",
             "tests/emd_files/*.emd",
             "tests/emd_files/fei_emd_files.zip",
             "tests/protochips_data/*.npy",
             "tests/protochips_data/*.csv",
             "tests/nexus_files/*.nxs",
+            "tests/empad_data/*.xml",
         ]
     },
     # Although 'package_data' is the preferred approach, in some case you may

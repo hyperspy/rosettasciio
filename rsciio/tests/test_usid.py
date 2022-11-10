@@ -5,8 +5,7 @@ import h5py
 import numpy as np
 import pytest
 
-from hyperspy import api as hs
-
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 usid = pytest.importorskip("pyUSID", reason="pyUSID not installed")
 sidpy = pytest.importorskip("sidpy", reason="sidpy not installed")
 

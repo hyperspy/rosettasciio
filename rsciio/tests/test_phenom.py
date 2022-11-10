@@ -21,8 +21,7 @@ import os
 
 import pytest
 
-import hyperspy.api as hs
-
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 imagecodecs = pytest.importorskip(
     "imagecodecs", reason="skipping test_phenom tests, requires imagecodecs"
 )

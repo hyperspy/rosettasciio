@@ -14,34 +14,46 @@ jobs:
       matrix:
         os: [ubuntu, windows, macos]
         PYTHON_VERSION: ['3.8', '3.9']
-        PIP_SELECTOR: ['[all, tests]']
+        LABEL: ['']
         include:
           # test oldest supported version of main dependencies on python 3.6
           - os: ubuntu
             PYTHON_VERSION: '3.7'
-            OLDEST_SUPPORTED_VERSION: true
             DEPENDENCIES: matplotlib==3.1.3 numpy==1.17.1 scipy==1.1 imagecodecs==2020.1.31 tifffile==2020.2.16 dask==2.11.0 distributed==2.11.0 numba==0.52
-            PIP_SELECTOR: '[all, tests]'
-            LABEL: -oldest
+            LABEL: '-oldest'
           # test minimum requirement
           - os: ubuntu
             PYTHON_VERSION: '3.8'
-            PIP_SELECTOR: '[tests]'
-            LABEL: -minimum
+            LABEL: '-minimum'
+          - os: ubuntu
+            PYTHON_VERSION: '3.8'
+            LABEL: '-minimum-wo-hyperspy'
+          - os: ubuntu
+            PYTHON_VERSION: '3.8'
+            LABEL: '-wo-hyperspy'
           - os: ubuntu
             PYTHON_VERSION: '3.7'
-            PIP_SELECTOR: '[all, tests]'
           - os: ubuntu
             PYTHON_VERSION: '3.10'
-            PIP_SELECTOR: '[all, tests]'
 
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
         name: Install Python
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
+
+      - name: Set Environment Variable
+        shell: bash
+        # Set PIP_SELECTOR environment variable according to matrix.LABEL
+        run: |
+          if [[ -n "${{ matrix.LABEL }}" && "${{ matrix.LABEL }}" == *"minimum"* ]]; then
+            PIP_SELECTOR="[tests]"
+          else
+            PIP_SELECTOR="[all, tests]"
+          fi
+          echo "PIP_SELECTOR=${PIP_SELECTOR}" >> $GITHUB_ENV
 
       - name: Display version
         run: |
@@ -49,18 +61,18 @@ jobs:
           pip --version
 
       - name: Install oldest supported version
-        if: ${{ matrix.OLDEST_SUPPORTED_VERSION }}
+        if: contains(matrix.LABEL, 'oldest')
         run: |
           pip install ${{ matrix.DEPENDENCIES }}
 
       - name: Install
         shell: bash
         run: |
-          pip install --upgrade -e .'${{ matrix.PIP_SELECTOR }}'
+          pip install --upgrade -e .'${{ env.PIP_SELECTOR }}'
 
       - name: Install (HyperSpy dev)
+        if: "!contains(matrix.LABEL, 'wo-hyperspy')"
         # Need to install hyperspy dev until hyperspy 2.0 is released
-        shell: bash
         run: |
           pip install https://github.com/hyperspy/hyperspy/archive/refs/heads/RELEASE_next_major.zip
 
@@ -74,4 +86,4 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: ${{ always() }}
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3

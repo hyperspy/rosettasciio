@@ -20,9 +20,12 @@ import os
 
 import numpy as np
 import pytest
+import gc
+
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
 import traits.api as t
 
-import hyperspy.api as hs
 from rsciio.empad.api import _parse_xml
 
 
@@ -37,25 +40,25 @@ def _create_raw_data(filename, shape):
     data.tofile(filename)
 
 
-def setup_module():
+def setup_module(module):
     _create_raw_data(FILENAME_STACK_RAW, (166400,))
     _create_raw_data(FILENAME_MAP_RAW, (4 * 4 * 130 * 128))
 
 
-def teardown_module():
+def teardown_module(module):
+    # run garbage collection to release file on windows
+    gc.collect()
+
     fs = [f for f in [FILENAME_STACK_RAW, FILENAME_MAP_RAW] if os.path.exists(f)]
 
     for f in fs:
-        try:
-            os.remove(f)
-        except Exception as e:
-            print(e)
+        os.remove(f)
 
 
 @pytest.mark.parametrize("lazy", (False, True))
 def test_read_stack(lazy):
     # xml file version 0.51 211118
-    s = hs.load(os.path.join(DATA_DIR, "stack_images.xml"), lazy=lazy)
+    s = hs.load(os.path.join(DATA_DIR, "stack_images.xml"), lazy=lazy, reader="EMPAD")
     assert s.data.dtype == "float32"
     ref_data = np.arange(166400).reshape((10, 130, 128))[..., :128, :]
     np.testing.assert_allclose(s.data, ref_data.astype("float32"))
@@ -75,12 +78,13 @@ def test_read_stack(lazy):
     assert s.metadata.General.date == "2019-06-07"
     assert s.metadata.General.time == "13:17:22.590279"
     assert s.metadata.Signal.signal_type == "electron_diffraction"
+    del s
 
 
 @pytest.mark.parametrize("lazy", (False, True))
 def test_read_map(lazy):
     # xml file version 0.51 211118
-    s = hs.load(os.path.join(DATA_DIR, "map4x4.xml"), lazy=lazy)
+    s = hs.load(os.path.join(DATA_DIR, "map4x4.xml"), lazy=lazy, reader="EMPAD")
     assert s.data.dtype == "float32"
     ref_data = np.arange(266240).reshape((4, 4, 130, 128))[..., :128, :]
     np.testing.assert_allclose(s.data, ref_data.astype("float32"))

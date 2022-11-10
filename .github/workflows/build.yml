@@ -1,0 +1,51 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    name: Build
+    runs-on: ubuntu-latest
+    env:
+      PYTHON_VERSION: '3.10'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        name: Install Python
+        with:
+          python-version: '3.10'
+
+      - name: Display version
+        run: |
+          python --version
+          pip --version
+
+      - name: Install pypa/build
+        run: |
+          pip install build
+
+      - name: Build a binary wheel and a source tarball
+        run: |
+          python -m build
+
+      - name: Display content dist folder
+        run: |
+          ls dist/
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path: ./dist/*
+
+      - name: Install distribution
+        run: |
+          pip install --pre --find-links dist rosettasciio[all,tests]
+
+      - name: Install HyperSpy (dev)
+        run: |
+          pip install https://github.com/hyperspy/hyperspy/archive/refs/heads/RELEASE_next_major.zip
+
+      - name: Test distribution
+        run: |
+          pytest --pyargs rsciio --reruns 3 -n 2

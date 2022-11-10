@@ -32,16 +32,9 @@ import pytest
 import tempfile
 import shutil
 
-from hyperspy import __version__ as hs_version
-from hyperspy.io import load
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
 from hyperspy.misc.test_utils import assert_deep_almost_equal
-from hyperspy.signals import (
-    BaseSignal,
-    EDSTEMSpectrum,
-    Signal1D,
-    Signal2D,
-    ComplexSignal2D,
-)
 
 my_path = os.path.dirname(__file__)
 
@@ -65,27 +58,29 @@ test_title = "This is a test!"
 
 @pytest.mark.parametrize("lazy", (True, False))
 def test_signal_3d_loading(lazy):
-    signal = load(os.path.join(my_path, "emd_files", "example_signal.emd"), lazy=lazy)
+    signal = hs.load(
+        os.path.join(my_path, "emd_files", "example_signal.emd"), lazy=lazy
+    )
     if lazy:
         signal.compute(close_file=True)
     np.testing.assert_equal(signal.data, data_signal)
-    assert isinstance(signal, BaseSignal)
+    assert isinstance(signal, hs.signals.BaseSignal)
 
 
 def test_image_2d_loading():
-    signal = load(os.path.join(my_path, "emd_files", "example_image.emd"))
+    signal = hs.load(os.path.join(my_path, "emd_files", "example_image.emd"))
     np.testing.assert_equal(signal.data, data_image)
-    assert isinstance(signal, Signal2D)
+    assert isinstance(signal, hs.signals.Signal2D)
 
 
 def test_spectrum_1d_loading():
-    signal = load(os.path.join(my_path, "emd_files", "example_spectrum.emd"))
+    signal = hs.load(os.path.join(my_path, "emd_files", "example_spectrum.emd"))
     np.testing.assert_equal(signal.data, data_spectrum)
-    assert isinstance(signal, Signal1D)
+    assert isinstance(signal, hs.signals.Signal1D)
 
 
 def test_metadata():
-    signal = load(os.path.join(my_path, "emd_files", "example_metadata.emd"))
+    signal = hs.load(os.path.join(my_path, "emd_files", "example_metadata.emd"))
     om = signal.original_metadata
     np.testing.assert_equal(signal.data, data_image)
     np.testing.assert_equal(signal.metadata.General.title, test_title)
@@ -93,7 +88,7 @@ def test_metadata():
     np.testing.assert_equal(om.microscope.as_dictionary(), microscope)
     np.testing.assert_equal(om.sample.as_dictionary(), sample)
     np.testing.assert_equal(om.comments.as_dictionary(), comments)
-    assert isinstance(signal, Signal2D)
+    assert isinstance(signal, hs.signals.Signal2D)
 
 
 def test_metadata_with_bytes_string():
@@ -106,18 +101,18 @@ def test_metadata_with_bytes_string():
     f.close()
     assert isinstance(dim1_name, np.bytes_)
     assert isinstance(dim1_units, np.bytes_)
-    _ = load(os.path.join(my_path, "emd_files", filename))
+    _ = hs.load(os.path.join(my_path, "emd_files", filename))
 
 
 def test_data_numpy_object_dtype():
     filename = os.path.join(my_path, "emd_files", "example_object_dtype_data.emd")
-    signal = load(filename)
+    signal = hs.load(filename)
     np.testing.assert_equal(signal.data, np.array([["a, 2, test1", "a, 2, test1"]]))
 
 
 def test_data_axis_length_1():
     filename = os.path.join(my_path, "emd_files", "example_axis_len_1.emd")
-    signal = load(filename)
+    signal = hs.load(filename)
     assert signal.data.shape == (5, 1, 5)
 
 
@@ -154,38 +149,33 @@ class TestDatasetName:
         self.tmpdir.cleanup()
 
     def test_load_with_dataset_path(self):
-        s = load(self.hdf5_dataset_path)
+        s = hs.load(self.hdf5_dataset_path)
         assert len(s) == len(self.dataset_path_list)
         for dataset_path, data_size in zip(self.dataset_path_list, self.data_size_list):
-            s = load(self.hdf5_dataset_path, dataset_path=dataset_path)
+            s = hs.load(self.hdf5_dataset_path, dataset_path=dataset_path)
             title = os.path.basename(os.path.dirname(dataset_path))
             assert s.metadata.General.title == title
             assert s.data.shape == data_size[::-1]
 
     def test_load_with_dataset_path_several(self):
         dataset_path = self.dataset_path_list[0:2]
-        s = load(self.hdf5_dataset_path, dataset_path=dataset_path)
+        s = hs.load(self.hdf5_dataset_path, dataset_path=dataset_path)
         assert len(s) == len(dataset_path)
         assert s[0].metadata.General.title in dataset_path[0]
         assert s[1].metadata.General.title in dataset_path[1]
 
     def test_wrong_dataset_path(self):
         with pytest.raises(IOError):
-            load(self.hdf5_dataset_path, dataset_path="a_wrong_name")
+            hs.load(self.hdf5_dataset_path, dataset_path="a_wrong_name")
         with pytest.raises(IOError):
-            load(
+            hs.load(
                 self.hdf5_dataset_path,
                 dataset_path=[self.dataset_path_list[0], "a_wrong_name"],
             )
 
-    def test_deprecated_dataset_name(self):
-        with pytest.warns(UserWarning):
-            dataset_name = os.path.dirname(self.dataset_path_list[0])
-            load(self.hdf5_dataset_path, dataset_name=dataset_name)
-
 
 def test_minimal_save():
-    signal = Signal1D([0, 1])
+    signal = hs.signals.Signal1D([0, 1])
     with tempfile.TemporaryDirectory() as tmp:
         signal.save(os.path.join(tmp, "testfile.emd"))
 
@@ -218,7 +208,7 @@ class TestReadSeveralDatasets:
         self.tmpdir.cleanup()
 
     def test_load_file(self):
-        s = load(self.hdf5_dataset_path)
+        s = hs.load(self.hdf5_dataset_path)
         assert len(s) == len(self.group_path_list)
         for _s, path in zip(s, self.group_path_list):
             assert _s.metadata.General.title in path
@@ -227,7 +217,7 @@ class TestReadSeveralDatasets:
 class TestCaseSaveAndRead:
     @pytest.mark.parametrize("lazy", (True, False))
     def test_save_and_read(self, lazy):
-        signal_ref = BaseSignal(data_save)
+        signal_ref = hs.signals.BaseSignal(data_save)
         signal_ref.metadata.General.title = test_title
         signal_ref.axes_manager[0].name = "x"
         signal_ref.axes_manager[1].name = "y"
@@ -249,7 +239,9 @@ class TestCaseSaveAndRead:
         signal_ref.save(
             os.path.join(my_path, "emd_files", "example_temp.emd"), overwrite=True
         )
-        signal = load(os.path.join(my_path, "emd_files", "example_temp.emd"), lazy=lazy)
+        signal = hs.load(
+            os.path.join(my_path, "emd_files", "example_temp.emd"), lazy=lazy
+        )
         if lazy:
             signal.compute(close_file=True)
         om = signal.original_metadata
@@ -272,26 +264,26 @@ class TestCaseSaveAndRead:
         np.testing.assert_equal(om.sample.as_dictionary(), sample)
         np.testing.assert_equal(om.comments.as_dictionary(), comments)
 
-        assert isinstance(signal, BaseSignal)
+        assert isinstance(signal, hs.signals.BaseSignal)
 
     def teardown_method(self, method):
         os.remove(os.path.join(my_path, "emd_files", "example_temp.emd"))
 
 
 def test_chunking_saving_lazy():
-    s = Signal2D(da.zeros((50, 100, 100))).as_lazy()
+    s = hs.signals.Signal2D(da.zeros((50, 100, 100))).as_lazy()
     s.data = s.data.rechunk([50, 25, 25])
     with tempfile.TemporaryDirectory() as tmp:
         filename = os.path.join(tmp, "test_chunking_saving_lazy.emd")
         filename2 = os.path.join(tmp, "test_chunking_saving_lazy_chunks_True.emd")
         filename3 = os.path.join(tmp, "test_chunking_saving_lazy_chunks_specify.emd")
     s.save(filename)
-    s1 = load(filename, lazy=True)
+    s1 = hs.load(filename, lazy=True)
     assert s.data.chunks == s1.data.chunks
 
     # with chunks=True, use h5py chunking
     s.save(filename2, chunks=True)
-    s2 = load(filename2, lazy=True)
+    s2 = hs.load(filename2, lazy=True)
     assert tuple([c[0] for c in s2.data.chunks]) == (13, 25, 13)
     s1.close_file()
     s2.close_file()
@@ -299,7 +291,7 @@ def test_chunking_saving_lazy():
     # Specify chunks
     chunks = (50, 20, 20)
     s.save(filename3, chunks=chunks)
-    s3 = load(filename3, lazy=True)
+    s3 = hs.load(filename3, lazy=True)
     assert tuple([c[0] for c in s3.data.chunks]) == chunks
 
 
@@ -330,6 +322,7 @@ class TestFeiEMD:
 
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_image(self, lazy):
+
         stage = {
             "tilt_alpha": 0.006,
             "tilt_beta": 0.000,
@@ -356,7 +349,7 @@ class TestFeiEMD:
                 "FileIO": {
                     "0": {
                         "operation": "load",
-                        "hyperspy_version": hs_version,
+                        "hyperspy_version": hs.__version__,
                         "io_plugin": "rsciio.emd.api",
                     }
                 },
@@ -379,7 +372,9 @@ class TestFeiEMD:
         md["General"]["date"] = date
         md["General"]["time"] = time
 
-        signal = load(os.path.join(self.fei_files_path, "fei_emd_image.emd"), lazy=lazy)
+        signal = hs.load(
+            os.path.join(self.fei_files_path, "fei_emd_image.emd"), lazy=lazy
+        )
         # delete timestamp from metadata since it's runtime dependent
         del signal.metadata.General.FileIO.Number_0.timestamp
         if lazy:
@@ -396,11 +391,11 @@ class TestFeiEMD:
         np.testing.assert_allclose(signal.axes_manager[1].scale, 0.00530241, rtol=1e-5)
         np.testing.assert_allclose(signal.data, fei_image)
         assert_deep_almost_equal(signal.metadata.as_dictionary(), md)
-        assert isinstance(signal, Signal2D)
+        assert isinstance(signal, hs.signals.Signal2D)
 
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_spectrum(self, lazy):
-        signal = load(
+        signal = hs.load(
             os.path.join(self.fei_files_path, "fei_emd_spectrum.emd"), lazy=lazy
         )
         if lazy:
@@ -410,21 +405,21 @@ class TestFeiEMD:
             os.path.join(self.fei_files_path, "fei_emd_spectrum.npy")
         )
         np.testing.assert_equal(signal.data, fei_spectrum)
-        assert isinstance(signal, Signal1D)
+        assert isinstance(signal, hs.signals.Signal1D)
 
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_si(self, lazy):
-        signal = load(os.path.join(self.fei_files_path, "fei_emd_si.emd"), lazy=lazy)
+        signal = hs.load(os.path.join(self.fei_files_path, "fei_emd_si.emd"), lazy=lazy)
         if lazy:
             assert signal[1]._lazy
             signal[1].compute(close_file=True)
         fei_si = np.load(os.path.join(self.fei_files_path, "fei_emd_si.npy"))
         np.testing.assert_equal(signal[1].data, fei_si)
-        assert isinstance(signal[1], Signal1D)
+        assert isinstance(signal[1], hs.signals.Signal1D)
 
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_si_non_square_10frames(self, lazy):
-        s = load(
+        s = hs.load(
             os.path.join(self.fei_files_path, "fei_SI_SuperX-HAADF_10frames_10x50.emd"),
             lazy=lazy,
         )
@@ -432,7 +427,7 @@ class TestFeiEMD:
         if lazy:
             assert signal._lazy
             signal.compute(close_file=True)
-        assert isinstance(signal, EDSTEMSpectrum)
+        assert isinstance(signal, hs.signals.EDSTEMSpectrum)
         assert signal.axes_manager[0].name == "x"
         assert signal.axes_manager[0].size == 10
         assert signal.axes_manager[0].units == "nm"
@@ -450,7 +445,7 @@ class TestFeiEMD:
         if lazy:
             assert signal0._lazy
             signal0.compute(close_file=True)
-        assert isinstance(signal0, Signal2D)
+        assert isinstance(signal0, hs.signals.Signal2D)
         assert signal0.axes_manager[0].name == "x"
         assert signal0.axes_manager[0].size == 10
         assert signal0.axes_manager[0].units == "nm"
@@ -459,7 +454,7 @@ class TestFeiEMD:
         assert signal0.axes_manager[1].size == 50
         assert signal0.axes_manager[1].units == "nm"
 
-        s = load(
+        s = hs.load(
             os.path.join(self.fei_files_path, "fei_SI_SuperX-HAADF_10frames_10x50.emd"),
             lazy=lazy,
             load_SI_image_stack=True,
@@ -468,7 +463,7 @@ class TestFeiEMD:
         if lazy:
             assert signal._lazy
             signal.compute(close_file=True)
-        assert isinstance(signal, EDSTEMSpectrum)
+        assert isinstance(signal, hs.signals.EDSTEMSpectrum)
         assert signal.axes_manager[0].name == "x"
         assert signal.axes_manager[0].size == 10
         assert signal.axes_manager[0].units == "nm"
@@ -486,7 +481,7 @@ class TestFeiEMD:
         if lazy:
             assert signal0._lazy
             signal0.compute(close_file=True)
-        assert isinstance(signal0, Signal2D)
+        assert isinstance(signal0, hs.signals.Signal2D)
         assert signal0.axes_manager[0].name == "Time"
         assert signal0.axes_manager[0].size == 10
         assert signal0.axes_manager[0].units == "s"
@@ -498,7 +493,7 @@ class TestFeiEMD:
         assert signal0.axes_manager[2].size == 50
         assert signal0.axes_manager[2].units == "nm"
 
-        s = load(
+        s = hs.load(
             os.path.join(self.fei_files_path, "fei_SI_SuperX-HAADF_10frames_10x50.emd"),
             sum_frames=False,
             SI_dtype=np.uint8,
@@ -509,7 +504,7 @@ class TestFeiEMD:
         if lazy:
             assert signal._lazy
             signal.compute(close_file=True)
-        assert isinstance(signal, EDSTEMSpectrum)
+        assert isinstance(signal, hs.signals.EDSTEMSpectrum)
         assert signal.axes_manager.navigation_shape == (10, 50, 10)
         assert signal.axes_manager[0].name == "x"
         assert signal.axes_manager[0].size == 10
@@ -528,7 +523,7 @@ class TestFeiEMD:
         assert signal.axes_manager[3].units == "keV"
         np.testing.assert_allclose(signal.axes_manager[3].scale, 1.28, atol=1e-5)
 
-        s = load(
+        s = hs.load(
             os.path.join(self.fei_files_path, "fei_SI_SuperX-HAADF_10frames_10x50.emd"),
             sum_frames=False,
             last_frame=5,
@@ -540,7 +535,7 @@ class TestFeiEMD:
         if lazy:
             assert signal._lazy
             signal.compute(close_file=True)
-        assert isinstance(signal, EDSTEMSpectrum)
+        assert isinstance(signal, hs.signals.EDSTEMSpectrum)
         assert signal.axes_manager.navigation_shape == (10, 50, 5)
         assert signal.axes_manager[0].name == "x"
         assert signal.axes_manager[0].size == 10
@@ -559,7 +554,7 @@ class TestFeiEMD:
         assert signal.axes_manager[3].units == "keV"
         np.testing.assert_allclose(signal.axes_manager[3].scale, 1.28, atol=1e-5)
 
-        s = load(
+        s = hs.load(
             os.path.join(self.fei_files_path, "fei_SI_SuperX-HAADF_10frames_10x50.emd"),
             sum_frames=False,
             first_frame=4,
@@ -571,7 +566,7 @@ class TestFeiEMD:
         if lazy:
             assert signal._lazy
             signal.compute(close_file=True)
-        assert isinstance(signal, EDSTEMSpectrum)
+        assert isinstance(signal, hs.signals.EDSTEMSpectrum)
         assert signal.axes_manager.navigation_shape == (10, 50, 6)
         assert signal.axes_manager[0].name == "x"
         assert signal.axes_manager[0].size == 10
@@ -592,7 +587,7 @@ class TestFeiEMD:
 
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_si_non_square_20frames(self, lazy):
-        s = load(
+        s = hs.load(
             os.path.join(self.fei_files_path, "fei_SI_SuperX-HAADF_20frames_10x50.emd"),
             lazy=lazy,
         )
@@ -600,7 +595,7 @@ class TestFeiEMD:
         if lazy:
             assert signal._lazy
             signal.compute(close_file=True)
-        assert isinstance(signal, EDSTEMSpectrum)
+        assert isinstance(signal, hs.signals.EDSTEMSpectrum)
         assert signal.axes_manager[0].name == "x"
         assert signal.axes_manager[0].size == 10
         assert signal.axes_manager[0].units == "nm"
@@ -616,7 +611,7 @@ class TestFeiEMD:
 
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_si_non_square_20frames_2eV(self, lazy):
-        s = load(
+        s = hs.load(
             os.path.join(
                 self.fei_files_path, "fei_SI_SuperX-HAADF_20frames_10x50_2ev.emd"
             ),
@@ -626,7 +621,7 @@ class TestFeiEMD:
         if lazy:
             assert signal._lazy
             signal.compute(close_file=True)
-        assert isinstance(signal, EDSTEMSpectrum)
+        assert isinstance(signal, hs.signals.EDSTEMSpectrum)
         assert signal.axes_manager[0].name == "x"
         assert signal.axes_manager[0].size == 10
         assert signal.axes_manager[0].units == "nm"
@@ -642,7 +637,7 @@ class TestFeiEMD:
 
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_si_frame_range(self, lazy):
-        signal = load(
+        signal = hs.load(
             os.path.join(self.fei_files_path, "fei_emd_si.emd"),
             first_frame=2,
             last_frame=4,
@@ -653,14 +648,14 @@ class TestFeiEMD:
             assert signal[1]._lazy
             signal[1].compute(close_file=True)
         np.testing.assert_equal(signal[1].data, fei_si)
-        assert isinstance(signal[1], Signal1D)
+        assert isinstance(signal[1], hs.signals.Signal1D)
 
     @pytest.mark.parametrize(["lazy", "sum_EDS_detectors"], _generate_parameters())
     def test_fei_si_4detectors(self, lazy, sum_EDS_detectors):
         fname = os.path.join(
             self.fei_files_path, "fei_SI_EDS-HAADF-4detectors_2frames.emd"
         )
-        signal = load(fname, sum_EDS_detectors=sum_EDS_detectors, lazy=lazy)
+        signal = hs.load(fname, sum_EDS_detectors=sum_EDS_detectors, lazy=lazy)
         if lazy:
             assert signal[1]._lazy
             signal[1].compute(close_file=True)
@@ -671,17 +666,17 @@ class TestFeiEMD:
         # TODO: add parsing azimuth_angle
 
     def test_fei_emd_ceta_camera(self):
-        signal = load(os.path.join(self.fei_files_path, "1532 Camera Ceta.emd"))
+        signal = hs.load(os.path.join(self.fei_files_path, "1532 Camera Ceta.emd"))
         np.testing.assert_allclose(signal.data, np.zeros((64, 64)))
-        assert isinstance(signal, Signal2D)
+        assert isinstance(signal, hs.signals.Signal2D)
         date, time = self._convert_datetime(1512055942.914275).split("T")
         assert signal.metadata.General.date == date
         assert signal.metadata.General.time == time
         assert signal.metadata.General.time_zone == self._get_local_time_zone()
 
-        signal = load(os.path.join(self.fei_files_path, "1854 Camera Ceta.emd"))
+        signal = hs.load(os.path.join(self.fei_files_path, "1854 Camera Ceta.emd"))
         np.testing.assert_allclose(signal.data, np.zeros((64, 64)))
-        assert isinstance(signal, Signal2D)
+        assert isinstance(signal, hs.signals.Signal2D)
 
     def _convert_datetime(self, unix_time):
         # Since we don't know the actual time zone of where the data have been
@@ -704,7 +699,7 @@ class TestFeiEMD:
         for i, frame_offset in enumerate(frame_offsets):
             print(frame_offset + frame_number)
             t0 = time.time()
-            load(
+            hs.load(
                 os.path.join(path, "large dataset.emd"),
                 first_frame=frame_offset,
                 last_frame=frame_offset + frame_number,
@@ -719,26 +714,26 @@ class TestFeiEMD:
 
 
 def test_fei_complex_loading():
-    signal = load(os.path.join(my_path, "emd_files", "fei_example_complex_fft.emd"))
-    assert isinstance(signal, ComplexSignal2D)
+    signal = hs.load(os.path.join(my_path, "emd_files", "fei_example_complex_fft.emd"))
+    assert isinstance(signal, hs.signals.ComplexSignal2D)
 
 
 def test_fei_complex_loading_lazy():
-    signal = load(
+    signal = hs.load(
         os.path.join(my_path, "emd_files", "fei_example_complex_fft.emd"), lazy=True
     )
-    assert isinstance(signal, ComplexSignal2D)
+    assert isinstance(signal, hs.signals.ComplexSignal2D)
 
 
 def test_fei_no_frametime():
-    signal = load(os.path.join(my_path, "emd_files", "fei_example_tem_stack.emd"))
-    assert isinstance(signal, Signal2D)
+    signal = hs.load(os.path.join(my_path, "emd_files", "fei_example_tem_stack.emd"))
+    assert isinstance(signal, hs.signals.Signal2D)
     assert signal.data.shape == (2, 3, 3)
     assert signal.axes_manager["Time"].scale == 0.8
 
 
 def test_fei_dpc_loading():
-    signals = load(os.path.join(my_path, "emd_files", "fei_example_dpc_titles.emd"))
+    signals = hs.load(os.path.join(my_path, "emd_files", "fei_example_dpc_titles.emd"))
     assert signals[0].metadata.General.title == "B-D"
     assert signals[1].metadata.General.title == "DPC"
     assert signals[2].metadata.General.title == "iDPC"
@@ -748,12 +743,27 @@ def test_fei_dpc_loading():
     assert signals[6].metadata.General.title == "A-C"
     assert signals[7].metadata.General.title == "DF4-D"
     assert signals[8].metadata.General.title == "Filtered iDPC"
-    assert isinstance(signals[0], Signal2D)
-    assert isinstance(signals[1], ComplexSignal2D)
-    assert isinstance(signals[2], Signal2D)
-    assert isinstance(signals[3], Signal2D)
-    assert isinstance(signals[4], Signal2D)
-    assert isinstance(signals[5], Signal2D)
-    assert isinstance(signals[6], Signal2D)
-    assert isinstance(signals[7], Signal2D)
-    assert isinstance(signals[8], Signal2D)
+    assert isinstance(signals[0], hs.signals.Signal2D)
+    assert isinstance(signals[1], hs.signals.ComplexSignal2D)
+    assert isinstance(signals[2], hs.signals.Signal2D)
+    assert isinstance(signals[3], hs.signals.Signal2D)
+    assert isinstance(signals[4], hs.signals.Signal2D)
+    assert isinstance(signals[5], hs.signals.Signal2D)
+    assert isinstance(signals[6], hs.signals.Signal2D)
+    assert isinstance(signals[7], hs.signals.Signal2D)
+    assert isinstance(signals[8], hs.signals.Signal2D)
+
+
+@pytest.mark.parametrize("fname", ["FFTComplexEven.emd", "FFTComplexOdd.emd"])
+def test_velox_fft_odd_number(fname):
+    print("0", fname)
+    print(os.path.join(my_path, "emd_files", fname))
+    s = hs.load(os.path.join(my_path, "emd_files", fname))
+    assert len(s) == 2
+
+    shape = (36, 70) if fname == "FFTComplexEven.emd" else (32, 64)
+    assert s[0].axes_manager.signal_shape == shape
+    assert np.issubdtype(s[0].data.dtype, np.complex64)
+
+    assert s[1].axes_manager.signal_shape == (128, 128)
+    assert np.issubdtype(s[1].data.dtype, float)

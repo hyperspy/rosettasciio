@@ -26,12 +26,10 @@ import logging
 import dateutil.parser
 
 import numpy as np
-import traits.api as t
 from copy import deepcopy
 
 import rsciio.utils.utils_readfile as iou
 from rsciio.exceptions import DM3TagIDError, DM3DataTypeError, DM3TagTypeError
-import rsciio.utils.tools
 from box import Box
 
 
@@ -92,8 +90,10 @@ class DigitalMicrographReader(object):
         else:
             self.endian = "big"
 
-    def parse_tags(self, ntags, group_name="root", group_dict={}):
+    def parse_tags(self, ntags, group_name="root", group_dict=None):
         """Parse the DM file into a dictionary."""
+        if group_dict is None:
+            group_dict = {}
         unnammed_data_tags = 0
         unnammed_group_tags = 0
         for tag in range(ntags):
@@ -734,7 +734,9 @@ class ImageObject(object):
             )
         ]
 
-    def get_metadata(self, metadata={}):
+    def get_metadata(self, metadata=None):
+        if metadata is None:
+            metadata = {}
         if "General" not in metadata:
             metadata["General"] = {}
         if "Signal" not in metadata:

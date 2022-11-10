@@ -1,7 +1,9 @@
 /docs/_build/*
 /build/*
+/dist/*
 /RosettaSciIO.egg-info/*
 *__pycache__*
 *test_compilers.obj
 *pyd
 .spyproject/*
+rsciio/bruker/unbcf_fast.c

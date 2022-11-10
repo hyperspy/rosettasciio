@@ -1,3 +1,22 @@
+# -*- coding: utf-8 -*-
+# Copyright 2007-2022 The HyperSpy developers
+#
+# This file is part of RosettaSciIO.
+#
+# RosettaSciIO is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# RosettaSciIO is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
+
+
 import os
 from packaging.version import Version
 from pathlib import Path
@@ -5,15 +24,16 @@ import tempfile
 import warnings
 import zipfile
 
-
 import numpy as np
 import pytest
-import traits.api as t
-import tifffile
 
-import hyperspy.api as hs
+tifffile = pytest.importorskip("tifffile", reason="tifffile not installed")
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
+import traits.api as t
+
 from hyperspy.misc.test_utils import assert_deep_almost_equal
-from hyperspy import __version__ as hs_version
+
 import rsciio.tiff
 
 
@@ -393,7 +413,7 @@ FEI_Helios_metadata = {
         "FileIO": {
             "0": {
                 "operation": "load",
-                "hyperspy_version": hs_version,
+                "hyperspy_version": hs.__version__,
                 "io_plugin": "rsciio.tiff.api",
             }
         },
@@ -568,7 +588,7 @@ class TestReadZeissSEM:
                 "FileIO": {
                     "0": {
                         "operation": "load",
-                        "hyperspy_version": hs_version,
+                        "hyperspy_version": hs.__version__,
                         "io_plugin": "rsciio.tiff.api",
                     }
                 },
@@ -622,7 +642,7 @@ class TestReadZeissSEM:
                 "FileIO": {
                     "0": {
                         "operation": "load",
-                        "hyperspy_version": hs_version,
+                        "hyperspy_version": hs.__version__,
                         "io_plugin": "rsciio.tiff.api",
                     }
                 },
@@ -664,7 +684,7 @@ def test_read_RGB_Zeiss_optical_scale_metadata():
     np.testing.assert_allclose(s.axes_manager[1].scale, 1.0, rtol=1e-5)
     assert s.metadata.General.date == "2016-06-13"
     assert s.metadata.General.time == "15:59:52"
-    assert s.metadata.General.FileIO.Number_0.hyperspy_version == hs_version
+    assert s.metadata.General.FileIO.Number_0.hyperspy_version == hs.__version__
     assert s.metadata.General.FileIO.Number_0.io_plugin == "rsciio.tiff.api"
 
 
@@ -741,7 +761,7 @@ def test_read_TVIPS_metadata():
             "FileIO": {
                 "0": {
                     "operation": "load",
-                    "hyperspy_version": hs_version,
+                    "hyperspy_version": hs.__version__,
                     "io_plugin": "rsciio.tiff.api",
                 }
             },

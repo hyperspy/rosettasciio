@@ -1,0 +1,22 @@
+kind: pipeline
+name: test on arm64
+
+platform:
+  arch: arm64
+
+steps:
+- name: test
+  image: quay.io/condaforge/mambaforge:latest
+  environment:
+    MATPLOTLIB: agg
+  commands:
+    - lscpu
+    # Update with rosettasciio once it is available on conda-forge
+    # For now use hyperspy package to install dependencies
+    - mamba install hyperspy-base --only-deps
+    - mamba install imagecodecs mrcz pyusid
+    - mamba install pytest pytest-xdist
+    # We need hyperspy dev branch for testing
+    - pip install https://github.com/hyperspy/hyperspy/archive/refs/heads/RELEASE_next_major.zip
+    - pip install -e .
+    - pytest -n 4

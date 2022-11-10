@@ -32,7 +32,6 @@ import re
 import logging
 from zlib import decompress as unzip_block
 from struct import unpack as strct_unp
-import warnings
 from datetime import datetime, timedelta
 from ast import literal_eval
 import codecs
@@ -44,8 +43,7 @@ import dask.delayed as dd
 import dask.array as da
 import numpy as np
 
-from rsciio.exceptions import VisibleDeprecationWarning
-
+from rsciio.docstrings import FILENAME_DOC, RETURNS_DOC
 
 _logger = logging.getLogger(__name__)
 
@@ -1292,11 +1290,74 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
 
 
 def file_reader(filename, *args, **kwds):
+    """
+    Read a Bruker ``.bcf`` or ``.spx`` file.
+
+    Parameters
+    ----------
+    %s
+    select_type : ``'spectrum_image'``, ``'image'`` or None
+        If specified, only the corresponding type of data, either spectrum
+        image or image, is returned.
+        By default (None), all data are loaded.
+    index : int, None or str
+        Allow to select the index of the dataset in the ``.bcf`` file, which
+        can contain several datasets. The default value (``None``) results in
+        loading the first dataset. When set to ``'all'``, all available datasets
+        will be loaded and returned as separate signals.
+    downsample : int
+        The downsampling ratio of a hyperspectral array (height and width only),
+        can be an integer >=1, where value of 1 results in no downsampling .
+        The default is 1.
+        The underlying method of downsampling is unchangeable: sum. Differently
+        than :py:func:``skimage.measure.block_reduce``, it is memory efficient
+        as it doesn't create intermediate arrays
+    cutoff_at_kV : int, float, ``'zealous'``, ``'auto'`` or None
+        It can be used either to crop or enlarge the energy (or number of channels)
+        range at max values. It can be used to conserve memory or enlarge
+        the range if needed to mach the size of other file. The default value
+        (``None``) does not influence the size. Numerical values should be in kV.
+        ``'zealous'`` truncates to the last non zero channel (this option
+        should not be used for stacks, as low beam current EDS can have a different
+        last non zero channel per slice). ``'auto'`` truncates channels to SEM/TEM
+        acceleration voltage or energy at last channel, depending which is smaller.
+        In case the hv info is not there or hv is off (0 kV) then it falls back to
+        the full channel range.
+    instrument : str or None
+        Can be either ``'TEM'`` or ``'SEM'``. Default is ``None``.
+
+    %s
+
+    Examples
+    --------
+    Example of loading reduced (downsampled, and with energy range cropped)
+    "spectrum only" data from ``bcf`` (original shape: 80 keV EDS range (4096 channels),
+    100x75 pixels; SEM acceleration voltage: 20kV):
+
+    >>> file_reader("sample80kv.bcf", select_type='spectrum_image',
+                    downsample=2, cutoff_at_kV=10)
+
+    Load the same file with limiting array size to SEM acceleration voltage:
+
+    >>> file_reader("sample80kv.bcf", cutoff_at_kV='auto')
+
+    The loaded array energy dimension can by forced to be larger than the data
+    recorded by setting the 'cutoff_at_kV' kwarg to higher value:
+
+    >>> file_reader("sample80kv.bcf", cutoff_at_kV=60)
+
+    Loading without setting ``cutoff_at_kV`` value would return data with all 4096
+    channels. Note that setting ``downsample`` higher than 1 currently locks out using SEM
+    images for navigation in the plotting.
+    """
     ext = splitext(filename)[1][1:]
     if ext == "bcf":
         return bcf_reader(filename, *args, **kwds)
     elif ext == "spx":
         return spx_reader(filename, *args, **kwds)
+
+
+file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
 
 
 def bcf_reader(
@@ -1308,9 +1369,10 @@ def bcf_reader(
     instrument=None,
     lazy=False,
 ):
-    """Reads a bruker bcf file and loads the data into the appropriate class,
-    then wraps it into appropriate hyperspy required list of dictionaries
-    used by hyperspy.api.load() method.
+    """
+    Reads a bruker ``.bcf`` file and loads the data into the appropriate class,
+    then wraps it into a list of dictionaries typically used by the
+    :py:func:`hyperspy.api.load` function.
 
     Parameters
     ----------
@@ -1336,14 +1398,6 @@ def bcf_reader(
 
     # objectified bcf file:
     obj_bcf = BCF_reader(filename, instrument=instrument)
-    if select_type == "spectrum":
-        select_type = "spectrum_image"
-        msg = (
-            "The 'spectrum' option for the `select_type` parameter is "
-            "deprecated and will be removed in v2.0. Use 'spectrum_image' "
-            "instead."
-        )
-        warnings.warn(msg, VisibleDeprecationWarning)
     if select_type == "image":
         return bcf_images(obj_bcf)
     elif select_type == "spectrum_image":

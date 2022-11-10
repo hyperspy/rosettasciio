@@ -14,16 +14,24 @@ When using `HyperSpy <https://hyperspy.org>`_, if elemental information has been
 defined in the spectrum image, those
 elements will automatically be added to the signal loaded by HyperSpy.
 
-Currently, loading an EDAX TEAM spectrum or spectrum image will load an
-``EDSSEMSpectrum`` Signal. If support for TEM EDS data is needed, please
-open an issue in the `issues tracker <https://github.com/hyperspy/rosettasciio/issues>`_
-to alert the developers of the need.
+In HyperSpy, if an ``.spd`` file is loaded, the result will be a Hyperspy
+``EDSSEMSpectrum`` map, and the calibration will be loaded from the appropriate
+``.spc`` and ``.ipr`` files (if available). If an ``.spc`` file is loaded, the
+result will be a single ``EDSSEMSpectrum`` with no other files needed for
+calibration.
 
-For reference, :ref:`file specifications <edax-file_specification>`  for the edax
-file formats have been available publicly available from EDAX.
+.. Note ::
 
-Extra loading arguments for SPD file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    Currently, HyperSpy will load an ``EDSSEMSpectrum`` signal. If support for
+    TEM EDS data is needed, please open an issue in the `issues tracker
+    <https://github.com/hyperspy/rosettasciio/issues>`_ to alert the developers
+    of the need.
+
+For reference, :ref:`file specifications <edax-file_specification>` for the EDAX
+file formats have been publicly available from EDAX.
+
+Extra loading arguments for SPD files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - ``spc_fname``: {None, str}, name of file from which to read the spectral
   calibration. If data was exported fully from EDAX TEAM software, an ``.spc``

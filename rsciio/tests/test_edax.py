@@ -1,3 +1,21 @@
+# -*- coding: utf-8 -*-
+# Copyright 2007-2022 The HyperSpy developers
+#
+# This file is part of RosettaSciIO.
+#
+# RosettaSciIO is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# RosettaSciIO is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
+
 import gc
 import hashlib
 import os
@@ -7,10 +25,10 @@ import zipfile
 
 import numpy as np
 import pytest
-import requests
 
-from hyperspy import signals
-from hyperspy.io import load
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+requests = pytest.importorskip("requests", reason="requests not installed")
+
 
 MY_PATH = os.path.dirname(__file__)
 ZIPF = os.path.join(MY_PATH, "edax_files.zip")
@@ -60,8 +78,8 @@ def teardown_module():
 class TestSpcSpectrum_v061_xrf:
     @classmethod
     def setup_class(cls):
-        cls.spc = load(os.path.join(TMP_DIR.name, "spc0_61-ipr333_xrf.spc"))
-        cls.spc_loadAll = load(
+        cls.spc = hs.load(os.path.join(TMP_DIR.name, "spc0_61-ipr333_xrf.spc"))
+        cls.spc_loadAll = hs.load(
             os.path.join(TMP_DIR.name, "spc0_61-ipr333_xrf.spc"), load_all_spc=True
         )
 
@@ -152,7 +170,7 @@ class TestSpcSpectrum_v061_xrf:
 
         # Testing HyperSpy parameters
         assert "EDS_SEM" == signal_dict["signal_type"]
-        assert isinstance(TestSpcSpectrum_v061_xrf.spc, signals.EDSSEMSpectrum)
+        assert isinstance(TestSpcSpectrum_v061_xrf.spc, hs.signals.EDSSEMSpectrum)
 
     def test_axes(self):
         spc_ax_manager = {
@@ -188,8 +206,8 @@ class TestSpcSpectrum_v061_xrf:
 class TestSpcSpectrum_v070_eds:
     @classmethod
     def setup_class(cls):
-        cls.spc = load(os.path.join(TMP_DIR.name, "single_spect.spc"))
-        cls.spc_loadAll = load(
+        cls.spc = hs.load(os.path.join(TMP_DIR.name, "single_spect.spc"))
+        cls.spc_loadAll = hs.load(
             os.path.join(TMP_DIR.name, "single_spect.spc"), load_all_spc=True
         )
 
@@ -254,7 +272,7 @@ class TestSpcSpectrum_v070_eds:
 
         # Testing HyperSpy parameters
         assert "EDS_SEM" == signal_dict["signal_type"]
-        assert isinstance(TestSpcSpectrum_v070_eds.spc, signals.EDSSEMSpectrum)
+        assert isinstance(TestSpcSpectrum_v070_eds.spc, hs.signals.EDSSEMSpectrum)
 
     def test_axes(self):
         spc_ax_manager = {
@@ -294,7 +312,7 @@ class TestSpcSpectrum_v070_eds:
 class TestSpdMap_070_eds:
     @classmethod
     def setup_class(cls):
-        cls.spd = load(os.path.join(TMP_DIR.name, "spd_map.spd"), convert_units=True)
+        cls.spd = hs.load(os.path.join(TMP_DIR.name, "spd_map.spd"), convert_units=True)
 
     @classmethod
     def teardown_class(cls):
@@ -369,7 +387,7 @@ class TestSpdMap_070_eds:
 
         # Testing HyperSpy parameters
         assert "EDS_SEM" == signal_dict["signal_type"]
-        assert isinstance(TestSpdMap_070_eds.spd, signals.EDSSEMSpectrum)
+        assert isinstance(TestSpdMap_070_eds.spd, hs.signals.EDSSEMSpectrum)
 
     def test_axes(self):
         spd_ax_manager = {
@@ -437,7 +455,7 @@ class TestSpdMap_070_eds:
 class TestSpdMap_061_xrf:
     @classmethod
     def setup_class(cls):
-        cls.spd = load(
+        cls.spd = hs.load(
             os.path.join(TMP_DIR.name, "spc0_61-ipr333_xrf.spd"), convert_units=True
         )
 
@@ -516,7 +534,7 @@ class TestSpdMap_061_xrf:
 
         # Testing HyperSpy parameters
         assert "EDS_SEM" == signal_dict["signal_type"]
-        assert isinstance(TestSpdMap_061_xrf.spd, signals.EDSSEMSpectrum)
+        assert isinstance(TestSpdMap_061_xrf.spd, hs.signals.EDSSEMSpectrum)
 
     def test_axes(self):
         spd_ax_manager = {

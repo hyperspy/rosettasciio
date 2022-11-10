@@ -26,21 +26,19 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 
-import hyperspy.api as hs
-from hyperspy.signals import Signal1D
-from hyperspy.axes import DataAxis
 from rsciio import IO_PLUGINS
-from hyperspy import __version__ as hs_version
-from hyperspy.misc.test_utils import assert_deep_almost_equal
 
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
+from hyperspy.axes import DataAxis
 
 FULLFILENAME = Path(__file__).resolve().parent.joinpath("test_io_overwriting.hspy")
 
 
 class TestIOOverwriting:
     def setup_method(self, method):
-        self.s = Signal1D(np.arange(10))
-        self.new_s = Signal1D(np.ones(5))
+        self.s = hs.signals.Signal1D(np.arange(10))
+        self.new_s = hs.signals.Signal1D(np.ones(5))
         # make sure we start from a clean state
         self._clean_file()
         self.s.save(FULLFILENAME)
@@ -100,7 +98,7 @@ class TestIOOverwriting:
 class TestNonUniformAxisCheck:
     def setup_method(self, method):
         axis = DataAxis(axis=1 / (np.arange(10) + 1), navigate=False)
-        self.s = Signal1D(np.arange(10), axes=(axis.get_axis_dictionary(),))
+        self.s = hs.signals.Signal1D(np.arange(10), axes=(axis.get_axis_dictionary(),))
         # make sure we start from a clean state
 
     def test_io_nonuniform(self):
@@ -113,7 +111,7 @@ class TestNonUniformAxisCheck:
         for plugin in IO_PLUGINS:
             if not "non_uniform_axis" in plugin:
                 print(
-                    plugin.format_name + " IO-plugin is missing the "
+                    plugin.name + " IO-plugin is missing the "
                     "characteristic `non_uniform_axis`"
                 )
 
@@ -142,7 +140,7 @@ class TestNonUniformAxisCheck:
 
 
 def test_glob_wildcards():
-    s = Signal1D(np.arange(10))
+    s = hs.signals.Signal1D(np.arange(10))
 
     with tempfile.TemporaryDirectory() as dirpath:
         fnames = [os.path.join(dirpath, f"temp[1x{x}].hspy") for x in range(2)]
@@ -201,7 +199,7 @@ def test_file_not_found_error():
 
 def test_file_reader_error():
     # Only None, str or objects with attr "file_reader" are supported
-    s = Signal1D(np.arange(10))
+    s = hs.signals.Signal1D(np.arange(10))
 
     with tempfile.TemporaryDirectory() as dirpath:
         f = os.path.join(dirpath, "temp.hspy")
@@ -213,7 +211,7 @@ def test_file_reader_error():
 
 def test_file_reader_warning(caplog):
     # Test fallback to Pillow imaging library
-    s = Signal1D(np.arange(10))
+    s = hs.signals.Signal1D(np.arange(10))
 
     with tempfile.TemporaryDirectory() as dirpath:
         f = os.path.join(dirpath, "temp.hspy")
@@ -227,14 +225,39 @@ def test_file_reader_warning(caplog):
 
 
 def test_file_reader_options():
-    s = Signal1D(np.arange(10))
+    s = hs.signals.Signal1D(np.arange(10))
 
     with tempfile.TemporaryDirectory() as dirpath:
         f = os.path.join(dirpath, "temp.hspy")
         s.save(f)
+        f2 = os.path.join(dirpath, "temp.emd")
+        s.save(f2)
 
         # Test string reader
         t = hs.load(Path(dirpath, "temp.hspy"), reader="hspy")
+        assert len(t) == 1
+        np.testing.assert_allclose(t.data, np.arange(10))
+
+        # Test string reader uppercase
+        t = hs.load(Path(dirpath, "temp.hspy"), reader="HSpy")
+        assert len(t) == 1
+        np.testing.assert_allclose(t.data, np.arange(10))
+
+        # Test string reader alias
+        t = hs.load(Path(dirpath, "temp.hspy"), reader="hyperspy")
+        assert len(t) == 1
+        np.testing.assert_allclose(t.data, np.arange(10))
+
+        # Test string reader name
+        t = hs.load(Path(dirpath, "temp.emd"), reader="emd")
+        assert len(t) == 1
+        np.testing.assert_allclose(t.data, np.arange(10))
+
+        # Test string reader aliases
+        t = hs.load(Path(dirpath, "temp.emd"), reader="Electron Microscopy Data (EMD)")
+        assert len(t) == 1
+        np.testing.assert_allclose(t.data, np.arange(10))
+        t = hs.load(Path(dirpath, "temp.emd"), reader="Electron Microscopy Data")
         assert len(t) == 1
         np.testing.assert_allclose(t.data, np.arange(10))
 
@@ -247,7 +270,7 @@ def test_file_reader_options():
 
 
 def test_save_default_format():
-    s = Signal1D(np.arange(10))
+    s = hs.signals.Signal1D(np.arange(10))
 
     with tempfile.TemporaryDirectory() as dirpath:
         f = os.path.join(dirpath, "temp")
@@ -258,7 +281,7 @@ def test_save_default_format():
 
 
 def test_load_original_metadata():
-    s = Signal1D(np.arange(10))
+    s = hs.signals.Signal1D(np.arange(10))
     s.original_metadata.a = 0
 
     with tempfile.TemporaryDirectory() as dirpath:
@@ -283,7 +306,7 @@ def test_load_save_filereader_metadata():
     s = hs.load(os.path.join(my_path, "msa_files", "example1.msa"))
     assert s.metadata.General.FileIO.Number_0.io_plugin == "rsciio.msa.api"
     assert s.metadata.General.FileIO.Number_0.operation == "load"
-    assert s.metadata.General.FileIO.Number_0.hyperspy_version == hs_version
+    assert s.metadata.General.FileIO.Number_0.hyperspy_version == hs.__version__
 
     with tempfile.TemporaryDirectory() as dirpath:
         f = os.path.join(dirpath, "temp")
@@ -292,17 +315,17 @@ def test_load_save_filereader_metadata():
             "0": {
                 "io_plugin": "rsciio.msa.api",
                 "operation": "load",
-                "hyperspy_version": hs_version,
+                "hyperspy_version": hs.__version__,
             },
             "1": {
                 "io_plugin": "rsciio.hspy.api",
                 "operation": "save",
-                "hyperspy_version": hs_version,
+                "hyperspy_version": hs.__version__,
             },
             "2": {
                 "io_plugin": "rsciio.hspy.api",
                 "operation": "load",
-                "hyperspy_version": hs_version,
+                "hyperspy_version": hs.__version__,
             },
         }
         del s.metadata.General.FileIO.Number_0.timestamp  # runtime dependent

@@ -32,7 +32,6 @@ import time
 import warnings
 import math
 import logging
-import traits.api as t
 
 import h5py
 import numpy as np
@@ -40,7 +39,6 @@ import dask.array as da
 from dateutil import tz
 
 from rsciio.utils.tools import _UREG, DTBox
-from rsciio.exceptions import VisibleDeprecationWarning
 from rsciio.utils.elements import atomic_number2name
 import rsciio.utils.fei_stream_readers as stream_readers
 from rsciio._hierarchical import get_signal_chunks
@@ -49,413 +47,6 @@ from rsciio._hierarchical import get_signal_chunks
 EMD_VERSION = "0.2"
 
 _logger = logging.getLogger(__name__)
-
-
-class EMD(object):
-
-    """Class for storing electron microscopy datasets.
-
-    The :class:`~.EMD` class can hold an arbitrary amount of datasets in the
-    `signals` dictionary. These are saved as HyperSpy
-    :class:`~hyperspy.signal.Signal` instances. Global metadata are saved in
-    four dictionaries (`user`, `microscope`, `sample`, `comments`). To print
-    relevant information about the EMD instance use the :func:`~.log_info`
-    function. EMD instances can be loaded from and saved to emd-files, an
-    hdf5 standard developed at Lawrence
-    Berkeley National Lab (https://emdatasets.com/).
-
-    Attributes
-    ----------
-    signals: dictionary
-        Dictionary which contains all datasets as
-        :class:`~hyperspy.signal.Signal` instances.
-    user : dictionary
-        Dictionary which contains user related metadata.
-    microscope : dictionary
-        Dictionary which contains microscope related metadata.
-    sample : dictionary
-        Dictionary which contains sample related metadata.
-    comments : dictionary
-        Dictionary which contains additional commentary metadata.
-
-    """
-
-    _log = logging.getLogger(__name__)
-
-    def __init__(
-        self, signals=None, user=None, microscope=None, sample=None, comments=None
-    ):
-        msg = (
-            "Direct instantiation of the EMD class is deprecated and will be "
-            "removed in HyperSpy v2.0. Please use the `hs.load` function "
-            "instead."
-        )
-        warnings.warn(msg, VisibleDeprecationWarning)
-        self._log.debug("Calling __init__")
-        # Create dictionaries if not present:
-        if signals is None:
-            signals = {}
-        if user is None:
-            user = {}
-        if microscope is None:
-            microscope = {}
-        if sample is None:
-            sample = {}
-        if comments is None:
-            comments = {}
-        # Make sure some default keys are present in user:
-        for key in ["name", "institution", "department", "email"]:
-            if key not in user:
-                user[key] = ""
-        self.user = user
-        # Make sure some default keys are present in microscope:
-        for key in ["name", "voltage"]:
-            if key not in microscope:
-                microscope[key] = ""
-        self.microscope = microscope
-        # Make sure some default keys are present in sample:
-        for key in ["material", "preparation"]:
-            if key not in sample:
-                sample[key] = ""
-        self.sample = sample
-        # Add comments:
-        self.comments = comments
-        # Make sure the signals are added properly to signals:
-        self.signals = {}
-        for name, signal in signals.items():
-            self.add_signal(signal, name)
-
-    def __getitem__(self, key):
-        # This is for accessing the raw data easily. For the signals use
-        # emd.signals[key]!
-        return self.signals[key].data
-
-    def _write_signal_to_group(self, signal_group, signal):
-        self._log.debug("Calling _write_signal_to_group")
-        # Save data:
-        dataset = signal_group.require_group(signal.metadata.General.title)
-        maxshape = tuple(None for _ in signal.data.shape)
-        dataset.create_dataset("data", data=signal.data, chunks=True, maxshape=maxshape)
-        # Iterate over all dimensions:
-        for i in range(len(signal.data.shape)):
-            key = "dim{}".format(i + 1)
-            axis = signal.axes_manager._axes[i]
-            offset = axis.offset
-            scale = axis.scale
-            dim = dataset.create_dataset(key, data=[offset, offset + scale])
-            name = axis.name
-            if name is None:
-                name = ""
-            dim.attrs["name"] = name
-            units = axis.units
-            if units is None:
-                units = ""
-            else:
-                units = "[{}]".format("_".join(list(units)))
-            dim.attrs["units"] = units
-        # Write metadata:
-        dataset.attrs["emd_group_type"] = 1
-        for key, value in signal.metadata.Signal:
-            try:  # If something h5py can't handle is saved in the metadata...
-                dataset.attrs[key] = value
-            except Exception:  # ...let the user know what could not be added!
-                self._log.exception(
-                    "The hdf5 writer could not write the following "
-                    "information in the file: %s : %s",
-                    key,
-                    value,
-                )
-
-    def _read_signal_from_group(self, name, group, lazy=False):
-        self._log.debug("Calling _read_signal_from_group")
-        signal_dict = {}
-        # Extract essential data:
-        data = group.get("data")
-        if lazy:
-            data = da.from_array(data, chunks=data.chunks)
-        else:
-            data = np.asanyarray(data)
-        signal_dict["data"] = data
-        # Iterate over all dimensions:
-        # EMD does not have a standard way to describe the signal axis.
-        # Therefore we don't set the `navigate` attribute of the axes
-        axes = []
-        for i in range(len(data.shape)):
-            axis_dict = {}
-            dim = group.get("dim{}".format(i + 1))
-            axis_name = dim.attrs.get("name", "")
-            if isinstance(axis_name, bytes):
-                axis_name = axis_name.decode("utf-8")
-
-            axis_units = dim.attrs.get("units", "")
-            if isinstance(axis_units, bytes):
-                axis_units = axis_units.decode("utf-8")
-            units = re.findall(r"[^_\W]+", axis_units)
-            try:
-                if len(dim) == 1:
-                    scale = 1.0
-                    self._log.warning(
-                        "Could not calculate scale of axis {}. "
-                        "Setting scale to 1".format(i)
-                    )
-                else:
-                    scale = dim[1] - dim[0]
-                offset = dim[0]
-            # HyperSpy then uses defaults (1.0 and 0.0)!
-            except (IndexError, TypeError) as e:
-                self._log.warning(
-                    "Could not calculate scale/offset of " "axis {}: {}".format(i, e)
-                )
-            axis_dict["scale"] = scale
-            axis_dict["offset"] = offset
-            axis_dict["units"] = units
-            axis_dict["name"] = name
-            axis_dict["_type"] = "UniformDataAxis"
-            axes.append(axis_dict)
-        # Extract metadata:
-        signal_dict["axes"] = axes
-        metadata = {}
-        for key, value in group.attrs.items():
-            metadata[key] = value
-        metadata["General"]["user"] = self.user
-        metadata["General"]["microscope"] = self.microscope
-        metadata["General"]["sample"] = self.sample
-        metadata["General"]["comments"] = self.comments
-        signal_dict["metadata"] = metadata
-        if data.dtype == object:
-            self._log.warning(
-                "RosettaSciIO could not load the data in {}, "
-                "skipping it".format(name)
-            )
-        else:
-            # Add signal:
-            self.signals[name] = signal_dict
-
-    def add_signal(self, signal, name=None, metadata=None):
-        """Add a HyperSpy signal to the EMD instance and make sure all
-        metadata is present.
-
-        Parameters
-        ----------
-        signal : :class:`~hyperspy.signal.Signal`
-            HyperSpy signal which should be added to the EMD instance.
-        name : string, optional
-            Name of the (used as a key for the `signals` dictionary). If not
-            specified, `signal.metadata.General.title` will be used. If this
-            is an empty string, both name and signal title are set to 'dataset'
-            per default. If specified, `name` overwrites the
-            signal title.
-        metadata : dictionary
-            Dictionary which holds signal specific metadata which will
-            be added to the signal.
-
-        Returns
-        -------
-        None
-
-        Notes
-        -----
-        This is the preferred way to add signals to the EMD instance.
-        Directly adding to the `signals` dictionary is possible but does not
-        make sure all metadata are correct. This method is also called in
-        the standard constructor on all entries in the `signals` dictionary!
-
-        """
-        self._log.debug("Calling add_signal")
-        # Create metadata if not present:
-        if metadata is None:
-            metadata = {}
-        signal_md = {}
-        # Check and save title:
-        if name is None:  # Overwrite Signal title!
-            # Take title of Signal!
-            if signal.metadata.General.title != "":
-                name = signal.metadata.General.title
-            else:  # Take default!
-                name = "__unnamed__"
-                signal.metadata.General.title = name
-        # Save signal metadata:
-        signal.metadata.Signal.add_dictionary(metadata)
-        # Save global metadata:
-        signal.metadata.General.add_node("user")
-        signal.metadata.General.user.add_dictionary(self.user)
-        signal.metadata.General.add_node("microscope")
-        signal.metadata.General.microscope.add_dictionary(self.microscope)
-        signal.metadata.General.add_node("sample")
-        signal.metadata.General.sample.add_dictionary(self.sample)
-        signal.metadata.General.add_node("comments")
-        signal.metadata.General.comments.add_dictionary(self.comments)
-        # Also save metadata as original_metadata:
-        signal.original_metadata.add_dictionary(signal.metadata.as_dictionary())
-        # Add signal:
-        self.signals[name] = signal
-
-    @classmethod
-    def load_from_emd(cls, filename, lazy=False, dataset_name=None):
-        """Construct :class:`~.EMD` object from an emd-file.
-
-        Parameters
-        ----------
-        filename : str
-            The name of the emd-file from which to load the signals. Standard
-            file extesnion is '.emd'.
-        False : bool, optional
-            If False (default) loads data to memory. If True, enables loading
-            only if requested.
-        dataset_name : str or iterable, optional
-            Only add dataset with specific name. Note, this has to be the full
-            group path in the file. For example '/experimental/science_data'.
-            If the dataset is not found, an IOError with the possible
-            datasets will be raised. Several names can be specified
-            in the form of a list.
-
-        Returns
-        -------
-        emd : :class:`~.EMD`
-            A :class:`~.EMD` object containing the loaded signals.
-
-        """
-        cls._log.debug("Calling load_from_emd")
-        # Read in file:
-        emd_file = h5py.File(filename, "r")
-        # Creat empty EMD instance:
-        emd = cls()
-        # Extract user:
-        user_group = emd_file.get("user")
-        if user_group is not None:
-            for key, value in user_group.attrs.items():
-                emd.user[key] = value
-        # Extract microscope:
-        microscope_group = emd_file.get("microscope")
-        if microscope_group is not None:
-            for key, value in microscope_group.attrs.items():
-                emd.microscope[key] = value
-        # Extract sample:
-        sample_group = emd_file.get("sample")
-        if sample_group is not None:
-            for key, value in sample_group.attrs.items():
-                emd.sample[key] = value
-        # Extract comments:
-        comments_group = emd_file.get("comments")
-        if comments_group is not None:
-            for key, value in comments_group.attrs.items():
-                emd.comments[key] = value
-        # Extract signals:
-        node_list = list(emd_file.keys())
-        for key in [
-            "user",
-            "microscope",
-            "sample",
-            "comments",
-        ]:  # Nodes which are not the data!
-            if key in node_list:
-                node_list.pop(node_list.index(key))  # Pop all unwanted nodes!
-        dataset_in_file_list = []
-        for node in node_list:
-            data_group = emd_file.get(node)
-            if data_group is not None:
-                for group in data_group.values():
-                    name = group.name
-                    if isinstance(group, h5py.Group):
-                        if group.attrs.get("emd_group_type") == 1:
-                            dataset_in_file_list.append(name)
-        if len(dataset_in_file_list) == 0:
-            raise IOError("No datasets found in {0}".format(filename))
-        dataset_read_list = []
-        if dataset_name is not None:
-            if isinstance(dataset_name, str):
-                dataset_name = [dataset_name]
-
-            for temp_dataset_name in dataset_name:
-                if temp_dataset_name in dataset_in_file_list:
-                    dataset_read_list.append(temp_dataset_name)
-                else:
-                    raise IOError(
-                        "Dataset with name {0} not found in the file. "
-                        "Possible datasets are {1}.".format(
-                            temp_dataset_name, ", ".join(dataset_in_file_list)
-                        )
-                    )
-        else:
-            dataset_read_list = dataset_in_file_list
-        for dataset_read in dataset_read_list:
-            group = emd_file[dataset_read]
-            emd._read_signal_from_group(dataset_read, group, lazy)
-
-        # Close file and return EMD object:
-        if not lazy:
-            emd_file.close()
-        return emd
-
-    def save_to_emd(self, filename="datacollection.emd"):
-        """Save :class:`~.EMD` data in a file with emd(hdf5)-format.
-
-        Parameters
-        ----------
-        filename : string, optional
-            The name of the emd-file in which to store the signals.
-            The default is 'datacollection.emd'.
-
-        Returns
-        -------
-        None
-
-        """
-        self._log.debug("Calling save_to_emd")
-        # Open file:
-        emd_file = h5py.File(filename, "w")
-        # Write version:
-        ver_maj, ver_min = EMD_VERSION.split(".")
-        emd_file.attrs["version_major"] = ver_maj
-        emd_file.attrs["version_minor"] = ver_min
-        # Write user:
-        user_group = emd_file.require_group("user")
-        for key, value in self.user.items():
-            user_group.attrs[key] = value
-        # Write microscope:
-        microscope_group = emd_file.require_group("microscope")
-        for key, value in self.microscope.items():
-            microscope_group.attrs[key] = value
-        # Write sample:
-        sample_group = emd_file.require_group("sample")
-        for key, value in self.sample.items():
-            sample_group.attrs[key] = value
-        # Write comments:
-        comments_group = emd_file.require_group("comments")
-        for key, value in self.comments.items():
-            comments_group.attrs[key] = value
-        # Write signals:
-        signal_group = emd_file.require_group("signals")
-        for signal in self.signals.values():
-            self._write_signal_to_group(signal_group, signal)
-        # Close file and return EMD object:
-        emd_file.close()
-
-    def log_info(self):
-        """( all relevant information about the EMD instance."""
-        self._log.debug("Calling log_info")
-        pad_string0 = "-------------------------\n"
-        pad_string1 = "\n-------------------------\n"
-        info_str = "\nUser:" + pad_string1
-        for key, value in self.user.items():
-            info_str += "{:<15}: {}\n".format(key, value)
-        info_str += pad_string0 + "\nMicroscope:" + pad_string1
-        for key, value in self.microscope.items():
-            info_str += "{:<15}: {}\n".format(key, value)
-        info_str += pad_string0 + "\nSample:" + pad_string1
-        for key, value in self.sample.items():
-            info_str += "{:<15}: {}\n".format(key, value)
-        info_str += pad_string0 + "\nComments:" + pad_string1
-        for key, value in self.comments.items():
-            info_str += "{:<15}: {}\n".format(key, value)
-        info_str += pad_string0 + "\nData:" + pad_string1
-        for key, value in self.signals.items():
-            info_str += "{:<15}: {}\n".format(key, value)
-            sig_dict = value.metadata.Signal
-            for k in sig_dict.keys():
-                info_str += "  |-- {}: {}\n".format(k, sig_dict[k])
-        info_str += pad_string0
-        self._log.info(info_str)
 
 
 class EMD_NCEM:
@@ -674,7 +265,7 @@ class EMD_NCEM:
         shape = data.shape
 
         if len(array_list) > 1:
-            offset, scale, units = 0, 1, t.Undefined
+            offset, scale, units = 0, 1, None
             if self._is_prismatic_file and "depth" in stack_key:
                 simu_om = original_metadata.get("simulation_parameters", {})
                 if "numSlices" in simu_om.keys():
@@ -699,11 +290,11 @@ class EMD_NCEM:
                     )
                     # When non-uniform/non-linear axis are implemented, adjust
                     # the final depth to the "total_thickness"
-                    offset, scale, units = 0, 1, t.Undefined
+                    offset, scale, units = 0, 1, None
             axes.append(
                 {
                     "index_in_array": 0,
-                    "name": stack_key if stack_key is not None else t.Undefined,
+                    "name": stack_key if stack_key is not None else None,
                     "offset": offset,
                     "scale": scale,
                     "size": len(array_list),
@@ -751,9 +342,7 @@ class EMD_NCEM:
 
     def _parse_attribute(self, obj, key):
         value = obj.attrs.get(key)
-        if value is None:
-            value = t.Undefined
-        else:
+        if value is not None:
             if not isinstance(value, str):
                 value = value.decode()
             if key == "units":
@@ -1166,9 +755,12 @@ class FeiEMDReader(object):
         # a traditional view the negative half must be created and the data
         # must be re-centered
         # Similar story for DPC signal
-        fft_dtype = [("realFloatHalfEven", "<f4"), ("imagFloatHalfEven", "<f4")]
+        fft_dtype = [
+            [("realFloatHalfEven", "<f4"), ("imagFloatHalfEven", "<f4")],
+            [("realFloatHalfOdd", "<f4"), ("imagFloatHalfOdd", "<f4")],
+        ]
         dpc_dtype = [("realFloat", "<f4"), ("imagFloat", "<f4")]
-        if h5data.dtype == fft_dtype or h5data.dtype == dpc_dtype:
+        if h5data.dtype in fft_dtype or h5data.dtype == dpc_dtype:
             _logger.debug("Found an FFT or DPC, loading as Complex2DSignal")
             real = h5data.dtype.descr[0][0]
             imag = h5data.dtype.descr[1][0]
@@ -1367,7 +959,7 @@ class FeiEMDReader(object):
             frame_time = original_metadata["Scan"]["FrameTime"]
             time_unit = "s"
         except KeyError:
-            frame_time, time_unit = None, t.Undefined
+            frame_time, time_unit = None, None
 
         frame_time, time_unit = self._convert_scale_units(frame_time, time_unit, factor)
         return frame_time, time_unit
@@ -1575,10 +1167,10 @@ class FeiEMDReader(object):
                     return dispersion, offset, "keV"
         except KeyError:
             _logger.warning("The spectrum calibration can't be loaded.")
-            return 1, 0, t.Undefined
+            return 1, 0, None
 
     def _convert_scale_units(self, value, units, factor=1):
-        if units == t.Undefined:
+        if units is None:
             return value, units
         factor /= 2
         v = float(value) * _UREG(units)
@@ -1957,14 +1549,6 @@ def file_reader(filename, lazy=False, **kwds):
             emd_reader.read_file(file)
         elif is_EMD_NCEM(file):
             _logger.debug("EMD file is a Berkeley variant.")
-            dataset_name = kwds.pop("dataset_name", None)
-            if dataset_name is not None:
-                msg = (
-                    "Using 'dataset_name' is deprecated and will be removed "
-                    "in HyperSpy 2.0, use 'dataset_path' instead."
-                )
-                warnings.warn(msg, VisibleDeprecationWarning)
-                dataset_path = f"{dataset_name}/data"
             dataset_path = kwds.pop("dataset_path", None)
             stack_group = kwds.pop("stack_group", None)
             emd_reader = EMD_NCEM(**kwds)

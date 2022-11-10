@@ -1,11 +1,10 @@
 """skimage's `rescale_intensity` that takes and returns dask arrays.
 """
 
+import warnings
+
 import numpy as np
-import dask.array as da
-
-
-from skimage.exposure.exposure import intensity_range, _output_dtype, DTYPE_RANGE
+from skimage.exposure.exposure import intensity_range, _output_dtype
 
 
 def rescale_intensity(image, in_range="image", out_range="dtype"):
@@ -111,7 +110,7 @@ def rescale_intensity(image, in_range="image", out_range="dtype"):
     )
 
     if np.any(np.isnan([imin, imax, omin, omax])):
-        utils.warn(
+        warnings.warn(
             "One or more intensity levels are NaN. Rescaling will broadcast "
             "NaN to the full image. Provide intensity levels yourself to "
             "avoid this. E.g. with np.nanmin(image), np.nanmax(image).",

@@ -19,7 +19,7 @@
 import numpy as np
 from dask.array import Array
 
-from hyperspy.misc.utils import get_numpy_kwargs
+from rsciio.utils.array import get_numpy_kwargs
 
 
 rgba8 = np.dtype({"names": ["R", "G", "B", "A"], "formats": ["u1", "u1", "u1", "u1"]})

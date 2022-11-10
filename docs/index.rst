@@ -25,9 +25,9 @@ Similarly, it takes a dictionary as input for file writers.
 
 .. note::
 
-   RosettaSciIO has recently been split out of the `HyperSpy repository 
-   <https://github.com/hyperspy/hyperspy>`_ and the new API is still under development. 
-   HyperSpy will use the RosettaSciIO IO-plugins from v2.0. It is already possible to import 
+   RosettaSciIO has recently been split out of the `HyperSpy repository
+   <https://github.com/hyperspy/hyperspy>`_ and the new API is still under development.
+   HyperSpy will use the RosettaSciIO IO-plugins from v2.0. It is already possible to import
    the readers directly from RosettaSciIO as follows:
 
 .. code::
@@ -42,7 +42,8 @@ Table of contents
    :maxdepth: 2
 
    supported_formats/index
+   api
    interoperatibility
    file_specification/index
+   contributing
    changes
-

@@ -22,7 +22,8 @@ import os
 import numpy as np
 import pytest
 
-import hyperspy.api as hs
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
 
 dirpath = os.path.dirname(__file__)
 

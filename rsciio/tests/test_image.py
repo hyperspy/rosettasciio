@@ -19,20 +19,13 @@
 import numpy as np
 import pytest
 
-import hyperspy.api as hs
-
-
-try:
-    from matplotlib_scalebar.scalebar import ScaleBar
-
-    matplotlib_scalebar_installed = True
-except ImportError:  # pragma: no cover
-    matplotlib_scalebar_installed = False
+from rsciio.image.api import file_writer
 
 
 @pytest.mark.parametrize(("dtype"), ["uint8", "uint32"])
 @pytest.mark.parametrize(("ext"), ["png", "bmp", "gif", "jpg"])
 def test_save_load_cycle_grayscale(dtype, ext, tmp_path):
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     s = hs.signals.Signal2D(np.arange(128 * 128).reshape(128, 128).astype(dtype))
 
     print("Saving-loading cycle for the extension:", ext)
@@ -44,6 +37,7 @@ def test_save_load_cycle_grayscale(dtype, ext, tmp_path):
 @pytest.mark.parametrize(("color"), ["rgb8", "rgba8", "rgb16", "rgba16"])
 @pytest.mark.parametrize(("ext"), ["png", "bmp", "gif", "jpeg"])
 def test_save_load_cycle_color(color, ext, tmp_path):
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     dim = 4 if "rgba" in color else 3
     dtype = "uint8" if "8" in color else "uint16"
     if dim == 4 and ext == "jpeg":
@@ -64,6 +58,7 @@ def test_save_load_cycle_color(color, ext, tmp_path):
 @pytest.mark.parametrize(("dtype"), ["uint8", "uint32"])
 @pytest.mark.parametrize(("ext"), ["png", "bmp", "gif", "jpg"])
 def test_save_load_cycle_kwds(dtype, ext, tmp_path):
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     s = hs.signals.Signal2D(np.arange(128 * 128).reshape(128, 128).astype(dtype))
 
     print("Saving-loading cycle for the extension:", ext)
@@ -85,13 +80,15 @@ def test_save_load_cycle_kwds(dtype, ext, tmp_path):
 
 @pytest.mark.parametrize(("ext"), ["png", "bmp", "gif", "jpg"])
 def test_export_scalebar(ext, tmp_path):
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+    pytest.importorskip("matplotlib_scalebar")
     data = np.arange(1e6).reshape((1000, 1000))
     s = hs.signals.Signal2D(data)
     s.axes_manager[0].units = "nm"
     s.axes_manager[1].units = "nm"
 
     filename = tmp_path / f"test_scalebar_export.{ext}"
-    if ext in ["bmp", "gif"] and matplotlib_scalebar_installed:
+    if ext in ["bmp", "gif"]:
         with pytest.raises(ValueError):
             s.save(filename, scalebar=True)
         with pytest.raises(ValueError):
@@ -104,6 +101,7 @@ def test_export_scalebar(ext, tmp_path):
 
 
 def test_export_scalebar_reciprocal(tmp_path):
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     pixels = 512
     s = hs.signals.Signal2D(np.arange(pixels**2).reshape((pixels, pixels)))
     for axis in s.axes_manager.signal_axes:
@@ -117,6 +115,7 @@ def test_export_scalebar_reciprocal(tmp_path):
 
 
 def test_export_scalebar_undefined_units(tmp_path):
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     pixels = 512
     s = hs.signals.Signal2D(np.arange(pixels**2).reshape((pixels, pixels)))
 
@@ -127,6 +126,7 @@ def test_export_scalebar_undefined_units(tmp_path):
 
 
 def test_non_uniform(tmp_path):
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     pixels = 16
     s = hs.signals.Signal2D(np.arange(pixels**2).reshape((pixels, pixels)))
     s.axes_manager[0].convert_to_non_uniform_axis()
@@ -136,10 +136,9 @@ def test_non_uniform(tmp_path):
         s.save(filename)
 
 
-@pytest.mark.skipif(
-    not matplotlib_scalebar_installed, reason="matplotlib_scalebar is not installed"
-)
 def test_export_scalebar_different_scale_units(tmp_path):
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+    pytest.importorskip("matplotlib_scalebar")
     pixels = 16
     s = hs.signals.Signal2D(np.arange(pixels**2).reshape((pixels, pixels)))
     s.axes_manager[0].scale = 2
@@ -158,6 +157,7 @@ def test_export_scalebar_different_scale_units(tmp_path):
 
 @pytest.mark.parametrize("output_size", (512, [512, 512]))
 def test_export_output_size(output_size, tmp_path):
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     pixels = 16
     s = hs.signals.Signal2D(np.arange(pixels**2).reshape((pixels, pixels)))
 
@@ -169,6 +169,7 @@ def test_export_output_size(output_size, tmp_path):
 
 @pytest.mark.parametrize("output_size", (512, (512, 512)))
 def test_export_output_size_non_square(output_size, tmp_path):
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     pixels = (8, 16)
     s = hs.signals.Signal2D(np.arange(np.multiply(*pixels)).reshape(pixels))
 
@@ -185,6 +186,7 @@ def test_export_output_size_non_square(output_size, tmp_path):
 @pytest.mark.parametrize("output_size", (None, 512))
 @pytest.mark.parametrize("aspect", (1, 0.5))
 def test_export_output_size_aspect(aspect, output_size, tmp_path):
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     pixels = (256, 256)
     s = hs.signals.Signal2D(np.arange(np.multiply(*pixels)).reshape(pixels))
 
@@ -200,8 +202,36 @@ def test_export_output_size_aspect(aspect, output_size, tmp_path):
 
 
 def test_save_image_navigation(tmp_path):
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     pixels = 16
     s = hs.signals.Signal2D(np.arange(pixels**2).reshape((pixels, pixels)))
 
     fname = tmp_path / "test_save_image_navigation.jpg"
     s.T.save(fname, scalebar=True)
+
+
+def test_error_library_no_installed(tmp_path):
+    axis = {
+        "_type": "UniformDataAxis",
+        "name": None,
+        "units": None,
+        "navigate": False,
+        "is_binned": False,
+        "size": 128,
+        "scale": 1.0,
+        "offset": 0.0,
+    }
+    signal_dict = {"data": np.arange(128 * 128).reshape(128, 128), "axes": [axis, axis]}
+
+    try:
+        import matplotlib
+    except:
+        # When matplotlib is not installed, raises an error to inform user
+        # that matplotlib is necessary
+        with pytest.raises(ValueError):
+            file_writer(tmp_path / "test_image_error.jpg", signal_dict, output_size=64)
+
+        with pytest.raises(ValueError):
+            file_writer(
+                tmp_path / "test_image_error.jpg", signal_dict, imshow_kwds={"a": "b"}
+            )

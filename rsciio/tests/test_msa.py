@@ -1,10 +1,12 @@
 import copy
 import os.path
 import tempfile
+import pytest
 
-from hyperspy.io import load
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
 from hyperspy.misc.test_utils import assert_deep_almost_equal
-from hyperspy import __version__ as hs_version
+
 
 my_path = os.path.dirname(__file__)
 
@@ -35,7 +37,7 @@ example1_metadata = {
         "FileIO": {
             "0": {
                 "operation": "load",
-                "hyperspy_version": hs_version,
+                "hyperspy_version": hs.__version__,
                 "io_plugin": "rsciio.msa.api",
             }
         },
@@ -132,7 +134,7 @@ example2_metadata = {
         "FileIO": {
             "0": {
                 "operation": "load",
-                "hyperspy_version": hs_version,
+                "hyperspy_version": hs.__version__,
                 "io_plugin": "rsciio.msa.api",
             }
         },
@@ -197,7 +199,7 @@ example2_parameters = {
 
 class TestExample1:
     def setup_method(self, method):
-        self.s = load(os.path.join(my_path, "msa_files", "example1.msa"))
+        self.s = hs.load(os.path.join(my_path, "msa_files", "example1.msa"))
         # delete timestamp from metadata since it's runtime dependent
         del self.s.metadata.General.FileIO.Number_0.timestamp
 
@@ -236,7 +238,7 @@ class TestExample1:
         with tempfile.TemporaryDirectory() as tmpdir:
             fname2 = os.path.join(tmpdir, "example1-export.msa")
             self.s.save(fname2)
-            s2 = load(fname2)
+            s2 = hs.load(fname2)
             # delete timestamp from metadata since it's runtime dependent
             del s2.metadata.General.FileIO.Number_0.timestamp
             del self.s.metadata.General.FileIO.Number_1
@@ -251,7 +253,7 @@ class TestExample1:
 
 class TestExample1WrongDate:
     def setup_method(self, method):
-        self.s = load(os.path.join(my_path, "msa_files", "example1_wrong_date.msa"))
+        self.s = hs.load(os.path.join(my_path, "msa_files", "example1_wrong_date.msa"))
         # delete timestamp from metadata since it's runtime dependent
         del self.s.metadata.General.FileIO.Number_0.timestamp
 
@@ -265,7 +267,7 @@ class TestExample1WrongDate:
 
 class TestExample2:
     def setup_method(self, method):
-        self.s = load(os.path.join(my_path, "msa_files", "example2.msa"))
+        self.s = hs.load(os.path.join(my_path, "msa_files", "example2.msa"))
         # delete timestamp from metadata since it's runtime dependent
         del self.s.metadata.General.FileIO.Number_0.timestamp
 
@@ -363,7 +365,7 @@ class TestExample2:
         with tempfile.TemporaryDirectory() as tmpdir:
             fname2 = os.path.join(tmpdir, "example2-export.msa")
             self.s.save(fname2)
-            s2 = load(fname2)
+            s2 = hs.load(fname2)
             assert s2.metadata.General.original_filename == "example2-export.msa"
             s2.metadata.General.original_filename = "example2.msa"
             # delete timestamp from metadata since it's runtime dependent
@@ -375,5 +377,50 @@ class TestExample2:
 
 
 def test_minimum_metadata_example():
-    s = load(os.path.join(my_path, "msa_files", "minimum_metadata.msa"))
+    s = hs.load(os.path.join(my_path, "msa_files", "minimum_metadata.msa"))
     assert minimum_md_om == s.original_metadata.as_dictionary()
+
+
+class TestSignalType:
+    def setup_method(self, method):
+        self.s = hs.load(os.path.join(my_path, "msa_files", "minimum_metadata.msa"))
+        # delete timestamp from metadata since it's runtime dependent
+        del self.s.metadata.General.FileIO.Number_0.timestamp
+
+    @pytest.mark.parametrize(
+        "signaltype", ("EDS_SEM", "EDS_TEM", "CL", "EELS", "PES", "brian")
+    )
+    def test_write_minimum_metadata_signaltype(self, signaltype):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            fname2 = os.path.join(tmpdir, "example-min-export.msa")
+            self.s.metadata.Signal.signal_type = signaltype
+            self.s.save(fname2)
+            s2 = hs.load(fname2)
+            if "EDS" in signaltype:
+                assert s2.original_metadata["SIGNALTYPE"] == "EDS"
+            elif signaltype == "CL":
+                assert s2.original_metadata["SIGNALTYPE"] == "CLS"
+            elif signaltype == "EELS":
+                assert s2.original_metadata["SIGNALTYPE"] == "ELS"
+            elif signaltype not in [
+                "EDS",
+                "WDS",
+                "ELS",
+                "AES",
+                "PES",
+                "XRF",
+                "CLS",
+                "GAM",
+            ]:
+                assert s2.original_metadata["SIGNALTYPE"] == ""
+            else:
+                assert s2.original_metadata["SIGNALTYPE"] in [
+                    "EDS",
+                    "WDS",
+                    "ELS",
+                    "AES",
+                    "PES",
+                    "XRF",
+                    "CLS",
+                    "GAM",
+                ]

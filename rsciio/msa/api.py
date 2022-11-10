@@ -20,8 +20,7 @@ from datetime import datetime as dt
 import codecs
 import os
 import logging
-from pydoc import doc
-from turtle import dot
+import warnings
 
 import numpy as np
 
@@ -67,7 +66,7 @@ keywords = {
     "OFFSET": {"dtype": float, "mapped_to": None},
     # Optional parameters
     # Signal1D characteristics
-    "SIGNALTYPE": {"dtype": str, "mapped_to": "Signal.signal_type"},
+    "SIGNALTYPE": {"dtype": str, "mapped_to": None},
     "XLABEL": {"dtype": str, "mapped_to": None},
     "YLABEL": {"dtype": str, "mapped_to": None},
     "XUNITS": {"dtype": str, "mapped_to": None},
@@ -282,14 +281,28 @@ def parse_msa_string(string, filename=None):
     if filename is not None:
         mapped.set_item("General.original_filename", os.path.split(filename)[1])
     mapped.set_item("Signal.record_by", "spectrum")
-    if mapped.has_item("Signal.signal_type"):
-        if mapped.Signal.signal_type == "ELS":
-            mapped.Signal.signal_type = "EELS"
-        if mapped.Signal.signal_type in ["EDX", "XEDS"]:
-            mapped.Signal.signal_type = "EDS"
+    if "SIGNALTYPE" in parameters and parameters["SIGNALTYPE"]:
+        if parameters["SIGNALTYPE"] == "ELS":
+            mapped.set_item("Signal.signal_type", "EELS")
+        elif parameters["SIGNALTYPE"] == "CLS":
+            mapped.set_item("Signal.signal_type", "CL")
+        else:  # pragma: no cover
+            if parameters["SIGNALTYPE"] not in [
+                "EDS",
+                "WDS",
+                "AES",
+                "PES",
+                "XRF",
+                "GAM",
+            ]:
+                warnings.warn(
+                    """SIGNALTYPE does not correspond to any of the valid strings
+                    according to the MSA file format definition."""
+                )
+            mapped.set_item("Signal.signal_type", parameters["SIGNALTYPE"])
     else:
-        # Defaulting to EELS looks reasonable
-        mapped.set_item("Signal.signal_type", "EELS")
+        # Defaults to empty signal type, which is Signal1D for HyperSpy
+        mapped.set_item("Signal.signal_type", "")
     if "YUNITS" in parameters.keys():
         yunits = "(%s)" % parameters["YUNITS"]
     else:
@@ -351,6 +364,25 @@ def file_writer(filename, signal, format=None, separator=", ", encoding="latin-1
         if "General.item" in md:
             time = dt.strptime(md.General.time, "%H:%M:%S")
             loc_kwds["TIME"] = time.strftime("%H:%M")
+    if md.Signal.signal_type in ["EDS_SEM", "EDS_TEM"]:
+        loc_kwds["SIGNALTYPE"] = "EDS"
+    elif md.Signal.signal_type in ["EELS"]:
+        loc_kwds["SIGNALTYPE"] = "ELS"
+    elif md.Signal.signal_type in ["CL", "CL_SEM", "CL_STEM"]:
+        loc_kwds["SIGNALTYPE"] = "CLS"
+    elif md.Signal.signal_type not in [
+        "EDS",
+        "WDS",
+        "ELS",
+        "AES",
+        "PES",
+        "XRF",
+        "CLS",
+        "GAM",
+    ]:
+        loc_kwds["SIGNALTYPE"] = ""
+    else:
+        loc_kwds["SIGNALTYPE"] = md.Signal.signal_type
     keys_from_signal = {
         # Required parameters
         "FORMAT": FORMAT,
@@ -362,7 +394,7 @@ def file_writer(filename, signal, format=None, separator=", ", encoding="latin-1
         "NPOINTS": signal["axes"][0]["size"],
         "NCOLUMNS": 1,
         "DATATYPE": format,
-        "SIGNALTYPE": md.Signal.signal_type,
+        "SIGNALTYPE": "",
         "XPERCHAN": signal["axes"][0]["scale"],
         "OFFSET": signal["axes"][0]["offset"],
         # Signal1D characteristics

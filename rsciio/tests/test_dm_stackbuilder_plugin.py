@@ -20,14 +20,17 @@
 import os
 import numpy as np
 
-from hyperspy.io import load
+import pytest
+
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
 
 my_path = os.path.dirname(__file__)
 
 
 class TestStackBuilder:
     def test_load_stackbuilder_imagestack(self):
-        image_stack = load(
+        image_stack = hs.load(
             os.path.join(
                 my_path, "dm_stackbuilder_plugin", "test_stackbuilder_imagestack.dm3"
             )

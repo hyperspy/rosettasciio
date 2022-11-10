@@ -21,8 +21,10 @@ import os
 import numpy as np
 import pytest
 
-import hyperspy.api as hs
 from rsciio.impulse.api import ImpulseCSV, invalid_file_error, invalid_filenaming_error
+
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
 
 testdirpath = os.path.dirname(__file__)
 dirpath = os.path.join(testdirpath, "impulse_data")

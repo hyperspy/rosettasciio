@@ -25,12 +25,23 @@ from rsciio.version import __version__
 IO_PLUGINS = []
 _logger = logging.getLogger(__name__)
 
-here = os.path.abspath(os.path.dirname(__file__))
+for sub, _, _ in os.walk(os.path.abspath(os.path.dirname(__file__))):
+    _specsf = os.path.join(sub, "specifications.yaml")
+    if os.path.isfile(_specsf):
+        with open(_specsf, "r") as stream:
+            _specs = yaml.safe_load(stream)
+            # for testing purposes
+            if _specs["name"] in ["Blockfile", "BrukerComposite"]:
+                _specs["api"] = "rsciio.%s" % os.path.split(sub)[1]
+            else:
+                _specs["api"] = "rsciio.%s.api" % os.path.split(sub)[1]
+            IO_PLUGINS.append(_specs)
 
-for sub, _, _ in os.walk(here):
-    specsf = os.path.join(sub, "specifications.yaml")
-    if os.path.isfile(specsf):
-        with open(specsf, "r") as stream:
-            specs = yaml.safe_load(stream)
-            specs["api"] = "rsciio.%s.api" % os.path.split(sub)[1]
-            IO_PLUGINS.append(specs)
+__all__ = [
+    "__version__",
+    "IO_PLUGINS",
+]
+
+
+def __dir__():
+    return sorted(__all__)

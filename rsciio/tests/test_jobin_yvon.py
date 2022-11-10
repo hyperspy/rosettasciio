@@ -109,7 +109,6 @@ class TestSpec:
             use_uniform_signal_axis=True,
         )
         assert isinstance(s_lum, lum.signals.luminescence_spectrum.LumiSpectrum)
-        del s_lum
 
     def test_intensity_count_unit(self):
         assert self.s_count.metadata.Signal.quantity == "Intensity (Counts)"

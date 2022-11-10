@@ -350,6 +350,8 @@ def _metadata_converter_out(metadata, original_metadata=None):
     original_extension = os.path.splitext(original_fname)[1]
     if original_metadata.get("ref_size"):
         PR_metadata_present = True
+    else:
+        PR_metadata_present = False
 
     if original_extension == ".prz" and PR_metadata_present:
         meta_data = original_metadata

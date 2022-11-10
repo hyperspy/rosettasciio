@@ -447,7 +447,7 @@ class EMD_NCEM:
 
         Parameters
         ----------
-        file : str or h5py file handle
+        file : str of h5py file handle
             If str, filename of the file to write, otherwise a h5py file handle
         signal : instance of hyperspy signal
             The signal to save.

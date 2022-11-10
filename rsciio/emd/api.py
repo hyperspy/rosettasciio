@@ -447,7 +447,7 @@ class EMD_NCEM:
 
         Parameters
         ----------
-        file : str of h5py file handle
+        file : str or h5py file handle
             If str, filename of the file to write, otherwise a h5py file handle
         signal : instance of hyperspy signal
             The signal to save.
@@ -458,6 +458,8 @@ class EMD_NCEM:
         """
         if isinstance(file, str):
             emd_file = h5py.File(file, "w")
+        else:
+            emd_file = file
         # Write version:
         ver_maj, ver_min = EMD_VERSION.split(".")
         emd_file.attrs["version_major"] = ver_maj

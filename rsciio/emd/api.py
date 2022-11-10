@@ -957,6 +957,8 @@ class FeiEMDReader(object):
             detector_index = 0
         if detector_index is not None:
             return om["Detectors"]["Detector-{}".format(detector_index)]
+        else:
+            return None
 
     def _parse_frame_time(self, original_metadata, factor=1):
         try:

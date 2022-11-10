@@ -1601,3 +1601,5 @@ def gen_iso_date_time(node):
         date = dt.date().isoformat()
         time = dt.time().isoformat()
         return date, time
+    else:
+        return None

@@ -1197,7 +1197,7 @@ mapping_cz_sem = {
     ),
     "CZ_SEM.dp_detector_type": (
         "Acquisition_instrument.SEM.Detector.detector_type",
-        lambda tup: _parse_tuple_Zeiss(tup),
+        _parse_tuple_Zeiss,
     ),
     "CZ_SEM.sv_serial_number": (
         "Acquisition_instrument.SEM.microscope",

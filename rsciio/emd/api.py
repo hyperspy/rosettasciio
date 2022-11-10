@@ -1234,7 +1234,7 @@ class FeiEMDReader(object):
             ),
             "CustomProperties.StemMagnification.value": (
                 "Acquisition_instrument.TEM.magnification",
-                lambda x: float(x),
+                float,
             ),
             "Instrument.InstrumentClass": (
                 "Acquisition_instrument.TEM.microscope",
@@ -1270,11 +1270,11 @@ class FeiEMDReader(object):
             ),
             "DetectorMetadata.Gain": (
                 "Signal.Noise_properties.Variance_linear_model.gain_factor",
-                lambda x: float(x),
+                float,
             ),
             "DetectorMetadata.Offset": (
                 "Signal.Noise_properties.Variance_linear_model.gain_offset",
-                lambda x: float(x),
+                float,
             ),
         }
 

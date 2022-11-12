@@ -42,7 +42,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/semper';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Tagges image file format (TIFF)" href="tiff.html" />
+    <link rel="next" title="Tagged image file format (TIFF)" href="tiff.html" />
     <link rel="prev" title="Ripple format" href="ripple.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="en">
@@ -366,7 +366,7 @@
 <li class="toctree-l1"><a class="reference internal" href="protochips.html">Protochips logfile</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ripple.html">Ripple format</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">SEMPER binary format (UNF)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tiff.html">Tagges image file format (TIFF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tiff.html">Tagged image file format (TIFF)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tvips.html">TVIPS format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usid.html">Universal Spectroscopy and Imaging Data (h5USID)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="zspy.html">ZSpy - HyperSpy’s Zarr Specification</a></li>
@@ -410,6 +410,65 @@ binary format with an extensive header for up to 3 dimensional data.
 RosettaSciIO can read and write <code class="docutils literal notranslate"><span class="pre">.unf</span></code>-files and will try to convert the data into a
 fitting BaseSignal subclass, based on the information stored in the label.
 Currently version 7 of the format should be fully supported.</p>
+<section id="module-rsciio.semper_unf">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.semper_unf" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.semper_unf.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.semper_unf.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.semper_unf.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Read a Semper <code class="docutils literal notranslate"><span class="pre">.unf</span></code> file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – Filename of the file to read.</p></li>
+<li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dicts</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.semper_unf.file_writer">
+<span class="sig-prename descclassname"><span class="pre">rsciio.semper_unf.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.semper_unf.file_writer" title="Permalink to this definition">#</a></dt>
+<dd><p>Write signal to a Semper <code class="docutils literal notranslate"><span class="pre">.unf</span></code> file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – Filename of the file to write to.</p></li>
+<li><p><strong>signal</strong> (<em>dict</em>) – <p>Dictionary containing the signal object.
+Should contain the following fields:</p>
+<ul>
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the metadata tree</p></li>
+</ul>
+</p></li>
+<li><p><strong>skip_header</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Determines if the header, title and label should be skipped (useful
+for some other programs).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -430,7 +489,7 @@ Currently version 7 of the format should be fully supported.</p>
   <a class='right-next' id="next-link" href="tiff.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">Tagges image file format (TIFF)</p>
+      <p class="prev-next-title">Tagged image file format (TIFF)</p>
   </div>
   <i class="fa-solid fa-angle-right"></i>
   </a>
@@ -443,6 +502,43 @@ Currently version 7 of the format should be fully supported.</p>
           
             <div class="bd-sidebar-secondary bd-toc">
               
+<div class="toc-item">
+  
+<div class="tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+</div>
+<nav id="bd-toc-nav" class="page-toc">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-rsciio.semper_unf">
+   API functions
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rsciio.semper_unf.file_reader">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       file_reader()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rsciio.semper_unf.file_writer">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       file_writer()
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+</div>
+
 <div class="toc-item">
   
 <div id="searchbox"></div>

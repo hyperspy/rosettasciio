@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Tagges image file format (TIFF) &#8212; RosettaSciIO  documentation</title>
+    <title>Tagged image file format (TIFF) &#8212; RosettaSciIO  documentation</title>
   <script>
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
@@ -366,7 +366,7 @@
 <li class="toctree-l1"><a class="reference internal" href="protochips.html">Protochips logfile</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ripple.html">Ripple format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="semper.html">SEMPER binary format (UNF)</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Tagges image file format (TIFF)</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Tagged image file format (TIFF)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tvips.html">TVIPS format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usid.html">Universal Spectroscopy and Imaging Data (h5USID)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="zspy.html">ZSpy - HyperSpy’s Zarr Specification</a></li>
@@ -400,8 +400,8 @@
             
             <article class="bd-article" role="main">
               
-  <section id="tagges-image-file-format-tiff">
-<span id="tiff-format"></span><h1>Tagges image file format (TIFF)<a class="headerlink" href="#tagges-image-file-format-tiff" title="Permalink to this heading">#</a></h1>
+  <section id="tagged-image-file-format-tiff">
+<span id="tiff-format"></span><h1>Tagged image file format (TIFF)<a class="headerlink" href="#tagged-image-file-format-tiff" title="Permalink to this heading">#</a></h1>
 <p>RosettaSciIO can read and write 2D and 3D <code class="docutils literal notranslate"><span class="pre">.tiff</span></code> files using using
 Christoph Gohlke’s <a class="reference external" href="https://pypi.org/project/tifffile/">tifffile</a> library.
 In particular, it supports reading and
@@ -415,57 +415,8 @@ files is compatible with ImageJ/Fiji and Gatan Digital Micrograph software.
 RosettaSciIO can also import the scale and the units from <code class="docutils literal notranslate"><span class="pre">.tiff</span></code> files saved using
 FEI, Zeiss SEM, Olympus SIS, Jeol SightX and Hamamatsu HPD-TA (streak camera)
 software.</p>
-<section id="extra-loading-arguments">
-<h2>Extra loading arguments<a class="headerlink" href="#extra-loading-arguments" title="Permalink to this heading">#</a></h2>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">force_read_resolution</span></code> (bool, optional): Force read image resolution using
-the x_resolution, y_resolution and resolution_unit tags of the TIFF. Beware:
-most software don’t (properly) use these tags when saving TIFF files. Default
-is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">hamamatsu_streak_axis_type</span></code> (str, optional): decide the type of the
-time axis for hamamatsu streak files:</p>
-<ul>
-<li><p>if <code class="docutils literal notranslate"><span class="pre">uniform</span></code>, the best-fit linear axis is used, inducing a (small)
-linearisation error. Initialise a UniformDataAxis.</p></li>
-<li><p>if <code class="docutils literal notranslate"><span class="pre">data</span></code>, the raw time axis parsed from the metadata is used. Initialise
-a DataAxis.</p></li>
-<li><p>if <code class="docutils literal notranslate"><span class="pre">functional</span></code>, the best-fit 3rd-order polynomial axis is used, avoiding
-linearisation error. Initialise a FunctionalDataAxis.</p></li>
-</ul>
-</li>
-</ul>
-<p>By default, <code class="docutils literal notranslate"><span class="pre">uniform</span></code> is used but a warning of the linearisation error is issued.
-Explicitly passing <code class="docutils literal notranslate"><span class="pre">hamamatsu_streak_axis_type='uniform'</span></code> suppresses the warning.
-In all cases, the original axis values are stored in the <code class="docutils literal notranslate"><span class="pre">original_metadata</span></code> of the
-signal object.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Force read image resolution using the x_resolution, y_resolution and</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># the resolution_unit of the TIFF tags.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;file.tif&#39;</span><span class="p">,</span> <span class="n">force_read_resolution</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Load a non-uniform axis from a hamamatsu streak file:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;file.tif&#39;</span><span class="p">,</span> <span class="n">hamamatsu_streak_axis_type</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="extra-saving-arguments">
-<h2>Extra saving arguments<a class="headerlink" href="#extra-saving-arguments" title="Permalink to this heading">#</a></h2>
-<ul class="simple">
-<li><dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">extratags</span></code> (tuple, optional): save custom tags through the</dt><dd><p><code class="docutils literal notranslate"><span class="pre">tifffile</span></code> library. Must conform to a specific convention
-(see <code class="docutils literal notranslate"><span class="pre">tifffile</span></code> documentation and example below).</p>
-</dd>
-</dl>
-</li>
-</ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Saving the string &#39;Random metadata&#39; in a custom tag (ID 65000)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">extratag</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">65000</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Random metadata&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;file.tif&#39;</span><span class="p">,</span> <span class="n">extratags</span><span class="o">=</span><span class="n">extratag</span><span class="p">)</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Saving the string &#39;Random metadata&#39; from a custom tag (ID 65000)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;file.tif&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">original_metadata</span><span class="p">[</span><span class="s1">&#39;Number_65000&#39;</span><span class="p">]</span>
-<span class="go">b&#39;Random metadata&#39;</span>
-</pre></div>
-</div>
+<section id="api-functions">
+<h2>API functions<a class="headerlink" href="#api-functions" title="Permalink to this heading">#</a></h2>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>The file will be saved with the same bit depth as the signal. Since
@@ -524,13 +475,8 @@ compatible with other imaging software.</p>
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#extra-loading-arguments">
-   Extra loading arguments
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#extra-saving-arguments">
-   Extra saving arguments
+  <a class="reference internal nav-link" href="#api-functions">
+   API functions
   </a>
  </li>
 </ul>

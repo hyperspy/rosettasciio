@@ -366,7 +366,7 @@
 <li class="toctree-l1"><a class="reference internal" href="protochips.html">Protochips logfile</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ripple.html">Ripple format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="semper.html">SEMPER binary format (UNF)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tiff.html">Tagges image file format (TIFF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tiff.html">Tagged image file format (TIFF)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tvips.html">TVIPS format</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Universal Spectroscopy and Imaging Data (h5USID)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="zspy.html">ZSpy - HyperSpy’s Zarr Specification</a></li>
@@ -417,37 +417,40 @@ python package called <a class="reference external" href="https://pycroscopy.git
 If you have any questions regarding this module, please consider
 <a class="reference external" href="https://pycroscopy.github.io/pyUSID/contact.html">contacting</a>
 the developers of pyUSID.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>h5USID files can contain multiple USID datasets within the same file.
+RosettaSciIO supports reading in one or more USID datasets.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When writing files with this plugin, the model and other secondary data
+artifacts linked to the signal are not written to the file but these can be
+implemented at a later stage.</p>
+</div>
 </section>
 <section id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this heading">#</a></h2>
-<ol class="arabic simple">
-<li><p>Reading and writing h5USID files require the
-<a class="reference external" href="https://pycroscopy.github.io/pyUSID/install.html">installation of pyUSID</a>.</p></li>
-<li><p>Files must use the <code class="docutils literal notranslate"><span class="pre">.h5</span></code> file extension in order to use this IO plugin.
-Using the <code class="docutils literal notranslate"><span class="pre">.hdf5</span></code> extension will default to the <a class="reference internal" href="hspy.html#hspy-format"><span class="std std-ref">HyperSpy plugin</span></a>.</p></li>
-</ol>
+<p>Reading and writing h5USID files requires the
+<a class="reference external" href="https://pycroscopy.github.io/pyUSID/install.html">installation of pyUSID</a>.</p>
+<p>In <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, files must use the <code class="docutils literal notranslate"><span class="pre">.h5</span></code> file extension
+in order to use this IO
+plugin or the <code class="docutils literal notranslate"><span class="pre">reader=usid_hdf5</span></code> parameter of the <code class="docutils literal notranslate"><span class="pre">load</span></code> function needs to be
+set explicitly. Otherwise, using the <code class="docutils literal notranslate"><span class="pre">.hdf5</span></code> extension will default to the
+<a class="reference internal" href="hspy.html#hspy-format"><span class="std std-ref">HyperSpy plugin</span></a>.</p>
 </section>
-<section id="reading">
-<h2>Reading<a class="headerlink" href="#reading" title="Permalink to this heading">#</a></h2>
-<p>h5USID files can contain multiple USID datasets within the same file.
-RosettaSciIO supports reading in one or more USID datasets.</p>
-<section id="extra-loading-arguments">
-<h3>Extra loading arguments<a class="headerlink" href="#extra-loading-arguments" title="Permalink to this heading">#</a></h3>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">dataset_path</span></code>: str. Absolute path of USID Main HDF5 dataset.
-(default is <code class="docutils literal notranslate"><span class="pre">None</span></code> - all USID Main Datasets will be read)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ignore_non_linear_dims</span></code>: bool, default is True. If True, parameters that
-were varied non-linearly in the desired dataset will result in Exceptions.
-Else, all such non-linearly varied parameters will be treated as
-linearly varied parameters and a Signal object will be generated.</p></li>
-</ul>
-<p>Reading the sole dataset within a h5USID file:</p>
+<section id="api-functions">
+<h2>API functions<a class="headerlink" href="#api-functions" title="Permalink to this heading">#</a></h2>
+</section>
+<section id="usage-examples">
+<h2>Usage examples<a class="headerlink" href="#usage-examples" title="Permalink to this heading">#</a></h2>
+<p>Reading the sole dataset within a h5USID file using <a class="reference external" href="https://hyperspy.org">HyperSpy</a>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.h5&quot;</span><span class="p">)</span>
 <span class="go">&lt;Signal2D, title: HAADF, dimensions: (|128, 128)&gt;</span>
 </pre></div>
 </div>
-<p>If multiple datasets are present within the h5USID file and you try the same command again,
-<strong>all</strong> available datasets will be loaded.</p>
+<p>If multiple datasets are present within the h5USID file, <strong>all</strong> available
+datasets will be loaded.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Given that HDF5 files can accommodate very large datasets, setting <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code>
@@ -461,19 +464,19 @@ If it is important that the files be closed after reading, set <code class="docu
 <span class="go">&lt;Signal1D, title: EELS, dimensions: (|64, 64, 1024)&gt;]</span>
 </pre></div>
 </div>
-<p>We can load a specific dataset using the <code class="docutils literal notranslate"><span class="pre">dataset_path</span></code> keyword argument. Setting it to the
-absolute path of the desired dataset will cause the single dataset to be loaded.</p>
+<p>We can load a specific dataset using the <code class="docutils literal notranslate"><span class="pre">dataset_path</span></code> keyword argument.
+Setting it to the absolute path of the desired dataset will cause the single
+dataset to be loaded.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Loading a specific dataset</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.h5&quot;</span><span class="p">,</span> <span class="n">dataset_path</span><span class="o">=</span><span class="s1">&#39;/Measurement_004/Channel_003/Main_Data&#39;</span><span class="p">)</span>
 <span class="go">&lt;Signal2D, title: HAADF, dimensions: (|128, 128)&gt;</span>
 </pre></div>
 </div>
-<p>h5USID files support the storage of HDF5 dataset with
-<a class="reference external" href="https://pycroscopy.github.io/USID/usid_model.html#compound-datasets">compound data types</a>.
-As an (<em>oversimplified</em>) example, one could store a color image using a compound data type that allows
-each color channel to be accessed by name rather than an index.
-Naturally, reading in such a compound dataset into HyperSpy will result in a separate
-signal for each named component in the dataset:</p>
+<p>h5USID files support the storage of HDF5 dataset with <a class="reference external" href="https://pycroscopy.github.io/USID/usid_model.html#compound-datasets">compound data types</a>. As an
+(<em>oversimplified</em>) example, one could store a color image using a compound data
+type that allows each color channel to be accessed by name rather than an index.
+Naturally, reading in such a compound dataset into HyperSpy will result in a
+separate signal for each named component in the dataset:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;file_with_a_compound_dataset.h5&quot;</span><span class="p">)</span>
 <span class="go">[&lt;Signal2D, title: red, dimensions: (|128, 128)&gt;,</span>
 <span class="go">Signal2D, title: blue, dimensions: (|128, 128)&gt;,</span>
@@ -495,18 +498,6 @@ will default to a warning when it encounters a parameter that has been varied no
 <span class="go">Supply keyword argument &quot;ignore_non_uniform_dims=True&quot; to ignore this error</span>
 </pre></div>
 </div>
-</section>
-</section>
-<section id="writing">
-<h2>Writing<a class="headerlink" href="#writing" title="Permalink to this heading">#</a></h2>
-<p>Signals can be written to new h5USID files using the standard <code class="xref py py-meth docutils literal notranslate"><span class="pre">save()</span></code> function.
-Setting the <code class="docutils literal notranslate"><span class="pre">overwrite</span></code> keyword argument to <code class="docutils literal notranslate"><span class="pre">True</span></code> will append to the specified
-HDF5 file. All other keyword arguments will be passed to <a class="reference external" href="https://pycroscopy.github.io/pyUSID/_autosummary/pyUSID.io.hdf_utils.model.write_main_dataset.html#pyUSID.io.hdf_utils.model.write_main_dataset" title="(in pyUSID v0.0.10r2)"><code class="xref py py-func docutils literal notranslate"><span class="pre">pyUSID.io.hdf_utils.model.write_main_dataset()</span></code></a>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sig</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;USID.h5&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Note that the model and other secondary data artifacts linked to the signal are not
-written to the file but these can be implemented at a later stage.</p>
 </section>
 </section>
 
@@ -559,20 +550,13 @@ written to the file but these can be implemented at a later stage.</p>
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#reading">
-   Reading
+  <a class="reference internal nav-link" href="#api-functions">
+   API functions
   </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#extra-loading-arguments">
-     Extra loading arguments
-    </a>
-   </li>
-  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#writing">
-   Writing
+  <a class="reference internal nav-link" href="#usage-examples">
+   Usage examples
   </a>
  </li>
 </ul>

@@ -13,3 +13,9 @@ metadata, as well as the loading of files containing multiple objects packed tog
 
 The plugin was developed based on the MountainsMap software documentation, which
 contains a description of the binary format.
+
+API functions
+^^^^^^^^^^^^^
+
+.. automodule:: rsciio.sur
+   :members:

@@ -78,7 +78,7 @@ def file_writer(filename, signal, export_scale=True, extratags=[], **kwds):
         specific convention (see `tifffile documentation
         <https://github.com/cgohlke/tifffile/#examples>`_ and example below).
     **kwds: optional
-        Additional arguments to be passed to the `tifffile library
+        Additional arguments to be passed to the ``imwrite`` function of the `tifffile library
         <https://github.com/cgohlke/tifffile/#examples>`_.
 
     Examples
@@ -160,7 +160,7 @@ def file_reader(filename, lazy=False, force_read_resolution=False, **kwds):
         suppresses the warning. In all cases, the original axis values are stored
         in the ``original_metadata`` of the signal object.
     **kwds: optional
-        Additional arguments to be passed to the `tifffile library
+        Additional arguments to be passed to the ``TiffFile`` class of the `tifffile library
         <https://github.com/cgohlke/tifffile/#examples>`_.
 
     %s

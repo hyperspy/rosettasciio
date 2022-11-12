@@ -29,6 +29,12 @@ import numpy as np
 from tifffile import imwrite, TiffFile, TIFF
 from tifffile import __version__ as tiffversion
 
+from rsciio.docstrings import (
+    FILENAME_DOC,
+    LAZY_DOC,
+    RETURNS_DOC,
+    SIGNAL_DOC,
+)
 from rsciio.utils.tools import DTBox, _UREG
 from rsciio.utils.date_time_tools import get_date_time_from_metadata
 
@@ -58,16 +64,33 @@ axes_label_codes = {
 
 
 def file_writer(filename, signal, export_scale=True, extratags=[], **kwds):
-    """Writes data to tif using Christoph Gohlke's tifffile library
+    """Writes data to tif using Christoph Gohlke's tifffile library.
 
     Parameters
     ----------
-    filename: str
-    signal: a BaseSignal instance
-    export_scale: bool
-        default: True
+    %s
+    %s
+    export_scale: bool, default=True
         Export the scale and the units (compatible with DM and ImageJ) to
         appropriate tags.
+    extratags: tuple, list of tuples, optional
+        Save custom tags through the ``tifffile`` library. Must conform to a
+        specific convention (see `tifffile documentation
+        <https://github.com/cgohlke/tifffile/#examples>`_ and example below).
+    **kwds: optional
+        Additional arguments to be passed to the ``imwrite`` function of the `tifffile library
+        <https://github.com/cgohlke/tifffile/#examples>`_.
+
+    Examples
+    --------
+    >>> # Saving the string 'Random metadata' in a custom tag (ID 65000)
+    >>> extratag = [(65000, 's', 1, "Random metadata", False)]
+    >>> s.save('file.tif', extratags=extratag)
+
+    >>> # Saving the string 'Random metadata' from a custom tag (ID 65000)
+    >>> s2 = hs.load('file.tif')
+    >>> s2.original_metadata['Number_65000']
+    b'Random metadata'
     """
 
     data = signal["data"]
@@ -103,7 +126,10 @@ def file_writer(filename, signal, export_scale=True, extratags=[], **kwds):
     imwrite(filename, data, software="hyperspy", photometric=photometric, **kwds)
 
 
-def file_reader(filename, force_read_resolution=False, lazy=False, **kwds):
+file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
+
+
+def file_reader(filename, lazy=False, force_read_resolution=False, **kwds):
     """
     Read data from tif files using Christoph Gohlke's tifffile library.
     The units and the scale of images saved with ImageJ or Digital
@@ -112,16 +138,40 @@ def file_reader(filename, force_read_resolution=False, lazy=False, **kwds):
 
     Parameters
     ----------
-    filename: str
-        Name of the file to read
-    force_read_resolution: bool
-        Force reading the x_resolution, y_resolution and the resolution_unit
-        of the tiff tags.
-        See https://www.awaresystems.be/imaging/tiff/tifftags/resolutionunit.html
-        Default is False.
-    lazy : bool
-        Load the data lazily. Default is False
-    **kwds, optional
+    %s
+    %s
+    force_read_resolution: bool, Default=False
+        Force read image resolution using the ``x_resolution``, ``y_resolution``
+        and ``resolution_unit`` tiff tags. Beware: most software don't (properly)
+        use these tags when saving ``.tiff`` files.
+        See `<https://www.awaresystems.be/imaging/tiff/tifftags/resolutionunit.html>`_.
+    hamamatsu_streak_axis_type: str, optional
+        Decide the type of the time axis for hamamatsu streak files:
+
+        - ``uniform``: the best-fit linear axis is used, inducing a (small)
+          linearisation error. Initialise a UniformDataAxis.
+        - ``data``: the raw time axis parsed from the metadata is used.
+          Initialise a DataAxis.
+        - ``functional``: the best-fit 3rd-order polynomial axis is used,
+          avoiding linearisation error. Initialise a FunctionalDataAxis.
+
+        By default, ``uniform`` is used but a warning of the linearisation error
+        is issued. Explicitly passing ``hamamatsu_streak_axis_type='uniform'``
+        suppresses the warning. In all cases, the original axis values are stored
+        in the ``original_metadata`` of the signal object.
+    **kwds: optional
+        Additional arguments to be passed to the ``TiffFile`` class of the `tifffile library
+        <https://github.com/cgohlke/tifffile/#examples>`_.
+
+    %s
+
+    Examples
+    --------
+    >>> # Force read image resolution using the x_resolution, y_resolution and
+    >>> # the resolution_unit of the TIFF tags.
+    >>> s = hs.load('file.tif', force_read_resolution=True)
+    >>> # Load a non-uniform axis from a hamamatsu streak file:
+    >>> s = hs.load('file.tif', hamamatsu_streak_axis_type='data')
     """
     tmp = kwds.pop("hamamatsu_streak_axis_type", None)
 
@@ -134,6 +184,9 @@ def file_reader(filename, force_read_resolution=False, lazy=False, **kwds):
         ]
 
     return dict_list
+
+
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
 
 
 def _order_axes_by_name(names: list, scales: dict, offsets: dict, units: dict):

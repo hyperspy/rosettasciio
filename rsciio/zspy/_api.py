@@ -23,6 +23,12 @@ import dask.array as da
 import numcodecs
 import zarr
 
+from rsciio.docstrings import (
+    FILENAME_DOC,
+    LAZY_DOC,
+    RETURNS_DOC,
+    SIGNAL_DOC,
+)
 from rsciio._hierarchical import HierarchicalWriter, HierarchicalReader, version
 
 
@@ -104,28 +110,39 @@ class ZspyWriter(HierarchicalWriter):
 
 
 def file_writer(filename, signal, close_file=True, **kwds):
-    """Writes data to hyperspy's zarr format.
+    """Writes data to HyperSpy's zarr format.
 
     Parameters
     ----------
-    filename : str
-        The name of the file used to save the signal.
-    signal : a BaseSignal instance
-        The signal to save.
-    chunks : tuple of integer or None, default: None
+    %s
+    %s
+    close_file : bool, default=True
+        Close the file after writing. Only relevant for some zarr storages
+        (:py:class:`zarr.storage.ZipStore`, :py:class:`zarr.storage.DBMStore`)
+        requiring store to flush data to disk. If ``False``, doesn't close the
+        file after writing. The file should not be closed if the data needs to be
+        accessed lazily after saving.
+    chunks : tuple of integer or None, default=None
         Define the chunking used for saving the dataset. If None, calculates
         chunks for the signal, with preferably at least one chunk per signal
         space.
-    compressor : numcodecs compression
+    compressor : numcodecs compression, optional
+        A compressor can be passed to the save function to compress the data
+        efficiently, see `Numcodecs codec <https://numcodecs.readthedocs.io/en/stable>`_.
         The default is to use a Blosc compressor.
-    close_file : bool, default: True
-        Close the file after writing.
-    write_dataset : bool, default: True
-        If True, write the data, otherwise, don't write it. Useful to
-        save attributes without having to write the whole dataset.
+    write_dataset : bool, default=True
+        If ``False``, doesn't write the dataset when writing the file. This can
+        be useful to overwrite signal attributes only (for example ``axes_manager``)
+        without having to write the whole dataset, which can take time.
     **kwds
-        The keyword argument are passed to the
+        The keyword arguments are passed to the
         :py:meth:`zarr.hierarchy.Group.require_dataset` function.
+
+    Examples
+    --------
+    >>> from numcodecs import Blosc
+    >>> compressor=Blosc(cname='zstd', clevel=1, shuffle=Blosc.SHUFFLE) # Used by default
+    >>> s.save('test.zspy', compressor = compressor) # will save with Blosc compression
     """
     if "compressor" not in kwds:
         kwds["compressor"] = numcodecs.Blosc(
@@ -182,16 +199,21 @@ def file_writer(filename, signal, close_file=True, **kwds):
             store.flush()
 
 
+file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
+
+
 def file_reader(filename, lazy=False, **kwds):
-    """Read data from zspy files saved with the hyperspy zspy format
+    """Read data from zspy files saved with the HyperSpy zarr format
     specification.
 
     Parameters
     ----------
-    filename: str
-    lazy: bool
-        Load image lazily using dask
-    **kwds, optional
+    %s
+    %s
+    **kwds: optional
+        Pass keyword arguments to the :py:meth:`zarr.open` function.
+
+    %s
     """
     mode = kwds.pop("mode", "r")
     try:
@@ -207,3 +229,6 @@ def file_reader(filename, lazy=False, **kwds):
     reader = ZspyReader(f)
 
     return reader.read(lazy=lazy)
+
+
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)

@@ -81,6 +81,12 @@ from datetime import datetime
 
 import numpy as np
 
+from rsciio.docstrings import (
+    FILENAME_DOC,
+    LAZY_DOC,
+    RETURNS_DOC,
+    SIGNAL_DOC,
+)
 from rsciio.utils.tools import sarray2dict, DTBox
 
 
@@ -545,7 +551,7 @@ class SemperFormat(object):
 
     def to_dictionary(self, lazy=False):
         """Export a :class:`~.SemperFormat` object to a
-        :class:`~hyperspy.signals.Signal` object.
+        signal dictionary.
 
         Parameters
         ----------
@@ -553,7 +559,7 @@ class SemperFormat(object):
 
         Returns
         -------
-        signal: :class:`~hyperspy.signals.Signal`
+        signal: dict
             The exported signal.
 
         """
@@ -663,13 +669,39 @@ def _read_data(fobj, fname, position, data_format, shape):
     return data
 
 
-def file_reader(filename, **kwds):
-    lazy = kwds.get("lazy", False)
+def file_reader(filename, lazy=False):
+    """
+    Read a Semper ``.unf`` file.
+
+    Parameters
+    ----------
+    %s
+    %s
+
+    %s
+    """
     semper = SemperFormat.load_from_unf(filename, lazy=lazy)
     semper.log_info()
     return [semper.to_dictionary(lazy=lazy)]
 
 
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+
+
 def file_writer(filename, signal, **kwds):
+    """
+    Write signal to a Semper ``.unf`` file.
+
+    Parameters
+    ----------
+    %s
+    %s
+    skip_header : bool, default=False
+        Determines if the header, title and label should be skipped (useful
+        for some other programs).
+    """
     semper = SemperFormat.from_signal(signal)
     semper.save_to_unf(filename)
+
+
+file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)

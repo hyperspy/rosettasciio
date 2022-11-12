@@ -103,8 +103,38 @@ def test_dir_plugins():
 
     assert dir(bruker) == ["file_reader"]
 
-    # skimage is optional dependencies
+    # skimage is an optional dependency
     pytest.importorskip("skimage")
     from rsciio import blockfile
 
     assert dir(blockfile) == ["file_reader", "file_writer"]
+
+    from rsciio import semper_unf
+
+    assert dir(semper_unf) == ["file_reader", "file_writer"]
+
+    from rsciio import sur
+
+    assert dir(sur) == ["file_reader"]
+
+    # tifffile is an optional dependency
+    pytest.importorskip("tifffile")
+    from rsciio import tiff
+
+    assert dir(tiff) == ["file_reader", "file_writer"]
+
+    from rsciio import tvips
+
+    assert dir(tvips) == ["file_reader", "file_writer"]
+
+    # pyUSID is an optional dependency
+    pytest.importorskip("pyUSID")
+    from rsciio import usid_hdf5
+
+    assert dir(usid_hdf5) == ["file_reader", "file_writer"]
+
+    # zarr is an optional dependency
+    pytest.importorskip("zarr")
+    from rsciio import zspy
+
+    assert dir(zspy) == ["file_reader", "file_writer"]

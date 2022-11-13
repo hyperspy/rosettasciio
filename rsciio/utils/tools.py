@@ -131,7 +131,9 @@ def overwrite(fname):
                 return True
             elif answer.lower() == "n":
                 return False
-        except:
+            else:
+                return True
+        except Exception:
             # We are running in the IPython notebook that does not
             # support raw_input
             _logger.info(
@@ -271,7 +273,7 @@ def ensure_unicode(stuff, encoding="utf8", encoding2="latin-1"):
         string = stuff
     try:
         string = string.decode(encoding)
-    except BaseException:
+    except Exception:
         string = string.decode(encoding2, errors="ignore")
     return string
 
@@ -298,3 +300,4 @@ def get_file_handle(data, warn=True):
                     "the file is already closed or it is not "
                     "an hdf5 file."
                 )
+    return None

@@ -582,7 +582,6 @@ def file_writer(filename, signal, encoding="latin-1", *args, **kwds):
             width_axis = nav_axes[0]
             depth, width, height = depth_axis["size"], width_axis["size"], 1
         elif dimension == 1:
-            record_by == "dont-care"
             depth, width, height = depth_axis["size"], 1, 1
 
     elif len(sig_axes) == 2:
@@ -663,16 +662,15 @@ def file_writer(filename, signal, encoding="latin-1", *args, **kwds):
 
 
 def write_rpl(filename, keys_dictionary, encoding="ascii"):
-    f = codecs.open(filename, "w", encoding=encoding, errors="ignore")
-    f.write(";File created by RosettaSciIO version %s\n" % __version__)
-    f.write("key\tvalue\n")
-    # Even if it is not necessary, we sort the keywords when writing
-    # to make the rpl file more human friendly
-    for key, value in iter(sorted(keys_dictionary.items())):
-        if not isinstance(value, str):
-            value = str(value)
-        f.write(key + "\t" + value + "\n")
-    f.close()
+    with codecs.open(filename, "w", encoding=encoding, errors="ignore") as f:
+        f.write(";File created by RosettaSciIO version %s\n" % __version__)
+        f.write("key\tvalue\n")
+        # Even if it is not necessary, we sort the keywords when writing
+        # to make the rpl file more human friendly
+        for key, value in iter(sorted(keys_dictionary.items())):
+            if not isinstance(value, str):
+                value = str(value)
+            f.write(key + "\t" + value + "\n")
 
 
 def write_raw(filename, signal, record_by, sig_axes, nav_axes):

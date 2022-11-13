@@ -822,8 +822,6 @@ def _readcube(
                     "The last frame (sweep) is incomplete because the acquisition stopped during this frame. The partially acquired frame is ignored. Use 'sum_frames=False, only_valid_data=False' to read all frames individually, including the last partially completed frame."
                 )
             break
-            # else:
-            #    pass
 
         p_start += length
     if not lazy:
@@ -1380,7 +1378,7 @@ extension_to_reader_mapping = {
 def _decode(bytes_string):
     try:
         string = bytes_string.decode("utf-8")
-    except:
+    except Exception:
         # See https://github.com/hyperspy/hyperspy/issues/2812
         string = bytes_string.decode("shift_jis")
 

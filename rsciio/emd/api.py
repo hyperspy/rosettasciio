@@ -29,7 +29,6 @@ import json
 import os
 from datetime import datetime
 import time
-import warnings
 import math
 import logging
 
@@ -226,6 +225,8 @@ class EMD_NCEM:
             ]
             version = ".".join(version)
             return version
+        else:
+            return None
 
     def _read_data_from_groups(
         self, group_path, dataset_name, stack_key=None, original_metadata={}
@@ -353,7 +354,7 @@ class EMD_NCEM:
                 try:
                     units = _UREG.parse_units(value)
                     value = f"{units:~}"
-                except:
+                except Exception:
                     pass
         return value
 
@@ -457,6 +458,8 @@ class EMD_NCEM:
         """
         if isinstance(file, str):
             emd_file = h5py.File(file, "w")
+        else:
+            emd_file = file
         # Write version:
         ver_maj, ver_min = EMD_VERSION.split(".")
         emd_file.attrs["version_major"] = ver_maj
@@ -556,6 +559,7 @@ def _get_detector_metadata_dict(om, detector_name):
     for key in detectors_dict:
         if detectors_dict[key]["DetectorName"] == detector_name:
             return detectors_dict[key]
+    return None
 
 
 class FeiEMDReader(object):
@@ -953,6 +957,8 @@ class FeiEMDReader(object):
             detector_index = 0
         if detector_index is not None:
             return om["Detectors"]["Detector-{}".format(detector_index)]
+        else:
+            return None
 
     def _parse_frame_time(self, original_metadata, factor=1):
         try:
@@ -1232,7 +1238,7 @@ class FeiEMDReader(object):
             ),
             "CustomProperties.StemMagnification.value": (
                 "Acquisition_instrument.TEM.magnification",
-                lambda x: float(x),
+                float,
             ),
             "Instrument.InstrumentClass": (
                 "Acquisition_instrument.TEM.microscope",
@@ -1268,11 +1274,11 @@ class FeiEMDReader(object):
             ),
             "DetectorMetadata.Gain": (
                 "Signal.Noise_properties.Variance_linear_model.gain_factor",
-                lambda x: float(x),
+                float,
             ),
             "DetectorMetadata.Offset": (
                 "Signal.Noise_properties.Variance_linear_model.gain_offset",
-                lambda x: float(x),
+                float,
             ),
         }
 

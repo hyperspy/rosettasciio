@@ -464,15 +464,15 @@ class ElidReader:
             ),
             "acquisition.scan.detectors.EDS.detector_resolution": (
                 "Acquisition_instrument.SEM.Detector.EDS.energy_resolution_MnKa",
-                lambda x: float(x),
+                float,
             ),
             "acquisition.scan.detectors.EDS.live_time": (
                 "Acquisition_instrument.SEM.Detector.EDS.live_time",
-                lambda x: float(x),
+                float,
             ),
             "acquisition.scan.detectors.EDS.real_time": (
                 "Acquisition_instrument.SEM.Detector.EDS.real_time",
-                lambda x: float(x),
+                float,
             ),
             "acquisition.scan.detectors.EDS.high_tension": (
                 "Acquisition_instrument.SEM.beam_energy",
@@ -529,6 +529,8 @@ class ElidReader:
     def _get_datetime(self, metadata):
         if "time" in metadata:
             return metadata["time"].split("T")
+        else:
+            return None
 
     def _make_line_spectrum_dict(self, om, offset, dispersion, data, title):
         axes = [

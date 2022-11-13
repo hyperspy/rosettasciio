@@ -187,7 +187,7 @@ def file_writer(filename, signal, close_file=True, **kwds):
     try:
         writer = ZspyWriter(f, signal, expg, **kwds)
         writer.write()
-    except BaseException:
+    except Exception:
         raise
     finally:
         del smd["record_by"]
@@ -218,7 +218,7 @@ def file_reader(filename, lazy=False, **kwds):
     mode = kwds.pop("mode", "r")
     try:
         f = zarr.open(filename, mode=mode, **kwds)
-    except BaseException:
+    except Exception:
         _logger.error(
             "The file can't be read. It may be possible that the zspy file is "
             "saved with a different store than a zarr directory store. Try "

@@ -42,7 +42,6 @@ from rsciio.nexus.api import (
     _parse_from_file,
     _nexus_dataset_to_signal,
 )
-from hyperspy.misc.utils import DictionaryTreeBrowser
 from hyperspy.signals import BaseSignal
 
 
@@ -110,7 +109,7 @@ class TestDLSNexus:
     def test_save_hspy(self, tmp_path):
         try:
             self.s.save(tmp_path / "test.hspy")
-        except:
+        except Exception:
             pytest.fail("unexpected error saving hdf5")
 
     @pytest.mark.parametrize(
@@ -175,7 +174,7 @@ class TestDLSNexusNoAxes:
     def test_save_hspy(self, tmp_path):
         try:
             self.s.save(tmp_path / "test.hspy")
-        except:
+        except Exception:
             pytest.fail("unexpected error saving hdf5")
 
 

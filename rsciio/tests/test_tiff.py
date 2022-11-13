@@ -869,7 +869,6 @@ def test_JEOL_SightX():
     for file in files:
         fname = file[0]
         if fname[-3:] == ".gz":
-            import tempfile
             import gzip
 
             with tempfile.TemporaryDirectory() as tmp_dir:

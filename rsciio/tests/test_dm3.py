@@ -70,7 +70,7 @@ class TestImageObject:
     def test_parse_string_convert_float(self):
         assert self.imageobject._parse_string("5", False) == "5"
         assert self.imageobject._parse_string("5", True) == 5
-        assert self.imageobject._parse_string("Imaging", True) == None
+        assert self.imageobject._parse_string("Imaging", True) is None
 
 
 def test_missing_tag():

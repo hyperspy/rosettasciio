@@ -316,7 +316,7 @@ class DigitalMicrographReader(object):
             data += s.unpack(self.f.read(1))[0]
         try:
             data = data.decode("utf8")
-        except BaseException:
+        except Exception:
             # Sometimes the dm3 file strings are encoded in latin-1
             # instead of utf8
             data = data.decode("latin-1", errors="ignore")
@@ -771,15 +771,17 @@ class ImageObject(object):
         try:
             dt = dateutil.parser.parse(time)
             return dt.time().isoformat()
-        except BaseException:
+        except Exception:
             _logger.warning(f"Time string '{time}' could not be parsed.")
+            return None
 
     def _get_date(self, date):
         try:
             dt = dateutil.parser.parse(date)
             return dt.date().isoformat()
-        except BaseException:
+        except Exception:
             _logger.warning(f"Date string '{date}' could not be parsed.")
+            return None
 
     def _get_microscope_name(self, ImageTags):
         locations = (
@@ -807,7 +809,7 @@ class ImageObject(object):
             try:
                 return float(tag)
             # In case the string can't be converted to float
-            except BaseException:
+            except Exception:
                 if tag_name is None:
                     warning = "Metadata could not be parsed."
                 else:
@@ -831,6 +833,7 @@ class ImageObject(object):
             return float(tags["Exposure_s"]) * frame_number
         else:
             _logger.info("EELS/CL exposure time can't be read.")
+            return None
 
     def _get_CL_detector_type(self, tags):
         if (
@@ -845,6 +848,7 @@ class ImageObject(object):
             return "PMT"
         else:
             _logger.info("CL detector type can't be read.")
+            return None
 
     def get_mapping(self):
         if "source" in self.imdict.ImageTags.keys():

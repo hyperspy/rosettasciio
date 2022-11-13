@@ -198,7 +198,7 @@ class TestPythonMrcz:
             import blosc
 
             blosc_installed = True
-        except BaseException:
+        except Exception:
             blosc_installed = False
 
         if not blosc_installed and compressor is not None:
@@ -218,11 +218,6 @@ class TestPythonMrcz:
                 clevel=clevel,
                 lazy=lazy,
             )
-        print(
-            "MRCZ test ({}, {}, {}, lazy:{}) finished in {} s".format(
-                dtype, compressor, clevel, lazy, perf_counter() - t_start
-            )
-        )
 
     @pytest.mark.parametrize("dtype", dtype_list)
     def test_Async(self, dtype):

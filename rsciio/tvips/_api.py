@@ -638,7 +638,7 @@ def file_writer(filename, signal, **kwds):
                 from hyperspy.defaults_parser import preferences
 
                 hs_show_progressbar = preferences.General.show_progressbar
-            except:  # pragma: no cover
+            except Exception:  # pragma: no cover
                 hs_show_progressbar = None
             show_progressbar = kwds.get("show_progressbar", hs_show_progressbar)
             cm = ProgressBar if show_progressbar else dummy_context_manager

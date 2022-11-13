@@ -46,7 +46,7 @@ def _protochips_log_reader(csv_file):
     for key in csv_file.logged_quantity_name_list:
         try:
             csvs.append(csv_file.get_dictionary(key))
-        except BaseException:
+        except Exception:
             raise IOError(invalid_file_error)
     return csvs
 

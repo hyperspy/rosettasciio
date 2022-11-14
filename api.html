@@ -388,12 +388,12 @@ the case of a reader and passed to a writer is a <strong>python dictionary</stro
 input file</p></li>
 </ul>
 <p>Interfacing the reader from one of the IO plugins:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rsciio.hspy</span> <span class="kn">import</span> <span class="n">file_reader</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rsciio.hspy.api</span> <span class="kn">import</span> <span class="n">file_reader</span>
 <span class="n">fdict</span> <span class="o">=</span> <span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;norwegianblue.hspy&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Interfacing the writer from one of the IO plugins:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rsciio.hspy</span> <span class="kn">import</span> <span class="n">file_writer</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rsciio.hspy.api</span> <span class="kn">import</span> <span class="n">file_writer</span>
 <span class="n">file_writer</span><span class="p">(</span><span class="s2">&quot;beautifulplumage.hspy&quot;</span><span class="p">,</span> <span class="n">fdict</span><span class="p">)</span>
 </pre></div>
 </div>

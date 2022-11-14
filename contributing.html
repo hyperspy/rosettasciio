@@ -399,21 +399,7 @@ other member of the development team before being merged.</p>
 be descriptive of the file type/manufacturer/software. This directory should
 contain the following files:</p>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> – Defines the exposed API functions, <code class="docutils literal notranslate"><span class="pre">file_reader</span></code> and optionally <code class="docutils literal notranslate"><span class="pre">file_writer</span></code></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">._api</span> <span class="kn">import</span> <span class="n">file_reader</span><span class="p">,</span> <span class="n">file_writer</span>
-
-
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;file_reader&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;file_writer&quot;</span><span class="p">,</span>
-<span class="p">]</span>
-
-
-<span class="k">def</span> <span class="fm">__dir__</span><span class="p">():</span>
-    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">__all__</span><span class="p">)</span>
-</pre></div>
-</div>
-</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> – May usually be empty</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">specifications.yaml</span></code> – The characteristics of the IO plugin in <em>yaml</em> format:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;String&gt;</span><span class="w"> </span><span class="c1"># unique, concise, no whitespace; usually corresponding to directory name</span><span class="w"></span>
 <span class="nt">name_aliases</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">&lt;String&gt;</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># List of strings, may contain whitespaces (empty if no alias defined)</span><span class="w"></span>
@@ -428,36 +414,23 @@ contain the following files:</p>
 </pre></div>
 </div>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">_api.py</span></code> – Python file that implements the actual reader. The IO functionality
+<li><p><code class="docutils literal notranslate"><span class="pre">api.py</span></code> – Python file that implements the actual reader. The IO functionality
 should be interfaced with the following functions:</p>
 <ul class="simple">
-<li><p>A function called <code class="docutils literal notranslate"><span class="pre">file_reader</span></code> with at least one attribute: <code class="docutils literal notranslate"><span class="pre">filename</span></code>
-that returns the <a class="reference internal" href="api.html#interfacing-api"><span class="std std-ref">standardized signal dictionary</span></a>.</p></li>
+<li><p>A function called <code class="docutils literal notranslate"><span class="pre">file_reader</span></code> with at least one attribute: <code class="docutils literal notranslate"><span class="pre">filename</span></code></p></li>
 <li><p>(optional) A function called <code class="docutils literal notranslate"><span class="pre">file_writer</span></code> with at least two attributes:
-<code class="docutils literal notranslate"><span class="pre">filename</span></code> and <code class="docutils literal notranslate"><span class="pre">signal</span></code> (a python dictionary) in that order.</p></li>
+<code class="docutils literal notranslate"><span class="pre">filename</span></code> and <code class="docutils literal notranslate"><span class="pre">object2save</span></code> (a python dictionary) in that order.</p></li>
 </ul>
 </li>
 </ul>
-<p>The new plugin needs to be added to the list in <code class="docutils literal notranslate"><span class="pre">rsciio/__init__.py</span></code>.</p>
 <p><strong>Tests</strong> covering the functionality of the plugin should be added to the
 <code class="docutils literal notranslate"><span class="pre">tests</span></code> directory with the naming <code class="docutils literal notranslate"><span class="pre">test_spamandeggs.py</span></code> corresponsing to
 the plugin residing in the directory <code class="docutils literal notranslate"><span class="pre">spamandeggs</span></code>. Data files for the tests
-should be placed in a corresponding subdirectory [change for pooch]. Furthermore,
-the plugin should be added to the <code class="docutils literal notranslate"><span class="pre">test_dir_plugins()</span></code> function in <code class="docutils literal notranslate"><span class="pre">test_import.py</span></code>.</p>
+should be placed in a corresponding subdirectory [change for pooch].</p>
 <p><strong>Documentation</strong> should be added both as <strong>docstring</strong>, as well as to the <strong>user guide</strong>,
 for which a corresponding <code class="docutils literal notranslate"><span class="pre">.rst</span></code> file should be created in the directory
 <code class="docutils literal notranslate"><span class="pre">docs/supported_formats/</span></code> and the format added to the lists in
 <code class="docutils literal notranslate"><span class="pre">docs/supported_formats/index.rst</span></code> and <code class="docutils literal notranslate"><span class="pre">docs/supported_formats/supported_formats.rst</span></code>.</p>
-<p>A few standard <em>docstring</em> components are provided by <code class="docutils literal notranslate"><span class="pre">docstrings.py</span></code> and should be used
-(see existing plugins).</p>
-<p>The <em>docstrings</em> are automatically added in the <em>user guide</em> using the following lines</p>
-<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="gh">API functions</span>
-<span class="gh">^^^^^^^^^^^^^</span>
-
-<span class="p">..</span> <span class="ow">automodule</span><span class="p">::</span> rsciio.spamandeggs
-   <span class="nc">:members:</span>
-</pre></div>
-</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>It is advisable to clone the files of an existing plugin when initiating a new

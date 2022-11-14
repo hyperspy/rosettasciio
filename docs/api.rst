@@ -34,14 +34,14 @@ Interfacing the reader from one of the IO plugins:
 
 .. code-block:: python
 
-    from rsciio.hspy.api import file_reader
+    from rsciio.hspy import file_reader
     fdict = file_reader("norwegianblue.hspy")
 
 Interfacing the writer from one of the IO plugins:
 
 .. code-block:: python
 
-    from rsciio.hspy.api import file_writer
+    from rsciio.hspy import file_writer
     file_writer("beautifulplumage.hspy", fdict)
    
 

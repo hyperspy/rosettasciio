@@ -47,7 +47,21 @@ Each read/write plugin resides in a separate directory, the name of which should
 be descriptive of the file type/manufacturer/software. This directory should
 contain the following files:
 
-* ``__init__.py`` -- May usually be empty
+* ``__init__.py`` -- Defines the exposed API functions, ``file_reader`` and optionally ``file_writer``
+
+  .. code-block:: python
+
+      from ._api import file_reader, file_writer
+
+
+      __all__ = [
+          "file_reader",
+          "file_writer",
+      ]
+
+
+      def __dir__():
+          return sorted(__all__)
 
 * ``specifications.yaml`` -- The characteristics of the IO plugin in *yaml* format:
 
@@ -64,22 +78,39 @@ contain the following files:
       # dimensions (sd) and navigation dimensions (nd) are given as list [[sd, nd], ...]
       non_uniform_axis: <Bool>  # Support for non-uniform axis
 
-* ``api.py`` -- Python file that implements the actual reader. The IO functionality
+* ``_api.py`` -- Python file that implements the actual reader. The IO functionality
   should be interfaced with the following functions:
 
   * A function called ``file_reader`` with at least one attribute: ``filename``
+    that returns the :ref:`standardized signal dictionary <interfacing-api>`.
   * (optional) A function called ``file_writer`` with at least two attributes: 
-    ``filename`` and ``object2save`` (a python dictionary) in that order.
+    ``filename`` and ``signal`` (a python dictionary) in that order.
+
+The new plugin needs to be added to the list in ``rsciio/__init__.py``.
 
 **Tests** covering the functionality of the plugin should be added to the
 ``tests`` directory with the naming ``test_spamandeggs.py`` corresponsing to
 the plugin residing in the directory ``spamandeggs``. Data files for the tests
-should be placed in a corresponding subdirectory [change for pooch].
+should be placed in a corresponding subdirectory [change for pooch]. Furthermore,
+the plugin should be added to the ``test_dir_plugins()`` function in ``test_import.py``.
 
 **Documentation** should be added both as **docstring**, as well as to the **user guide**,
 for which a corresponding ``.rst`` file should be created in the directory
 ``docs/supported_formats/`` and the format added to the lists in
 ``docs/supported_formats/index.rst`` and ``docs/supported_formats/supported_formats.rst``.
+
+A few standard *docstring* components are provided by ``docstrings.py`` and should be used
+(see existing plugins).
+
+The *docstrings* are automatically added in the *user guide* using the following lines
+
+.. code-block:: rst
+
+    API functions
+    ^^^^^^^^^^^^^
+
+    .. automodule:: rsciio.spamandeggs
+       :members:
 
 .. Note ::
     It is advisable to clone the files of an existing plugin when initiating a new

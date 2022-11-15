@@ -11,3 +11,10 @@ Note that only NetCDF files written by EELSLab are supported.
 
 To use this format a python netcdf interface must be installed manually because
 it is not installed by default when using the automatic installers.
+
+
+API functions
+^^^^^^^^^^^^^
+
+.. automodule:: rsciio.netcdf
+   :members:

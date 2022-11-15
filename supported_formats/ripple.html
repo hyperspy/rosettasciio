@@ -405,7 +405,7 @@
 <p>The <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> format (short for “Raw Parameter List”) is an <em>open standard format</em>
 developed at NIST as native format for <a class="reference external" href="https://www.nist.gov/services-resources/software/lispix">Lispix</a> and is widely used to
 exchange multidimensional data. However, it only supports data of up to three
-dimensions.</p>
+dimensions.  It is often uses in EDS/EDX experiments.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> file lists the characteristics of the corresponding <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file so
 that it can be loaded without human intervention. Thus, the reader parses a
 <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> file and reads the data from the corresponding
@@ -414,20 +414,76 @@ provided.</p>
 <p>It can also be used to exchange data with Bruker and used in
 combination with the <a class="reference internal" href="../interoperatibility.html#import-rpl"><span class="std std-ref">ImportRPL Digital Micrograph plugin</span></a> it is very useful for exporting data
 to Gatan’s Digital Micrograph.</p>
-<p>The default encoding is latin-1. It is possible to set a different encoding
-using the encoding argument, e.g. when using HyperSpy to save a file:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;file.rpl&#39;</span><span class="p">,</span> <span class="n">encoding</span> <span class="o">=</span> <span class="s1">&#39;utf8&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>For <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> files, <code class="docutils literal notranslate"><span class="pre">hs.load</span></code> takes the <code class="docutils literal notranslate"><span class="pre">mmap_mode</span></code> keyword argument enabling
-loading the file using a different mode (default is copy-on-write). However,
-note that lazy loading does not support in-place writing (i.e lazy loading and
-the “r+” mode are incompatible).</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This format may not provide information on the calibration.
 If so, you should add that after loading the file.</p>
 </div>
+<section id="module-rsciio.ripple">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.ripple" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.ripple.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.ripple.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rpl_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'latin-1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'c'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.ripple.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Parses a Lispix (<a class="reference external" href="https://www.nist.gov/services-resources/software/lispix">https://www.nist.gov/services-resources/software/lispix</a>)
+ripple (.rpl) file and reads the data from the corresponding raw (.raw) file;
+or, read a raw file if the dictionary <code class="docutils literal notranslate"><span class="pre">rpl_info</span></code> is provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – Filename of the file to read.</p></li>
+<li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
+<li><p><strong>enconding</strong> (<em>str</em><em>, </em><em>optional</em>) – The default encoding is <code class="docutils literal notranslate"><span class="pre">latin-1</span></code>. Different file encodings, such as
+<code class="docutils literal notranslate"><span class="pre">utf8</span></code> can be set via this argument.</p></li>
+<li><p><strong>mmap_mode</strong> (<em>str</em><em>, </em><em>optional</em>) – Default is copy-on-write <code class="docutils literal notranslate"><span class="pre">&quot;c&quot;</span></code>, but different modes can be set. However,
+note that lazy loading does not support in-place writing (i.e lazy loading
+and the <code class="docutils literal notranslate"><span class="pre">&quot;r+&quot;</span></code> mode are incompatible).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dicts</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.ripple.file_writer">
+<span class="sig-prename descclassname"><span class="pre">rsciio.ripple.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'latin-1'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.ripple.file_writer" title="Permalink to this definition">#</a></dt>
+<dd><p>Writes a Lispix (<a class="reference external" href="https://www.nist.gov/services-resources/software/lispix">https://www.nist.gov/services-resources/software/lispix</a>)
+ripple (.rpl) file and saves the data in a corresponding raw (.raw) file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – Filename of the file to write to.</p></li>
+<li><p><strong>signal</strong> (<em>dict</em>) – <p>Dictionary containing the signal object.
+Should contain the following fields:</p>
+<ul>
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the metadata tree</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="format-description">
 <h2>Format description<a class="headerlink" href="#format-description" title="Permalink to this heading">#</a></h2>
 <p>Images and spectral images or data cubes that are written in the
@@ -546,6 +602,31 @@ each row, and are ignored.</p>
 </div>
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-rsciio.ripple">
+   API functions
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rsciio.ripple.file_reader">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       file_reader()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rsciio.ripple.file_writer">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       file_writer()
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
+ </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#format-description">
    Format description

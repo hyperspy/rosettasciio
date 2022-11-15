@@ -49,14 +49,14 @@ metadata structured in different ways, the loader is written to be quite
 flexible and can also be used to inspect any hdf5 based file.
 
 
-Differences with respect to hspy
+Differences with respect to HSpy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The `HyperSpy metadata structure <https://hyperspy.org/hyperspy-doc/current/user_guide/metadata_structure.html>`_
 stores arrays as hdf datasets without attributes
 and stores floats, ints and strings as attributes.
-NeXus formats typically use hdf datasets attributes to store additional
-information such as an indication of the units for an axis or the NX_class which
+The NeXus format uses hdf dataset attributes to store additional
+information such as an indication of the units for an axis or the ``NX_class`` which
 the dataset structure follows. The metadata, HyperSpy or ``original_metadata``,
 therefore needs to be able to indicate the values and attributes of a dataset.
 To implement this structure the ``value`` and ``attrs`` of a dataset can also be
@@ -140,8 +140,16 @@ restored when a signal is loaded from a previously saved NeXus file.
     Altering the standard metadata structure of a signal
     using ``attrs`` or ``value`` keywords is not recommended.
 
-Reading
-^^^^^^^
+API functions
+^^^^^^^^^^^^^
+
+.. automodule:: rsciio.nexus
+   :members:
+
+
+Reading examples
+^^^^^^^^^^^^^^^^
+
 NeXus files can contain multiple datasets within the same file, but the
 ordering of datasets can vary depending on the setup of an experiment or
 processing step when the data was collected.
@@ -151,16 +159,6 @@ and returns a list of signals but in this example case the indexing is different
 To control which data or metadata is loaded and in what order
 some additional loading arguments are provided.
 
-Extra loading arguments
-+++++++++++++++++++++++
-
-- ``dataset_key``: ``None``, ``str`` or ``list`` of strings - Default is ``None`` . String(s) to search for in the path to find one or more datasets.
-- ``dataset_path``: ``None``, ``str`` or ``list`` of strings - Default is ``None`` . Absolute path(s) to search for in the path to find one or more datasets.
-- ``metadata_key``: ``None``, ``str`` or ``list`` of strings - Default is ``None`` . Absolute path(s) or string(s) to search for in the path to find metadata.
-- ``skip_array_metadata``: ``bool`` - Default is False. Option to skip loading metadata that are arrays to avoid duplicating loading of data.
-- ``nxdata_only``: ``bool`` - Default is False. Option to only convert NXdata formatted data to signals.
-- ``hardlinks_only``: ``bool`` - Default is False. Option to ignore soft or External links in the file.
-- ``use_default``: ``bool`` - Default is False. Only load the ``default`` dataset, if defined, from the file. Otherwise load according to the other keyword options.
 
 .. note::
 
@@ -168,25 +166,10 @@ Extra loading arguments
     is strongly recommended if the content of the HDF5 file is not known apriori.
     This prevents issues with regard to loading datasets far larger than memory.
 
-    Also note that setting ``lazy=True`` leaves the file handle to the HDF5 file open
-    and it can be closed with :py:meth:`~._signals.lazy.LazySignal.close_file`
-    or when using :py:meth:`~._signals.lazy.LazySignal.compute` with ``close_file=True``.
+    Also note that setting ``lazy=True`` leaves the file handle to the HDF5 file
+    open. In Hyperspy, it can with ``_signals.lazy.LazySignal.close_file``
+    or when using ``_signals.lazy.LazySignal.compute`` with ``close_file=True``.
 
-
-Reading a NeXus file (a single NeXus dataset):
-
-.. code-block:: python
-
-    >>> sig = hs.load("sample.nxs")
-
-By default, the loader will look for stored NXdata objects.
-If there are hdf datasets which are not stored as NXdata, but which
-should be loaded as signals, set the ``nxdata_only`` keyword to False and all
-hdf datasets will be returned as signals:
-
-.. code-block:: python
-
-    >>> sig = hs.load("sample.nxs", nxdata_only=False)
 
 We can load a specific dataset using the ``dataset_path`` keyword argument.
 Setting it to the absolute path of the desired dataset will cause
@@ -194,8 +177,9 @@ the single dataset to be loaded:
 
 .. code-block:: python
 
+    >>> from rsciio.nexus import file_reader
     >>> # Loading a specific dataset
-    >>> hs.load("sample.nxs", dataset_path="/entry/experiment/EDS/data")
+    >>> file_reader("sample.nxs", dataset_path="/entry/experiment/EDS/data")
 
 We can also choose to load datasets based on a search key using the
 ``dataset_key`` keyword argument. This can also be used to load NXdata not
@@ -206,7 +190,7 @@ returned. The previous example could also be written as:
 .. code-block:: python
 
     >>> # Loading datasets containing the string "EDS"
-    >>> hs.load("sample.nxs", dataset_key="EDS")
+    >>> file_reader("sample.nxs", dataset_key="EDS")
 
 The difference between ``dataset_path`` and ``dataset_key`` is illustrated
 here:
@@ -214,23 +198,23 @@ here:
 .. code-block:: python
 
     >>> # Only the dataset /entry/experiment/EDS/data will be loaded
-    >>> hs.load("sample.nxs", dataset_path="/entry/experiment/EDS/data")
+    >>> file_reader("sample.nxs", dataset_path="/entry/experiment/EDS/data")
     >>> # All datasets contain the entire string "/entry/experiment/EDS/data" will be loaded
-    >>> hs.load("sample.nxs", dataset_key="/entry/experiment/EDS/data")
+    >>> file_reader("sample.nxs", dataset_key="/entry/experiment/EDS/data")
 
 Multiple datasets can be loaded by providing a number of keys:
 
 .. code-block:: python
 
     >>> # Loading a specific dataset
-    >>> hs.load("sample.nxs", dataset_key=["EDS", "Fe", "Ca"])
+    >>> file_reader("sample.nxs", dataset_key=["EDS", "Fe", "Ca"])
 
 Metadata can also be filtered in the same way using ``metadata_key``:
 
 .. code-block:: python
 
     >>> # Load data with metadata matching metadata_key
-    >>> hs.load("sample.nxs", metadata_key="entry/instrument")
+    >>> file_reader("sample.nxs", metadata_key="entry/instrument")
 
 .. note::
 
@@ -243,33 +227,26 @@ Metadata that are arrays can be skipped by using ``skip_array_metadata``:
     >>> # Load data while skipping metadata that are arrays
     >>> hs.load("sample.nxs", skip_array_metadata=True)
 
-NeXus files also support parameters or dimensions that have been varied
-non-linearly. Since the reading of non-uniform axes is not yet implemented for the 
-NeXus plugin, such non-linear information would be lost in the axes manager and
-replaced with indices.
-NeXus and HDF can result in large metadata structures with large datasets within the loaded
-original_metadata. If lazy loading is used this may not be a concern but care must be taken
-when saving the data. To control whether large datasets are loaded or saved,
-use the ``metadata_key`` to load only the most relevant information. Alternatively,
-set ``skip_array_metadata`` to ``True`` to avoid loading those large datasets in original_metadata.
+.. note::
+
+    NeXus files also support parameters or dimensions that have been varied
+    non-linearly. Since the reading of non-uniform axes is not yet implemented for the 
+    NeXus plugin, such non-linear information would be lost in the axes manager and
+    replaced with indices.
+
+.. note::
+
+    NeXus and HDF can result in large metadata structures with large datasets within the loaded
+    original_metadata. If lazy loading is used this may not be a concern but care must be taken
+    when saving the data. To control whether large datasets are loaded or saved,
+    use the ``metadata_key`` to load only the most relevant information. Alternatively,
+    set ``skip_array_metadata`` to ``True`` to avoid loading those large datasets in original_metadata.
 
 
-Writing
-^^^^^^^
-Signals can be written to new NeXus files using the standard :py:meth:`~.signal.BaseSignal.save`
-function.
+Writing examples
+^^^^^^^^^^^^^^^^
 
-Extra saving arguments
-++++++++++++++++++++++
-- ``save_original_metadata``: ``bool`` - Default is True, option to save the original_metadata when storing to file.
-- ``skip_metadata_key``: ``bool`` - ``None``, ``str`` or ``list`` of strings - Default is ``None``. Option to skip certain metadata keys when storing to file.
-- ``use_default``: ``bool`` - Default is False. Set the ``default`` attribute for the NeXus file.
-
-.. code-block:: python
-
-    >>> sig.save("output.nxs")
-
-Using the save method will store the nexus file with the following structure:
+Using the ``file_writer`` method will store the NeXus file with the following structure:
 
 ::
 
@@ -283,24 +260,13 @@ Using the save method will store the nexus file with the following structure:
     │   │   │   ├── data and axes (NXdata format)
 
 
-The original_metadata can include hdf datasets which you may not wish to store.
-The original_metadata can be omitted using ``save_original_metadata``.
+
+To save multiple signals, the ``file_writer`` can be called directly passing a
+list of signals.
 
 .. code-block:: python
 
-    >>> sig.save("output.nxs", save_original_metadata=False)
-
-If only certain metadata are to be ignored, use ``skip_metadata_key``:
-
-.. code-block:: python
-
-    >>> sig.save("output.nxs", skip_metadata_key=['xsp3', 'solstice_scan'])
-
-To save multiple signals, the file_writer method can be called directly.
-
-.. code-block:: python
-
-    >>> from hyperspy.io_plugins.nexus import file_writer
+    >>> from rsciio.nexus import file_writer
     >>> file_writer("test.nxs",[signal1,signal2])
 
 When saving multiple signals, a default signal can be defined. This can be used when storing
@@ -311,10 +277,8 @@ The default signal is selected as the first signal in the list:
 
 .. code-block:: python
 
-    >>> from hyperspy.io_plugins.nexus import file_writer
-    >>> import hyperspy.api as hs
+    >>> from rsciio.nexus import file_writer
     >>> file_writer("test.nxs", [signal1, signal2], use_default = True)
-    >>> hs.load("test.nxs", use_default = True)
 
 The output will be arranged by signal name:
 
@@ -340,40 +304,9 @@ The output will be arranged by signal name:
 
 .. note::
 
-    Signals saved as ``.nxs`` by this plugin can be loaded normally and the
-    original_metadata, signal data, axes, metadata and learning_results
+    Signals saved as ``.nxs`` by this plugin can be loaded normally in HyperSpy
+    and the original_metadata, signal data, axes, metadata and learning_results
     will be restored. Model information is not currently stored.
     NeXus does not store how the data should be displayed.
     To preserve the signal details an additional navigation attribute
     is added to each axis to indicate if it is a navigation axis.
-
-
-Inspecting
-^^^^^^^^^^
-Looking in a NeXus or HDF file for specific metadata is often useful - e.g. to find
-what position a specific stage was at. The methods ``read_metadata_from_file``
-and ``list_datasets_in_file`` can be used to load the file contents or
-list the hdf datasets contained in a file. The inspection methods use the same ``metadata_key`` or ``dataset_key`` as when loading.
-For example to search for metadata in a file:
-
-    >>> from hyperspy.io_plugins.nexus import read_metadata_from_file
-    >>> read_metadata_from_file("sample.hdf5",metadata_key=["stage1_z"])
-    {'entry': {'instrument': {'scannables': {'stage1': {'stage1_z': {'value': -9.871700000000002,
-    'attrs': {'gda_field_name': 'stage1_z',
-    'local_name': 'stage1.stage1_z',
-    'target': '/entry/instrument/scannables/stage1/stage1_z',
-    'units': 'mm'}}}}}}}
-
-To list the datasets stored in the file:
-
-    >>> from hyperspy.io_plugins.nexus import read_datasets_from_file
-    >>> list_datasets_in_file("sample.nxs")
-    NXdata found
-    /entry/xsp3_addetector
-    /entry/xsp3_addetector_total
-    HDF datasets found
-    /entry/solstice_scan/keys/uniqueKeys
-    /entry/solstice_scan/scan_shape
-    Out[3]:
-    (['/entry/xsp3_addetector', '/entry/xsp3_addetector_total'],
-     ['/entry/solstice_scan/keys/uniqueKeys', '/entry/solstice_scan/scan_shape'])

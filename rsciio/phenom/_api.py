@@ -45,6 +45,8 @@ from dateutil import tz
 import tifffile
 import xml.etree.ElementTree as ET
 
+from rsciio.docstrings import (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+
 
 def element_symbol(z):
     elements = [
@@ -917,6 +919,20 @@ class ElidReader:
         return [dict for dict in dictionaries if dict]
 
 
-def file_reader(filename, log_info=False, lazy=False, **kwds):
+def file_reader(filename, lazy=False, **kwds):
+    """
+    Read a Phenom ``.elid`` file from the software Element Identification (>v3.8.0)
+    used by the Thermo Fisher Scientific Phenom desktop SEMs.
+
+    Parameters
+    ----------
+    %s
+    %s  
+
+    %s
+    """
     reader = ElidReader(filename)
     return reader.dictionaries
+
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+

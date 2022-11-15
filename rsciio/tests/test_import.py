@@ -119,6 +119,10 @@ def test_dir_plugins():
 
     assert dir(protochips) == ["file_reader"]
 
+    from rsciio import prz
+
+    assert dir(prz) == ["file_reader", "file_writer"]
+
     from rsciio import ripple
 
     assert dir(ripple) == ["file_reader", "file_writer"]

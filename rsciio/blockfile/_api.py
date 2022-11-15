@@ -338,7 +338,6 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<"):
         dictionary,
     ]
 
-
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
 
 
@@ -484,6 +483,5 @@ def file_writer(
     else:
         file_memmap["IMG"] = array_data
     file_memmap.flush()
-
 
 file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)

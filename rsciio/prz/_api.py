@@ -24,6 +24,11 @@ import os
 
 import numpy as np
 
+from rsciio.docstrings import (
+    FILENAME_DOC,
+    RETURNS_DOC,
+    SIGNAL_DOC,
+)
 from rsciio.utils.tools import DTBox
 
 _logger = logging.getLogger(__name__)
@@ -37,13 +42,33 @@ _logger = logging.getLogger(__name__)
 
 
 def file_reader(filename, **kwds):
+    """
+    Read a PantaRhei ``.prz`` file.
+
+    Parameters
+    ----------
+    %s
+
+    %s
+    """
     prz_file = np.load(filename, allow_pickle=True)
     data = prz_file["data"]
     meta_data = prz_file["meta_data"][0]
     return import_pr(data, meta_data, filename)
 
+file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
+
 
 def file_writer(filename, signal, **kwds):
+    """
+    Write signal to PantaRhei ``.prz`` format.
+
+    Parameters
+    ----------
+    %s
+    %s
+    """
+
     data, meta_data = export_pr(signal=signal)
     with open(filename, mode="wb") as f:
         # use open file to avoid numpy adding the npz extension
@@ -55,6 +80,7 @@ def file_writer(filename, signal, **kwds):
             data_model=[{}],
         )
 
+file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
 
 def import_pr(data, meta_data, filename=None):
     """Converts metadata from PantaRhei to hyperspy format, and corrects

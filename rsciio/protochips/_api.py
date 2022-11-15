@@ -23,6 +23,8 @@ from datetime import datetime as dt
 import warnings
 import logging
 
+from rsciio.docstrings import (FILENAME_DOC, RETURNS_DOC)
+
 
 _logger = logging.getLogger(__name__)
 
@@ -37,8 +39,20 @@ invalid_file_error = (
 
 
 def file_reader(filename, *args, **kwds):
+    """
+    Read a Protochips ``.csv`` logfile containing data for heater, biasing or gas
+    cell experiments using an in-situ holder.
+
+    Parameters
+    ----------
+    %s
+
+    %s
+    """
     csv_file = ProtochipsCSV(filename)
     return _protochips_log_reader(csv_file)
+
+file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
 
 
 def _protochips_log_reader(csv_file):

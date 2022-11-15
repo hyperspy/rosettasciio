@@ -115,6 +115,10 @@ def test_dir_plugins():
 
     assert dir(phenom) == ["file_reader"]
 
+    from rsciio import protochips
+
+    assert dir(protochips) == ["file_reader"]
+
     from rsciio import ripple
 
     assert dir(ripple) == ["file_reader", "file_writer"]

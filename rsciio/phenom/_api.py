@@ -935,4 +935,3 @@ def file_reader(filename, lazy=False, **kwds):
     return reader.dictionaries
 
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
-

@@ -23,7 +23,7 @@ import pytest
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
-from rsciio.protochips.api import ProtochipsCSV, invalid_file_error
+from rsciio.protochips._api import ProtochipsCSV, invalid_file_error
 
 testdirpath = os.path.dirname(__file__)
 dirpath = os.path.join(testdirpath, "protochips_data")

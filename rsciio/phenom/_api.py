@@ -45,7 +45,7 @@ from dateutil import tz
 import tifffile
 import xml.etree.ElementTree as ET
 
-from rsciio.docstrings import (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 
 
 def element_symbol(z):
@@ -927,11 +927,12 @@ def file_reader(filename, lazy=False, **kwds):
     Parameters
     ----------
     %s
-    %s  
+    %s
 
     %s
     """
     reader = ElidReader(filename)
     return reader.dictionaries
+
 
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)

@@ -23,7 +23,7 @@ from datetime import datetime as dt
 import warnings
 import logging
 
-from rsciio.docstrings import (FILENAME_DOC, RETURNS_DOC)
+from rsciio.docstrings import FILENAME_DOC, RETURNS_DOC
 
 
 _logger = logging.getLogger(__name__)
@@ -51,6 +51,7 @@ def file_reader(filename, *args, **kwds):
     """
     csv_file = ProtochipsCSV(filename)
     return _protochips_log_reader(csv_file)
+
 
 file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
 

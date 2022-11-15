@@ -115,6 +115,15 @@ def test_dir_plugins():
 
     assert dir(netcdf) == ["file_reader"]
 
+    from rsciio import nexus
+
+    assert dir(nexus) == [
+        "file_reader",
+        "file_writer",
+        "list_datasets_in_file",
+        "read_metadata_from_file",
+    ]
+
     from rsciio import phenom
 
     assert dir(phenom) == ["file_reader"]

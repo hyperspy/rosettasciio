@@ -455,13 +455,14 @@ def file_reader(
         dictionary,
     ]
 
+
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
 
 
 def file_writer(filename, signal, encoding="latin-1", *args, **kwds):
     """Writes a Lispix (https://www.nist.gov/services-resources/software/lispix)
     ripple (.rpl) file and saves the data in a corresponding raw (.raw) file.
-    
+
     Parameters
     ----------
     %s
@@ -589,6 +590,7 @@ def file_writer(filename, signal, encoding="latin-1", *args, **kwds):
 
     write_rpl(filename, keys_dictionary, encoding)
     write_raw(filename, signal, record_by, sig_axes, nav_axes)
+
 
 file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
 

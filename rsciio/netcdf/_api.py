@@ -21,7 +21,7 @@ import logging
 
 import numpy as np
 
-from rsciio.docstrings import (FILENAME_DOC, RETURNS_DOC)
+from rsciio.docstrings import FILENAME_DOC, RETURNS_DOC
 
 _logger = logging.getLogger(__name__)
 
@@ -111,7 +111,9 @@ def file_reader(filename, *args, **kwds):
 
     return (dictionary,)
 
+
 file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
+
 
 def nc_hyperspy_reader_0dot1(ncfile, filename, *args, **kwds):
     calibration_dict, acquisition_dict, treatments_dict = {}, {}, {}

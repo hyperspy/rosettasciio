@@ -1,4 +1,4 @@
-"""Nexus file reading, writing and inspection."""
+"""NeXus file reading, writing and inspection."""
 # -*- coding: utf-8 -*-
 # Copyright 2007-2022 The HyperSpy developers
 #
@@ -25,6 +25,12 @@ import h5py
 import numpy as np
 import pprint
 
+from rsciio.docstrings import (
+    FILENAME_DOC,
+    LAZY_DOC,
+    RETURNS_DOC,
+    SIGNAL_DOC,
+)
 from rsciio._hierarchical import get_signal_chunks
 from rsciio.hspy.api import overwrite_dataset
 from rsciio.utils.tools import DTBox
@@ -437,20 +443,10 @@ def file_reader(
 ):
     """Read NXdata class or hdf datasets from a file and return signal(s).
 
-    Note
-    ----
-    Loading all datasets can result in a large number of signals
-    Please review your datasets and use the dataset_key to target
-    the datasets of interest.
-    "keys" is a special keywords and prepended with "fix" in the metadata
-    structure to avoid any issues.
-
-    Datasets are all arrays with size>2 (arrays, lists)
-
     Parameters
     ----------
-    filename : str
-        Input filename
+    %s
+    %s
     dataset_key  : None, str, list of strings, default : None
         If None all datasets are returned.
         If a string or list of strings is provided only items
@@ -483,17 +479,22 @@ def file_reader(
         default is defined the file will be loaded according to
         the keyword options.
 
-    Returns
-    -------
-    dict : signal dictionary or list of signal dictionaries
+    %s
 
+    Note
+    ----
+    Loading all datasets can result in a large number of signals
+    Please review your datasets and use the dataset_key to target
+    the datasets of interest.
+    "keys" is a special keywords and prepended with "fix" in the metadata
+    structure to avoid any issues.
+
+    Datasets are all arrays with size>2 (arrays, lists)
 
     See Also
     --------
     * :py:meth:`~.io_plugins.nexus.list_datasets_in_file`
     * :py:meth:`~.io_plugins.nexus.read_metadata_from_file`
-
-
     """
     # search for NXdata sets...
 
@@ -617,6 +618,9 @@ def file_reader(
                 signal_dict_list.append(datadict)
 
     return signal_dict_list
+
+
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
 
 
 def _is_linear_axis(data):
@@ -1071,7 +1075,7 @@ def _write_nexus_attr(dictionary, group, skip_keys=None):
 def read_metadata_from_file(
     filename, metadata_key=None, lazy=False, verbose=False, skip_array_metadata=False
 ):
-    """Read the metadata from a nexus or hdf file.
+    """Read the metadata from a NeXus or ``.hdf`` file.
 
     This method iterates through the file and returns a dictionary of
     the entries.
@@ -1080,8 +1084,7 @@ def read_metadata_from_file(
 
     Parameters
     ----------
-    filename : str
-        path of the file to read
+    %s
     metadata_key  : None,str or list_of_strings , default : None
         None will return all datasets found including linked data.
         Providing a string or list of strings will only return items
@@ -1125,12 +1128,15 @@ def read_metadata_from_file(
     return stripped_metadata
 
 
+read_metadata_from_file.__doc__ %= FILENAME_DOC
+
+
 def list_datasets_in_file(
     filename, dataset_key=None, hardlinks_only=False, verbose=True
 ):
-    """Read from a nexus or hdf file and return a list of the dataset paths.
+    """Read from a NeXus or ``.hdf`` file and return a list of the dataset paths.
 
-    This method is used to inspect the contents of a Nexus file.
+    This method is used to inspect the contents of a NeXus file.
     The method iterates through group attributes and returns NXdata or
     hdf datasets of size >=2 if they're not already NXdata blocks
     and returns a list of the entries.
@@ -1139,8 +1145,7 @@ def list_datasets_in_file(
 
     Parameters
     ----------
-    filename : str
-        path of the file to read
+    %s
     dataset_key  : str, list of strings or None , default: None
         If a str or list of strings is provided only return items whose
         path contain the strings.
@@ -1190,12 +1195,15 @@ def list_datasets_in_file(
     return nexus_data_paths, hdf_dataset_paths
 
 
+list_datasets_in_file.__doc__ %= FILENAME_DOC
+
+
 def _write_signal(signal, nxgroup, signal_name, **kwds):
     """Store the signal data as an NXdata dataset.
 
     Parameters
     ----------
-    signal : Hyperspy signal dictionary
+    signal : HyperSpy signal dictionary
     nxgroup : HDF group
         Entry at which to save signal data
     signal_name : str
@@ -1258,7 +1266,7 @@ def file_writer(
     *args,
     **kwds,
 ):
-    """Write the signal and metadata as a nexus file.
+    """Write the signal and metadata as a NeXus file.
 
     This will save the signal in NXdata format in the file.
     As the form of the metadata can vary and is not validated it will
@@ -1266,21 +1274,19 @@ def file_writer(
 
     Parameters
     ----------
-    filename : str
-        Path of the file to write
-    signals : signal or list of signals
-        Signal(s) to be written
-    save_original_metadata : bool , default : False
+    %s
+    %s
+    save_original_metadata : bool , default : True
           Option to save hyperspy.original_metadata with the signal.
-          A loaded Nexus file may have a large amount of data
-          when loaded which you may wish to omit on saving
+          A loaded NeXus file may have a large amount of data
+          when loaded which you may wish to omit on saving.
     skip_metadata_key : str or list of str, default : None
-        the key(s) to skip when it is saving original metadata. This is useful
-        when some metadata's keys are to be ignored.
+        The key(s) to skip when saving original metadata. This is useful
+        when some metadata keys should be ignored.
     use_default : bool , default : False
           Option to define the default dataset in the file.
           If set to True the signal or first signal in the list of signals
-          will be defined as the default (following Nexus v3 data rules).
+          will be defined as the default (following NeXus v3 data rules).
 
     See Also
     --------
@@ -1348,3 +1354,6 @@ def file_writer(
                 # write the groups and structure
                 _write_nexus_groups(md, nxmd, **kwds)
                 _write_nexus_attr(md, nxmd)
+
+
+file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)

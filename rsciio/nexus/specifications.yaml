@@ -1,6 +1,6 @@
-name: Nexus
+name: NeXus
 name_aliases: []
-description: Read NXdata sets from Nexus files and metadata. Data and metadata can also be examined from general hdf5 files.
+description: Read NXdata sets from NeXus files and metadata. Data and metadata from general hdf5 files can also be examined.
 full_support: False
 file_extensions: [nxs, NXS]
 default_extension: 0

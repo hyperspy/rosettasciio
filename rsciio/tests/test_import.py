@@ -109,6 +109,14 @@ def test_dir_plugins():
 
     assert dir(blockfile) == ["file_reader", "file_writer"]
 
+    from rsciio import ripple
+
+    assert dir(ripple) == ["file_reader", "file_writer"]
+
+    from rsciio import semper_unf
+
+    assert dir(semper_unf) == ["file_reader", "file_writer"]
+
     from rsciio import semper_unf
 
     assert dir(semper_unf) == ["file_reader", "file_writer"]

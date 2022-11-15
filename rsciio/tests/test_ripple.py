@@ -8,7 +8,7 @@ import pytest
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
-from rsciio.ripple import api as ripple
+from rsciio.ripple import _api as ripple
 
 # Tuple of tuples (data shape, signal_dimensions)
 SHAPES_SDIM = (

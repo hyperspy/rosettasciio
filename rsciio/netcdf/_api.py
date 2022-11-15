@@ -21,7 +21,10 @@ import logging
 
 import numpy as np
 
+from rsciio.docstrings import (FILENAME_DOC, RETURNS_DOC)
+
 _logger = logging.getLogger(__name__)
+
 
 no_netcdf = False
 try:
@@ -80,6 +83,15 @@ treatments2netcdf = {
 
 
 def file_reader(filename, *args, **kwds):
+    """
+    Read netCDF ``.nc`` files saved using the HyperSpy predecessor EELSlab.
+
+    Parameters
+    ----------
+    %s
+
+    %s
+    """
     if no_netcdf is True:
         raise ImportError(
             "No netCDF library installed. "
@@ -99,6 +111,7 @@ def file_reader(filename, *args, **kwds):
 
     return (dictionary,)
 
+file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
 
 def nc_hyperspy_reader_0dot1(ncfile, filename, *args, **kwds):
     calibration_dict, acquisition_dict, treatments_dict = {}, {}, {}

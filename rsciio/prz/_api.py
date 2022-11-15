@@ -24,11 +24,7 @@ import os
 
 import numpy as np
 
-from rsciio.docstrings import (
-    FILENAME_DOC,
-    RETURNS_DOC,
-    SIGNAL_DOC,
-)
+from rsciio.docstrings import (FILENAME_DOC, RETURNS_DOC, SIGNAL_DOC)
 from rsciio.utils.tools import DTBox
 
 _logger = logging.getLogger(__name__)

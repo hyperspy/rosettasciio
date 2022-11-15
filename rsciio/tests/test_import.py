@@ -111,6 +111,10 @@ def test_dir_plugins():
 
     assert dir(blockfile) == ["file_reader", "file_writer"]
 
+    from rsciio import netcdf
+
+    assert dir(netcdf) == ["file_reader"]
+
     from rsciio import phenom
 
     assert dir(phenom) == ["file_reader"]

@@ -246,3 +246,7 @@ class TestLoadCeleritas:
         )
         assert isinstance(data_dict["data"], dask.array.Array)
         assert data_dict["data"].shape == (512, 64, 64)
+
+    def test_hyperspy(self):
+        import hyperspy.api as hs
+        hs.load(celeritas3_path+"/test_Bottom_14-13-42.822.seq", celeritas=True)

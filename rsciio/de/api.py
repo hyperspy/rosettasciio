@@ -136,12 +136,12 @@ def file_reader(
         reader = CeleritasReader(file=filename, top=top, bottom=bottom, **kwargs)
     else:
         reader = SeqReader(file=filename, **kwargs)
-    return reader.read_data(
+    return [reader.read_data(
         navigation_shape=navigation_shape,
         lazy=lazy,
         distributed=distributed,
         chunks=chunks,
-    )
+    ),]
 
 
 class SeqReader:

@@ -18,9 +18,12 @@
 
 import gc
 from pathlib import Path
+import tempfile
+import zipfile
+
+import numpy as np
 
 import pytest
-import numpy as np
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -36,7 +39,7 @@ def teardown_module(module):
 TESTS_FILE_PATH = Path(__file__).resolve().parent / "JEOL_files"
 TESTS_FILE_PATH2 = TESTS_FILE_PATH / "InvalidFrame"
 
-test_files = [
+TEST_FILES = [
     "rawdata.ASW",
     "View000_0000000.img",
     "View000_0000001.map",
@@ -47,7 +50,7 @@ test_files = [
     "View000_0000006.pts",
 ]
 
-test_files2 = [
+TEST_FILES2 = [
     "dummy2.ASW",
     "Dummy-Data_0000000.img",
     "Dummy-Data_0000001.map",
@@ -79,7 +82,7 @@ test_files2 = [
 
 def test_load_project():
     # test load all elements of the project rawdata.ASW
-    filename = TESTS_FILE_PATH / test_files[0]
+    filename = TESTS_FILE_PATH / TEST_FILES[0]
     s = hs.load(filename)
     # first file is always a 16bit image of the work area
     assert s[0].data.dtype == np.uint8
@@ -90,14 +93,14 @@ def test_load_project():
     assert s[0].axes_manager[1].units == "µm"
     assert s[0].axes_manager[1].name == "y"
     # 1 to 16 files are a 16bit image of work area and elemental maps
-    for map in s[:-1]:
-        assert map.data.dtype == np.uint8
-        assert map.data.shape == (512, 512)
-        assert map.axes_manager.signal_dimension == 2
-        assert map.axes_manager[0].units == "µm"
-        assert map.axes_manager[0].name == "x"
-        assert map.axes_manager[1].units == "µm"
-        assert map.axes_manager[1].name == "y"
+    for elmap in s[:-1]:
+        assert elmap.data.dtype == np.uint8
+        assert elmap.data.shape == (512, 512)
+        assert elmap.axes_manager.signal_dimension == 2
+        assert elmap.axes_manager[0].units == "µm"
+        assert elmap.axes_manager[0].name == "x"
+        assert elmap.axes_manager[1].units == "µm"
+        assert elmap.axes_manager[1].name == "y"
     # last file is the datacube
     assert s[-1].data.dtype == np.uint8
     assert s[-1].data.shape == (512, 512, 4096)
@@ -115,12 +118,12 @@ def test_load_project():
     assert s[-1].axes_manager[2].name == "Energy"
 
     # check scale (image)
-    filename = TESTS_FILE_PATH / "Sample" / "00_View000" / test_files[1]
+    filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[1]
     s1 = hs.load(filename)
     np.testing.assert_allclose(s[0].axes_manager[0].scale, s1.axes_manager[0].scale)
     assert s[0].axes_manager[0].units == s1.axes_manager[0].units
     # check scale (pts)
-    filename = TESTS_FILE_PATH / "Sample" / "00_View000" / test_files[7]
+    filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[7]
     s2 = hs.load(filename)
     np.testing.assert_allclose(s[6].axes_manager[0].scale, s2.axes_manager[0].scale)
     assert s[6].axes_manager[0].units == s2.axes_manager[0].units
@@ -128,7 +131,7 @@ def test_load_project():
 
 def test_load_image():
     # test load work area haadf image
-    filename = TESTS_FILE_PATH / "Sample" / "00_View000" / test_files[1]
+    filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[1]
     s = hs.load(filename)
     assert s.data.dtype == np.uint8
     assert s.data.shape == (512, 512)
@@ -144,7 +147,7 @@ def test_load_image():
 @pytest.mark.parametrize("SI_dtype", [np.int8, np.uint8])
 def test_load_datacube(SI_dtype):
     # test load eds datacube
-    filename = TESTS_FILE_PATH / "Sample" / "00_View000" / test_files[7]
+    filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[7]
     s = hs.load(filename, SI_dtype=SI_dtype, cutoff_at_kV=5)
     assert s.data.dtype == SI_dtype
     assert s.data.shape == (512, 512, 596)
@@ -163,7 +166,7 @@ def test_load_datacube(SI_dtype):
 
 
 def test_load_datacube_rebin_energy():
-    filename = TESTS_FILE_PATH / "Sample" / "00_View000" / test_files[7]
+    filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[7]
     s = hs.load(filename, cutoff_at_kV=0.1)
     s_sum = s.sum()
 
@@ -183,7 +186,7 @@ def test_load_datacube_rebin_energy():
 def test_load_datacube_cutoff_at_kV():
     gc.collect()
     cutoff_at_kV = 10.0
-    filename = TESTS_FILE_PATH / "Sample" / "00_View000" / test_files[7]
+    filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[7]
     s = hs.load(filename, cutoff_at_kV=None)
     s2 = hs.load(filename, cutoff_at_kV=cutoff_at_kV)
 
@@ -196,7 +199,7 @@ def test_load_datacube_cutoff_at_kV():
 
 def test_load_datacube_downsample():
     downsample = 8
-    filename = TESTS_FILE_PATH / test_files[0]
+    filename = TESTS_FILE_PATH / TEST_FILES[0]
     s = hs.load(filename, downsample=1)[-1]
     s2 = hs.load(filename, downsample=downsample)[-1]
 
@@ -231,7 +234,7 @@ def test_load_datacube_downsample():
 
 def test_load_datacube_frames():
     rebin_energy = 2048
-    filename = TESTS_FILE_PATH / "Sample" / "00_View000" / test_files[7]
+    filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[7]
     s = hs.load(filename, sum_frames=True, rebin_energy=rebin_energy)
     assert s.data.shape == (512, 512, 2)
     s_frame = hs.load(filename, sum_frames=False, rebin_energy=rebin_energy)
@@ -325,10 +328,10 @@ def test_number_of_frames():
     dir2 = TESTS_FILE_PATH / "InvalidFrame" / "Sample" / "00_Dummy-Data"
 
     test_list = [  # dir, file, num_frames, num_valid_frames
-        [dir1, test_files[7], 14, 14],
-        [dir2, test_files2[8], 1, 0],
-        [dir2, test_files2[16], 2, 1],
-        [dir2, test_files2[24], 1, 1],
+        [dir1, TEST_FILES[7], 14, 14],
+        [dir2, TEST_FILES2[8], 1, 0],
+        [dir2, TEST_FILES2[16], 2, 1],
+        [dir2, TEST_FILES2[24], 1, 1],
     ]
 
     for item in test_list:
@@ -365,25 +368,25 @@ def test_em_image_in_pts():
 
     # no SEM/STEM image
     s = hs.load(
-        dir1 / test_files[0], read_em_image=False, only_valid_data=False, cutoff_at_kV=1
+        dir1 / TEST_FILES[0], read_em_image=False, only_valid_data=False, cutoff_at_kV=1
     )
     assert len(s) == 7
 
     s = hs.load(
-        dir1 / test_files[0], read_em_image=True, only_valid_data=False, cutoff_at_kV=1
+        dir1 / TEST_FILES[0], read_em_image=True, only_valid_data=False, cutoff_at_kV=1
     )
     assert len(s) == 7
 
     # with SEM/STEM image
     s = hs.load(
-        dir2 / test_files2[0],
+        dir2 / TEST_FILES2[0],
         read_em_image=False,
         only_valid_data=False,
         cutoff_at_kV=1,
     )
     assert len(s) == 22
     s = hs.load(
-        dir2 / test_files2[0], read_em_image=True, only_valid_data=False, cutoff_at_kV=1
+        dir2 / TEST_FILES2[0], read_em_image=True, only_valid_data=False, cutoff_at_kV=1
     )
     assert len(s) == 25
     assert (
@@ -395,7 +398,7 @@ def test_em_image_in_pts():
 
     # integrate SEM/STEM image along frame axis
     s = hs.load(
-        dir2p / test_files2[16],
+        dir2p / TEST_FILES2[16],
         read_em_image=True,
         only_valid_data=False,
         sum_frames=True,
@@ -406,14 +409,14 @@ def test_em_image_in_pts():
     assert s[1].data[63, 63] == 87 * 3
 
     s = hs.load(
-        dir2p / test_files2[16],
+        dir2p / TEST_FILES2[16],
         read_em_image=True,
         only_valid_data=False,
         sum_frames=False,
         cutoff_at_kV=1,
     )
     s2 = hs.load(
-        dir2p / test_files2[16],
+        dir2p / TEST_FILES2[16],
         read_em_image=True,
         only_valid_data=False,
         sum_frames=True,
@@ -428,7 +431,7 @@ def test_pts_lazy():
     dir2 = TESTS_FILE_PATH / "InvalidFrame"
     dir2p = dir2 / "Sample" / "00_Dummy-Data"
     s = hs.load(
-        dir2p / test_files2[16],
+        dir2p / TEST_FILES2[16],
         read_em_image=True,
         only_valid_data=False,
         sum_frames=False,
@@ -436,7 +439,7 @@ def test_pts_lazy():
     )
     s1 = [s[0].data.sum(axis=0).compute(), s[1].data.sum(axis=0).compute()]
     s2 = hs.load(
-        dir2p / test_files2[16],
+        dir2p / TEST_FILES2[16],
         read_em_image=True,
         only_valid_data=False,
         sum_frames=True,
@@ -447,7 +450,7 @@ def test_pts_lazy():
 
 
 def test_pts_frame_shift():
-    file = TESTS_FILE_PATH2 / "Sample" / "00_Dummy-Data" / test_files2[16]
+    file = TESTS_FILE_PATH2 / "Sample" / "00_Dummy-Data" / TEST_FILES2[16]
 
     # without frame shift
     ref = hs.load(
@@ -462,8 +465,7 @@ def test_pts_frame_shift():
     d0 = np.zeros(len(points), dtype=np.int16)
     d1 = np.zeros(len(points), dtype=np.int16)
     d2 = np.zeros(len(points), dtype=np.int16)
-    for frame in range(len(points)):
-        p = points[frame]
+    for frame, p in enumerate(points):
         d0[frame] = ref[0].data[frame, p[1], p[0], p[2]]
         assert d0[frame] == values[frame]
 
@@ -507,3 +509,45 @@ def test_pts_frame_shift():
             pos = [origin[0] + sfts0[1], origin[1] + sfts0[0], origin[2] + sfts0[2]]
             d2[frame] = dt[frame, pos[1], pos[0], pos[2]]
             assert d2[frame] == d0[frame]
+
+
+def test_broken_files():
+    TEST_BROKEN_FILES = ["test.asw", "test.pts"]
+    with tempfile.TemporaryDirectory() as tmpdir:
+        for _file in TEST_BROKEN_FILES:
+            file = Path(tmpdir) / _file
+            with open(file, "w") as fd:
+                fd.write("aaaaaaaa")
+            s = hs.load(file)
+            assert s == []
+
+
+def test_seq_eds_files():
+    pos0 = [0.0, 0.0, -0.000132, 0.000132]
+    pos = [
+        [0.0, 0.0, 0.0, 0.0],
+        [2.04070450e-05, -4.77886497e-05, 1.05909980e-05, -3.87475538e-05],
+        [1.91154599e-05, -3.07397260e-05, -5.45048924e-05, 5.16634051e-05],
+    ]
+    memo = ["", "030", "035"]
+    test_file = Path(__file__).resolve().parent / "jeol_seq_eds_files.zip"
+    with tempfile.TemporaryDirectory() as tmpdir:
+        with zipfile.ZipFile(test_file, "r") as zipped:
+            zipped.extractall(tmpdir)
+            s = hs.load(Path(tmpdir) / "1" / "1.ASW")
+            # check if three subfiles are in file (img, eds, eds)
+            assert len(s) == 3
+            # check positional information in subfiles
+            for i, p in enumerate(pos):
+                sampleinfo = s[i].original_metadata["asw"]["SampleInfo"]["0"]
+                viewinfo = sampleinfo["ViewInfo"]["0"]
+                np.testing.assert_allclose(viewinfo["PositionMM2"], pos0)
+                viewdata_asw = viewinfo["ViewData"]
+                viewdata = s[i].original_metadata["asw_viewdata"]
+                np.testing.assert_allclose(viewdata["PositionMM2"], p)
+                np.testing.assert_allclose(
+                    viewdata["PositionMM2"], viewdata_asw[i]["PositionMM2"]
+                )
+                assert viewdata["Memo"] == memo[i]
+            assert isinstance(s[1], hs.signals.EDSTEMSpectrum)
+            assert isinstance(s[2], hs.signals.EDSTEMSpectrum)

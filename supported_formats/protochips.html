@@ -402,7 +402,7 @@
               
   <section id="protochips-logfile">
 <span id="protochips-format"></span><h1>Protochips logfile<a class="headerlink" href="#protochips-logfile" title="Permalink to this heading">#</a></h1>
-<p>RosettaSciIO can read heater, biasing and gas cell logfiles for Protochips holder.
+<p>RosettaSciIO can read heater, biasing and gas cell <code class="docutils literal notranslate"><span class="pre">.log</span></code> files for Protochips holder.
 The format stores all the captured data together with a small header in a <code class="docutils literal notranslate"><span class="pre">.csv</span></code>
 file. The reader extracts the measured quantity (e. g. temperature, pressure,
 current, voltage) along the time axis, as well as the notes saved during the
@@ -411,42 +411,10 @@ to a quantity. Since there is a small fluctuation in the step of the time axis,
 the reader assumes that the step is constant and takes its mean, which is a
 good approximation. Further releases of RosettaSciIO will read the time axis more
 precisely by supporting non-uniform axis (to be implemented!).</p>
-<p>To read Protochips logfiles in HyperSpy, use the <code class="docutils literal notranslate"><span class="pre">reader</span></code> argument to define the
-correct file plugin as the <code class="docutils literal notranslate"><span class="pre">.csv</span></code> extension is not unique to this reader:</p>
+<p>To read Protochips logfiles, use the reader argument to define the correct file reader:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;filename.csv&quot;</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="s2">&quot;protochips&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="module-rsciio.protochips">
-<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.protochips" title="Permalink to this heading">#</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="rsciio.protochips.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.protochips.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.protochips.file_reader" title="Permalink to this definition">#</a></dt>
-<dd><p>Read a Protochips <code class="docutils literal notranslate"><span class="pre">.csv</span></code> logfile containing data for heater, biasing or gas
-cell experiments using an in-situ holder.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – Filename of the file to read.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
-<ul class="simple">
-<li><p>’data’ – multidimensional numpy array</p></li>
-<li><p>’axes’ – list of dictionaries describing the axes
-containing the fields ‘name’, ‘units’, ‘index_in_array’, and
-either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
-containing the full axes vector</p></li>
-<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
-<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
-</ul>
-</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list of dicts</p>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
 </section>
 
 
@@ -480,34 +448,6 @@ containing the full axes vector</p></li>
           
             <div class="bd-sidebar-secondary bd-toc">
               
-<div class="toc-item">
-  
-<div class="tocsection onthispage">
-    <i class="fa-solid fa-list"></i> On this page
-</div>
-<nav id="bd-toc-nav" class="page-toc">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#module-rsciio.protochips">
-   API functions
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#rsciio.protochips.file_reader">
-     <code class="docutils literal notranslate">
-      <span class="pre">
-       file_reader()
-      </span>
-     </code>
-    </a>
-   </li>
-  </ul>
- </li>
-</ul>
-
-</nav>
-</div>
-
 <div class="toc-item">
   
 <div id="searchbox"></div>

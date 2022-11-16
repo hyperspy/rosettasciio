@@ -788,7 +788,7 @@ def read_ref(file_name):
     try:
         shape = np.array(np.fromfile(file_name, dtype=np.int32, count=2), dtype=int)
         shape = tuple(shape[::-1])
-        ref = np.memmap(file_name, dtype=np.float32, shape=shape, offset=1024)
+        ref = np.memmap(file_name, mode="r", dtype=np.float32, shape=shape, offset=1024)
         ref.shape
         return ref
     except FileNotFoundError:

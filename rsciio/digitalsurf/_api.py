@@ -663,21 +663,21 @@ class DigitalSurfHandler(object):
         # We get the dictionary with all the data
         hypdic = self._list_sur_file_content[0]
 
-        # Add the signal axis_src to the signal dict
-        self.signal_dict["axes"].append(self._build_Xax(hypdic, ind=1, nav=False))
-
         # If there is more than 1 spectrum also add the navigation axis
-        if hypdic["_19_Number_of_Lines"] != 1:
-            self.signal_dict["axes"].append(self._build_Yax(hypdic, ind=0, nav=True))
+        if hypdic['_19_Number_of_Lines'] != 1:
+            self.signal_dict['axes'].append(
+                self._build_Yax(hypdic, ind=0, nav=True))
+
+        # Add the signal axis_src to the signal dict
+        self.signal_dict['axes'].append(
+            self._build_Xax(hypdic, ind=1, nav=False))
 
         # We reshape the data in the correct format.
         # Edit: the data is now squeezed for unneeded dimensions
-        self.signal_dict["data"] = np.squeeze(
-            hypdic["_62_points"].reshape(
-                hypdic["_19_Number_of_Lines"],
-                hypdic["_18_Number_of_Points"],
-            )
-        )
+        data_shape = (hypdic['_19_Number_of_Lines'], hypdic['_18_Number_of_Points'])
+        data_array = np.squeeze(hypdic['_62_points'].reshape(data_shape, order='C'))
+
+        self.signal_dict['data'] = data_array
 
         self._set_metadata_and_original_metadata(hypdic)
 

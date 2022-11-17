@@ -512,7 +512,7 @@ def test_pts_frame_shift():
 
 
 def test_broken_files():
-    TEST_BROKEN_FILES = ["test.asw", "test.pts"]
+    TEST_BROKEN_FILES = ["test.asw", "test.pts", "test.img"]
     with tempfile.TemporaryDirectory() as tmpdir:
         for _file in TEST_BROKEN_FILES:
             file = Path(tmpdir) / _file
@@ -551,3 +551,23 @@ def test_seq_eds_files():
                 assert viewdata["Memo"] == memo[i]
             assert isinstance(s[1], hs.signals.EDSTEMSpectrum)
             assert isinstance(s[2], hs.signals.EDSTEMSpectrum)
+
+
+def test_frame_start_index():
+    file = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[7]
+    frame_start_index_ref = [0, 49660, 98602, 147633, 196414, 245078, 294263, 343283, 392081, 441310, 490126, 539395, 588409, 637523, 686084]
+
+    ref = hs.load(file, sum_frames=False)
+    frame_start_index = ref.original_metadata.jeol_pts_frame_start_index
+    assert np.array_equal(frame_start_index, frame_start_index_ref)
+
+    ref = hs.load(file, frame_list=[2, 5])
+    frame_start_index = ref.original_metadata.jeol_pts_frame_start_index
+    assert np.array_equal(frame_start_index[0:6], frame_start_index_ref[0:6])
+    assert np.all(frame_start_index[6:] == -1)
+
+    ref = hs.load(file, frame_list=[4, 9], frame_start_index=frame_start_index)
+    frame_start_index = ref.original_metadata.jeol_pts_frame_start_index
+    assert np.array_equal(frame_start_index[0:10], frame_start_index_ref[0:10])
+    assert np.all(frame_start_index[10:] == -1)
+

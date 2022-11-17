@@ -182,6 +182,7 @@ def _read_img(filename, **kwargs):
         }
     else:
         _logger.warning("Not a valid JEOL img format")
+        dictionary = {}
 
     fd.close()
 
@@ -334,8 +335,6 @@ def _read_pts(
         # Sweep value is not reliable, so +1 frame is needed if sum_frames = False
         # priority of the length of frame_start_index is higher than "sweep" in header
         sweep = meas_data_header["Doc"]["Sweep"]
-        if frame_start_index:
-            sweep = len(frame_start_index)
 
         auto_frame_list = False
         if frame_list:
@@ -378,6 +377,7 @@ def _read_pts(
 
         if frame_start_index is None:
             frame_start_index = np.full(max_frame, -1, dtype=np.int32)
+            frame_start_index[0] = 0
         else:
             frame_start_index = np.asarray(frame_start_index)
 
@@ -386,7 +386,6 @@ def _read_pts(
             fi = np.full(max_frame, -1, dtype=np.int32)
             fi[0 : frame_start_index.size] = frame_start_index
             frame_start_index = fi
-
         if frame_shifts is None:
             frame_shifts = np.zeros((max_frame, 3), dtype=np.int16)
         if len(frame_shifts) < max_frame:
@@ -739,6 +738,7 @@ def _readcube(
     frame_shifts -= max_shift
     width += sxyz[1]
     height += sxyz[0]
+    valid = None
 
     if lazy:
         readframe = _readframe_lazy
@@ -750,19 +750,22 @@ def _readcube(
     target_frame_num = 0
     has_em_image = False
     for frame_idx in frame_list:
-        if frame_idx < 0:
+        frame_start_index[frame_num] = p_start
+        if frame_idx < 0:  # skip invalid frame number
             continue
-        elif frame_start_index[frame_idx] >= 0:
-            # if frame_idx is already indexed
-            p_start = frame_start_index[frame_idx]
-        elif frame_num < frame_idx and frame_start_index[frame_num] < 0:
+
+        # find the last indexed frame
+        _i = frame_idx
+        while _i > 0 and frame_start_index[_i] < 0:
+            _i -= 1
+        p_start = frame_start_index[_i]
+        frame_num = _i
+
+        while frame_num < frame_idx:
             # record start point of frame and skip frame
-            frame_start_index[frame_num] = p_start
             p_start += _readframe_dummy(rawdata[p_start:])
             frame_num += 1
-            continue
-        else:
-            frame_start_index[frame_idx] = p_start  # = end of last frame
+            frame_start_index[frame_num] = p_start
 
         if frame_idx < frame_shifts.size:
             fs = frame_shifts[frame_idx]
@@ -822,6 +825,7 @@ def _readcube(
             break
 
         p_start += length
+
     if not lazy:
         if sum_frames:
             # the first frame has integrated intensity
@@ -915,7 +919,7 @@ def _readframe_dense(
     dy,
     dz,
     max_value,
-):  # pragma: nocover
+):  # pragma: no cover
     """
     Read one frame from pts file. Used in a inner loop of _readcube function.
     This function always read SEM/STEM image even if read_em_image == False

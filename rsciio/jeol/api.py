@@ -54,8 +54,8 @@ def file_reader(filename, **kwargs):
     File reader for JEOL format
     """
     file_ext = os.path.splitext(filename)[-1][1:].lower()
-    if file_ext in extension_to_reader_mapping:
-        return extension_to_reader_mapping[file_ext](filename, **kwargs)
+    if file_ext in EXTENSION_TO_READER_MAPPING:
+        return EXTENSION_TO_READER_MAPPING[file_ext](filename, **kwargs)
     else:
         _logger.info(f"{filename} : File type {file_ext} is not supported. Skipping")
         return []
@@ -67,23 +67,23 @@ def _draw_marker(img):
         return
     sample_info = img["original_metadata"]["asw"]["SampleInfo"]
     view_info = sample_info["0"]["ViewInfo"]["0"]
-    (_,_,o_x,o_y) = view_info["PositionMM2"] * 1000 / 2
+    (_, _, o_x, o_y) = view_info["PositionMM2"] * 1000 / 2
     markers_dict = {}
     for num, items in view_info["ViewData"].items():
         if items["Memo"] == "":  # index image itself
             continue
-        (x0,y0,x1,y1) = items["PositionMM2"] * 1000
+        (x0, y0, x1, y1) = items["PositionMM2"] * 1000
         markers_dict["Rect" + num] = {
-            "marker_type" : "Rectangle",
-            "data" : {"x1":-x0-o_x, "x2":-x1-o_x, "y1": y0+o_y, "y2":y1+o_y},
-            "marker_properties" : {"color" : "cyan", "linewidth":1 },
-            "plot_on_signal" : True,
+            "marker_type": "Rectangle",
+            "data": {"x1":-x0-o_x, "x2":-x1-o_x, "y1": y0+o_y, "y2":y1+o_y},
+            "marker_properties": {"color" : "cyan", "linewidth":1},
+            "plot_on_signal": True,
         }
         markers_dict["Text" + num] = {
-            "marker_type" : "Text",
-            "data" : {"x1":-x0-o_x, "y1": y0+o_y, "text": items["Memo"]},
-            "marker_properties" : {"color" : "cyan"},
-            "plot_on_signal" : True,
+            "marker_type": "Text",
+            "data": {"x1":-x0-o_x, "y1": y0+o_y, "text": items["Memo"]},
+            "marker_properties": {"color" : "cyan"},
+            "plot_on_signal": True,
         }
     img["metadata"]["Markers"] = markers_dict
     return
@@ -1162,6 +1162,8 @@ def _read_eds(filename, **kwargs):
     ----------
     filename : str
         path of .eds file
+    kwargs :
+        not used
 
     Returns
     -------
@@ -1222,22 +1224,22 @@ def _read_eds(filename, **kwargs):
     n_elem = np.fromfile(fd, "<i", 1)[0]
     if n_elem != 0:
         elems = {}
-        for i in range(n_elem):
+        for _i in range(n_elem):
             # mark elem
             _ = np.fromfile(fd, "<i", 1)[0]  # = 2
             # Z
             _ = np.fromfile(fd, "<H", 1)[0]
-            mark1, mark2 = np.fromfile(fd, "<i", 2)  # = 1, 0
+            _, _ = np.fromfile(fd, "<i", 2)  # mark1, mark2 = 1, 0
             roi_min, roi_max = np.fromfile(fd, "<H", 2)
             # unknown
             _ = np.fromfile(fd, "<b", 14)
-            energy, unknow1, unknow2, unknow3 = np.fromfile(fd, "<d", 4)
+            energy, _unknown1, _unknown2, _unknown3 = np.fromfile(fd, "<d", 4)
             elem_name = _decode(fd.read(32).rstrip(b"\x00"))
             # mark3?
             _ = np.fromfile(fd, "<i", 1)[0]
             n_line = np.fromfile(fd, "<i", 1)[0]
             lines = {}
-            for j in range(n_line):
+            for _j in range(n_line):
                 # mark_line?
                 _ = np.fromfile(fd, "<i", 1)[0]  # = 1
                 e_line = np.fromfile(fd, "<d", 1)[0]
@@ -1275,8 +1277,8 @@ def _read_eds(filename, **kwargs):
             # mark elem
             _ = np.fromfile(fd, "<i", 1)[0]  # = 2
             z = np.fromfile(fd, "<H", 1)[0]
-            mark1, mark2 = np.fromfile(fd, "<i", 2)  # = 1, 0
-            energy, unkn6 = np.fromfile(fd, "<d", 2)
+            _, _ = np.fromfile(fd, "<i", 2)  # mark1, mark2 = 1, 0
+            energy, _unkown6 = np.fromfile(fd, "<d", 2)
             mass1 = np.fromfile(fd, "<d", 1)[0]
             error = np.fromfile(fd, "<d", 1)[0]
             atom = np.fromfile(fd, "<d", 1)[0]
@@ -1391,7 +1393,7 @@ def _read_eds(filename, **kwargs):
             "original_filename": os.path.basename(filename),
             "date": header["filedate"].date().isoformat(),
             "time": header["filedate"].time().isoformat(),
-            "title": title
+            "title": title,
         },
         "Signal": {
             "record_by": "spectrum",
@@ -1410,7 +1412,7 @@ def _read_eds(filename, **kwargs):
     return [dictionary]
 
 
-extension_to_reader_mapping = {
+EXTENSION_TO_READER_MAPPING = {
     "img": _read_img,
     "map": _read_img,
     "pts": _read_pts,

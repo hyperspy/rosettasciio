@@ -361,7 +361,7 @@ def _read_pts(
 
         if len(wrong_frames_list) > 0:
             wrong_frames = wrong_frames_list.flatten().tolist()
-            _logger.info(
+            _logger.warning(
                 f"Invalid frame number is specified. The frame {wrong_frames} is not found in pts data."
             )
 
@@ -379,13 +379,17 @@ def _read_pts(
             fi = np.full(max_frame, -1, dtype=np.int32)
             fi[0 : frame_start_index.size] = frame_start_index
             frame_start_index = fi
+
         if frame_shifts is None:
             frame_shifts = np.zeros((max_frame, 3), dtype=np.int16)
-        if len(frame_shifts) < max_frame:
-            fs = np.zeros((max_frame, 3), dtype=np.int16)
-            if len(frame_shifts) > 0:
-                fs[0 : len(frame_shifts), 0 : len(frame_shifts[0])] = frame_shifts
-            frame_shifts = fs
+
+        # always False
+        # if len(frame_shifts) < max_frame:
+        #    fs = np.zeros((max_frame, 3), dtype=np.int16)
+        #    if len(frame_shifts) > 0:
+        #        fs[0 : len(frame_shifts), 0 : len(frame_shifts[0])] = frame_shifts
+        #    frame_shifts = fs
+
         if len(frame_shifts[0]) == 2:  # fill z with 0
             fr = np.zeros((max_frame, 3), dtype=np.int16)
             fr[: len(frame_shifts), 0:2] = np.asarray(frame_shifts)
@@ -739,7 +743,6 @@ def _readcube(
     target_frame_num = 0
     has_em_image = False
     for frame_idx in frame_list:
-        frame_start_index[frame_num] = p_start
         if frame_idx < 0:  # skip invalid frame number
             continue
 
@@ -814,6 +817,8 @@ def _readcube(
             break
 
         p_start += length
+        if frame_num < frame_start_index.size:
+            frame_start_index[frame_num] = p_start
 
     if not lazy:
         if sum_frames:

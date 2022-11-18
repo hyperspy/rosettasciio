@@ -220,6 +220,12 @@ def test_load_datacube_downsample():
     with pytest.raises(ValueError, match="must be a divisor"):
         _ = hs.load(filename, downsample=10)[-1]
 
+    with pytest.raises(
+            ValueError,
+            match="`downsample` can't be an iterable of length different from 2."
+    ):
+        _ = hs.load(filename, downsample=[2,2,2])[-1]
+
     downsample = [8, 16]
     s = hs.load(filename, downsample=downsample)[-1]
     assert s.axes_manager["x"].size * downsample[0] == 512
@@ -510,6 +516,21 @@ def test_pts_frame_shift():
             d2[frame] = dt[frame, pos[1], pos[0], pos[2]]
             assert d2[frame] == d0[frame]
 
+    # test frame shift with default values (no energy shift)
+    # s0 = hs.load(file, frame_list=[0, 1, 2], sum_frames=False, only_valid_data=False)
+    sfts = np.array([[1, 2], [10, 3]])
+    max_sfts = sfts.max(axis=0)
+    min_sfts = sfts.min(axis=0)
+    fs = sfts - max_sfts
+    s = hs.load(file, frame_shifts=sfts, sum_frames=False, only_valid_data=False)
+    sz = min_sfts - max_sfts + ref[0].data.shape[1:3]
+    assert s.data.shape == (2, sz[0], sz[1], 4096)
+    for fr, sft in enumerate(fs):
+        assert np.array_equal(
+            s.data[fr, 20+sft[0]:30+sft[0], 20+sft[1]:30+sft[1], 106],
+            ref[0].data[fr, 20:30, 20:30, 106]
+        )
+
 
 def test_broken_files():
     TEST_BROKEN_FILES = ["test.asw", "test.pts", "test.img"]
@@ -579,16 +600,36 @@ def test_frame_start_index():
         686084,
     ]
 
-    ref = hs.load(file, sum_frames=False)
+    ref = hs.load(
+        file, sum_frames=False, downsample=[32, 32], rebin_energy=512, SI_dtype=np.int32
+    )
     frame_start_index = ref.original_metadata.jeol_pts_frame_start_index
     assert np.array_equal(frame_start_index, frame_start_index_ref)
 
-    ref = hs.load(file, frame_list=[2, 5])
-    frame_start_index = ref.original_metadata.jeol_pts_frame_start_index
+    s = hs.load(
+        file,
+        frame_list=[2, 5],
+        downsample=[32, 32],
+        rebin_energy=512,
+        SI_dtype=np.int32
+    )
+    frame_start_index = s.original_metadata.jeol_pts_frame_start_index
     assert np.array_equal(frame_start_index[0:6], frame_start_index_ref[0:6])
     assert np.all(frame_start_index[6:] == -1)
 
-    ref = hs.load(file, frame_list=[4, 9], frame_start_index=frame_start_index)
-    frame_start_index = ref.original_metadata.jeol_pts_frame_start_index
+    s = hs.load(
+        file,
+        frame_list=[4, 9],
+        frame_start_index=frame_start_index,
+        downsample=[32, 32],
+        rebin_energy=512,
+        SI_dtype=np.int32
+    )
+    frame_start_index = s.original_metadata.jeol_pts_frame_start_index
     assert np.array_equal(frame_start_index[0:10], frame_start_index_ref[0:10])
     assert np.all(frame_start_index[10:] == -1)
+
+    s = hs.load(file, frame_list=[11, 5, 20], sum_frames=False,
+                frame_start_index=frame_start_index,
+                downsample=[32, 32], rebin_energy=512, SI_dtype=np.int32)
+    assert s.data.shape == (2, 16, 16, 8)

@@ -63,15 +63,13 @@ def file_reader(filename, **kwargs):
 
 def _read_asw(filename, **kwargs):
     image_list = []
-    fd = open(filename, "br")
-    file_magic = np.fromfile(fd, "<I", 1)[0]
-    if file_magic != 0:
-        _logger.warning("Not a valid JEOL asw format")
-        fd.close()
-        return []
-    fd.seek(12)
-    filetree = _parsejeol(fd)
-    fd.close()
+    with open(filename, "br") as fd:
+        file_magic = np.fromfile(fd, "<I", 1)[0]
+        if file_magic != 0:
+            raise ValueError(f"Not a valid JEOL asw format '{filename}'")
+        fd.seek(12)
+        filetree = _parsejeol(fd)
+
     filepath, filen = os.path.split(os.path.abspath(filename))
     if "SampleInfo" in filetree.keys():
         for i in filetree["SampleInfo"].keys():
@@ -109,83 +107,77 @@ def _read_img(filename, **kwargs):
         (Always len(image_list) == 1)
     """
 
-    fd = open(filename, "br")
-    file_magic = np.fromfile(fd, "<I", 1)[0]
-    if file_magic == 52:
+    with open(filename, "br") as fd:
+        file_magic = np.fromfile(fd, "<I", 1)[0]
+        if file_magic != 52:
+            _logger.warning(f"Not a valid JEOL img format '{filename}'")
+            return []
+
         # fileformat
         _ = _decode(fd.read(32).rstrip(b"\x00"))
         head_pos, head_len, data_pos = np.fromfile(fd, "<I", 3)
         fd.seek(data_pos + 12)
         header_long = _parsejeol(fd)
-        width, height = header_long["Image"]["Size"]
-        header_long["Image"]["Bits"].resize((height, width))
-        data = header_long["Image"]["Bits"]
 
-        scale = (
-            header_long["Instrument"]["ScanSize"]
-            / header_long["Instrument"]["Mag"]
-            * 1.0e3
-        )
-        xscale = scale / width
-        yscale = scale / height
-        units = "µm"
+    width, height = header_long["Image"]["Size"]
+    header_long["Image"]["Bits"].resize((height, width))
+    data = header_long["Image"]["Bits"]
 
-        axes = [
-            {
-                "name": "y",
-                "size": height,
-                "offset": 0,
-                "scale": yscale,
-                "units": units,
-            },
-            {
-                "name": "x",
-                "size": width,
-                "offset": 0,
-                "scale": xscale,
-                "units": units,
-            },
-        ]
+    scale = (
+        header_long["Instrument"]["ScanSize"] / header_long["Instrument"]["Mag"] * 1.0e3
+    )
+    xscale = scale / width
+    yscale = scale / height
+    units = "µm"
 
-        datefile = datetime(1899, 12, 30) + timedelta(
-            days=header_long["Image"]["Created"]
-        )
-        hv = header_long["Instrument"]["AccV"]
-        if hv <= 30.0:
-            mode = "SEM"
-        else:
-            mode = "TEM"
+    axes = [
+        {
+            "name": "y",
+            "size": height,
+            "offset": 0,
+            "scale": yscale,
+            "units": units,
+        },
+        {
+            "name": "x",
+            "size": width,
+            "offset": 0,
+            "scale": xscale,
+            "units": units,
+        },
+    ]
 
-        metadata = {
-            "Acquisition_instrument": {
-                mode: {
-                    "beam_energy": hv,
-                    "magnification": header_long["Instrument"]["Mag"],
-                },
-            },
-            "General": {
-                "original_filename": os.path.basename(filename),
-                "date": datefile.date().isoformat(),
-                "time": datefile.time().isoformat(),
-                "title": header_long["Image"]["Title"],
-            },
-            "Signal": {
-                "record_by": "image",
-            },
-        }
-
-        dictionary = {
-            "data": data,
-            "axes": axes,
-            "metadata": metadata,
-            "original_metadata": header_long,
-        }
+    datefile = datetime(1899, 12, 30) + timedelta(days=header_long["Image"]["Created"])
+    hv = header_long["Instrument"]["AccV"]
+    if hv <= 30.0:
+        mode = "SEM"
     else:
-        _logger.warning("Not a valid JEOL img format")
-        dictionary = {}
+        mode = "TEM"
 
-    fd.close()
+    metadata = {
+        "Acquisition_instrument": {
+            mode: {
+                "beam_energy": hv,
+                "magnification": header_long["Instrument"]["Mag"],
+            },
+        },
+        "General": {
+            "original_filename": os.path.basename(filename),
+            "date": datefile.date().isoformat(),
+            "time": datefile.time().isoformat(),
+            "title": header_long["Image"]["Title"],
+        },
+        "Signal": {
+            "record_by": "image",
+        },
+    }
 
+    dictionary = {
+        "data": data,
+        "axes": axes,
+        "metadata": metadata,
+        "original_metadata": header_long,
+    }
     return [dictionary]
 
 
@@ -247,18 +239,20 @@ def _read_pts(
         The dictionary used to create the signals, list of dictionaries of
         spectrum image and SEM/STEM image if read_em_image == True
     """
-    fd = open(filename, "br")
-    file_magic = np.fromfile(fd, "<I", 1)[0]
 
-    def check_multiple(factor, number, string):
+    def _check_divisor(factor, number, string):
         if factor > 1 and number % factor != 0:
-            fd.close()
-            raise ValueError(f"`{string}` must be a multiple of {number}.")
+            raise ValueError(f"`{string}`({factor}) must be a divisor of {number}.")
 
-    check_multiple(rebin_energy, 4096, "rebin_energy")
+    _check_divisor(rebin_energy, 4096, "rebin_energy")
     rebin_energy = int(rebin_energy)
 
-    if file_magic == 304:
+    with open(filename, "br") as fd:
+        file_magic = np.fromfile(fd, "<I", 1)[0]
+        if file_magic != 304:
+            _logger.warning(f"Not a valid JEOL pts format '{filename}'")
+            return []
+
         # fileformat
         _ = _decode(fd.read(8).rstrip(b"\x00"))
         a, b, head_pos, head_len, data_pos, data_len = np.fromfile(fd, "<I", 6)
@@ -281,15 +275,15 @@ def _read_pts(
                 )
             downsample_width = downsample[0]
             downsample_height = downsample[1]
-            check_multiple(downsample_width, width, "downsample[0]")
-            check_multiple(downsample_height, height, "downsample[1]")
+            _check_divisor(downsample_width, width, "downsample[0]")
+            _check_divisor(downsample_height, height, "downsample[1]")
         else:
             downsample_width = downsample_height = int(downsample)
-            check_multiple(downsample_width, width, "downsample")
-            check_multiple(downsample_height, height, "downsample")
+            _check_divisor(downsample_width, width, "downsample")
+            _check_divisor(downsample_height, height, "downsample")
 
-        check_multiple(downsample_width, width, "downsample[0]")
-        check_multiple(downsample_height, height, "downsample[1]")
+        _check_divisor(downsample_width, width, "downsample[0]")
+        _check_divisor(downsample_height, height, "downsample[1]")
 
         # Normalisation factor for the x and y position in the stream; depends
         # on the downsampling and the size of the navigation space
@@ -304,7 +298,6 @@ def _read_pts(
         fd.seek(data_pos)
         # read spectrum image
         rawdata = np.fromfile(fd, dtype="u2")
-        fd.close()
 
         scale = (
             header["PTTD Param"]["Params"]["PARAMPAGE0_SEM"]["ScanSize"]
@@ -551,10 +544,6 @@ def _read_pts(
                 },
             )
         return image_list
-    else:
-        _logger.warning("Not a valid JEOL pts format")
-        fd.close()
-        return []
 
 
 def _parsejeol(fd):

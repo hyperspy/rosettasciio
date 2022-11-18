@@ -24,6 +24,7 @@ from copy import deepcopy
 from collections import defaultdict
 
 import numpy as np
+from numpy.polynomial.polynomial import polyfit
 _logger = logging.getLogger(__name__)
 
 
@@ -452,6 +453,149 @@ class TrivistaTVFReader:
         }
         _remove_none_from_dict(self.metadata)
 
+    def _get_signal_axis(self, axis_pos):
+        """Helper method to read and set signal axis."""
+        axis_list = axis_pos.findall("xDim")
+        _error_handling_find_location(
+            len(axis_list), "signal axis information"
+        )  # pragma: no cover
+        axis = axis_list[0]
+        signal_data = axis[0].attrib["ValueArray"].split("|")
+        if len(signal_data) != (int(signal_data[0]) + 1):
+            _logger.critical(
+                "Signal data size does not match expected size."
+            )  # pragma: no cover
+        signal_data = np.array([float(x) for x in signal_data[1:]])
+        signal_dict = {}
+        signal_dict["name"] = "Wavelength"
+        unit = axis[0].attrib["Unit"]
+        if unit == "Nanometer":
+            signal_dict["units"] = "nm"
+        else:
+            signal_dict["units"] = unit  # pragma: no cover
+        signal_dict["navigate"] = False
+        if signal_data.size > 1:
+            if self._use_uniform_signal_axis:
+                offset, scale = polyfit(np.arange(signal_data.size), signal_data, deg=1)
+                signal_dict["offset"] = offset
+                signal_dict["scale"] = scale
+                signal_dict["size"] = signal_data.size
+                scale_compare = 100 * np.max(
+                    np.abs(np.diff(signal_data) - scale) / scale
+                )
+                if scale_compare > 1:
+                    _logger.warning(
+                        f"The relative variation of the signal-axis-scale ({scale_compare:.2f}%) exceeds 1%.\n"
+                        "                            "
+                        "Using a non-uniform-axis is recommended."
+                    )
+            else:
+                signal_dict["axis"] = signal_data
+        else:  # pragma: no cover
+            if self._use_uniform_signal_axis:  # pragma: no cover
+                _logger.warning(  # pragma: no cover
+                    "Signal only contains one entry.\n"  # pragma: no cover
+                    "                            "  # pragma: no cover
+                    "Using non-uniform-axis independent of use_uniform_signal_axis setting"  # pragma: no cover
+                )  # pragma: no cover
+            signal_dict["axis"] = signal_data  # pragma: no cover
+        return signal_dict
+
+    def _set_time_axis(self, axes_dict, xy_frames, has_x_or_y):
+        frames = self._total_frames - xy_frames
+        if frames == 0 or self._total_frames == 1:
+            return False
+        if has_x_or_y:
+            raise NotImplementedError(  # pragma: no cover
+                "Reading a combination of timeseries and map or linescan is not implemented."
+            )
+        scale = self.time[1]
+        ## inconsistency between timestamps and metadata
+        ## (Document/InfoSerialized/Experiment6)
+        ## in timeseries example file:
+        ## exposure time: 1 sec
+        ## delay: 3 sec
+        ## accumulations: 2
+        ## frames: 10
+        ## total time: 56 sec
+        ## timestamp scale: 4 sec
+        ## -> max timestamp: 36 sec < 56 sec
+        ## Here the timestamp is used for scale
+
+        axes_dict["time"] = {
+            "name": "time",
+            "units": "s",
+            "size": frames,
+            "offset": 0,
+            "scale": scale,
+            "navigate": False,
+        }
+        axes_dict["time"]["index_in_array"] = len(axes_dict) - 1
+        return True
+
+    def _set_nav_axis(self, name, axis):
+        """Helper method to read and set navigation axes."""
+        nav_dict = {}
+        nav_dict["offset"] = float(axis["From"])
+        nav_dict["scale"] = float(axis["Step"])
+        nav_dict["size"] = int(axis["Points"])
+        nav_dict["navigate"] = True
+        nav_dict["name"] = name
+        nav_dict["units"] = "µm"
+        return nav_dict
+
+    def get_axes(self, glued_data_as_stack=False):
+        """Extracts signal and navigation axes."""
+        axes = dict()
+        axis_data_head = self.original_metadata["Document"]["InfoSerialized"]
+        has_y = False
+        has_x = False
+        num_xy_frames = 0
+        if "Y-Axis" in axis_data_head.keys():
+            axes["Y"] = self._set_nav_axis("Y", axis_data_head["Y-Axis"])
+            num_xy_frames += axes["Y"]["size"]
+            axes["Y"]["index_in_array"] = 0
+            has_y = True
+        if "X-Axis" in axis_data_head.keys():
+            axes["X"] = self._set_nav_axis("X", axis_data_head["X-Axis"])
+            has_x = True
+            if has_y:
+                num_xy_frames *= axes["X"]["size"]
+                axes["X"]["index_in_array"] = 1
+            else:
+                num_xy_frames += axes["X"]["size"]
+                axes["X"]["index_in_array"] = 0
+
+        has_x_or_y = has_x or has_y
+        ## adding time-axis entry if appropriate
+        ## this is done inplace (the argument "axes" itself is altered)
+        has_time = self._set_time_axis(axes, num_xy_frames, has_x_or_y)
+        has_extra_axis = has_time or has_x or has_y
+        if glued_data_as_stack and self.num_datasets != 0:
+            if has_extra_axis:
+                _logger.warning(  # pragma: no cover
+                    "Loading glued data as stack in combination with multiple axis (time, linescan or map)"
+                    "                            "
+                    "is not tested and may lead to false results."
+                    "                            "
+                    "Please use glued_data_as_stack=False for loading the file."
+                )
+            self.axes = []
+            for signal_axis in self.signal_axis_list:
+                axes_tmp = deepcopy(axes)
+                axes_tmp["signal_dict"] = signal_axis
+                axes_tmp["signal_dict"]["index_in_array"] = len(axes) - 1
+                axes_tmp = sorted(
+                    axes_tmp.values(), key=lambda item: item["index_in_array"]
+                )
+                self.axes.append(axes_tmp)
+        else:
+            axes["signal_dict"] = self._get_signal_axis(self.data_head)
+            axes["signal_dict"]["index_in_array"] = len(axes) - 1
+            ## extra surrounding list here to ensure compatibility
+            ## with glued_data_as_stack for file_reader()
+            self.axes = [sorted(axes.values(), key=lambda item: item["index_in_array"])]
+
     def _parse_data(self, data_pos):
         """Extracts data from file."""
         data_list = data_pos.findall("Data")
@@ -500,3 +644,18 @@ class TrivistaTVFReader:
             ## to ensure compatibility with glued_data_as_stack=True
             ## for file_reader(), reshape_data()
             self.data = [data]
+
+    def reshape_data(self):
+        """Reshapes data according to axes sizes."""
+        if self._use_uniform_signal_axis:
+            wavelength_size = self.axes[0][-1]["size"]
+        else:
+            wavelength_size = self.axes[0][-1]["axis"].size
+        shape_sizes = []
+        for i in range(len(self.axes[0]) - 1):
+            shape_sizes.append(self.axes[0][i]["size"])
+        shape_sizes.append(wavelength_size)
+
+        for i, dataset in enumerate(self.data):
+            dataset_reshaped = np.reshape(dataset, shape_sizes)
+            self.data[i] = dataset_reshaped

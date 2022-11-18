@@ -26,6 +26,23 @@ from collections import defaultdict
 import numpy as np
 _logger = logging.getLogger(__name__)
 
+def _convert_float(input):
+    """Handle None-values when converting strings to float."""
+    if input is None:
+        return None  # pragma: no cover
+    else:
+        return float(input)
+
+
+def _remove_none_from_dict(dict_in):
+    """Recursive removal of None-values from a dictionary."""
+    for key, value in list(dict_in.items()):
+        if isinstance(value, dict):
+            _remove_none_from_dict(value)
+        elif value is None:
+            del dict_in[key]
+
+
 def _etree_to_dict(t, only_top_lvl=False):
     """Recursive conversion from xml.etree.ElementTree to a dictionary."""
     d = {t.tag: {} if t.attrib else None}
@@ -110,6 +127,10 @@ class TrivistaTVFReader:
             return "Luminescence"  # pragma: no cover
         else:
             return ""
+
+    @property
+    def num_datasets(self):
+        return int(self.data_head.findall("Childs")[0].attrib["Count"])
 
     def parse_file_structure(self, filter_original_metadata):
         """Initial parse through the file to extract original metadata and the data location.
@@ -244,3 +265,175 @@ class TrivistaTVFReader:
         if not spectrometer_name == "Spectrometer":
             del metadata_hardware["Hardware"]["Spectrometers"]["Spectrometer"]
         self.original_metadata.update(metadata_hardware)
+
+    def _map_general_md(self):
+        general = {}
+        general["title"] = self._file_path.name.split(".")[0]
+        general["original_filename"] = self._file_path.name
+        try:
+            date, time = self.original_metadata["Document"]["RecordTime"].split(" ")
+        except KeyError:  # pragma: no cover
+            pass  # pragma: no cover
+        else:
+            date_split = date.split("/")
+            date = date_split[-1] + "-" + date_split[0] + "-" + date_split[1]
+            general["date"] = date
+            general["time"] = time.split(".")[0]
+        return general
+
+    def _map_signal_md(self):
+        signal = {}
+        signal["signal_type"] = self._signal_type
+        try:
+            quantity = self.original_metadata["Document"]["Label"]
+            quantity_unit = self.original_metadata["Document"]["DataLabel"]
+        except KeyError:  # pragma: no cover
+            pass  # pragma: no cover
+        else:
+            signal["quantity"] = f"{quantity} ({quantity_unit})"
+        return signal
+
+    def _map_detector_md(self):
+        detector = {"processing": {}}
+        detector_original = self.original_metadata["Document"]["InfoSerialized"][
+            "Detector"
+        ]
+        try:
+            experiment_original = self.original_metadata["Document"]["InfoSerialized"][
+                "Experiment"
+            ]
+        except KeyError:
+            pass
+        else:
+            if "Overlap (%)" in experiment_original:
+                detector["glued_spectrum"] = True
+                detector["glued_spectrum_overlap"] = float(
+                    experiment_original.get("Overlap (%)")
+                )
+                detector["glued_spectrum_windows"] = self.num_datasets
+            else:
+                detector["glued_spectrum"] = False
+        detector["temperature"] = _convert_float(
+            detector_original.get("Detector_Temperature")
+        )
+        detector["exposure_per_frame"] = (
+            _convert_float(detector_original.get("Exposure_Time_(ms)")) / 1000
+        )
+        detector["frames"] = _convert_float(
+            detector_original.get("No_of_Accumulations")
+        )
+        detector["processing"]["calc_average"] = detector_original.get("Calc_Average")
+
+        try:
+            detector["exposure_per_frame"] = (
+                _convert_float(detector_original.get("Exposure_Time_(ms)")) / 1000
+            )
+        except TypeError:  # pragma: no cover
+            detector["exposure_per_frame"] = None  # pragma: no cover
+
+        if detector["processing"]["calc_average"] == "False":
+            try:
+                detector["integration_time"] = (
+                    detector["exposure_per_frame"] * detector["frames"]
+                )
+            except TypeError:  # pragma: no cover
+                pass  # pragma: no cover
+        elif detector["processing"]["calc_average"] == "True":
+            detector["integration_time"] = detector["exposure_per_frame"]
+
+        self._total_frames = int(detector_original.get("No_of_Frames"))
+
+        return detector
+
+    def _map_laser_md(self, laser_wavelength):
+        laser = {}
+        laser["objective_magnification"] = float(
+            self.original_metadata["Hardware"]["Microscopes"]["Microscope"][
+                "Objectives"
+            ]["Objective"]["Magnification"]
+        )
+        if not laser_wavelength is None:
+            laser["wavelength"] = laser_wavelength
+        return laser
+
+    def _map_spectrometer_md(self, central_wavelength):
+        all_spectrometers_dict = {}
+
+        spectrometers_original = self.original_metadata["Document"]["InfoSerialized"][
+            "Spectrometers"
+        ]
+
+        for key, entry in spectrometers_original.items():
+            spectro_dict_tmp = {"Grating": {}}
+            spectro_dict_tmp["central_wavelength"] = central_wavelength
+            blaze = self.original_metadata["Hardware"]["Spectrometers"][key][
+                "Gratings"
+            ]["Grating"]["Blaze"]
+            if blaze[-2:] == "NM":
+                blaze = float(blaze.split("N")[0])
+            spectro_dict_tmp["Grating"]["blazing_wavelength"] = blaze
+            spectro_dict_tmp["model"] = entry.get("Model")
+            try:
+                groove_density = entry["Groove_Density"]
+            except KeyError:  # pragma: no cover
+                groove_density = None  # pragma: no cover
+            else:
+                groove_density = float(groove_density.split(" ")[0])
+            spectro_dict_tmp["Grating"]["groove_density"] = groove_density
+            slit_entrance_front = (
+                _convert_float(entry.get("Slit_Entrance-Front")) / 1000
+            )
+            slit_entrance_side = _convert_float(entry.get("Slit_Entrance-Side")) / 1000
+            slit_exit_front = _convert_float(entry.get("Slit_Exit-Front")) / 1000
+            slit_exit_side = _convert_float(entry.get("Slit_Exit-Side")) / 1000
+            ## using the maximum here, because
+            ## only one entrance/exit should be in use anyways
+            spectro_dict_tmp["entrance_slit_width"] = max(
+                slit_entrance_front, slit_entrance_side
+            )
+            spectro_dict_tmp["exit_slit_width"] = max(slit_exit_front, slit_exit_side)
+            all_spectrometers_dict[key] = spectro_dict_tmp
+
+        return all_spectrometers_dict
+
+    def _get_calibration_md(self):
+        try:
+            calibration_original = self.original_metadata["Document"]["InfoSerialized"][
+                "Calibration"
+            ]
+        except KeyError:
+            central_wavelength = None
+            laser_wavelength = None
+        else:
+            central_wavelength = _convert_float(
+                calibration_original.get("Center_Wavelength")
+            )
+            laser_wavelength = _convert_float(
+                calibration_original.get("Laser_Wavelength")
+            )
+            if laser_wavelength is not None:
+                if np.isclose(laser_wavelength, 0):
+                    laser_wavelength = None
+        return central_wavelength, laser_wavelength
+
+    def map_metadata(self):
+        """Maps original_metadata to metadata."""
+        general = self._map_general_md()
+        signal = self._map_signal_md()
+        detector = self._map_detector_md()
+        central_wavelength, laser_wavelength = self._get_calibration_md()
+        laser = self._map_laser_md(laser_wavelength)
+        spectrometer = self._map_spectrometer_md(central_wavelength)
+
+        acquisition_instrument = {
+            "Detector": detector,
+            "Laser": laser,
+        }
+        acquisition_instrument.update(spectrometer)
+
+        self.metadata = {
+            "Acquisition_instrument": acquisition_instrument,
+            "General": general,
+            "Signal": signal,
+        }
+        _remove_none_from_dict(self.metadata)

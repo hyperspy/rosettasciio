@@ -25,6 +25,9 @@ from collections import defaultdict
 
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
+
+from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+
 _logger = logging.getLogger(__name__)
 
 
@@ -659,3 +662,83 @@ class TrivistaTVFReader:
         for i, dataset in enumerate(self.data):
             dataset_reshaped = np.reshape(dataset, shape_sizes)
             self.data[i] = dataset_reshaped
+
+    def read_file(
+        self,
+        use_uniform_signal_axis=False,
+        glued_data_as_stack=False,
+        filter_original_metadata=True,
+    ):
+        """Calls everything to read the file."""
+        self._use_uniform_signal_axis = use_uniform_signal_axis
+        self.parse_file_structure(filter_original_metadata)
+        self.map_metadata()
+        self.get_data(glued_data_as_stack)
+        self.get_axes(glued_data_as_stack)
+        self.reshape_data()
+
+
+def file_reader(
+    filename,
+    lazy=False,
+    use_uniform_signal_axis=False,
+    glued_data_as_stack=False,
+    filter_original_metadata=True,
+):
+    """
+    Reads TriVista's ``.tvf`` file.
+
+    Parameters
+    ----------
+    %s
+    %s
+    use_uniform_signal_axis: bool, default=False
+        Can be specified to choose between non-uniform or uniform signal axes.
+        If `True`, the ``scale`` attribute is calculated from the average delta along the signal axis
+        and a warning is raised in case the delta varies by more than 1%%.
+    filter_original_metadata: bool, default=True
+        Decides whether to process the original_metadata.
+        If `True`, then non-relevant metadata will be excluded.
+        For example, the metadata usually contains information
+        for multiple objectives, even though only one is used.
+        In this case only the metadata from the used objective
+        will be added to original_metadata.
+        This setting only affects the ``original_metadata`` attribute
+        and not the ``metadata`` attribute.
+    glued_data_as_stack: bool, default=False
+        Using the mode `Step & Glue` results in measurements performed
+        at different wavelength ranges with some overlap between them.
+        The file then contains the individual spectra aswell as
+        the "glued" spectrum. The latter is represented as one spectrum,
+        which covers the complete wavelength range. Stitching the datasets
+        together in the overlap region is already done by the setup.
+        If this setting is set to `True`, then the individual datasets will be loaded as a stack.
+        Otherwise only the "glued" spectrum is loaded.
+
+    %s
+    """
+    t = TrivistaTVFReader(Path(filename))
+    t.read_file(
+        use_uniform_signal_axis=use_uniform_signal_axis,
+        glued_data_as_stack=glued_data_as_stack,
+        filter_original_metadata=filter_original_metadata,
+    )
+    if filter_original_metadata:
+        original_metadata = t.original_metadata
+    else:
+        original_metadata = t.unfiltered_original_metadata
+
+    result = []
+    for dataset, axes in zip(t.data, t.axes):
+        result.append(
+            {
+                "data": dataset,
+                "axes": axes,
+                "metadata": deepcopy(t.metadata),
+                "original_metadata": deepcopy(original_metadata),
+            }
+        )
+    return result
+
+
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)

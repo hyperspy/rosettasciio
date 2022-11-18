@@ -26,6 +26,20 @@ from collections import defaultdict
 import numpy as np
 _logger = logging.getLogger(__name__)
 
+
+def _error_handling_find_location(len_entry, name):
+    if len_entry > 1:
+        _logger.error(  # pragma: no cover
+            f"File contains multiple positions to read {name} from."
+            "                            "
+            "The first location is choosen."
+        )
+    elif len_entry == 0:
+        raise RuntimeError(
+            f"Could not find location to read {name} from."
+        )  # pragma: no cover
+
+
 def _convert_float(input):
     """Handle None-values when converting strings to float."""
     if input is None:
@@ -437,3 +451,52 @@ class TrivistaTVFReader:
             "Signal": signal,
         }
         _remove_none_from_dict(self.metadata)
+
+    def _parse_data(self, data_pos):
+        """Extracts data from file."""
+        data_list = data_pos.findall("Data")
+        _error_handling_find_location(len(data_list), "data")  # pragma: no cover
+
+        ## dtype=np.int64 instead of int here,
+        ## because on windows python int defaults to 32bit
+        ## the timestamp is given as windows filetime
+        ## -> number is too large for 32bit
+        data_array = []
+        time_array = []
+        for frame in data_list[0]:
+            time_frame = np.fromstring(
+                frame.attrib["TimeStamp"], sep=" ", dtype=np.int64
+            )
+            data_frame = [float(x) for x in frame.text.split(";")]
+            time_array.append(time_frame)
+            data_array.append(data_frame)
+        data = np.array(data_array).ravel()
+        time = (np.array(time_array, dtype=np.int64) - time_array[0]).ravel() / 1e7
+        return data, time
+
+    def load_glued_data_stack(self):
+        num_datasets_list = self.data_head.findall("Childs")
+        _error_handling_find_location(
+            len(num_datasets_list), "glued datasets"
+        )  # pragma: no cover
+        data_array = []
+        self.signal_axis_list = []
+        time_array = []
+        for dataset in num_datasets_list[0]:
+            signal_axis = self._get_signal_axis(dataset)
+            self.signal_axis_list.append(signal_axis)
+            data, time = self._parse_data(dataset)
+            data_array.append(data)
+            time_array.append(time)
+        self.data = np.array(data_array)
+        self.time = np.array(time_array)
+
+    def get_data(self, glued_data_as_stack):
+        if glued_data_as_stack and self.num_datasets != 0:
+            self.load_glued_data_stack()
+        else:
+            data, self.time = self._parse_data(self.data_head)
+            ## extra surrounding list here
+            ## to ensure compatibility with glued_data_as_stack=True
+            ## for file_reader(), reshape_data()
+            self.data = [data]

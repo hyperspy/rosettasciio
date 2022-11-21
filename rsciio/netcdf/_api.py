@@ -102,9 +102,11 @@ def file_reader(filename, *args, **kwds):
 
     ncfile = Dataset(filename, "r")
 
-    if hasattr(ncfile, "file_format_version"):
-        if ncfile.file_format_version == "EELSLab 0.1":
-            dictionary = nc_hyperspy_reader_0dot1(ncfile, filename, *args, **kwds)
+    if (
+        hasattr(ncfile, "file_format_version")
+        and ncfile.file_format_version == "EELSLab 0.1"
+    ):
+        dictionary = nc_hyperspy_reader_0dot1(ncfile, filename, *args, **kwds)
     else:
         ncfile.close()
         raise IOError("Unsupported netCDF file")

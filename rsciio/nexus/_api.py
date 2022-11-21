@@ -1,4 +1,4 @@
-"""NeXus file reading, writing and inspection."""
+"""NeXus file reading and writing."""
 # -*- coding: utf-8 -*-
 # Copyright 2007-2022 The HyperSpy developers
 #
@@ -23,7 +23,6 @@ import os
 import dask.array as da
 import h5py
 import numpy as np
-import pprint
 
 from rsciio.docstrings import (
     FILENAME_DOC,
@@ -319,7 +318,7 @@ def _extract_hdf_dataset(group, dataset, lazy=False):
         if isinstance(data_key, bytes):
             data_key = data_key.decode()
         if dataset.split("/")[-1] == data_key:
-            return
+            return None
 
     nav_list = _get_nav_list(data, data.parent)
 
@@ -493,8 +492,8 @@ def file_reader(
 
     See Also
     --------
-    * :py:meth:`~.io_plugins.nexus.list_datasets_in_file`
-    * :py:meth:`~.io_plugins.nexus.read_metadata_from_file`
+    * :py:meth:`~.utils.hdf5.list_datasets_in_file`
+    * :py:meth:`~.utils.hdf5.read_metadata_from_file`
     """
     # search for NXdata sets...
 
@@ -1072,132 +1071,6 @@ def _write_nexus_attr(dictionary, group, skip_keys=None):
                     _write_nexus_attr(dictionary[key], group[key], skip_keys=skip_keys)
 
 
-def read_metadata_from_file(
-    filename, metadata_key=None, lazy=False, verbose=False, skip_array_metadata=False
-):
-    """Read the metadata from a NeXus or ``.hdf`` file.
-
-    This method iterates through the file and returns a dictionary of
-    the entries.
-    This is a convenience method to inspect a file for a value
-    rather than loading the file as a signal.
-
-    Parameters
-    ----------
-    %s
-    metadata_key  : None,str or list_of_strings , default : None
-        None will return all datasets found including linked data.
-        Providing a string or list of strings will only return items
-        which contain the string(s).
-        For example, search_keys = ["instrument","Fe"] will return
-        hdf entries with "instrument" or "Fe" in their hdf path.
-    verbose: bool, default : False
-        Pretty Print the results to screen
-    skip_array_metadata : bool, default : False
-        Whether to skip loading array metadata. This is useful as a lot of
-        large array may be present in the metadata and it is redundant with
-        dataset itself.
-
-    Returns
-    -------
-    dict
-        Metadata dictionary.
-
-    See Also
-    --------
-    * :py:meth:`~.io_plugins.nexus.file_reader`
-    * :py:meth:`~.io_plugins.nexus.file_writer`
-    * :py:meth:`~.io_plugins.nexus.list_datasets_in_file`
-
-
-    """
-    search_keys = _check_search_keys(metadata_key)
-    fin = h5py.File(filename, "r")
-    # search for NXdata sets...
-    # strip out the metadata (basically everything other than NXdata)
-    stripped_metadata = _load_metadata(
-        fin, lazy=lazy, skip_array_metadata=skip_array_metadata
-    )
-    stripped_metadata = _find_search_keys_in_dict(
-        stripped_metadata, search_keys=search_keys
-    )
-    if verbose:
-        pprint.pprint(stripped_metadata)
-
-    fin.close()
-    return stripped_metadata
-
-
-read_metadata_from_file.__doc__ %= FILENAME_DOC
-
-
-def list_datasets_in_file(
-    filename, dataset_key=None, hardlinks_only=False, verbose=True
-):
-    """Read from a NeXus or ``.hdf`` file and return a list of the dataset paths.
-
-    This method is used to inspect the contents of a NeXus file.
-    The method iterates through group attributes and returns NXdata or
-    hdf datasets of size >=2 if they're not already NXdata blocks
-    and returns a list of the entries.
-    This is a convenience method to inspect a file to list datasets
-    present rather than loading all the datasets in the file as signals.
-
-    Parameters
-    ----------
-    %s
-    dataset_key  : str, list of strings or None , default: None
-        If a str or list of strings is provided only return items whose
-        path contain the strings.
-        For example, dataset_key = ["instrument", "Fe"] will only return
-        hdf entries with "instrument" or "Fe" somewhere in their hdf path.
-    hardlinks_only : bool, default : False
-        If true any links (soft or External) will be ignored when loading.
-    verbose : boolean, default : True
-        Prints the results to screen
-
-
-    Returns
-    -------
-    list
-        list of paths to datasets
-
-
-    See Also
-    --------
-    * :py:meth:`~.io_plugins.nexus.file_reader`
-    * :py:meth:`~.io_plugins.nexus.file_writer`
-    * :py:meth:`~.io_plugins.nexus.read_metadata_from_file`
-
-
-    """
-    search_keys = _check_search_keys(dataset_key)
-    fin = h5py.File(filename, "r")
-    # search for NXdata sets...
-    # strip out the metadata (basically everything other than NXdata)
-    nexus_data_paths, hdf_dataset_paths = _find_data(
-        fin, search_keys=search_keys, hardlinks_only=hardlinks_only
-    )
-    if verbose:
-        if nexus_data_paths:
-            print("NXdata found")
-            for nxd in nexus_data_paths:
-                print(nxd)
-        else:
-            print("NXdata not found")
-        if hdf_dataset_paths:
-            print("Unique HDF datasets found")
-            for hdfd in hdf_dataset_paths:
-                print(hdfd, fin[hdfd].shape)
-        else:
-            print("No HDF datasets not found or data is captured by NXdata")
-    fin.close()
-    return nexus_data_paths, hdf_dataset_paths
-
-
-list_datasets_in_file.__doc__ %= FILENAME_DOC
-
-
 def _write_signal(signal, nxgroup, signal_name, **kwds):
     """Store the signal data as an NXdata dataset.
 
@@ -1290,9 +1163,9 @@ def file_writer(
 
     See Also
     --------
-    * :py:meth:`~.io_plugins.nexus.file_reader`
-    * :py:meth:`~.io_plugins.nexus.list_datasets_in_file`
-    * :py:meth:`~.io_plugins.nexus.read_metadata_from_file`
+    * :py:meth:`~.nexus.file_reader`
+    * :py:meth:`~.utils.hdf5.list_datasets_in_file`
+    * :py:meth:`~.utils.hdf5.read_metadata_from_file`
 
     """
     if not isinstance(signals, list):

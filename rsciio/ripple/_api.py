@@ -196,14 +196,14 @@ def read_raw(rpl_info, fp, mmap_mode="c"):
         A dictionary containing the keywords as parsed by read_rpl
     fp:
     mmap_mode: {None, 'r+', 'r', 'w+', 'c'}, optional
-    If not None, then memory-map the file, using the given mode
-    (see `numpy.memmap`).  The mode has no effect for pickled or
-    zipped files.
-    A memory-mapped array is stored on disk, and not directly loaded
-    into memory.  However, it can be accessed and sliced like any
-    ndarray.  Memory mapping is especially useful for accessing
-    small fragments of large files without reading the entire file
-    into memory.
+        If not None, then memory-map the file, using the given mode
+        (see `numpy.memmap`). The mode has no effect for pickled or
+        zipped files.
+        A memory-mapped array is stored on disk, and not directly loaded
+        into memory.  However, it can be accessed and sliced like any
+        ndarray.  Memory mapping is especially useful for accessing
+        small fragments of large files without reading the entire file
+        into memory.
 
 
     """
@@ -261,13 +261,23 @@ def file_reader(
     ----------
     %s
     %s
+    rpl_info : dict, Default=None
+        A dictionary containing the keywords in order to read a ``.raw`` file
+        without corresponding ``.rpl`` file. If ``None``, the keywords are parsed
+        automatically from the ``.rpl`` file.
     enconding : str, optional
-        The default encoding is ``latin-1``. Different file encodings, such as
-        ``utf8`` can be set via this argument.
+        The encoding used to read the content of the ``rpl`` file. The default
+        encoding is ``latin-1``. Different file encodings, such as ``utf8`` can be
+        set via this argument.
     mmap_mode : str, optional
         Default is copy-on-write ``"c"``, but different modes can be set. However,
         note that lazy loading does not support in-place writing (i.e lazy loading
-        and the ``"r+"`` mode are incompatible).
+        and the ``"r+"`` mode are incompatible). The mode has no effect for pickled or
+        zipped files. A memory-mapped array is stored on disk, and not directly loaded
+        into memory.  However, it can be accessed and sliced like any
+        ndarray.  Memory mapping is especially useful for accessing
+        small fragments of large files without reading the entire file
+        into memory.
 
     %s
     """
@@ -467,6 +477,10 @@ def file_writer(filename, signal, encoding="latin-1", *args, **kwds):
     ----------
     %s
     %s
+    enconding : str, optional
+        The encoding used to write the content of the ``rpl`` file. The default
+        encoding is ``latin-1``. Different file encodings, such as ``utf8`` can be
+        set via this argument.
     """
 
     # Set the optional keys to None

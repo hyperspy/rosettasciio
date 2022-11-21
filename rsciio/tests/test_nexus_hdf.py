@@ -28,11 +28,8 @@ import h5py
 
 from hyperspy.exceptions import VisibleDeprecationWarning
 
-from rsciio.nexus import (
-    file_writer,
-    list_datasets_in_file,
-    read_metadata_from_file,
-)
+from rsciio.nexus import file_writer
+from rsciio.utils.hdf5 import list_datasets_in_file, read_metadata_from_file
 from rsciio.nexus._api import (
     _byte_to_string,
     _fix_exclusion_keys,

@@ -140,6 +140,8 @@ restored when a signal is loaded from a previously saved NeXus file.
     Altering the standard metadata structure of a signal
     using ``attrs`` or ``value`` keywords is not recommended.
 
+Also see the :ref:`hdf5-utils` for inspecting HDF5 files.
+
 API functions
 ^^^^^^^^^^^^^
 

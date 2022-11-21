@@ -97,6 +97,8 @@ passing ``chunks=True`` results in ``(7, 7, 256)`` chunks.
 Choosing the correct chunk-size can significantly affect the speed of reading, writing and performance of many HyperSpy algorithms.
 See the :external+hyperspy:ref:`chunking section <big_data.chunking>` for more information.
 
+Also see the :ref:`hdf5-utils` for inspecting HDF5 files.
+
 Extra saving arguments
 ^^^^^^^^^^^^^^^^^^^^^^
 

@@ -117,12 +117,7 @@ def test_dir_plugins():
 
     from rsciio import nexus
 
-    assert dir(nexus) == [
-        "file_reader",
-        "file_writer",
-        "list_datasets_in_file",
-        "read_metadata_from_file",
-    ]
+    assert dir(nexus) == ["file_reader", "file_writer"]
 
     from rsciio import phenom
 

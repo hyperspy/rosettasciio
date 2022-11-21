@@ -202,17 +202,16 @@ class ElidReader:
             raise Exception("not an ELID file")
 
         self._pathname = pathname
-        self._file = open(pathname, "rb")
-        self._decompressor = bz2.BZ2Decompressor()
-        self._block_size = block_size
-        (id, version) = struct.unpack("<4si", self._read(8))
-        if id != b"EID2":
-            raise Exception("not an ELID file")
-        if version > 2:
-            raise Exception("unsupported ELID format")
-        self._version = version
-        self.dictionaries = self._read_Project()
-        self._file.close()
+        with open(pathname, "rb") as self._file:
+            self._decompressor = bz2.BZ2Decompressor()
+            self._block_size = block_size
+            (id, version) = struct.unpack("<4si", self._read(8))
+            if id != b"EID2":
+                raise Exception("not an ELID file")
+            if version > 2:
+                raise Exception("unsupported ELID format")
+            self._version = version
+            self.dictionaries = self._read_Project()
 
     def _read(self, size=1):
         data = self._decompressor.decompress(b"", size)

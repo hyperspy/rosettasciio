@@ -5,6 +5,12 @@ API
 The RosettaSciIO Application Programming Interface allows other python packages
 to use its input/output (IO) capabilities.
 
+.. toctree::
+   :hidden:
+
+   utils
+
+
 .. _interfacing-api:
 
 Interfacing the RosettaSciIO plugins
@@ -64,4 +70,3 @@ for reading/writing of data files:
     electron backscatter diffraction (EBSD) patterns in Python 
   * `PyXem <https://pyxem.readthedocs.io>`_: An open-source Python library for
     multi-dimensional diffraction microscopy. 
-

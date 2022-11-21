@@ -37,6 +37,7 @@ big datasets is supported.
    panta_rhei
    phenom
    protochips
+   renishaw
    ripple
    semper
    tiff

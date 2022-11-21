@@ -1,0 +1,8 @@
+name: 'Renishaw'
+name_aliases: []
+description: "Read data from .wdf files saved using Renishaw's WIRE software."
+full_support: False
+file_extensions: ['wdf', 'WDF']
+default_extension: 0
+writes: False
+non_uniform_axis: True

@@ -223,7 +223,7 @@ class UnitType(IntEnum):
             Wavenumber="nm",  # nm
             Nanometre="nm",
             ElectronVolt="eV",
-            Micron="um",  # same for EXIF units
+            Micron="µm",  # same for EXIF units
             Counts="counts",
             Electrons="electrons",
             Millimetres="mm",
@@ -244,7 +244,7 @@ class UnitType(IntEnum):
             KelvinPerMinute="K/min",
             FileTime="s",  # FileTime use stamps and in relative second
         )
-        return unit_str[self._name_]
+        return unit_str[self.name]
 
 
 class DataType(IntEnum):
@@ -621,15 +621,16 @@ class WDFReader(object):
 
     def get_axes(self):
         signal_dict = self._parse_XLST()
-        nav_dict = self._parse_ORGN()
+        nav_data = self._parse_ORGN()
+        nav_dict = self._parse_wmap()
         signal_dict["index_in_array"] = len(nav_dict)
-        if "X-Axis" in nav_dict.keys():
-            nav_dict["X-Axis"]["index_in_array"] = 0
-            if "Y-Axis" in nav_dict.keys():
-                nav_dict["Y-Axis"]["index_in_array"] = 1
+        if "Y-axis" in nav_dict.keys():
+            nav_dict["Y-axis"]["index_in_array"] = 0
+            if "X-axis" in nav_dict.keys():
+                nav_dict["X-axis"]["index_in_array"] = 1
         else:
-            if "Y-Axis" in nav_dict.keys():
-                nav_dict["Y-Axis"]["index_in_array"] = 0
+            if "X-axis" in nav_dict.keys():
+                nav_dict["X-axis"]["index_in_array"] = 0
 
         self.axes = nav_dict
         self.axes["signal_dict"] = signal_dict
@@ -638,7 +639,8 @@ class WDFReader(object):
     def _parse_YLST(self):
         if not self._check_block_exists("YLST"):
             _logger.info(
-                "Block YLST not present in file. Could not extract corresponding metadata."
+                "Block YLST not present in file."
+                "Could not extract corresponding metadata."
             )
             return
         type, unit, size, data = self._parse_X_or_YLST("Y")
@@ -690,7 +692,7 @@ class WDFReader(object):
             p2 = self.__read_numeric("uint32")
             s = self.__read_string(0x10)
             dtype = DataType(p1 & ~(0b1 << 31)).name
-            ax_tmp_dict["unit"] = UnitType(p2).name
+            ax_tmp_dict["unit"] = str(UnitType(p2))
             ax_tmp_dict["annotation"] = s
 
             if dtype == DataType.Time.name:
@@ -704,11 +706,15 @@ class WDFReader(object):
                 )
 
             if dtype in [DataType.Spatial_X.name, DataType.Spatial_Y.name]:
+                unique_axis_data_indices = np.unique(ax_tmp_dict["data"], return_index=True)[1]
+                axis_data = ax_tmp_dict["data"][unique_axis_data_indices]
+                if axis_data.size <= 1:
+                    continue
                 axis_dict = {}
                 axis_dict["name"] = dtype[-1]
-                axis_dict["size"] = ax_tmp_dict["data"].size
-                axis_dict["offset"] = ax_tmp_dict["data"][0]
-                axis_dict["scale"] = ax_tmp_dict["data"][1] - ax_tmp_dict["data"][0]
+                axis_dict["size"] = axis_data.size
+                axis_dict["offset"] = axis_data[0]
+                axis_dict["scale"] = axis_data[1] - axis_data[0]
                 axis_dict["navigate"] = True
                 axis_dict["units"] = ax_tmp_dict["unit"]
                 nav_dict[f"{dtype[-1]}-axis"] = axis_dict
@@ -718,11 +724,11 @@ class WDFReader(object):
         self.original_metadata.update({"ORGN": orgn_metadata})
         return nav_dict
 
-    def _parse_wmap(self, *args):
+    def _parse_wmap(self):
         """Get information about mapping in StreamLine and StreamLineHR"""
         _, pos, _ = self.block_info["WMAP"]
-
         self.file_obj.seek(pos + Offsets.wmap_origin)
+
         x_start = self.__read_numeric("float")
         if not np.isclose(x_start, self.nav_dict["X-axis"]["offset"], rtol=1e-4):
             raise ValueError("WMAP Xpos is not same as in ORGN!")

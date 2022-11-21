@@ -36,7 +36,7 @@ def _error_handling_find_location(len_entry, name):
         _logger.error(  # pragma: no cover
             f"File contains multiple positions to read {name} from."
             "                            "
-            "The first location is choosen."
+            "The first location is chosen."
         )
     elif len_entry == 0:
         raise RuntimeError(
@@ -694,26 +694,27 @@ def file_reader(
     %s
     use_uniform_signal_axis: bool, default=False
         Can be specified to choose between non-uniform or uniform signal axes.
-        If `True`, the ``scale`` attribute is calculated from the average delta along the signal axis
-        and a warning is raised in case the delta varies by more than 1%%.
+        If `True`, the ``scale`` attribute is calculated from the average delta
+        along the signal axis and a warning is raised in case the delta varies
+        by more than 1%%.
     filter_original_metadata: bool, default=True
         Decides whether to process the original_metadata.
         If `True`, then non-relevant metadata will be excluded.
         For example, the metadata usually contains information
         for multiple objectives, even though only one is used.
-        In this case only the metadata from the used objective
+        In this case, only the metadata from the used objective
         will be added to original_metadata.
         This setting only affects the ``original_metadata`` attribute
         and not the ``metadata`` attribute.
     glued_data_as_stack: bool, default=False
         Using the mode `Step & Glue` results in measurements performed
         at different wavelength ranges with some overlap between them.
-        The file then contains the individual spectra aswell as
+        The file then contains the individual spectra as well as
         the "glued" spectrum. The latter is represented as one spectrum,
         which covers the complete wavelength range. Stitching the datasets
         together in the overlap region is already done by the setup.
-        If this setting is set to `True`, then the individual datasets will be loaded as a stack.
-        Otherwise only the "glued" spectrum is loaded.
+        If this setting is set to `True`, then the individual datasets will be loaded
+        as a stack. Otherwise, only the "glued" spectrum is loaded.
 
     %s
     """

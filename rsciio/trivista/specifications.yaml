@@ -1,6 +1,6 @@
-name: Trivista
+name: TriVista
 name_aliases: []
-description: 'Reads data from Trivista tvf files'
+description: 'Reads data from TriVista tvf files'
 full_support: False
 file_extensions: ['tvf', 'TVF']
 default_extension: 0

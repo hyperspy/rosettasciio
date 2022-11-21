@@ -40,7 +40,7 @@ for sub, _, _ in os.walk(os.path.abspath(os.path.dirname(__file__))):
                 "TVIPS",
                 "USID",
                 "ZSPY",
-                "Trivista",
+                "TriVista",
             ]:
                 _specs["api"] = "rsciio.%s" % os.path.split(sub)[1]
             else:

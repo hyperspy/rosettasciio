@@ -328,6 +328,8 @@ def _read_pts(
         # Sweep value is not reliable, so +1 frame is needed if sum_frames = False
         # priority of the length of frame_start_index is higher than "sweep" in header
         sweep = meas_data_header["Doc"]["Sweep"]
+        if frame_start_index is not None and sweep < len(frame_start_index):
+            sweep = len(frame_start_index)
 
         auto_frame_list = False
         if frame_list:

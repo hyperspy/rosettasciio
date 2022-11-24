@@ -560,23 +560,50 @@ def test_seq_eds_files():
     with tempfile.TemporaryDirectory() as tmpdir:
         with zipfile.ZipFile(test_file, "r") as zipped:
             zipped.extractall(tmpdir)
-            s = hs.load(Path(tmpdir) / "1" / "1.ASW")
-            # check if three subfiles are in file (img, eds, eds)
-            assert len(s) == 3
-            # check positional information in subfiles
-            for i, p in enumerate(pos):
-                sampleinfo = s[i].original_metadata["asw"]["SampleInfo"]["0"]
-                viewinfo = sampleinfo["ViewInfo"]["0"]
-                np.testing.assert_allclose(viewinfo["PositionMM2"], pos0)
-                viewdata_asw = viewinfo["ViewData"]
-                viewdata = s[i].original_metadata["asw_viewdata"]
-                np.testing.assert_allclose(viewdata["PositionMM2"], p)
-                np.testing.assert_allclose(
-                    viewdata["PositionMM2"], viewdata_asw[i]["PositionMM2"]
-                )
-                assert viewdata["Memo"] == memo[i]
-            assert isinstance(s[1], hs.signals.EDSTEMSpectrum)
-            assert isinstance(s[2], hs.signals.EDSTEMSpectrum)
+
+        # test reading sequential acuired EDS spectrum
+        s = hs.load(Path(tmpdir) / "1" / "1.ASW")
+        # check if three subfiles are in file (img, eds, eds)
+        assert len(s) == 3
+        # check positional information in subfiles
+        for i, p in enumerate(pos):
+            sampleinfo = s[i].original_metadata["asw"]["SampleInfo"]["0"]
+            viewinfo = sampleinfo["ViewInfo"]["0"]
+            np.testing.assert_allclose(viewinfo["PositionMM2"], pos0)
+            viewdata_asw = viewinfo["ViewData"]
+            viewdata = s[i].original_metadata["asw_viewdata"]
+            np.testing.assert_allclose(viewdata["PositionMM2"], p)
+            np.testing.assert_allclose(
+                viewdata["PositionMM2"], viewdata_asw[i]["PositionMM2"]
+            )
+            assert viewdata["Memo"] == memo[i]
+        assert isinstance(s[1], hs.signals.EDSTEMSpectrum)
+        assert isinstance(s[2], hs.signals.EDSTEMSpectrum)
+
+        # test read for pseudo SEM eds/img data
+        sub_dir = Path(tmpdir) / "1" / "Sample" / "00_View002"
+        test_files = ["View002_0000000.img", "View002_0000001.eds"]
+
+        # rewrite AccV  200 kV to 20 kV to generate pseudo SEM data
+        # .img
+        with open(sub_dir / test_files[0], "rb") as f:
+            data = bytearray(f.read())
+            data[0x75BC] = 0xA0
+            data[0x75BD] = 0x41
+        with open(sub_dir / ("x" + test_files[0]), "wb") as f:
+            f.write(data)
+        s = hs.load(sub_dir / ("x" + test_files[0]))
+        assert "SEM" in s.metadata["Acquisition_instrument"]
+
+        # .eds
+        with open(sub_dir / test_files[1], "rb") as f:
+            data = bytearray(f.read())
+            data[0x4B13] = 0x34
+        with open(sub_dir / ("x" + test_files[1]), "wb") as f:
+            f.write(data)
+        s = hs.load(sub_dir / ("x" + test_files[1]))
+        assert isinstance(s, hs.signals.EDSSEMSpectrum)
+        assert "SEM" in s.metadata["Acquisition_instrument"]
 
 
 def test_frame_start_index():
@@ -638,3 +665,16 @@ def test_frame_start_index():
         SI_dtype=np.int32,
     )
     assert s.data.shape == (2, 16, 16, 8)
+
+    # test with pseudo "SEM" data
+    with tempfile.TemporaryDirectory() as tmpdir:
+        test_file = Path(tmpdir) / "test.pts"
+        with open(file, "rb") as f:
+            data = bytearray(f.read())
+            # AcckV = 20 kV
+            data[0x1116] = 0xA0
+            data[0x1117] = 0x41
+        with open(test_file, "wb") as f:
+            f.write(data)
+            s = hs.load(test_file, downsample=[32, 32], rebin_energy=512, SI_dtype=np.int32)
+        assert s.metadata["Signal"]["signal_type"] == "EDS_SEM"

@@ -21,7 +21,10 @@ import logging
 
 import numpy as np
 
+from rsciio.docstrings import FILENAME_DOC, RETURNS_DOC
+
 _logger = logging.getLogger(__name__)
+
 
 no_netcdf = False
 try:
@@ -80,6 +83,15 @@ treatments2netcdf = {
 
 
 def file_reader(filename, *args, **kwds):
+    """
+    Read netCDF ``.nc`` files saved using the HyperSpy predecessor EELSlab.
+
+    Parameters
+    ----------
+    %s
+
+    %s
+    """
     if no_netcdf is True:
         raise ImportError(
             "No netCDF library installed. "
@@ -90,14 +102,19 @@ def file_reader(filename, *args, **kwds):
 
     ncfile = Dataset(filename, "r")
 
-    if hasattr(ncfile, "file_format_version"):
-        if ncfile.file_format_version == "EELSLab 0.1":
-            dictionary = nc_hyperspy_reader_0dot1(ncfile, filename, *args, **kwds)
+    if (
+        hasattr(ncfile, "file_format_version")
+        and ncfile.file_format_version == "EELSLab 0.1"
+    ):
+        dictionary = nc_hyperspy_reader_0dot1(ncfile, filename, *args, **kwds)
     else:
         ncfile.close()
         raise IOError("Unsupported netCDF file")
 
     return (dictionary,)
+
+
+file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
 
 
 def nc_hyperspy_reader_0dot1(ncfile, filename, *args, **kwds):

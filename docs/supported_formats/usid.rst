@@ -21,6 +21,8 @@ If you have any questions regarding this module, please consider
 `contacting <https://pycroscopy.github.io/pyUSID/contact.html>`_
 the developers of pyUSID.
 
+Also see the :ref:`hdf5-utils` for inspecting HDF5 files.
+
 .. Note::
 
     h5USID files can contain multiple USID datasets within the same file.

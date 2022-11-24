@@ -98,6 +98,8 @@ def test_format_name_aliases():
 
 
 def test_dir_plugins():
+    # Once all plugins use the new api format, write an automated test that
+    # iterates over all plugins
 
     from rsciio import bruker
 
@@ -108,6 +110,34 @@ def test_dir_plugins():
     from rsciio import blockfile
 
     assert dir(blockfile) == ["file_reader", "file_writer"]
+
+    from rsciio import netcdf
+
+    assert dir(netcdf) == ["file_reader"]
+
+    from rsciio import nexus
+
+    assert dir(nexus) == ["file_reader", "file_writer"]
+
+    from rsciio import phenom
+
+    assert dir(phenom) == ["file_reader"]
+
+    from rsciio import protochips
+
+    assert dir(protochips) == ["file_reader"]
+
+    from rsciio import prz
+
+    assert dir(prz) == ["file_reader", "file_writer"]
+
+    from rsciio import ripple
+
+    assert dir(ripple) == ["file_reader", "file_writer"]
+
+    from rsciio import semper_unf
+
+    assert dir(semper_unf) == ["file_reader", "file_writer"]
 
     from rsciio import semper_unf
 

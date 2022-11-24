@@ -89,6 +89,17 @@ def _read_asw(filename, **kwargs):
                                 d["original_metadata"]["asw"] = filetree
                                 d["original_metadata"]["asw_viewdata"] = node2
                                 image_list.append(d)
+                    else:
+                        _logger.warning(
+                            f"{filename} : SampleInfo[{i}].ViewInfo[{j}] does not have ViewData section."
+                        )
+            else:
+                _logger.warning(
+                    f"{filename} : SampleInfo[{i}] does not have ViewInfo section."
+                )
+    else:
+        _logger.warning(f"{filename} does not have SampleInfo section.")
+
     return image_list
 
 

@@ -580,6 +580,36 @@ def test_seq_eds_files():
         assert isinstance(s[1], hs.signals.EDSTEMSpectrum)
         assert isinstance(s[2], hs.signals.EDSTEMSpectrum)
 
+        # test with broken asw file
+        fname = Path(tmpdir) / "1" / "1.ASW"
+        fname2 = Path(tmpdir) / "1" / "2.ASW"
+        with open(fname, "rb") as f:
+            data = bytearray(f.read())
+
+        # No ViewData
+        data2 = data.copy()
+        data2[0x42D] = 0x30
+        with open(fname2, "wb") as f:
+            f.write(data2)
+        dat = hs.load(fname2)
+        assert len(dat) == 0
+
+        # No ViewInfo
+        data2 = data.copy()
+        data2[0x1AD] = 0x30
+        with open(fname2, "wb") as f:
+            f.write(data2)
+        dat = hs.load(fname2)
+        assert len(dat) == 0
+
+        # No SampleInfo
+        data2 = data.copy()
+        data2[0x6E] = 0x30
+        with open(fname2, "wb") as f:
+            f.write(data2)
+        dat = hs.load(fname2)
+        assert len(dat) == 0
+
         # test read for pseudo SEM eds/img data
         sub_dir = Path(tmpdir) / "1" / "Sample" / "00_View002"
         test_files = ["View002_0000000.img", "View002_0000001.eds"]
@@ -676,5 +706,7 @@ def test_frame_start_index():
             data[0x1117] = 0x41
         with open(test_file, "wb") as f:
             f.write(data)
-            s = hs.load(test_file, downsample=[32, 32], rebin_energy=512, SI_dtype=np.int32)
+            s = hs.load(
+                test_file, downsample=[32, 32], rebin_energy=512, SI_dtype=np.int32
+            )
         assert s.metadata["Signal"]["signal_type"] == "EDS_SEM"

@@ -517,7 +517,6 @@ def test_pts_frame_shift():
             assert d2[frame] == d0[frame]
 
     # test frame shift with default values (no energy shift)
-    # s0 = hs.load(file, frame_list=[0, 1, 2], sum_frames=False, only_valid_data=False)
     sfts = np.array([[1, 2], [10, 3]])
     max_sfts = sfts.max(axis=0)
     min_sfts = sfts.min(axis=0)

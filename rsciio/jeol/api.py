@@ -71,12 +71,12 @@ def _read_asw(filename, **kwargs):
         filetree = _parsejeol(fd)
 
     filepath, filen = os.path.split(os.path.abspath(filename))
-    if "SampleInfo" in filetree.keys():
+    if "SampleInfo" in filetree:
         for i in filetree["SampleInfo"].keys():
-            if "ViewInfo" in filetree["SampleInfo"][i].keys():
+            if "ViewInfo" in filetree["SampleInfo"][i]:
                 for j in filetree["SampleInfo"][i]["ViewInfo"].keys():
                     node = filetree["SampleInfo"][i]["ViewInfo"][j]
-                    if "ViewData" in node.keys():
+                    if "ViewData" in node:
                         for k in node["ViewData"].keys():
                             node2 = node["ViewData"][k]
                             # path tuple contains:
@@ -382,13 +382,6 @@ def _read_pts(
 
         if frame_shifts is None:
             frame_shifts = np.zeros((max_frame, 3), dtype=np.int16)
-
-        # always False
-        # if len(frame_shifts) < max_frame:
-        #    fs = np.zeros((max_frame, 3), dtype=np.int16)
-        #    if len(frame_shifts) > 0:
-        #        fs[0 : len(frame_shifts), 0 : len(frame_shifts[0])] = frame_shifts
-        #    frame_shifts = fs
 
         if len(frame_shifts[0]) == 2:  # fill z with 0
             fr = np.zeros((max_frame, 3), dtype=np.int16)
@@ -755,7 +748,7 @@ def _readcube(
 
         while frame_num < frame_idx:
             # record start point of frame and skip frame
-            p_start += _readframe_dummy(rawdata[p_start:])
+            p_start += _skip_frame(rawdata[p_start:])
             frame_num += 1
             frame_start_index[frame_num] = p_start
 
@@ -1110,14 +1103,14 @@ def _readframe_lazy(
     return count, data, has_em_image, valid, previous_y // height_norm
 
 
-def _readframe_dummy(rawdata):
+@numba.njit(cache=True)
+def _skip_frame(rawdata):  # pragma: no cover
     count = 0
     previous_y = 0
     for value in rawdata:
         value_type = value & 0xF000
-        value &= 0xFFF
         if value_type == 0x9000:
-            y = value
+            y = value & 0xFFF
             if y < previous_y:
                 break
             previous_y = y

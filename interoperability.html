@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Contributing &#8212; RosettaSciIO  documentation</title>
+    <title>Interoperability &#8212; RosettaSciIO  documentation</title>
   
   
   
@@ -40,11 +40,11 @@
     <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/sphinx_highlight.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'contributing';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'interoperability';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Changelog" href="changes.html" />
-    <link rel="prev" title="Ripple (Lispix) format description" href="file_specification/ripple-specs.html" />
+    <link rel="next" title="File Specifications" href="file_specification/index.html" />
+    <link rel="prev" title="Utility functions" href="api/utils.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="en">
   </head>
@@ -132,8 +132,8 @@
                     </li>
                 
 
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="interoperability.html">
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="#">
                         Interoperability
                       </a>
                     </li>
@@ -146,8 +146,8 @@
                     </li>
                 
 
-                    <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="#">
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="contributing.html">
                         Contributing
                       </a>
                     </li>
@@ -262,8 +262,8 @@
                     </li>
                 
 
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="interoperability.html">
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="#">
                         Interoperability
                       </a>
                     </li>
@@ -276,8 +276,8 @@
                     </li>
                 
 
-                    <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="#">
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="contributing.html">
                         Contributing
                       </a>
                     </li>
@@ -373,114 +373,44 @@
             
             <article class="bd-article" role="main">
               
-  <section id="contributing">
-<h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this heading">#</a></h1>
-<p>RosettaSciIO is meant to be a community maintained project. We welcome contributions
-in the form of bug reports, documentation, code (in particular <a class="reference internal" href="#defining-plugins"><span class="std std-ref">new io plugins</span></a>), feature requests, and more. In the following we refer to some
-resources to help you make useful contributions.</p>
-<section id="issues">
-<h2>Issues<a class="headerlink" href="#issues" title="Permalink to this heading">#</a></h2>
-<p>The <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues">issue tracker</a> can be used to
-report bugs or propose new features. When reporting a bug, the following is
-useful:</p>
-<ul class="simple">
-<li><p>give a minimal example demonstrating the bug,</p></li>
-<li><p>copy and paste the error traceback.</p></li>
-</ul>
+  <section id="interoperability">
+<h1>Interoperability<a class="headerlink" href="#interoperability" title="Permalink to this heading">#</a></h1>
+<section id="reading-data-saved-by-rosettasciio-using-other-software-packages">
+<h2>Reading data saved by RosettaSciIO using other software packages<a class="headerlink" href="#reading-data-saved-by-rosettasciio-using-other-software-packages" title="Permalink to this heading">#</a></h2>
+<p>The following scripts may help reading data saved using RosettaSciIO using
+other software packages, in particular when using the <a class="reference internal" href="supported_formats/hspy.html#hspy-format"><span class="std std-ref">HyperSpy HDF5 format</span></a>.</p>
+<section id="importrpl-digital-micrograph-plugin">
+<span id="import-rpl"></span><h3>ImportRPL Digital Micrograph plugin<a class="headerlink" href="#importrpl-digital-micrograph-plugin" title="Permalink to this heading">#</a></h3>
+<p>This Digital Micrograph plugin is designed to import Ripple files into Digital Micrograph.
+It is used to ease data transit between DigitalMicrograph and e.g. HyperSpy without losing
+the calibration using the extra keywords that HyperSpy adds to the standard format.</p>
+<p>When executed, it will ask for 2 files:</p>
+<ol class="arabic simple">
+<li><p>The ripple file with the data format and calibrations.</p></li>
+<li><p>The data itself in <code class="docutils literal notranslate"><span class="pre">.raw</span></code> format.</p></li>
+</ol>
+<p>If a file with the same name and path as the ripple file exists, which has a
+<code class="docutils literal notranslate"><span class="pre">.raw</span></code> or <code class="docutils literal notranslate"><span class="pre">.bin</span></code> extension, it is opened directly without prompting.
+ImportRPL was written by Luiz Fernando Zagonel.</p>
+<p>Download <code class="docutils literal notranslate"><span class="pre">ImportRPL</span></code> from the <a class="reference external" href="https://github.com/hyperspy/ImportRPL">ImportRPL GitHub repository</a></p>
 </section>
-<section id="pull-requests">
-<h2>Pull Requests<a class="headerlink" href="#pull-requests" title="Permalink to this heading">#</a></h2>
-<p>If you want to contribute to the RosettaSciIO source code, you can send us a
-<a class="reference external" href="https://github.com/hyperspy/rosettasciio/pulls">pull request</a>. Small bug fixes
-are corrections to the user guide are typically a good starting point. But don’t
-hesitate also for significant code contributions, such as support for a new
-file format - if needed, we’ll help you to get the code ready to common standards.</p>
-<p>Please refer to the
-<a class="reference external" href="http://hyperspy.org/hyperspy-doc/current/dev_guide/intro.html">HyperSpy developer guide</a>
-in order to get started and for detailed contributing guidelines.</p>
-<section id="reviewing">
-<h3>Reviewing<a class="headerlink" href="#reviewing" title="Permalink to this heading">#</a></h3>
-<p>As quality assurance, to improve the code, and to ensure a generalized
-functionality, pull requests need to be thoroughly reviewed by at least one
-other member of the development team before being merged.</p>
+<section id="hdf5-reader-plugin-for-digital-micrograph">
+<span id="dm-import-hdf5"></span><h3>HDF5 reader plugin for Digital Micrograph<a class="headerlink" href="#hdf5-reader-plugin-for-digital-micrograph" title="Permalink to this heading">#</a></h3>
+<p>This Digital Micrograph plugin is designed to import HDF5 files and like the
+<cite>ImportRPL</cite> script above, it can be used to easily transfer data saved using
+RosettaSciIO to Digital Micrograph by using the HDF5 files following the
+<a class="reference internal" href="supported_formats/hspy.html#hspy-format"><span class="std std-ref">HyperSpy format specification</span></a> (<code class="docutils literal notranslate"><span class="pre">.hspy</span></code> extension).</p>
+<p>Download <code class="docutils literal notranslate"><span class="pre">gms_plugin_hdf5</span></code> from the <a class="reference external" href="https://github.com/niermann/gms_plugin_hdf5">gms_plugin_hdf5 GitHub repository</a>.</p>
 </section>
+<section id="readhyperspyh5-matlab-plugin">
+<span id="hyperspy-matlab"></span><h3>readHyperSpyH5 MATLAB Plugin<a class="headerlink" href="#readhyperspyh5-matlab-plugin" title="Permalink to this heading">#</a></h3>
+<p>This MATLAB script is designed to import HDF5 files saved using the <a class="reference internal" href="supported_formats/hspy.html#hspy-format"><span class="std std-ref">HyperSpy
+format specification</span></a> (<code class="docutils literal notranslate"><span class="pre">.hspy</span></code> extension).
+Like the Digital Micrograph script above, it is used to easily transfer data
+saved using RosettaSciIO to MATLAB, while e.g. retaining spatial calibration
+information from HyperSpy.</p>
+<p>Download <code class="docutils literal notranslate"><span class="pre">readHyperSpyH5</span></code> from the <a class="reference external" href="https://github.com/jat255/readHyperSpyH5">readHyperSpyH5 GitHub repository</a>.</p>
 </section>
-<section id="defining-new-rosettasciio-plugins">
-<span id="defining-plugins"></span><h2>Defining new RosettaSciIO plugins<a class="headerlink" href="#defining-new-rosettasciio-plugins" title="Permalink to this heading">#</a></h2>
-<p>Each read/write plugin resides in a separate directory, the name of which should
-be descriptive of the file type/manufacturer/software. This directory should
-contain the following files:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> – Defines the exposed API functions, <code class="docutils literal notranslate"><span class="pre">file_reader</span></code> and optionally <code class="docutils literal notranslate"><span class="pre">file_writer</span></code></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">._api</span> <span class="kn">import</span> <span class="n">file_reader</span><span class="p">,</span> <span class="n">file_writer</span>
-
-
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;file_reader&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;file_writer&quot;</span><span class="p">,</span>
-<span class="p">]</span>
-
-
-<span class="k">def</span> <span class="fm">__dir__</span><span class="p">():</span>
-    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">__all__</span><span class="p">)</span>
-</pre></div>
-</div>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">specifications.yaml</span></code> – The characteristics of the IO plugin in <em>yaml</em> format:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;String&gt;</span><span class="w"> </span><span class="c1"># unique, concise, no whitespace; usually corresponding to directory name</span><span class="w"></span>
-<span class="nt">name_aliases</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">&lt;String&gt;</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># List of strings, may contain whitespaces (empty if no alias defined)</span><span class="w"></span>
-<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;String&gt;</span><span class="w"></span>
-<span class="nt">full_support</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;Bool&gt;</span><span class="w">      </span><span class="c1"># Whether all the Hyperspy features are supported</span><span class="w"></span>
-<span class="nt">file_extensions</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;Tuple of string&gt;</span><span class="w">  </span><span class="c1"># Recognised file extension</span><span class="w"></span>
-<span class="nt">default_extension</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;Int&gt;</span><span class="w">  </span><span class="c1"># Index of the extension that will be used by default</span><span class="w"></span>
-<span class="nt">writes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;Bool&gt;/[Nested list]</span><span class="w">  </span><span class="c1"># Writing capabilities</span><span class="w"></span>
-<span class="c1"># if only limited dimensions are supported, the supported combinations of signal</span><span class="w"></span>
-<span class="c1"># dimensions (sd) and navigation dimensions (nd) are given as list [[sd, nd], ...]</span><span class="w"></span>
-<span class="nt">non_uniform_axis</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;Bool&gt;</span><span class="w">  </span><span class="c1"># Support for non-uniform axis</span><span class="w"></span>
-</pre></div>
-</div>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">_api.py</span></code> – Python file that implements the actual reader. The IO functionality
-should be interfaced with the following functions:</p>
-<ul class="simple">
-<li><p>A function called <code class="docutils literal notranslate"><span class="pre">file_reader</span></code> with at least one attribute: <code class="docutils literal notranslate"><span class="pre">filename</span></code>
-that returns the <a class="reference internal" href="api/index.html#interfacing-api"><span class="std std-ref">standardized signal dictionary</span></a>.</p></li>
-<li><p>(optional) A function called <code class="docutils literal notranslate"><span class="pre">file_writer</span></code> with at least two attributes:
-<code class="docutils literal notranslate"><span class="pre">filename</span></code> and <code class="docutils literal notranslate"><span class="pre">signal</span></code> (a python dictionary) in that order.</p></li>
-</ul>
-</li>
-</ul>
-<p>The new plugin needs to be added to the list in <code class="docutils literal notranslate"><span class="pre">rsciio/__init__.py</span></code>.</p>
-<p><strong>Tests</strong> covering the functionality of the plugin should be added to the
-<code class="docutils literal notranslate"><span class="pre">tests</span></code> directory with the naming <code class="docutils literal notranslate"><span class="pre">test_spamandeggs.py</span></code> corresponsing to
-the plugin residing in the directory <code class="docutils literal notranslate"><span class="pre">spamandeggs</span></code>. Data files for the tests
-should be placed in a corresponding subdirectory [change for pooch]. Furthermore,
-the plugin should be added to the <code class="docutils literal notranslate"><span class="pre">test_dir_plugins()</span></code> function in <code class="docutils literal notranslate"><span class="pre">test_import.py</span></code>.</p>
-<p><strong>Documentation</strong> should be added both as <strong>docstring</strong>, as well as to the <strong>user guide</strong>,
-for which a corresponding <code class="docutils literal notranslate"><span class="pre">.rst</span></code> file should be created in the directory
-<code class="docutils literal notranslate"><span class="pre">docs/supported_formats/</span></code> and the format added to the lists in
-<code class="docutils literal notranslate"><span class="pre">docs/supported_formats/index.rst</span></code> and <code class="docutils literal notranslate"><span class="pre">docs/supported_formats/supported_formats.rst</span></code>.</p>
-<p>A few standard <em>docstring</em> components are provided by <code class="docutils literal notranslate"><span class="pre">docstrings.py</span></code> and should be used
-(see existing plugins).</p>
-<p>The <em>docstrings</em> are automatically added in the <em>user guide</em> using the following lines</p>
-<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="gh">API functions</span>
-<span class="gh">^^^^^^^^^^^^^</span>
-
-<span class="p">..</span> <span class="ow">automodule</span><span class="p">::</span> rsciio.spamandeggs
-   <span class="nc">:members:</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>It is advisable to clone the files of an existing plugin when initiating a new
-plugin.</p>
-</div>
-</section>
-<section id="maintenance">
-<h2>Maintenance<a class="headerlink" href="#maintenance" title="Permalink to this heading">#</a></h2>
-<p>Please refer to the
-<a class="reference external" href="http://hyperspy.org/hyperspy-doc/current/dev_guide/intro.html">HyperSpy developer guide</a>
-for maintenance guidelines.</p>
 </section>
 </section>
 
@@ -492,17 +422,17 @@ for maintenance guidelines.</p>
             <footer class="bd-footer-article">
                 <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-  <a class='left-prev' id="prev-link" href="file_specification/ripple-specs.html" title="previous page">
+  <a class='left-prev' id="prev-link" href="api/utils.html" title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
           <p class="prev-next-subtitle">previous</p>
-          <p class="prev-next-title">Ripple (Lispix) format description</p>
+          <p class="prev-next-title">Utility functions</p>
       </div>
   </a>
-  <a class='right-next' id="next-link" href="changes.html" title="next page">
+  <a class='right-next' id="next-link" href="file_specification/index.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">Changelog</p>
+      <p class="prev-next-title">File Specifications</p>
   </div>
   <i class="fa-solid fa-angle-right"></i>
   </a>
@@ -523,31 +453,26 @@ for maintenance guidelines.</p>
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#issues">
-   Issues
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#pull-requests">
-   Pull Requests
+  <a class="reference internal nav-link" href="#reading-data-saved-by-rosettasciio-using-other-software-packages">
+   Reading data saved by RosettaSciIO using other software packages
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#reviewing">
-     Reviewing
+    <a class="reference internal nav-link" href="#importrpl-digital-micrograph-plugin">
+     ImportRPL Digital Micrograph plugin
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#hdf5-reader-plugin-for-digital-micrograph">
+     HDF5 reader plugin for Digital Micrograph
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#readhyperspyh5-matlab-plugin">
+     readHyperSpyH5 MATLAB Plugin
     </a>
    </li>
   </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#defining-new-rosettasciio-plugins">
-   Defining new RosettaSciIO plugins
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#maintenance">
-   Maintenance
-  </a>
  </li>
 </ul>
 
@@ -566,7 +491,7 @@ for maintenance guidelines.</p>
 <div class="toc-item">
   
 <div class="tocsection sourcelink">
-    <a href="_sources/contributing.rst.txt">
+    <a href="_sources/interoperability.rst.txt">
         <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
 </div>

@@ -126,14 +126,14 @@
                 
 
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../api.html">
+                      <a class="nav-link nav-internal" href="../api/index.html">
                         API
                       </a>
                     </li>
                 
 
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../interoperatibility.html">
+                      <a class="nav-link nav-internal" href="../interoperability.html">
                         Interoperability
                       </a>
                     </li>
@@ -256,14 +256,14 @@
                 
 
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../api.html">
+                      <a class="nav-link nav-internal" href="../api/index.html">
                         API
                       </a>
                     </li>
                 
 
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../interoperatibility.html">
+                      <a class="nav-link nav-internal" href="../interoperability.html">
                         Interoperability
                       </a>
                     </li>
@@ -417,106 +417,99 @@
 <p>The <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> format (short for “Raw Parameter List”) is an <em>open standard format</em>
 developed at NIST as native format for <a class="reference external" href="https://www.nist.gov/services-resources/software/lispix">Lispix</a> and is widely used to
 exchange multidimensional data. However, it only supports data of up to three
-dimensions.</p>
+dimensions. See the <a class="reference internal" href="../file_specification/ripple-specs.html#ripple-file-specification"><span class="std std-ref">file specifications</span></a>
+for a description of the file format and the parameter keys (some of which are
+specific to <a class="reference external" href="https://hyperspy.org">HyperSpy</a>). This format is often used in
+EDS/EDX experiments.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> file lists the characteristics of the corresponding <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file so
 that it can be loaded without human intervention. Thus, the reader parses a
 <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> file and reads the data from the corresponding
 <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file, or directly from a <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file if the dictionary <code class="docutils literal notranslate"><span class="pre">rpl_info</span></code> is
 provided.</p>
 <p>It can also be used to exchange data with Bruker and used in
-combination with the <a class="reference internal" href="../interoperatibility.html#import-rpl"><span class="std std-ref">ImportRPL Digital Micrograph plugin</span></a> it is very useful for exporting data
+combination with the <a class="reference internal" href="../interoperability.html#import-rpl"><span class="std std-ref">ImportRPL Digital Micrograph plugin</span></a> it is very useful for exporting data
 to Gatan’s Digital Micrograph.</p>
-<p>The default encoding is latin-1. It is possible to set a different encoding
-using the encoding argument, e.g. when using HyperSpy to save a file:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;file.rpl&#39;</span><span class="p">,</span> <span class="n">encoding</span> <span class="o">=</span> <span class="s1">&#39;utf8&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>For <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> files, <code class="docutils literal notranslate"><span class="pre">hs.load</span></code> takes the <code class="docutils literal notranslate"><span class="pre">mmap_mode</span></code> keyword argument enabling
-loading the file using a different mode (default is copy-on-write). However,
-note that lazy loading does not support in-place writing (i.e lazy loading and
-the “r+” mode are incompatible).</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This format may not provide information on the calibration.
 If so, you should add that after loading the file.</p>
 </div>
-<section id="format-description">
-<h2>Format description<a class="headerlink" href="#format-description" title="Permalink to this heading">#</a></h2>
-<p>Images and spectral images or data cubes that are written in the
-(Lispix) raw file format are just a continuous string of numbers.</p>
-<p>Data cubes can be stored image by image, or spectrum by spectrum.
-Single images are stored row by row, vector cubes are stored row by row
-(each row spectrum by spectrum), image cubes are stored image by image.</p>
-<p>All of the numbers are in the same format, such as 16 bit signed integer,
-IEEE 8-byte real, 8-bit unsigned byte, etc.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file should be accompanied by an ASCII text, tab delimited file with the
-same name and <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> extension. This “raw parameter list” file lists the
-characteristics of the <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file.</p>
-<p>Some of the following keys are specific to HyperSpy and will be ignored by other software.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">========================</span>  <span class="o">=======</span>  <span class="o">=================================================</span>
-<span class="n">Key</span>                       <span class="n">Type</span>     <span class="n">Description</span>
-<span class="o">========================</span>  <span class="o">=======</span>  <span class="o">=================================================</span>
-<span class="n">width</span>                     <span class="nb">int</span>      <span class="n">pixels</span> <span class="n">per</span> <span class="n">row</span>
-<span class="n">height</span>                    <span class="nb">int</span>      <span class="n">number</span> <span class="n">of</span> <span class="n">rows</span>
-<span class="n">depth</span>                     <span class="nb">int</span>      <span class="n">number</span> <span class="n">of</span> <span class="n">images</span> <span class="ow">or</span> <span class="n">spectral</span> <span class="n">pts</span>
-<span class="n">offset</span>                    <span class="nb">int</span>      <span class="nb">bytes</span> <span class="n">to</span> <span class="n">skip</span>
-<span class="n">data</span><span class="o">-</span><span class="nb">type</span>                 <span class="nb">str</span>      <span class="s1">&#39;signed&#39;</span><span class="p">,</span> <span class="s1">&#39;unsigned&#39;</span><span class="p">,</span> <span class="ow">or</span> <span class="s1">&#39;float&#39;</span>
-<span class="n">data</span><span class="o">-</span><span class="n">length</span>               <span class="nb">str</span>      <span class="nb">bytes</span> <span class="n">per</span> <span class="n">pixel</span>  <span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="s1">&#39;4&#39;</span><span class="p">,</span> <span class="ow">or</span> <span class="s1">&#39;8&#39;</span>
-<span class="n">byte</span><span class="o">-</span><span class="n">order</span>                <span class="nb">str</span>      <span class="s1">&#39;big-endian&#39;</span><span class="p">,</span> <span class="s1">&#39;little-endian&#39;</span><span class="p">,</span> <span class="ow">or</span> <span class="s1">&#39;dont-care&#39;</span>
-<span class="n">record</span><span class="o">-</span><span class="n">by</span>                 <span class="nb">str</span>      <span class="s1">&#39;image&#39;</span><span class="p">,</span> <span class="s1">&#39;vector&#39;</span><span class="p">,</span> <span class="ow">or</span> <span class="s1">&#39;dont-care&#39;</span>
-<span class="c1"># X-ray keys:</span>
-<span class="n">ev</span><span class="o">-</span><span class="n">per</span><span class="o">-</span><span class="n">chan</span>               <span class="nb">int</span>      <span class="n">optional</span><span class="p">,</span> <span class="n">eV</span> <span class="n">per</span> <span class="n">channel</span>
-<span class="n">detector</span><span class="o">-</span><span class="n">peak</span><span class="o">-</span><span class="n">width</span><span class="o">-</span><span class="n">ev</span>    <span class="nb">int</span>      <span class="n">optional</span><span class="p">,</span> <span class="n">FWHM</span> <span class="k">for</span> <span class="n">the</span> <span class="n">Mn</span> <span class="n">K</span><span class="o">-</span><span class="n">alpha</span> <span class="n">line</span>
-<span class="c1"># HyperSpy-specific keys</span>
-<span class="n">depth</span><span class="o">-</span><span class="n">origin</span>              <span class="nb">int</span>      <span class="n">energy</span> <span class="n">offset</span> <span class="ow">in</span> <span class="n">pixels</span>
-<span class="n">depth</span><span class="o">-</span><span class="n">scale</span>               <span class="nb">float</span>    <span class="n">energy</span> <span class="n">scaling</span> <span class="p">(</span><span class="n">units</span> <span class="n">per</span> <span class="n">pixel</span><span class="p">)</span>
-<span class="n">depth</span><span class="o">-</span><span class="n">units</span>               <span class="nb">str</span>      <span class="n">energy</span> <span class="n">units</span><span class="p">,</span> <span class="n">usually</span> <span class="n">eV</span>
-<span class="n">depth</span><span class="o">-</span><span class="n">name</span>                <span class="nb">str</span>      <span class="n">Name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">magnitude</span> <span class="n">stored</span> <span class="k">as</span> <span class="n">depth</span>
-<span class="n">width</span><span class="o">-</span><span class="n">origin</span>              <span class="nb">int</span>      <span class="n">column</span> <span class="n">offset</span> <span class="ow">in</span> <span class="n">pixels</span>
-<span class="n">width</span><span class="o">-</span><span class="n">scale</span>               <span class="nb">float</span>    <span class="n">column</span> <span class="n">scaling</span> <span class="p">(</span><span class="n">units</span> <span class="n">per</span> <span class="n">pixel</span><span class="p">)</span>
-<span class="n">width</span><span class="o">-</span><span class="n">units</span>               <span class="nb">str</span>      <span class="n">column</span> <span class="n">units</span><span class="p">,</span> <span class="n">usually</span> <span class="n">nm</span>
-<span class="n">width</span><span class="o">-</span><span class="n">name</span>                <span class="nb">str</span>      <span class="n">Name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">magnitude</span> <span class="n">stored</span> <span class="k">as</span> <span class="n">width</span>
-<span class="n">height</span><span class="o">-</span><span class="n">origin</span>             <span class="nb">int</span>      <span class="n">row</span> <span class="n">offset</span> <span class="ow">in</span> <span class="n">pixels</span>
-<span class="n">height</span><span class="o">-</span><span class="n">scale</span>              <span class="nb">float</span>    <span class="n">row</span> <span class="n">scaling</span> <span class="p">(</span><span class="n">units</span> <span class="n">per</span> <span class="n">pixel</span><span class="p">)</span>
-<span class="n">height</span><span class="o">-</span><span class="n">units</span>              <span class="nb">str</span>      <span class="n">row</span> <span class="n">units</span><span class="p">,</span> <span class="n">usually</span> <span class="n">nm</span>
-<span class="n">height</span><span class="o">-</span><span class="n">name</span>               <span class="nb">str</span>      <span class="n">Name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">magnitude</span> <span class="n">stored</span> <span class="k">as</span> <span class="n">height</span>
-<span class="n">signal</span>                    <span class="nb">str</span>      <span class="n">Type</span> <span class="n">of</span> <span class="n">the</span> <span class="n">signal</span> <span class="n">stored</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="n">EDS_SEM</span>
-<span class="n">convergence</span><span class="o">-</span><span class="n">angle</span>         <span class="nb">float</span>    <span class="n">TEM</span> <span class="n">convergence</span> <span class="n">angle</span> <span class="ow">in</span> <span class="n">mrad</span>
-<span class="n">collection</span><span class="o">-</span><span class="n">angle</span>          <span class="nb">float</span>    <span class="n">EELS</span> <span class="n">spectrometer</span> <span class="n">collection</span> <span class="n">semi</span><span class="o">-</span><span class="n">angle</span> <span class="ow">in</span> <span class="n">mrad</span>
-<span class="n">beam</span><span class="o">-</span><span class="n">energy</span>               <span class="nb">float</span>    <span class="n">TEM</span> <span class="n">beam</span> <span class="n">energy</span> <span class="ow">in</span> <span class="n">keV</span>
-<span class="n">elevation</span><span class="o">-</span><span class="n">angle</span>           <span class="nb">float</span>    <span class="n">Elevation</span> <span class="n">angle</span> <span class="n">of</span> <span class="n">the</span> <span class="n">EDS</span> <span class="n">detector</span>
-<span class="n">azimuth</span><span class="o">-</span><span class="n">angle</span>             <span class="nb">float</span>    <span class="n">Elevation</span> <span class="n">angle</span> <span class="n">of</span> <span class="n">the</span> <span class="n">EDS</span> <span class="n">detector</span>
-<span class="n">live</span><span class="o">-</span><span class="n">time</span>                 <span class="nb">float</span>    <span class="n">Live</span> <span class="n">time</span> <span class="n">per</span> <span class="n">spectrum</span>
-<span class="n">energy</span><span class="o">-</span><span class="n">resolution</span>         <span class="nb">float</span>    <span class="n">Resolution</span> <span class="n">of</span> <span class="n">the</span> <span class="n">EDS</span> <span class="p">(</span><span class="n">FHWM</span> <span class="n">of</span> <span class="n">MnKa</span><span class="p">)</span>
-<span class="n">tilt</span><span class="o">-</span><span class="n">stage</span>                <span class="nb">float</span>    <span class="n">The</span> <span class="n">tilt</span> <span class="n">of</span> <span class="n">the</span> <span class="n">stage</span>
-<span class="n">date</span>                      <span class="nb">str</span>      <span class="n">date</span> <span class="ow">in</span> <span class="n">ISO</span> <span class="mi">8601</span>
-<span class="n">time</span>                      <span class="nb">str</span>      <span class="n">time</span> <span class="ow">in</span> <span class="n">ISO</span> <span class="mi">8601</span>
-<span class="n">title</span>                     <span class="nb">str</span>      <span class="n">title</span> <span class="n">of</span> <span class="n">the</span> <span class="n">signal</span> <span class="n">to</span> <span class="n">be</span> <span class="n">stored</span>
-<span class="o">========================</span>  <span class="o">=======</span>  <span class="o">=================================================</span>
-</pre></div>
-</div>
-<section id="notes">
-<h3>Notes<a class="headerlink" href="#notes" title="Permalink to this heading">#</a></h3>
-<p>When <code class="docutils literal notranslate"><span class="pre">'data-length'</span></code> is 1, the <code class="docutils literal notranslate"><span class="pre">'byte</span> <span class="pre">order'</span></code> is not relevant as there is only
-one byte per datum, and <code class="docutils literal notranslate"><span class="pre">'byte-order'</span></code> should be <code class="docutils literal notranslate"><span class="pre">'dont-care'</span></code>.</p>
-<p>When <code class="docutils literal notranslate"><span class="pre">'depth'</span></code> is 1, the file has one image, <code class="docutils literal notranslate"><span class="pre">'record-by'</span></code> is not relevant and
-should be <code class="docutils literal notranslate"><span class="pre">'dont-care'</span></code>. For spectral images, <code class="docutils literal notranslate"><span class="pre">'record-by'</span></code> is ‘vector’.
-For stacks of images, <code class="docutils literal notranslate"><span class="pre">'record-by'</span></code> is <code class="docutils literal notranslate"><span class="pre">'image'</span></code>.</p>
-<p>Floating point numbers can be IEEE 4-byte, or IEEE 8-byte. Therefore if
-data-type is float, data-length MUST be 4 or 8.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> file is read in a case-insensitive manner. However, when providing
-a dictionary as input, the keys MUST be lowercase.</p>
-<p>Comment lines, beginning with a semi-colon <code class="docutils literal notranslate"><span class="pre">;</span></code> are allowed anywhere.</p>
-<p>The first non-comment in the <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> file line MUST have two column names:
-<code class="docutils literal notranslate"><span class="pre">'name_1'&lt;TAB&gt;'name_2'</span></code>; any name would do e.g. <code class="docutils literal notranslate"><span class="pre">'key'&lt;TAB&gt;'value'</span></code>.</p>
-<p>Parameters can be in ANY order.</p>
-<p>In the <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> file, the parameter name is followed by ONE tab (spaces are
-ignored) e.g.: <code class="docutils literal notranslate"><span class="pre">'data-length'&lt;TAB&gt;'2'</span></code></p>
-<p>In the <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> file, other data and more tabs can follow the two items on
-each row, and are ignored.</p>
-<p>Other keys and values can be included and are ignored.</p>
-<p>Any number of spaces can go along with each tab.</p>
-</section>
+<section id="module-rsciio.ripple">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.ripple" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.ripple.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.ripple.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rpl_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'latin-1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'c'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.ripple.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Parses a Lispix (<a class="reference external" href="https://www.nist.gov/services-resources/software/lispix">https://www.nist.gov/services-resources/software/lispix</a>)
+ripple (.rpl) file and reads the data from the corresponding raw (.raw) file;
+or, read a raw file if the dictionary <code class="docutils literal notranslate"><span class="pre">rpl_info</span></code> is provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – Filename of the file to read.</p></li>
+<li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
+<li><p><strong>rpl_info</strong> (<em>dict</em><em>, </em><em>Default=None</em>) – A dictionary containing the keywords in order to read a <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file
+without corresponding <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> file. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, the keywords are parsed
+automatically from the <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> file.</p></li>
+<li><p><strong>enconding</strong> (<em>str</em><em>, </em><em>optional</em>) – The encoding used to read the content of the <code class="docutils literal notranslate"><span class="pre">rpl</span></code> file. The default
+encoding is <code class="docutils literal notranslate"><span class="pre">latin-1</span></code>. Different file encodings, such as <code class="docutils literal notranslate"><span class="pre">utf8</span></code> can be
+set via this argument.</p></li>
+<li><p><strong>mmap_mode</strong> (<em>str</em><em>, </em><em>optional</em>) – Default is copy-on-write <code class="docutils literal notranslate"><span class="pre">&quot;c&quot;</span></code>, but different modes can be set. However,
+note that lazy loading does not support in-place writing (i.e lazy loading
+and the <code class="docutils literal notranslate"><span class="pre">&quot;r+&quot;</span></code> mode are incompatible). The mode has no effect for pickled or
+zipped files. A memory-mapped array is stored on disk, and not directly loaded
+into memory.  However, it can be accessed and sliced like any
+ndarray.  Memory mapping is especially useful for accessing
+small fragments of large files without reading the entire file
+into memory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dicts</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.ripple.file_writer">
+<span class="sig-prename descclassname"><span class="pre">rsciio.ripple.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'latin-1'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.ripple.file_writer" title="Permalink to this definition">#</a></dt>
+<dd><p>Writes a Lispix (<a class="reference external" href="https://www.nist.gov/services-resources/software/lispix">https://www.nist.gov/services-resources/software/lispix</a>)
+ripple (.rpl) file and saves the data in a corresponding raw (.raw) file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – Filename of the file to write to.</p></li>
+<li><p><strong>signal</strong> (<em>dict</em>) – <p>Dictionary containing the signal object.
+Should contain the following fields:</p>
+<ul>
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the metadata tree</p></li>
+</ul>
+</p></li>
+<li><p><strong>enconding</strong> (<em>str</em><em>, </em><em>optional</em>) – The encoding used to write the content of the <code class="docutils literal notranslate"><span class="pre">rpl</span></code> file. The default
+encoding is <code class="docutils literal notranslate"><span class="pre">latin-1</span></code>. Different file encodings, such as <code class="docutils literal notranslate"><span class="pre">utf8</span></code> can be
+set via this argument.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -559,13 +552,26 @@ each row, and are ignored.</p>
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#format-description">
-   Format description
+  <a class="reference internal nav-link" href="#module-rsciio.ripple">
+   API functions
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#notes">
-     Notes
+    <a class="reference internal nav-link" href="#rsciio.ripple.file_reader">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       file_reader()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rsciio.ripple.file_writer">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       file_writer()
+      </span>
+     </code>
     </a>
    </li>
   </ul>

@@ -126,14 +126,14 @@
                 
 
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../api.html">
+                      <a class="nav-link nav-internal" href="../api/index.html">
                         API
                       </a>
                     </li>
                 
 
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../interoperatibility.html">
+                      <a class="nav-link nav-internal" href="../interoperability.html">
                         Interoperability
                       </a>
                     </li>
@@ -256,14 +256,14 @@
                 
 
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../api.html">
+                      <a class="nav-link nav-internal" href="../api/index.html">
                         API
                       </a>
                     </li>
                 
 
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../interoperatibility.html">
+                      <a class="nav-link nav-internal" href="../interoperability.html">
                         Interoperability
                       </a>
                     </li>
@@ -420,6 +420,60 @@ so a complete support is in principle possible.
 However, as new features are continuously being added to Panta Rhei, it is also
 possible to occasionally encounter some which are not yet supported by RosettaSciIO.
 Please report any problematic file on the <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues">issues tracker</a> to make us aware of it.</p>
+<section id="module-rsciio.prz">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.prz" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.prz.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.prz.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.prz.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Read a PantaRhei <code class="docutils literal notranslate"><span class="pre">.prz</span></code> file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – Filename of the file to read.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dicts</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.prz.file_writer">
+<span class="sig-prename descclassname"><span class="pre">rsciio.prz.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.prz.file_writer" title="Permalink to this definition">#</a></dt>
+<dd><p>Write signal to PantaRhei <code class="docutils literal notranslate"><span class="pre">.prz</span></code> format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – Filename of the file to write to.</p></li>
+<li><p><strong>signal</strong> (<em>dict</em>) – <p>Dictionary containing the signal object.
+Should contain the following fields:</p>
+<ul>
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the metadata tree</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -453,6 +507,43 @@ Please report any problematic file on the <a class="reference external" href="ht
           
             <div class="bd-sidebar-secondary bd-toc">
               
+<div class="toc-item">
+  
+<div class="tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+</div>
+<nav id="bd-toc-nav" class="page-toc">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-rsciio.prz">
+   API functions
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rsciio.prz.file_reader">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       file_reader()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rsciio.prz.file_writer">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       file_writer()
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+</div>
+
 <div class="toc-item">
   
 <div id="searchbox"></div>

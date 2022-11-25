@@ -915,7 +915,8 @@ class ImageObject(object):
 
     def get_markers_dict(self, tags_dict):
         scale_y, scale_x = self.scales[-2], self.scales[-1]
-        offset_y, offset_x = self.offsets[-2] + self.marker_offsets[-2], self.offsets[-1] + self.marker_offsets[-1]
+        offset_y = self.offsets[-2] + self.marker_offsets[-2] - scale_y * 0.5
+        offset_x =  self.offsets[-1] + self.marker_offsets[-1] - scale_x * 0.5
         markers_dict = {}
         annotations_dict = tags_dict[
                 "DocumentObjectList"]["TagGroup0"]["AnnotationGroupList"]

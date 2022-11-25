@@ -835,7 +835,7 @@ class ImageObject(object):
         if annotation["FillMode"]==1:
             marker_properties["fill"] = True
             marker_properties["facecolor"] = self._rgb_color(annotation["ForegroundColor"])
-            marker_propergties["edgecolor"] = self._rgb_color(annotation["BackgroundColor"])
+            marker_properties["edgecolor"] = self._rgb_color(annotation["BackgroundColor"])
         else:
             marker_properties["fill"] = False
             marker_properties["edgecolor"] = self._rgb_color(annotation["ForegroundColor"])
@@ -1466,8 +1466,9 @@ def file_reader(filename, record_by=None, order=None, lazy=False, optimize=True,
                 markers_dict = image.get_markers_dict(dm.tags_dict)
             except Exception as err:
                 _logger.warning(
-                        "Markers could not be loaded from the file"
-                        "due to: {0}".format(err))
+                    "Markers could not be loaded from the file"
+                    "due to: {0}".format(err)
+                )
                 markers_dict = {}
             if markers_dict:
                 mp["Markers"] = markers_dict

@@ -75,14 +75,14 @@ def _draw_marker(img):
         (x0, y0, x1, y1) = items["PositionMM2"] * 1000
         markers_dict["Rect" + num] = {
             "marker_type": "Rectangle",
-            "data": {"x1":-x0-o_x, "x2":-x1-o_x, "y1": y0+o_y, "y2":y1+o_y},
-            "marker_properties": {"color" : "cyan", "linewidth":1},
+            "data": {"x1": -x0 - o_x, "x2": -x1 - o_x, "y1": y0 + o_y, "y2": y1 + o_y},
+            "marker_properties": {"color": "cyan", "linewidth": 1},
             "plot_on_signal": True,
         }
         markers_dict["Text" + num] = {
             "marker_type": "Text",
-            "data": {"x1":-x0-o_x, "y1": y0+o_y, "text": items["Memo"]},
-            "marker_properties": {"color" : "cyan"},
+            "data": {"x1": -x0 - o_x, "y1": y0 + o_y, "text": items["Memo"]},
+            "marker_properties": {"color": "cyan"},
             "plot_on_signal": True,
         }
     img["metadata"]["Markers"] = markers_dict

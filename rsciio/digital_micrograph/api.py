@@ -445,6 +445,7 @@ class ImageObject(object):
         self.file = file
         self._order = order if order else "C"
         self._record_by = record_by
+        self.marker_offsets = (0, 0)  # (dy, dx)
 
     @property
     def shape(self):
@@ -802,6 +803,213 @@ class ImageObject(object):
         _logger.info("Microscope name not present")
         return None
 
+    def _rgb_color(self, color_raw):
+        color = []
+        for raw_value in color_raw:
+            if raw_value < 0:  # convert signed 16 bit to unsigned
+                raw_value += 2**16
+            raw_value /= 2**16 - 1
+            color.append(raw_value)
+        return tuple(color)
+
+    def _get_marker_color(self, annotation):
+        if ("ForegroundColor" in annotation) or ("Color" in annotation):
+            # There seems to be 3 different colors in annotations in
+            # dm3-files: Color, ForegroundColor and BackgroundColor.
+            # ForegroundColor and BackgroundColor seems to be present
+            # for all annotations. Color is present in some of them.
+            # If Color is present, it seems to override the others.
+            # Currently, BackgroundColor is not utilized, due to
+            # HyperSpy markers only supporting a single color.
+            if "Color" in annotation:
+                color_raw = annotation["Color"]
+            else:
+                color_raw = annotation["ForegroundColor"]
+            color = self._rgb_color(color_raw)
+        else:
+            color = "red"
+        return color
+
+    def _set_color(self, annotation, marker_properties):
+        if annotation["FillMode"] == 1:
+            marker_properties["fill"] = True
+            marker_properties["facecolor"] = self._rgb_color(
+                annotation["ForegroundColor"]
+            )
+            marker_properties["edgecolor"] = self._rgb_color(
+                annotation["BackgroundColor"]
+            )
+        else:
+            marker_properties["fill"] = False
+            marker_properties["edgecolor"] = self._rgb_color(
+                annotation["ForegroundColor"]
+            )
+
+    def _get_marker_props(self, annotation):
+        marker_properties = {}
+        temp_dict = {}
+        marker_text = None
+        if "AnnotationType" in annotation:
+            annotation_type = annotation["AnnotationType"]
+            if annotation_type == 2:
+                temp_dict["marker_type"] = "LineSegment"
+                marker_properties["linewidth"] = 1
+            elif annotation_type == 3:
+                temp_dict["marker_type"] = "Arrow"
+                marker_properties["arrowstyle"] = "<-"
+                marker_properties["linewidth"] = 1
+                self._set_color(annotation, marker_properties)
+            elif annotation_type == 4:
+                temp_dict["marker_type"] = "Arrow"
+                marker_properties["arrowstyle"] = "<->"
+                marker_properties["linewidth"] = 1
+                self._set_color(annotation, marker_properties)
+            elif annotation_type == 5:
+                temp_dict["marker_type"] = "Rectangle"
+                marker_properties["linewidth"] = 1
+                self._set_color(annotation, marker_properties)
+            elif annotation_type == 6:
+                temp_dict["marker_type"] = "Ellipse"
+                marker_properties["linewidth"] = 1
+                self._set_color(annotation, marker_properties)
+            elif annotation_type == 8:
+                _logger.info("Mask spot marker not loaded: not implemented")
+            elif annotation_type == 9:
+                _logger.info("Mask array marker not loaded: not implemented")
+            elif annotation_type == 13:
+                temp_dict["marker_type"] = "Text"
+                marker_text = annotation["Text"]
+                marker_properties["color"] = self._rgb_color(
+                    annotation["ForegroundColor"]
+                )
+                marker_properties["verticalalignment"] = "top"
+                if annotation["FillMode"] == 1:
+                    marker_properties["backgroundcolor"] = self._rgb_color(
+                        annotation["BackgroundColor"]
+                    )
+                if "TextFormat" in annotation:
+                    _format = annotation["TextFormat"]
+                    ## FontFaceName is not compatible with matplotlib
+                    # if "FontFaceName" in _format:
+                    #    marker_properties["fontfamily"]=_format["FontFaceName"]
+
+                    if "FontSize" in _format:
+                        marker_properties["fontsize"] = _format["FontSize"]
+
+            elif annotation_type == 15:
+                _logger.info("Mask band pass marker not loaded: not implemented")
+            elif annotation_type == 19:
+                _logger.info("Mask wedge marker not loaded: not implemented")
+            elif annotation_type == 23:  # roirectangle
+                temp_dict["marker_type"] = "Rectangle"
+                marker_properties["linestyle"] = "--"
+                marker_properties["linewidth"] = 2
+                marker_properties["edgecolor"] = self._rgb_color(annotation["Color"])
+            elif annotation_type == 25:  # roiline
+                temp_dict["marker_type"] = "LineSegment"
+                marker_properties["linestyle"] = "--"
+                marker_properties["linewidth"] = 2
+                marker_properties["edgecolor"] = self._rgb_color(annotation["Color"])
+            elif annotation_type == 27:
+                temp_dict["marker_type"] = "Point"
+                marker_properties["edgecolor"] = self._rgb_color(annotation["Color"])
+            elif annotation_type == 29:
+                _logger.info("ROI curve marker not loaded: not implemented")
+            elif annotation_type == 31:
+                _logger.info("Scalebar marker not loaded: not implemented")
+            else:
+                _logger.info("Unsupported annotation : %s", str(annotation))
+
+        return (marker_properties, temp_dict, marker_text)
+
+    def get_markers_dict(self, tags_dict):
+        annotations_dict = tags_dict["DocumentObjectList"]["TagGroup0"][
+            "AnnotationGroupList"
+        ]
+        if len(annotations_dict) == 0:
+            return []
+        dimensions = list(self.imdict.ImageData.Dimensions.values())
+        if len(dimensions) != 2:
+            _logger.warning("Currently %d data is not supported.", len(dimensions))
+            _logger.debug(
+                "Annotations = ",
+                tags_dict["DocumentObjectList"]["TagGroup0"]["AnnotationGroupList"],
+            )
+            return []
+
+        height = dimensions[1]
+
+        scale_x = self.scales[-1]
+        offset_x = self.offsets[-1] + self.marker_offsets[-1] - scale_x * 0.5
+
+        scale_y = self.scales[-2]
+        offset_y = self.offsets[-2] + self.marker_offsets[-2] - scale_y * 0.5
+
+        markers_dict = {}
+        zorder = len(annotations_dict) + 1
+        fmt = "{}{:d}"  # name, UniqueID
+        for annotation in annotations_dict.values():
+            zorder -= 1
+            uid = annotation["UniqueID"]
+            if "Rectangle" in annotation:
+                position = annotation["Rectangle"]
+            marker_properties, temp_dict, marker_text = self._get_marker_props(
+                annotation
+            )
+            marker_properties["zorder"] = zorder
+            if "fontsize" in marker_properties:
+                marker_properties["fontsize"] *= 400 / height
+            if "marker_type" in temp_dict:
+                if temp_dict["marker_type"] == "Ellipse":
+                    # convert bounding box to center and radius
+                    x = (position[0] + position[2]) / 2
+                    y = (position[1] + position[3]) / 2
+                    r_x = position[2] - position[0]
+                    r_y = position[3] - position[1]
+                    position = (x, y, r_x, r_y)
+                color = self._get_marker_color(annotation)
+                if "Label" in annotation:
+                    # Some annotations contains an empty label, which are
+                    # represented in the input dict as an empty list: []
+                    if annotation["Label"] != []:
+                        marker_label = annotation["Label"]
+                        label_marker_dict = {
+                            "marker_type": "Text",
+                            "plot_on_signal": True,
+                            "data": {
+                                "y1": position[0] * scale_y + offset_y,
+                                "x1": position[1] * scale_x + offset_x,
+                                "size": 12,  # default of matplotlib
+                                "text": marker_label,
+                            },
+                            "marker_properties": {
+                                "verticalalignment": "bottom",
+                            },
+                        }
+                        marker_name = fmt.format("Text", uid)
+                        markers_dict[marker_name] = label_marker_dict
+
+                if "facecolor" in marker_properties or "edgecolor" in marker_properties:
+                    if "color" in marker_properties:
+                        del marker_properties["color"]
+                        marker_properties["edgecolor"] = color
+                else:
+                    marker_properties["color"] = color
+
+                temp_dict["plot_on_signal"] = True
+                temp_dict["data"] = {
+                    "y1": position[0] * scale_y + offset_y,
+                    "x1": position[1] * scale_x + offset_x,
+                    "y2": position[2] * scale_y + offset_y,
+                    "x2": position[3] * scale_x + offset_x,
+                    "size": 12,
+                    "text": marker_text,
+                }
+                temp_dict["marker_properties"] = marker_properties
+                name = fmt.format(temp_dict["marker_type"], uid)
+                markers_dict[name] = temp_dict
+        return markers_dict
+
     def _parse_string(self, tag, convert_to_float=False, tag_name=None):
         if len(tag) == 0:
             return None
@@ -833,7 +1041,6 @@ class ImageObject(object):
             return float(tags["Exposure_s"]) * frame_number
         else:
             _logger.info("EELS/CL exposure time can't be read.")
-            return None
 
     def _get_CL_detector_type(self, tags):
         if (
@@ -848,7 +1055,6 @@ class ImageObject(object):
             return "PMT"
         else:
             _logger.info("CL detector type can't be read.")
-            return None
 
     def get_mapping(self):
         if "source" in self.imdict.ImageTags.keys():
@@ -1237,7 +1443,9 @@ class ImageObject(object):
         return mapping
 
 
-def file_reader(filename, record_by=None, order=None, lazy=False, optimize=True):
+def file_reader(
+        filename, record_by=None, order=None, lazy=False, optimize=True, read_marker=False
+):
     """Reads a DM3/4 file and loads the data into the appropriate class.
     data_id can be specified to load a given image within a DM3/4 file that
     contains more than one dataset.
@@ -1258,6 +1466,8 @@ def file_reader(filename, record_by=None, order=None, lazy=False, optimize=True)
         See the :ref:`signal.transpose` section of the HyperSpy user guide
         for more information. When operating on lazy signals, if ``True``,
         the chunks are optimised for the new axes configuration.
+    read_marker : bool, default False
+        Read markers as parmanent markers.
     """
 
     with open(filename, "rb") as f:
@@ -1276,6 +1486,21 @@ def file_reader(filename, record_by=None, order=None, lazy=False, optimize=True)
             axes = image.get_axes_dict()
             mp = image.get_metadata()
             mp["General"]["original_filename"] = os.path.split(filename)[1]
+
+            # Parsing markers can potentially lead to errors, so to avoid
+            # this any Exceptions are caught and logged instead of the files
+            # not being loaded at all.
+            try:
+                markers_dict = image.get_markers_dict(dm.tags_dict)
+            except Exception as err:
+                _logger.warning(
+                    "Markers could not be loaded from the file"
+                    "due to: {0}".format(err)
+                )
+                markers_dict = {}
+            if markers_dict:
+                mp["Markers"] = markers_dict
+
             post_process = []
             if image.to_spectrum is True:
                 post_process.append(lambda s: s.to_signal1D(optimize=optimize))

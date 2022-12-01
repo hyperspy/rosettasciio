@@ -63,22 +63,20 @@ def file_reader(filename, **kwargs):
 
 def _read_asw(filename, **kwargs):
     image_list = []
-    fd = open(filename, "br")
-    file_magic = np.fromfile(fd, "<I", 1)[0]
-    if file_magic != 0:
-        _logger.warning("Not a valid JEOL asw format")
-        fd.close()
-        return []
-    fd.seek(12)
-    filetree = _parsejeol(fd)
-    fd.close()
+    with open(filename, "br") as fd:
+        file_magic = np.fromfile(fd, "<I", 1)[0]
+        if file_magic != 0:
+            raise ValueError(f"Not a valid JEOL asw format '{filename}'")
+        fd.seek(12)
+        filetree = _parsejeol(fd)
+
     filepath, filen = os.path.split(os.path.abspath(filename))
-    if "SampleInfo" in filetree.keys():
+    if "SampleInfo" in filetree:
         for i in filetree["SampleInfo"].keys():
-            if "ViewInfo" in filetree["SampleInfo"][i].keys():
+            if "ViewInfo" in filetree["SampleInfo"][i]:
                 for j in filetree["SampleInfo"][i]["ViewInfo"].keys():
                     node = filetree["SampleInfo"][i]["ViewInfo"][j]
-                    if "ViewData" in node.keys():
+                    if "ViewData" in node:
                         for k in node["ViewData"].keys():
                             node2 = node["ViewData"][k]
                             # path tuple contains:
@@ -91,6 +89,17 @@ def _read_asw(filename, **kwargs):
                                 d["original_metadata"]["asw"] = filetree
                                 d["original_metadata"]["asw_viewdata"] = node2
                                 image_list.append(d)
+                    else:
+                        _logger.warning(
+                            f"{filename} : SampleInfo[{i}].ViewInfo[{j}] does not have ViewData section."
+                        )
+            else:
+                _logger.warning(
+                    f"{filename} : SampleInfo[{i}] does not have ViewInfo section."
+                )
+    else:
+        _logger.warning(f"{filename} does not have SampleInfo section.")
+
     return image_list
 
 
@@ -109,82 +118,77 @@ def _read_img(filename, **kwargs):
         (Always len(image_list) == 1)
     """
 
-    fd = open(filename, "br")
-    file_magic = np.fromfile(fd, "<I", 1)[0]
-    if file_magic == 52:
+    with open(filename, "br") as fd:
+        file_magic = np.fromfile(fd, "<I", 1)[0]
+        if file_magic != 52:
+            _logger.warning(f"Not a valid JEOL img format '{filename}'")
+            return []
+
         # fileformat
         _ = _decode(fd.read(32).rstrip(b"\x00"))
         head_pos, head_len, data_pos = np.fromfile(fd, "<I", 3)
         fd.seek(data_pos + 12)
         header_long = _parsejeol(fd)
-        width, height = header_long["Image"]["Size"]
-        header_long["Image"]["Bits"].resize((height, width))
-        data = header_long["Image"]["Bits"]
 
-        scale = (
-            header_long["Instrument"]["ScanSize"]
-            / header_long["Instrument"]["Mag"]
-            * 1.0e3
-        )
-        xscale = scale / width
-        yscale = scale / height
-        units = "µm"
+    width, height = header_long["Image"]["Size"]
+    header_long["Image"]["Bits"].resize((height, width))
+    data = header_long["Image"]["Bits"]
 
-        axes = [
-            {
-                "name": "y",
-                "size": height,
-                "offset": 0,
-                "scale": yscale,
-                "units": units,
-            },
-            {
-                "name": "x",
-                "size": width,
-                "offset": 0,
-                "scale": xscale,
-                "units": units,
-            },
-        ]
+    scale = (
+        header_long["Instrument"]["ScanSize"] / header_long["Instrument"]["Mag"] * 1.0e3
+    )
+    xscale = scale / width
+    yscale = scale / height
+    units = "µm"
 
-        datefile = datetime(1899, 12, 30) + timedelta(
-            days=header_long["Image"]["Created"]
-        )
-        hv = header_long["Instrument"]["AccV"]
-        if hv <= 30.0:
-            mode = "SEM"
-        else:
-            mode = "TEM"
+    axes = [
+        {
+            "name": "y",
+            "size": height,
+            "offset": 0,
+            "scale": yscale,
+            "units": units,
+        },
+        {
+            "name": "x",
+            "size": width,
+            "offset": 0,
+            "scale": xscale,
+            "units": units,
+        },
+    ]
 
-        metadata = {
-            "Acquisition_instrument": {
-                mode: {
-                    "beam_energy": hv,
-                    "magnification": header_long["Instrument"]["Mag"],
-                },
-            },
-            "General": {
-                "original_filename": os.path.basename(filename),
-                "date": datefile.date().isoformat(),
-                "time": datefile.time().isoformat(),
-                "title": header_long["Image"]["Title"],
-            },
-            "Signal": {
-                "record_by": "image",
-            },
-        }
-
-        dictionary = {
-            "data": data,
-            "axes": axes,
-            "metadata": metadata,
-            "original_metadata": header_long,
-        }
+    datefile = datetime(1899, 12, 30) + timedelta(days=header_long["Image"]["Created"])
+    hv = header_long["Instrument"]["AccV"]
+    if hv <= 30.0:
+        mode = "SEM"
     else:
-        _logger.warning("Not a valid JEOL img format")
+        mode = "TEM"
 
-    fd.close()
+    metadata = {
+        "Acquisition_instrument": {
+            mode: {
+                "beam_energy": hv,
+                "magnification": header_long["Instrument"]["Mag"],
+            },
+        },
+        "General": {
+            "original_filename": os.path.basename(filename),
+            "date": datefile.date().isoformat(),
+            "time": datefile.time().isoformat(),
+            "title": header_long["Image"]["Title"],
+        },
+        "Signal": {
+            "record_by": "image",
+        },
+    }
 
+    dictionary = {
+        "data": data,
+        "axes": axes,
+        "metadata": metadata,
+        "original_metadata": header_long,
+    }
     return [dictionary]
 
 
@@ -246,18 +250,20 @@ def _read_pts(
         The dictionary used to create the signals, list of dictionaries of
         spectrum image and SEM/STEM image if read_em_image == True
     """
-    fd = open(filename, "br")
-    file_magic = np.fromfile(fd, "<I", 1)[0]
 
-    def check_multiple(factor, number, string):
+    def _check_divisor(factor, number, string):
         if factor > 1 and number % factor != 0:
-            fd.close()
-            raise ValueError(f"`{string}` must be a multiple of {number}.")
+            raise ValueError(f"`{string}`({factor}) must be a divisor of {number}.")
 
-    check_multiple(rebin_energy, 4096, "rebin_energy")
+    _check_divisor(rebin_energy, 4096, "rebin_energy")
     rebin_energy = int(rebin_energy)
 
-    if file_magic == 304:
+    with open(filename, "br") as fd:
+        file_magic = np.fromfile(fd, "<I", 1)[0]
+        if file_magic != 304:
+            _logger.warning(f"Not a valid JEOL pts format '{filename}'")
+            return []
+
         # fileformat
         _ = _decode(fd.read(8).rstrip(b"\x00"))
         a, b, head_pos, head_len, data_pos, data_len = np.fromfile(fd, "<I", 6)
@@ -280,15 +286,15 @@ def _read_pts(
                 )
             downsample_width = downsample[0]
             downsample_height = downsample[1]
-            check_multiple(downsample_width, width, "downsample[0]")
-            check_multiple(downsample_height, height, "downsample[1]")
+            _check_divisor(downsample_width, width, "downsample[0]")
+            _check_divisor(downsample_height, height, "downsample[1]")
         else:
             downsample_width = downsample_height = int(downsample)
-            check_multiple(downsample_width, width, "downsample")
-            check_multiple(downsample_height, height, "downsample")
+            _check_divisor(downsample_width, width, "downsample")
+            _check_divisor(downsample_height, height, "downsample")
 
-        check_multiple(downsample_width, width, "downsample[0]")
-        check_multiple(downsample_height, height, "downsample[1]")
+        _check_divisor(downsample_width, width, "downsample[0]")
+        _check_divisor(downsample_height, height, "downsample[1]")
 
         # Normalisation factor for the x and y position in the stream; depends
         # on the downsampling and the size of the navigation space
@@ -303,7 +309,6 @@ def _read_pts(
         fd.seek(data_pos)
         # read spectrum image
         rawdata = np.fromfile(fd, dtype="u2")
-        fd.close()
 
         scale = (
             header["PTTD Param"]["Params"]["PARAMPAGE0_SEM"]["ScanSize"]
@@ -334,8 +339,6 @@ def _read_pts(
         # Sweep value is not reliable, so +1 frame is needed if sum_frames = False
         # priority of the length of frame_start_index is higher than "sweep" in header
         sweep = meas_data_header["Doc"]["Sweep"]
-        if frame_start_index:
-            sweep = len(frame_start_index)
 
         auto_frame_list = False
         if frame_list:
@@ -369,7 +372,7 @@ def _read_pts(
 
         if len(wrong_frames_list) > 0:
             wrong_frames = wrong_frames_list.flatten().tolist()
-            _logger.info(
+            _logger.warning(
                 f"Invalid frame number is specified. The frame {wrong_frames} is not found in pts data."
             )
 
@@ -378,6 +381,7 @@ def _read_pts(
 
         if frame_start_index is None:
             frame_start_index = np.full(max_frame, -1, dtype=np.int32)
+            frame_start_index[0] = 0
         else:
             frame_start_index = np.asarray(frame_start_index)
 
@@ -389,11 +393,7 @@ def _read_pts(
 
         if frame_shifts is None:
             frame_shifts = np.zeros((max_frame, 3), dtype=np.int16)
-        if len(frame_shifts) < max_frame:
-            fs = np.zeros((max_frame, 3), dtype=np.int16)
-            if len(frame_shifts) > 0:
-                fs[0 : len(frame_shifts), 0 : len(frame_shifts[0])] = frame_shifts
-            frame_shifts = fs
+
         if len(frame_shifts[0]) == 2:  # fill z with 0
             fr = np.zeros((max_frame, 3), dtype=np.int16)
             fr[: len(frame_shifts), 0:2] = np.asarray(frame_shifts)
@@ -552,10 +552,6 @@ def _read_pts(
                 },
             )
         return image_list
-    else:
-        _logger.warning("Not a valid JEOL pts format")
-        fd.close()
-        return []
 
 
 def _parsejeol(fd):
@@ -739,6 +735,7 @@ def _readcube(
     frame_shifts -= max_shift
     width += sxyz[1]
     height += sxyz[0]
+    valid = None
 
     if lazy:
         readframe = _readframe_lazy
@@ -750,19 +747,21 @@ def _readcube(
     target_frame_num = 0
     has_em_image = False
     for frame_idx in frame_list:
-        if frame_idx < 0:
+        if frame_idx < 0:  # skip invalid frame number
             continue
-        elif frame_start_index[frame_idx] >= 0:
-            # if frame_idx is already indexed
-            p_start = frame_start_index[frame_idx]
-        elif frame_num < frame_idx and frame_start_index[frame_num] < 0:
+
+        # find the last indexed frame
+        _i = frame_idx
+        while _i > 0 and frame_start_index[_i] < 0:
+            _i -= 1
+        p_start = frame_start_index[_i]
+        frame_num = _i
+
+        while frame_num < frame_idx:
             # record start point of frame and skip frame
-            frame_start_index[frame_num] = p_start
-            p_start += _readframe_dummy(rawdata[p_start:])
+            p_start += _skip_frame(rawdata[p_start:])
             frame_num += 1
-            continue
-        else:
-            frame_start_index[frame_idx] = p_start  # = end of last frame
+            frame_start_index[frame_num] = p_start
 
         if frame_idx < frame_shifts.size:
             fs = frame_shifts[frame_idx]
@@ -822,6 +821,9 @@ def _readcube(
             break
 
         p_start += length
+        if frame_num < frame_start_index.size:
+            frame_start_index[frame_num] = p_start
+
     if not lazy:
         if sum_frames:
             # the first frame has integrated intensity
@@ -915,7 +917,7 @@ def _readframe_dense(
     dy,
     dz,
     max_value,
-):  # pragma: nocover
+):  # pragma: no cover
     """
     Read one frame from pts file. Used in a inner loop of _readcube function.
     This function always read SEM/STEM image even if read_em_image == False
@@ -1112,14 +1114,14 @@ def _readframe_lazy(
     return count, data, has_em_image, valid, previous_y // height_norm
 
 
-def _readframe_dummy(rawdata):
+@numba.njit(cache=True)
+def _skip_frame(rawdata):  # pragma: no cover
     count = 0
     previous_y = 0
     for value in rawdata:
         value_type = value & 0xF000
-        value &= 0xFFF
         if value_type == 0x9000:
-            y = value
+            y = value & 0xFFF
             if y < previous_y:
                 break
             previous_y = y

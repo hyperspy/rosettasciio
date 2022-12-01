@@ -1,0 +1,3 @@
+Fix error when reading JEOL .pts file with un-ordered frame list or when length of ``frame_start_index`` is smaller than the sweep count
+
+

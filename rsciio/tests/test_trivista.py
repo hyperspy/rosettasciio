@@ -515,45 +515,215 @@ class TestSpec:
                 "ViewDisplayMode": "Graph",
                 "ViewImageColorMode": "False",
                 "InfoSerialized": {
-                    "Document": {"Record Time": "6/14/2022 1:34 PM"},
-                    "Experiment": {"Used Setup": "PL_Stage3_750g"},
-                    "Spectrometers": {
-                        "Spectrometer": {
-                            "Serialnumber": "27580185",
-                            "Model": "SP-2-750i",
-                            "Stage_Number": "1",
-                            "Focallength": "749",
-                            "Inclusion_Angle": "6.5",
-                            "Detector_Angle": "0.68",
-                            "Groove_Density": "750 g/mm",
-                            "Order": "1",
-                            "Slit_Entrance-Front": "200",
-                            "Slit_Entrance-Side": "0",
-                            "Slit_Exit-Front": "0",
-                            "Slit_Exit-Side": "0",
+                    "Info": {
+                        "Groups": {
+                            "Group": [
+                                {
+                                    "Name": "Document",
+                                    "Items": {
+                                        "Item": {
+                                            "Name": "Record Time",
+                                            "Value": "6/14/2022 1:34 PM",
+                                            "IsVisible": "true",
+                                        }
+                                    },
+                                    "Groups": None,
+                                    "IsVisible": "true",
+                                },
+                                {
+                                    "Name": "Experiment",
+                                    "Items": {
+                                        "Item": {
+                                            "Name": "Used Setup",
+                                            "Value": "PL_Stage3_750g",
+                                            "IsVisible": "true",
+                                        }
+                                    },
+                                    "Groups": None,
+                                    "IsVisible": "true",
+                                },
+                                {
+                                    "Name": "Spectrometers",
+                                    "Items": None,
+                                    "Groups": {
+                                        "Group": {
+                                            "Name": "Spectrometer",
+                                            "Items": {
+                                                "Item": [
+                                                    {
+                                                        "Name": "Serialnumber",
+                                                        "Value": "27580185",
+                                                        "IsVisible": "true",
+                                                    },
+                                                    {
+                                                        "Name": "Model",
+                                                        "Value": "SP-2-750i",
+                                                        "IsVisible": "true",
+                                                    },
+                                                    {
+                                                        "Name": "Stage_Number",
+                                                        "Value": "1",
+                                                        "IsVisible": "true",
+                                                    },
+                                                    {
+                                                        "Name": "Focallength",
+                                                        "Value": "749",
+                                                        "IsVisible": "true",
+                                                    },
+                                                    {
+                                                        "Name": "Inclusion_Angle",
+                                                        "Value": "6.5",
+                                                        "IsVisible": "true",
+                                                    },
+                                                    {
+                                                        "Name": "Detector_Angle",
+                                                        "Value": "0.68",
+                                                        "IsVisible": "true",
+                                                    },
+                                                    {
+                                                        "Name": "Groove_Density",
+                                                        "Value": "750 g/mm",
+                                                        "IsVisible": "true",
+                                                    },
+                                                    {
+                                                        "Name": "Order",
+                                                        "Value": "1",
+                                                        "IsVisible": "true",
+                                                    },
+                                                    {
+                                                        "Name": "Slit_Entrance-Front",
+                                                        "Value": "200",
+                                                        "IsVisible": "true",
+                                                    },
+                                                    {
+                                                        "Name": "Slit_Entrance-Side",
+                                                        "Value": "0",
+                                                        "IsVisible": "true",
+                                                    },
+                                                    {
+                                                        "Name": "Slit_Exit-Front",
+                                                        "Value": "0",
+                                                        "IsVisible": "true",
+                                                    },
+                                                    {
+                                                        "Name": "Slit_Exit-Side",
+                                                        "Value": "0",
+                                                        "IsVisible": "true",
+                                                    },
+                                                ]
+                                            },
+                                            "Groups": None,
+                                            "IsVisible": "true",
+                                        }
+                                    },
+                                    "IsVisible": "true",
+                                },
+                                {
+                                    "Name": "Detector",
+                                    "Items": {
+                                        "Item": [
+                                            {
+                                                "Name": "Name",
+                                                "Value": "Camera1",
+                                                "IsVisible": "true",
+                                            },
+                                            {
+                                                "Name": "Serialnumber",
+                                                "Value": None,
+                                                "IsVisible": "true",
+                                            },
+                                            {
+                                                "Name": "Detector_Size",
+                                                "Value": "1024;1",
+                                                "IsVisible": "true",
+                                            },
+                                            {
+                                                "Name": "Detector_Temperature",
+                                                "Value": "-25",
+                                                "IsVisible": "true",
+                                            },
+                                            {
+                                                "Name": "Exposure_Time_(ms)",
+                                                "Value": "1000",
+                                                "IsVisible": "true",
+                                            },
+                                            {
+                                                "Name": "Exposure_Mode",
+                                                "Value": None,
+                                                "IsVisible": "true",
+                                            },
+                                            {
+                                                "Name": "No_of_Accumulations",
+                                                "Value": "1",
+                                                "IsVisible": "true",
+                                            },
+                                            {
+                                                "Name": "Calc_Average",
+                                                "Value": "True",
+                                                "IsVisible": "true",
+                                            },
+                                            {
+                                                "Name": "No_of_Frames",
+                                                "Value": "1",
+                                                "IsVisible": "true",
+                                            },
+                                            {
+                                                "Name": "ADC__Readout_Port",
+                                                "Value": "Normal",
+                                                "IsVisible": "true",
+                                            },
+                                            {
+                                                "Name": "ADC__Rate_Resolution",
+                                                "Value": "1 MHz",
+                                                "IsVisible": "true",
+                                            },
+                                            {
+                                                "Name": "ADC__Gain",
+                                                "Value": "2",
+                                                "IsVisible": "true",
+                                            },
+                                            {
+                                                "Name": "Clearing__Mode",
+                                                "Value": None,
+                                                "IsVisible": "true",
+                                            },
+                                            {
+                                                "Name": "Clearing__No_of_Cleans",
+                                                "Value": "1",
+                                                "IsVisible": "true",
+                                            },
+                                            {
+                                                "Name": "Region_of_Interests",
+                                                "Value": "1|1;1024;1;1;1;1",
+                                                "IsVisible": "true",
+                                            },
+                                        ]
+                                    },
+                                    "Groups": None,
+                                    "IsVisible": "true",
+                                },
+                                {
+                                    "Name": "Calibration",
+                                    "Items": {
+                                        "Item": [
+                                            {
+                                                "Name": "Center_Wavelength",
+                                                "Value": "815.000",
+                                                "IsVisible": "true",
+                                            },
+                                            {
+                                                "Name": "Laser_Wavelength",
+                                                "Value": "0.000",
+                                                "IsVisible": "true",
+                                            },
+                                        ]
+                                    },
+                                    "Groups": None,
+                                    "IsVisible": "true",
+                                },
+                            ]
                         }
-                    },
-                    "Detector": {
-                        "Name": "Camera1",
-                        "Serialnumber": None,
-                        "Detector_Size": "1024;1",
-                        "Detector_Temperature": "-25",
-                        "Exposure_Time_(ms)": "1000",
-                        "Exposure_Mode": None,
-                        "No_of_Accumulations": "1",
-                        "Calc_Average": "True",
-                        "No_of_Frames": "1",
-                        "ADC__Readout_Port": "Normal",
-                        "ADC__Rate_Resolution": "1 MHz",
-                        "ADC__Gain": "2",
-                        "Clearing__Mode": None,
-                        "Clearing__No_of_Cleans": "1",
-                        "Region_of_Interests": "1|1;1024;1;1;1;1",
-                    },
-                    "Calibration": {
-                        "Center_Wavelength": "815.000",
-                        "Laser_Wavelength": "0.000",
-                    },
+                    }
                 },
             },
             "Hardware": {

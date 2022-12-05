@@ -74,6 +74,9 @@ def _etree_to_dict(t, only_top_lvl=False):
             d = {t.tag: {k: v[0] if len(v) == 1 else v for k, v in dd.items()}}
         if t.text:
             if children or t.attrib:
+                ## in this case, the text is ignored
+                ## if children=True -> text is just empty space in test data
+                ## if t.attrib=True and children=False doesn't occur in test data
                 pass
             else:
                 d[t.tag] = t.text.strip()
@@ -110,48 +113,50 @@ def _process_info_serialized(head):
 
 
 class TrivistaTVFReader:
-    """Class to read Trivista's .tvf-files.
-
-    The file is read using xml.etree.ElementTree.
-
-    Parameters
-    ----------
-    file_path: pathlib.Path
-        Path to the to be read file.
+    """Class to read Trivista's .tvf-files using xml.etree.ElementTree.
 
     Attributes
     ----------
     data, metadata, original_metadata, axes
-
-    Methods
-    -------
-    read_file
     """
 
-    def __init__(self, file_path):
+    def __init__(
+        self,
+        file_path,
+        use_uniform_signal_axis=False,
+        glued_data_as_stack=False,
+        filter_original_metadata=True,
+    ):
         self._file_path = file_path
+        self._use_uniform_signal_axis = use_uniform_signal_axis
+        self._glued_data_as_stack = glued_data_as_stack
 
-        if importlib.util.find_spec("lumispy") is None:
-            self._lumispy_installed = False
-            _logger.warning(
-                "Cannot find package lumispy, using BaseSignal as signal_type."
-            )
+        (
+            data_head,
+            filtered_original_metadata,
+            unfiltered_original_metadata,
+        ) = self.parse_file_structure(filter_original_metadata)
+
+        self._num_datasets = int(data_head.findall("Childs")[0].attrib["Count"])
+        data, time, signal_axis = self.get_data_and_signal(data_head=data_head)
+
+        self.axes = self.set_axes(
+            axis_head=filtered_original_metadata["Document"]["InfoSerialized"],
+            signal_axis=signal_axis,
+            time=time,
+        )
+
+        self.data = self.reshape_data(data, self.axes)
+        self.metadata = self.map_metadata(filtered_original_metadata)
+
+        if filter_original_metadata:
+            self.original_metadata = filtered_original_metadata
         else:
-            self._lumispy_installed = True  # pragma: no cover
-
-    @property
-    def _signal_type(self):
-        if self._lumispy_installed:
-            return "Luminescence"  # pragma: no cover
-        else:
-            return ""
-
-    @property
-    def num_datasets(self):
-        return int(self.data_head.findall("Childs")[0].attrib["Count"])
+            self.original_metadata = unfiltered_original_metadata
 
     def parse_file_structure(self, filter_original_metadata):
         """Initial parse through the file to extract original metadata and the data location.
+
         In general the file structure looks something like this.
         - root_level
             - root_level metadata
@@ -161,10 +166,11 @@ class TrivistaTVFReader:
                 - document metadata
                     - InfoSerialized
             - Hardware
+                - hardware metadata
 
         Most of the usable metadata is in the InfoSerialized section.
         InfoSerialized and FileInfoSerialized need to be converted extra
-        with _etree_to_dict().
+        with ET.fromstring().
 
         The metadata from the hardware section contains information for all
         available hardware (i.e. multiple objectives even though only one is used.
@@ -173,45 +179,78 @@ class TrivistaTVFReader:
         Parameters
         ----------
         filter_original_metadata: bool
-            if True then 2 seperate dicts are created
-            (original_metadata, unfiltered_original_metadata).
-            Otherwise only the former is created.
-            Filtering original_metadata is done independent
-            of the value of this parameter.
-            This ensures independence of the metadata mapping
-            on this setting.
+            if True, then unfiltered_original_metadata will
+            contain a copy of the original_metadata before
+            processing InfoSerialized and filtering the metadata
+            from the Hardware section. Otherwise unfiltered_original_metadata
+            will be empty.
+            Independent of this parameter, the filtered and processed
+            metadata is stored in filtered_original_metadata.
+            This ensures that the metadata mapping doesn't
+            depend on this setting.
+
+        Returns
+        -------
+        data_head: ET
+            file position where data/signal can be read from
+
+        filtered_original_metadata: dict
+            filtered + processed metadata
+
+        unfiltered_original_metadata: dict
         """
-        self.original_metadata = dict()
+        filtered_original_metadata = dict()
+        unfiltered_original_metadata = dict()
         et_root = ET.parse(self._file_path).getroot()
 
         ## root level metadata
-        self.original_metadata.update(_etree_to_dict(et_root, only_top_lvl=True))
+        filtered_original_metadata.update(_etree_to_dict(et_root, only_top_lvl=True))
         et_fileInfoSerialized = ET.fromstring(
-            self.original_metadata["XmlMain"]["FileInfoSerialized"]
+            filtered_original_metadata["XmlMain"]["FileInfoSerialized"]
         )
         fileInfoSerialized = _etree_to_dict(et_fileInfoSerialized, only_top_lvl=False)
-        self.original_metadata["XmlMain"]["FileInfoSerialized"] = fileInfoSerialized
+        filtered_original_metadata["XmlMain"]["FileInfoSerialized"] = fileInfoSerialized
 
         ## Documents / Document section
-        self.data_head = et_root[1][0]
-        self.original_metadata.update(_etree_to_dict(self.data_head, only_top_lvl=True))
+        data_head = et_root[1][0]
+        filtered_original_metadata.update(_etree_to_dict(data_head, only_top_lvl=True))
         et_infoSerialized = ET.fromstring(
-            self.original_metadata["Document"]["InfoSerialized"]
+            filtered_original_metadata["Document"]["InfoSerialized"]
         )
         infoSerialized = _etree_to_dict(et_infoSerialized, only_top_lvl=False)
-        infoSerialized_processed = _process_info_serialized(
-            infoSerialized["Info"]["Groups"]["Group"]
-        )
-        self.original_metadata["Document"]["InfoSerialized"] = infoSerialized_processed
 
         ## Hardware section
         metadata_head = et_root[0]
         metadata_hardware = _etree_to_dict(metadata_head, only_top_lvl=False)
-        if not filter_original_metadata:
-            self.unfiltered_original_metadata = deepcopy(self.original_metadata)
-            self.unfiltered_original_metadata.update(deepcopy(metadata_hardware))
 
-        ## filter LightSources section (Laser) via wavelength
+        if not filter_original_metadata:
+            unfiltered_original_metadata = deepcopy(filtered_original_metadata)
+            unfiltered_original_metadata["Document"]["InfoSerialized"] = deepcopy(
+                infoSerialized
+            )
+            unfiltered_original_metadata.update(deepcopy(metadata_hardware))
+
+        ## processing/filtering
+        infoSerialized_processed = _process_info_serialized(
+            infoSerialized["Info"]["Groups"]["Group"]
+        )
+        filtered_original_metadata["Document"][
+            "InfoSerialized"
+        ] = infoSerialized_processed
+
+        ## these methods alter metadata_hardware
+        self._filter_laser_metadata(infoSerialized_processed, metadata_hardware)
+        self._filter_detector_metadata(infoSerialized_processed, metadata_hardware)
+        self._filter_objectives_metadata(metadata_hardware)
+        self._filter_spectrometers_metadata(infoSerialized_processed, metadata_hardware)
+
+        filtered_original_metadata.update(metadata_hardware)
+
+        return data_head, filtered_original_metadata, unfiltered_original_metadata
+
+    @staticmethod
+    def _filter_laser_metadata(infoSerialized_processed, metadata_hardware):
+        """Filter LightSources section (Laser) via wavelength if possible."""
         for laser in metadata_hardware["Hardware"]["LightSources"]["LightSource"]:
             try:
                 calibration_wl = float(
@@ -224,12 +263,16 @@ class TrivistaTVFReader:
                 if np.isclose(calibration_wl, laser_wl) and not np.isclose(laser_wl, 0):
                     metadata_hardware["Hardware"]["LightSources"]["LightSource"] = laser
 
-        ## filter Detector section via "name"
+    @staticmethod
+    def _filter_detector_metadata(infoSerialized_processed, metadata_hardware):
+        """Filter Detector section via name"""
         for detector in metadata_hardware["Hardware"]["Detectors"]["Detector"]:
             if detector["Name"] == infoSerialized_processed["Detector"]["Name"]:
                 metadata_hardware["Hardware"]["Detectors"]["Detector"] = detector
 
-        ## filter microscope section (objective) via isEnabled tag
+    @staticmethod
+    def _filter_objectives_metadata(metadata_hardware):
+        """Filter microscope section (objective) via isEnabled tag"""
         for microscope in metadata_hardware["Hardware"]["Microscopes"]["Microscope"]:
             for objective in microscope["Objectives"]["Objective"]:
                 if objective["IsEnabled"] == "True":
@@ -240,6 +283,9 @@ class TrivistaTVFReader:
                         "Objectives"
                     ]["Objective"] = objective
 
+    @staticmethod
+    def _filter_spectrometers_metadata(infoSerialized_processed, metadata_hardware):
+        """Filter spectrometers via serialnumbers"""
         ## get serialnumbers for all used spectrometers
         ## contrary to the other parts, multiple spectrometers can be used
         spectrometer_serial_numbers = []
@@ -282,14 +328,13 @@ class TrivistaTVFReader:
                         ]["Gratings"]["Grating"] = grating
         if not spectrometer_name == "Spectrometer":
             del metadata_hardware["Hardware"]["Spectrometers"]["Spectrometer"]
-        self.original_metadata.update(metadata_hardware)
 
-    def _map_general_md(self):
+    def _map_general_md(self, original_metadata):
         general = {}
         general["title"] = self._file_path.name.split(".")[0]
         general["original_filename"] = self._file_path.name
         try:
-            date, time = self.original_metadata["Document"]["RecordTime"].split(" ")
+            date, time = original_metadata["Document"]["RecordTime"].split(" ")
         except KeyError:  # pragma: no cover
             pass  # pragma: no cover
         else:
@@ -299,25 +344,31 @@ class TrivistaTVFReader:
             general["time"] = time.split(".")[0]
         return general
 
-    def _map_signal_md(self):
+    def _map_signal_md(self, original_metadata):
         signal = {}
-        signal["signal_type"] = self._signal_type
+
+        if importlib.util.find_spec("lumispy") is None:
+            _logger.warning(
+                "Cannot find package lumispy, using BaseSignal as signal_type."
+            )
+            signal["signal_type"] = ""
+        else:
+            signal["signal_type"] = "Luminescence"  # pragma: no cover
+
         try:
-            quantity = self.original_metadata["Document"]["Label"]
-            quantity_unit = self.original_metadata["Document"]["DataLabel"]
+            quantity = original_metadata["Document"]["Label"]
+            quantity_unit = original_metadata["Document"]["DataLabel"]
         except KeyError:  # pragma: no cover
             pass  # pragma: no cover
         else:
             signal["quantity"] = f"{quantity} ({quantity_unit})"
         return signal
 
-    def _map_detector_md(self):
+    def _map_detector_md(self, original_metadata):
         detector = {"processing": {}}
-        detector_original = self.original_metadata["Document"]["InfoSerialized"][
-            "Detector"
-        ]
+        detector_original = original_metadata["Document"]["InfoSerialized"]["Detector"]
         try:
-            experiment_original = self.original_metadata["Document"]["InfoSerialized"][
+            experiment_original = original_metadata["Document"]["InfoSerialized"][
                 "Experiment"
             ]
         except KeyError:
@@ -328,7 +379,7 @@ class TrivistaTVFReader:
                 detector["glued_spectrum_overlap"] = float(
                     experiment_original.get("Overlap (%)")
                 )
-                detector["glued_spectrum_windows"] = self.num_datasets
+                detector["glued_spectrum_windows"] = self._num_datasets
             else:
                 detector["glued_spectrum"] = False
         detector["temperature"] = _convert_float(
@@ -359,34 +410,34 @@ class TrivistaTVFReader:
         elif detector["processing"]["calc_average"] == "True":
             detector["integration_time"] = detector["exposure_per_frame"]
 
-        self._total_frames = int(detector_original.get("No_of_Frames"))
-
         return detector
 
-    def _map_laser_md(self, laser_wavelength):
+    @staticmethod
+    def _map_laser_md(original_metadata, laser_wavelength):
         laser = {}
         laser["objective_magnification"] = float(
-            self.original_metadata["Hardware"]["Microscopes"]["Microscope"][
-                "Objectives"
-            ]["Objective"]["Magnification"]
+            original_metadata["Hardware"]["Microscopes"]["Microscope"]["Objectives"][
+                "Objective"
+            ]["Magnification"]
         )
         if not laser_wavelength is None:
             laser["wavelength"] = laser_wavelength
         return laser
 
-    def _map_spectrometer_md(self, central_wavelength):
+    @staticmethod
+    def _map_spectrometer_md(original_metadata, central_wavelength):
         all_spectrometers_dict = {}
 
-        spectrometers_original = self.original_metadata["Document"]["InfoSerialized"][
+        spectrometers_original = original_metadata["Document"]["InfoSerialized"][
             "Spectrometers"
         ]
 
         for key, entry in spectrometers_original.items():
             spectro_dict_tmp = {"Grating": {}}
             spectro_dict_tmp["central_wavelength"] = central_wavelength
-            blaze = self.original_metadata["Hardware"]["Spectrometers"][key][
-                "Gratings"
-            ]["Grating"]["Blaze"]
+            blaze = original_metadata["Hardware"]["Spectrometers"][key]["Gratings"][
+                "Grating"
+            ]["Blaze"]
             if blaze[-2:] == "NM":
                 blaze = float(blaze.split("N")[0])
             spectro_dict_tmp["Grating"]["blazing_wavelength"] = blaze
@@ -414,9 +465,10 @@ class TrivistaTVFReader:
 
         return all_spectrometers_dict
 
-    def _get_calibration_md(self):
+    @staticmethod
+    def _get_calibration_md(original_metadata):
         try:
-            calibration_original = self.original_metadata["Document"]["InfoSerialized"][
+            calibration_original = original_metadata["Document"]["InfoSerialized"][
                 "Calibration"
             ]
         except KeyError:
@@ -434,14 +486,16 @@ class TrivistaTVFReader:
                     laser_wavelength = None
         return central_wavelength, laser_wavelength
 
-    def map_metadata(self):
+    def map_metadata(self, original_metadata):
         """Maps original_metadata to metadata."""
-        general = self._map_general_md()
-        signal = self._map_signal_md()
-        detector = self._map_detector_md()
-        central_wavelength, laser_wavelength = self._get_calibration_md()
-        laser = self._map_laser_md(laser_wavelength)
-        spectrometer = self._map_spectrometer_md(central_wavelength)
+        general = self._map_general_md(original_metadata)
+        signal = self._map_signal_md(original_metadata)
+        detector = self._map_detector_md(original_metadata)
+        central_wavelength, laser_wavelength = self._get_calibration_md(
+            original_metadata
+        )
+        laser = self._map_laser_md(original_metadata, laser_wavelength)
+        spectrometer = self._map_spectrometer_md(original_metadata, central_wavelength)
 
         acquisition_instrument = {
             "Detector": detector,
@@ -449,12 +503,13 @@ class TrivistaTVFReader:
         }
         acquisition_instrument.update(spectrometer)
 
-        self.metadata = {
+        metadata = {
             "Acquisition_instrument": acquisition_instrument,
             "General": general,
             "Signal": signal,
         }
-        _remove_none_from_dict(self.metadata)
+        _remove_none_from_dict(metadata)
+        return metadata
 
     def _get_signal_axis(self, axis_pos):
         """Helper method to read and set signal axis."""
@@ -504,15 +559,10 @@ class TrivistaTVFReader:
             signal_dict["axis"] = signal_data  # pragma: no cover
         return signal_dict
 
-    def _set_time_axis(self, axes_dict, xy_frames, has_x_or_y):
-        frames = self._total_frames - xy_frames
-        if frames == 0 or self._total_frames == 1:
-            return False
-        if has_x_or_y:
-            raise NotImplementedError(  # pragma: no cover
-                "Reading a combination of timeseries and map or linescan is not implemented."
-            )
-        scale = self.time[1]
+    @staticmethod
+    def _get_time_axis(time, axes_dict):
+        scale = time[1]
+        size = time.size
         ## inconsistency between timestamps and metadata
         ## (Document/InfoSerialized/Experiment6)
         ## in timeseries example file:
@@ -528,15 +578,15 @@ class TrivistaTVFReader:
         axes_dict["time"] = {
             "name": "time",
             "units": "s",
-            "size": frames,
+            "size": size,
             "offset": 0,
             "scale": scale,
             "navigate": False,
         }
         axes_dict["time"]["index_in_array"] = len(axes_dict) - 1
-        return True
 
-    def _set_nav_axis(self, name, axis):
+    @staticmethod
+    def _get_nav_axis(name, axis):
         """Helper method to read and set navigation axes."""
         nav_dict = {}
         nav_dict["offset"] = float(axis["From"])
@@ -547,20 +597,19 @@ class TrivistaTVFReader:
         nav_dict["units"] = "µm"
         return nav_dict
 
-    def get_axes(self, glued_data_as_stack=False):
+    def set_axes(self, axis_head, signal_axis, time):
         """Extracts signal and navigation axes."""
         axes = dict()
-        axis_data_head = self.original_metadata["Document"]["InfoSerialized"]
         has_y = False
         has_x = False
         num_xy_frames = 0
-        if "Y-Axis" in axis_data_head.keys():
-            axes["Y"] = self._set_nav_axis("Y", axis_data_head["Y-Axis"])
+        if "Y-Axis" in axis_head.keys():
+            axes["Y"] = self._get_nav_axis("Y", axis_head["Y-Axis"])
             num_xy_frames += axes["Y"]["size"]
             axes["Y"]["index_in_array"] = 0
             has_y = True
-        if "X-Axis" in axis_data_head.keys():
-            axes["X"] = self._set_nav_axis("X", axis_data_head["X-Axis"])
+        if "X-Axis" in axis_head.keys():
+            axes["X"] = self._get_nav_axis("X", axis_head["X-Axis"])
             has_x = True
             if has_y:
                 num_xy_frames *= axes["X"]["size"]
@@ -569,13 +618,21 @@ class TrivistaTVFReader:
                 num_xy_frames += axes["X"]["size"]
                 axes["X"]["index_in_array"] = 0
 
-        has_x_or_y = has_x or has_y
         ## adding time-axis entry if appropriate
         ## this is done inplace (the argument "axes" itself is altered)
-        has_time = self._set_time_axis(axes, num_xy_frames, has_x_or_y)
-        has_extra_axis = has_time or has_x or has_y
-        if glued_data_as_stack and self.num_datasets != 0:
-            if has_extra_axis:
+        total_frames = int(axis_head["Detector"]["No_of_Frames"])
+        if (total_frames - num_xy_frames) == 0 or total_frames == 1:
+            has_time = False
+        else:
+            has_time = True
+            self._get_time_axis(time, axes)
+        if (has_x or has_y) and has_time:
+            raise NotImplementedError(  # pragma: no cover
+                "Reading a combination of timeseries and map or linescan is not implemented."
+            )
+
+        if self._glued_data_as_stack and self._num_datasets != 0:
+            if has_time or has_x or has_y:
                 _logger.warning(  # pragma: no cover
                     "Loading glued data as stack in combination with multiple axis (time, linescan or map)"
                     "                            "
@@ -583,23 +640,27 @@ class TrivistaTVFReader:
                     "                            "
                     "Please use glued_data_as_stack=False for loading the file."
                 )
-            self.axes = []
-            for signal_axis in self.signal_axis_list:
+
+            axes_list = []
+            for signal_axis in signal_axis:
                 axes_tmp = deepcopy(axes)
                 axes_tmp["signal_dict"] = signal_axis
                 axes_tmp["signal_dict"]["index_in_array"] = len(axes) - 1
                 axes_tmp = sorted(
                     axes_tmp.values(), key=lambda item: item["index_in_array"]
                 )
-                self.axes.append(axes_tmp)
+                axes_list.append(axes_tmp)
         else:
-            axes["signal_dict"] = self._get_signal_axis(self.data_head)
+            axes["signal_dict"] = signal_axis[0]
             axes["signal_dict"]["index_in_array"] = len(axes) - 1
             ## extra surrounding list here to ensure compatibility
             ## with glued_data_as_stack for file_reader()
-            self.axes = [sorted(axes.values(), key=lambda item: item["index_in_array"])]
+            axes_list = [sorted(axes.values(), key=lambda item: item["index_in_array"])]
 
-    def _parse_data(self, data_pos):
+        return axes_list
+
+    @staticmethod
+    def _parse_data(data_pos):
         """Extracts data from file."""
         data_list = data_pos.findall("Data")
         _error_handling_find_location(len(data_list), "data")  # pragma: no cover
@@ -621,61 +682,51 @@ class TrivistaTVFReader:
         time = (np.array(time_array, dtype=np.int64) - time_array[0]).ravel() / 1e7
         return data, time
 
-    def load_glued_data_stack(self):
-        num_datasets_list = self.data_head.findall("Childs")
+    def _load_glued_data_stack(self, data_head):
+        num_datasets_list = data_head.findall("Childs")
         _error_handling_find_location(
             len(num_datasets_list), "glued datasets"
         )  # pragma: no cover
         data_array = []
-        self.signal_axis_list = []
+        signal_axis_list = []
         time_array = []
         for dataset in num_datasets_list[0]:
             signal_axis = self._get_signal_axis(dataset)
-            self.signal_axis_list.append(signal_axis)
+            signal_axis_list.append(signal_axis)
             data, time = self._parse_data(dataset)
             data_array.append(data)
             time_array.append(time)
-        self.data = np.array(data_array)
-        self.time = np.array(time_array)
+        data = np.array(data_array)
+        time = np.array(time_array)
+        return data, time, signal_axis_list
 
-    def get_data(self, glued_data_as_stack):
-        if glued_data_as_stack and self.num_datasets != 0:
-            self.load_glued_data_stack()
+    def get_data_and_signal(self, data_head):
+        if self._glued_data_as_stack and self._num_datasets != 0:
+            data, time, signal_axis = self._load_glued_data_stack(data_head)
         else:
-            data, self.time = self._parse_data(self.data_head)
+            data, time = self._parse_data(data_head)
+            signal_axis = [self._get_signal_axis(data_head)]
+            data = [data]
             ## extra surrounding list here
             ## to ensure compatibility with glued_data_as_stack=True
             ## for file_reader(), reshape_data()
-            self.data = [data]
+        return data, time, signal_axis
 
-    def reshape_data(self):
+    def reshape_data(self, data, axes):
         """Reshapes data according to axes sizes."""
         if self._use_uniform_signal_axis:
-            wavelength_size = self.axes[0][-1]["size"]
+            wavelength_size = axes[0][-1]["size"]
         else:
-            wavelength_size = self.axes[0][-1]["axis"].size
+            wavelength_size = axes[0][-1]["axis"].size
         shape_sizes = []
-        for i in range(len(self.axes[0]) - 1):
-            shape_sizes.append(self.axes[0][i]["size"])
+        for i in range(len(axes[0]) - 1):
+            shape_sizes.append(axes[0][i]["size"])
         shape_sizes.append(wavelength_size)
 
-        for i, dataset in enumerate(self.data):
+        for i, dataset in enumerate(data):
             dataset_reshaped = np.reshape(dataset, shape_sizes)
-            self.data[i] = dataset_reshaped
-
-    def read_file(
-        self,
-        use_uniform_signal_axis=False,
-        glued_data_as_stack=False,
-        filter_original_metadata=True,
-    ):
-        """Calls everything to read the file."""
-        self._use_uniform_signal_axis = use_uniform_signal_axis
-        self.parse_file_structure(filter_original_metadata)
-        self.map_metadata()
-        self.get_data(glued_data_as_stack)
-        self.get_axes(glued_data_as_stack)
-        self.reshape_data()
+            data[i] = dataset_reshaped
+        return data
 
 
 def file_reader(
@@ -718,16 +769,12 @@ def file_reader(
 
     %s
     """
-    t = TrivistaTVFReader(Path(filename))
-    t.read_file(
+    t = TrivistaTVFReader(
+        Path(filename),
         use_uniform_signal_axis=use_uniform_signal_axis,
         glued_data_as_stack=glued_data_as_stack,
         filter_original_metadata=filter_original_metadata,
     )
-    if filter_original_metadata:
-        original_metadata = t.original_metadata
-    else:
-        original_metadata = t.unfiltered_original_metadata
 
     result = []
     for dataset, axes in zip(t.data, t.axes):
@@ -736,7 +783,7 @@ def file_reader(
                 "data": dataset,
                 "axes": axes,
                 "metadata": deepcopy(t.metadata),
-                "original_metadata": deepcopy(original_metadata),
+                "original_metadata": deepcopy(t.original_metadata),
             }
         )
     return result

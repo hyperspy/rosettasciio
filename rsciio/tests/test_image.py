@@ -19,7 +19,7 @@
 import numpy as np
 import pytest
 
-from rsciio.image.api import file_writer
+from rsciio.image import file_writer
 
 
 @pytest.mark.parametrize(("dtype"), ["uint8", "uint32"])

@@ -16,8 +16,8 @@
 # along with any project and source this library is coupled.
 # If not, see <https://www.gnu.org/licenses/#GPL>.
 
-FILENAME_DOC = """filename : str
-        Filename of the file to read.
+FILENAME_DOC = """filename : str, pathlib.Path
+        Filename of the file to read or corresponding `pathlib.Path`.
     """
 
 SIGNAL_DOC = """signal : dict

@@ -21,6 +21,11 @@ import logging
 
 from imageio import imread, imwrite
 
+from rsciio.docstrings import (
+    FILENAME_DOC,
+    RETURNS_DOC,
+    SIGNAL_DOC,
+)
 from rsciio.utils.tools import _UREG
 
 
@@ -36,24 +41,22 @@ def file_writer(
     imshow_kwds=None,
     **kwds,
 ):
-    """Writes data to any format supported by pillow. When ``output_size``
-    or ``scalebar`` or ``imshow_kwds`` is used,
+    """Writes data to any format supported by pillow. When any of the parameters
+    ``output_size``, ``scalebar`` or ``imshow_kwds`` is given,
     :py:func:`~.matplotlib.pyplot.imshow` is used to generate a figure.
 
     Parameters
     ----------
-    filename: {str, pathlib.Path, bytes, file}
-        The resource to write the image to, e.g. a filename, pathlib.Path or
-        file object, see the docs for more info. The file format is defined by
+    %s The file format is defined by
         the file extension that is any one supported by imageio.
-    signal: a Signal dictionary
-    scalebar : bool, optional
-        Export the image with a scalebar. Default is False.
+    %s
+    scalebar : bool, Default=False
+        Export the image with a scalebar.
     scalebar_kwds : dict, optional
         Dictionary of keyword arguments for the scalebar. Useful to set
-        formattiong, location, etc. of the scalebar. See the documentation of
+        formatting, location, etc. of the scalebar. See the documentation of
         the 'matplotlib-scalebar' library for more information.
-    output_size : {tuple of length 2, int, None}, optional
+    output_size : {tuple of length 2, int, None}, Default=None
         The output size of the image in pixels (width, height):
 
             * if *int*, defines the width of the image, the height is
@@ -63,9 +66,9 @@ def file_writer(
               ratio of the image.
             * if *None*, the size of the data is used.
 
-        For output size larger than the data size, "nearest" interpolation is
+        For output sizes larger than the data size, "nearest" interpolation is
         used by default and this behaviour can be changed through the
-        *imshow_kwds* dictionary. Default is None.
+        *imshow_kwds* dictionary.
 
     imshow_kwds : dict, optional
         Keyword arguments dictionary for :py:func:`~.matplotlib.pyplot.imshow`.
@@ -184,23 +187,25 @@ def file_writer(
         imwrite(filename, data, **kwds)
 
 
+file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
+
+
 def file_reader(filename, **kwds):
     """Read data from any format supported by imageio (PIL/pillow).
     For a list of formats see https://imageio.readthedocs.io/en/stable/formats.html
 
     Parameters
     ----------
-    filename: {str, pathlib.Path, bytes, file}
-        The resource to load the image from, e.g. a filename, pathlib.Path,
-        http address or file object, see the docs for more info. The file format
+    %s The file format
         is defined by the file extension that is any one supported by imageio.
     format: str, optional
         The format to use to read the file. By default imageio selects the
-        appropriate for you based on the filename and its contents.
+        appropriate format based on the filename and its contents.
     **kwds: keyword arguments
         Allows to pass keyword arguments supported by the individual file
         readers as documented at https://imageio.readthedocs.io/en/stable/formats.html
 
+    %s
     """
     dc = _read_data(filename, **kwds)
     lazy = kwds.pop("lazy", False)
@@ -224,6 +229,9 @@ def file_reader(filename, **kwds):
             },
         }
     ]
+
+
+file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
 
 
 def _read_data(filename, **kwds):

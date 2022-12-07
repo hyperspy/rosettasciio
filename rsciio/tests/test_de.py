@@ -20,7 +20,11 @@ import dask.array
 import pytest
 import numpy as np
 import os
-from rsciio.de.api import SeqReader, CeleritasReader, file_reader
+from rsciio.de._api import SeqReader, CeleritasReader
+
+from rsciio.de import file_reader
+
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 celeritas1_path = str(
     os.path.join(
@@ -64,9 +68,21 @@ class TestShared:
         )  # Note this value wrong for Celeritas Camera
         # Read from the xml file... Factor of the frame buffer off
 
-    def test_parse_metadata(self, seq):
+    @pytest.mark.parametrize(
+        "metadata_file",
+        [
+            None,
+            data_path + "/test.seq.metadata",
+            data_path + "/testd.seq.metadata",
+        ],
+    )
+    def test_parse_metadata(self, seq, metadata_file):
+        seq.metadata_file = metadata_file
         metadata = seq._read_metadata()
-        print(metadata)
+        if metadata_file is None or metadata_file == data_path + "/testd.seq.metadata":
+            assert metadata is None
+        else:
+            assert isinstance(metadata, dict)
 
     def test_read_dark(self, seq):
         dark, gain = seq._read_dark_gain()
@@ -264,6 +280,4 @@ class TestLoadCeleritas:
         assert data_dict[0]["data"].shape == (512, 64, 64)
 
     def test_hyperspy(self):
-        import hyperspy.api as hs
-
         hs.load(celeritas3_path + "/test_Bottom_14-13-42.822.seq", celeritas=True)

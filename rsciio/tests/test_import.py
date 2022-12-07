@@ -110,7 +110,7 @@ def test_dir_plugins():
     from rsciio import blockfile
 
     assert dir(blockfile) == ["file_reader", "file_writer"]
-    
+
     from rsciio import dens
 
     assert dir(dens) == ["file_reader"]
@@ -126,6 +126,10 @@ def test_dir_plugins():
     from rsciio import jeol
 
     assert dir(jeol) == ["file_reader"]
+
+    from rsciio import jobin_yvon
+
+    assert dir(jobin_yvon) == ["file_reader"]
 
     from rsciio import netcdf
 

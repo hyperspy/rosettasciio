@@ -44,3 +44,10 @@ as well as energy.
     available. In the future, this plugin may be extended to support this format,
     as well as to writing data to the open Horiba Jobin Yvon formats.
     Contributions are welcome.
+
+
+API functions
+^^^^^^^^^^^^^
+
+.. automodule:: rsciio.jobin_yvon
+   :members:

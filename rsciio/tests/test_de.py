@@ -196,12 +196,16 @@ class TestLoadCeleritas:
     @pytest.mark.parametrize("chunks", [(2, 2, 128, 256), (4, 1, 128, 256)])
     @pytest.mark.parametrize("distributed", [True, False])
     def test_chunking(self, seq, chunks, distributed):
-        data_dict = seq.read_data(navigation_shape=(4, 4), lazy=True,
-                                  distributed=distributed, chunks=chunks,)
+        data_dict = seq.read_data(
+            navigation_shape=(4, 4),
+            lazy=True,
+            distributed=distributed,
+            chunks=chunks,
+        )
         assert isinstance(data_dict["data"], dask.array.Array)
         assert data_dict["data"].shape == (4, 4, 128, 256)
-        assert data_dict["data"].chunks == chunks
-
+        chunk_sizes = tuple([c[0] for c in data_dict["data"].chunks[:2]])
+        assert chunk_sizes == chunks[:2]
 
     @pytest.mark.parametrize(
         "kwargs",
@@ -212,7 +216,10 @@ class TestLoadCeleritas:
     )
     def test_file_loader_failures(self, kwargs):
         with pytest.raises(ValueError):
-            file_reader(**kwargs, celeritas=True,)
+            file_reader(
+                **kwargs,
+                celeritas=True,
+            )
 
     def test_load_top_bottom(
         self,
@@ -225,7 +232,9 @@ class TestLoadCeleritas:
             celeritas1_path + "/test_Bottom_14-04-59.396.seq",
             celeritas=True,
         )
-        np.testing.assert_array_equal(data_dict_top[0]["data"], data_dict_bottom[0]["data"])
+        np.testing.assert_array_equal(
+            data_dict_top[0]["data"], data_dict_bottom[0]["data"]
+        )
 
     def test_read_data_no_xml(self, seq2):
         seq2.xml = None
@@ -256,4 +265,5 @@ class TestLoadCeleritas:
 
     def test_hyperspy(self):
         import hyperspy.api as hs
-        hs.load(celeritas3_path+"/test_Bottom_14-13-42.822.seq", celeritas=True)
+
+        hs.load(celeritas3_path + "/test_Bottom_14-13-42.822.seq", celeritas=True)

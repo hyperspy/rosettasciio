@@ -20,6 +20,7 @@ precisely by supporting non-uniform axis (to be implemented!).
 
     .. code-block:: python
 
+        >>> import hyperspy.api as hs
         >>> hs.load("filename.csv", reader="protochips")
 
 

@@ -110,10 +110,18 @@ def test_dir_plugins():
     from rsciio import blockfile
 
     assert dir(blockfile) == ["file_reader", "file_writer"]
+    
+    from rsciio import dens
+
+    assert dir(dens) == ["file_reader"]
 
     from rsciio import image
 
     assert dir(image) == ["file_reader", "file_writer"]
+
+    from rsciio import impulse
+
+    assert dir(impulse) == ["file_reader"]
 
     from rsciio import netcdf
 

@@ -42,7 +42,7 @@ def file_reader(
     celeritas=False,
     chunks="auto",
     distributed=False,
-    **kwargs
+    **kwargs,
 ):
     """Reads the .seq file format from the DE 16 and DE Celeritas cameras.
     This file format is generic and used by the 3rd party software StreamPix.
@@ -136,12 +136,14 @@ def file_reader(
         reader = CeleritasReader(file=filename, top=top, bottom=bottom, **kwargs)
     else:
         reader = SeqReader(file=filename, **kwargs)
-    return [reader.read_data(
-        navigation_shape=navigation_shape,
-        lazy=lazy,
-        distributed=distributed,
-        chunks=chunks,
-    ),]
+    return [
+        reader.read_data(
+            navigation_shape=navigation_shape,
+            lazy=lazy,
+            distributed=distributed,
+            chunks=chunks,
+        ),
+    ]
 
 
 class SeqReader:
@@ -307,7 +309,11 @@ class SeqReader:
         return
 
     def read_data(
-        self, navigation_shape=None, chunks="auto", distributed=False, lazy=False,
+        self,
+        navigation_shape=None,
+        chunks="auto",
+        distributed=False,
+        lazy=False,
     ):
         """Reads the data from self.file given a navigation shape.
         Parameters
@@ -520,8 +526,12 @@ class CeleritasReader(SeqReader):
         return metadata_dict
 
     def read_data(
-            self, navigation_shape=None, chunks="auto",
-            lazy=False, distributed=False, add_frames=False,
+        self,
+        navigation_shape=None,
+        chunks="auto",
+        lazy=False,
+        distributed=False,
+        add_frames=False,
     ):
         header = self._read_file_header()
         dark_img, gain_img = self._read_dark_gain()
@@ -563,24 +573,34 @@ class CeleritasReader(SeqReader):
         buffer_frames = header["NumFrames"]
 
         # handling dropped buffer frames
-        if navigation_shape is not None and np.product(navigation_shape) > num_frames and not add_frames:
+        if (
+            navigation_shape is not None
+            and np.product(navigation_shape) > num_frames
+            and not add_frames
+        ):
             _logger.warning(
                 "The number of frames and the navigation shape are not "
                 "equal. To add frames to the end of the dataset set add_frames=True."
                 "Note: This will increase the size of the file on the disk!"
             )
             navigation_shape = num_frames
-        elif navigation_shape is not None and np.product(navigation_shape) > num_frames and add_frames:
+        elif (
+            navigation_shape is not None
+            and np.product(navigation_shape) > num_frames
+            and add_frames
+        ):
             buffer_frames += 1
             new_buffer_frames = int(
                 np.ceil(np.divide(np.product(navigation_shape), self.buffer))
             )
             if buffer_frames != new_buffer_frames:
-                raise ValueError(f"Only one buffer frame should be dropped so only one "
-                                 f"frame will be added. The current navigation shape is larger"
-                                 f"than the size of the dataset by {new_buffer_frames-buffer_frames}"
-                                 f" frames. To add more frames manually append "
-                                 f"the dataset. ")
+                raise ValueError(
+                    f"Only one buffer frame should be dropped so only one "
+                    f"frame will be added. The current navigation shape is larger"
+                    f"than the size of the dataset by {new_buffer_frames-buffer_frames}"
+                    f" frames. To add more frames manually append "
+                    f"the dataset. "
+                )
 
             t = np.memmap(
                 self.top, offset=8192, dtype=dtype, shape=buffer_frames, mode="r+"
@@ -620,6 +640,7 @@ class CeleritasReader(SeqReader):
                 total_buffer_frames=buffer_frames,
                 navigation_shape=navigation_shape,
                 lazy=lazy,
+                chunks=chunks,
             )
             if dark_img is not None:
                 data = data - dark_img
@@ -723,6 +744,7 @@ def read_stitch_binary(
     total_buffer_frames=None,
     navigation_shape=None,
     lazy=False,
+    chunks=None,
 ):
     """Read and stitch the top and bottom files
     Parameters
@@ -773,6 +795,8 @@ def read_stitch_binary(
         array = array[:cut]
         new_shape = tuple(navigation_shape) + array.shape[1:]
         array = array.reshape(new_shape)
+    if lazy and chunks is not None:
+        array = array.rechunk(chunks=chunks)
 
     time = {k: bottom_mapped[k] for k in keys if k not in ["Array", "empty"]}
     return array, time

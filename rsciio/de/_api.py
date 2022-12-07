@@ -206,12 +206,13 @@ class SeqReader:
         }
         metadata_dict = read_binary_metadata(self.metadata_file, metadata_header_dict)
         self.original_metadata["Metadata"] = metadata_dict
-        self.metadata["acquisition_instrument"] = {
-            "TEM": {
-                "camera_length": metadata_dict["CameraLength"],
-                "magnification": metadata_dict["Magnification"],
+        if metadata_dict is not None:
+            self.metadata["acquisition_instrument"] = {
+                "TEM": {
+                    "camera_length": metadata_dict["CameraLength"],
+                    "magnification": metadata_dict["Magnification"],
+                }
             }
-        }
         return metadata_dict
 
     def _read_file_header(self):

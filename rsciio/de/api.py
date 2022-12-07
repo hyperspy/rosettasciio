@@ -230,7 +230,6 @@ class SeqReader:
     def _read_xml(self):
         if self.xml is not None:
             xml_dict = parse_xml(self.xml)
-
             self.original_metadata["xml"] = xml_dict
             return xml_dict
         else:
@@ -308,7 +307,7 @@ class SeqReader:
         return
 
     def read_data(
-        self, navigation_shape=None, chunks="auto", distributed=False, lazy=False
+        self, navigation_shape=None, chunks="auto", distributed=False, lazy=False,
     ):
         """Reads the data from self.file given a navigation shape.
         Parameters
@@ -321,8 +320,6 @@ class SeqReader:
         dark_img, gain_img = self._read_dark_gain()
         self._read_xml()
         self._read_metadata()
-        signal_shape = (header["ImageWidth"], header["ImageHeight"])
-        num_frames = header["NumFrames"]
         if navigation_shape is None or navigation_shape == ():
             navigation_shape = (header["NumFrames"],)
 
@@ -341,18 +338,6 @@ class SeqReader:
             ("mis", "<u2"),
             ("empty", bytes, empty),
         ]
-
-        # This is useful if the camera drops frames at the end of an acquisition
-        if navigation_shape is not None and np.product(navigation_shape) > num_frames:
-            _logger.warning(
-                "The number of frames and the navigation shape are not "
-                "equal. Adding frames to the end of the dataset. "
-            )
-            t = np.memmap(
-                self.file, offset=8192, dtype=dtype, shape=num_frames, mode="r+"
-            )
-            t.flush()
-            num_frames = np.product(navigation_shape)
 
         if distributed:
             data = memmap_distributed(
@@ -535,7 +520,8 @@ class CeleritasReader(SeqReader):
         return metadata_dict
 
     def read_data(
-        self, navigation_shape=None, chunks="auto", lazy=False, distributed=False
+            self, navigation_shape=None, chunks="auto",
+            lazy=False, distributed=False, add_frames=False,
     ):
         header = self._read_file_header()
         dark_img, gain_img = self._read_dark_gain()
@@ -574,15 +560,28 @@ class CeleritasReader(SeqReader):
             int(header["ImageHeight"] * 2 / self.buffer),
             int(header["ImageWidth"]),
         )
+        buffer_frames = header["NumFrames"]
 
-        if navigation_shape is not None and np.product(navigation_shape) > num_frames:
+        # handling dropped buffer frames
+        if navigation_shape is not None and np.product(navigation_shape) > num_frames and not add_frames:
             _logger.warning(
                 "The number of frames and the navigation shape are not "
-                "equal. Adding frames to the end of the dataset. "
+                "equal. To add frames to the end of the dataset set add_frames=True."
+                "Note: This will increase the size of the file on the disk!"
             )
-            buffer_frames = int(
+            navigation_shape = num_frames
+        elif navigation_shape is not None and np.product(navigation_shape) > num_frames and add_frames:
+            buffer_frames += 1
+            new_buffer_frames = int(
                 np.ceil(np.divide(np.product(navigation_shape), self.buffer))
             )
+            if buffer_frames != new_buffer_frames:
+                raise ValueError(f"Only one buffer frame should be dropped so only one "
+                                 f"frame will be added. The current navigation shape is larger"
+                                 f"than the size of the dataset by {new_buffer_frames-buffer_frames}"
+                                 f" frames. To add more frames manually append "
+                                 f"the dataset. ")
+
             t = np.memmap(
                 self.top, offset=8192, dtype=dtype, shape=buffer_frames, mode="r+"
             )
@@ -591,8 +590,7 @@ class CeleritasReader(SeqReader):
                 self.bottom, offset=8192, dtype=dtype, shape=buffer_frames, mode="r+"
             )
             b.flush()
-        else:
-            buffer_frames = header["NumFrames"]
+
         if navigation_shape is not None:
             shape = navigation_shape + signal_shape
 

@@ -123,6 +123,10 @@ def test_dir_plugins():
 
     assert dir(impulse) == ["file_reader"]
 
+    from rsciio import jeol
+
+    assert dir(jeol) == ["file_reader"]
+
     from rsciio import netcdf
 
     assert dir(netcdf) == ["file_reader"]

@@ -24,6 +24,8 @@ import logging
 import numpy as np
 import numba
 
+from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+
 
 _logger = logging.getLogger(__name__)
 
@@ -51,7 +53,52 @@ jTYPE = {
 
 def file_reader(filename, **kwargs):
     """
-    File reader for JEOL format
+    File reader for JEOL Analysist Station software format.
+
+    Parameters
+    ----------
+    %s
+    %s
+    rebin_energy : int, Default=1.
+        Factor used to rebin the energy dimension. It must be a
+        divisor of the number of channels, typically 4096.
+    sum_frames : bool, Default=True.
+        If ``False``, each individual frame (sweep in JEOL software jargon)
+        is loaded. Be aware that loading each individual frame will use a lot of memory.
+        However, it can be used in combination with ``rebin_energy``, ``cutoff_at_kV``
+        and ``downsample`` to reduce memory usage.
+    SI_dtype : dtype, Default=np.uint8
+        Set ``dtype`` of the eds dataset. Useful to adjust memory usage
+        and maximum number of X-rays per channel.
+    cutoff_at_kV : int, float, or None, default=None
+        If set (>= 0), use to crop the energy range up to the specified energy.
+        If ``None``, the whole energy range is loaded.
+        Useful to reduce memory usage.
+    downsample : int, Default=1
+        The downsample ratio of the navigation dimension of an EDS
+        dataset. It can be an integer or a tuple of length 2 to define ``x`` and ``y``
+        separetely and it must be a divisor of the size of the navigation dimension.
+    only_valid_data : bool, Default=True
+        For ``.pts`` files only. Ignore incomplete and partly
+        acquired last frame, which typically occurs when the acquisition was
+        interrupted. When loading incomplete data (``only_valid_data=False``),
+        the missing data are filled with zeros. If ``sum_frames=True``, this argument
+        will be ignored to enforce consistent summing over the mapped area.
+    read_em_image : bool, Default=False
+        For ``.pts`` files only. If ``True``,
+        read SEM/STEM image from ``.pts`` file if available. In this case, both
+        the spectrum Image and SEM/STEM Image will be returned as list.
+    frame_list : list of integer or None, Default=None
+        For ``.pts`` files only. Frames in ``frame_list`` will be loaded.
+        For example, ``frame_list=[1,3]`` means second and forth frame will be loaded.
+        If ``None``, all frames are loaded.
+    frame_shifts : list of [int, int], list of [int, int, int], or None, Default=None
+        For ``.pts`` files only. Each frame will be loaded with offset of
+        [dy, dx (, and optionary dEnergy)]. Units are pixels/channels.
+        The result of estimate_shift2D() can be used as a parameter of frame_shifts.
+        This is useful for express drift correction. Not suitable for accurate analysis.
+
+    %s
     """
     file_ext = os.path.splitext(filename)[-1][1:].lower()
     if file_ext in extension_to_reader_mapping:
@@ -101,6 +148,9 @@ def _read_asw(filename, **kwargs):
         _logger.warning(f"{filename} does not have SampleInfo section.")
 
     return image_list
+
+
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
 
 
 def _read_img(filename, **kwargs):

@@ -38,6 +38,7 @@ for sub, _, _ in os.walk(os.path.abspath(os.path.dirname(__file__))):
                 "DigitalSurfSurface",
                 "Image",
                 "Impulse",
+                "JEOL",
                 "netCDF",
                 "NeXus",
                 "Phenom",

@@ -18,6 +18,7 @@ big datasets is supported.
    blockfile
    bruker
    de5
+   de
    dens
    digital_micrograph
    digitalsurf

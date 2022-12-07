@@ -95,7 +95,7 @@ class TestShared:
         file = data_path + "/test.seq"
         data_dict = file_reader(file)
         data_dict2 = seq.read_data()
-        np.testing.assert_array_equal(data_dict["data"], data_dict2["data"])
+        np.testing.assert_array_equal(data_dict[0]["data"], data_dict2["data"])
 
 
 class TestLoadCeleritas:
@@ -171,7 +171,7 @@ class TestLoadCeleritas:
         with pytest.raises(KeyError):
             folder = celeritas1_path
             seq.xml = folder + "/test3.seq.Config.Metadata.xml"
-            xml = seq._read_xml()
+            seq._read_xml()
 
     @pytest.mark.parametrize("nav_shape", [None, (5, 4), (5, 3)])
     @pytest.mark.parametrize("distributed", [True, False])
@@ -193,6 +193,16 @@ class TestLoadCeleritas:
 
         np.testing.assert_array_equal(data_dict["data"], data_dict2["data"])
 
+    @pytest.mark.parametrize("chunks", [(2, 2, 128, 256), (4, 1, 128, 256)])
+    @pytest.mark.parametrize("distributed", [True, False])
+    def test_chunking(self, seq, chunks, distributed):
+        data_dict = seq.read_data(navigation_shape=(4, 4), lazy=True,
+                                  distributed=distributed, chunks=chunks,)
+        assert isinstance(data_dict["data"], dask.array.Array)
+        assert data_dict["data"].shape == (4, 4, 128, 256)
+        assert data_dict["data"].chunks == chunks
+
+
     @pytest.mark.parametrize(
         "kwargs",
         (
@@ -202,10 +212,7 @@ class TestLoadCeleritas:
     )
     def test_file_loader_failures(self, kwargs):
         with pytest.raises(ValueError):
-            data_dict = file_reader(
-                **kwargs,
-                celeritas=True,
-            )
+            file_reader(**kwargs, celeritas=True,)
 
     def test_load_top_bottom(
         self,
@@ -218,7 +225,7 @@ class TestLoadCeleritas:
             celeritas1_path + "/test_Bottom_14-04-59.396.seq",
             celeritas=True,
         )
-        np.testing.assert_array_equal(data_dict_top["data"], data_dict_bottom["data"])
+        np.testing.assert_array_equal(data_dict_top[0]["data"], data_dict_bottom[0]["data"])
 
     def test_read_data_no_xml(self, seq2):
         seq2.xml = None
@@ -229,14 +236,14 @@ class TestLoadCeleritas:
             celeritas1_path + "/test_Top_14-04-59.355.seq",
             celeritas=True,
         )
-        assert data_dict["data"].shape == (512, 128, 256)
+        assert data_dict[0]["data"].shape == (512, 128, 256)
 
     def test_load_file2(self):
         data_dict = file_reader(
             celeritas2_path + "/Movie_00785_Top_13-49-04.160.seq",
             celeritas=True,
         )
-        assert data_dict["data"].shape == (5, 256, 256)
+        assert data_dict[0]["data"].shape == (5, 256, 256)
 
     def test_load_file3(self):
         data_dict = file_reader(
@@ -244,8 +251,8 @@ class TestLoadCeleritas:
             celeritas=True,
             lazy=True,
         )
-        assert isinstance(data_dict["data"], dask.array.Array)
-        assert data_dict["data"].shape == (512, 64, 64)
+        assert isinstance(data_dict[0]["data"], dask.array.Array)
+        assert data_dict[0]["data"].shape == (512, 64, 64)
 
     def test_hyperspy(self):
         import hyperspy.api as hs

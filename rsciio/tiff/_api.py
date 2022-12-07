@@ -85,10 +85,10 @@ def file_writer(filename, signal, export_scale=True, extratags=[], **kwds):
     --------
     >>> # Saving the string 'Random metadata' in a custom tag (ID 65000)
     >>> extratag = [(65000, 's', 1, "Random metadata", False)]
-    >>> s.save('file.tif', extratags=extratag)
+    >>> file_writer('file.tif', signal, extratags=extratag)
 
-    >>> # Saving the string 'Random metadata' from a custom tag (ID 65000)
-    >>> s2 = hs.load('file.tif')
+    >>> # Reading the string 'Random metadata' from a custom tag (ID 65000)
+    >>> s2 = file_reader('file.tif')
     >>> s2.original_metadata['Number_65000']
     b'Random metadata'
     """
@@ -169,9 +169,9 @@ def file_reader(filename, lazy=False, force_read_resolution=False, **kwds):
     --------
     >>> # Force read image resolution using the x_resolution, y_resolution and
     >>> # the resolution_unit of the TIFF tags.
-    >>> s = hs.load('file.tif', force_read_resolution=True)
+    >>> s = file_reader('file.tif', force_read_resolution=True)
     >>> # Load a non-uniform axis from a hamamatsu streak file:
-    >>> s = hs.load('file.tif', hamamatsu_streak_axis_type='data')
+    >>> s = file_reader('file.tif', hamamatsu_streak_axis_type='data')
     """
     tmp = kwds.pop("hamamatsu_streak_axis_type", None)
 

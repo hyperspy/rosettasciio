@@ -13,12 +13,14 @@ the reader assumes that the step is constant and takes its mean, which is a
 good approximation. Further releases of RosettaSciIO will read the time axis more
 precisely by supporting non-uniform axis (to be implemented!).
 
-To read Protochips logfiles in HyperSpy, use the ``reader`` argument to define the
-correct file plugin as the ``.csv`` extension is not unique to this reader:
+.. Note::
+    To read Protochips logfiles in `HyperSpy <https://hyperspy.org>`_, use the
+    ``reader`` argument to define the correct file plugin as the ``.csv``
+    extension is not unique to this reader:
 
-.. code-block:: python
+    .. code-block:: python
 
-    >>> hs.load("filename.csv", reader="protochips")
+        >>> hs.load("filename.csv", reader="protochips")
 
 
 API functions

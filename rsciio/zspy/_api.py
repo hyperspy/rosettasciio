@@ -142,7 +142,7 @@ def file_writer(filename, signal, close_file=True, **kwds):
     --------
     >>> from numcodecs import Blosc
     >>> compressor=Blosc(cname='zstd', clevel=1, shuffle=Blosc.SHUFFLE) # Used by default
-    >>> s.save('test.zspy', compressor = compressor) # will save with Blosc compression
+    >>> file_writer('test.zspy', s, compressor = compressor) # will save with Blosc compression
     """
     if "compressor" not in kwds:
         kwds["compressor"] = numcodecs.Blosc(

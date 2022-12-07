@@ -8,11 +8,13 @@ information will be lost in the writing process and that supports saving data
 of arbitrary dimensions. It is based on the `Zarr project <https://zarr.readthedocs.io/en/stable>`_. Which exists as a drop in
 replacement for hdf5 with the intention to fix some of the speed and scaling
 issues with the hdf5 format and is therefore suitable for saving 
-:external+hyperspy:ref:`big data <big_data.saving>`.
+:external+hyperspy:ref:`big data <big_data.saving>`. Example using `HyperSpy
+<https://hyperspy.org>`_:
 
 
 .. code-block:: python
 
+    >>> import hyperspy.api as hs
     >>> s = hs.signals.BaseSignal([0])
     >>> s.save('test.zspy') # will save in nested directory
     >>> hs.load('test.zspy') # loads the directory

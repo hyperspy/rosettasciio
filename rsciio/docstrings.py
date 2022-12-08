@@ -36,6 +36,17 @@ LAZY_DOC = """lazy : bool, Default=False
         Whether to open the file lazily or not.
     """
 
+ENDIANESS_DOC = """endianess : str, Default="<"
+        ``"<"`` or ``">"``, depending on how the bits are written to 
+        the file.
+    """
+
+MMAP_DOC = """mmap_mode : {None, "r+", "r", "w+", "c"}, Default=None
+        Argument passed to :py:func:`numpy.memmap`. If None (default), the
+        value is ``"r"`` when ``lazy=True``, otherwise it is ``"c"``.
+    """
+
+
 RETURNS_DOC = """Returns
     -------
 

@@ -30,6 +30,8 @@ from skimage import dtype_limits
 from rsciio.docstrings import (
     FILENAME_DOC,
     LAZY_DOC,
+    ENDIANESS_DOC,
+    MMAP_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
 )
@@ -211,11 +213,8 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<"):
     ----------
     %s
     %s
-    mmap_mode : str
-        Argument passed to :py:func:`numpy.memmap`. If None (default), the
-        value is ``'r'`` when not lazy, otherwise it is ``'c'``.
-    endianess : str
-        ``'<'`` (default) or ``'>'`` depending on how the bits are written to the file.
+    %s
+    %s
 
     %s
     """
@@ -339,7 +338,7 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<"):
     ]
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, MMAP_DOC, RETURNS_DOC)
 
 
 def file_writer(

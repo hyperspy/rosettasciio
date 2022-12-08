@@ -41,14 +41,14 @@ def file_writer(
     imshow_kwds=None,
     **kwds,
 ):
-    """Writes data to any format supported by pillow. When any of the parameters
-    ``output_size``, ``scalebar`` or ``imshow_kwds`` is given,
+    """Writes data to any format supported by pillow. The file format is defined by
+    the file extension that is any one supported by imageio. When any of the
+    parameters ``output_size``, ``scalebar`` or ``imshow_kwds`` is given,
     :py:func:`~.matplotlib.pyplot.imshow` is used to generate a figure.
 
     Parameters
     ----------
-    %s The file format is defined by
-        the file extension that is any one supported by imageio.
+    %s
     %s
     scalebar : bool, Default=False
         Export the image with a scalebar.
@@ -191,13 +191,13 @@ file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
 
 
 def file_reader(filename, **kwds):
-    """Read data from any format supported by imageio (PIL/pillow).
+    """Read data from any format supported by imageio (PIL/pillow). The file
+    format is defined by the file extension that is any one supported by imageio.
     For a list of formats see https://imageio.readthedocs.io/en/stable/formats.html
 
     Parameters
     ----------
-    %s The file format
-        is defined by the file extension that is any one supported by imageio.
+    %s
     format: str, optional
         The format to use to read the file. By default imageio selects the
         appropriate format based on the filename and its contents.

@@ -197,7 +197,7 @@ def read_raw(rpl_info, fp, mmap_mode="c"):
     fp:
     mmap_mode: {None, 'r+', 'r', 'w+', 'c'}, optional
         If not None, then memory-map the file, using the given mode
-        (see `numpy.memmap`). The mode has no effect for pickled or
+        (see ``numpy.memmap``). The mode has no effect for pickled or
         zipped files.
         A memory-mapped array is stored on disk, and not directly loaded
         into memory.  However, it can be accessed and sliced like any

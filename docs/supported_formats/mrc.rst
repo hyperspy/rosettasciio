@@ -10,10 +10,17 @@ partly support FEI's custom header. We do not provide writing features for this
 format, but, as it is an open format, we may implement this feature in the
 future on demand.
 
-For mrc files ``load`` takes the ``mmap_mode`` keyword argument enabling
-loading the file using a different mode (default is copy-on-write) . However,
-note that lazy loading does not support in-place writing (i.e lazy loading and
-the "r+" mode are incompatible).
+.. Note ::
+    For ``.mrc`` files, the ``file_reader`` takes the ``mmap_mode`` keyword argument
+    to load the file using a different mode (default is copy-on-write) . However,
+    note that lazy loading does not support in-place writing (i.e lazy loading and
+    the ``r+`` mode are incompatible).
 
 See also the `format documentation <https://www.ccpem.ac.uk/mrc_format/mrc_format.php>`_
 by the Collaborative Computational Project for Electron cryo-Microscopy (CCP-EM).
+
+API functions
+^^^^^^^^^^^^^
+
+.. automodule:: rsciio.mrc
+   :members:

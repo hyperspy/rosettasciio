@@ -131,6 +131,10 @@ def test_dir_plugins():
 
     assert dir(jobin_yvon) == ["file_reader"]
 
+    from rsciio import mrc
+
+    assert dir(mrc) == ["file_reader"]
+
     from rsciio import netcdf
 
     assert dir(netcdf) == ["file_reader"]

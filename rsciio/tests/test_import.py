@@ -141,6 +141,10 @@ def test_dir_plugins():
 
     assert dir(mrcz) == ["file_reader", "file_writer"]
 
+    from rsciio import msa
+
+    assert dir(msa) == ["file_reader", "file_writer", "parse_msa_string"]
+
     from rsciio import netcdf
 
     assert dir(netcdf) == ["file_reader"]

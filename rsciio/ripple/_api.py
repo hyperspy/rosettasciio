@@ -31,6 +31,7 @@ import numpy as np
 from rsciio.docstrings import (
     FILENAME_DOC,
     LAZY_DOC,
+    ENCODING_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
 )
@@ -265,10 +266,7 @@ def file_reader(
         A dictionary containing the keywords in order to read a ``.raw`` file
         without corresponding ``.rpl`` file. If ``None``, the keywords are parsed
         automatically from the ``.rpl`` file.
-    enconding : str, optional
-        The encoding used to read the content of the ``rpl`` file. The default
-        encoding is ``latin-1``. Different file encodings, such as ``utf8`` can be
-        set via this argument.
+    %s
     mmap_mode : str, optional
         Default is copy-on-write ``"c"``, but different modes can be set. However,
         note that lazy loading does not support in-place writing (i.e lazy loading
@@ -466,7 +464,7 @@ def file_reader(
     ]
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENCODING_DOC, RETURNS_DOC)
 
 
 def file_writer(filename, signal, encoding="latin-1", *args, **kwds):
@@ -477,10 +475,7 @@ def file_writer(filename, signal, encoding="latin-1", *args, **kwds):
     ----------
     %s
     %s
-    enconding : str, optional
-        The encoding used to write the content of the ``rpl`` file. The default
-        encoding is ``latin-1``. Different file encodings, such as ``utf8`` can be
-        set via this argument.
+    %s
     """
 
     # Set the optional keys to None
@@ -606,7 +601,11 @@ def file_writer(filename, signal, encoding="latin-1", *args, **kwds):
     write_raw(filename, signal, record_by, sig_axes, nav_axes)
 
 
-file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
+file_writer.__doc__ %= (
+    FILENAME_DOC.replace("read", "write to"),
+    SIGNAL_DOC,
+    ENCODING_DOC.replace("read", "write"),
+)
 
 
 def write_rpl(filename, keys_dictionary, encoding="ascii"):

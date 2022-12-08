@@ -36,6 +36,11 @@ LAZY_DOC = """lazy : bool, Default=False
         Whether to open the file lazily or not.
     """
 
+ENCODING_DOC = """encoding : str, Default="latin-1"
+        The encoding used to read the content of the file. Different file
+        encodings, such as ``"utf8"`` can be set via this argument.
+    """
+
 ENDIANESS_DOC = """endianess : str, Default="<"
         ``"<"`` or ``">"``, depending on how the bits are written to 
         the file.

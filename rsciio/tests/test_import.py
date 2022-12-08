@@ -135,6 +135,12 @@ def test_dir_plugins():
 
     assert dir(mrc) == ["file_reader"]
 
+    # mrcz is an optional dependency
+    pytest.importorskip("mrcz")
+    from rsciio import mrcz
+
+    assert dir(mrcz) == ["file_reader", "file_writer"]
+
     from rsciio import netcdf
 
     assert dir(netcdf) == ["file_reader"]

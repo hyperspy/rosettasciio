@@ -41,6 +41,7 @@ for sub, _, _ in os.walk(os.path.abspath(os.path.dirname(__file__))):
                 "JEOL",
                 "JobinYvon",
                 "MRC",
+                "MRCZ",
                 "netCDF",
                 "NeXus",
                 "Phenom",

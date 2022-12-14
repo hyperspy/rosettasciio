@@ -102,13 +102,13 @@ def ensure_directory(path):
         _logger.debug(f"Directory {p} already exists. Doing nothing.")
 
 
-def overwrite(fname):
-    """If file exists 'fname', ask for overwriting and return True or False,
+def overwrite(filename):
+    """If file 'filename' exists, ask for overwriting and return True or False,
     else return True.
 
     Parameters
     ----------
-    fname : str or pathlib.Path
+    filename : str or pathlib.Path
         File to check for overwriting.
 
     Returns
@@ -117,10 +117,10 @@ def overwrite(fname):
         Whether to overwrite file.
 
     """
-    if Path(fname).is_file() or (
-        Path(fname).is_dir() and os.path.splitext(fname)[1] == ".zspy"
+    if Path(filename).is_file() or (
+        Path(filename).is_dir() and os.path.splitext(filename)[1] == ".zspy"
     ):
-        message = f"Overwrite '{fname}' (y/n)?\n"
+        message = f"Overwrite '{filename}' (y/n)?\n"
         try:
             answer = input(message)
             answer = answer.lower()

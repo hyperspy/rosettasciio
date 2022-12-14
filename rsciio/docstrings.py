@@ -16,8 +16,8 @@
 # along with any project and source this library is coupled.
 # If not, see <https://www.gnu.org/licenses/#GPL>.
 
-FILENAME_DOC = """filename : str
-        Filename of the file to read.
+FILENAME_DOC = """filename : str, pathlib.Path
+        Filename of the file to read or corresponding `pathlib.Path`.
     """
 
 SIGNAL_DOC = """signal : dict
@@ -35,6 +35,22 @@ SIGNAL_DOC = """signal : dict
 LAZY_DOC = """lazy : bool, Default=False
         Whether to open the file lazily or not.
     """
+
+ENCODING_DOC = """encoding : str, Default="latin-1"
+        The encoding used to read the content of the file. Different file
+        encodings, such as ``"utf8"`` can be set via this argument.
+    """
+
+ENDIANESS_DOC = """endianess : str, Default="<"
+        ``"<"`` or ``">"``, depending on how the bits are written to 
+        the file.
+    """
+
+MMAP_DOC = """mmap_mode : {None, "r+", "r", "w+", "c"}, Default=None
+        Argument passed to :py:func:`numpy.memmap`. If None (default), the
+        value is ``"r"`` when ``lazy=True``, otherwise it is ``"c"``.
+    """
+
 
 RETURNS_DOC = """Returns
     -------

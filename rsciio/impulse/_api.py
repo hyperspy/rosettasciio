@@ -4,6 +4,8 @@ from datetime import datetime as dt
 import csv
 import logging
 
+from rsciio.docstrings import FILENAME_DOC, RETURNS_DOC
+
 
 _logger = logging.getLogger(__name__)
 
@@ -22,8 +24,19 @@ invalid_filenaming_error = {
 
 
 def file_reader(filename, *args, **kwds):
+    """Read a DENSsolutions Impulse logfile.
+
+    Parameters
+    ----------
+    %s
+
+    %s
+    """
     csv_file = ImpulseCSV(filename)
     return _impulseCSV_log_reader(csv_file)
+
+
+file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
 
 
 def _impulseCSV_log_reader(csv_file):

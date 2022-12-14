@@ -60,6 +60,7 @@ Reading the sole dataset within a h5USID file using `HyperSpy
 
 .. code-block:: python
 
+    >>> import hyperspy.api as hs
     >>> hs.load("sample.h5")
     <Signal2D, title: HAADF, dimensions: (|128, 128)>
 

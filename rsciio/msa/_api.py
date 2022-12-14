@@ -24,6 +24,12 @@ import warnings
 
 import numpy as np
 
+from rsciio.docstrings import (
+    FILENAME_DOC,
+    ENCODING_DOC,
+    RETURNS_DOC,
+    SIGNAL_DOC,
+)
 from rsciio.version import __version__
 from rsciio.utils.tools import DTBox
 
@@ -337,11 +343,46 @@ def parse_msa_string(string, filename=None):
 
 
 def file_reader(filename, encoding="latin-1", **kwds):
+    """
+    Read an MSA file.
+
+    Parameters
+    ----------
+    %s
+    %s
+
+    %s
+    """
     with codecs.open(filename, encoding=encoding, errors="replace") as spectrum_file:
         return parse_msa_string(string=spectrum_file, filename=filename)
 
 
+file_reader.__doc__ %= (FILENAME_DOC, ENCODING_DOC, RETURNS_DOC)
+
+
 def file_writer(filename, signal, format=None, separator=", ", encoding="latin-1"):
+    """
+    Write signal to an MSA file.
+
+    Parameters
+    ----------
+    %s
+    %s
+    format : str, Default="Y"
+        Specify whether the X-axis (energy/wavelength) should also be saved with
+        the data. The default, ``"Y"`` omits the X-axis in the file. The alternative,
+        ``"XY"``, saves the calibrated signal axis as first column.
+    separator: str, Default=", "
+        Change the column separator. However, if a different separator is chosen
+        the resulting file will not comply with the MSA/EMSA standard and
+        RosettaSciIO and other software may not be able to read it.
+    %s
+
+    Examples
+    --------
+    >>> from rsciio.msa import file_writer
+    >>> file_writer("file.msa", signal, encoding="utf8")
+    """
     loc_kwds = {}
     FORMAT = "EMSA/MAS Spectral Data File"
     md = DTBox(signal["metadata"], box_dots=True)
@@ -469,3 +510,10 @@ def file_writer(filename, signal, format=None, separator=", ", encoding="latin-1
             raise ValueError("format must be one of: None, 'XY' or 'Y'")
 
         f.write("#%-12s: End Of Data and File" % "ENDOFDATA")
+
+
+file_writer.__doc__ %= (
+    FILENAME_DOC.replace("read", "write to"),
+    SIGNAL_DOC,
+    ENCODING_DOC.replace("read", "write"),
+)

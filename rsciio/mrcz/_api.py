@@ -19,6 +19,14 @@
 from packaging.version import Version
 import mrcz as _mrcz
 import logging
+
+from rsciio.docstrings import (
+    FILENAME_DOC,
+    LAZY_DOC,
+    ENDIANESS_DOC,
+    RETURNS_DOC,
+    SIGNAL_DOC,
+)
 from rsciio.utils.tools import DTBox
 
 
@@ -67,7 +75,24 @@ mapping = {
 }
 
 
-def file_reader(filename, endianess="<", lazy=False, mmap_mode="c", **kwds):
+def file_reader(filename, lazy=False, endianess="<", mmap_mode="c", **kwds):
+    """File reader for the MRCZ format for tomographic data.
+
+    Parameters
+    ----------
+    %s
+    %s
+    %s
+    mmap_mode : str, Default="c"
+        The MRCZ reader currently only supports C-ordering memory-maps.
+
+    %s
+
+    Examples
+    --------
+    >>> from rsciio.mrcz import file_reader
+    >>> new_signal = file_reader('file.mrcz')
+    """
     _logger.debug("Reading MRCZ file: %s" % filename)
 
     if mmap_mode != "c":
@@ -115,9 +140,53 @@ def file_reader(filename, endianess="<", lazy=False, mmap_mode="c", **kwds):
     ]
 
 
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, RETURNS_DOC)
+
+
 def file_writer(
     filename, signal, do_async=False, compressor=None, clevel=1, n_threads=None, **kwds
 ):
+    """
+    Write signal to MRCZ format.
+
+    Parameters
+    ----------
+    %s
+    %s
+    %s
+    do_async : bool, Default=False
+        Currently supported within RosettaSciIO for writing only, this will
+        save the file in a background thread and return immediately.
+        Warning: there is no method currently implemented within RosettaSciIO
+        to tell if an asychronous write has finished.
+    compressor : {None, "zlib", "zstd", "lz4"}, Default=None
+        The compression codec.
+    clevel : int, Default=1
+        The compression level, an ``int`` from 1 to 9.
+    n_threads : int
+        The number of threads to use for ``blosc`` compression. Defaults to
+        the maximum number of virtual cores (including Intel Hyperthreading)
+        on your system, which is recommended for best performance. If
+        ``do_async = True`` you may wish to leave one thread free for the
+        Python GIL.
+
+    Notes
+    -----
+    The recommended compression codec is ``zstd`` (zStandard) with ``clevel=1`` for
+    general use. If speed is critical, use ``lz4`` (LZ4) with ``clevel=9``. Integer data
+    compresses more redably than floating-point data, and in general the histogram
+    of values in the data reflects how compressible it is.
+
+    To save files that are compatible with other programs that can use MRC such as
+    GMS, IMOD, Relion, MotionCorr, etc. save with ``compressor=None``, extension ``.mrc``.
+    JSON metadata will not be recognized by other MRC-supporting software but should
+    not cause crashes.
+
+    Examples
+    --------
+    >>> from rsciio.mrcz import file_writer
+    >>> file_writer('file.mrcz', signal, do_async=True, compressor='zstd', clevel=1)
+    """
     endianess = kwds.pop("endianess", "<")
     mrcz_endian = "le" if endianess == "<" else "be"
 
@@ -162,3 +231,10 @@ def file_writer(
             clevel=clevel,
             n_threads=n_threads,
         )
+
+
+file_writer.__doc__ %= (
+    FILENAME_DOC.replace("read", "write to"),
+    SIGNAL_DOC,
+    ENDIANESS_DOC,
+)

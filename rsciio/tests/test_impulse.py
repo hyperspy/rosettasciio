@@ -21,7 +21,7 @@ import os
 import numpy as np
 import pytest
 
-from rsciio.impulse.api import ImpulseCSV, invalid_file_error, invalid_filenaming_error
+from rsciio.impulse._api import ImpulseCSV, invalid_file_error, invalid_filenaming_error
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 

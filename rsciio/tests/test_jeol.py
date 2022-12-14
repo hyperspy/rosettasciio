@@ -296,7 +296,7 @@ def test_load_eds_file(filename_as_string):
             "0": {
                 "operation": "load",
                 "hyperspy_version": hs.__version__,
-                "io_plugin": "rsciio.jeol.api",
+                "io_plugin": "rsciio.jeol",
             }
         },
     }

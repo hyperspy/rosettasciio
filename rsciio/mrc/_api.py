@@ -25,6 +25,13 @@ import logging
 
 import numpy as np
 
+from rsciio.docstrings import (
+    FILENAME_DOC,
+    LAZY_DOC,
+    ENDIANESS_DOC,
+    MMAP_DOC,
+    RETURNS_DOC,
+)
 from rsciio.utils.tools import sarray2dict
 
 
@@ -123,7 +130,19 @@ def get_data_type(index, endianess="<"):
     return data_type[index]
 
 
-def file_reader(filename, endianess="<", **kwds):
+def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
+    """File reader for the MRC format for tomographic data.
+
+    Parameters
+    ----------
+    %s
+    %s
+    %s
+    %s
+
+    %s
+    """
+
     metadata = {}
     f = open(filename, "rb")
     std_header = np.fromfile(f, dtype=get_std_dtype_list(endianess), count=1)
@@ -138,10 +157,8 @@ def file_reader(filename, endianess="<", **kwds):
         f.seek(1024 + std_header["NEXT"])
         fei_header = None
     NX, NY, NZ = std_header["NX"], std_header["NY"], std_header["NZ"]
-    mmap_mode = kwds.pop("mmap_mode", "c")
-    lazy = kwds.pop("lazy", False)
-    if lazy:
-        mmap_mode = "r"
+    if mmap_mode is None:
+        mmap_mode = "r" if lazy else "c"
     data = (
         np.memmap(
             f,
@@ -245,3 +262,6 @@ mapping = {
     ),
     "fei_header.magnification": ("Acquisition_instrument.TEM.magnification", None),
 }
+
+
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, MMAP_DOC, RETURNS_DOC)

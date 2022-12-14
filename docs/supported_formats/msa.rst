@@ -11,33 +11,19 @@ with Gatan's Digital Micrograph or other software packages. A wide range of
 programs supports exporting to and reading from the ``.msa`` format.
 
 .. WARNING::
-    If several spectra are loaded and stacked (``hs.load('pattern', stack_signals=True``)
-    the calibration read from the first spectrum and applied to all other spectra.
-
-Extra saving arguments
-^^^^^^^^^^^^^^^^^^^^^^
-
-For the ``.msa`` format the ``format`` argument is used to specify whether the
-energy axis should also be saved with the data.  The default, 'Y' omits the
-energy axis in the file.  The alternative, 'XY', saves a second column with the
-calibrated energy data. It is possible to personalise the separator with the
-`separator` keyword.
-
-.. Warning::
-
-    However, if a different separator is chosen the resulting file will not
-    comply with the MSA/EMSA standard and RosettaSciIO and other software may not
-    be able to read it.
-
-The default encoding is `latin-1`. It is possible to set a different encoding
-using the `encoding` argument, e.g.:
-
-.. code-block:: python
-
-    >>> s.save('file.msa', encoding = 'utf8')
+    If several spectra are loaded and stacked in `HyperSpy <https://hyperspy.org>`_
+    (``hs.load('pattern', stack_signals=True)``)
+    the calibration is read from the first spectrum and applied to all other spectra.
 
 Reference
 ^^^^^^^^^
 
 For specifications of the format, see the `documentation by the Microscopy Society
 of America <https://www.microscopy.org/resources/scientific_data/>`_.
+
+
+API functions
+^^^^^^^^^^^^^
+
+.. automodule:: rsciio.msa
+   :members:

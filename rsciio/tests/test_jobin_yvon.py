@@ -1,20 +1,24 @@
 # -*- coding: utf-8 -*-
 # Copyright 2007-2022 The HyperSpy developers
 #
-# This file is part of HyperSpy.
+# This file is part of RosettaSciIO.
 #
-# HyperSpy is free software: you can redistribute it and/or modify
+# RosettaSciIO is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# HyperSpy is distributed in the hope that it will be useful,
+# RosettaSciIO is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with HyperSpy. If not, see <https://www.gnu.org/licenses/#GPL>.
+# along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
+
+# The details of the format were taken from
+# https://www.biochem.mpg.de/doc_tom/TOM_Release_2008/IOfun/tom_mrcread.html
+# and https://ami.scripps.edu/software/mrctools/mrc_specification.php
 
 import gc
 import pytest
@@ -320,11 +324,9 @@ class TestSpec:
         metadata_non_uniform = deepcopy(self.s_non_uniform.metadata.as_dictionary())
         assert (
             metadata_non_uniform["General"]["FileIO"]["0"]["io_plugin"]
-            == "rsciio.jobin_yvon.api"
+            == "rsciio.jobin_yvon"
         )
-        assert (
-            metadata["General"]["FileIO"]["0"]["io_plugin"] == "rsciio.jobin_yvon.api"
-        )
+        assert metadata["General"]["FileIO"]["0"]["io_plugin"] == "rsciio.jobin_yvon"
         assert metadata["General"]["date"] == "27.06.2022"
         assert metadata["General"]["original_filename"] == str(
             testfile_spec_wavelength_path.name

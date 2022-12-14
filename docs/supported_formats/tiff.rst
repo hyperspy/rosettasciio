@@ -36,7 +36,8 @@ API functions
     floats, this can result in 64-bit ``.tiff`` files, which are not always
     compatible with other imaging software.
 
-    You can first change the dtype of the signal before saving:
+    You can first change the dtype of the signal before saving (example using
+    `HyperSpy <https://hyperspy.org>`_):
 
     .. code-block:: python
 

@@ -38,7 +38,7 @@ example1_metadata = {
             "0": {
                 "operation": "load",
                 "hyperspy_version": hs.__version__,
-                "io_plugin": "rsciio.msa.api",
+                "io_plugin": "rsciio.msa",
             }
         },
     },
@@ -135,7 +135,7 @@ example2_metadata = {
             "0": {
                 "operation": "load",
                 "hyperspy_version": hs.__version__,
-                "io_plugin": "rsciio.msa.api",
+                "io_plugin": "rsciio.msa",
             }
         },
     },

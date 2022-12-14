@@ -111,6 +111,40 @@ def test_dir_plugins():
 
     assert dir(blockfile) == ["file_reader", "file_writer"]
 
+    from rsciio import dens
+
+    assert dir(dens) == ["file_reader"]
+
+    from rsciio import image
+
+    assert dir(image) == ["file_reader", "file_writer"]
+
+    from rsciio import impulse
+
+    assert dir(impulse) == ["file_reader"]
+
+    from rsciio import jeol
+
+    assert dir(jeol) == ["file_reader"]
+
+    from rsciio import jobin_yvon
+
+    assert dir(jobin_yvon) == ["file_reader"]
+
+    from rsciio import mrc
+
+    assert dir(mrc) == ["file_reader"]
+
+    # mrcz is an optional dependency
+    pytest.importorskip("mrcz")
+    from rsciio import mrcz
+
+    assert dir(mrcz) == ["file_reader", "file_writer"]
+
+    from rsciio import msa
+
+    assert dir(msa) == ["file_reader", "file_writer", "parse_msa_string"]
+
     from rsciio import netcdf
 
     assert dir(netcdf) == ["file_reader"]

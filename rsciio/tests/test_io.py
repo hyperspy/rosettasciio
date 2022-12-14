@@ -304,7 +304,7 @@ def test_load_save_filereader_metadata():
 
     my_path = os.path.dirname(__file__)
     s = hs.load(os.path.join(my_path, "msa_files", "example1.msa"))
-    assert s.metadata.General.FileIO.Number_0.io_plugin == "rsciio.msa.api"
+    assert s.metadata.General.FileIO.Number_0.io_plugin == "rsciio.msa"
     assert s.metadata.General.FileIO.Number_0.operation == "load"
     assert s.metadata.General.FileIO.Number_0.hyperspy_version == hs.__version__
 
@@ -313,7 +313,7 @@ def test_load_save_filereader_metadata():
         s.save(f)
         expected = {
             "0": {
-                "io_plugin": "rsciio.msa.api",
+                "io_plugin": "rsciio.msa",
                 "operation": "load",
                 "hyperspy_version": hs.__version__,
             },

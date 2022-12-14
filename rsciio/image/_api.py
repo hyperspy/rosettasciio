@@ -121,11 +121,14 @@ def file_writer(
             imshow_kwds = dict()
         imshow_kwds.setdefault("cmap", "gray")
 
+        axes = []
         if len(sig_axes) == 2:
             axes = sig_axes
         elif len(nav_axes) == 2:
             # Use navigation axes
             axes = nav_axes
+        else:
+            raise RuntimeError("This dimensionality is not supported.")
 
         aspect_ratio = imshow_kwds.get("aspect", None)
         if not isinstance(aspect_ratio, (int, float)):
@@ -179,8 +182,7 @@ def file_writer(
             if _UREG.Quantity(units).check("1/[length]"):
                 scalebar_kwds["dimension"] = "si-length-reciprocal"
 
-            scalebar = ScaleBar(axis["scale"], units, **scalebar_kwds)
-            ax.add_artist(scalebar)
+            ax.add_artist(ScaleBar(axis["scale"], units, **scalebar_kwds))
 
         fig.savefig(filename, dpi=dpi, pil_kwargs=kwds)
     else:

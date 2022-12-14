@@ -1250,7 +1250,8 @@ def _read_eds(filename, **kwargs):
             _ = np.fromfile(fd, "<i", 1)[0]  # = 2
             # Z
             _ = np.fromfile(fd, "<H", 1)[0]
-            mark1, mark2 = np.fromfile(fd, "<i", 2)  # = 1, 0
+            # mark1, mark2
+            _, _ = np.fromfile(fd, "<i", 2)  # = 1, 0
             roi_min, roi_max = np.fromfile(fd, "<H", 2)
             # unknown
             _ = np.fromfile(fd, "<b", 14)
@@ -1298,7 +1299,8 @@ def _read_eds(filename, **kwargs):
             # mark elem
             _ = np.fromfile(fd, "<i", 1)[0]  # = 2
             z = np.fromfile(fd, "<H", 1)[0]
-            mark1, mark2 = np.fromfile(fd, "<i", 2)  # = 1, 0
+            # mark1, mark2
+            _, _ = np.fromfile(fd, "<i", 2)  # = 1, 0
             energy, unkn6 = np.fromfile(fd, "<d", 2)
             mass1 = np.fromfile(fd, "<d", 1)[0]
             error = np.fromfile(fd, "<d", 1)[0]

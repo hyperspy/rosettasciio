@@ -17,15 +17,18 @@ For specific types of experiments an Application Definition may exist, which
 defines an agreed common layout that facilities can adhere to.
 
 NeXus metadata and data are stored in Hierarchical Data Format Files (HDF5) with
-a ``.nxs`` extension although standards HDF5 extensions are sometimes used.
-Files must use the ``.nxs`` file extension in order to use this IO plugin.
-Using the ``.nxs`` extension will default to the NeXus loader. If your file has
-an HDF5 extension, you can also explicitly set the NeXus file reader:
+a ``.nxs`` extension although standard HDF5 extensions are sometimes used.
 
-.. code-block:: python
+.. note::
+    In `HyperSpy <https://hyperspy.org>`_, files must use the ``.nxs`` file
+    extension in order to default to the NeXus loader. If your file has
+    an HDF5 extension, you can also explicitly set the NeXus file reader:
 
-    # Load a NeXus file with a .h5 extension
-    >>> s = hs.load("filename.h5", reader="nxs")
+    .. code-block:: python
+
+        # Load a NeXus file with a .h5 extension
+        >>> import hyperspy.api as hs
+        >>> s = hs.load("filename.h5", reader="nxs")
 
 The loader will follow version 3 of the
 `NeXus data rules <https://manual.nexusformat.org/datarules.html#version-3>`_.
@@ -227,7 +230,7 @@ Metadata that are arrays can be skipped by using ``skip_array_metadata``:
 .. code-block:: python
 
     >>> # Load data while skipping metadata that are arrays
-    >>> hs.load("sample.nxs", skip_array_metadata=True)
+    >>> file_reader("sample.nxs", skip_array_metadata=True)
 
 .. note::
 

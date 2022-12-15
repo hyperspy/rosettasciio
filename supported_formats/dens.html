@@ -422,10 +422,46 @@ as the legacy heating software DigiHeater.</p>
 is stored in a separate <code class="docutils literal notranslate"><span class="pre">metadata.log</span></code> file. This metadata file contains crucial
 information about the experiment and should be included in the same folder with
 the <code class="docutils literal notranslate"><span class="pre">.csv</span></code> file when reading data using RosettaSciIO.</p>
-<p>To read Impulse logfiles, use the reader argument to define the correct file reader:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;filename.csv&quot;</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="s2">&quot;impulse&quot;</span><span class="p">)</span>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To read Impulse logfiles in <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, use the
+<code class="docutils literal notranslate"><span class="pre">reader</span></code> argument to define the correct file plugin as the <code class="docutils literal notranslate"><span class="pre">.csv</span></code>
+extension is not unique to this reader:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">hyperspy.api</span> <span class="k">as</span> <span class="nn">hs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;filename.csv&quot;</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="s2">&quot;impulse&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+</div>
+<section id="module-rsciio.impulse">
+<span id="api-functions"></span><h3>API functions<a class="headerlink" href="#module-rsciio.impulse" title="Permalink to this heading">#</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.impulse.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.impulse.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.impulse.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Read a DENSsolutions Impulse logfile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dicts</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 <section id="denssolutions-digiheater-logfile">
 <span id="dens-heater-format"></span><h2>DENSsolutions DigiHeater logfile<a class="headerlink" href="#denssolutions-digiheater-logfile" title="Permalink to this heading">#</a></h2>
@@ -433,6 +469,36 @@ the <code class="docutils literal notranslate"><span class="pre">.csv</span></co
 The format stores all the captured data for each timestamp, together with a small
 header in a plain-text format. The reader extracts the measured temperature along
 the time axis, as well as the date and calibration constants stored in the header.</p>
+<section id="id1">
+<h3>API functions<a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h3>
+<span class="target" id="module-rsciio.dens"></span><dl class="py function">
+<dt class="sig sig-object py" id="rsciio.dens.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.dens.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.dens.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Read a DENSsolutions DigiHeater logfile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dicts</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 </section>
 
@@ -478,11 +544,47 @@ the time axis, as well as the date and calibration constants stored in the heade
   <a class="reference internal nav-link" href="#denssolutions-impulse-logfile">
    DENSsolutions Impulse logfile
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#module-rsciio.impulse">
+     API functions
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#rsciio.impulse.file_reader">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         file_reader()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#denssolutions-digiheater-logfile">
    DENSsolutions DigiHeater logfile
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id1">
+     API functions
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#rsciio.dens.file_reader">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         file_reader()
+        </span>
+       </code>
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
  </li>
 </ul>
 

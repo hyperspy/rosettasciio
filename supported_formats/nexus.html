@@ -426,13 +426,17 @@ units and other experimental metadata associated with an experiment.
 For specific types of experiments an Application Definition may exist, which
 defines an agreed common layout that facilities can adhere to.</p>
 <p>NeXus metadata and data are stored in Hierarchical Data Format Files (HDF5) with
-a <code class="docutils literal notranslate"><span class="pre">.nxs</span></code> extension although standards HDF5 extensions are sometimes used.
-Files must use the <code class="docutils literal notranslate"><span class="pre">.nxs</span></code> file extension in order to use this IO plugin.
-Using the <code class="docutils literal notranslate"><span class="pre">.nxs</span></code> extension will default to the NeXus loader. If your file has
+a <code class="docutils literal notranslate"><span class="pre">.nxs</span></code> extension although standard HDF5 extensions are sometimes used.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, files must use the <code class="docutils literal notranslate"><span class="pre">.nxs</span></code> file
+extension in order to default to the NeXus loader. If your file has
 an HDF5 extension, you can also explicitly set the NeXus file reader:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load a NeXus file with a .h5 extension</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">hyperspy.api</span> <span class="k">as</span> <span class="nn">hs</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;filename.h5&quot;</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="s2">&quot;nxs&quot;</span><span class="p">)</span>
 </pre></div>
+</div>
 </div>
 <p>The loader will follow version 3 of the
 <a class="reference external" href="https://manual.nexusformat.org/datarules.html#version-3">NeXus data rules</a>.
@@ -535,7 +539,7 @@ using <code class="docutils literal notranslate"><span class="pre">attrs</span><
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em>) – Filename of the file to read.</p></li>
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
 <li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
 <li><p><strong>dataset_key</strong> (<em>None</em><em>, </em><em>str</em><em>, </em><em>list</em><em> of </em><em>strings</em><em>, </em><em>default : None</em>) – If None all datasets are returned.
 If a string or list of strings is provided only items
@@ -608,7 +612,7 @@ be stored as an NXcollection (an unvalidated collection)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em>) – Filename of the file to write to.</p></li>
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p></li>
 <li><p><strong>signal</strong> (<em>dict</em>) – <p>Dictionary containing the signal object.
 Should contain the following fields:</p>
 <ul>
@@ -702,7 +706,7 @@ here:</p>
 </div>
 <p>Metadata that are arrays can be skipped by using <code class="docutils literal notranslate"><span class="pre">skip_array_metadata</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Load data while skipping metadata that are arrays</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.nxs&quot;</span><span class="p">,</span> <span class="n">skip_array_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;sample.nxs&quot;</span><span class="p">,</span> <span class="n">skip_array_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition note">

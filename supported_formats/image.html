@@ -420,57 +420,121 @@
 This includes <code class="docutils literal notranslate"><span class="pre">.jpg</span></code>, <code class="docutils literal notranslate"><span class="pre">.gif</span></code>, <code class="docutils literal notranslate"><span class="pre">.png</span></code>, <code class="docutils literal notranslate"><span class="pre">.pdf</span></code>, <code class="docutils literal notranslate"><span class="pre">.tif</span></code>, etc.
 It is important to note that these image formats only support 8-bit files, and
 therefore have an insufficient dynamic range for most scientific applications.
-It is therefore highly discouraged to use any general image format (with the
-exception of <a class="reference internal" href="tiff.html#tiff-format"><span class="std std-ref">Tagged image file format (TIFF)</span></a> which uses another library) to store data for
-analysis purposes.</p>
-<section id="extra-saving-arguments">
-<h2>Extra saving arguments<a class="headerlink" href="#extra-saving-arguments" title="Permalink to this heading">#</a></h2>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">scalebar</span></code> (bool, optional): Export the image with a scalebar. Default
-is False.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">scalebar_kwds</span></code> (dict, optional): dictionary of keyword arguments for the
-scalebar. Useful to set formattiong, location, etc. of the scalebar. See the
-<a class="reference external" href="https://pypi.org/project/matplotlib-scalebar/">matplotlib-scalebar</a>
-documentation for more information.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">output_size</span></code> : (int, tuple of length 2 or None, optional): the output size
-of the image in pixels:</p>
+It is therefore highly discouraged to use any general image format to store data
+for analysis purposes (with the exception of the <a class="reference internal" href="tiff.html#tiff-format"><span class="std std-ref">Tagged image file format (TIFF)</span></a>, which uses
+the separate <code class="docutils literal notranslate"><span class="pre">tiffile</span></code> library).</p>
+<section id="module-rsciio.image">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.image" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.image.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.image.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.image.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Read data from any format supported by imageio (PIL/pillow). The file
+format is defined by the file extension that is any one supported by imageio.
+For a list of formats see
+<a class="reference external" href="https://imageio.readthedocs.io/en/stable/formats/index.html">https://imageio.readthedocs.io/en/stable/formats/index.html</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
+<li><p><strong>format</strong> (<em>str</em><em>, </em><em>optional</em>) – The format to use to read the file. By default imageio selects the
+appropriate format based on the filename and its contents.</p></li>
+<li><p><strong>**kwds</strong> (<em>keyword arguments</em>) – Allows to pass keyword arguments supported by the individual file
+readers as documented at
+<a class="reference external" href="https://imageio.readthedocs.io/en/stable/formats/index.html">https://imageio.readthedocs.io/en/stable/formats/index.html</a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
 <ul class="simple">
-<li><p>if <code class="docutils literal notranslate"><span class="pre">int</span></code>, defines the width of the image, the height is
-determined from the aspect ratio of the image.</p></li>
-<li><p>if <code class="docutils literal notranslate"><span class="pre">tuple</span></code> of length 2, defines the width and height of the
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dicts</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.image.file_writer">
+<span class="sig-prename descclassname"><span class="pre">rsciio.image.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scalebar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scalebar_kwds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imshow_kwds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.image.file_writer" title="Permalink to this definition">#</a></dt>
+<dd><p>Writes data to any format supported by pillow. The file format is defined by
+the file extension that is any one supported by imageio. When any of the
+parameters <code class="docutils literal notranslate"><span class="pre">output_size</span></code>, <code class="docutils literal notranslate"><span class="pre">scalebar</span></code> or <code class="docutils literal notranslate"><span class="pre">imshow_kwds</span></code> is given,
+<code class="xref py py-func docutils literal notranslate"><span class="pre">imshow()</span></code> is used to generate a figure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p></li>
+<li><p><strong>signal</strong> (<em>dict</em>) – <p>Dictionary containing the signal object.
+Should contain the following fields:</p>
+<ul>
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the metadata tree</p></li>
+</ul>
+</p></li>
+<li><p><strong>scalebar</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Export the image with a scalebar.</p></li>
+<li><p><strong>scalebar_kwds</strong> (<em>dict</em><em>, </em><em>optional</em>) – Dictionary of keyword arguments for the scalebar. Useful to set
+formatting, location, etc. of the scalebar. See the documentation of
+the ‘matplotlib-scalebar’ library for more information.</p></li>
+<li><p><strong>output_size</strong> (<em>{tuple</em><em> of </em><em>length 2</em><em>, </em><em>int</em><em>, </em><em>None}</em><em>, </em><em>Default=None</em>) – <p>The output size of the image in pixels (width, height):</p>
+<blockquote>
+<div><ul>
+<li><p>if <em>int</em>, defines the width of the image, the height is
+determined from the aspec ratio of the image</p></li>
+<li><p>if <em>tuple of length 2</em>, defines the width and height of the
 image. Padding with white pixels is used to maintain the aspect
 ratio of the image.</p></li>
-<li><p>if <code class="docutils literal notranslate"><span class="pre">None</span></code>, the size of the data is used.</p></li>
+<li><p>if <em>None</em>, the size of the data is used.</p></li>
 </ul>
+</div></blockquote>
 <p>For output sizes larger than the data size, “nearest” interpolation is
 used by default and this behaviour can be changed through the
-<code class="docutils literal notranslate"><span class="pre">imshow_kwds</span></code> dictionary.</p>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">imshow_kwds</span></code> (dict, optional):  Keyword arguments dictionary for
-<code class="xref py py-func docutils literal notranslate"><span class="pre">imshow()</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">**kwds</span></code> : keyword arguments supported by the individual file
+<em>imshow_kwds</em> dictionary.</p>
+</p></li>
+<li><p><strong>imshow_kwds</strong> (<em>dict</em><em>, </em><em>optional</em>) – Keyword arguments dictionary for <code class="xref py py-func docutils literal notranslate"><span class="pre">imshow()</span></code>.</p></li>
+<li><p><strong>**kwds</strong> (<em>keyword arguments</em><em>, </em><em>optional</em>) – Allows to pass keyword arguments supported by the individual file
 writers as documented at
-<a class="reference external" href="https://imageio.readthedocs.io/en/stable/formats/index.html">imageio</a> when exporting
-an image without scalebar. When exporting with a scalebar, the keyword
-arguments are passed to the <cite>pil_kwargs</cite> dictionary of
-<code class="xref py py-func docutils literal notranslate"><span class="pre">matplotlib.pyplot.savefig()</span></code></p></li>
+<a class="reference external" href="https://imageio.readthedocs.io/en/stable/formats/index.html">https://imageio.readthedocs.io/en/stable/formats/index.html</a> when
+exporting an image without scalebar. When exporting with a scalebar,
+the keyword arguments are passed to the <cite>pil_kwargs</cite> dictionary of
+<code class="xref py py-func docutils literal notranslate"><span class="pre">savefig()</span></code></p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="examples-of-saving-arguments">
+<h2>Examples of saving arguments<a class="headerlink" href="#examples-of-saving-arguments" title="Permalink to this heading">#</a></h2>
 <p>When saving an image, a scalebar can be added to the image and the formatting,
 location, etc. of the scalebar can be set using the <code class="docutils literal notranslate"><span class="pre">scalebar_kwds</span></code>
 arguments:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;file.jpg&#39;</span><span class="p">,</span> <span class="n">scalebar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;file.jpg&#39;</span><span class="p">,</span> <span class="n">scalebar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">scalebar_kwds</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;location&#39;</span><span class="p">:</span><span class="s1">&#39;lower right&#39;</span><span class="p">})</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.image</span> <span class="kn">import</span> <span class="n">file_writer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_writer</span><span class="p">(</span><span class="s1">&#39;file.jpg&#39;</span><span class="p">,</span> <span class="n">signal</span><span class="p">,</span> <span class="n">scalebar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_writer</span><span class="p">(</span><span class="s1">&#39;file.jpg&#39;</span><span class="p">,</span> <span class="n">signal</span><span class="p">,</span> <span class="n">scalebar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">scalebar_kwds</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;location&#39;</span><span class="p">:</span><span class="s1">&#39;lower right&#39;</span><span class="p">})</span>
 </pre></div>
 </div>
 <p>In the example above, the image is created using
 <code class="xref py py-func docutils literal notranslate"><span class="pre">imshow()</span></code>, and additional keyword arguments can be
 passed to this function using <code class="docutils literal notranslate"><span class="pre">imshow_kwds</span></code>. For example, this can be used
-to save an image displayed using a matplotlib colormap:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;file.jpg&#39;</span><span class="p">,</span> <span class="n">imshow_kwds</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">))</span>
+to save an image displayed using the matplotlib colormap <code class="docutils literal notranslate"><span class="pre">viridis</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">file_writer</span><span class="p">(</span><span class="s1">&#39;file.jpg&#39;</span><span class="p">,</span> <span class="n">signal</span><span class="p">,</span> <span class="n">imshow_kwds</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>The resolution of the exported image can be adjusted:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;file.jpg&#39;</span><span class="p">,</span> <span class="n">output_size</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">file_writer</span><span class="p">(</span><span class="s1">&#39;file.jpg&#39;</span><span class="p">,</span> <span class="n">signal</span><span class="p">,</span> <span class="n">output_size</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -515,8 +579,33 @@ to save an image displayed using a matplotlib colormap:</p>
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#extra-saving-arguments">
-   Extra saving arguments
+  <a class="reference internal nav-link" href="#module-rsciio.image">
+   API functions
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rsciio.image.file_reader">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       file_reader()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rsciio.image.file_writer">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       file_writer()
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#examples-of-saving-arguments">
+   Examples of saving arguments
   </a>
  </li>
 </ul>

@@ -405,7 +405,7 @@ present rather than loading all the datasets in the file as signals.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em>) – Filename of the file to read.</p></li>
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
 <li><p><strong>dataset_key</strong> (<em>str</em><em>, </em><em>list</em><em> of </em><em>strings</em><em> or </em><em>None</em><em> , </em><em>default: None</em>) – If a str or list of strings is provided only return items whose
 path contain the strings.
 For example, dataset_key = [“instrument”, “Fe”] will only return
@@ -442,7 +442,7 @@ rather than loading the file as a signal.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em>) – Filename of the file to read.</p></li>
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
 <li><p><strong>metadata_key</strong> (<em>None</em><em>,</em><em>str</em><em> or </em><em>list_of_strings</em><em> , </em><em>default : None</em>) – None will return all datasets found including linked data.
 Providing a string or list of strings will only return items
 which contain the string(s).

@@ -439,7 +439,7 @@ which in <a class="reference external" href="https://hyperspy.org">HyperSpy</a> 
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em>) – Filename of the file to read.</p></li>
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
 <li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
 <li><p><strong>select_type</strong> (<code class="docutils literal notranslate"><span class="pre">'spectrum_image'</span></code>, <code class="docutils literal notranslate"><span class="pre">'image'</span></code> or None) – If specified, only the corresponding type of data, either spectrum
 image or image, is returned.

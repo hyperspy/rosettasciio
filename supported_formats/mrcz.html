@@ -427,43 +427,8 @@ Citation:   Submitted.
 Preprint:   <a class="reference external" href="https://www.biorxiv.org/content/10.1101/116533v1">https://www.biorxiv.org/content/10.1101/116533v1</a></p>
 <p>Support for this format is not enabled by default. In order to enable it
 install the <cite>mrcz</cite> and optionally the <cite>blosc</cite> Python packages.</p>
-<section id="extra-saving-arguments">
-<h2>Extra saving arguments<a class="headerlink" href="#extra-saving-arguments" title="Permalink to this heading">#</a></h2>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">do_async</span></code>: currently supported within RosettaSciIO for writing only, this will
-save  the file in a background thread and return immediately. Defaults
-to <cite>False</cite>.</p></li>
-</ul>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>There is no method currently implemented within RosettaSciIO to tell if an
-asychronous write has finished.</p>
-</div>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">compressor</span></code>: The compression codec, one of [<cite>None</cite>,`’zlib`’,`’zstd’<cite>, `’lz4’</cite>].
-Defaults to <cite>None</cite>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">clevel</span></code>: The compression level, an <cite>int</cite> from 1 to 9. Defaults to 1.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">n_threads</span></code>: The number of threads to use for ‘blosc’ compression. Defaults to
-the maximum number of virtual cores (including Intel Hyperthreading)
-on your system, which is recommended for best performance. If <code class="docutils literal notranslate"><span class="pre">do_async</span> <span class="pre">=</span> <span class="pre">True</span></code> you may wish to leave one thread free for the
-Python GIL.</p></li>
-</ul>
-<p>The recommended compression codec is ‘zstd’ (zStandard) with <cite>clevel=1</cite> for
-general use. If speed is critical, use ‘lz4’ (LZ4) with <cite>clevel=9</cite>. Integer data
-compresses more redably than floating-point data, and in general the histogram
-of values in the data reflects how compressible it is.</p>
-<p>To save files that are compatible with other programs that can use MRC such as
-GMS, IMOD, Relion, MotionCorr, etc. save with <cite>compressor=None</cite>, extension <cite>.mrc</cite>.
-JSON metadata will not be recognized by other MRC-supporting software but should
-not cause crashes.</p>
-</section>
-<section id="example-usage">
-<h2>Example Usage<a class="headerlink" href="#example-usage" title="Permalink to this heading">#</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;file.mrcz&#39;</span><span class="p">,</span> <span class="n">do_async</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">compressor</span><span class="o">=</span><span class="s1">&#39;zstd&#39;</span><span class="p">,</span> <span class="n">clevel</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="n">new_signal</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;file.mrcz&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
+<section id="api-functions">
+<h2>API functions<a class="headerlink" href="#api-functions" title="Permalink to this heading">#</a></h2>
 </section>
 </section>
 
@@ -506,13 +471,8 @@ not cause crashes.</p>
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#extra-saving-arguments">
-   Extra saving arguments
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#example-usage">
-   Example Usage
+  <a class="reference internal nav-link" href="#api-functions">
+   API functions
   </a>
  </li>
 </ul>

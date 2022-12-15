@@ -423,10 +423,15 @@ to a quantity. Since there is a small fluctuation in the step of the time axis,
 the reader assumes that the step is constant and takes its mean, which is a
 good approximation. Further releases of RosettaSciIO will read the time axis more
 precisely by supporting non-uniform axis (to be implemented!).</p>
-<p>To read Protochips logfiles in HyperSpy, use the <code class="docutils literal notranslate"><span class="pre">reader</span></code> argument to define the
-correct file plugin as the <code class="docutils literal notranslate"><span class="pre">.csv</span></code> extension is not unique to this reader:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;filename.csv&quot;</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="s2">&quot;protochips&quot;</span><span class="p">)</span>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To read Protochips logfiles in <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, use the
+<code class="docutils literal notranslate"><span class="pre">reader</span></code> argument to define the correct file plugin as the <code class="docutils literal notranslate"><span class="pre">.csv</span></code>
+extension is not unique to this reader:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">hyperspy.api</span> <span class="k">as</span> <span class="nn">hs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;filename.csv&quot;</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="s2">&quot;protochips&quot;</span><span class="p">)</span>
 </pre></div>
+</div>
 </div>
 <section id="module-rsciio.protochips">
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.protochips" title="Permalink to this heading">#</a></h2>
@@ -437,7 +442,7 @@ correct file plugin as the <code class="docutils literal notranslate"><span clas
 cell experiments using an in-situ holder.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – Filename of the file to read.</p>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>

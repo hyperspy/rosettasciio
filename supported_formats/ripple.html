@@ -445,14 +445,13 @@ or, read a raw file if the dictionary <code class="docutils literal notranslate"
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em>) – Filename of the file to read.</p></li>
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
 <li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
 <li><p><strong>rpl_info</strong> (<em>dict</em><em>, </em><em>Default=None</em>) – A dictionary containing the keywords in order to read a <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file
 without corresponding <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> file. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, the keywords are parsed
 automatically from the <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> file.</p></li>
-<li><p><strong>enconding</strong> (<em>str</em><em>, </em><em>optional</em>) – The encoding used to read the content of the <code class="docutils literal notranslate"><span class="pre">rpl</span></code> file. The default
-encoding is <code class="docutils literal notranslate"><span class="pre">latin-1</span></code>. Different file encodings, such as <code class="docutils literal notranslate"><span class="pre">utf8</span></code> can be
-set via this argument.</p></li>
+<li><p><strong>encoding</strong> (<em>str</em><em>, </em><em>Default=&quot;latin-1&quot;</em>) – The encoding used to read the content of the file. Different file
+encodings, such as <code class="docutils literal notranslate"><span class="pre">&quot;utf8&quot;</span></code> can be set via this argument.</p></li>
 <li><p><strong>mmap_mode</strong> (<em>str</em><em>, </em><em>optional</em>) – Default is copy-on-write <code class="docutils literal notranslate"><span class="pre">&quot;c&quot;</span></code>, but different modes can be set. However,
 note that lazy loading does not support in-place writing (i.e lazy loading
 and the <code class="docutils literal notranslate"><span class="pre">&quot;r+&quot;</span></code> mode are incompatible). The mode has no effect for pickled or
@@ -490,7 +489,7 @@ ripple (.rpl) file and saves the data in a corresponding raw (.raw) file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em>) – Filename of the file to write to.</p></li>
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p></li>
 <li><p><strong>signal</strong> (<em>dict</em>) – <p>Dictionary containing the signal object.
 Should contain the following fields:</p>
 <ul>
@@ -502,9 +501,8 @@ containing the full axes vector</p></li>
 <li><p>’metadata’ – dictionary containing the metadata tree</p></li>
 </ul>
 </p></li>
-<li><p><strong>enconding</strong> (<em>str</em><em>, </em><em>optional</em>) – The encoding used to write the content of the <code class="docutils literal notranslate"><span class="pre">rpl</span></code> file. The default
-encoding is <code class="docutils literal notranslate"><span class="pre">latin-1</span></code>. Different file encodings, such as <code class="docutils literal notranslate"><span class="pre">utf8</span></code> can be
-set via this argument.</p></li>
+<li><p><strong>encoding</strong> (<em>str</em><em>, </em><em>Default=&quot;latin-1&quot;</em>) – The encoding used to write the content of the file. Different file
+encodings, such as <code class="docutils literal notranslate"><span class="pre">&quot;utf8&quot;</span></code> can be set via this argument.</p></li>
 </ul>
 </dd>
 </dl>

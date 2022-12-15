@@ -435,7 +435,8 @@ software.</p>
 most processing operations in HyperSpy and numpy will result in 64-bit
 floats, this can result in 64-bit <code class="docutils literal notranslate"><span class="pre">.tiff</span></code> files, which are not always
 compatible with other imaging software.</p>
-<p>You can first change the dtype of the signal before saving:</p>
+<p>You can first change the dtype of the signal before saving (example using
+<a class="reference external" href="https://hyperspy.org">HyperSpy</a>):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span>
 <span class="go">dtype(&#39;float64&#39;)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">change_dtype</span><span class="p">(</span><span class="s1">&#39;float32&#39;</span><span class="p">)</span>

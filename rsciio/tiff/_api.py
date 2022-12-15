@@ -76,10 +76,10 @@ def file_writer(filename, signal, export_scale=True, extratags=[], **kwds):
     extratags: tuple, list of tuples, optional
         Save custom tags through the ``tifffile`` library. Must conform to a
         specific convention (see `tifffile documentation
-        <https://github.com/cgohlke/tifffile/#examples>`_ and example below).
+        <https://github.com/cgohlke/tifffile>`_ and example below).
     **kwds: optional
         Additional arguments to be passed to the ``imwrite`` function of the `tifffile library
-        <https://github.com/cgohlke/tifffile/#examples>`_.
+        <https://github.com/cgohlke/tifffile>`_.
 
     Examples
     --------
@@ -161,7 +161,7 @@ def file_reader(filename, lazy=False, force_read_resolution=False, **kwds):
         in the ``original_metadata`` of the signal object.
     **kwds: optional
         Additional arguments to be passed to the ``TiffFile`` class of the `tifffile library
-        <https://github.com/cgohlke/tifffile/#examples>`_.
+        <https://github.com/cgohlke/tifffile>`_.
 
     %s
 

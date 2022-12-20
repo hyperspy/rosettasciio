@@ -9,7 +9,7 @@ However, this format supports spectral maps and contains all relevant metadata.
 Therefore, it is a good alternative to the binary ``.l5s`` or ``.l6s`` formats
 in order to transfer data to python or other analysis software.
 
-If `LumiSpy <https://lumispy.org>`_ is installed, ``LumiSpectrum`` will be
+If `LumiSpy <https://lumispy.org>`_ is installed, ``Luminescence`` will be
 used as the ``signal_type``.
 
 When working with `HyperSpy <https://hyperspy.org>`_, a file can be read using

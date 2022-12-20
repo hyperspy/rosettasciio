@@ -40,6 +40,7 @@ big datasets is supported.
    ripple
    semper
    tiff
+   trivista
    tvips
    usid
    zspy

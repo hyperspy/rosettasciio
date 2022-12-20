@@ -1,0 +1,8 @@
+name: TriVista
+name_aliases: []
+description: 'Reads data from TriVista tvf files'
+full_support: False
+file_extensions: ['tvf', 'TVF']
+default_extension: 0
+writes: False
+non_uniform_axis: True

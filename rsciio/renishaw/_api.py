@@ -22,10 +22,17 @@
 # Renishaw wdf Raman spectroscopy file reader
 # Code inspired by Henderson, Alex DOI:10.5281/zenodo.495477
 
+# TODO: general:
+#   - check axes order (negative scale?, snake pattern?)
+#   - check time axis
+#   - revert signal axis + spectra when scale is negative?
+#   - metadata mapping
+#   - depth -> z-axis not in WMAP, but in ORGN instead
+#   -> refactor orgn/wmap check
+
 import logging
 import datetime
 from pathlib import Path
-from io import BytesIO
 from enum import IntEnum, Enum
 from copy import deepcopy
 
@@ -36,53 +43,19 @@ _logger = logging.getLogger(__name__)
 
 try:
     import PIL
-    from PIL import Image
-    from PIL.TiffImagePlugin import IFDRational
 except ImportError:
     PIL = None
+    _logger.warning("Pillow not installed. Cannot load whitelight image into metadata")
+else:
+    from PIL import Image, ImageDraw
+    from PIL.TiffImagePlugin import IFDRational
+    from io import BytesIO
 
-
-full_blockname_gwyddion = {
-    "WDF1": "FILE",
-    "DATA": "DATA",
-    "YLST": "YLIST",
-    "XLST": "XLIST",
-    "ORGN": "ORIGIN",
-    "TEXT": "COMMENT",
-    "WXDA": "WIREDATA",
-    "WXDB": "DATASETDATA",
-    "WXDM": "MEASUREMENT",
-    "WXCS": "CALIBRATION",
-    "WXIS": "INSTRUMENT",
-    "WMAP": "MAPAREA",
-    "WHTL": "WHITELIGHT",
-    "NAIL": "THUMBNAIL",
-    "MAP ": "MAP",
-    "CFAR": "CURVEFIT",
-    "DCLS": "COMPONENT",
-    "PCAR": "PCAR",
-    "MCRE": "EM",
-    "ZLDC": "ZELDAC",
-    "RCAL": "RESPONSECAL",
-    "CAP ": "CAP",
-    "WARP": "PROCESSING",
-    "WARA": "ANALYSIS",
-    "WLBL": "SPECTRUMLABELS",
-    "WCHK": "CHECKSUM",
-    "RXCD": "RXCALDATA",
-    "RXCF": "RXCALFIT",
-    "XCAL": "XCAL",
-    "SRCH": "SPECSEARCH",
-    "TEMP": "TEMPPROFILE",
-    "UNCV": "UNITCONVERT",
-    "ARPR": "ARPLATE",
-    "ELEC": "ELECSIGN",
-    "BKXL": "BKXLIST",
-    "AUX ": "AUXILARYDATA",
-    "CHLG": "CHANGELOG",
-    "SURF": "SURFACE",
-    "PSET": "STREAM_IS_PSET",
-}
+    def rational2float(v):
+        """Pillow<7.2.0 returns tuple, Pillow>=7.2.0 returns IFDRational"""
+        if not isinstance(v, IFDRational):
+            return v[0] / v[1]
+        return float(v)
 
 
 def convert_windowstime_to_datetime(wt):
@@ -91,18 +64,6 @@ def convert_windowstime_to_datetime(wt):
     return (base + delta).isoformat()
 
 
-# TODO: use lumispy for this?
-def convert_wl(wn):
-    """Convert wavenumber (cm^-1) to nm"""
-    try:
-        wl = 1 / (wn * 1e2) / 1e-9
-    except ZeroDivisionError:
-        wl = np.nan
-    return wl
-
-
-## time is handled differently
-## because it cannot be read with __read_numeric
 class MetadataTypeSingle(Enum):
     char = "c"
     uint8 = "?"
@@ -111,13 +72,19 @@ class MetadataTypeSingle(Enum):
     int64 = "w"
     float = "r"
     double = "q"
-    len_char = 1
-    len_uint8 = 1
-    len_int16 = 2
-    len_int32 = 4
-    len_int64 = 8
-    len_float = 4
-    len_double = 8
+    windows_filetime = "t"
+
+
+MetadataLengthSingle = {
+    "len_char": 1,
+    "len_uint8": 1,
+    "len_int16": 2,
+    "len_int32": 4,
+    "len_int64": 8,
+    "len_float": 4,
+    "len_double": 8,
+    "len_windows_filetime": 8,
+}
 
 
 class MetadataTypeMulti(Enum):
@@ -129,25 +96,27 @@ class MetadataTypeMulti(Enum):
 
 class MetadataFlags(IntEnum):
     normal = 0
-    array = 128
     compressed = 64
+    array = 128
 
 
 ## < specifies little endian
-class TypeNames(Enum):
-    char = "<c"
-    int8 = "<b"  # byte int
-    int16 = "<h"  # short int
-    int32 = "<i"  # int
-    int64 = "<l"  # long int
-    int128 = "<q"  # long long int
-    uint8 = "<B"  # unsigned byte int
-    uint16 = "<H"  # unsigned short int
-    uint32 = "<I"  # unsigned int
-    uint64 = "<L"  # unsigned long int
-    uint128 = "<Q"  # unsigned long long int
-    float = "<f"  # float (32)
-    double = "<d"  # double (64)
+TypeNames = {
+    "char": "<c",
+    "int8": "<b",  # byte int
+    "int16": "<h",  # short int
+    "int32": "<i",  # int
+    "int64": "<l",  # long int
+    "int128": "<q",  # long long int
+    "uint8": "<B",  # unsigned byte int
+    "uint16": "<H",  # unsigned short int
+    "uint32": "<I",  # unsigned int
+    "uint64": "<L",  # unsigned long int
+    "uint128": "<Q",  # unsigned long long int
+    "float": "<f",  # float (32)
+    "double": "<d",  # double (64)
+    "windows_filetime": "<L",  # same as uint64 -> no enum
+}
 
 
 class MeasurementType(IntEnum):
@@ -169,72 +138,90 @@ class ScanType(IntEnum):
     PointDetector = 8
 
 
-# TODO: check units/compare to gwyddion
-# possibly explicit mapping different to __str__
-## TODO: why is the wavenumber unit nm?
+## TODO: in testfiles maps have value 0. What does this mean? unspecified?
+## linescan is identified correctly (128),
+## but the flag is not necessary to identify a linescan
+## TODO: what is linefocus?
+## cases column_major vs alternating (vs row_major?) need to be covered
+class MapType(IntEnum):
+    randompoints = 1  # rectangle
+    column_major = 2  # x then y
+    alternating = 4  # snake pattern
+    linefocus_mapping = 8  # ?
+    inverted_rows = 16  # rows collected right to left (negative scale)
+    inverted_columns = 32  # columns collected bottom to top (negative scale)
+    surface_profile = 64  # Z data is non-regular (gwyddion)?
+    xyline = 128  # linescan -> x always contains data, y is 0
+
+
 class UnitType(IntEnum):
-    Arbitrary = 0
-    RamanShift = 1  # cm^-1 by default
-    Wavenumber = 2  # nm
-    Nanometre = 3
-    ElectronVolt = 4
-    Micron = 5  # same for EXIF units
-    Counts = 6
-    Electrons = 7
-    Millimetres = 8
-    Metres = 9
-    Kelvin = 10
-    Pascal = 11
-    Seconds = 12
-    Milliseconds = 13
-    Hours = 14
-    Days = 15
-    Pixels = 16
-    Intensity = 17
-    RelativeIntensity = 18
-    Degrees = 19
-    Radians = 20
-    Celsius = 21
-    Fahrenheit = 22
-    KelvinPerMinute = 23
-    FileTime = 24
-    Microseconds = 25
+    arbitrary = 0
+    raman_shift = 1  # cm^-1 by default
+    wavenumber = 2  # nm TODO: why call it wavenumber then?
+    nanometer = 3
+    electron_volt = 4
+    micrometer = 5  # same for EXIF units TODO: what does that mean?
+    counts = 6
+    electrons = 7
+    millimeter = 8
+    meter = 9
+    kelvin = 10
+    pascal = 11
+    seconds = 12
+    milliseconds = 13
+    hours = 14
+    days = 15
+    pixels = 16
+    intensity = 17
+    relative_intensity = 18
+    degrees = 19
+    radians = 20
+    celsius = 21
+    fahrenheit = 22
+    kelvin_per_minute = 23
+    windows_file_time = 24
+    microseconds = (
+        25  # different from gwyddion, see PR#39 streamhr rapide mode (py-wdf-reader)
+    )
 
     def __str__(self):
         """Rewrite the unit name output"""
         unit_str = dict(
-            Arbitrary="",
-            RamanShift="1/cm",  # cm^-1 by default
-            Wavenumber="nm",  # nm
-            Nanometre="nm",
-            ElectronVolt="eV",
-            Micron="µm",  # same for EXIF units
-            Counts="counts",
-            Electrons="electrons",
-            Millimetres="mm",
-            Metres="m",
-            Kelvin="K",
-            Pascal="Pa",
-            Seconds="s",
-            Milliseconds="ms",
-            Hours="h",
-            Days="d",
-            Pixels="px",
-            Intensity="",
-            RelativeIntensity="",
-            Degrees="°",
-            Radians="rad",
-            Celsius="°C",
-            Fahrenheit="°F",
-            KelvinPerMinute="K/min",
-            FileTime="s",  # FileTime use stamps and in relative second
+            arbitrary="",
+            raman_shift="1/cm",  # cm^-1 by default
+            wavenumber="nm",  # nm
+            nanometer="nm",
+            electron_volt="eV",
+            micrometer="µm",  # same for EXIF units
+            counts="counts",
+            electrons="electrons",
+            millimeter="mm",
+            meter="m",
+            kelvin="K",
+            pascal="Pa",
+            seconds="s",
+            milliseconds="ms",
+            hours="h",
+            days="d",
+            pixels="px",
+            intensity="",
+            relative_intensity="",
+            degrees="°",
+            radians="rad",
+            celsius="°C",
+            fahrenheit="°F",
+            kelvin_per_minute="K/min",
+            windows_file_time="ns",
+            microseconds="µs",
         )
         return unit_str[self.name]
 
 
+# TODO: spectral/frequency switched in gwyddion
+# used in ORGN/XLST
 class DataType(IntEnum):
     Arbitrary = 0
-    Frequency = 1
+    Frequency = 1  # DEPRECATED according to gwyddion
     Intensity = 2
     Spatial_X = 3
     Spatial_Y = 4
@@ -245,64 +232,96 @@ class DataType(IntEnum):
     Temperature = 9
     Pressure = 10
     Time = 11
-    Derived = 12
+    Derivative = 12
     Polarization = 13
-    FocusTrack = 14
-    RampRate = 15
-    Checksum = 16
-    Flags = 17
-    ElapsedTime = 18
+    FocusTrack_Z = 14
+    TempRampRate = 15
+    SpectrumDataChecksum = 16
+    BitFlags = 17
+    ElapsedTimeIntervales = 18
     Spectral = 19
     Mp_Well_Spatial_X = 22
     Mp_Well_Spatial_Y = 23
     Mp_LocationIndex = 24
     Mp_WellReference = 25
     EndMarker = 26
-    ExposureTime = 27
+    ExposureTime = (
+        27  # different from gwyddion, see PR#39 streamhr rapide mode (py-wdf-reader)
+    )
 
 
+# for wthl image
 class ExifTags(IntEnum):
-    """Customized EXIF TAGS"""
-
     # Standard EXIF TAGS
-    FocalPlaneXResolution = 0xA20E
-    FocalPlaneYResolution = 0xA20F
-    FocalPlaneResolutionUnit = 0xA210
+    ImageDescription = 0x10E  # 270
+    Make = 0x10F  # 271
+    ExifOffset = 0x8769  # 34665
+    FocalPlaneXResolution = 0xA20E  # 41486
+    FocalPlaneYResolution = 0xA20F  # 41487
+    FocalPlaneResolutionUnit = 0xA210  # 41488
     # Customized EXIF TAGS from Renishaw
-    FocalPlaneXYOrigins = 0xFEA0
-    FieldOfViewXY = 0xFEA1
+    FocalPlaneXYOrigins = 0xFEA0  # 65184
+    FieldOfViewXY = 0xFEA1  # 65185
+    Unknown = 0xFEA2  # 65186
 
 
 class WDFReader(object):
     """Reader for Renishaw(TM) WiRE Raman spectroscopy files (.wdf format)
 
     The wdf file format is separated into several DataBlocks, with starting 4-char
-    strings such as (incomplete list):
-    `WDF1`: File header for information
-    `DATA`: Spectra data
-    `XLST`: Data for X-axis of data, usually the Raman shift or wavelength
-    `YLST`: Data for Y-axis of data, possibly not important
-    `WMAP`: Information for mapping, e.g. StreamLine or StreamLineHR mapping
-    `MAP `: Mapping information(?)
-    `ORGN`: Data for stage origin
-    `TEXT`: Annotation text etc
-    `WXDA`: wiredata metadata
-    `WXDM`: measurement metadata (contains code???)
-    `ZLDC`: zero level and dark current metadata
-    `BKXL`: ?
+    strings:
+
+    fully parsed blocks:
+    `WDF1`: header, contains general information
+    `DATA`: Spectra data (intensity)
+    `XLST`: contains signal axis, usually the Raman shift or wavelength
+    `YLST`: ?
+    `WMAP`: Information for mapping
+    `MAP `: Mapping information(?), can exist multiple times
+    `ORGN`: Data for stage origin + other axes, important for series
+    `WXDA`: wiredata metadata, extra 1025 bytes at the end (null)
+    `WXDM`: measurement metadata (contains VBScript for data acquisition, can be compressed)
     `WXCS`: calibration metadata
     `WXIS`: instrument metadata
+    `WARP`: processing metadata(?), can exist multiple times
+    `ZLDC`: zero level and dark current metadata
     `WHTL`: White light image
+    `TEXT`: Annotation text etc
+
+    not parsed blocks, but present in testfiles:
+    `BKXL`: ?
+
+    not parsed because not present in testfiles (from gwyddion):
+    `WXDB`: datasetdata?
+    `NAIL`: Thumbnail?
+    `CFAR`: curvefit?
+    `DLCS`: component?
+    `PCAR`: pca?
+    `MCRE`: em?
+    `RCAL`: responsecall?
+    `CAP `: cap?
+    `WARA`: analysis?
+    `WLBL`: spectrumlabels?
+    `WCHK`: checksum?
+    `RXCD`: rxcaldata?
+    `RXCF`: rxcalfit?
+    `XCAL`: xcal?
+    `SRCH`: specsearch?
+    `TEMP`: tempprofile?
+    `UNCV`: unitconvert?
+    `ARPR`: arplate?
+    `ELEC`: elecsign?
+    `AUX`: auxilarydata?
+    `CHLG`: changelog?
+    `SURF`: surface?
+
 
     Following the block name, there are two indicators:
-    Block uid: uint32 (not used for anything)
+    Block uid: uint32 (set, when blocks exist multiple times)
     Block size: uint64
 
-    metadata is read from PSET blocks,
-    only the blocks where pset is present
-
-    Args:
-    f : File object (opened in binary read mode) of a wdf-file
+    Metadata is read from PSET blocks, whose structure is similar.
+    However, there are lots of unmatched keys/values for unknown reasons.
 
     Attributes:
     count (int) : Numbers of experiments (same type), can be smaller than capacity
@@ -313,80 +332,164 @@ class WDFReader(object):
     block_info (dict) : contains information about all located blocks
     """
 
-    def __init__(self, f):
+    _known_blocks = [
+        "WDF1",
+        "DATA",
+        "XLST",
+        "YLST",
+        "WMAP",
+        "MAP ",
+        "ORGN",
+        "WXDA",
+        "WXDM",
+        "WXCS",
+        "WXIS",
+        "WARP",
+        "ZLDC",
+        "WHTL",
+        "TEXT",
+        "BKXL",
+    ]
+
+    def __init__(self, f, filesize, use_uniform_signal_axis):
         self.file_obj = f
+        self.original_metadata = {}
+        self.metadata = {}
+
+        self.locate_all_blocks(filesize)
+        header_data = self._parse_WDF1()  # this needs to be parsed first,
+        ## because it contains sizes for ORGN, DATA (reshape), XLST, YLST
+
+        ## parse metadata blocks
+        self._parse_YLST(header_data["YLST_length"])
+        self._parse_metadata("WXIS")
+        self._parse_metadata("WXCS")
+        self._parse_metadata("WXDM")
+        # WXDA has extra 1025 bytes at the end (newline: n\x00\x00...)
+        self._parse_metadata("WXDA")
+        self._parse_metadata("ZLDC")
+        self._parse_metadata("WARP")
+        self._parse_metadata("WARP1")
+        self._parse_MAP("MAP ")
+        self._parse_MAP("MAP 1")
+        self._parse_TEXT()
+        self._parse_WHTL()
+
+        ## parse blocks with axes/data information
+        signal_dict = self._parse_XLST(
+            header_data["XLST_length"], use_uniform_signal_axis
+        )
+        nav_orgn = self._parse_ORGN(
+            header_orgn_count=header_data["origin_count"],
+            ncollected_spectra=header_data["count"],
+        )
+        nav_wmap = self._parse_WMAP()
+
+        nav_dict = self._compare_WMAP_ORGN(
+            nav_orgn, nav_wmap, header_data["measurement_type"]
+        )
+        self.axes = self._set_axes(signal_dict, nav_dict)
+        self.data = self._parse_DATA(
+            size=header_data["count"] * header_data["points_per_spectrum"]
+        )
+        self._reshape_data(header_data["count"], use_uniform_signal_axis)
 
     def __read_numeric(self, type, size=1, ret_array=False):
         """Reads the file_object at the current position as the specified type.
         Supported types: see TypeNames
         """
-        if type not in TypeNames._member_names_:
+        if type not in TypeNames.keys():
             raise ValueError(
-                f"Trying to read number with unknown dataformat."
-                f"Input: {type}"
-                f"Supported formats: {TypeNames._member_names_}"
+                f"Trying to read number with unknown dataformat.\n"
+                f"Input: {type}\n"
+                f"Supported formats: {list(TypeNames.keys())}"
             )
-        data = np.fromfile(self.file_obj, dtype=TypeNames[type].value, count=size)
+        data = np.fromfile(self.file_obj, dtype=TypeNames[type], count=size)
         ## convert unsigned ints to ints
-        ## because int + uint -> float -> problems with indexing
+        ## because int + uint = float -> problems with indexing
         if type in ["uint8", "uint16", "uint32", "uint64", "uint128"]:
             data = data.astype(int)
+        elif type == "windows_filetime":
+            data = list(map(convert_windowstime_to_datetime, data))
         if size == 1 and not ret_array:
             return data[0]
         else:
             return data
 
-    def __read_string(self, size, repr="utf8"):
-        """Reads the file_object at the current position as utf8 or ascii of length size."""
-        if repr not in ["utf8", "ascii"]:
-            raise ValueError(
-                f"Trying to read/decode string with invalid format."
-                f"Input: {repr}"
-                f"Supported formats: utf8, ascii"
-            )
-        return self.file_obj.read(size).decode(repr).replace("\x00", "")
-
-    def __read_hex(self, size):
-        """Reads the file_object at the current position as hex and converts the result to int."""
-        return int(self.file_obj.read(size).hex(), base=16)
+    def __read_utf8(self, size):
+        """Reads the file_object at the current position as utf8 of length size."""
+        ## TODO check if removing .replace("\x00", "") makes any difference
+        return self.file_obj.read(size).decode("utf8")
 
     def __locate_single_block(self, pos):
         """Get block information starting at pos."""
         self.file_obj.seek(pos)
-        block_name = self.__read_string(0x4)
-        if len(block_name) < 4:
-            raise EOFError
+        block_name = self.__read_utf8(0x4)
+        if block_name not in self._known_blocks:
+            _logger.debug(f"Unknown Block {block_name} encountered.")
         block_uid = self.__read_numeric("uint32")
         block_size = self.__read_numeric("uint64")
         return block_name, block_uid, block_size
 
-    ## TODO: maybe remove uid from blockinfo (just used in _debug_block_names)
-    ## TODO: already add Offsets.block_header to curpos in block_info?
-    def locate_all_blocks(self):
+    def locate_all_blocks(self, filesize):
         """Get information for all data blocks and store them inside self.block_info"""
         self.block_info = {}
         block_header_size = 16
         curpos = 0
-        finished = False
-        while not finished:
+        _logger.debug("ID     UID CURPOS   SIZE")
+        _logger.debug("--------------------------------------")
+        block_size = 0
+        while True:
+            curpos += block_size
+            if curpos == filesize:
+                break
+            elif curpos > filesize:
+                _logger.warning("Missing characters at the file end.")
+                break
+
             try:
                 block_name, block_uid, block_size = self.__locate_single_block(curpos)
-                self.block_info[block_name] = (block_uid, curpos + block_header_size, block_size)
-                curpos += block_size
             except EOFError:
-                finished = True
-        _logger.debug(self._debug_block_names())
+                _logger.warning("Unexpected extra characters at the file end.")
+                break
+            else:
+                _logger.debug(f"{block_name}   {block_uid}   {curpos:<{9}}{block_size}")
+                if block_name in self.block_info.keys():
+                    # both blocks should only differ in UID
+                    if self._check_block_equality(
+                        block_name, block_size, curpos + block_header_size
+                    ):
+                        continue
+                    else:
+                        block_name += str(block_uid)
 
-    def _debug_block_names(self):
-        retStr = "ID     GWYDDION_ID   UID CURPOS   SIZE\n"
-        retStr += "--------------------------------------\n"
-        total_size = 0
-        for key, val in self.block_info.items():
-            retStr += f"{key}   {full_blockname_gwyddion[key]:<{14}}{val[0]}   {val[1]:<{9}}{val[2]}\n"
-            total_size += val[2]
-        retStr += f"total size: {total_size}\n"
-        retStr += "--------------------------------------\n"
-        return retStr
+                self.block_info[block_name] = (
+                    curpos + block_header_size,
+                    block_size,
+                )
+        _logger.debug("--------------------------------------")
+        _logger.debug(f"filesize:    {filesize}")
+        _logger.debug(f"parsed size: {curpos}")
+
+    def _check_block_equality(self, name, size, pos):
+        _logger.debug(f"Multiple {name} entries in the file.")
+        pos1, size1 = self.block_info[name]
+        self.file_obj.seek(pos1)
+        read1 = self.file_obj.read(size1 - 16)
+        self.file_obj.seek(pos)
+        read2 = self.file_obj.read(size - 16)
+        if size1 != size:
+            _logger.debug(
+                f"{name} exists multiple times in the file with different sizes."
+            )
+            return False
+        elif read1 != read2:
+            _logger.debug(
+                f"{name} exists multiple times in the file with different content."
+            )
+            return False
+        else:
+            return True
 
     def _check_block_exists(self, block_name):
         if block_name in self.block_info.keys():
@@ -395,47 +498,78 @@ class WDFReader(object):
             _logger.debug(f"Block {block_name} not present in file.")
             return False
 
-    def _parse_metadata(self, id):
-        """Parse blocks with pset metadata."""
+    @staticmethod
+    def _check_block_size(name, error_area, expected_size, actual_size):
+        if expected_size < actual_size:
+            _logger.warning(
+                f"Unexpected size of {name} Block."
+                f"{error_area} may be read incorrectly."
+            )
+        elif expected_size > actual_size:
+            _logger.debug(
+                f"{name} is not read completely ({expected_size - actual_size} bytes missing)"
+            )
+
+    ## `MAP ` contains more information than just PSET,
+    ## TODO: what is this extra data? max peak?
+    def _parse_MAP(self, id):
         if not self._check_block_exists(id):
             return
-        wdf_stream_is_pset = int(0x54455350)
-        _, pos, _ = self.block_info[id]
+        pset_size = self._get_psetsize(id, warning=False)
+        _, block_size = self.block_info[id]
+        metadata = self.__read_pset_metadata(pset_size - 4)
+        npoints = self.__read_numeric("uint64")
+        ## 8 bytes from npoints + 4*npoints data
+        self._check_block_size(
+            id, "Metadata", block_size - 16, pset_size + 8 + 8 + 4 * npoints
+        )
+        metadata["npoints"] = npoints
+        metadata["data"] = self.__read_numeric("float", npoints)
+        self.original_metadata.update({id.replace(" ", ""): metadata})
+
+    def _parse_metadata(self, id):
+        """Parse blocks with pset metadata."""
+        _logger.debug(f"Parsing {id}")
+        pset_size = self._get_psetsize(id)
+        metadata = self.__read_pset_metadata(pset_size)
+        self.original_metadata.update({id: metadata})
+
+    def _get_psetsize(self, id, warning=True):
+        if not self._check_block_exists(id):
+            return 0
+        stream_is_pset = int(0x54455350)
+        pos, block_size = self.block_info[id]
         self.file_obj.seek(pos)
         is_pset = self.__read_numeric("uint32")
         pset_size = self.__read_numeric("uint32")
-        if is_pset != wdf_stream_is_pset:
-            _logger.debug("No PSET found in this Block -> cannot extract metadata.")
-            return
-        metadata = self.__read_pset_metadata(pset_size)
-        self.original_metadata.update({id: metadata})
+        if is_pset != stream_is_pset:
+            _logger.debug(f"No PSET found in {id} -> cannot extract metadata.")
+            return 0
+        if warning:
+            self._check_block_size(id, "Metadata", block_size - 16, pset_size + 8)
+        return pset_size
 
     def __read_pset_entry(self, type, size=1):
         if type in MetadataTypeSingle._value2member_map_:
             type_str = MetadataTypeSingle(type).name
-            type_len = MetadataTypeSingle[f"len_{type_str}"].value
+            type_len = MetadataLengthSingle[f"len_{type_str}"]
             result = self.__read_numeric(type_str, size=size)
             # _logger.debug(f"{type} = {result}")
             return result, type_len
         elif type in MetadataTypeMulti._value2member_map_:
             length = self.__read_numeric("uint32")
             # _logger.debug(f"type length: {length}")
+            ## TODO: read binary? does not occur in test files
             if type == "b":
                 # _logger.debug("BINARY ENCOUNTERED")
                 result = None
                 self.file_obj.read(length)
             elif type in ["u", "k"]:
-                result = self.__read_string(length)
+                result = self.__read_utf8(length)
                 # _logger.debug(result)
             elif type == "p":
                 result = self.__read_pset_metadata(length)
-            ## reading the length itself equals 4 bytes
-            return result, length + 4
-        elif type == "t":
-            length = 8
-            result = None
-            self.file_obj.read(length)
-            return result, length
+            return result, length + 4  ## reading the length itself equals 4 bytes
         else:
             raise ValueError(f"Unknown type: {type}")
 
@@ -443,18 +577,36 @@ class WDFReader(object):
         key_dict = {}
         value_dict = {}
         remaining = length
-        while remaining > 0:
-            type = self.__read_string(1)
-            flag = self.__read_hex(1)
+        ## >4 instead of >0, because key without result meaningless
+        ## this case happens for MAP (see _parse_MAP)
+        while remaining > 4:
+            type = self.__read_utf8(0x1)
+            flag = self.__read_numeric("uint8")
             key = self.__read_numeric("uint16")
             remaining -= 4
             # _logger.debug(f"type: {type}, flag: {flag}, key: {key}")
-            if flag != 0:
+            if flag == MetadataFlags.normal:
+                size = 1
+                result, num_bytes = self.__read_pset_entry(type, size)
+            elif flag == MetadataFlags.array:
+                if type not in MetadataTypeSingle._value2member_map_:
+                    _logger.debug(f"array flag, but not single dtype: {type}")
                 size = self.__read_numeric("uint32")
                 remaining -= 4
+                result, num_bytes = self.__read_pset_entry(type, size)
+            elif flag == MetadataFlags.compressed:
+                if type != "u":
+                    _logger.debug(f"compressed flag, but no string ({type})")
+                size = self.__read_numeric("uint32")
+                remaining -= 4
+                self.file_obj.seek(size, 1)  # move fp from current position
+                result = None
+                num_bytes = size
             else:
-                size = 1
-            result, num_bytes = self.__read_pset_entry(type, size)
+                _logger.warning(
+                    f"Invalid flag {flag} encountered when reading metadata."
+                )
+                break
             if type == "k":
                 key_dict[key] = result
             else:
@@ -466,7 +618,7 @@ class WDFReader(object):
                 retDict[key_dict.pop(key)] = value_dict.pop(key)
             except KeyError:
                 pass
-        ## TODO: why there are unmatched keys/values?
+        ## TODO: Why are there unmatched keys/values?
         # if len(key_dict) != 0:
         # _logger.debug(f"Unmatched keys: {key_dict}")
         # if len(value_dict) != 0:
@@ -477,7 +629,9 @@ class WDFReader(object):
         header_metadata = {}
         return_metadata = {}
         self.file_obj.seek(0)
-        _, pos, _ = self.block_info["WDF1"]
+        pos, size_block = self.block_info["WDF1"]
+        if size_block != 512:
+            _logger.warning("Unexpected header size. File might be invalid.")
         if pos != 16:
             _logger.warning("Unexpected start of file. File might be invalid.")
         self.file_obj.seek(pos)
@@ -496,12 +650,12 @@ class WDFReader(object):
         return_metadata["YLST_length"] = self.__read_numeric("uint32")
         return_metadata["XLST_length"] = self.__read_numeric("uint32")
         return_metadata["origin_count"] = self.__read_numeric("uint32")
-        header_metadata["app_name"] = self.__read_string(24)  # must be "WiRE"
+        header_metadata["app_name"] = self.__read_utf8(24)  # must be "WiRE"
         header_metadata["app_version"] = f"{self.__read_numeric('uint16')}"
         for _ in range(3):
             header_metadata["app_version"] += f"-{self.__read_numeric('uint16')}"
         header_metadata["scan_type"] = ScanType(self.__read_numeric("uint32")).name
-        header_metadata["measurement_type"] = MeasurementType(
+        return_metadata["measurement_type"] = MeasurementType(
             self.__read_numeric("uint32")
         ).name
         time_start_wt = self.__read_numeric("uint64")
@@ -511,8 +665,8 @@ class WDFReader(object):
         header_metadata["spectral_unit"] = UnitType(self.__read_numeric("uint32")).name
         header_metadata["laser_wavenumber"] = self.__read_numeric("float")
         unused2 = self.__read_numeric("uint64", size=6)
-        header_metadata["username"] = self.__read_string(32)
-        header_metadata["title"] = self.__read_string(160)
+        header_metadata["username"] = self.__read_utf8(32)
+        header_metadata["title"] = self.__read_utf8(160)
 
         header_metadata.update(return_metadata)
         self.original_metadata.update({"WDF1": header_metadata})
@@ -525,10 +679,6 @@ class WDFReader(object):
             )
         if return_metadata["points_per_spectrum"] != return_metadata["XLST_length"]:
             raise IOError("File contains ambiguous signal axis sizes.")
-
-        print(return_metadata["accumulation_count"])
-        print(return_metadata["count"])
-        print(return_metadata["points_per_spectrum"])
         return return_metadata
 
     def _parse_TEXT(self):
@@ -883,47 +1033,16 @@ class WDFReader(object):
         axes_sizes.append(signal_size)
         self.data = np.reshape(self.data, axes_sizes)
 
-    def read_file(self, use_uniform_signal_axis=True):
-        self.original_metadata = {}
-        self.metadata = {}
-        self.axes = {}
-
-        self.locate_all_blocks()
-        header_data = self._parse_WDF1()  # this needs to be parsed first,
-        ## because it contains sizes for ORGN, DATA (reshape), XLST, YLST
-
-        ## parse metadata blocks
-        self._parse_YLST(header_data["YLST_length"])
-        self._parse_metadata("WXIS")
-        self._parse_metadata("WXCS")
-        self._parse_metadata("WXDM")
-        self._parse_metadata("WXDA")
-        self._parse_metadata("WARP")
-        self._parse_metadata("ZLDC")
-
-        ## parse blocks with axes/data information
-        signal_dict = self._parse_XLST(
-            header_data["XLST_length"], use_uniform_signal_axis
-        )
-        nav_orgn = self._parse_ORGN(
-            header_orgn_count=header_data["origin_count"],
-            ncollected_spectra=header_data["count"],
-        )
-        nav_wmap = self._parse_WMAP()
-        self._parse_DATA(size=header_data["count"] * header_data["points_per_spectrum"])
-
-        self._check_consistency_wmap_origin(nav_orgn, nav_wmap)
-        self._set_axes(signal_dict, nav_orgn, nav_wmap)
-        self._reshape_data(header_data["count"], use_uniform_signal_axis)
-        # self._map_metadata()
-
 
 def file_reader(filename, lazy=False, use_uniform_signal_axis=True, **kwds):
-    _logger.debug(f"filesize in bytes: {Path(filename).stat().st_size}")
+    filesize = Path(filename).stat().st_size
     dictionary = {}
     with open(str(filename), "rb") as f:
-        wdf = WDFReader(f)
-        wdf.read_file(use_uniform_signal_axis=use_uniform_signal_axis)
+        wdf = WDFReader(
+            f,
+            filesize=filesize,
+            use_uniform_signal_axis=use_uniform_signal_axis,
+        )
 
         dictionary["data"] = wdf.data
         dictionary["axes"] = wdf.axes

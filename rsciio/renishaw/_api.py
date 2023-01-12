@@ -101,21 +101,20 @@ class MetadataFlags(IntEnum):
 
 
 ## < specifies little endian
+## no enum, because double entries
 TypeNames = {
-    "char": "<c",
-    "int8": "<b",  # byte int
-    "int16": "<h",  # short int
-    "int32": "<i",  # int
-    "int64": "<l",  # long int
-    "int128": "<q",  # long long int
-    "uint8": "<B",  # unsigned byte int
-    "uint16": "<H",  # unsigned short int
-    "uint32": "<I",  # unsigned int
-    "uint64": "<L",  # unsigned long int
-    "uint128": "<Q",  # unsigned long long int
-    "float": "<f",  # float (32)
-    "double": "<d",  # double (64)
-    "windows_filetime": "<L",  # same as uint64 -> no enum
+    "char": "<i1",  # same as int8, converted in __read_numeric
+    "int8": "<i1",  # byte int
+    "int16": "<i2",  # short int
+    "int32": "<i4",  # int
+    "int64": "<i8",  # long int
+    "uint8": "<u1",  # unsigned byte int
+    "uint16": "<u2",  # unsigned short int
+    "uint32": "<u4",  # unsigned int
+    "uint64": "<u8",  # unsigned long int
+    "float": "<f4",  # float (32)
+    "double": "<f8",  # double (64)
+    "windows_filetime": "<u8",  # same as uint64, converted in __read_numeric
 }
 
 
@@ -394,7 +393,7 @@ class WDFReader(object):
         )
         self._reshape_data(header_data["count"], use_uniform_signal_axis)
 
-    def __read_numeric(self, type, size=1, ret_array=False):
+    def __read_numeric(self, type, size=1, ret_array=False, convert=True):
         """Reads the file_object at the current position as the specified type.
         Supported types: see TypeNames
         """
@@ -407,10 +406,13 @@ class WDFReader(object):
         data = np.fromfile(self.file_obj, dtype=TypeNames[type], count=size)
         ## convert unsigned ints to ints
         ## because int + uint = float -> problems with indexing
-        if type in ["uint8", "uint16", "uint32", "uint64", "uint128"]:
-            data = data.astype(int)
-        elif type == "windows_filetime":
+        if type in ["uint8", "uint16", "uint32", "uint64"] and convert:
+            dt = "<i8"
+            data = data.astype(np.dtype(dt))
+        elif type == "windows_filetime" and convert:
             data = list(map(convert_windowstime_to_datetime, data))
+        elif type == "char" and convert:
+            data = list(map(chr, data))
         if size == 1 and not ret_array:
             return data[0]
         else:
@@ -636,9 +638,11 @@ class WDFReader(object):
             _logger.warning("Unexpected start of file. File might be invalid.")
         self.file_obj.seek(pos)
         header_metadata["flags"] = self.__read_numeric("uint64")
-        header_metadata["uuid"] = f"{self.__read_numeric('uint32')}"
+        header_metadata["uuid"] = f"{self.__read_numeric('uint32', convert=False)}"
         for _ in range(3):
-            header_metadata["uuid"] += f"-{self.__read_numeric('uint32')}"
+            header_metadata[
+                "uuid"
+            ] += f"-{self.__read_numeric('uint32', convert=False)}"
         unused1 = self.__read_numeric("uint32", size=3)
         ## TODO: what is ntracks, status, accumulation_count
         header_metadata["ntracks"] = self.__read_numeric("uint32")
@@ -651,9 +655,13 @@ class WDFReader(object):
         return_metadata["XLST_length"] = self.__read_numeric("uint32")
         return_metadata["origin_count"] = self.__read_numeric("uint32")
         header_metadata["app_name"] = self.__read_utf8(24)  # must be "WiRE"
-        header_metadata["app_version"] = f"{self.__read_numeric('uint16')}"
+        header_metadata[
+            "app_version"
+        ] = f"{self.__read_numeric('uint16', convert=False)}"
         for _ in range(3):
-            header_metadata["app_version"] += f"-{self.__read_numeric('uint16')}"
+            header_metadata[
+                "app_version"
+            ] += f"-{self.__read_numeric('uint16', convert=False)}"
         header_metadata["scan_type"] = ScanType(self.__read_numeric("uint32")).name
         return_metadata["measurement_type"] = MeasurementType(
             self.__read_numeric("uint32")
@@ -781,7 +789,9 @@ class WDFReader(object):
         for _ in range(origin_count):
             ax_tmp_dict = {}
             ## ignore first bit of dtype read (sometimes 0, sometimes 1 in testfiles)
-            dtype = DataType(self.__read_numeric("uint32") & ~(0b1 << 31)).name
+            dtype = DataType(
+                self.__read_numeric("uint32", convert=False) & ~(0b1 << 31)
+            ).name
             ax_tmp_dict["unit"] = str(UnitType(self.__read_numeric("uint32")))
             ax_tmp_dict["annotation"] = self.__read_utf8(0x10)
 

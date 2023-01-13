@@ -879,17 +879,13 @@ class WDFReader(object):
         for axis in orgn_data.keys():
             del nav_dict[axis]["annotation"]
             nav_dict[axis]["navigate"] = True
-            data = nav_dict[axis].pop("data")
-            data_unique = data[np.unique(data, return_index=True)[1]]
-            if data_unique.size <= 1:
+            data = np.unique(nav_dict[axis].pop("data"))
+            if data.size <= 1:
                 del nav_dict[axis]
                 continue
-            nav_dict[axis]["size"] = data_unique.size
-            offset_data, scale_data = polyfit(
-                np.arange(data_unique.size), data_unique, deg=1
-            )
-            nav_dict[axis]["offset"] = offset_data
-            nav_dict[axis]["scale"] = scale_data
+            nav_dict[axis]["size"] = data.size
+            nav_dict[axis]["offset"] = data[0]
+            nav_dict[axis]["scale"] = data[1] - data[0]
             nav_dict[axis]["name"] = axis[0]
         return nav_dict
 
@@ -1000,38 +996,6 @@ class WDFReader(object):
             except KeyError:
                 _logger.debug("Some keys in white light image header cannot be read!")
             else:
-                # ## TODO: check boundaries, seem small in image
-                # w_px = rational2float(w_px)
-                # h_px = rational2float(h_px)
-                # x0_img_micro = rational2float(x0_img_micro)
-                # y0_img_micro = rational2float(y0_img_micro)
-
-                # w_img_px = pil_img.width
-                # h_img_px = pil_img.height
-                # w_img_micro = rational2float(fov_xy[0])
-                # h_img_micro = rational2float(fov_xy[1])
-                # self.map_boundaries[dtype] = (min, max) from ORGN block
-                # left_micro, right_micro = self.map_boundaries[DataType.Spatial_X.name]
-                # bottom_micro, top_micro = self.map_boundaries[DataType.Spatial_Y.name]
-
-                # micro_in_px_x = w_img_px / w_img_micro
-                # micro_in_px_y = h_img_px / h_img_micro
-
-                # left_border_px = int(micro_in_px_x * (left_micro - x0_img_micro))
-                # right_border_px = int(micro_in_px_x * (right_micro - x0_img_micro))
-                # bottom_border_px = int(micro_in_px_y * (bottom_micro - y0_img_micro))
-                # top_border_px = int(micro_in_px_y * (top_micro - y0_img_micro))
-
-                # draw = ImageDraw.Draw(pil_img)
-                # draw.rectangle(
-                #     (
-                #         (left_border_px, bottom_border_px),
-                #         (right_border_px, top_border_px),
-                #     ),
-                #     width=2,
-                # )
-                # pil_img.show()
-
                 whtl_metadata["image"] = pil_img
                 whtl_metadata["FocalPlaneResolutionUnit"] = img_dimension_unit
                 whtl_metadata["FocalPlaneXResolution"] = w_px
@@ -1062,7 +1026,7 @@ class WDFReader(object):
                 "Axes sizes do not match data size.\n"
                 "Data is averaged over multiple collected spectra."
             )
-            self.data = np.mean(self.data.reshape(-1, ncollected_spectra), axis=1)
+            self.data = np.mean(self.data.reshape(ncollected_spectra, -1), axis=0)
 
         axes_sizes.append(signal_size)
         self.data = np.reshape(self.data, axes_sizes)

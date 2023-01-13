@@ -30,6 +30,8 @@ testfile_dir = (Path(__file__).parent / "renishaw_data").resolve()
 testfile_spec = (testfile_dir / "renishaw_test_spectrum.wdf").resolve()
 testfile_linescan = (testfile_dir / "renishaw_test_linescan.wdf").resolve()
 testfile_map = (testfile_dir / "renishaw_test_map.wdf").resolve()
+testfile_zscan = (testfile_dir / "renishaw_test_zscan.wdf").resolve()
+testfile_undefined = (testfile_dir / "renishaw_test_undefined.wdf").resolve()
 
 
 class TestSpec:
@@ -274,3 +276,72 @@ class TestMap:
             axes_manager[key].pop("is_binned", None)
 
         assert expected_axis == axes_manager
+
+
+class TestZscan:
+    @classmethod
+    def setup_class(cls):
+        cls.s = hs.load(
+            testfile_zscan,
+            reader="Renishaw",
+            use_uniform_signal_axis=True,
+        )
+
+    @classmethod
+    def teardown_class(cls):
+        del cls.s
+        gc.collect()
+
+    def test_axes(self):
+        axes_manager = self.s.axes_manager.as_dictionary()
+        assert len(axes_manager) == 2
+        z_axis = axes_manager.pop("axis-0")
+        scale = z_axis.pop("scale")
+        offset = z_axis.pop("offset")
+
+        expected_axis = {
+            "_type": "UniformDataAxis",
+            "name": "Z",
+            "units": "µm",
+            "navigate": True,
+            "is_binned": False,
+            "size": 40,
+        }
+
+        assert np.isclose(scale, 0.5)
+        assert np.isclose(offset, -10)
+        assert z_axis == expected_axis
+        assert axes_manager["axis-1"]["units"] == "1/cm"
+
+    def test_data(self):
+        np.testing.assert_allclose(self.s.inav[0].isig[:3].data, [0, 0, 0])
+        np.testing.assert_allclose(self.s.inav[0].isig[-3:].data, [0, 0, 0])
+        np.testing.assert_allclose(
+            self.s.inav[-1].isig[:3].data, [9.05664, -1.8113279, 1.8109605]
+        )
+        np.testing.assert_allclose(
+            self.s.inav[-1].isig[-3:].data, [4.365239, -1.4547517, 1.454424]
+        )
+
+
+class TestUndefined:
+    @classmethod
+    def setup_class(cls):
+        cls.s = hs.load(
+            testfile_undefined,
+            reader="Renishaw",
+            use_uniform_signal_axis=True,
+        )
+
+    @classmethod
+    def teardown_class(cls):
+        del cls.s
+        gc.collect()
+
+    def test_data(self):
+        np.testing.assert_allclose(
+            self.s.isig[:3].data, [262.752, 262.82877, 262.90552]
+        )
+        np.testing.assert_allclose(
+            self.s.isig[-3:].data, [349.3566, 349.45215, 349.54773]
+        )

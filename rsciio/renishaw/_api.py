@@ -27,8 +27,6 @@
 #   - check time axis
 #   - revert signal axis + spectra when scale is negative?
 #   - metadata mapping
-#   - depth -> z-axis not in WMAP, but in ORGN instead
-#   -> refactor orgn/wmap check
 
 import logging
 import datetime
@@ -125,6 +123,7 @@ class MeasurementType(IntEnum):
     Mapping = 3
 
 
+## testfiles: 2, 3, 4, 5, 8 missing
 class ScanType(IntEnum):
     Unspecified = 0
     Static = 1
@@ -237,7 +236,7 @@ class DataType(IntEnum):
     TempRampRate = 15
     SpectrumDataChecksum = 16
     BitFlags = 17
-    ElapsedTimeIntervales = 18
+    ElapsedTimeIntervals = 18
     Spectral = 19
     Mp_Well_Spatial_X = 22
     Mp_Well_Spatial_Y = 23
@@ -384,7 +383,7 @@ class WDFReader(object):
         )
         nav_wmap = self._parse_WMAP()
 
-        nav_dict = self._compare_WMAP_ORGN(
+        nav_dict = self._set_nav_axes(
             nav_orgn, nav_wmap, header_data["measurement_type"]
         )
         self.axes = self._set_axes(signal_dict, nav_dict)
@@ -530,10 +529,11 @@ class WDFReader(object):
         self.original_metadata.update({id.replace(" ", ""): metadata})
 
     def _parse_metadata(self, id):
-        """Parse blocks with pset metadata."""
         _logger.debug(f"Parsing {id}")
         pset_size = self._get_psetsize(id)
         metadata = self.__read_pset_metadata(pset_size)
+        if metadata is None:
+            _logger.warning(f"Invalid key in {id}")
         self.original_metadata.update({id: metadata})
 
     def _get_psetsize(self, id, warning=True):
@@ -608,7 +608,7 @@ class WDFReader(object):
                 _logger.warning(
                     f"Invalid flag {flag} encountered when reading metadata."
                 )
-                break
+                return None
             if type == "k":
                 key_dict[key] = result
             else:
@@ -708,7 +708,6 @@ class WDFReader(object):
 
     ## TODO: signal seems to be in reverse order, maybe revert this?
     def _parse_XLST(self, size, use_uniform_signal_axis=True):
-        """Parse XLST Block and extract signal axis information."""
         if not self._check_block_exists("XLST"):
             raise IOError(
                 "File contains no information on signal axis (XLST-Block missing)."
@@ -747,7 +746,6 @@ class WDFReader(object):
         }
 
     def _parse_XLST_or_YLST(self, name, size):
-        """Get information from XLST or YLST blocks"""
         pos, block_size = self.block_info[name.upper() + "LST"]
         if name.upper() == "X":
             self._check_block_size("XLST", "Signal axis", block_size - 16, 4 * size + 8)
@@ -757,7 +755,6 @@ class WDFReader(object):
         self.file_obj.seek(pos)
         type = DataType(self.__read_numeric("uint32")).name
         unit = str(UnitType(self.__read_numeric("uint32")))
-        ## TODO: why wavenumber unit is nm?
         if type == "Frequency":
             if unit == "1/cm":
                 type = "Wavenumber"
@@ -767,7 +764,6 @@ class WDFReader(object):
         return type, unit, data
 
     def _parse_ORGN(self, header_orgn_count, ncollected_spectra):
-        """Get information from OriginList"""
         if not self._check_block_exists("ORGN"):
             return {}
         orgn_nav = {}
@@ -792,7 +788,7 @@ class WDFReader(object):
             dtype = DataType(
                 self.__read_numeric("uint32", convert=False) & ~(0b1 << 31)
             ).name
-            ax_tmp_dict["unit"] = str(UnitType(self.__read_numeric("uint32")))
+            ax_tmp_dict["units"] = str(UnitType(self.__read_numeric("uint32")))
             ax_tmp_dict["annotation"] = self.__read_utf8(0x10)
 
             if dtype == DataType.Time.name:
@@ -818,7 +814,6 @@ class WDFReader(object):
         return orgn_nav
 
     def _parse_WMAP(self):
-        """Get information about mapping in StreamLine and StreamLineHR"""
         if not self._check_block_exists("WMAP"):
             return {}
         pos, block_size = self.block_info["WMAP"]
@@ -857,74 +852,106 @@ class WDFReader(object):
         self.original_metadata["WMAP"] = metadata
         return result
 
-    # TODO: warning when unexpected number of axis
-    # TODO: set index_in_array here?
-    # TODO: check time, exists when mapping
+    def _set_nav_axes(self, orgn_data, wmap_data, measurement_type):
+        if not self._compare_measurement_type_to_ORGN_WMAP(
+            orgn_data, wmap_data, measurement_type
+        ):
+            _logger.warning(
+                "Inconsistent MeasurementType and ORGN/WMAP Blocks cannot"
+                "Navigation axes may be set incorrectly."
+            )
+        nav_orgn = self._set_nav_via_ORGN(orgn_data)
+        nav_wmap = self._set_nav_via_WMAP(orgn_data, wmap_data)
+        if not self._compare_WMAP_ORGN(nav_wmap, nav_orgn):
+            _logger.warning(
+                "Inconsistent ORGN and WMAP Blocks."
+                "Navigation axes may be set incorrectly."
+            )
+        ## WMAP only exists for mapping
+        ## for linescan nav_orgn contains doubled axis -> unclear if X or Y
+        if measurement_type == "Mapping":
+            return nav_wmap
+        else:
+            return nav_orgn
+
     def _set_nav_via_ORGN(self, orgn_data):
         nav_dict = deepcopy(orgn_data)
         for axis in orgn_data.keys():
             del nav_dict[axis]["annotation"]
             nav_dict[axis]["navigate"] = True
-            data = np.unique(nav_dict[axis].pop("data"))
-            nav_dict[axis]["size"] = data.size
-            nav_dict[axis]["offset"] = data[0]
-            nav_dict[axis]["scale"] = data[1] - data[0]
-            nav_dict[axis]["units"] = nav_dict[axis].pop("unit")
+            data = nav_dict[axis].pop("data")
+            data_unique = data[np.unique(data, return_index=True)[1]]
+            if data_unique.size <= 1:
+                del nav_dict[axis]
+                continue
+            nav_dict[axis]["size"] = data_unique.size
+            offset_data, scale_data = polyfit(
+                np.arange(data_unique.size), data_unique, deg=1
+            )
+            nav_dict[axis]["offset"] = offset_data
+            nav_dict[axis]["scale"] = scale_data
             nav_dict[axis]["name"] = axis[0]
         return nav_dict
 
-    # TODO: something better than assert statements?
-    # TODO: better warning messages
-    # TODO: split up + rename function
-    def _compare_WMAP_ORGN(self, orgn_data, wmap_data, measurement_type):
-        if len(wmap_data) == 0:
-            if measurement_type == "Mapping":
-                _logger.warning("Mapping expected, but no WMAP Block.")
-            elif measurement_type == "Series":
-                if len(orgn_data) == 0:
-                    _logger.warning("Series expected, but no (X, Y, Z) data.")
-                    return {}
-            elif measurement_type == "Single":
-                if len(orgn_data) != 0:
-                    _logger.warning("Spectrum expected, but extra axis present.")
-            elif measurement_type == "Unspecified":
+    def _set_nav_via_WMAP(self, orgn_data, wmap_data):
+        nav_dict = deepcopy(wmap_data)
+        for axis in wmap_data.keys():
+            if axis not in orgn_data.keys():
                 _logger.warning(
-                    "Unspecified measurement type. May lead to incorrect results."
+                    f"Axis {wmap_data[axis]['name']} exists in WMAP, but not in ORGN."
+                    f"Invalid file format. Navigation axes may be loaded incorrectly."
                 )
-            else:
-                raise ValueError("Invalid measurement type.")
-            nav_dict = self._set_nav_via_ORGN(orgn_data)
-        else:
-            if len(orgn_data) > len(wmap_data):
-                _logger.warning("Inconsistent ORGN and WMAP Blocks.")
-            if measurement_type != "Mapping":
-                _logger.warning("No Mapping expected, but WMAP Block exists.")
-            nav_dict = deepcopy(wmap_data)
-            for axis in wmap_data.keys():
-                if axis not in orgn_data.keys():
-                    _logger.warning("Inconsistent ORGN and WMAP Blocks.")
-                nav_dict[axis]["navigate"] = True
-                nav_dict[axis]["units"] = orgn_data[axis]["unit"]
-                offset = wmap_data[axis]["offset"]
-                scale = wmap_data[axis]["scale"]
-                size = wmap_data[axis]["size"]
-                data = orgn_data[axis]["data"]
-                # TODO: why not just np.unique(data)?
-                data_unique = data[np.unique(data, return_index=True)[1]]
-                offset_data, scale_data = polyfit(
-                    np.arange(data_unique.size), data_unique, deg=1
-                )
-                try:
-                    assert data_unique.size == size
-                    assert np.isclose(offset, data[0])
-                    assert np.isclose(offset, offset_data)
-                    assert np.isclose(scale, scale_data)
-                    assert np.isclose(scale, data_unique[1] - data_unique[0])
-                except AssertionError:
-                    _logger.warning("Inconsistent ORGN and WMAP Blocks.")
+                continue
+            nav_dict[axis]["navigate"] = True
+            nav_dict[axis]["units"] = orgn_data[axis]["units"]
         return nav_dict
 
-    # TODO: restructure setting index in array, maybe in compare WMAP_ORGN
+    def _compare_WMAP_ORGN(self, wmap_nav, orgn_nav):
+        ## ORGN may contain extra axes (i.e. X and Y doubled for linescan)
+        ## -> comparison only in 1 direction
+        is_valid = True
+        for axis in wmap_nav:
+            wmap_ax = wmap_nav[axis]
+            if axis not in orgn_nav.keys():
+                ## warning message in _set_nav_via_WMAP
+                continue
+            orgn_ax = orgn_nav[axis]
+            close_offset = np.isclose(wmap_ax["offset"], orgn_ax["offset"])
+            close_scale = np.isclose(wmap_ax["scale"], orgn_ax["scale"])
+            same_size = wmap_ax["size"] == orgn_ax["size"]
+            is_valid = is_valid and close_offset and close_scale and same_size
+        return is_valid
+
+    def _compare_measurement_type_to_ORGN_WMAP(
+        self, orgn_data, wmap_data, measurement_type
+    ):
+        no_wmap = len(wmap_data) == 0
+        no_orgn = len(orgn_data) == 0
+
+        if (not no_wmap) and measurement_type != "Mapping":
+            _logger.warning("No Mapping expected, but WMAP Block exists.")
+            return False
+
+        if measurement_type == "Mapping":
+            if no_wmap:
+                _logger.warning("Mapping expected, but no WMAP Block.")
+                return False
+        elif measurement_type == "Series":
+            if no_orgn:
+                _logger.warning("Series expected, but no (X, Y, Z) data.")
+                return False
+        elif measurement_type == "Single":
+            if not no_orgn:
+                _logger.warning("Spectrum expected, but extra axis present.")
+                return False
+        elif measurement_type == "Unspecified":
+            _logger.warning(
+                "Unspecified measurement type. May lead to incorrect results."
+            )
+        else:
+            raise ValueError("Invalid measurement type.")
+        return True
+
     def _set_axes(self, signal_dict, nav_dict):
         if "Y-axis" in nav_dict.keys():
             nav_dict["Y-axis"]["index_in_array"] = 0
@@ -934,6 +961,7 @@ class WDFReader(object):
             if "X-axis" in nav_dict.keys():
                 nav_dict["X-axis"]["index_in_array"] = 0
 
+        ## only appears for Z-scan
         if "Z-axis" in nav_dict.keys():
             nav_dict["Z-axis"]["index_in_array"] = 0
 
@@ -944,10 +972,6 @@ class WDFReader(object):
         return sorted(axes.values(), key=lambda item: item["index_in_array"])
 
     def _parse_WHTL(self):
-        """Extract the white-light JPEG image
-        The size of while-light image is coded in its EXIF
-        Use PIL to parse the EXIF information
-        """
         if not self._check_block_exists("WHTL"):
             return
         pos, size = self.block_info["WHTL"]

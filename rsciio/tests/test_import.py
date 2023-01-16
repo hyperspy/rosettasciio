@@ -115,6 +115,10 @@ def test_dir_plugins():
 
     assert dir(dens) == ["file_reader"]
 
+    from rsciio import edax
+
+    assert dir(edax) == ["file_reader"]
+
     from rsciio import fei
 
     assert dir(fei) == ["file_reader"]

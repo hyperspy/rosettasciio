@@ -24,6 +24,12 @@ import os
 import logging
 import numpy as np
 
+from rsciio.docstrings import (
+    FILENAME_DOC,
+    LAZY_DOC,
+    ENDIANESS_DOC,
+    RETURNS_DOC,
+)
 from rsciio.utils.tools import sarray2dict
 from rsciio.utils.elements import atomic_number2name
 
@@ -39,8 +45,7 @@ def get_spd_dtype_list(endianess="<"):
     """
     Get the data type list for an SPD map.
     Further information about the file format is available `here
-    <https://github.com/hyperspy/hyperspy/
-    files/29505/SpcMap-spd.file.format.pdf>`__.
+    <https://github.com/hyperspy/rosettasciio/raw/main/docs/file_specification/edax/SpcMap-spd.file.format.pdf>`__.
 
     Table of header tags:
      - tag: 16 byte char array;    *File ID tag ("MAPSPECTRA_DATA")*
@@ -57,7 +62,8 @@ def get_spd_dtype_list(endianess="<"):
 
     Parameters
     ----------
-    endianess : byte-order used to read the data
+    endianess : char 
+        Byte-order used to read the data.
 
     Returns
     -------
@@ -93,9 +99,9 @@ def __get_spc_header(f, endianess, load_all_spc):
         already opened with ``open()``)
     endianess : char
         Byte-order of data to read
-    load_all_spc : bool
-        Switch to control if all of the .spc header is read, or just the parts
-        relevant to HyperSpy
+    load_all_spc : bool, Default=False
+        Switch to control whether the complete .spc header is read, or just the
+        important parts for import into HyperSpy.
 
     Returns
     -------
@@ -123,7 +129,7 @@ def get_spc_dtype_list(load_all=False, endianess="<", version=0.61):
     """
     Get the data type list for an SPC spectrum.
     Further information about the file format is available `here
-    <https://github.com/hyperspy/hyperspy/files/29506/SPECTRUM-V70.pdf>`__.
+    <https://github.com/hyperspy/rosettasciio/raw/main/docs/file_specification/edax/SPECTRUM-V70.pdf>`__.
 
     Parameters
     ----------
@@ -524,7 +530,7 @@ def get_ipr_dtype_list(endianess="<", version=333):
     """
     Get the data type list for an IPR image description file.
     Further information about the file format is available `here
-    <https://github.com/hyperspy/hyperspy/files/29507/ImageIPR.pdf>`__.
+    <https://github.com/hyperspy/rosettasciio/raw/main/docs/file_specification/edax/ImageIPR.pdf>`__.
 
     Table of header tags:
 
@@ -682,27 +688,22 @@ def _add_spc_metadata(metadata, spc_header):
     return metadata
 
 
-def spc_reader(filename, endianess="<", load_all_spc=False, **kwargs):
+def spc_reader(filename, lazy=False, endianess="<", load_all_spc=False, **kwargs):
     """
     Read data from an SPC spectrum specified by filename.
 
     Parameters
     ----------
-    filename : str
-        Name of SPC file to read
-    endianess : char
-        Byte-order of data to read
-    load_all_spc : bool
-        Switch to control if all of the .spc header is read, or just the
-        important parts for import into HyperSpy
+    %s
+    %s
+    %s
+    load_all_spc : bool, Default=False
+        Switch to control whether the complete .spc header is read, or just the
+        important parts for import into HyperSpy.
     **kwargs
         Remaining arguments are passed to the Numpy ``memmap`` function
 
-    Returns
-    -------
-    list
-        list with dictionary of signal information to be passed back to
-        hyperspy.io.load_with_reader
+    %s
     """
     with open(filename, "rb") as f:
         _logger.debug(" Reading {}".format(filename))
@@ -715,7 +716,6 @@ def spc_reader(filename, endianess="<", load_all_spc=False, **kwargs):
         data_offset = original_metadata["spc_header"]["dataStart"]
 
         mode = kwargs.pop("mode", "c")
-        lazy = kwargs.pop("lazy", False)
         if lazy:
             mode = "r"
 
@@ -759,8 +759,12 @@ def spc_reader(filename, endianess="<", load_all_spc=False, **kwargs):
     ]
 
 
+spc_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, RETURNS_DOC)
+
+
 def spd_reader(
     filename,
+    lazy=False,
     endianess="<",
     spc_fname=None,
     ipr_fname=None,
@@ -772,10 +776,9 @@ def spd_reader(
 
     Parameters
     ----------
-    filename : str
-        Name of SPD file to read
-    endianess : char
-        Byte-order of data to read
+    %s
+    %s
+    %s
     spc_fname : None or str
         Name of file from which to read the spectral calibration. If data
         was exported fully from EDAX TEAM software, an .spc file with the
@@ -790,17 +793,13 @@ def spd_reader(
         If `None`, the default filename will be searched for.
         Otherwise, the name of the .ipr file to use for spatial calibration
         can be explicitly given as a string.
-    load_all_spc : bool
-        Switch to control if all of the .spc header is read, or just the
-        important parts for import into HyperSpy
+    load_all_spc : bool, Default=False
+        Switch to control whether the complete .spc header is read, or just the
+        important parts for import into HyperSpy.
     **kwargs
-        Remaining arguments are passed to the Numpy ``memmap`` function
+        Remaining arguments are passed to the Numpy ``memmap`` function.
 
-    Returns
-    -------
-    list
-        list with dictionary of signal information to be passed back to
-        hyperspy.io.load_with_reader
+    %s
     """
     with open(filename, "rb") as f:
         spd_header = np.fromfile(f, dtype=get_spd_dtype_list(endianess), count=1)
@@ -815,7 +814,6 @@ def spd_reader(
         data_type = {"1": "u1", "2": "u2", "4": "u4"}[
             str(original_metadata["spd_header"]["countBytes"])
         ]
-        lazy = kwargs.pop("lazy", False)
         mode = kwargs.pop("mode", "c")
         if lazy:
             mode = "r"
@@ -952,29 +950,50 @@ def spd_reader(
     ]
 
 
-def file_reader(filename, record_by="spectrum", endianess="<", **kwargs):
+spd_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, RETURNS_DOC)
+
+
+def file_reader(filename, lazy=False, endianess="<", **kwargs):
     """
+    Reads ``.spc`` (spectrum) or ``.spd`` (spectrum image) files from EDAX
+    Genesis or TEAMS software.
 
     Parameters
     ----------
-    filename : str
-        Name of file to read
-    record_by : str
-        EDAX EDS data is always recorded by 'spectrum', so this parameter
-        is not used
-    endianess : char
-        Byte-order of data to read
+    %s
+    %s
+    %s
+    load_all_spc : bool, Default=False
+        Switch to control whether the complete .spc header is read, or just the
+        important parts for import into HyperSpy.
+    spc_fname : None or str
+        For spd files only.
+        Name of file from which to read the spectral calibration. If data
+        was exported fully from EDAX TEAM software, an .spc file with the
+        same name as the .spd should be present.
+        If `None`, the default filename will be searched for.
+        Otherwise, the name of the .spc file to use for calibration can
+        be explicitly given as a string.
+    ipr_fname : None or str
+        For spd files only.
+        Name of file from which to read the spatial calibration. If data
+        was exported fully from EDAX TEAM software, an .ipr file with the
+        same name as the .spd (plus a "_Img" suffix) should be present.
+        If `None`, the default filename will be searched for.
+        Otherwise, the name of the .ipr file to use for spatial calibration
+        can be explicitly given as a string.
     **kwargs
-        Additional keyword arguments supplied to the readers
+        Remaining arguments are passed to the Numpy ``memmap`` function.
 
-    Returns
-    -------
-
+    %s
     """
     ext = os.path.splitext(filename)[1][1:]
     if ext in spd_extensions:
-        return spd_reader(filename, endianess, **kwargs)
+        return spd_reader(filename, lazy, endianess, **kwargs)
     elif ext in spc_extensions:
-        return spc_reader(filename, endianess, **kwargs)
+        return spc_reader(filename, lazy, endianess, **kwargs)
     else:
         raise IOError("Did not understand input file format.")
+
+
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, RETURNS_DOC)

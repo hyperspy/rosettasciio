@@ -119,6 +119,10 @@ def test_dir_plugins():
 
     assert dir(edax) == ["file_reader"]
 
+    from rsciio import empad
+
+    assert dir(empad) == ["file_reader"]
+
     from rsciio import fei
 
     assert dir(fei) == ["file_reader"]

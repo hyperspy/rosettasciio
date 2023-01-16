@@ -3,13 +3,14 @@
 Renishaw
 --------
 
-Reader for spectroscopy data saved using Renishaw's WIRE software.
+Reader for spectroscopy data saved using Renishaw's WiRE software.
 Currently, RosettaSciIO can only read the ``.wdf`` format from Renishaw.
 
-When working with `HyperSpy <https://hyperspy.org>`_, a file can be read using
-the following code:
+If `LumiSpy <https://lumispy.org>`_ is installed, ``Luminescence`` will be
+used as the ``signal_type``.
 
-.. code-block:: python
+API functions
+^^^^^^^^^^^^^
 
-    >>> import hyperspy.api as hs
-    >>> sig = hs.load("file.wdf")
+.. automodule:: rsciio.renishaw
+   :members:

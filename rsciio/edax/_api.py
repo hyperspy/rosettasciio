@@ -62,7 +62,7 @@ def get_spd_dtype_list(endianess="<"):
 
     Parameters
     ----------
-    endianess : char 
+    endianess : char
         Byte-order used to read the data.
 
     Returns

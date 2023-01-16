@@ -22,7 +22,7 @@ import xml.etree.ElementTree as ET
 import numpy as np
 import logging
 
-from rsciio.docstrings import (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 from rsciio.utils.tools import _UREG
 from rsciio.utils.tools import convert_xml_to_dict
 
@@ -103,7 +103,7 @@ def file_reader(filename, lazy=False, **kwds):
     ----------
     %s
     %s
-    
+
     %s
     """
     om, info = _parse_xml(filename)

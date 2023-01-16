@@ -115,6 +115,10 @@ def test_dir_plugins():
 
     assert dir(dens) == ["file_reader"]
 
+    from rsciio import fei
+
+    assert dir(fei) == ["file_reader"]
+
     from rsciio import image
 
     assert dir(image) == ["file_reader", "file_writer"]

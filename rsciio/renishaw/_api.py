@@ -30,6 +30,7 @@
 
 import logging
 import datetime
+import importlib.util
 from pathlib import Path
 from enum import IntEnum, Enum
 from copy import deepcopy
@@ -56,10 +57,27 @@ else:
         return float(v)
 
 
+def _convert_float(input):
+    """Handle None-values when converting strings to float."""
+    if input is None:
+        return None  # pragma: no cover
+    else:
+        return float(input)
+
+
+def _remove_none_from_dict(dict_in):
+    """Recursive removal of None-values from a dictionary."""
+    for key, value in list(dict_in.items()):
+        if isinstance(value, dict):
+            _remove_none_from_dict(value)
+        elif value is None:
+            del dict_in[key]
+
+
 def convert_windowstime_to_datetime(wt):
     base = datetime.datetime(1601, 1, 1, 0, 0, 0, 0)
     delta = datetime.timedelta(microseconds=wt / 10)
-    return (base + delta).isoformat()
+    return (base + delta).isoformat("#", "seconds")
 
 
 class MetadataTypeSingle(Enum):
@@ -349,10 +367,11 @@ class WDFReader(object):
         "BKXL",
     ]
 
-    def __init__(self, f, filesize, use_uniform_signal_axis):
-        self.file_obj = f
+    def __init__(self, f, filesize, filename, use_uniform_signal_axis):
+        self._file_obj = f
+        self._filename = filename
         self.original_metadata = {}
-        self.metadata = {}
+        self._block_info = {}
 
         self.locate_all_blocks(filesize)
         header_data = self._parse_WDF1()  # this needs to be parsed first,
@@ -391,6 +410,7 @@ class WDFReader(object):
             size=header_data["count"] * header_data["points_per_spectrum"]
         )
         self._reshape_data(header_data["count"], use_uniform_signal_axis)
+        self.metadata = self.map_metadata()
 
     def __read_numeric(self, type, size=1, ret_array=False, convert=True):
         """Reads the file_object at the current position as the specified type.
@@ -402,7 +422,7 @@ class WDFReader(object):
                 f"Input: {type}\n"
                 f"Supported formats: {list(TypeNames.keys())}"
             )
-        data = np.fromfile(self.file_obj, dtype=TypeNames[type], count=size)
+        data = np.fromfile(self._file_obj, dtype=TypeNames[type], count=size)
         ## convert unsigned ints to ints
         ## because int + uint = float -> problems with indexing
         if type in ["uint8", "uint16", "uint32", "uint64"] and convert:
@@ -418,13 +438,13 @@ class WDFReader(object):
             return data
 
     def __read_utf8(self, size):
-        """Reads the file_object at the current position as utf8 of length size."""
-        ## TODO check if removing .replace("\x00", "") makes any difference
-        return self.file_obj.read(size).decode("utf8")
+        """Reads the file_object at the current position as utf8 of length size.
+        Removes NULL characters."""
+        return self._file_obj.read(size).decode("utf8").replace("\x00", "")
 
     def __locate_single_block(self, pos):
         """Get block information starting at pos."""
-        self.file_obj.seek(pos)
+        self._file_obj.seek(pos)
         block_name = self.__read_utf8(0x4)
         if block_name not in self._known_blocks:
             _logger.debug(f"Unknown Block {block_name} encountered.")
@@ -434,7 +454,7 @@ class WDFReader(object):
 
     def locate_all_blocks(self, filesize):
         """Get information for all data blocks and store them inside self.block_info"""
-        self.block_info = {}
+        self._block_info = {}
         block_header_size = 16
         curpos = 0
         _logger.debug("ID     UID CURPOS   SIZE")
@@ -455,7 +475,7 @@ class WDFReader(object):
                 break
             else:
                 _logger.debug(f"{block_name}   {block_uid}   {curpos:<{9}}{block_size}")
-                if block_name in self.block_info.keys():
+                if block_name in self._block_info.keys():
                     # both blocks should only differ in UID
                     if self._check_block_equality(
                         block_name, block_size, curpos + block_header_size
@@ -464,7 +484,7 @@ class WDFReader(object):
                     else:
                         block_name += str(block_uid)
 
-                self.block_info[block_name] = (
+                self._block_info[block_name] = (
                     curpos + block_header_size,
                     block_size,
                 )
@@ -474,11 +494,11 @@ class WDFReader(object):
 
     def _check_block_equality(self, name, size, pos):
         _logger.debug(f"Multiple {name} entries in the file.")
-        pos1, size1 = self.block_info[name]
-        self.file_obj.seek(pos1)
-        read1 = self.file_obj.read(size1 - 16)
-        self.file_obj.seek(pos)
-        read2 = self.file_obj.read(size - 16)
+        pos1, size1 = self._block_info[name]
+        self._file_obj.seek(pos1)
+        read1 = self._file_obj.read(size1 - 16)
+        self._file_obj.seek(pos)
+        read2 = self._file_obj.read(size - 16)
         if size1 != size:
             _logger.debug(
                 f"{name} exists multiple times in the file with different sizes."
@@ -493,7 +513,7 @@ class WDFReader(object):
             return True
 
     def _check_block_exists(self, block_name):
-        if block_name in self.block_info.keys():
+        if block_name in self._block_info.keys():
             return True
         else:
             _logger.debug(f"Block {block_name} not present in file.")
@@ -511,13 +531,100 @@ class WDFReader(object):
                 f"{name} is not read completely ({expected_size - actual_size} bytes missing)"
             )
 
+    def _map_general_md(self):
+        general = {}
+        general["title"] = self.original_metadata["WDF1"].get("title")
+        general["original_filename"] = self._filename
+        try:
+            date, time = self.original_metadata["WDF1"]["time_start"].split("#")
+        except KeyError:
+            pass
+        else:
+            general["date"] = date
+            general["time"] = time
+        return general
+
+    def _map_signal_md(self):
+        signal = {}
+        if importlib.util.find_spec("lumispy") is None:
+            _logger.warning(
+                "Cannot find package lumispy, using BaseSignal as signal_type."
+            )
+            signal["signal_type"] = ""
+        else:
+            signal["signal_type"] = "Luminescence"  # pragma: no cover
+
+        try:
+            quantity_unit = self.original_metadata["WDF1"].get("quantity_unit")
+        except KeyError:
+            signal["quantity"] = "Intensity"
+        else:
+            signal["quantity"] = f"Intensity ({quantity_unit.capitalize()})"
+        return signal
+
+    def _map_laser_md(self):
+        laser = {}
+        laser_original_md = self.original_metadata["WXCS"].get("Lasers")
+        if laser_original_md is None:
+            return laser
+        if len(laser_original_md) != 1:
+            return laser
+        laser_wavenumber = next(iter(laser_original_md.values())).get("Wavenumber")
+        laser["wavelength"] = 1e7 / _convert_float(laser_wavenumber)
+        return laser
+
+    def _map_spectrometer_md(self):
+        spectrometer = {"Grating": {}}
+        gratings_original_md = self.original_metadata["WXCS"].get("Gratings")
+        if gratings_original_md is None:
+            return spectrometer
+        if len(gratings_original_md) != 1:
+            return spectrometer
+        skip_lvl_dict = next(iter(gratings_original_md.values()))
+        for v in skip_lvl_dict.values():
+            if isinstance(v, dict):
+                groove_density = v.get("Groove Density (lines/mm)")
+        spectrometer["Grating"]["groove_density"] = _convert_float(groove_density)
+        return spectrometer
+
+    def _map_detector_md(self):
+        detector = {}
+        detector["detector_type"] = "CCD"
+        ccd_original_metadata = self.original_metadata["WXCS"].get("CCD")
+        if ccd_original_metadata is None:
+            return detector
+        detector["model"] = ccd_original_metadata.get("CCD")
+        detector["temperature"] = _convert_float(
+            ccd_original_metadata.get("Target temperature")
+        )
+        return detector
+
+    def map_metadata(self):
+        general = self._map_general_md()
+        signal = self._map_signal_md()
+        detector = self._map_detector_md()
+        laser = self._map_laser_md()
+        spectrometer = self._map_spectrometer_md()
+
+        metadata = {
+            "General": general,
+            "Signal": signal,
+            "Acquisition_instrument": {
+                "Laser": laser,
+                "Detector": detector,
+                "Spectrometer": spectrometer,
+            },
+        }
+        _remove_none_from_dict(metadata)
+        return metadata
+
     ## `MAP ` contains more information than just PSET,
     ## TODO: what is this extra data? max peak?
     def _parse_MAP(self, id):
         if not self._check_block_exists(id):
             return
         pset_size = self._get_psetsize(id, warning=False)
-        _, block_size = self.block_info[id]
+        _, block_size = self._block_info[id]
         metadata = self.__read_pset_metadata(pset_size - 4)
         npoints = self.__read_numeric("uint64")
         ## 8 bytes from npoints + 4*npoints data
@@ -540,8 +647,8 @@ class WDFReader(object):
         if not self._check_block_exists(id):
             return 0
         stream_is_pset = int(0x54455350)
-        pos, block_size = self.block_info[id]
-        self.file_obj.seek(pos)
+        pos, block_size = self._block_info[id]
+        self._file_obj.seek(pos)
         is_pset = self.__read_numeric("uint32")
         pset_size = self.__read_numeric("uint32")
         if is_pset != stream_is_pset:
@@ -565,7 +672,7 @@ class WDFReader(object):
             if type == "b":
                 # _logger.debug("BINARY ENCOUNTERED")
                 result = None
-                self.file_obj.read(length)
+                self._file_obj.read(length)
             elif type in ["u", "k"]:
                 result = self.__read_utf8(length)
                 # _logger.debug(result)
@@ -601,7 +708,7 @@ class WDFReader(object):
                     _logger.debug(f"compressed flag, but no string ({type})")
                 size = self.__read_numeric("uint32")
                 remaining -= 4
-                self.file_obj.seek(size, 1)  # move fp from current position
+                self._file_obj.seek(size, 1)  # move fp from current position
                 result = None
                 num_bytes = size
             else:
@@ -630,13 +737,13 @@ class WDFReader(object):
     def _parse_WDF1(self):
         header_metadata = {}
         return_metadata = {}
-        self.file_obj.seek(0)
-        pos, size_block = self.block_info["WDF1"]
+        self._file_obj.seek(0)
+        pos, size_block = self._block_info["WDF1"]
         if size_block != 512:
             _logger.warning("Unexpected header size. File might be invalid.")
         if pos != 16:
             _logger.warning("Unexpected start of file. File might be invalid.")
-        self.file_obj.seek(pos)
+        self._file_obj.seek(pos)
         header_metadata["flags"] = self.__read_numeric("uint64")
         header_metadata["uuid"] = f"{self.__read_numeric('uint32', convert=False)}"
         for _ in range(3):
@@ -670,7 +777,7 @@ class WDFReader(object):
         header_metadata["time_start"] = convert_windowstime_to_datetime(time_start_wt)
         time_end_wt = self.__read_numeric("uint64")
         header_metadata["time_end"] = convert_windowstime_to_datetime(time_end_wt)
-        header_metadata["spectral_unit"] = UnitType(self.__read_numeric("uint32")).name
+        header_metadata["quantity_unit"] = UnitType(self.__read_numeric("uint32")).name
         header_metadata["laser_wavenumber"] = self.__read_numeric("float")
         unused2 = self.__read_numeric("uint64", size=6)
         header_metadata["username"] = self.__read_utf8(32)
@@ -692,8 +799,8 @@ class WDFReader(object):
     def _parse_TEXT(self):
         if not self._check_block_exists("TEXT"):
             return
-        pos, block_size = self.block_info["TEXT"]
-        self.file_obj.seek(pos)
+        pos, block_size = self._block_info["TEXT"]
+        self._file_obj.seek(pos)
         text = self.__read_utf8(block_size - 16)
         self.original_metadata.update({"TEXT": text})
 
@@ -701,9 +808,9 @@ class WDFReader(object):
         """Get information from DATA block"""
         if not self._check_block_exists("DATA"):
             raise IOError("File does not contain data (DATA-Block missing).")
-        pos, block_size = self.block_info["DATA"]
+        pos, block_size = self._block_info["DATA"]
         self._check_block_size("DATA", "Data", block_size - 16, 4 * size)
-        self.file_obj.seek(pos)
+        self._file_obj.seek(pos)
         return self.__read_numeric("float", size=size)
 
     ## TODO: signal seems to be in reverse order, maybe revert this?
@@ -746,13 +853,13 @@ class WDFReader(object):
         }
 
     def _parse_XLST_or_YLST(self, name, size):
-        pos, block_size = self.block_info[name.upper() + "LST"]
+        pos, block_size = self._block_info[name.upper() + "LST"]
         if name.upper() == "X":
             self._check_block_size("XLST", "Signal axis", block_size - 16, 4 * size + 8)
         else:
             self._check_block_size("YLST", "Metadata", block_size - 16, 4 * size + 8)
 
-        self.file_obj.seek(pos)
+        self._file_obj.seek(pos)
         type = DataType(self.__read_numeric("uint32")).name
         unit = str(UnitType(self.__read_numeric("uint32")))
         if type == "Frequency":
@@ -768,8 +875,8 @@ class WDFReader(object):
             return {}
         orgn_nav = {}
         orgn_metadata = {}
-        pos, block_size = self.block_info["ORGN"]
-        self.file_obj.seek(pos)
+        pos, block_size = self._block_info["ORGN"]
+        self._file_obj.seek(pos)
         origin_count = self.__read_numeric("uint32")
         if origin_count != header_orgn_count:
             _logger.warning(
@@ -816,8 +923,8 @@ class WDFReader(object):
     def _parse_WMAP(self):
         if not self._check_block_exists("WMAP"):
             return {}
-        pos, block_size = self.block_info["WMAP"]
-        self.file_obj.seek(pos)
+        pos, block_size = self._block_info["WMAP"]
+        self._file_obj.seek(pos)
         self._check_block_size(
             "WMAP", "Navigation axes", block_size - 16, 4 * (3 + 3 * 3)
         )
@@ -970,10 +1077,10 @@ class WDFReader(object):
     def _parse_WHTL(self):
         if not self._check_block_exists("WHTL"):
             return
-        pos, size = self.block_info["WHTL"]
+        pos, size = self._block_info["WHTL"]
         jpeg_header = 0x10
-        self.file_obj.seek(pos)
-        img_bytes = self.file_obj.read(size - jpeg_header)
+        self._file_obj.seek(pos)
+        img_bytes = self._file_obj.read(size - jpeg_header)
         img = BytesIO(img_bytes)
         whtl_metadata = {}
         if PIL is not None:
@@ -1034,11 +1141,13 @@ class WDFReader(object):
 
 def file_reader(filename, lazy=False, use_uniform_signal_axis=True, **kwds):
     filesize = Path(filename).stat().st_size
+    original_filename = Path(filename).name
     dictionary = {}
     with open(str(filename), "rb") as f:
         wdf = WDFReader(
             f,
             filesize=filesize,
+            filename=original_filename,
             use_uniform_signal_axis=use_uniform_signal_axis,
         )
 

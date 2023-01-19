@@ -350,7 +350,7 @@ class TestFeiEMD:
                     "0": {
                         "operation": "load",
                         "hyperspy_version": hs.__version__,
-                        "io_plugin": "rsciio.emd.api",
+                        "io_plugin": "rsciio.emd",
                     }
                 },
             },

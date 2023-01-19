@@ -123,6 +123,10 @@ def test_dir_plugins():
 
     assert dir(edax) == ["file_reader"]
 
+    from rsciio import emd
+
+    assert dir(emd) == ["file_reader", "file_writer"]
+
     from rsciio import empad
 
     assert dir(empad) == ["file_reader"]

@@ -71,6 +71,8 @@ This feature is particularly useful when using
      <BaseSignal, title: X-ray line intensity of EDS SEM Signal1D: Mn_La at 0.63 keV, dimensions: (|)>,
      <BaseSignal, title: X-ray line intensity of EDS SEM Signal1D: Zr_La at 2.04 keV, dimensions: (|)>]
 
+.. _hspy-chunks:
+
 Chunking
 ^^^^^^^^
 

@@ -38,6 +38,7 @@ for sub, _, _ in os.walk(os.path.abspath(os.path.dirname(__file__))):
                 "DigitalSurfSurface",
                 "DigitalMicrograph",
                 "EDAX",
+                "EMD",
                 "EMPAD",
                 "HSPY",
                 "Image",

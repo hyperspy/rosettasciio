@@ -37,6 +37,7 @@ extensions = [
 
 intersphinx_mapping = {
     "hyperspy": ("https://hyperspy.org/hyperspy-doc/current/", None),
+    "h5py": ("https://docs.h5py.org/en/stable/", None),
     "pyusid": ("https://pycroscopy.github.io/pyUSID/", None),
     "zarr": ("https://zarr.readthedocs.io/en/stable", None),
 }

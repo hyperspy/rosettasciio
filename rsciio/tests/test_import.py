@@ -131,6 +131,10 @@ def test_dir_plugins():
 
     assert dir(fei) == ["file_reader"]
 
+    from rsciio import hspy
+
+    assert dir(hspy) == ["file_reader", "file_writer"]
+
     from rsciio import image
 
     assert dir(image) == ["file_reader", "file_writer"]

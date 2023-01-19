@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Blockfile &#8212; RosettaSciIO  documentation</title>
+    <title>TriVista &#8212; RosettaSciIO  documentation</title>
   
   
   
@@ -37,11 +37,11 @@
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/blockfile';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/trivista';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Bruker" href="bruker.html" />
-    <link rel="prev" title="Supported formats" href="index.html" />
+    <link rel="next" title="TVIPS format" href="tvips.html" />
+    <link rel="prev" title="Tagged image file format (TIFF)" href="tiff.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="en">
   </head>
@@ -348,7 +348,7 @@
   </p>
   <div class="bd-toc-item navbar-nav">
     <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Blockfile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="blockfile.html">Blockfile</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bruker.html">Bruker</a></li>
 <li class="toctree-l1"><a class="reference internal" href="de5.html">Direct Electron EMD (DE5)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dens.html">DENSsolutions formats</a></li>
@@ -373,7 +373,7 @@
 <li class="toctree-l1"><a class="reference internal" href="ripple.html">Ripple format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="semper.html">SEMPER binary format (UNF)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tiff.html">Tagged image file format (TIFF)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="trivista.html">TriVista</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">TriVista</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tvips.html">TVIPS format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usid.html">Universal Spectroscopy and Imaging Data (h5USID)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="zspy.html">ZSpy - HyperSpy’s Zarr Specification</a></li>
@@ -410,30 +410,67 @@
             
             <article class="bd-article" role="main">
               
-  <section id="blockfile">
-<span id="blockfile-format"></span><h1>Blockfile<a class="headerlink" href="#blockfile" title="Permalink to this heading">#</a></h1>
-<p>RosettaSciIO can read and write the blockfile format from NanoMegas ASTAR software.
-It is used to store a series of diffraction patterns from scanning precession
-electron diffraction (SPED) measurements, with a limited set of metadata. The
-header of the blockfile contains information about centering and distortions
-of the diffraction patterns, but is not applied to the signal during reading.
-Blockfiles only support data values of type
-<a class="reference external" href="https://numpy.org/doc/stable/user/basics.types.html">np.uint8</a> (integers
-in range 0-255).</p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>While Blockfiles are supported, it is a proprietary format, and future
-versions of the format might therefore not be readable. Complete
-interoperability with the official software can neither be guaranteed.</p>
-</div>
-<p>Blockfiles are by default loaded in a “copy-on-write” manner using
-<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html">numpy.memmap</a> .
-For blockfiles <code class="docutils literal notranslate"><span class="pre">load</span></code> takes the <code class="docutils literal notranslate"><span class="pre">mmap_mode</span></code> keyword argument enabling
-loading the file using a different mode. However, note that lazy loading
-does not support in-place writing (i.e lazy loading and the “r+” mode
-are incompatible).</p>
-<section id="api-functions">
-<h2>API functions<a class="headerlink" href="#api-functions" title="Permalink to this heading">#</a></h2>
+  <section id="trivista">
+<span id="trivista-format"></span><h1>TriVista<a class="headerlink" href="#trivista" title="Permalink to this heading">#</a></h1>
+<p>Reader for spectroscopy data saved using the VistaControl software
+for TriVista spectrometers from Teledyne Princeton Instruments.
+Currently, RosettaSciIO can only read the XML-based <code class="docutils literal notranslate"><span class="pre">.tvf</span></code> format from TriVista
+(the binary <code class="docutils literal notranslate"><span class="pre">.tvb</span></code> format is not supported).
+However, this format supports spectral maps and contains all relevant metadata.</p>
+<p>If <a class="reference external" href="https://lumispy.org">LumiSpy</a> is installed, <code class="docutils literal notranslate"><span class="pre">Luminescence</span></code> will be
+used as the <code class="docutils literal notranslate"><span class="pre">signal_type</span></code>.</p>
+<section id="module-rsciio.trivista">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.trivista" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.trivista.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.trivista.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_uniform_signal_axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">glued_data_as_stack</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_original_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.trivista.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Reads TriVista’s <code class="docutils literal notranslate"><span class="pre">.tvf</span></code> file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
+<li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
+<li><p><strong>use_uniform_signal_axis</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Can be specified to choose between non-uniform or uniform signal axes.
+If <cite>True</cite>, the <code class="docutils literal notranslate"><span class="pre">scale</span></code> attribute is calculated from the average delta
+along the signal axis and a warning is raised in case the delta varies
+by more than 1%.</p></li>
+<li><p><strong>filter_original_metadata</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Decides whether to process the original_metadata.
+If <cite>True</cite>, then non-relevant metadata will be excluded.
+For example, the metadata usually contains information
+for multiple objectives, even though only one is used.
+In this case, only the metadata from the used objective
+will be added to original_metadata.
+This setting only affects the <code class="docutils literal notranslate"><span class="pre">original_metadata</span></code> attribute
+and not the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> attribute.</p></li>
+<li><p><strong>glued_data_as_stack</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Using the mode <cite>Step &amp; Glue</cite> results in measurements performed
+at different wavelength ranges with some overlap between them.
+The file then contains the individual spectra as well as
+the “glued” spectrum. The latter is represented as one spectrum,
+which covers the complete wavelength range. Stitching the datasets
+together in the overlap region is already done by the setup.
+If this setting is set to <cite>True</cite>, then the individual datasets will be loaded
+as a stack. Otherwise, only the “glued” spectrum is loaded.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dicts</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -445,17 +482,17 @@ are incompatible).</p>
             <footer class="bd-footer-article">
                 <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-  <a class='left-prev' id="prev-link" href="index.html" title="previous page">
+  <a class='left-prev' id="prev-link" href="tiff.html" title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
           <p class="prev-next-subtitle">previous</p>
-          <p class="prev-next-title">Supported formats</p>
+          <p class="prev-next-title">Tagged image file format (TIFF)</p>
       </div>
   </a>
-  <a class='right-next' id="next-link" href="bruker.html" title="next page">
+  <a class='right-next' id="next-link" href="tvips.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">Bruker</p>
+      <p class="prev-next-title">TVIPS format</p>
   </div>
   <i class="fa-solid fa-angle-right"></i>
   </a>
@@ -476,9 +513,20 @@ are incompatible).</p>
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#api-functions">
+  <a class="reference internal nav-link" href="#module-rsciio.trivista">
    API functions
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rsciio.trivista.file_reader">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       file_reader()
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
  </li>
 </ul>
 
@@ -497,7 +545,7 @@ are incompatible).</p>
 <div class="toc-item">
   
 <div class="tocsection sourcelink">
-    <a href="../_sources/supported_formats/blockfile.rst.txt">
+    <a href="../_sources/supported_formats/trivista.rst.txt">
         <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
 </div>

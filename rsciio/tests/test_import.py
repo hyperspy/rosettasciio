@@ -226,3 +226,7 @@ def test_dir_plugins():
     from rsciio import zspy
 
     assert dir(zspy) == ["file_reader", "file_writer"]
+
+    from rsciio import trivista
+
+    assert dir(trivista) == ["file_reader"]

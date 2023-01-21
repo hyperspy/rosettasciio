@@ -986,6 +986,10 @@ def file_reader(filename, lazy=False, endianess="<", **kwargs):
         Remaining arguments are passed to the Numpy ``memmap`` function.
 
     %s
+
+    Notes
+    -----
+    The file specification is available at :ref:`edax-file_specification`.
     """
     ext = os.path.splitext(filename)[1][1:]
     if ext in spd_extensions:

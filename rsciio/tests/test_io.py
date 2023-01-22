@@ -264,7 +264,7 @@ def test_file_reader_options():
         # Test object reader
         from rsciio import hspy
 
-        t = hs.load(Path(dirpath, "temp.hspy"), reader=hspy.api)
+        t = hs.load(Path(dirpath, "temp.hspy"), reader=hspy)
         assert len(t) == 1
         np.testing.assert_allclose(t.data, np.arange(10))
 
@@ -318,12 +318,12 @@ def test_load_save_filereader_metadata():
                 "hyperspy_version": hs.__version__,
             },
             "1": {
-                "io_plugin": "rsciio.hspy.api",
+                "io_plugin": "rsciio.hspy",
                 "operation": "save",
                 "hyperspy_version": hs.__version__,
             },
             "2": {
-                "io_plugin": "rsciio.hspy.api",
+                "io_plugin": "rsciio.hspy",
                 "operation": "load",
                 "hyperspy_version": hs.__version__,
             },

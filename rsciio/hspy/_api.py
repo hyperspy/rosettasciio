@@ -23,6 +23,12 @@ from pathlib import Path
 import dask.array as da
 import h5py
 
+from rsciio.docstrings import (
+    FILENAME_DOC,
+    LAZY_DOC,
+    RETURNS_DOC,
+    SIGNAL_DOC,
+)
 from rsciio._hierarchical import HierarchicalWriter, HierarchicalReader, version
 from rsciio.utils.tools import get_file_handle
 
@@ -136,14 +142,17 @@ class HyperspyWriter(HierarchicalWriter):
 
 
 def file_reader(filename, lazy=False, **kwds):
-    """Read data from hdf5 files saved with the hyperspy hdf5 format specification
+    """Read data from hdf5-files saved with the HyperSpy hdf5-format
+    specification (``.hspy``).
 
     Parameters
     ----------
-    filename: str
-    lazy: bool
-        Load image lazily using dask
-    **kwds, optional
+    %s
+    %s
+    **kwds
+
+
+    %s
     """
     try:
         # in case blosc compression is used
@@ -161,27 +170,49 @@ def file_reader(filename, lazy=False, **kwds):
     return exp_dict_list
 
 
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+
+
 def file_writer(filename, signal, close_file=True, **kwds):
-    """Writes data to hyperspy's hdf5 format
+    """Writes data to HyperSpy's hdf5-format (``.hspy``).
 
     Parameters
     ----------
-    filename : str
-        The name of the file used to save the signal.
-    signal : a BaseSignal instance
-        The signal to save.
-    chunks : tuple of integer or None, default: None
-        Define the chunking used for saving the dataset. If None, calculates
+    %s
+    %s
+    compression : None, 'gzip', 'szip', 'lzf', Default='gzip'.
+        Compression can significantly increase the saving speed. If file size is not
+        an issue, it can be disabled by setting ``compression=None``.
+        RosettaSciIO uses h5py for reading and writing HDF5 files and, therefore,
+        it supports all `compression filters supported by h5py
+        <https://docs.h5py.org/en/stable/high/dataset.html#dataset-compression>`_.
+        The default is ``'gzip'``. Also see notes below.
+    chunks : tuple of integer or None, Default=None
+        Define the chunking used for saving the dataset. If ``None``, calculates
         chunks for the signal, with preferably at least one chunk per signal
         space.
-    close_file : bool, default: True
-        Close the file after writing.
-    write_dataset : bool, default: True
-        If True, write the data, otherwise, don't write it. Useful to
-        save attributes without having to write the whole dataset.
+    close_file : bool, Default=True
+        Close the file after writing.  The file should not be closed if the data
+        needs to be accessed lazily after saving.
+    write_dataset : bool, Default=True
+        If True, write the dataset, otherwise, don't write it. Useful to
+        overwrite attributes (for example ``axes_manager``) only without having
+        to write the whole dataset.
     **kwds
         The keyword argument are passed to the
-        :py:meth:`h5py.Group.require_dataset` function.
+        :external+h5py:meth:`h5py.Group.require_dataset` function.
+
+    Notes
+    -----
+    It is possible to enable other compression filters such as ``blosc`` by
+    installing e.g. `hdf5plugin <https://github.com/silx-kit/hdf5plugin>`_.
+    Similarly, the availability of ``'szip'`` depends on the HDF5 installation.
+    If not available an error will be raised. Be aware that loading those
+    files will require installing the package providing the compression filter
+    and it may thus not be possible to load it on some platforms.
+    Only ``compression=None`` and ``compression='gzip'`` are available on all
+    platforms. For more details, see the `h5py documentation
+    <https://docs.h5py.org/en/stable/faq.html#what-compression-processing-filters-are-supported>`_.
     """
     if "compression" not in kwds:
         kwds["compression"] = "gzip"
@@ -246,6 +277,9 @@ def file_writer(filename, signal, close_file=True, **kwds):
 
     if close_file:
         f.close()
+
+
+file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
 
 
 overwrite_dataset = HyperspyWriter.overwrite_dataset

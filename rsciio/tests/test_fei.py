@@ -25,7 +25,7 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 import traits.api as t
 
-from rsciio.fei.api import load_ser_file
+from rsciio.fei._api import load_ser_file
 
 
 MY_PATH = os.path.dirname(__file__)
@@ -414,7 +414,7 @@ class TestFEIReader:
         )
 
     def test_guess_units_from_mode(self):
-        from rsciio.fei.api import (
+        from rsciio.fei._api import (
             _guess_units_from_mode,
             convert_xml_to_dict,
             get_xml_info_from_emi,

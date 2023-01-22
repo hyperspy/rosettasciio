@@ -45,7 +45,7 @@ def get_spd_dtype_list(endianess="<"):
     """
     Get the data type list for an SPD map.
     Further information about the file format is available `here
-    <https://github.com/hyperspy/rosettasciio/raw/main/docs/file_specification/edax/SpcMap-spd.file.format.pdf>`__.
+    <https://github.com/hyperspy/rosettasciio/raw/57b114cc02a0cbe022f1c50c1d59779a44952685/docs/file_specification/edax/SpcMap-spd.file.format.pdf>`__.
 
     Table of header tags:
      - tag: 16 byte char array;    *File ID tag ("MAPSPECTRA_DATA")*
@@ -129,7 +129,7 @@ def get_spc_dtype_list(load_all=False, endianess="<", version=0.61):
     """
     Get the data type list for an SPC spectrum.
     Further information about the file format is available `here
-    <https://github.com/hyperspy/rosettasciio/raw/main/docs/file_specification/edax/SPECTRUM-V70.pdf>`__.
+    <https://github.com/hyperspy/rosettasciio/raw/57b114cc02a0cbe022f1c50c1d59779a44952685/docs/file_specification/edax/SPECTRUM-V70.pdf>`__.
 
     Parameters
     ----------
@@ -530,7 +530,7 @@ def get_ipr_dtype_list(endianess="<", version=333):
     """
     Get the data type list for an IPR image description file.
     Further information about the file format is available `here
-    <https://github.com/hyperspy/rosettasciio/raw/main/docs/file_specification/edax/ImageIPR.pdf>`__.
+    <https://github.com/hyperspy/rosettasciio/raw/57b114cc02a0cbe022f1c50c1d59779a44952685/docs/file_specification/edax/ImageIPR.pdf>`__.
 
     Table of header tags:
 

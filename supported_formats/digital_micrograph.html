@@ -412,23 +412,15 @@
               
   <section id="gatan-digital-micrograph">
 <span id="dm-format"></span><h1>Gatan Digital Micrograph<a class="headerlink" href="#gatan-digital-micrograph" title="Permalink to this heading">#</a></h1>
-<p>RosettaSciIO can read both <code class="docutils literal notranslate"><span class="pre">.dm3</span></code> and <code class="docutils literal notranslate"><span class="pre">.dm4</span></code> files, but the reading features are
-not complete (and probably they will remain so, unless Gatan releases the
+<p>RosettaSciIO can read both <code class="docutils literal notranslate"><span class="pre">.dm3</span></code> and <code class="docutils literal notranslate"><span class="pre">.dm4</span></code> files, but the reading features
+are not complete (and probably they will remain so, unless Gatan releases the
 specifications of the format). That said, we understand that this is an
 important feature and if loading a particular Digital Micrograph file fails for
-you, please report it as an issue in the <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues">issues tracker</a> to make
-us aware of the problem.</p>
+you, please report it as an issue in the <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues">issues tracker</a> to make us aware of the
+problem.</p>
 <p>Some of the tags in the DM-files are added to the metadata of the signal
 object. This includes, microscope information and certain parameters for EELS,
 EDS and CL signals.</p>
-<section id="extra-loading-arguments">
-<h2>Extra loading arguments<a class="headerlink" href="#extra-loading-arguments" title="Permalink to this heading">#</a></h2>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">optimize</span></code>: bool, default is True. During loading, the data is replaced by its
-<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/signal.html#signal-transpose-optimize" title="(in HyperSpy v1.7.3)"><span class="xref std std-ref">optimized copy</span></a> to speed up operations,
-e. g. iteration over navigation axes. The cost of this speed improvement is to
-double the memory requirement during data loading.</p></li>
-</ul>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>It has been reported that in some versions of Gatan Digital Micrograph,
@@ -438,6 +430,48 @@ analysis. We therefore strongly recommend that all binning is performed
 using python, e.g. <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, where possible.</p>
 <p>See the original <a class="reference external" href="https://github.com/hyperspy/hyperspy/issues/1624">bug report here</a>.</p>
 </div>
+<section id="module-rsciio.digital_micrograph">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.digital_micrograph" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.digital_micrograph.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.digital_micrograph.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.digital_micrograph.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Reads a DM3/4 file and loads the data into the appropriate class.
+If more than one dataset is contained in the <code class="docutils literal notranslate"><span class="pre">.dm3/4</span></code> file, a list of
+signals is returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
+<li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
+<li><p><strong>order</strong> (<em>str</em>) – One of ‘C’ or ‘F’</p></li>
+<li><p><strong>optimize</strong> (<em>bool</em><em>, </em><em>Default=True</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the data is replaced by its
+<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/signal.html#signal-transpose-optimize" title="(in HyperSpy v1.7.3)"><span class="xref std std-ref">optimized copy</span></a> during
+loading to speed up operations, e.g. iteration over navigation axes.
+The cost of this speed improvement is to double the memory requirement
+during data loading, which for large data sets can lead to a slow down on
+machines with limited memory. When operating on lazy signals, if <code class="docutils literal notranslate"><span class="pre">True</span></code>,
+the chunks are optimised for the new axes configuration.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dicts</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -480,9 +514,20 @@ using python, e.g. <a class="reference external" href="https://hyperspy.org">Hyp
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#extra-loading-arguments">
-   Extra loading arguments
+  <a class="reference internal nav-link" href="#module-rsciio.digital_micrograph">
+   API functions
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rsciio.digital_micrograph.file_reader">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       file_reader()
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
  </li>
 </ul>
 

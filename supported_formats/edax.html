@@ -418,45 +418,77 @@ If reading an <code class="docutils literal notranslate"><span class="pre">.spd<
 spectrum image is loaded from the corresponding <code class="docutils literal notranslate"><span class="pre">.ipr</span></code> and <code class="docutils literal notranslate"><span class="pre">.spc</span></code> files
 stored in the same directory, or from specific files indicated by the user.
 If these calibration files are not available, the data from the <code class="docutils literal notranslate"><span class="pre">.spd</span></code>
-file will still be loaded, but with no spatial or energy calibration.
-When using <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, if elemental information has been
-defined in the spectrum image, those
-elements will automatically be added to the signal loaded by HyperSpy.</p>
-<p>In HyperSpy, if an <code class="docutils literal notranslate"><span class="pre">.spd</span></code> file is loaded, the result will be a Hyperspy
+file will still be loaded, but with no spatial or energy calibration.</p>
+<p>When using <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, if elemental information has been
+defined in the spectrum image, those elements will automatically be added to the
+signal loaded by HyperSpy.</p>
+<p>In HyperSpy, if an <code class="docutils literal notranslate"><span class="pre">.spd</span></code> file is loaded, the result will be a HyperSpy
 <code class="docutils literal notranslate"><span class="pre">EDSSEMSpectrum</span></code> map, and the calibration will be loaded from the appropriate
 <code class="docutils literal notranslate"><span class="pre">.spc</span></code> and <code class="docutils literal notranslate"><span class="pre">.ipr</span></code> files (if available). If an <code class="docutils literal notranslate"><span class="pre">.spc</span></code> file is loaded, the
 result will be a single <code class="docutils literal notranslate"><span class="pre">EDSSEMSpectrum</span></code> with no other files needed for
 calibration.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Currently, HyperSpy will load an <code class="docutils literal notranslate"><span class="pre">EDSSEMSpectrum</span></code> signal. If support for
-TEM EDS data is needed, please open an issue in the <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues">issues tracker</a> to alert the developers
+<p>Currently, HyperSpy will load data as an <code class="docutils literal notranslate"><span class="pre">EDSSEMSpectrum</span></code> signal. If support
+for TEM EDS data is needed, please open an issue in the <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues">issues tracker</a> to alert the developers
 of the need.</p>
 </div>
 <p>For reference, <a class="reference internal" href="../file_specification/index.html#edax-file-specification"><span class="std std-ref">file specifications</span></a> for the EDAX
 file formats have been publicly available from EDAX.</p>
-<section id="extra-loading-arguments-for-spd-files">
-<h2>Extra loading arguments for SPD files<a class="headerlink" href="#extra-loading-arguments-for-spd-files" title="Permalink to this heading">#</a></h2>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">spc_fname</span></code>: {None, str}, name of file from which to read the spectral
-calibration. If data was exported fully from EDAX TEAM software, an <code class="docutils literal notranslate"><span class="pre">.spc</span></code>
-file with the same name as the .spd should be present. If <cite>None</cite>, the default
-filename will be searched for. Otherwise, the name of the <code class="docutils literal notranslate"><span class="pre">.spc</span></code> file to use
-for calibration can be explicitly given as a string.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ipr_fname</span></code>: {None, str}, name of file from which to read the spatial
-calibration. If data was exported fully from EDAX TEAM software, an <code class="docutils literal notranslate"><span class="pre">.ipr</span></code>
-file with the same name as the <code class="docutils literal notranslate"><span class="pre">.spd</span></code> (plus a “_Img” suffix) should be present.
-If <cite>None</cite>, the default filename will be searched for. Otherwise, the name of the
-<code class="docutils literal notranslate"><span class="pre">.ipr</span></code> file to use for spatial calibration can be explicitly given as a string.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">**kwargs</span></code>: remaining arguments are passed to the Numpy <code class="docutils literal notranslate"><span class="pre">memmap</span></code> function.</p></li>
+<section id="module-rsciio.edax">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.edax" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.edax.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.edax.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.edax.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Reads <code class="docutils literal notranslate"><span class="pre">.spc</span></code> (spectrum) or <code class="docutils literal notranslate"><span class="pre">.spd</span></code> (spectrum image) files from EDAX
+Genesis or TEAMS software.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
+<li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
+<li><p><strong>endianess</strong> (<em>str</em><em>, </em><em>Default=&quot;&lt;&quot;</em>) – <code class="docutils literal notranslate"><span class="pre">&quot;&lt;&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;&gt;&quot;</span></code>, depending on how the bits are written to
+the file.</p></li>
+<li><p><strong>load_all_spc</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Switch to control whether the complete .spc header is read, or just the
+important parts for import into HyperSpy.</p></li>
+<li><p><strong>spc_fname</strong> (<em>None</em><em> or </em><em>str</em>) – For spd files only.
+Name of file from which to read the spectral calibration. If data
+was exported fully from EDAX TEAM software, an .spc file with the
+same name as the .spd should be present.
+If <cite>None</cite>, the default filename will be searched for.
+Otherwise, the name of the .spc file to use for calibration can
+be explicitly given as a string.</p></li>
+<li><p><strong>ipr_fname</strong> (<em>None</em><em> or </em><em>str</em>) – For spd files only.
+Name of file from which to read the spatial calibration. If data
+was exported fully from EDAX TEAM software, an .ipr file with the
+same name as the .spd (plus a “_Img” suffix) should be present.
+If <cite>None</cite>, the default filename will be searched for.
+Otherwise, the name of the .ipr file to use for spatial calibration
+can be explicitly given as a string.</p></li>
+<li><p><strong>**kwargs</strong> – Remaining arguments are passed to the Numpy <code class="docutils literal notranslate"><span class="pre">memmap</span></code> function.</p></li>
 </ul>
-</section>
-<section id="extra-loading-arguments-for-spd-and-spc-files">
-<h2>Extra loading arguments for SPD and SPC files<a class="headerlink" href="#extra-loading-arguments-for-spd-and-spc-files" title="Permalink to this heading">#</a></h2>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">load_all_spc</span></code> : bool, switch to control if all of the <code class="docutils literal notranslate"><span class="pre">.spc</span></code> header is
-read, or just the important parts for import into HyperSpy.</p></li>
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
 </ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dicts</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The file specification is available at <a class="reference internal" href="../file_specification/index.html#edax-file-specification"><span class="std std-ref">EDAX</span></a>.</p>
+</dd></dl>
+
 </section>
 </section>
 
@@ -499,14 +531,20 @@ read, or just the important parts for import into HyperSpy.</p></li>
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#extra-loading-arguments-for-spd-files">
-   Extra loading arguments for SPD files
+  <a class="reference internal nav-link" href="#module-rsciio.edax">
+   API functions
   </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#extra-loading-arguments-for-spd-and-spc-files">
-   Extra loading arguments for SPD and SPC files
-  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rsciio.edax.file_reader">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       file_reader()
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
  </li>
 </ul>
 

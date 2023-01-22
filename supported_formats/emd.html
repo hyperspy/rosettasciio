@@ -421,24 +421,16 @@ stored in an HDF5 file, as well as tags and other metadata.</p>
 National Center for Electron Microscopy (NCEM).
 This format is used by the <a class="reference external" href="https://prism-em.com/docs-outputs/">prismatic software</a>
 to save the simulation outputs.</p>
-<section id="extra-loading-arguments">
-<h3>Extra loading arguments<a class="headerlink" href="#extra-loading-arguments" title="Permalink to this heading">#</a></h3>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">dataset_path</span></code> : None, str or list of str. Path of the dataset. If None,
-load all supported datasets, otherwise the specified dataset(s).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">stack_group</span></code> : bool, default is True. Stack datasets of groups with common
-path. Relevant for emd file version &gt;= 0.5 where groups can be named
-‘group0000’, ‘group0001’, etc.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">chunks</span></code> : None, True or tuple. Determine the chunking of the dataset to save.
-See the <code class="docutils literal notranslate"><span class="pre">chunks</span></code> arguments of the <code class="docutils literal notranslate"><span class="pre">hspy</span></code> file format for more details.</p></li>
-</ul>
+<section id="usage-examples">
+<h3>Usage examples<a class="headerlink" href="#usage-examples" title="Permalink to this heading">#</a></h3>
 <p>For files containing several datasets, the <cite>dataset_path</cite> argument can be
 used to select a specific one:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;adatafile.emd&quot;</span><span class="p">,</span> <span class="n">dataset_path</span><span class="o">=</span><span class="s2">&quot;/experimental/science_data_1/data&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.emd</span> <span class="kn">import</span> <span class="n">file_reader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;adatafile.emd&quot;</span><span class="p">,</span> <span class="n">dataset_path</span><span class="o">=</span><span class="s2">&quot;/experimental/science_data_1/data&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Or several by using a list:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;adatafile.emd&quot;</span><span class="p">,</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;adatafile.emd&quot;</span><span class="p">,</span>
 <span class="gp">... </span>            <span class="n">dataset_path</span><span class="o">=</span><span class="p">[</span>
 <span class="gp">... </span>                <span class="s2">&quot;/experimental/science_data_1/data&quot;</span><span class="p">,</span>
 <span class="gp">... </span>                <span class="s2">&quot;/experimental/science_data_2/data&quot;</span><span class="p">])</span>
@@ -449,22 +441,17 @@ used to select a specific one:</p>
 <section id="emd-velox">
 <span id="emd-fei-format"></span><h2>EMD (Velox)<a class="headerlink" href="#emd-velox" title="Permalink to this heading">#</a></h2>
 <p>This is a non-compliant variant of the standard EMD format developed by
-Thermo-Fisher (former FEI). RosettaSciIO supports importing images, EDS spectrum and EDS
+ThermoFisher (former FEI). RosettaSciIO supports importing images, EDS spectrum and EDS
 spectrum streams (spectrum images stored in a sparse format). For spectrum
-streams, there are several loading options (described below) to control the frames
-and detectors to load and if to sum them on loading.  The default is
-to import the sum over all frames and over all detectors in order to decrease
-the data size in memory.</p>
+streams, there are several loading options (described in the docstring below)
+to control the frames and detectors to load and whether to sum them on loading.
+The default is to import the sum over all frames and over all detectors in order
+to decrease the data size in memory.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Pruned Velox EMD files only contain the spectrum image in a proprietary
 format that RosettaSciIO cannot read. Therefore, don’t prune Velox EMD files
 if you intend to read them with RosettaSciIO.</p>
-</div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.emd&quot;</span><span class="p">)</span>
-<span class="go">[&lt;Signal2D, title: HAADF, dimensions: (|179, 161)&gt;,</span>
-<span class="go">&lt;EDSSEMSpectrum, title: EDS, dimensions: (179, 161|4096)&gt;]</span>
-</pre></div>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -479,7 +466,7 @@ Making FFTs with HyperSpy from the respective image datasets is recommended.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Currently only lazy uncompression rather than lazy loading is implemented.
+<p>Currently, only lazy uncompression rather than lazy loading is implemented.
 This means that it is not currently possible to read EDS SI Velox EMD files
 with size bigger than the available memory.</p>
 </div>
@@ -490,49 +477,123 @@ version of Velox may not be supported. If you experience issues loading
 a file, please report it  to the RosettaSciIO developers so that they can
 add support for newer versions of the format.</p>
 </div>
-<section id="extra-loading-arguments-fei-emd">
-<span id="id3"></span><h3>Extra loading arguments<a class="headerlink" href="#extra-loading-arguments-fei-emd" title="Permalink to this heading">#</a></h3>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">select_type</span></code> : one of {None, ‘image’, ‘single_spectrum’, ‘spectrum_image’} (default is None).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">first_frame</span></code> : integer (default is 0).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">last_frame</span></code> : integer (default is None)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sum_frames</span></code> : boolean (default is True)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sum_EDS_detectors</span></code> : boolean (default is True)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">rebin_energy</span></code> : integer (default is 1)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SI_dtype</span></code> : numpy dtype (default is None)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">load_SI_image_stack</span></code> : boolean (default is False)</p></li>
-</ul>
-<p>The <code class="docutils literal notranslate"><span class="pre">select_type</span></code> parameter specifies the type of data to load: if <cite>image</cite> is selected,
-only images (including EDS maps) are loaded, if <cite>single_spectrum</cite> is selected, only
-single spectra are loaded and if <cite>spectrum_image</cite> is selected, only the spectrum
-image will be loaded. The <code class="docutils literal notranslate"><span class="pre">first_frame</span></code> and <code class="docutils literal notranslate"><span class="pre">last_frame</span></code> parameters can be used
-to select the frame range of the EDS spectrum image to load. To load each individual
-EDS frame, use <code class="docutils literal notranslate"><span class="pre">sum_frames=False</span></code> and the EDS spectrum image will be loaded
-with an extra navigation dimension corresponding to the frame index
-(time axis). Use the <code class="docutils literal notranslate"><span class="pre">sum_EDS_detectors=True</span></code> parameter to load the signal of
-each individual EDS detector. In such a case, a corresponding number of distinct
-EDS signal is returned. The default is <code class="docutils literal notranslate"><span class="pre">sum_EDS_detectors=True</span></code>, which loads the
-EDS signal as a sum over the signals from each EDS detectors.  The <code class="docutils literal notranslate"><span class="pre">rebin_energy</span></code>
-and <code class="docutils literal notranslate"><span class="pre">SI_dtype</span></code> parameters are particularly useful in combination with
-<code class="docutils literal notranslate"><span class="pre">sum_frames=False</span></code> to reduce the data size when one want to read the
-individual frames of the spectrum image. If <code class="docutils literal notranslate"><span class="pre">SI_dtype=None</span></code> (default), the dtype
-of the data in the emd file is used. The <code class="docutils literal notranslate"><span class="pre">load_SI_image_stack</span></code> parameter allows
-loading the stack of STEM images acquired simultaneously as the EDS spectrum image.
-This can be useful to monitor any specimen changes during the acquisition or to
-correct the spatial drift in the spectrum image by using the STEM images.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.emd&quot;</span><span class="p">,</span> <span class="n">sum_EDS_detectors</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<section id="id3">
+<h3>Usage examples<a class="headerlink" href="#id3" title="Permalink to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.emd</span> <span class="kn">import</span> <span class="n">file_reader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;sample.emd&quot;</span><span class="p">)</span>
+<span class="go">[&lt;Signal2D, title: HAADF, dimensions: (|179, 161)&gt;,</span>
+<span class="go">&lt;EDSSEMSpectrum, title: EDS, dimensions: (179, 161|4096)&gt;]</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;sample.emd&quot;</span><span class="p">,</span> <span class="n">sum_EDS_detectors</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="go">[&lt;Signal2D, title: HAADF, dimensions: (|179, 161)&gt;,</span>
 <span class="go">&lt;EDSSEMSpectrum, title: EDS - SuperXG21, dimensions: (179, 161|4096)&gt;,</span>
 <span class="go">&lt;EDSSEMSpectrum, title: EDS - SuperXG22, dimensions: (179, 161|4096)&gt;,</span>
 <span class="go">&lt;EDSSEMSpectrum, title: EDS - SuperXG23, dimensions: (179, 161|4096)&gt;,</span>
 <span class="go">&lt;EDSSEMSpectrum, title: EDS - SuperXG24, dimensions: (179, 161|4096)&gt;]</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.emd&quot;</span><span class="p">,</span> <span class="n">sum_frames</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">load_SI_image_stack</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">SI_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">,</span> <span class="n">rebin_energy</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;sample.emd&quot;</span><span class="p">,</span> <span class="n">sum_frames</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">load_SI_image_stack</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">SI_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">,</span> <span class="n">rebin_energy</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 <span class="go">[&lt;Signal2D, title: HAADF, dimensions: (50|179, 161)&gt;,</span>
 <span class="go">&lt;EDSSEMSpectrum, title: EDS, dimensions: (50, 179, 161|1024)&gt;]</span>
 </pre></div>
 </div>
 </section>
+</section>
+<section id="module-rsciio.emd">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.emd" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.emd.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.emd.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.emd.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Read EMD file, which can be an NCEM or a Velox variant of the EMD format.
+Also reads Direct Electron’s DE5 format, which is read according to the
+NCEM specifications.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
+<li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
+<li><p><strong>**kwds</strong> (<em>dict</em>) – Keyword arguments passed to the EMD NCEM or EMD Velox reader as specified
+in the following.</p></li>
+<li><p><strong>dataset_path</strong> (<em>None</em><em>, </em><em>str</em><em> or </em><em>list</em><em> of </em><em>str</em><em>, </em><em>default=None</em>) – NCEM only: Path of the dataset. If None, load all supported datasets,
+otherwise the specified dataset(s).</p></li>
+<li><p><strong>stack_group</strong> (<em>None</em><em>, </em><em>bool</em><em>, </em><em>default=None</em>) – NCEM only: Stack datasets of groups with common path. Relevant for emd file
+version &gt;= 0.5, where groups can be named <code class="docutils literal notranslate"><span class="pre">group0000</span></code>, <code class="docutils literal notranslate"><span class="pre">group0001</span></code>, etc.</p></li>
+<li><p><strong>select_type</strong> (<em>{None</em><em>, </em><em>'image'</em><em>, </em><em>'single_spectrum'</em><em>, </em><em>'spectrum_image'}</em>) – Velox only: specifies the type of data to load: if <code class="docutils literal notranslate"><span class="pre">'image'</span></code> is selected,
+only images (including EDS maps) are loaded, if <code class="docutils literal notranslate"><span class="pre">'single_spectrum'</span></code> is
+selected, only single spectra are loaded and if <code class="docutils literal notranslate"><span class="pre">'spectrum_image'</span></code> is
+selected, only the spectrum image will be loaded.</p></li>
+<li><p><strong>first_frame</strong> (<em>int</em><em>, </em><em>default=0</em>) – Velox only: Select the start for the frame range of the EDS spectrum image
+to load.</p></li>
+<li><p><strong>last_frame</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Velox only: Select the end for the frame range of the EDS spectrum image
+to load.</p></li>
+<li><p><strong>sum_frames</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Velox only: Load each individual EDS frame. The EDS spectrum image will
+be loaded with an extra navigation dimension corresponding to the frame
+index (time axis).</p></li>
+<li><p><strong>sum_EDS_detectors</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Velox only: Load the EDS signal as a sum over the signals from all EDS
+detectors (default) or, alternatively, load the signal of each individual
+EDS detector. In the latter case, a corresponding number of distinct
+EDS signals is returned.</p></li>
+<li><p><strong>rebin_energy</strong> (<em>int</em><em>, </em><em>default=1</em>) – Velox only: Rebin the energy axis by given factor. Useful in combination
+with <code class="docutils literal notranslate"><span class="pre">sum_frames=False</span></code> to reduce the data size when reading the
+individual frames of the spectrum image.</p></li>
+<li><p><strong>SI_dtype</strong> (<em>numpy dtype</em><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Velox only: Change the datatype of a spectrum image. Useful in combination
+with <code class="docutils literal notranslate"><span class="pre">sum_frames=False</span></code> to reduce the data size when reading the individual
+frames of the spectrum image. If not specified, the dtype of the data in
+the emd file is used.</p></li>
+<li><p><strong>load_SI_image_stack</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Velox only: Allows loading the stack of STEM images acquired
+simultaneously with the EDS spectrum image. This option can be useful to
+monitor any specimen changes during the acquisition or to correct the
+spatial drift in the spectrum image by using the STEM images.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dicts</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.emd.file_writer">
+<span class="sig-prename descclassname"><span class="pre">rsciio.emd.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.emd.file_writer" title="Permalink to this definition">#</a></dt>
+<dd><p>Write signal to EMD file. Only the specifications by the National Center
+for Electron Microscopy (NCEM) are supported.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p></li>
+<li><p><strong>signal</strong> (<em>dict</em>) – <p>Dictionary containing the signal object.
+Should contain the following fields:</p>
+<ul>
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the metadata tree</p></li>
+</ul>
+</p></li>
+<li><p><strong>chunks</strong> (<em>None</em><em>, </em><em>True</em><em> or </em><em>tuple</em><em>, </em><em>Default=None</em>) – Determine the chunking of the dataset to save. See the <a class="reference internal" href="hspy.html#hspy-chunks"><span class="std std-ref">chunks
+argument of the hspy-format</span></a> for more details.</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Dictionary containing metadata, which will be written as attribute
+of the root group.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -580,8 +641,8 @@ correct the spatial drift in the spectrum image by using the STEM images.</p>
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#extra-loading-arguments">
-     Extra loading arguments
+    <a class="reference internal nav-link" href="#usage-examples">
+     Usage examples
     </a>
    </li>
   </ul>
@@ -592,8 +653,33 @@ correct the spatial drift in the spectrum image by using the STEM images.</p>
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#extra-loading-arguments-fei-emd">
-     Extra loading arguments
+    <a class="reference internal nav-link" href="#id3">
+     Usage examples
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-rsciio.emd">
+   API functions
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rsciio.emd.file_reader">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       file_reader()
+      </span>
+     </code>
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rsciio.emd.file_writer">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       file_writer()
+      </span>
+     </code>
     </a>
    </li>
   </ul>

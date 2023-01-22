@@ -418,15 +418,51 @@ scanning transmission electron diffraction measurements, with a limited set of
 metadata. Similarly, to the <a class="reference internal" href="ripple.html#ripple-format"><span class="std std-ref">ripple format</span></a>, the raw data
 and metadata are saved in two different files and for the EMPAD reader, these
 are saved in the <code class="docutils literal notranslate"><span class="pre">.raw</span></code> and <code class="docutils literal notranslate"><span class="pre">.xml</span></code> files, respectively. To read EMPAD data,
-use the <code class="docutils literal notranslate"><span class="pre">.xml</span></code> file:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sig</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;file.xml&quot;</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="s2">&quot;EMPAD&quot;</span><span class="p">)</span>
+use the <code class="docutils literal notranslate"><span class="pre">.xml</span></code> file, which will automatically read the raw data from the <code class="docutils literal notranslate"><span class="pre">.raw</span></code>
+file too. The filename of the <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file is defined in the <code class="docutils literal notranslate"><span class="pre">.xml</span></code> file, which
+implies changing the file name of the <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file will break reading the file.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When using <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, you need to specify the correct
+<code class="docutils literal notranslate"><span class="pre">reader</span></code> plugin, as different <code class="docutils literal notranslate"><span class="pre">.xml</span></code> formats are supported:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">hyperspy.api</span> <span class="k">as</span> <span class="nn">hs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sig</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;file.xml&quot;</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="s2">&quot;EMPAD&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>which will automatically read the raw data from the <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file too. The
-filename of the <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file is defined in the <code class="docutils literal notranslate"><span class="pre">.xml</span></code> file, which implies
-changing the file name of the <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file will break reading the file.
-Specifying the reader is necessary as the <a class="reference internal" href="jobin_yvon.html#jobin-yvon-format"><span class="std std-ref">Jobin-Yvon format</span></a>
-also uses the <code class="docutils literal notranslate"><span class="pre">.xml</span></code> file-extension.</p>
+</div>
+<section id="module-rsciio.empad">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.empad" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.empad.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.empad.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.empad.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Reads file format used by the Electron Microscope Pixel Array Detector (EMPAD).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
+<li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dicts</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -460,6 +496,34 @@ also uses the <code class="docutils literal notranslate"><span class="pre">.xml<
           
             <div class="bd-sidebar-secondary bd-toc">
               
+<div class="toc-item">
+  
+<div class="tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+</div>
+<nav id="bd-toc-nav" class="page-toc">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#module-rsciio.empad">
+   API functions
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#rsciio.empad.file_reader">
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       file_reader()
+      </span>
+     </code>
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+</nav>
+</div>
+
 <div class="toc-item">
   
 <div id="searchbox"></div>

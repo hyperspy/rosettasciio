@@ -86,8 +86,6 @@ contain the following files:
   * (optional) A function called ``file_writer`` with at least two attributes: 
     ``filename`` and ``signal`` (a python dictionary) in that order.
 
-The new plugin needs to be added to the list in ``rsciio/__init__.py``.
-
 **Tests** covering the functionality of the plugin should be added to the
 ``tests`` directory with the naming ``test_spamandeggs.py`` corresponsing to
 the plugin residing in the directory ``spamandeggs``. Data files for the tests

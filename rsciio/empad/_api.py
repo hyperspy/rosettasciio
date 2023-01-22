@@ -22,6 +22,7 @@ import xml.etree.ElementTree as ET
 import numpy as np
 import logging
 
+from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 from rsciio.utils.tools import _UREG
 from rsciio.utils.tools import convert_xml_to_dict
 
@@ -95,7 +96,16 @@ def _convert_scale_units(value, units, factor=1):
 
 
 def file_reader(filename, lazy=False, **kwds):
+    """
+    Reads file format used by the Electron Microscope Pixel Array Detector (EMPAD).
 
+    Parameters
+    ----------
+    %s
+    %s
+
+    %s
+    """
     om, info = _parse_xml(filename)
     dname, fname = os.path.split(filename)
 
@@ -185,3 +195,6 @@ def file_reader(filename, lazy=False, **kwds):
     return [
         dictionary,
     ]
+
+
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)

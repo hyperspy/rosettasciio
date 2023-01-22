@@ -31,7 +31,7 @@ from rsciio.docstrings import (
     SIGNAL_DOC,
 )
 from rsciio._hierarchical import get_signal_chunks
-from rsciio.hspy.api import overwrite_dataset
+from rsciio.hspy._api import overwrite_dataset
 from rsciio.utils.tools import DTBox
 
 

@@ -37,6 +37,12 @@ import numpy as np
 import dask.array as da
 from dateutil import tz
 
+from rsciio.docstrings import (
+    FILENAME_DOC,
+    LAZY_DOC,
+    RETURNS_DOC,
+    SIGNAL_DOC,
+)
 from rsciio.utils.tools import _UREG, DTBox
 from rsciio.utils.elements import atomic_number2name
 import rsciio.utils.fei_stream_readers as stream_readers
@@ -1532,19 +1538,59 @@ def is_EMD_Velox(file):
 
 def file_reader(filename, lazy=False, **kwds):
     """
-    Read EMD file, which can be a NCEM or a Velox variant of the EMD format.
-    Also reads Direct Electron's DE5 format, which is read as if it is the
-    NCEM format.
+    Read EMD file, which can be an NCEM or a Velox variant of the EMD format.
+    Also reads Direct Electron's DE5 format, which is read according to the
+    NCEM specifications.
 
     Parameters
     ----------
-    filename : str
-        Filename of the file to write.
-    lazy : bool
-        Open the data lazily. Default is False.
+    %s
+    %s
     **kwds : dict
-        Keyword argument pass to the EMD NCEM or EMD Velox reader. See user
-        guide or the docstring of the `load` function for more information.
+        Keyword arguments passed to the EMD NCEM or EMD Velox reader as specified
+        in the following.
+    dataset_path : None, str or list of str, default=None
+        NCEM only: Path of the dataset. If None, load all supported datasets,
+        otherwise the specified dataset(s).
+    stack_group : None, bool, default=None
+        NCEM only: Stack datasets of groups with common path. Relevant for emd file
+        version >= 0.5, where groups can be named ``group0000``, ``group0001``, etc.
+    select_type : {None, 'image', 'single_spectrum', 'spectrum_image'}
+        Velox only: specifies the type of data to load: if ``'image'`` is selected,
+        only images (including EDS maps) are loaded, if ``'single_spectrum'`` is
+        selected, only single spectra are loaded and if ``'spectrum_image'`` is
+        selected, only the spectrum image will be loaded.
+    first_frame : int, default=0
+        Velox only: Select the start for the frame range of the EDS spectrum image
+        to load.
+    last_frame : int or None, default=None
+        Velox only: Select the end for the frame range of the EDS spectrum image
+        to load.
+    sum_frames : bool, default=True
+        Velox only: Load each individual EDS frame. The EDS spectrum image will
+        be loaded with an extra navigation dimension corresponding to the frame
+        index (time axis).
+    sum_EDS_detectors : bool, default=True
+        Velox only: Load the EDS signal as a sum over the signals from all EDS
+        detectors (default) or, alternatively, load the signal of each individual
+        EDS detector. In the latter case, a corresponding number of distinct
+        EDS signals is returned.
+    rebin_energy : int, default=1
+        Velox only: Rebin the energy axis by given factor. Useful in combination
+        with ``sum_frames=False`` to reduce the data size when reading the
+        individual frames of the spectrum image.
+    SI_dtype : numpy dtype or None, default=None
+        Velox only: Change the datatype of a spectrum image. Useful in combination
+        with ``sum_frames=False`` to reduce the data size when reading the individual
+        frames of the spectrum image. If not specified, the dtype of the data in
+        the emd file is used.
+    load_SI_image_stack : bool, default=False
+        Velox only: Allows loading the stack of STEM images acquired
+        simultaneously with the EDS spectrum image. This option can be useful to
+        monitor any specimen changes during the acquisition or to correct the
+        spatial drift in the spectrum image by using the STEM images.
+
+    %s
     """
     file = h5py.File(filename, "r")
     dictionaries = []
@@ -1574,18 +1620,26 @@ def file_reader(filename, lazy=False, **kwds):
     return dictionaries
 
 
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+
+
 def file_writer(filename, signal, **kwds):
     """
-    Write signal to EMD NCEM file.
+    Write signal to EMD file. Only the specifications by the National Center
+    for Electron Microscopy (NCEM) are supported.
 
     Parameters
     ----------
-    file : str of h5py file handle
-        If str, filename of the file to write, otherwise a h5py file handle
-    signal : instance of hyperspy signal
-        The signal to save.
+    %s
+    %s
+    chunks : None, True or tuple, Default=None
+        Determine the chunking of the dataset to save. See the :ref:`chunks
+        argument of the hspy-format <hspy-chunks>` for more details.
     **kwargs : dict
-        Dictionary containing metadata which will be written as attribute
+        Dictionary containing metadata, which will be written as attribute
         of the root group.
     """
     EMD_NCEM().write_file(filename, signal, **kwds)
+
+
+file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)

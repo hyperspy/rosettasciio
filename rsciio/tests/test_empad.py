@@ -26,7 +26,7 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 import traits.api as t
 
-from rsciio.empad.api import _parse_xml
+from rsciio.empad._api import _parse_xml
 
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "empad_data")

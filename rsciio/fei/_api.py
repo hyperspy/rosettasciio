@@ -27,6 +27,7 @@ from collections import OrderedDict
 
 import numpy as np
 
+from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 from rsciio.utils.tools import sarray2dict
 from rsciio.utils.tools import DTBox
 
@@ -283,6 +284,21 @@ def emi_reader(filename, dump_xml=False, **kwds):
 
 
 def file_reader(filename, *args, **kwds):
+    """
+    Read sets of ``.ser`` and ``.emi`` files from the FEI/ThermoFisher software TIA
+    (TEM Imaging & Analysis).
+
+    Parameters
+    ----------
+    %s
+    %s
+    only_valid_data: bool, Default=True
+        For cases, where acquisition of series or linescan data stopped before
+        the end. If `True`, load only the acquired data. If `False`, the empty
+        data are filled with zeros.
+
+    %s
+    """
     ext = os.path.splitext(filename)[1][1:]
     ser_extensions = ("ser", "SER")
     emi_extensions = ("emi", "EMI")
@@ -292,6 +308,9 @@ def file_reader(filename, *args, **kwds):
         ]
     elif ext in emi_extensions:
         return emi_reader(filename, *args, **kwds)
+
+
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
 
 
 def load_ser_file(filename):
@@ -482,7 +501,7 @@ def convert_xml_to_dict(xml_object):
     return op
 
 
-def ser_reader(filename, objects=None, lazy=False, only_valid_data=False):
+def ser_reader(filename, objects=None, lazy=False, only_valid_data=True):
     """Reads the information from the file and returns it in the HyperSpy
     required format.
 
@@ -676,7 +695,7 @@ def load_only_data(
     num_axes,
     data=None,
     header=None,
-    only_valid_data=False,
+    only_valid_data=True,
 ):
     if data is None:
         header, data = load_ser_file(filename)

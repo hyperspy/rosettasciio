@@ -31,34 +31,7 @@ for sub, _, _ in os.walk(os.path.abspath(os.path.dirname(__file__))):
         with open(_specsf, "r") as stream:
             _specs = yaml.safe_load(stream)
             # for testing purposes
-            if _specs["name"] in [
-                "Blockfile",
-                "BrukerComposite",
-                "DENS",
-                "DigitalSurfSurface",
-                "Image",
-                "Impulse",
-                "JEOL",
-                "JobinYvon",
-                "MRC",
-                "MRCZ",
-                "MSA",
-                "netCDF",
-                "NeXus",
-                "Phenom",
-                "Protochips",
-                "PantaRhei",
-                "Ripple",
-                "Semper",
-                "TIFF",
-                "TVIPS",
-                "USID",
-                "ZSPY",
-                "TriVista",
-            ]:
-                _specs["api"] = "rsciio.%s" % os.path.split(sub)[1]
-            else:
-                _specs["api"] = "rsciio.%s.api" % os.path.split(sub)[1]
+            _specs["api"] = "rsciio.%s" % os.path.split(sub)[1]
             IO_PLUGINS.append(_specs)
 
 __all__ = [

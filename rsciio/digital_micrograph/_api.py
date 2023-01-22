@@ -28,6 +28,7 @@ import dateutil.parser
 import numpy as np
 from copy import deepcopy
 
+from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 import rsciio.utils.utils_readfile as iou
 from rsciio.exceptions import DM3TagIDError, DM3DataTypeError, DM3TagTypeError
 from box import Box
@@ -440,11 +441,11 @@ class DigitalMicrographReader(object):
 
 
 class ImageObject(object):
-    def __init__(self, imdict, file, order="C", record_by=None):
+    def __init__(self, imdict, file, order="C"):
         self.imdict = Box(imdict, box_dots=True)
         self.file = file
         self._order = order if order else "C"
-        self._record_by = record_by
+        self._record_by = None
 
     @property
     def shape(self):
@@ -1237,34 +1238,34 @@ class ImageObject(object):
         return mapping
 
 
-def file_reader(filename, record_by=None, order=None, lazy=False, optimize=True):
+def file_reader(filename, lazy=False, order=None, optimize=True, **kwargs):
     """Reads a DM3/4 file and loads the data into the appropriate class.
-    data_id can be specified to load a given image within a DM3/4 file that
-    contains more than one dataset.
+    If more than one dataset is contained in the ``.dm3/4`` file, a list of
+    signals is returned.
 
     Parameters
     ----------
-    record_by: Str
-        One of: SI, Signal2D
-    order : Str
+    %s
+    %s
+    order : str
         One of 'C' or 'F'
-    lazy : bool, default False
-        Load the signal lazily.
-    optimize : bool
-        If ``True``, the location of the data in memory is optimised for the
-        fastest iteration over the navigation axes. This operation can
-        cause a peak of memory usage and requires considerable processing
-        times for large datasets and/or low specification hardware.
-        See the :ref:`signal.transpose` section of the HyperSpy user guide
-        for more information. When operating on lazy signals, if ``True``,
+    optimize : bool, Default=True
+        If ``True``, the data is replaced by its
+        :external+hyperspy:ref:`optimized copy <signal.transpose_optimize>` during
+        loading to speed up operations, e.g. iteration over navigation axes.
+        The cost of this speed improvement is to double the memory requirement
+        during data loading, which for large data sets can lead to a slow down on
+        machines with limited memory. When operating on lazy signals, if ``True``,
         the chunks are optimised for the new axes configuration.
+
+    %s
     """
 
     with open(filename, "rb") as f:
         dm = DigitalMicrographReader(f)
         dm.parse_file()
         images = [
-            ImageObject(imdict, f, order=order, record_by=record_by)
+            ImageObject(imdict, f, order=order)
             for imdict in dm.get_image_dictionaries()
         ]
         imd = []
@@ -1307,3 +1308,6 @@ def file_reader(filename, record_by=None, order=None, lazy=False, optimize=True)
             )
 
     return imd
+
+
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)

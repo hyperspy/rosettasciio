@@ -43,9 +43,9 @@ other member of the development team before being merged.
 Defining new RosettaSciIO plugins
 =================================
 
-Each read/write plugin resides in a separate directory, the name of which should
-be descriptive of the file type/manufacturer/software. This directory should
-contain the following files:
+Each read/write plugin resides in a separate directory, e.g. ``spamandeggs`` the
+name of which should be descriptive of the file type/manufacturer/software. This
+directory should contain the following files:
 
 * ``__init__.py`` -- Defines the exposed API functions, ``file_reader`` and optionally ``file_writer``
 
@@ -67,7 +67,7 @@ contain the following files:
 
   .. code-block:: yaml
 
-      name: <String> # unique, concise, no whitespace; usually corresponding to directory name
+      name: <String> # unique, concise, no whitespace; corresponding to directory name (e.g. ``spamandeggs``)
       name_aliases: [<String>]  # List of strings, may contain whitespaces (empty if no alias defined)
       description: <String>
       full_support: <Bool>	# Whether all the Hyperspy features are supported
@@ -89,16 +89,15 @@ contain the following files:
 **Tests** covering the functionality of the plugin should be added to the
 ``tests`` directory with the naming ``test_spamandeggs.py`` corresponsing to
 the plugin residing in the directory ``spamandeggs``. Data files for the tests
-should be placed in a corresponding subdirectory [change for pooch]. Furthermore,
-the plugin should be added to the ``test_dir_plugins()`` function in ``test_import.py``.
+should be placed in a corresponding subdirectory [change for pooch].
 
 **Documentation** should be added both as **docstring**, as well as to the **user guide**,
-for which a corresponding ``.rst`` file should be created in the directory
+for which a corresponding ``spamandeggs.rst`` file should be created in the directory
 ``docs/supported_formats/`` and the format added to the lists in
 ``docs/supported_formats/index.rst`` and ``docs/supported_formats/supported_formats.rst``.
 
-A few standard *docstring* components are provided by ``docstrings.py`` and should be used
-(see existing plugins).
+A few standard *docstring* components are provided by ``docstrings.py`` and should
+be used (see existing plugins).
 
 The *docstrings* are automatically added in the *user guide* using the following lines
 

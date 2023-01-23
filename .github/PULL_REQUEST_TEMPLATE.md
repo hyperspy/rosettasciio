@@ -23,8 +23,8 @@ A few sentences and/or a bulleted list to describe and motivate the change:
 
 ### Minimal example of the bug fix or the new feature
 ```python
-from rsciio.msa import api
-api.file_reader("your_msa_file.msa")
+from rsciio.msa import file_reader
+file_reader("your_msa_file.msa")
 # Your new feature...
 ```
 Note that this example can be useful to update the user guide.

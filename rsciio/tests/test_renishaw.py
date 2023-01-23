@@ -57,20 +57,20 @@ class TestSpec:
 
     def test_data(self):
         expected_data_start = [
-            68.10285,
-            67.45442,
-            59.75822,
-            61.871353,
-            64.90067,
-            63.337173,
+            65.36617,
+            67.51018,
+            60.00703,
+            62.75381,
+            64.59786,
+            61.309525,
         ]
         expected_data_end = [
-            61.309525,
-            64.59786,
-            62.75381,
-            60.00703,
-            67.51018,
-            65.36617,
+            63.337173,
+            64.90067,
+            61.871353,
+            59.75822,
+            67.45442,
+            68.10285,
         ]
         np.testing.assert_allclose(expected_data_start, self.s.isig[:6].data)
         np.testing.assert_allclose(expected_data_end, self.s.isig[-6:].data)
@@ -90,18 +90,18 @@ class TestSpec:
         axes_manager["axis-0"].pop("_type", None)
         axes_manager["axis-0"].pop("is_binned", None)
         np.testing.assert_allclose(
-            axes_manager["axis-0"].pop("scale"), -0.0847, rtol=0.0003
+            axes_manager["axis-0"].pop("scale"), 0.0847, rtol=0.0003
         )
-        np.testing.assert_allclose(axes_manager["axis-0"].pop("offset"), 328.98, 0.01)
+        np.testing.assert_allclose(axes_manager["axis-0"].pop("offset"), 326.01, 0.01)
         assert axes_manager == expected_axis
 
         expected_non_uniform_axis_values = [
-            328.98077,
-            328.8961,
-            328.81137,
-            328.72668,
-            328.642,
-            328.55728,
+            326.01633,
+            326.101,
+            326.18573,
+            326.27042,
+            326.35513,
+            326.43985,
         ]
         non_uniform_axes_manager = self.s_non_uniform.axes_manager.as_dictionary()
         non_uniform_axes_manager["axis-0"].pop("_type", None)
@@ -128,7 +128,7 @@ class TestSpec:
                 "flags": 0,
                 "uuid": "3846669335-1129807005-716570026-4266516655",
                 "ntracks": 0,
-                "status": 0,
+                "file_status_error_code": 0,
                 "capacity": 1,
                 "app_name": "WiRE",
                 "app_version": "5-5-0-22400",
@@ -139,11 +139,11 @@ class TestSpec:
                 "username": "optik",
                 "title": "Single scan measurement 7",
                 "points_per_spectrum": 36,
-                "count": 1,
-                "accumulation_count": 4,
+                "num_spectra": 1,
+                "accumulations_per_spectrum": 4,
                 "YLST_length": 1,
                 "XLST_length": 36,
-                "origin_count": 3,
+                "num_ORGN": 3,
                 "measurement_type": "Single",
             },
             "YLST_0": {"name": "Spatial_Y", "units": "px", "size": 1, "data": 25.0},
@@ -701,29 +701,34 @@ class TestLinescan:
         gc.collect()
 
     def test_data(self):
-        expected_column0_start = [
-            0.0,
-            -0.7469943,
-            1.120018,
-            0.74636304,
-            1.8651184,
+        expected_column0_end = [
             1.4914633,
+            1.8651184,
+            0.74636304,
+            1.120018,
+            -0.7469943,
+            0.0,
         ]
-        expected_column0_end = [0.0, 1.1034185, 1.1029433, 0.0]
-        expected_column4_start = [
-            1.1209648,
-            0.7469943,
-            1.4933574,
-            0.37318152,
-            1.4920948,
+        expected_column0_start = [0.0, 1.1029433, 1.1034185, 0.0]
+        expected_column4_end = [
             0.74573165,
+            1.4920948,
+            0.37318152,
+            1.4933574,
+            0.7469943,
+            1.1209648,
         ]
-        expected_column4_end = [-0.73592895, 0.36780614, 1.4705911, 0.7349788]
+        expected_column4_start = [
+            0.7349788,
+            1.4705911,
+            0.36780614,
+            -0.73592895,
+        ]
 
-        np.testing.assert_allclose(expected_column0_start, self.s.inav[0].isig[:6])
-        np.testing.assert_allclose(expected_column0_end, self.s.inav[0].isig[-4:])
-        np.testing.assert_allclose(expected_column4_start, self.s.inav[-1].isig[:6])
-        np.testing.assert_allclose(expected_column4_end, self.s.inav[-1].isig[-4:])
+        np.testing.assert_allclose(expected_column0_start, self.s.inav[0].isig[:4])
+        np.testing.assert_allclose(expected_column0_end, self.s.inav[0].isig[-6:])
+        np.testing.assert_allclose(expected_column4_start, self.s.inav[-1].isig[:4])
+        np.testing.assert_allclose(expected_column4_end, self.s.inav[-1].isig[-6:])
 
     def test_axes(self):
         expected_axis = {
@@ -746,8 +751,8 @@ class TestLinescan:
         assert np.isclose(axes_manager["axis-0"].pop("offset"), 0)
         assert np.isclose(axes_manager["axis-0"].pop("scale"), 30)
 
-        assert np.isclose(axes_manager["axis-1"].pop("offset"), 364.64128336092307)
-        assert np.isclose(axes_manager["axis-1"].pop("scale"), -0.08534686462516697)
+        assert np.isclose(axes_manager["axis-1"].pop("offset"), 361.3127556405415)
+        assert np.isclose(axes_manager["axis-1"].pop("scale"), 0.08534686462516697)
 
         for key in axes_manager.keys():
             axes_manager[key].pop("_type", None)
@@ -771,44 +776,80 @@ class TestMap:
         gc.collect()
 
     def test_data(self):
-        expected_data_00_start = [2.0856183, 1.3897737, 2.0837028, 1.3884968, 1.3878582]
-        expected_data_00_end = [2.3829105, 2.722048]
+        expected_data_00_end = [
+            1.3878582,
+            1.3884968,
+            2.0837028,
+            1.3897737,
+            2.0856183,
+        ]
+        expected_data_00_start = [
+            2.722048,
+            2.3829105,
+        ]
 
         np.testing.assert_allclose(
-            expected_data_00_start, self.s.inav[0, 0].isig[:5].data
+            expected_data_00_start, self.s.inav[0, 0].isig[:2].data
         )
         np.testing.assert_allclose(
-            expected_data_00_end, self.s.inav[0, 0].isig[-2:].data
-        )
-
-        expected_data_10_start = [0.6952061, 2.7795475, 1.3891352, 2.082745, 0.34696454]
-        expected_data_10_end = [2.0424948, 1.361024]
-
-        np.testing.assert_allclose(
-            expected_data_10_start, self.s.inav[1, 0].isig[:5].data
-        )
-        np.testing.assert_allclose(
-            expected_data_10_end, self.s.inav[1, 0].isig[-2:].data
+            expected_data_00_end, self.s.inav[0, 0].isig[-5:].data
         )
 
-        expected_data_01_start = [2.0856183, 2.0846605, 1.3891352, 2.7769935, 1.3878582]
-        expected_data_01_end = [1.702079, 0.680512]
+        expected_data_10_end = [
+            0.34696454,
+            2.082745,
+            1.3891352,
+            2.7795475,
+            0.6952061,
+        ]
+        expected_data_10_start = [
+            1.361024,
+            2.0424948,
+        ]
 
         np.testing.assert_allclose(
-            expected_data_01_start, self.s.inav[0, 1].isig[:5].data
+            expected_data_10_start, self.s.inav[1, 0].isig[:2].data
         )
         np.testing.assert_allclose(
-            expected_data_01_end, self.s.inav[0, 1].isig[-2:].data
+            expected_data_10_end, self.s.inav[1, 0].isig[-5:].data
         )
 
-        expected_data_22_start = [1.0428091, 0.0, 0.6945676, 0.6942484, 1.3878582]
-        expected_data_22_end = [1.3616632, 0.680512]
+        expected_data_01_end = [
+            1.3878582,
+            2.7769935,
+            1.3891352,
+            2.0846605,
+            2.0856183,
+        ]
+        expected_data_01_start = [
+            0.680512,
+            1.702079,
+        ]
 
         np.testing.assert_allclose(
-            expected_data_22_start, self.s.inav[2, 2].isig[:5].data
+            expected_data_01_start, self.s.inav[0, 1].isig[:2].data
         )
         np.testing.assert_allclose(
-            expected_data_22_end, self.s.inav[2, 2].isig[-2:].data
+            expected_data_01_end, self.s.inav[0, 1].isig[-5:].data
+        )
+
+        expected_data_22_end = [
+            1.3878582,
+            0.6942484,
+            0.6945676,
+            0.0,
+            1.0428091,
+        ]
+        expected_data_22_start = [
+            0.680512,
+            1.3616632,
+        ]
+
+        np.testing.assert_allclose(
+            expected_data_22_start, self.s.inav[2, 2].isig[:2].data
+        )
+        np.testing.assert_allclose(
+            expected_data_22_end, self.s.inav[2, 2].isig[-5:].data
         )
 
     def test_axes(self):
@@ -840,8 +881,8 @@ class TestMap:
         assert np.isclose(axes_manager["axis-1"].pop("offset"), -100)
         assert np.isclose(axes_manager["axis-1"].pop("scale"), 100)
 
-        assert np.isclose(axes_manager["axis-2"].pop("scale"), -0.0848807)
-        assert np.isclose(axes_manager["axis-2"].pop("offset"), 350.676988)
+        assert np.isclose(axes_manager["axis-2"].pop("scale"), 0.0848807)
+        assert np.isclose(axes_manager["axis-2"].pop("offset"), 346.7724758716342)
 
         for key in axes_manager.keys():
             axes_manager[key].pop("_type", None)
@@ -889,10 +930,10 @@ class TestZscan:
         np.testing.assert_allclose(self.s.inav[0].isig[:3].data, [0, 0, 0])
         np.testing.assert_allclose(self.s.inav[0].isig[-3:].data, [0, 0, 0])
         np.testing.assert_allclose(
-            self.s.inav[-1].isig[:3].data, [9.05664, -1.8113279, 1.8109605]
+            self.s.inav[-1].isig[-3:].data, [1.8109605, -1.8113279, 9.05664]
         )
         np.testing.assert_allclose(
-            self.s.inav[-1].isig[-3:].data, [4.365239, -1.4547517, 1.454424]
+            self.s.inav[-1].isig[:3].data, [1.454424, -1.4547517, 4.365239]
         )
 
 
@@ -912,8 +953,8 @@ class TestUndefined:
 
     def test_data(self):
         np.testing.assert_allclose(
-            self.s.isig[:3].data, [262.752, 262.82877, 262.90552]
+            self.s.isig[-3:].data, [262.90552, 262.82877, 262.752]
         )
         np.testing.assert_allclose(
-            self.s.isig[-3:].data, [349.3566, 349.45215, 349.54773]
+            self.s.isig[:3].data, [349.54773, 349.45215, 349.3566]
         )

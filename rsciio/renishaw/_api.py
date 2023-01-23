@@ -23,9 +23,8 @@
 # Code inspired by Henderson, Alex DOI:10.5281/zenodo.495477
 
 # TODO: general:
-#   - check axes order (negative scale?, snake pattern?)
+#   - check axes order (snake pattern?)
 #   - check time axis
-#   - revert signal axis + spectra when scale is negative?
 #   - remove debug flag once unmatched keys values are understood
 #   - how to handle WHTL cropping
 #       - convert IFDRational in hyperspy?
@@ -41,7 +40,7 @@
 #   - unmatched keys/values for pset metadata blocks
 #   - MapType is not used -> snake pattern read incorrectly for example
 #   - quantity name is always set to Intensity (not extracted from file)
-#   - many DataTypes are not considered for axes
+#   - many DataTypes are not considered for axes, only the following are used
 #       - XLST for signal
 #       - X,Y,Z for nav
 #       - especially no time series
@@ -380,20 +379,27 @@ class WDFReader(object):
     def __init__(self, f, filesize, filename, use_uniform_signal_axis, debug):
         self._file_obj = f
         self._filename = filename
+        self._use_uniform_signal_axis = use_uniform_signal_axis
+        self._debug = debug
         self.original_metadata = {}
         self._unmatched_metadata = {}
-        self._debug = debug
+        self._reverse_signal = False
 
+        ## first parse through to determine file structure (blocks)
         self._block_info = self.locate_all_blocks(filesize)
-        header_data = self._parse_WDF1()  # this needs to be parsed first,
-        ## because it contains sizes for ORGN, DATA (reshape), XLST, YLST
+
+        ## parse header, this needs to be done first as it contains sizes for ORGN, DATA, XLST, YLST
+        header_data = self._parse_WDF1()
+        self._points_per_spectrum = header_data["points_per_spectrum"]
+        self._num_spectra = header_data["num_spectra"]
+        self._measurement_type = header_data["measurement_type"]
 
         ## parse metadata blocks
         self._parse_YLST(header_data["YLST_length"])
         self._parse_metadata("WXIS_0")
         self._parse_metadata("WXCS_0")
         self._parse_metadata("WXDM_0")
-        # WXDA has extra 1025 bytes at the end (newline: n\x00\x00...)
+        ## WXDA has extra 1025 bytes at the end (newline: n\x00\x00...)
         self._parse_metadata("WXDA_0")
         self._parse_metadata("ZLDC_0")
         self._parse_metadata("WARP_0")
@@ -404,29 +410,22 @@ class WDFReader(object):
         self._parse_WHTL()
 
         ## parse blocks with axes information
-        signal_dict = self._parse_XLST(
-            header_data["XLST_length"], use_uniform_signal_axis
-        )
-        nav_orgn = self._parse_ORGN(
-            header_orgn_count=header_data["origin_count"],
-            ncollected_spectra=header_data["count"],
-        )
+        signal_dict = self._parse_XLST()
+        nav_orgn = self._parse_ORGN(header_data["num_ORGN"])
         nav_wmap = self._parse_WMAP()
 
         ## set axes
-        nav_dict = self._set_nav_axes(
-            nav_orgn, nav_wmap, header_data["measurement_type"]
-        )
+        nav_dict = self._set_nav_axes(nav_orgn, nav_wmap)
         self.axes = self._set_axes(signal_dict, nav_dict)
 
         ## extract data + reshape
-        self.data = self._parse_DATA(
-            size=header_data["count"] * header_data["points_per_spectrum"]
-        )
-        self._reshape_data(header_data["count"], use_uniform_signal_axis)
+        self.data = self._parse_DATA()
+        self._reshape_data()
 
         ## map metadata
         self.metadata = self.map_metadata()
+
+        ## debug unmatched metadata
         if self._debug:
             _remove_none_from_dict(self._unmatched_metadata)
             self.original_metadata.update({"UNMATCHED": self._unmatched_metadata})
@@ -570,6 +569,10 @@ class WDFReader(object):
 
     def _pset_match_keys_and_values(self, id, key_dict, value_dict):
         result = {}
+        if self._debug:
+            print(f"{id}(keys, {len(list(key_dict))}): {list(key_dict)}")
+            print(f"{id}(values, {len(list(value_dict))}): {list(value_dict)}")
+            print()
         for key in list(key_dict.keys()):
             ## keep mismatched keys for debugging
             try:
@@ -662,8 +665,8 @@ class WDFReader(object):
         self.original_metadata.update({id.replace(" ", ""): metadata})
 
     def _parse_WDF1(self):
-        header_metadata = {}
-        return_metadata = {}
+        header = {}
+        result = {}
         self._file_obj.seek(0)
         pos, size_block = self._block_info["WDF1_1"]
         if size_block != 512:
@@ -671,58 +674,52 @@ class WDFReader(object):
         if pos != 16:
             _logger.warning("Unexpected start of file. File might be invalid.")
 
+        ## TODO: what is ntracks
+        ## warning when file_status_error_code nonzero?
+        ## mulitple accumulations -> average or sum?
         self._file_obj.seek(pos)
-        header_metadata["flags"] = self.__read_numeric("uint64")
-        header_metadata["uuid"] = f"{self.__read_numeric('uint32', convert=False)}"
+        header["flags"] = self.__read_numeric("uint64")
+        header["uuid"] = f"{self.__read_numeric('uint32', convert=False)}"
         for _ in range(3):
-            header_metadata[
-                "uuid"
-            ] += f"-{self.__read_numeric('uint32', convert=False)}"
+            header["uuid"] += f"-{self.__read_numeric('uint32', convert=False)}"
         unused1 = self.__read_numeric("uint32", size=3)
-        ## TODO: what is ntracks, status, accumulation_count
-        header_metadata["ntracks"] = self.__read_numeric("uint32")
-        header_metadata["status"] = self.__read_numeric("uint32")
-        return_metadata["points_per_spectrum"] = self.__read_numeric("uint32")
-        header_metadata["capacity"] = self.__read_numeric("uint64")
-        return_metadata["count"] = self.__read_numeric("uint64")
-        return_metadata["accumulation_count"] = self.__read_numeric("uint32")
-        return_metadata["YLST_length"] = self.__read_numeric("uint32")
-        return_metadata["XLST_length"] = self.__read_numeric("uint32")
-        return_metadata["origin_count"] = self.__read_numeric("uint32")
-        header_metadata["app_name"] = self.__read_utf8(24)  # must be "WiRE"
-        header_metadata[
-            "app_version"
-        ] = f"{self.__read_numeric('uint16', convert=False)}"
+        header["ntracks"] = self.__read_numeric("uint32")
+        header["file_status_error_code"] = self.__read_numeric("uint32")
+        result["points_per_spectrum"] = self.__read_numeric("uint32")
+        header["capacity"] = self.__read_numeric("uint64")
+        result["num_spectra"] = self.__read_numeric("uint64")
+        header["accumulations_per_spectrum"] = self.__read_numeric("uint32")
+        result["YLST_length"] = self.__read_numeric("uint32")
+        header["XLST_length"] = self.__read_numeric("uint32")
+        result["num_ORGN"] = self.__read_numeric("uint32")
+        header["app_name"] = self.__read_utf8(24)  # must be "WiRE"
+        header["app_version"] = f"{self.__read_numeric('uint16', convert=False)}"
         for _ in range(3):
-            header_metadata[
-                "app_version"
-            ] += f"-{self.__read_numeric('uint16', convert=False)}"
-        header_metadata["scan_type"] = ScanType(self.__read_numeric("uint32")).name
-        return_metadata["measurement_type"] = MeasurementType(
-            self.__read_numeric("uint32")
-        ).name
+            header["app_version"] += f"-{self.__read_numeric('uint16', convert=False)}"
+        header["scan_type"] = ScanType(self.__read_numeric("uint32")).name
+        result["measurement_type"] = MeasurementType(self.__read_numeric("uint32")).name
         time_start_wt = self.__read_numeric("uint64")
-        header_metadata["time_start"] = convert_windowstime_to_datetime(time_start_wt)
         time_end_wt = self.__read_numeric("uint64")
-        header_metadata["time_end"] = convert_windowstime_to_datetime(time_end_wt)
-        header_metadata["quantity_unit"] = UnitType(self.__read_numeric("uint32")).name
-        header_metadata["laser_wavenumber"] = self.__read_numeric("float")
+        header["time_start"] = convert_windowstime_to_datetime(time_start_wt)
+        header["time_end"] = convert_windowstime_to_datetime(time_end_wt)
+        header["quantity_unit"] = UnitType(self.__read_numeric("uint32")).name
+        header["laser_wavenumber"] = self.__read_numeric("float")
         unused2 = self.__read_numeric("uint64", size=6)
-        header_metadata["username"] = self.__read_utf8(32)
-        header_metadata["title"] = self.__read_utf8(160)
+        header["username"] = self.__read_utf8(32)
+        header["title"] = self.__read_utf8(160)
 
-        header_metadata.update(return_metadata)
-        self.original_metadata.update({"WDF1_1": header_metadata})
-        if return_metadata["count"] != header_metadata["capacity"]:
+        header.update(result)
+        self.original_metadata.update({"WDF1_1": header})
+        if header["num_spectra"] != header["capacity"]:
             _logger.warning(
                 f"Unfinished measurement."
-                f"The number of measured spectra ({header_metadata['count']}) is different"
-                f"from the set number of spectra ({header_metadata['capacity']})."
-                "It is tried to still use the data of the measured data."
+                f"The number of spectra ({header['num_spectra']}) written to the file is different"
+                f"from the set number of spectra ({header['capacity']})."
+                "Trying to still use the data of the measured data."
             )
-        if return_metadata["points_per_spectrum"] != return_metadata["XLST_length"]:
+        if header["points_per_spectrum"] != header["XLST_length"]:
             raise RuntimeError("File contains ambiguous signal axis sizes.")
-        return return_metadata
+        return result
 
     def _parse_XLST_or_YLST(self, name, size):
         pos, block_size = self._block_info[name.upper() + "LST_0"]
@@ -747,19 +744,23 @@ class WDFReader(object):
                 type = "Wavelength"
         return type
 
-    ## TODO: signal seems to be in reverse order, maybe revert this?
-    def _parse_XLST(self, size, use_uniform_signal_axis=True):
+    def _parse_XLST(self):
         if not self._check_block_exists("XLST_0"):
             raise RuntimeError(
                 "File contains no information on signal axis (XLST-Block missing)."
             )
-        name, unit, data = self._parse_XLST_or_YLST("X", size)
+        name, unit, data = self._parse_XLST_or_YLST("X", self._points_per_spectrum)
         signal_dict = {}
-        signal_dict["size"] = size
+        signal_dict["size"] = self._points_per_spectrum
         signal_dict["navigate"] = False
         signal_dict["name"] = name
         signal_dict["units"] = unit
-        if use_uniform_signal_axis:
+        if data[0] > data[1]:
+            data = data[::-1]
+            self._reverse_signal = True
+        else:
+            self._reverse_signal = False
+        if self._use_uniform_signal_axis:
             signal_dict["offset"], signal_dict["scale"] = self._fit_axis(data)
         else:
             signal_dict["axis"] = data
@@ -792,7 +793,7 @@ class WDFReader(object):
             }
         )
 
-    def _parse_ORGN(self, header_orgn_count, ncollected_spectra):
+    def _parse_ORGN(self, header_orgn_count):
         if not self._check_block_exists("ORGN_0"):
             return {}
         orgn_nav = {}
@@ -809,7 +810,7 @@ class WDFReader(object):
             "ORGN",
             "Navigation axes",
             block_size - 16,
-            4 + origin_count * (24 + 8 * ncollected_spectra),
+            4 + origin_count * (24 + 8 * self._num_spectra),
         )
         for _ in range(origin_count):
             ax_tmp_dict = {}
@@ -819,7 +820,7 @@ class WDFReader(object):
             ).name
             ax_tmp_dict["units"] = str(UnitType(self.__read_numeric("uint32")))
             ax_tmp_dict["annotation"] = self.__read_utf8(0x10)
-            ax_tmp_dict["data"] = self._set_data_for_ORGN(dtype, ncollected_spectra)
+            ax_tmp_dict["data"] = self._set_data_for_ORGN(dtype)
 
             # TODO: maybe need to add more types here (R, Theta, Phi, Time)
             if dtype in [
@@ -833,15 +834,15 @@ class WDFReader(object):
         self.original_metadata.update({"ORGN_0": orgn_metadata})
         return orgn_nav
 
-    def _set_data_for_ORGN(self, dtype, ncollected_spectra):
+    def _set_data_for_ORGN(self, dtype):
         if dtype == DataType.Time.name:
             result = self.__read_numeric(
-                "uint64", size=ncollected_spectra, ret_array=True
+                "uint64", size=self._num_spectra, ret_array=True
             )
             result -= result[0]
         else:
             result = self.__read_numeric(
-                "double", size=ncollected_spectra, ret_array=True
+                "double", size=self._num_spectra, ret_array=True
             )
         return result
 
@@ -898,20 +899,20 @@ class WDFReader(object):
         result["name"] = "Abs. Distance"
         return {"Distance": result}
 
-    def _set_nav_axes(self, orgn_data, wmap_data, measurement_type):
-        if not self._compare_measurement_type_to_ORGN_WMAP(
-            orgn_data, wmap_data, measurement_type
-        ):
+    def _set_nav_axes(self, orgn_data, wmap_data):
+        if not self._compare_measurement_type_to_ORGN_WMAP(orgn_data, wmap_data):
             _logger.warning(
                 "Inconsistent MeasurementType and ORGN/WMAP Blocks."
                 "Navigation axes may be set incorrectly."
             )
-        if measurement_type == "Mapping":
+        if self._measurement_type == "Mapping":
             ## access units from arbitrary ORGN axis (should be the same for all)
             units = orgn_data[next(iter(orgn_data))]["units"]
             nav_dict = self._set_nav_via_WMAP(wmap_data, units)
-        else:
+        elif self._measurement_type == "Series":
             nav_dict = self._set_nav_via_ORGN(orgn_data)
+        else:
+            nav_dict = {}
         return nav_dict
 
     def _set_nav_via_ORGN(self, orgn_data):
@@ -926,27 +927,25 @@ class WDFReader(object):
             nav_dict[axis]["name"] = axis[0]
         return nav_dict
 
-    def _compare_measurement_type_to_ORGN_WMAP(
-        self, orgn_data, wmap_data, measurement_type
-    ):
+    def _compare_measurement_type_to_ORGN_WMAP(self, orgn_data, wmap_data):
         no_wmap = len(wmap_data) == 0
         no_orgn = len(orgn_data) == 0
 
-        if measurement_type not in MeasurementType._member_names_:
+        if self._measurement_type not in MeasurementType._member_names_:
             raise ValueError("Invalid measurement type.")
-        elif measurement_type != "Mapping" and (not no_wmap):
+        elif self._measurement_type != "Mapping" and (not no_wmap):
             _logger.warning("No Mapping expected, but WMAP Block exists.")
             return False
-        elif measurement_type == "Mapping" and no_wmap:
+        elif self._measurement_type == "Mapping" and no_wmap:
             _logger.warning("Mapping expected, but no WMAP Block.")
             return False
-        elif measurement_type == "Series" and no_orgn:
+        elif self._measurement_type == "Series" and no_orgn:
             _logger.warning("Series expected, but no (X, Y, Z) data.")
             return False
-        elif measurement_type == "Single" and (not no_orgn or not no_wmap):
+        elif self._measurement_type == "Single" and (not no_orgn or not no_wmap):
             _logger.warning("Spectrum expected, but extra axis present.")
             return False
-        elif measurement_type == "Unspecified":
+        elif self._measurement_type == "Unspecified":
             _logger.warning(
                 "Unspecified measurement type. May lead to incorrect results."
             )
@@ -965,17 +964,18 @@ class WDFReader(object):
         axes["signal_dict"] = deepcopy(signal_dict)
         return sorted(axes.values(), key=lambda item: item["index_in_array"])
 
-    def _parse_DATA(self, size):
+    def _parse_DATA(self):
         """Get information from DATA block"""
         if not self._check_block_exists("DATA_0"):
             raise RuntimeError("File does not contain data (DATA-Block missing).")
         pos, block_size = self._block_info["DATA_0"]
+        size = self._points_per_spectrum * self._num_spectra
         self._check_block_size("DATA", "Data", block_size - 16, 4 * size)
         self._file_obj.seek(pos)
         return self.__read_numeric("float", size=size)
 
-    def _reshape_data(self, ncollected_spectra, use_uniform_signal_axis):
-        if use_uniform_signal_axis:
+    def _reshape_data(self):
+        if self._use_uniform_signal_axis:
             signal_size = self.axes[-1]["size"]
         else:
             signal_size = self.axes[-1]["axis"].size
@@ -985,15 +985,17 @@ class WDFReader(object):
             axes_sizes.append(self.axes[i]["size"])
 
         ## np.prod of an empty array is 1
-        if ncollected_spectra != np.array(axes_sizes).prod():
+        if self._num_spectra != np.array(axes_sizes).prod():
             _logger.warning(
                 "Axes sizes do not match data size.\n"
                 "Data is averaged over multiple collected spectra."
             )
-            self.data = np.mean(self.data.reshape(ncollected_spectra, -1), axis=0)
+            self.data = np.mean(self.data.reshape(self._num_spectra, -1), axis=0)
 
         axes_sizes.append(signal_size)
         self.data = np.reshape(self.data, axes_sizes)
+        if self._reverse_signal:
+            self.data = np.flip(self.data, len(axes_sizes) - 1)
 
     def _map_general_md(self):
         general = {}

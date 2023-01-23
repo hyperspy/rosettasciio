@@ -1,4 +1,4 @@
-.. _prz-format:
+.. _pantarhei-format:
 
 CEOS Panta Rhei (PRZ)
 ---------------------
@@ -15,5 +15,5 @@ Please report any problematic file on the `issues tracker
 API functions
 ^^^^^^^^^^^^^
 
-.. automodule:: rsciio.prz
+.. automodule:: rsciio.pantarhei
    :members:

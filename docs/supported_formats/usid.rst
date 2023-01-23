@@ -49,7 +49,7 @@ set explicitly. Otherwise, using the ``.hdf5`` extension will default to the
 API functions
 ^^^^^^^^^^^^^
 
-.. automodule:: rsciio.usid_hdf5
+.. automodule:: rsciio.usid
    :members:
 
 Usage examples

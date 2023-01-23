@@ -22,6 +22,6 @@ all of them will be read and returned as a list.
 API functions
 ^^^^^^^^^^^^^
 
-.. automodule:: rsciio.fei
+.. automodule:: rsciio.tia
    :members:
 

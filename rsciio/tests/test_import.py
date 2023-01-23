@@ -117,5 +117,7 @@ def test_dir_plugins():
         plugin_module = importlib.import_module(plugin_string)
         if plugin['writes'] is False:
             assert dir(plugin_module) == ["file_reader"]
+        elif plugin["name"] == "MSA":
+            assert dir(plugin_module) == ["file_reader", "file_writer", "parse_msa_string"]
         else:
             assert dir(plugin_module) == ["file_reader", "file_writer"]

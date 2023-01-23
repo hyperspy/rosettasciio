@@ -324,9 +324,9 @@ class TestSpec:
         metadata_non_uniform = deepcopy(self.s_non_uniform.metadata.as_dictionary())
         assert (
             metadata_non_uniform["General"]["FileIO"]["0"]["io_plugin"]
-            == "rsciio.jobin_yvon"
+            == "rsciio.jobinyvon"
         )
-        assert metadata["General"]["FileIO"]["0"]["io_plugin"] == "rsciio.jobin_yvon"
+        assert metadata["General"]["FileIO"]["0"]["io_plugin"] == "rsciio.jobinyvon"
         assert metadata["General"]["date"] == "27.06.2022"
         assert metadata["General"]["original_filename"] == str(
             testfile_spec_wavelength_path.name

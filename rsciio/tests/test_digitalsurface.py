@@ -229,7 +229,9 @@ def test_load_spectra():
 
 
 def test_load_spectral_map_compressed():
-    fname = os.path.join(MY_PATH, "digitalsurf_data", "test_spectral_map_compressed.sur")
+    fname = os.path.join(
+        MY_PATH, "digitalsurf_data", "test_spectral_map_compressed.sur"
+    )
     s = hs.load(fname)
 
     assert s.data.shape == (12, 10, 281)

@@ -1,5 +1,5 @@
-name: BrukerComposite
-name_aliases: [Bruker composite file, Bruker composite file bcf]
+name: Bruker
+name_aliases: [BrukerComposite, Bruker composite file, Bruker composite file bcf, BCF, SPX]
 description: >
   The proprietary format used by Bruker's
   Esprit(R) software to save hypermaps together with 16bit SEM imagery,

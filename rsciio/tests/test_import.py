@@ -98,135 +98,24 @@ def test_format_name_aliases():
 
 
 def test_dir_plugins():
-    # Once all plugins use the new api format, write an automated test that
-    # iterates over all plugins
-
-    from rsciio import bruker
-
-    assert dir(bruker) == ["file_reader"]
-
-    # skimage is an optional dependency
-    pytest.importorskip("skimage")
-    from rsciio import blockfile
-
-    assert dir(blockfile) == ["file_reader", "file_writer"]
-
-    from rsciio import dens
-
-    assert dir(dens) == ["file_reader"]
-
-    from rsciio import digital_micrograph
-
-    assert dir(digital_micrograph) == ["file_reader"]
-
-    from rsciio import edax
-
-    assert dir(edax) == ["file_reader"]
-
-    from rsciio import emd
-
-    assert dir(emd) == ["file_reader", "file_writer"]
-
-    from rsciio import empad
-
-    assert dir(empad) == ["file_reader"]
-
-    from rsciio import fei
-
-    assert dir(fei) == ["file_reader"]
-
-    from rsciio import hspy
-
-    assert dir(hspy) == ["file_reader", "file_writer"]
-
-    from rsciio import image
-
-    assert dir(image) == ["file_reader", "file_writer"]
-
-    from rsciio import impulse
-
-    assert dir(impulse) == ["file_reader"]
-
-    from rsciio import jeol
-
-    assert dir(jeol) == ["file_reader"]
-
-    from rsciio import jobin_yvon
-
-    assert dir(jobin_yvon) == ["file_reader"]
-
-    from rsciio import mrc
-
-    assert dir(mrc) == ["file_reader"]
-
-    # mrcz is an optional dependency
-    pytest.importorskip("mrcz")
-    from rsciio import mrcz
-
-    assert dir(mrcz) == ["file_reader", "file_writer"]
-
-    from rsciio import msa
-
-    assert dir(msa) == ["file_reader", "file_writer", "parse_msa_string"]
-
-    from rsciio import netcdf
-
-    assert dir(netcdf) == ["file_reader"]
-
-    from rsciio import nexus
-
-    assert dir(nexus) == ["file_reader", "file_writer"]
-
-    from rsciio import phenom
-
-    assert dir(phenom) == ["file_reader"]
-
-    from rsciio import protochips
-
-    assert dir(protochips) == ["file_reader"]
-
-    from rsciio import prz
-
-    assert dir(prz) == ["file_reader", "file_writer"]
-
-    from rsciio import ripple
-
-    assert dir(ripple) == ["file_reader", "file_writer"]
-
-    from rsciio import semper_unf
-
-    assert dir(semper_unf) == ["file_reader", "file_writer"]
-
-    from rsciio import semper_unf
-
-    assert dir(semper_unf) == ["file_reader", "file_writer"]
-
-    from rsciio import sur
-
-    assert dir(sur) == ["file_reader"]
-
-    # tifffile is an optional dependency
-    pytest.importorskip("tifffile")
-    from rsciio import tiff
-
-    assert dir(tiff) == ["file_reader", "file_writer"]
-
-    from rsciio import tvips
-
-    assert dir(tvips) == ["file_reader", "file_writer"]
-
-    # pyUSID is an optional dependency
-    pytest.importorskip("pyUSID")
-    from rsciio import usid_hdf5
-
-    assert dir(usid_hdf5) == ["file_reader", "file_writer"]
-
-    # zarr is an optional dependency
-    pytest.importorskip("zarr")
-    from rsciio import zspy
-
-    assert dir(zspy) == ["file_reader", "file_writer"]
-
-    from rsciio import trivista
-
-    assert dir(trivista) == ["file_reader"]
+    import importlib
+    from rsciio import IO_PLUGINS
+    
+    for plugin in IO_PLUGINS:
+        plugin_string = "rsciio.%s" % plugin["name"].lower()
+        # skip for missing optional dependencies
+        if plugin["name"] == "Blockfile":
+            pytest.importorskip("skimage")
+        elif plugin["name"] == "MRCZ":
+            pytest.importorskip("mrcz")
+        elif plugin["name"] in ["TIFF", "Phenom"]:
+            pytest.importorskip("tifffile")
+        elif plugin["name"] == "USID":
+            pytest.importorskip("pyUSID")
+        elif plugin["name"] == "ZSPY":
+            pytest.importorskip("zarr")
+        plugin_module = importlib.import_module(plugin_string)
+        if plugin['writes'] is False:
+            assert dir(plugin_module) == ["file_reader"]
+        else:
+            assert dir(plugin_module) == ["file_reader", "file_writer"]

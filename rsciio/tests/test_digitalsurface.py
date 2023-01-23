@@ -141,7 +141,7 @@ atto_scan_keys = [
 
 def test_load_profile():
     # Signal loading
-    fname = os.path.join(MY_PATH, "sur_data", "test_profile.pro")
+    fname = os.path.join(MY_PATH, "digitalsurf_data", "test_profile.pro")
     s = hs.load(fname)
 
     # Verifying signal shape and axes dimensions, navigation (not data themselves)
@@ -167,7 +167,7 @@ def test_load_profile():
 
 
 def test_load_RGB():
-    fname = os.path.join(MY_PATH, "sur_data", "test_RGB.sur")
+    fname = os.path.join(MY_PATH, "digitalsurf_data", "test_RGB.sur")
     s = hs.load(fname)
     assert s.data.shape == (200, 200)
     assert s.data.dtype == np.dtype([("R", "u1"), ("G", "u1"), ("B", "u1")])
@@ -199,7 +199,7 @@ def test_load_RGB():
 
 
 def test_load_spectra():
-    fname = os.path.join(MY_PATH, "sur_data", "test_spectra.pro")
+    fname = os.path.join(MY_PATH, "digitalsurf_data", "test_spectra.pro")
     s = hs.load(fname)
 
     assert s.data.shape == (65, 512)
@@ -229,7 +229,7 @@ def test_load_spectra():
 
 
 def test_load_spectral_map_compressed():
-    fname = os.path.join(MY_PATH, "sur_data", "test_spectral_map_compressed.sur")
+    fname = os.path.join(MY_PATH, "digitalsurf_data", "test_spectral_map_compressed.sur")
     s = hs.load(fname)
 
     assert s.data.shape == (12, 10, 281)
@@ -277,7 +277,7 @@ def test_load_spectral_map_compressed():
 
 
 def test_load_spectral_map():
-    fname = os.path.join(MY_PATH, "sur_data", "test_spectral_map.sur")
+    fname = os.path.join(MY_PATH, "digitalsurf_data", "test_spectral_map.sur")
     s = hs.load(fname)
 
     assert s.data.shape == (12, 10, 310)
@@ -325,7 +325,7 @@ def test_load_spectral_map():
 
 
 def test_load_spectrum_compressed():
-    fname = os.path.join(MY_PATH, "sur_data", "test_spectrum_compressed.pro")
+    fname = os.path.join(MY_PATH, "digitalsurf_data", "test_spectrum_compressed.pro")
     s = hs.load(fname)
     md = s.metadata
     assert md.Signal.quantity == "CL Intensity (a.u.)"
@@ -351,7 +351,7 @@ def test_load_spectrum_compressed():
 
 
 def test_load_spectrum():
-    fname = os.path.join(MY_PATH, "sur_data", "test_spectrum.pro")
+    fname = os.path.join(MY_PATH, "digitalsurf_data", "test_spectrum.pro")
     s = hs.load(fname)
     assert s.data.shape == (512,)
 
@@ -378,7 +378,7 @@ def test_load_spectrum():
 
 
 def test_load_surface():
-    fname = os.path.join(MY_PATH, "sur_data", "test_surface.sur")
+    fname = os.path.join(MY_PATH, "digitalsurf_data", "test_surface.sur")
     s = hs.load(fname)
     md = s.metadata
     assert md.Signal.quantity == "CL Intensity (a.u.)"

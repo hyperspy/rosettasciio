@@ -67,56 +67,56 @@ def test_writing_loading_metadata():
 
 
 def test_signal_3d_loading():
-    signal = hs.load(os.path.join(my_path, "unf_files", "example_signal_3d.unf"))
+    signal = hs.load(os.path.join(my_path, "semper_data", "example_signal_3d.unf"))
     np.testing.assert_equal(signal.data, data_signal)
     np.testing.assert_equal(signal.original_metadata.IFORM, 2)  # float
     assert isinstance(signal, hs.signals.BaseSignal)
 
 
 def test_image_2d_loading():
-    signal = hs.load(os.path.join(my_path, "unf_files", "example_image_2d.unf"))
+    signal = hs.load(os.path.join(my_path, "semper_data", "example_image_2d.unf"))
     np.testing.assert_equal(signal.data, data_image)
     np.testing.assert_equal(signal.original_metadata.IFORM, 2)  # float
     assert isinstance(signal, hs.signals.Signal2D)
 
 
 def test_spectrum_1d_loading():
-    signal = hs.load(os.path.join(my_path, "unf_files", "example_spectrum_1d.unf"))
+    signal = hs.load(os.path.join(my_path, "semper_data", "example_spectrum_1d.unf"))
     np.testing.assert_equal(signal.data, data_spectrum)
     np.testing.assert_equal(signal.original_metadata.IFORM, 2)  # float
     assert isinstance(signal, hs.signals.Signal1D)
 
 
 def test_image_byte_loading():
-    signal = hs.load(os.path.join(my_path, "unf_files", "example_image_byte.unf"))
+    signal = hs.load(os.path.join(my_path, "semper_data", "example_image_byte.unf"))
     np.testing.assert_equal(signal.data, data_image_byte)
     np.testing.assert_equal(signal.original_metadata.IFORM, 0)  # byte
     assert isinstance(signal, hs.signals.Signal2D)
 
 
 def test_image_int16_loading():
-    signal = hs.load(os.path.join(my_path, "unf_files", "example_image_int16.unf"))
+    signal = hs.load(os.path.join(my_path, "semper_data", "example_image_int16.unf"))
     np.testing.assert_equal(signal.data, data_image_int16)
     np.testing.assert_equal(signal.original_metadata.IFORM, 1)  # int16
     assert isinstance(signal, hs.signals.Signal2D)
 
 
 def test_image_int32_loading():
-    signal = hs.load(os.path.join(my_path, "unf_files", "example_image_int32.unf"))
+    signal = hs.load(os.path.join(my_path, "semper_data", "example_image_int32.unf"))
     np.testing.assert_equal(signal.data, data_image_int32)
     np.testing.assert_equal(signal.original_metadata.IFORM, 4)  # int32
     assert isinstance(signal, hs.signals.Signal2D)
 
 
 def test_image_complex_loading():
-    signal = hs.load(os.path.join(my_path, "unf_files", "example_image_complex.unf"))
+    signal = hs.load(os.path.join(my_path, "semper_data", "example_image_complex.unf"))
     np.testing.assert_equal(signal.data, data_image_complex)
     np.testing.assert_equal(signal.original_metadata.IFORM, 3)  # complex
     assert isinstance(signal, hs.signals.ComplexSignal)
 
 
 def test_with_title_loading():
-    signal = hs.load(os.path.join(my_path, "unf_files", "example_with_title.unf"))
+    signal = hs.load(os.path.join(my_path, "semper_data", "example_with_title.unf"))
     np.testing.assert_equal(signal.data, data_image)
     np.testing.assert_equal(signal.original_metadata.IFORM, 2)  # float
     np.testing.assert_equal(signal.metadata.General.title, test_title)
@@ -124,7 +124,7 @@ def test_with_title_loading():
 
 
 def test_no_label_loading():
-    signal = hs.load(os.path.join(my_path, "unf_files", "example_no_label.unf"))
+    signal = hs.load(os.path.join(my_path, "semper_data", "example_no_label.unf"))
     np.testing.assert_equal(signal.data, data_image)
     np.testing.assert_equal(signal.original_metadata.ILABEL, 0)
     assert isinstance(signal, hs.signals.Signal2D)
@@ -135,15 +135,15 @@ class TestCaseSaveAndReadImage:
         signal_ref = hs.signals.Signal2D(data_image)
         signal_ref.metadata.General.title = test_title
         signal_ref.save(
-            os.path.join(my_path, "unf_files", "example_temp.unf"), overwrite=True
+            os.path.join(my_path, "semper_data", "example_temp.unf"), overwrite=True
         )
-        signal = hs.load(os.path.join(my_path, "unf_files", "example_temp.unf"))
+        signal = hs.load(os.path.join(my_path, "semper_data", "example_temp.unf"))
         np.testing.assert_equal(signal.data, signal_ref.data)
         np.testing.assert_equal(signal.metadata.General.title, test_title)
         assert isinstance(signal, hs.signals.Signal2D)
 
     def teardown_method(self, method):
-        remove(os.path.join(my_path, "unf_files", "example_temp.unf"))
+        remove(os.path.join(my_path, "semper_data", "example_temp.unf"))
 
 
 class TestCaseSaveAndReadByte:
@@ -151,12 +151,12 @@ class TestCaseSaveAndReadByte:
         signal_ref = hs.signals.Signal2D(data_image_byte)
         signal_ref.metadata.General.title = test_title
         signal_ref.save(
-            os.path.join(my_path, "unf_files", "example_temp.unf"), overwrite=True
+            os.path.join(my_path, "semper_data", "example_temp.unf"), overwrite=True
         )
-        signal = hs.load(os.path.join(my_path, "unf_files", "example_temp.unf"))
+        signal = hs.load(os.path.join(my_path, "semper_data", "example_temp.unf"))
         np.testing.assert_equal(signal.data, signal_ref.data)
         np.testing.assert_equal(signal.metadata.General.title, test_title)
         assert isinstance(signal, hs.signals.Signal2D)
 
     def teardown_method(self, method):
-        remove(os.path.join(my_path, "unf_files", "example_temp.unf"))
+        remove(os.path.join(my_path, "semper_data", "example_temp.unf"))

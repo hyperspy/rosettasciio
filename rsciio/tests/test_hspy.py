@@ -140,7 +140,7 @@ class Example1:
 
 class TestExample1_12(Example1):
     def setup_method(self, method):
-        self.s = hs.load(my_path / "hdf5_files" / "example1_v1.2.hdf5", reader="HSPY")
+        self.s = hs.load(my_path / "hspy_data" / "example1_v1.2.hdf5", reader="HSPY")
 
     def test_date(self):
         assert self.s.metadata.General.date == "1991-10-01"
@@ -151,17 +151,17 @@ class TestExample1_12(Example1):
 
 class TestExample1_10(Example1):
     def setup_method(self, method):
-        self.s = hs.load(my_path / "hdf5_files" / "example1_v1.0.hdf5", reader="HSPY")
+        self.s = hs.load(my_path / "hspy_data" / "example1_v1.0.hdf5", reader="HSPY")
 
 
 class TestExample1_11(Example1):
     def setup_method(self, method):
-        self.s = hs.load(my_path / "hdf5_files" / "example1_v1.1.hdf5", reader="HSPY")
+        self.s = hs.load(my_path / "hspy_data" / "example1_v1.1.hdf5", reader="HSPY")
 
 
 class TestLoadingNewSavedMetadata:
     def setup_method(self, method):
-        self.s = hs.load(my_path / "hdf5_files" / "with_lists_etc.hdf5", reader="HSPY")
+        self.s = hs.load(my_path / "hspy_data" / "with_lists_etc.hdf5", reader="HSPY")
 
     def test_signal_inside(self):
         np.testing.assert_array_almost_equal(
@@ -355,7 +355,7 @@ class TestSavingMetadataContainers:
 
     def test_metadata_binned_deprecate(self):
         with pytest.warns(UserWarning, match="Loading old file"):
-            s = hs.load(my_path / "hdf5_files" / "example2_v2.2.hspy")
+            s = hs.load(my_path / "hspy_data" / "example2_v2.2.hspy")
         assert s.metadata.has_item("Signal.binned") == False
         assert s.axes_manager[-1].is_binned == False
 
@@ -402,20 +402,20 @@ class TestSavingMetadataContainers:
                 }
             },
         }
-        s = hs.load(my_path / "hdf5_files" / "example2_v3.1.hspy")
+        s = hs.load(my_path / "hspy_data" / "example2_v3.1.hspy")
         # delete timestamp from metadata since it's runtime dependent
         del s.metadata.General.FileIO.Number_0.timestamp
         assert_deep_almost_equal(s.metadata.as_dictionary(), md)
 
 
 def test_none_metadata():
-    s = hs.load(my_path / "hdf5_files" / "none_metadata.hdf5", reader="HSPY")
+    s = hs.load(my_path / "hspy_data" / "none_metadata.hdf5", reader="HSPY")
     assert s.metadata.should_be_None is None
 
 
 def test_rgba16():
     print(my_path)
-    s = hs.load(my_path / "hdf5_files" / "test_rgba16.hdf5", reader="HSPY")
+    s = hs.load(my_path / "hspy_data" / "test_rgba16.hdf5", reader="HSPY")
     data = np.load(my_path / "npz_files" / "test_rgba16.npz")["a"]
     assert (s.data == data).all()
 
@@ -770,7 +770,7 @@ class Test_permanent_markers_io:
     def test_load_unknown_marker_type(self):
         # test_marker_bad_marker_type.hdf5 has 5 markers,
         # where one of them has an unknown marker type
-        fname = my_path / "hdf5_files" / "test_marker_bad_marker_type.hdf5"
+        fname = my_path / "hspy_data" / "test_marker_bad_marker_type.hdf5"
         s = hs.load(fname, reader="HSPY")
         assert len(s.metadata.Markers) == 4
 
@@ -779,7 +779,7 @@ class Test_permanent_markers_io:
         # where one of them is missing the y2 value, however the
         # the point marker only needs the x1 and y1 value to work
         # so this should load
-        fname = my_path / "hdf5_files" / "test_marker_point_y2_data_deleted.hdf5"
+        fname = my_path / "hspy_data" / "test_marker_point_y2_data_deleted.hdf5"
         s = hs.load(fname, reader="HSPY")
         assert len(s.metadata.Markers) == 5
 
@@ -844,7 +844,7 @@ def test_save_ragged_dim2(tmp_path, file):
 
 
 def test_load_missing_extension(caplog):
-    path = my_path / "hdf5_files" / "hspy_ext_missing.hspy"
+    path = my_path / "hspy_data" / "hspy_ext_missing.hspy"
     with pytest.warns(UserWarning):
         s = hs.load(path)
     assert "This file contains a signal provided by the hspy_ext_missing" in caplog.text

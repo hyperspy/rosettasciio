@@ -30,7 +30,7 @@ import numpy as np
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
-testfile_dir = (Path(__file__).parent / "jobin_yvon_data").resolve()
+testfile_dir = (Path(__file__).parent / "jobinyvon_data").resolve()
 
 testfile_spec_wavelength_path = (testfile_dir / "jobinyvon_test_spec.xml").resolve()
 testfile_spec_wavenumber_path = (

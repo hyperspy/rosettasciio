@@ -33,8 +33,8 @@ MY_PATH = os.path.dirname(__file__)
 
 class TestFEIReader:
     def setup_method(self, method):
-        self.dirpathold = os.path.join(MY_PATH, "FEI_old")
-        self.dirpathnew = os.path.join(MY_PATH, "FEI_new")
+        self.dirpathold = os.path.join(MY_PATH, "tia-fei_old")
+        self.dirpathnew = os.path.join(MY_PATH, "tia-fei_new")
 
     def test_load_emi_old_new_format(self):
         # TIA old format

@@ -203,7 +203,7 @@ class TestPythonMrcz:
 
         if not blosc_installed and compressor is not None:
             with pytest.raises(ImportError):
-                return self.compareSaveLoad(
+                self.compareSaveLoad(
                     [2, 64, 32],
                     dtype=dtype,
                     compressor=compressor,
@@ -211,7 +211,7 @@ class TestPythonMrcz:
                     lazy=lazy,
                 )
         else:
-            return self.compareSaveLoad(
+            self.compareSaveLoad(
                 [2, 64, 32],
                 dtype=dtype,
                 compressor=compressor,

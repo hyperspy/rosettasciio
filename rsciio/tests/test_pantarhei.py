@@ -65,7 +65,7 @@ class TestLoadingPrzFiles:
             },
         }
 
-        s = hs.load(my_path / "panta_rhei_files" / "panta_rhei_sample_v5.prz")
+        s = hs.load(my_path / "pantarhei_data" / "panta_rhei_sample_v5.prz")
 
         md_file = s.metadata.as_dictionary()
         md_file.pop("_HyperSpy")
@@ -81,7 +81,7 @@ class TestLoadingPrzFiles:
 def test_save_load_cycle(tmp_path):
     fname = tmp_path / "test_file.prz"
 
-    s = hs.load(my_path / "panta_rhei_files" / "panta_rhei_sample_v5.prz")
+    s = hs.load(my_path / "pantarhei_data" / "panta_rhei_sample_v5.prz")
     s.save(fname)
     assert fname.is_file()
 

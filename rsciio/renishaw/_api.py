@@ -33,7 +33,7 @@
 #       - currently only saved in WMAP
 #   - remove UID from blocknames for more consistent names?
 
-# known limitations:
+# known limitations/problems:
 #   - cannot parse BKXL-Block
 #   - many blocks exist according to gwyddion that are not covered by testfiles
 #       -> not parsed
@@ -404,8 +404,8 @@ class WDFReader(object):
         self._parse_metadata("ZLDC_0")
         self._parse_metadata("WARP_0")
         self._parse_metadata("WARP_1")
-        self._parse_MAP("MAP _0")
-        self._parse_MAP("MAP _1")
+        self._parse_MAP("MAP_0")
+        self._parse_MAP("MAP_1")
         self._parse_TEXT()
         self._parse_WHTL()
 
@@ -479,7 +479,7 @@ class WDFReader(object):
                 break
             else:
                 _logger.debug(f"{block_name}   {block_uid}   {curpos:<{9}}{block_size}")
-                block_info[block_name + "_" + str(block_uid)] = (
+                block_info[block_name.replace(" ", "") + "_" + str(block_uid)] = (
                     curpos + block_header_size,
                     block_size,
                 )
@@ -674,7 +674,7 @@ class WDFReader(object):
         if pos != 16:
             _logger.warning("Unexpected start of file. File might be invalid.")
 
-        ## TODO: what is ntracks
+        ## TODO: what is ntracks?
         ## warning when file_status_error_code nonzero?
         ## mulitple accumulations -> average or sum?
         self._file_obj.seek(pos)
@@ -1065,6 +1065,9 @@ class WDFReader(object):
         detector["temperature"] = _convert_float(
             ccd_original_metadata.get("Target temperature")
         )
+        detector["frames"] = self.original_metadata.get("WDF1_1", {}).get(
+            "accumulations_per_spectrum"
+        )
         return detector
 
     def map_metadata(self):
@@ -1105,7 +1108,7 @@ class WDFReader(object):
         whtl_metadata = {"image": img}
 
         ## extract EXIF tags and store them in metadata
-        if PIL is None:
+        if PIL is not None:
             pil_img = Image.open(img)
             # missing header keys when Pillow >= 8.2.0 -> does not flatten IFD anymore
             # see https://pillow.readthedocs.io/en/stable/releasenotes/8.2.0.html#image-getexif-exif-and-gps-ifd

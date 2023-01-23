@@ -1,6 +1,6 @@
 """NeXus file reading and writing."""
 # -*- coding: utf-8 -*-
-# Copyright 2007-2022 The HyperSpy developers
+# Copyright 2007-2023 The HyperSpy developers
 #
 # This file is part of RosettaSciIO.
 #

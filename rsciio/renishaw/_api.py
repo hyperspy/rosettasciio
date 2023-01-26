@@ -65,12 +65,12 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(10)
 
 try:
-    import PIL
+    from PIL import Image
 except ImportError:
-    PIL = None
+    PIL_installed = False
     _logger.warning("Pillow not installed. Cannot load whitelight image into metadata")
 else:
-    from PIL import Image
+    PIL_installed = True
 
 
 def _convert_float(input):
@@ -1108,7 +1108,7 @@ class WDFReader(object):
         whtl_metadata = {"image": img}
 
         ## extract EXIF tags and store them in metadata
-        if PIL is not None:
+        if PIL_installed:
             pil_img = Image.open(img)
             # missing header keys when Pillow >= 8.2.0 -> does not flatten IFD anymore
             # see https://pillow.readthedocs.io/en/stable/releasenotes/8.2.0.html#image-getexif-exif-and-gps-ifd

@@ -122,8 +122,11 @@ class TestSpec:
         original_metadata_non_uniform = deepcopy(
             self.s_non_uniform.original_metadata.as_dictionary()
         )
-        assert np.isclose(original_metadata["WDF1_1"].pop("laser_wavenumber"), 30769.2)
-        assert np.isclose(
+
+        np.testing.assert_allclose(
+            original_metadata["WDF1_1"].pop("laser_wavenumber"), 30769.2
+        )
+        np.testing.assert_allclose(
             original_metadata_non_uniform["WDF1_1"].pop("laser_wavenumber"), 30769.2
         )
         assert original_metadata_non_uniform == original_metadata
@@ -783,11 +786,14 @@ class TestLinescan:
 
         axes_manager = self.s.axes_manager.as_dictionary()
 
-        assert np.isclose(axes_manager["axis-0"].pop("offset"), 0)
-        assert np.isclose(axes_manager["axis-0"].pop("scale"), 30)
-
-        assert np.isclose(axes_manager["axis-1"].pop("offset"), 361.3127556405415)
-        assert np.isclose(axes_manager["axis-1"].pop("scale"), 0.08534686462516697)
+        np.testing.assert_allclose(axes_manager["axis-0"].pop("offset"), 0)
+        np.testing.assert_allclose(axes_manager["axis-0"].pop("scale"), 30)
+        np.testing.assert_allclose(
+            axes_manager["axis-1"].pop("offset"), 361.3127556405415
+        )
+        np.testing.assert_allclose(
+            axes_manager["axis-1"].pop("scale"), 0.08534686462516697
+        )
 
         for key in axes_manager.keys():
             axes_manager[key].pop("_type", None)
@@ -915,11 +921,12 @@ class TestMap:
 
         assert np.isclose(axes_manager["axis-0"].pop("offset"), -100)
         assert np.isclose(axes_manager["axis-0"].pop("scale"), 100)
+
         assert np.isclose(axes_manager["axis-1"].pop("offset"), -100)
         assert np.isclose(axes_manager["axis-1"].pop("scale"), 100)
 
-        assert np.isclose(axes_manager["axis-2"].pop("scale"), 0.0848807)
         assert np.isclose(axes_manager["axis-2"].pop("offset"), 346.7724758716342)
+        assert np.isclose(axes_manager["axis-2"].pop("scale"), 0.0848807)
 
         for key in axes_manager.keys():
             axes_manager[key].pop("_type", None)
@@ -946,8 +953,6 @@ class TestZscan:
         axes_manager = self.s.axes_manager.as_dictionary()
         assert len(axes_manager) == 2
         z_axis = axes_manager.pop("axis-0")
-        scale = z_axis.pop("scale")
-        offset = z_axis.pop("offset")
 
         expected_axis = {
             "_type": "UniformDataAxis",
@@ -958,8 +963,8 @@ class TestZscan:
             "size": 40,
         }
 
-        assert np.isclose(scale, 0.5)
-        assert np.isclose(offset, -10)
+        np.testing.assert_allclose(z_axis.pop("scale"), 0.5)
+        np.testing.assert_allclose(z_axis.pop("offset"), -10)
         assert z_axis == expected_axis
         assert axes_manager["axis-1"]["units"] == "1/cm"
         assert axes_manager["axis-1"]["name"] == "Wavenumber"
@@ -1041,7 +1046,7 @@ class TestStreamline:
         }
 
         metadata_WHTL = deepcopy(self.s.original_metadata.WHTL_0.as_dictionary())
-        img = metadata_WHTL.pop("image")
+        metadata_WHTL.pop("image", None)
         assert metadata_WHTL == expected_WTHL
 
     def test_original_metadata_WMAP(self):
@@ -1050,6 +1055,7 @@ class TestStreamline:
             "flag": 2,
         }
         metadata_WMAP = deepcopy(self.s.original_metadata.WMAP_0.as_dictionary())
+
         np.testing.assert_allclose(
             metadata_WMAP.pop("offset_xyz"), [-8100.3, -1201.3, 0.0]
         )
@@ -1083,7 +1089,7 @@ class TestStreamline:
 
         metadata_WDF1 = deepcopy(self.s.original_metadata.WDF1_1.as_dictionary())
 
-        assert np.isclose(metadata_WDF1.pop("laser_wavenumber"), 12738.9)
+        np.testing.assert_allclose(metadata_WDF1.pop("laser_wavenumber"), 12738.9)
         assert metadata_WDF1 == expected_WDF1
 
 

@@ -919,14 +919,16 @@ class TestMap:
 
         axes_manager = self.s.axes_manager.as_dictionary()
 
-        assert np.isclose(axes_manager["axis-0"].pop("offset"), -100)
-        assert np.isclose(axes_manager["axis-0"].pop("scale"), 100)
+        np.testing.assert_allclose(axes_manager["axis-0"].pop("offset"), -100)
+        np.testing.assert_allclose(axes_manager["axis-0"].pop("scale"), 100)
 
-        assert np.isclose(axes_manager["axis-1"].pop("offset"), -100)
-        assert np.isclose(axes_manager["axis-1"].pop("scale"), 100)
+        np.testing.assert_allclose(axes_manager["axis-1"].pop("offset"), -100)
+        np.testing.assert_allclose(axes_manager["axis-1"].pop("scale"), 100)
 
-        assert np.isclose(axes_manager["axis-2"].pop("offset"), 346.7724758716342)
-        assert np.isclose(axes_manager["axis-2"].pop("scale"), 0.0848807)
+        np.testing.assert_allclose(
+            axes_manager["axis-2"].pop("offset"), 346.7724758716342
+        )
+        np.testing.assert_allclose(axes_manager["axis-2"].pop("scale"), 0.0848807)
 
         for key in axes_manager.keys():
             axes_manager[key].pop("_type", None)

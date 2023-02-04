@@ -98,7 +98,6 @@ def test_format_name_aliases():
 
 
 def test_dir_plugins():
-    import importlib
     from rsciio import IO_PLUGINS
 
     for plugin in IO_PLUGINS:

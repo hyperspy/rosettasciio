@@ -203,12 +203,11 @@ class HierarchicalReader:
                         experiments.append(ds)
             # Parse the file
             for experiment in experiments:
-
                 exg = self.file["Experiments"][experiment]
                 exp = self.group2signaldict(exg, lazy)
                 # assign correct models, if found:
                 _tmp = {}
-                for (key, _dict) in reversed(models_with_signals):
+                for key, _dict in reversed(models_with_signals):
                     if key == exg.name:
                         _tmp.update(_dict)
                         models_with_signals.remove((key, _dict))

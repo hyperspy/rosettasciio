@@ -67,7 +67,6 @@ class TestPythonMrcz:
         do_async=False,
         **kwargs
     ):
-
         # This is the main function which reads and writes from disk.
         mrcName = os.path.join(tmpDir, "testMage_{}_lazy_{}.mrcz".format(dtype, lazy))
 

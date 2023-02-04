@@ -464,7 +464,6 @@ FEI_navcam_metadata = {
 
 
 class TestReadFEIHelios:
-
     path = Path(TMP_DIR.name)
 
     @classmethod
@@ -550,7 +549,6 @@ class TestReadFEIHelios:
 
 
 class TestReadZeissSEM:
-
     path = Path(TMP_DIR.name)
 
     @classmethod
@@ -888,7 +886,6 @@ def test_JEOL_SightX():
 
 
 class TestReadHamamatsu:
-
     path = Path(TMP_DIR.name)
 
     @classmethod

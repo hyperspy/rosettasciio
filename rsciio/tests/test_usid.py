@@ -442,7 +442,6 @@ class TestHS2USIDedgeAxes:
         )
 
     def test_too_many_axes(self):
-
         sig = hs.signals.Signal2D(
             np.random.randint(0, high=100, size=(2, 3, 5, 7)),
             axes=[

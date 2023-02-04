@@ -271,7 +271,9 @@ def parse_msa_string(string, filename=None):
                 mapped.set_item("General.date", date.date().isoformat())
             else:
                 _logger.warning(malformed_date_error)
-        except ValueError as e:  # Error raised if split does not return 3 elements in this case
+        except (
+            ValueError
+        ) as e:  # Error raised if split does not return 3 elements in this case
             _logger.warning(malformed_date_error + ": %s" % e)
 
     axes = [
@@ -473,7 +475,6 @@ def file_writer(filename, signal, format=None, separator=", ", encoding="latin-1
             loc_kwds[key] = value
 
     for key, dic in keywords.items():
-
         if dic["mapped_to"] is not None:
             if "SEM" in md.Signal.signal_type:
                 dic["mapped_to"] = dic["mapped_to"].replace("TEM", "SEM")

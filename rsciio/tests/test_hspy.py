@@ -944,6 +944,7 @@ def test_saving_overwrite_data(tmp_path, file):
     s4.save(fname, overwrite=True, write_dataset=True)
     # make sure we can open it after, file haven't been corrupted
     _ = hs.load(fname)
+
     # now new data
     @zspy_marker
     def test_chunking_saving_lazy_specify(self, tmp_path, file):

@@ -31,7 +31,6 @@ _logger = logging.getLogger(__name__)
 
 
 def _read_raw(info, fp, lazy=False):
-
     raw_height = info["raw_height"]
     width = info["width"]
     height = info["height"]

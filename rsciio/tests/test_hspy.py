@@ -568,6 +568,7 @@ class Test_permanent_markers_io:
         s.add_marker(m, permanent=True)
         s.save(filename)
         s1 = hs.load(filename)
+        assert len(s1.metadata.Markers) == len(s.metadata.Markers)
         assert s1.metadata.Markers.has_item(name)
         m1 = s1.metadata.Markers.get_item(name)
         assert m1.get_data_position("x1") == x
@@ -595,6 +596,8 @@ class Test_permanent_markers_io:
             s.add_marker(m, permanent=True)
         s.save(filename)
         s1 = hs.load(filename)
+        assert len(s1.metadata.Markers) == len(s.metadata.Markers)
+
         markers_dict = s1.metadata.Markers
         m0_dict_list = []
         m1_dict_list = []

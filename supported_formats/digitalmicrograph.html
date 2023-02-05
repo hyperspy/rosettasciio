@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>HSpy - HyperSpy’s HDF5 Specification &#8212; RosettaSciIO  documentation</title>
+    <title>Gatan Digital Micrograph &#8212; RosettaSciIO  documentation</title>
   
   
   
@@ -37,11 +37,11 @@
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/hspy';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/digitalmicrograph';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Image formats" href="image.html" />
-    <link rel="prev" title="EMPAD format (XML &amp; RAW)" href="empad.html" />
+    <link rel="next" title="DigitalSurf format (SUR &amp; PRO)" href="digitalsurf.html" />
+    <link rel="prev" title="DENSsolutions formats" href="dens.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="en">
   </head>
@@ -352,12 +352,12 @@
 <li class="toctree-l1"><a class="reference internal" href="bruker.html">Bruker</a></li>
 <li class="toctree-l1"><a class="reference internal" href="de5.html">Direct Electron EMD (DE5)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dens.html">DENSsolutions formats</a></li>
-<li class="toctree-l1"><a class="reference internal" href="digitalmicrograph.html">Gatan Digital Micrograph</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Gatan Digital Micrograph</a></li>
 <li class="toctree-l1"><a class="reference internal" href="digitalsurf.html">DigitalSurf format (SUR &amp; PRO)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="edax.html">EDAX TEAM/Genesis (SPC, SPD)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="emd.html">Electron Microscopy Dataset (EMD)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="empad.html">EMPAD format (XML &amp; RAW)</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">HSpy - HyperSpy’s HDF5 Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hspy.html">HSpy - HyperSpy’s HDF5 Specification</a></li>
 <li class="toctree-l1"><a class="reference internal" href="image.html">Image formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jeol.html">JEOL Analyst Station (ASW, …)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jobinyvon.html">Horiba Jobin Yvon LabSpec</a></li>
@@ -410,108 +410,47 @@
             
             <article class="bd-article" role="main">
               
-  <section id="hspy-hyperspy-s-hdf5-specification">
-<span id="hspy-format"></span><h1>HSpy - HyperSpy’s HDF5 Specification<a class="headerlink" href="#hspy-hyperspy-s-hdf5-specification" title="Permalink to this heading">#</a></h1>
-<p>This is <a class="reference external" href="https://hyperspy.org">HyperSpy’s</a> default format and for data processed
-in HyperSpy, it is the only format that guarantees that no
-information will be lost in the writing process and that supports saving data
-of arbitrary dimensions. It is based on the <a class="reference external" href="https://www.hdfgroup.org/solutions/hdf5/">HDF5 open standard</a>. The HDF5 file format is supported by <a class="reference external" href="https://support.hdfgroup.org/products/hdf5_tools/SWSummarybyName.htm">many
-applications</a>.
-Parts of the specifications are documented in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/metadata_structure.html#metadata-structure" title="(in HyperSpy v1.7.3)"><span>Metadata structure</span></a>.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version HyperSpy_v1.2: </span>Enable saving HSpy files with the <code class="docutils literal notranslate"><span class="pre">.hspy</span></code> extension. Previously only the
-<code class="docutils literal notranslate"><span class="pre">.hdf5</span></code> extension was recognised.</p>
+  <section id="gatan-digital-micrograph">
+<span id="digitalmicrograph-format"></span><h1>Gatan Digital Micrograph<a class="headerlink" href="#gatan-digital-micrograph" title="Permalink to this heading">#</a></h1>
+<p>RosettaSciIO can read both <code class="docutils literal notranslate"><span class="pre">.dm3</span></code> and <code class="docutils literal notranslate"><span class="pre">.dm4</span></code> files, but the reading features
+are not complete (and probably they will remain so, unless Gatan releases the
+specifications of the format). That said, we understand that this is an
+important feature and if loading a particular Digital Micrograph file fails for
+you, please report it as an issue in the <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues">issues tracker</a> to make us aware of the
+problem.</p>
+<p>Some of the tags in the DM-files are added to the metadata of the signal
+object. This includes, microscope information and certain parameters for EELS,
+EDS and CL signals.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>It has been reported that in some versions of Gatan Digital Micrograph,
+any binned data stores the _averages_ of the binned channels or pixels,
+rather than the _sum_, which would be required for proper statistical
+analysis. We therefore strongly recommend that all binning is performed
+using python, e.g. <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, where possible.</p>
+<p>See the original <a class="reference external" href="https://github.com/hyperspy/hyperspy/issues/1624">bug report here</a>.</p>
 </div>
-<div class="versionchanged">
-<p><span class="versionmodified changed">Changed in version HyperSpy_v1.3: </span>The default extension for the HyperSpy HDF5 specification is now <code class="docutils literal notranslate"><span class="pre">.hspy</span></code>.
-The option to change the default is no longer present in <code class="docutils literal notranslate"><span class="pre">preferences</span></code>.</p>
-</div>
-<p>Only loading of HDF5 files following the HyperSpy specifications is supported by
-this plugin. Usually their extension is <code class="docutils literal notranslate"><span class="pre">.hspy</span></code> extension, but older versions of
-HyperSpy would save them with the <code class="docutils literal notranslate"><span class="pre">.hdf5</span></code> extension. Both extensions are
-recognised by HyperSpy since version 1.2. However, HyperSpy versions older than 1.2
-won’t recognise the <code class="docutils literal notranslate"><span class="pre">.hspy</span></code> extension. To work around the issue when using old
-HyperSpy installations simply change the extension manually to <code class="docutils literal notranslate"><span class="pre">.hdf5</span></code> or
-directly save the file using this extension by explicitly adding it to the
-filename e.g.:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">hyperspy.api</span> <span class="k">as</span> <span class="nn">hs</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">BaseSignal</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;test.hdf5&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>When saving to <code class="docutils literal notranslate"><span class="pre">.hspy</span></code>, all supported objects in the signal’s
-<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/api/hyperspy.signal.html#hyperspy.signal.BaseSignal.metadata" title="(in HyperSpy v1.7.3)"><code class="xref py py-attr docutils literal notranslate"><span class="pre">hyperspy.signal.BaseSignal.metadata</span></code></a> are stored. This includes lists, tuples
-and signals. Please note that in order to increase saving efficiency and speed,
-if possible, the inner-most structures are converted to numpy arrays when saved.
-This procedure homogenizes any types of the objects inside, most notably casting
-numbers as strings if any other strings are present:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># before saving:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">somelist</span>
-<span class="go">[1, 2.0, &#39;a name&#39;]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># after saving:</span>
-<span class="go">[&#39;1&#39;, &#39;2.0&#39;, &#39;a name&#39;]</span>
-</pre></div>
-</div>
-<p>The change of type is done using numpy “safe” rules, so no information is lost,
-as numbers are represented to full machine precision.</p>
-<p>This feature is particularly useful when using
-<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/api/hyperspy._signals.eds.html#hyperspy._signals.eds.EDSSpectrum.get_lines_intensity" title="(in HyperSpy v1.7.3)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">hyperspy._signals.eds.EDSSpectrum.get_lines_intensity()</span></code></a>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">example_signals</span><span class="o">.</span><span class="n">EDS_SEM_Spectrum</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">Sample</span><span class="o">.</span><span class="n">intensities</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">get_lines_intensity</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;EDS_spectrum.hspy&#39;</span><span class="p">)</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s_new</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;EDS_spectrum.hspy&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s_new</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">Sample</span><span class="o">.</span><span class="n">intensities</span>
-<span class="go">[&lt;BaseSignal, title: X-ray line intensity of EDS SEM Signal1D: Al_Ka at 1.49 keV, dimensions: (|)&gt;,</span>
-<span class="go"> &lt;BaseSignal, title: X-ray line intensity of EDS SEM Signal1D: C_Ka at 0.28 keV, dimensions: (|)&gt;,</span>
-<span class="go"> &lt;BaseSignal, title: X-ray line intensity of EDS SEM Signal1D: Cu_La at 0.93 keV, dimensions: (|)&gt;,</span>
-<span class="go"> &lt;BaseSignal, title: X-ray line intensity of EDS SEM Signal1D: Mn_La at 0.63 keV, dimensions: (|)&gt;,</span>
-<span class="go"> &lt;BaseSignal, title: X-ray line intensity of EDS SEM Signal1D: Zr_La at 2.04 keV, dimensions: (|)&gt;]</span>
-</pre></div>
-</div>
-<section id="chunking">
-<span id="hspy-chunks"></span><h2>Chunking<a class="headerlink" href="#chunking" title="Permalink to this heading">#</a></h2>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version HyperSpy_v1.3.1: </span><code class="docutils literal notranslate"><span class="pre">chunks</span></code> keyword argument</p>
-</div>
-<p>The HyperSpy HDF5 format supports chunking the data into smaller pieces to make it possible to load only part
-of a dataset at a time. By default, the data is saved in chunks that are optimised to contain at least one
-full signal.  It is possible to
-customise the chunk shape using the <code class="docutils literal notranslate"><span class="pre">chunks</span></code> keyword.
-For example, to save the data with <code class="docutils literal notranslate"><span class="pre">(20,</span> <span class="pre">20,</span> <span class="pre">256)</span></code> chunks instead of the default <code class="docutils literal notranslate"><span class="pre">(7,</span> <span class="pre">7,</span> <span class="pre">2048)</span></code> chunks
-for this signal:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">Signal1D</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">2048</span><span class="p">)))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;test_chunks&quot;</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">256</span><span class="p">))</span>
-</pre></div>
-</div>
-<p>Note that currently it is not possible to pass different customised chunk shapes to all signals and
-arrays contained in a signal and its metadata. Therefore, the value of <code class="docutils literal notranslate"><span class="pre">chunks</span></code> provided on saving
-will be applied to all arrays contained in the signal.</p>
-<p>By passing <code class="docutils literal notranslate"><span class="pre">True</span></code> to <code class="docutils literal notranslate"><span class="pre">chunks</span></code> the chunk shape is guessed using the <code class="docutils literal notranslate"><span class="pre">guess_chunk</span></code> function of <code class="docutils literal notranslate"><span class="pre">h5py</span></code>
-For large signal spaces, the autochunking usually leads to smaller chunks as <code class="docutils literal notranslate"><span class="pre">guess_chunk</span></code> does not impose the
-constrain of storing at least one signal per chunk. For example, for the signal in the example above
-passing <code class="docutils literal notranslate"><span class="pre">chunks=True</span></code> results in chunks of <code class="docutils literal notranslate"><span class="pre">(7,</span> <span class="pre">7,</span> <span class="pre">256)</span></code>.</p>
-<p>Choosing the correct chunk-size can significantly affect the speed of reading,
-writing and performance of many HyperSpy algorithms. See the
-<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/big_data.html#big-data-chunking" title="(in HyperSpy v1.7.3)"><span class="xref std std-ref">HyperSpy chunking section</span></a> for more information.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Also see the <a class="reference internal" href="../api/utils.html#hdf5-utils"><span class="std std-ref">HDF5 utility functions</span></a> for inspecting HDF5 files.</p>
-</div>
-</section>
-<section id="module-rsciio.hspy">
-<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.hspy" title="Permalink to this heading">#</a></h2>
+<section id="module-rsciio.digitalmicrograph">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.digitalmicrograph" title="Permalink to this heading">#</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="rsciio.hspy.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.hspy.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.hspy.file_reader" title="Permalink to this definition">#</a></dt>
-<dd><p>Read data from hdf5-files saved with the HyperSpy hdf5-format
-specification (<code class="docutils literal notranslate"><span class="pre">.hspy</span></code>).</p>
+<dt class="sig sig-object py" id="rsciio.digitalmicrograph.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.digitalmicrograph.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.digitalmicrograph.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Reads a DM3/4 file and loads the data into the appropriate class.
+If more than one dataset is contained in the <code class="docutils literal notranslate"><span class="pre">.dm3/4</span></code> file, a list of
+signals is returned.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
 <li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
-<li><p><strong>**kwds</strong> – </p></li>
+<li><p><strong>order</strong> (<em>str</em>) – One of ‘C’ or ‘F’</p></li>
+<li><p><strong>optimize</strong> (<em>bool</em><em>, </em><em>Default=True</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the data is replaced by its
+<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/signal.html#signal-transpose-optimize" title="(in HyperSpy v1.7.3)"><span class="xref std std-ref">optimized copy</span></a> during
+loading to speed up operations, e.g. iteration over navigation axes.
+The cost of this speed improvement is to double the memory requirement
+during data loading, which for large data sets can lead to a slow down on
+machines with limited memory. When operating on lazy signals, if <code class="docutils literal notranslate"><span class="pre">True</span></code>,
+the chunks are optimised for the new axes configuration.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -533,54 +472,6 @@ containing the full axes vector</p></li>
 </dl>
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="rsciio.hspy.file_writer">
-<span class="sig-prename descclassname"><span class="pre">rsciio.hspy.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">close_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.hspy.file_writer" title="Permalink to this definition">#</a></dt>
-<dd><p>Writes data to HyperSpy’s hdf5-format (<code class="docutils literal notranslate"><span class="pre">.hspy</span></code>).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p></li>
-<li><p><strong>signal</strong> (<em>dict</em>) – <p>Dictionary containing the signal object.
-Should contain the following fields:</p>
-<ul>
-<li><p>’data’ – multidimensional numpy array</p></li>
-<li><p>’axes’ – list of dictionaries describing the axes
-containing the fields ‘name’, ‘units’, ‘index_in_array’, and
-either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
-containing the full axes vector</p></li>
-<li><p>’metadata’ – dictionary containing the metadata tree</p></li>
-</ul>
-</p></li>
-<li><p><strong>compression</strong> (<em>None</em><em>, </em><em>'gzip'</em><em>, </em><em>'szip'</em><em>, </em><em>'lzf'</em><em>, </em><em>Default='gzip'.</em>) – Compression can significantly increase the saving speed. If file size is not
-an issue, it can be disabled by setting <code class="docutils literal notranslate"><span class="pre">compression=None</span></code>.
-RosettaSciIO uses h5py for reading and writing HDF5 files and, therefore,
-it supports all <a class="reference external" href="https://docs.h5py.org/en/stable/high/dataset.html#dataset-compression">compression filters supported by h5py</a>.
-The default is <code class="docutils literal notranslate"><span class="pre">'gzip'</span></code>. Also see notes below.</p></li>
-<li><p><strong>chunks</strong> (<em>tuple</em><em> of </em><em>integer</em><em> or </em><em>None</em><em>, </em><em>Default=None</em>) – Define the chunking used for saving the dataset. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, calculates
-chunks for the signal, with preferably at least one chunk per signal
-space.</p></li>
-<li><p><strong>close_file</strong> (<em>bool</em><em>, </em><em>Default=True</em>) – Close the file after writing.  The file should not be closed if the data
-needs to be accessed lazily after saving.</p></li>
-<li><p><strong>write_dataset</strong> (<em>bool</em><em>, </em><em>Default=True</em>) – If True, write the dataset, otherwise, don’t write it. Useful to
-overwrite attributes (for example <code class="docutils literal notranslate"><span class="pre">axes_manager</span></code>) only without having
-to write the whole dataset.</p></li>
-<li><p><strong>**kwds</strong> – The keyword argument are passed to the
-<a class="reference external" href="https://docs.h5py.org/en/stable/high/group.html#h5py.Group.require_dataset" title="(in h5py v3.8)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">h5py.Group.require_dataset()</span></code></a> function.</p></li>
-</ul>
-</dd>
-</dl>
-<p class="rubric">Notes</p>
-<p>It is possible to enable other compression filters such as <code class="docutils literal notranslate"><span class="pre">blosc</span></code> by
-installing e.g. <a class="reference external" href="https://github.com/silx-kit/hdf5plugin">hdf5plugin</a>.
-Similarly, the availability of <code class="docutils literal notranslate"><span class="pre">'szip'</span></code> depends on the HDF5 installation.
-If not available an error will be raised. Be aware that loading those
-files will require installing the package providing the compression filter
-and it may thus not be possible to load it on some platforms.
-Only <code class="docutils literal notranslate"><span class="pre">compression=None</span></code> and <code class="docutils literal notranslate"><span class="pre">compression='gzip'</span></code> are available on all
-platforms. For more details, see the <a class="reference external" href="https://docs.h5py.org/en/stable/faq.html#what-compression-processing-filters-are-supported">h5py documentation</a>.</p>
-</dd></dl>
-
 </section>
 </section>
 
@@ -592,17 +483,17 @@ platforms. For more details, see the <a class="reference external" href="https:/
             <footer class="bd-footer-article">
                 <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-  <a class='left-prev' id="prev-link" href="empad.html" title="previous page">
+  <a class='left-prev' id="prev-link" href="dens.html" title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
           <p class="prev-next-subtitle">previous</p>
-          <p class="prev-next-title">EMPAD format (XML &amp; RAW)</p>
+          <p class="prev-next-title">DENSsolutions formats</p>
       </div>
   </a>
-  <a class='right-next' id="next-link" href="image.html" title="next page">
+  <a class='right-next' id="next-link" href="digitalsurf.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">Image formats</p>
+      <p class="prev-next-title">DigitalSurf format (SUR &amp; PRO)</p>
   </div>
   <i class="fa-solid fa-angle-right"></i>
   </a>
@@ -623,29 +514,15 @@ platforms. For more details, see the <a class="reference external" href="https:/
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#chunking">
-   Chunking
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#module-rsciio.hspy">
+  <a class="reference internal nav-link" href="#module-rsciio.digitalmicrograph">
    API functions
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#rsciio.hspy.file_reader">
+    <a class="reference internal nav-link" href="#rsciio.digitalmicrograph.file_reader">
      <code class="docutils literal notranslate">
       <span class="pre">
        file_reader()
-      </span>
-     </code>
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#rsciio.hspy.file_writer">
-     <code class="docutils literal notranslate">
-      <span class="pre">
-       file_writer()
       </span>
      </code>
     </a>
@@ -669,7 +546,7 @@ platforms. For more details, see the <a class="reference external" href="https:/
 <div class="toc-item">
   
 <div class="tocsection sourcelink">
-    <a href="../_sources/supported_formats/hspy.rst.txt">
+    <a href="../_sources/supported_formats/digitalmicrograph.rst.txt">
         <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
 </div>

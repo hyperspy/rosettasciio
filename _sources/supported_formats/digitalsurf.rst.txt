@@ -1,4 +1,4 @@
-.. _sur-format:
+.. _digitalsurf-format:
 
 DigitalSurf format (SUR & PRO)
 ------------------------------
@@ -17,5 +17,5 @@ contains a description of the binary format.
 API functions
 ^^^^^^^^^^^^^
 
-.. automodule:: rsciio.sur
+.. automodule:: rsciio.digitalsurf
    :members:

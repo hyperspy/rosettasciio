@@ -1,4 +1,4 @@
-.. _unf-format:
+.. _semper-format:
 
 SEMPER binary format (UNF)
 --------------------------
@@ -16,5 +16,5 @@ Currently version 7 of the format should be fully supported.
 API functions
 ^^^^^^^^^^^^^
 
-.. automodule:: rsciio.semper_unf
+.. automodule:: rsciio.semper
    :members:

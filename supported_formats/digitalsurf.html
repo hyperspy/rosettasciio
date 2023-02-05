@@ -41,7 +41,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="EDAX TEAM/Genesis (SPC, SPD)" href="edax.html" />
-    <link rel="prev" title="Gatan Digital Micrograph" href="digital_micrograph.html" />
+    <link rel="prev" title="Gatan Digital Micrograph" href="digitalmicrograph.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="en">
   </head>
@@ -352,26 +352,26 @@
 <li class="toctree-l1"><a class="reference internal" href="bruker.html">Bruker</a></li>
 <li class="toctree-l1"><a class="reference internal" href="de5.html">Direct Electron EMD (DE5)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dens.html">DENSsolutions formats</a></li>
-<li class="toctree-l1"><a class="reference internal" href="digital_micrograph.html">Gatan Digital Micrograph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="digitalmicrograph.html">Gatan Digital Micrograph</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">DigitalSurf format (SUR &amp; PRO)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="edax.html">EDAX TEAM/Genesis (SPC, SPD)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="emd.html">Electron Microscopy Dataset (EMD)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="emi_ser.html">FEI TIA (SER &amp; EMI)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="empad.html">EMPAD format (XML &amp; RAW)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hspy.html">HSpy - HyperSpy’s HDF5 Specification</a></li>
 <li class="toctree-l1"><a class="reference internal" href="image.html">Image formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jeol.html">JEOL Analyst Station (ASW, …)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="jobin_yvon.html">Horiba Jobin Yvon LabSpec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="jobinyvon.html">Horiba Jobin Yvon LabSpec</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mrc.html">MRC format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mrcz.html">MRCZ format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="msa.html">EMSA/MSA format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="netcdf.html">NetCDF (EELSlab) format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="nexus.html">NeXus data format</a></li>
-<li class="toctree-l1"><a class="reference internal" href="panta_rhei.html">CEOS Panta Rhei (PRZ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pantarhei.html">CEOS Panta Rhei (PRZ)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="phenom.html">Phenom ELID format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="protochips.html">Protochips logfile</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ripple.html">Ripple format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="semper.html">SEMPER binary format (UNF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tia.html">FEI TIA (SER &amp; EMI)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tiff.html">Tagged image file format (TIFF)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="trivista.html">TriVista</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tvips.html">TVIPS format</a></li>
@@ -411,7 +411,7 @@
             <article class="bd-article" role="main">
               
   <section id="digitalsurf-format-sur-pro">
-<span id="sur-format"></span><h1>DigitalSurf format (SUR &amp; PRO)<a class="headerlink" href="#digitalsurf-format-sur-pro" title="Permalink to this heading">#</a></h1>
+<span id="digitalsurf-format"></span><h1>DigitalSurf format (SUR &amp; PRO)<a class="headerlink" href="#digitalsurf-format-sur-pro" title="Permalink to this heading">#</a></h1>
 <p>The <code class="docutils literal notranslate"><span class="pre">.sur</span></code> and <code class="docutils literal notranslate"><span class="pre">.pro</span></code> files are a format developed by the digitalsurf company to handle various types of
 scientific measurements data such as profilometer, SEM, AFM, RGB(A) images, multilayer
 surfaces and profiles. Even though it is essentially a surfaces format, 1D signals
@@ -421,11 +421,11 @@ by Attolight SA for its scanning electron microscope cathodoluminescence
 metadata, as well as the loading of files containing multiple objects packed together.</p>
 <p>The plugin was developed based on the MountainsMap software documentation, which
 contains a description of the binary format.</p>
-<section id="module-rsciio.sur">
-<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.sur" title="Permalink to this heading">#</a></h2>
+<section id="module-rsciio.digitalsurf">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.digitalsurf" title="Permalink to this heading">#</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="rsciio.sur.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.sur.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.sur.file_reader" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="rsciio.digitalsurf.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.digitalsurf.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.digitalsurf.file_reader" title="Permalink to this definition">#</a></dt>
 <dd><p>Read a mountainsmap .sur file and return a dictionnary containing the
 information necessary for creating the data object.</p>
 <dl class="field-list simple">
@@ -465,7 +465,7 @@ containing the full axes vector</p></li>
             <footer class="bd-footer-article">
                 <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-  <a class='left-prev' id="prev-link" href="digital_micrograph.html" title="previous page">
+  <a class='left-prev' id="prev-link" href="digitalmicrograph.html" title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
           <p class="prev-next-subtitle">previous</p>
@@ -496,12 +496,12 @@ containing the full axes vector</p></li>
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#module-rsciio.sur">
+  <a class="reference internal nav-link" href="#module-rsciio.digitalsurf">
    API functions
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#rsciio.sur.file_reader">
+    <a class="reference internal nav-link" href="#rsciio.digitalsurf.file_reader">
      <code class="docutils literal notranslate">
       <span class="pre">
        file_reader()

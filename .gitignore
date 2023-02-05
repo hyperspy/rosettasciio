@@ -7,3 +7,4 @@
 *pyd
 .spyproject/*
 rsciio/bruker/unbcf_fast.c
+.idea

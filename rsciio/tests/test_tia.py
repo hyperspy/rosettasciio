@@ -25,7 +25,7 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 import traits.api as t
 
-from rsciio.fei._api import load_ser_file
+from rsciio.tia._api import load_ser_file
 
 
 MY_PATH = os.path.dirname(__file__)
@@ -33,8 +33,8 @@ MY_PATH = os.path.dirname(__file__)
 
 class TestFEIReader:
     def setup_method(self, method):
-        self.dirpathold = os.path.join(MY_PATH, "FEI_old")
-        self.dirpathnew = os.path.join(MY_PATH, "FEI_new")
+        self.dirpathold = os.path.join(MY_PATH, "tia-fei_old")
+        self.dirpathnew = os.path.join(MY_PATH, "tia-fei_new")
 
     def test_load_emi_old_new_format(self):
         # TIA old format
@@ -414,7 +414,7 @@ class TestFEIReader:
         )
 
     def test_guess_units_from_mode(self):
-        from rsciio.fei._api import (
+        from rsciio.tia._api import (
             _guess_units_from_mode,
             convert_xml_to_dict,
             get_xml_info_from_emi,

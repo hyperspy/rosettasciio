@@ -208,7 +208,9 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
         # FEI does not use the standard header to store the scale
         # It does store the spatial scale in pixel_size, one per angle in
         # meters
-        scales = [1,] + [
+        scales = [
+            1,
+        ] + [
             fei_header["pixel_size"][0] * 10**9,
         ] * 2
         offsets = [

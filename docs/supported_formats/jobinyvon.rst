@@ -1,4 +1,4 @@
-.. _jobin_yvon-format:
+.. _jobinyvon-format:
 
 Horiba Jobin Yvon LabSpec
 -------------------------
@@ -49,5 +49,5 @@ as well as energy.
 API functions
 ^^^^^^^^^^^^^
 
-.. automodule:: rsciio.jobin_yvon
+.. automodule:: rsciio.jobinyvon
    :members:

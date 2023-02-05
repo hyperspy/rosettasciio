@@ -1,5 +1,5 @@
-name: DigitalSurfSurface
-name_aliases: [DigitalSurf, Digital Surf Surface]
+name: DigitalSurf
+name_aliases: [DigitalSurfSurface, Digital Surf Surface, SUR]
 description: Read data from the proprietary .sur file format from Digital Surf.
 full_support: False
 file_extensions: [sur, SUR, pro, PRO]

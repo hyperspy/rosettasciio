@@ -93,7 +93,6 @@ default_version = Version(version)
 
 
 class HyperspyReader(HierarchicalReader):
-
     _file_type = "hspy"
 
     def __init__(self, file):

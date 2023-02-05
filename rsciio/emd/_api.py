@@ -1218,7 +1218,7 @@ class FeiEMDReader(object):
             meta_gen["date"] = date
             meta_gen["time"] = time
             meta_gen["time_zone"] = self._get_local_time_zone()
-        except (UnboundLocalError):
+        except UnboundLocalError:
             pass
 
         meta_sig = {}

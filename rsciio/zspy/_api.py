@@ -64,7 +64,6 @@ _logger = logging.getLogger(__name__)
 
 
 class ZspyReader(HierarchicalReader):
-
     _file_type = "zspy"
 
     def __init__(self, file):
@@ -74,7 +73,6 @@ class ZspyReader(HierarchicalReader):
 
 
 class ZspyWriter(HierarchicalWriter):
-
     target_size = 1e8
 
     def __init__(self, file, signal, expg, **kwargs):

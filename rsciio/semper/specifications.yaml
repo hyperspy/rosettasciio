@@ -1,5 +1,5 @@
 name: Semper
-name_aliases: [SEMPER UNF (unformatted), Semper UNF]
+name_aliases: [SEMPER UNF (unformatted), Semper UNF, Semper_UNF, UNF]
 description: Read data from Semper UNF (unformatted) files.
 full_support: True 
 file_extensions: [unf, UNF]

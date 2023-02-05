@@ -159,7 +159,7 @@ install_requires = [
     "numba>=0.52",
     "numpy>=1.17.1",
     "pint>=0.8",
-    "python-box>=6.0",
+    "python-box>=6.0,<7.0",
     "pyyaml",
     "scipy>=1.1",
     "sparse",

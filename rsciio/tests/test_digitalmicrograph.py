@@ -23,7 +23,7 @@ import os
 import numpy as np
 import pytest
 
-from rsciio.digital_micrograph._api import DigitalMicrographReader, ImageObject
+from rsciio.digitalmicrograph._api import DigitalMicrographReader, ImageObject
 from rsciio.tests.generate_dm_testing_files import dm3_data_types, dm4_data_types
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
@@ -530,7 +530,7 @@ def test_multi_signal():
                 "0": {
                     "operation": "load",
                     "hyperspy_version": hs.__version__,
-                    "io_plugin": "rsciio.digital_micrograph",
+                    "io_plugin": "rsciio.digitalmicrograph",
                 }
             },
         },
@@ -577,7 +577,7 @@ def test_multi_signal():
                 "0": {
                     "operation": "load",
                     "hyperspy_version": hs.__version__,
-                    "io_plugin": "rsciio.digital_micrograph",
+                    "io_plugin": "rsciio.digitalmicrograph",
                 }
             },
         },

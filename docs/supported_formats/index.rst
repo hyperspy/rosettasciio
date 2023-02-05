@@ -19,26 +19,26 @@ big datasets is supported.
    bruker
    de5
    dens
-   digital_micrograph
+   digitalmicrograph
    digitalsurf
    edax
    emd
-   emi_ser
    empad
    hspy
    image
    jeol
-   jobin_yvon
+   jobinyvon
    mrc
    mrcz
    msa
    netcdf
    nexus
-   panta_rhei
+   pantarhei
    phenom
    protochips
    ripple
    semper
+   tia
    tiff
    trivista
    tvips

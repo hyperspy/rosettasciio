@@ -19,6 +19,7 @@
 import gc
 import numpy as np
 import pytest
+import importlib.util
 from pathlib import Path
 from copy import deepcopy
 
@@ -41,6 +42,11 @@ testfile_map_path = (testfile_dir / "map.tvf").resolve()
 testfile_step_and_glue_path = (testfile_dir / "spec_step_and_glue.tvf").resolve()
 testfile_triple_add_path = (testfile_dir / "spec_multiple_spectrometers.tvf").resolve()
 testfile_linescan_path = (testfile_dir / "linescan.tvf").resolve()
+
+if importlib.util.find_spec("lumispy") is None:
+    lumispy_installed = False
+else:
+    lumispy_installed = True
 
 
 class TestSpec:
@@ -140,7 +146,10 @@ class TestSpec:
         )
 
         assert metadata["Signal"]["quantity"] == "Intensity (Counts)"
-        assert metadata["Signal"]["signal_type"] == ""
+        if lumispy_installed:
+            assert metadata["Signal"]["signal_type"] == "Luminescence"
+        else:
+            assert metadata["Signal"]["signal_type"] == ""
 
         assert metadata["Acquisition_instrument"]["Detector"]["glued_spectrum"] == False
         assert (

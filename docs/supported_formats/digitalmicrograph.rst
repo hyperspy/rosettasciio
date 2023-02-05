@@ -1,4 +1,4 @@
-.. _dm-format:
+.. _digitalmicrograph-format:
 
 Gatan Digital Micrograph
 ------------------------
@@ -30,5 +30,5 @@ EDS and CL signals.
 API functions
 ^^^^^^^^^^^^^
 
-.. automodule:: rsciio.digital_micrograph
+.. automodule:: rsciio.digitalmicrograph
    :members:

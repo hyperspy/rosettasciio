@@ -399,7 +399,6 @@ class TestSavingMetadataContainers:
 
 
 def test_saving_multi_signals(tmp_path):
-
     sig = hs.signals.Signal2D(np.zeros((15, 1, 40, 40)))
     sig.axes_manager[0].name = "stage_y_axis"
     sig.original_metadata.set_item("stage_y.value", 4.0)

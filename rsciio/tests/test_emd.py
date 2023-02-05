@@ -304,7 +304,6 @@ def _generate_parameters():
 
 
 class TestFeiEMD:
-
     fei_files_path = os.path.join(my_path, "emd_files", "fei_emd_files")
 
     @classmethod
@@ -322,7 +321,6 @@ class TestFeiEMD:
 
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_image(self, lazy):
-
         stage = {
             "tilt_alpha": 0.006,
             "tilt_beta": 0.000,

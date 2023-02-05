@@ -99,7 +99,6 @@ class DigitalSurfHandler(object):
     }
 
     def __init__(self, filename=None):
-
         # We do not need to check for file existence here because
         # io module implements it in the load function
         self.filename = filename

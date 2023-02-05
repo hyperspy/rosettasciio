@@ -1056,7 +1056,6 @@ def _write_nexus_attr(dictionary, group, skip_keys=None):
 
     for key, value in dictionary.items():
         if key == "attrs":
-
             for k, v in value.items():
                 group.attrs[k] = _parse_to_file(v)
         else:

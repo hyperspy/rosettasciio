@@ -1,0 +1,1 @@
+Remove persistent search field in left sidebar since this makes finding the sidebar on narrow screens difficult.

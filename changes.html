@@ -35,6 +35,9 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94">
 
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/sphinx_highlight.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'changes';</script>
@@ -229,7 +232,7 @@
   <div class="bd-container">
     <div class="bd-container__inner bd-page-width">
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
         
   
   <div class="sidebar-header-items sidebar-primary__section">
@@ -333,18 +336,6 @@
   </div>
 
   
-  <div class="sidebar-start-items sidebar-primary__section">
-    <div class="sidebar-start-items__item">
-<form class="bd-search d-flex align-items-center" action="search.html" method="get">
-  <i class="fa-solid fa-magnifying-glass"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-    </div>
-    <div class="sidebar-start-items__item">
-    </div>
-  </div>
-  
 
   
   <div class="sidebar-end-items sidebar-primary__section">
@@ -373,8 +364,8 @@
 <h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this heading">#</a></h1>
 <p>Changelog entries for the development version are available at
 <a class="reference external" href="https://rosettasciio.readthedocs.io/en/latest/changes.html">https://rosettasciio.readthedocs.io/en/latest/changes.html</a></p>
-<section id="release-unreleased-2023-02-05">
-<h2> [UNRELEASED] (2023-02-05)<a class="headerlink" href="#release-unreleased-2023-02-05" title="Permalink to this heading">#</a></h2>
+<section id="release-unreleased-2023-02-06">
+<h2> [UNRELEASED] (2023-02-06)<a class="headerlink" href="#release-unreleased-2023-02-06" title="Permalink to this heading">#</a></h2>
 <section id="new-features">
 <h3>New features<a class="headerlink" href="#new-features" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
@@ -393,7 +384,9 @@
 <section id="improved-documentation">
 <h3>Improved Documentation<a class="headerlink" href="#improved-documentation" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
-<li><p>Consolidate docstrings and documentation for all plugins (see also <a href="#id18"><span class="problematic" id="id19">`#47 &lt;https://github.com/hyperspy/rosettasciio/issues/47`_</span></a>, <a href="#id20"><span class="problematic" id="id21">`#59 &lt;https://github.com/hyperspy/rosettasciio/issues/59`_</span></a>, <a href="#id22"><span class="problematic" id="id23">`#64 &lt;https://github.com/hyperspy/rosettasciio/issues/64`_</span></a>, <a href="#id24"><span class="problematic" id="id25">`#72 &lt;https://github.com/hyperspy/rosettasciio/issues/72`_</span></a>) (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/76">#76</a>)</p></li>
+<li><p>Consolidate docstrings and documentation for all plugins (see also <a href="#id19"><span class="problematic" id="id20">`#47 &lt;https://github.com/hyperspy/rosettasciio/issues/47`_</span></a>, <a href="#id21"><span class="problematic" id="id22">`#59 &lt;https://github.com/hyperspy/rosettasciio/issues/59`_</span></a>, <a href="#id23"><span class="problematic" id="id24">`#64 &lt;https://github.com/hyperspy/rosettasciio/issues/64`_</span></a>, <a href="#id25"><span class="problematic" id="id26">`#72 &lt;https://github.com/hyperspy/rosettasciio/issues/72`_</span></a>) (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/76">#76</a>)</p></li>
+<li><p>Remove persistent search field in left sidebar since this makes finding the sidebar on narrow screens difficult.
+Set maximal major version of Sphinx to 5. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/84">#84</a>)</p></li>
 </ul>
 </section>
 <section id="maintenance">
@@ -468,8 +461,8 @@ new repository.</p></li>
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#release-unreleased-2023-02-05">
-   [UNRELEASED] (2023-02-05)
+  <a class="reference internal nav-link" href="#release-unreleased-2023-02-06">
+   [UNRELEASED] (2023-02-06)
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -568,7 +561,7 @@ new repository.</p></li>
   <div class="footer-item">
     
 <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 6.1.3.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.3.0.<br>
 </p>
 
   </div>

@@ -181,6 +181,9 @@ extras_require = {
     "docs": [
         "pydata-sphinx-theme",
         "sphinxcontrib-towncrier",
+        # TODO: Remove explicit dependency on sphinx when pydata-sphinx-theme >= 0.13
+        #  is available, and 0.13 as minimial supported version of pydata-sphinx-theme
+        "sphinx~=5.3",
         # pin towncrier until https://github.com/sphinx-contrib/sphinxcontrib-towncrier/issues/60 is fixed
         "towncrier<22.8",
     ],  # for building the docs

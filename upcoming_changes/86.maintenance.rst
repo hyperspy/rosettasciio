@@ -1,0 +1,2 @@
+Add black as a development dependency.
+Add pre-commit configuration file with black code style check, which when installed will require changes to pass a style check before commiting.

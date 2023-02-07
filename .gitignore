@@ -3,8 +3,10 @@
 /dist/*
 /RosettaSciIO.egg-info/*
 *__pycache__*
-*test_compilers.obj
+*test_compilers.o
 *pyd
 .spyproject/*
-rsciio/bruker/unbcf_fast.c
 .idea
+rsciio/bruker/unbcf_fast.c
+rsciio/bruker/*.so
+rsciio/bruker/*.pyd

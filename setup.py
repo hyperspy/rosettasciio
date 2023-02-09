@@ -196,7 +196,9 @@ runtime_extras_require = {
 }
 extras_require["all"] = list(itertools.chain(*list(runtime_extras_require.values())))
 
-extras_require["dev"] = list(itertools.chain(*list(extras_require.values())))
+extras_require["dev"] = [
+    "black",
+] + list(itertools.chain(*list(extras_require.values())))
 
 
 # Arguments marked as "Required" below must be included for upload to PyPI.

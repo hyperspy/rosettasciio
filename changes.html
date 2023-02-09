@@ -364,8 +364,8 @@
 <h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this heading">#</a></h1>
 <p>Changelog entries for the development version are available at
 <a class="reference external" href="https://rosettasciio.readthedocs.io/en/latest/changes.html">https://rosettasciio.readthedocs.io/en/latest/changes.html</a></p>
-<section id="release-unreleased-2023-02-06">
-<h2> [UNRELEASED] (2023-02-06)<a class="headerlink" href="#release-unreleased-2023-02-06" title="Permalink to this heading">#</a></h2>
+<section id="release-unreleased-2023-02-09">
+<h2> [UNRELEASED] (2023-02-09)<a class="headerlink" href="#release-unreleased-2023-02-09" title="Permalink to this heading">#</a></h2>
 <section id="new-features">
 <h3>New features<a class="headerlink" href="#new-features" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
@@ -384,7 +384,7 @@
 <section id="improved-documentation">
 <h3>Improved Documentation<a class="headerlink" href="#improved-documentation" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
-<li><p>Consolidate docstrings and documentation for all plugins (see also <a href="#id19"><span class="problematic" id="id20">`#47 &lt;https://github.com/hyperspy/rosettasciio/issues/47`_</span></a>, <a href="#id21"><span class="problematic" id="id22">`#59 &lt;https://github.com/hyperspy/rosettasciio/issues/59`_</span></a>, <a href="#id23"><span class="problematic" id="id24">`#64 &lt;https://github.com/hyperspy/rosettasciio/issues/64`_</span></a>, <a href="#id25"><span class="problematic" id="id26">`#72 &lt;https://github.com/hyperspy/rosettasciio/issues/72`_</span></a>) (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/76">#76</a>)</p></li>
+<li><p>Consolidate docstrings and documentation for all plugins (see also <a href="#id20"><span class="problematic" id="id21">`#47 &lt;https://github.com/hyperspy/rosettasciio/issues/47`_</span></a>, <a href="#id22"><span class="problematic" id="id23">`#59 &lt;https://github.com/hyperspy/rosettasciio/issues/59`_</span></a>, <a href="#id24"><span class="problematic" id="id25">`#64 &lt;https://github.com/hyperspy/rosettasciio/issues/64`_</span></a>, <a href="#id26"><span class="problematic" id="id27">`#72 &lt;https://github.com/hyperspy/rosettasciio/issues/72`_</span></a>) (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/76">#76</a>)</p></li>
 <li><p>Remove persistent search field in left sidebar since this makes finding the sidebar on narrow screens difficult.
 Set maximal major version of Sphinx to 5. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/84">#84</a>)</p></li>
 </ul>
@@ -416,6 +416,8 @@ and <code class="docutils literal notranslate"><span class="pre">metadata_key</s
 <li><p>Unify the <code class="docutils literal notranslate"><span class="pre">format_name</span></code> scheme of IO plugins using <code class="docutils literal notranslate"><span class="pre">name</span></code> instead and add <code class="docutils literal notranslate"><span class="pre">name_aliases</span></code> (list) for backwards compatibility. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/35">#35</a>)</p></li>
 <li><p>Add drone CI to test on <code class="docutils literal notranslate"><span class="pre">arm64</span></code>/<code class="docutils literal notranslate"><span class="pre">aarch64</span></code> platform (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/42">#42</a>)</p></li>
 <li><p>Unify naming of folders/submodules to match documented format <code class="docutils literal notranslate"><span class="pre">name</span></code> (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/81">#81</a>)</p></li>
+<li><p>Add black as a development dependency.
+Add pre-commit configuration file with black code style check, which when installed will require changes to pass a style check before commiting. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/86">#86</a>)</p></li>
 </ul>
 </section>
 </section>
@@ -461,8 +463,8 @@ new repository.</p></li>
 <nav id="bd-toc-nav" class="page-toc">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#release-unreleased-2023-02-06">
-   [UNRELEASED] (2023-02-06)
+  <a class="reference internal nav-link" href="#release-unreleased-2023-02-09">
+   [UNRELEASED] (2023-02-09)
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">

@@ -600,7 +600,7 @@ class DigitalSurfHandler(object):
 
     ### Build methods for individual surface objects
     def _build_hyperspectral_map(
-            self,
+        self,
     ):
         """Build a hyperspectral map. Hyperspectral maps are single-object
         files with datapoints of _14_W_Size length"""
@@ -636,7 +636,7 @@ class DigitalSurfHandler(object):
         self.signal_dict["original_metadata"] = self._build_original_metadata()
 
     def _build_general_1D_data(
-            self,
+        self,
     ):
         """Build general 1D Data objects. Currently work with spectra"""
 
@@ -658,7 +658,7 @@ class DigitalSurfHandler(object):
         self._set_metadata_and_original_metadata(hypdic)
 
     def _build_spectrum(
-            self,
+        self,
     ):
         """Build spectra objects. Spectra and 1D series of spectra are
         saved in the same object."""
@@ -667,25 +667,23 @@ class DigitalSurfHandler(object):
         hypdic = self._list_sur_file_content[0]
 
         # If there is more than 1 spectrum also add the navigation axis
-        if hypdic['_19_Number_of_Lines'] != 1:
-            self.signal_dict['axes'].append(
-                self._build_yax(hypdic, ind=0, nav=True))
+        if hypdic["_19_Number_of_Lines"] != 1:
+            self.signal_dict["axes"].append(self._build_yax(hypdic, ind=0, nav=True))
 
         # Add the signal axis_src to the signal dict
-        self.signal_dict['axes'].append(
-            self._build_xax(hypdic, ind=1, nav=False))
+        self.signal_dict["axes"].append(self._build_xax(hypdic, ind=1, nav=False))
 
         # We reshape the data in the correct format.
         # Edit: the data is now squeezed for unneeded dimensions
-        data_shape = (hypdic['_19_Number_of_Lines'], hypdic['_18_Number_of_Points'])
-        data_array = np.squeeze(hypdic['_62_points'].reshape(data_shape, order='C'))
+        data_shape = (hypdic["_19_Number_of_Lines"], hypdic["_18_Number_of_Points"])
+        data_array = np.squeeze(hypdic["_62_points"].reshape(data_shape, order="C"))
 
-        self.signal_dict['data'] = data_array
+        self.signal_dict["data"] = data_array
 
         self._set_metadata_and_original_metadata(hypdic)
 
     def _build_1D_series(
-            self,
+        self,
     ):
         """Build a series of 1D objects. The T axis is navigation and set from
         the first object"""
@@ -712,7 +710,7 @@ class DigitalSurfHandler(object):
         self.signal_dict["data"] = np.stack(data)
 
     def _build_surface(
-            self,
+        self,
     ):
         """Build a surface"""
 
@@ -735,7 +733,7 @@ class DigitalSurfHandler(object):
         self._set_metadata_and_original_metadata(hypdic)
 
     def _build_surface_series(
-            self,
+        self,
     ):
         """Build a series of surfaces. The T axis is navigation and set from
         the first object"""
@@ -765,7 +763,7 @@ class DigitalSurfHandler(object):
         self.signal_dict["data"] = np.stack(data)
 
     def _build_RGB_surface(
-            self,
+        self,
     ):
         """Build a series of surfaces. The T axis is navigation and set from
         P Size"""
@@ -796,7 +794,7 @@ class DigitalSurfHandler(object):
         self.signal_dict["data"] = np.stack(data)
 
     def _build_RGB_image(
-            self,
+        self,
     ):
         """Build an RGB image. The T axis is navigation and set from
         P Size"""
@@ -894,7 +892,7 @@ class DigitalSurfHandler(object):
         return metadict
 
     def _build_original_metadata(
-            self,
+        self,
     ):
         """Builds a metadata dictionnary from the header"""
         original_metadata_dict = {}
@@ -1029,12 +1027,12 @@ class DigitalSurfHandler(object):
             if not ignore:
                 if line.startswith(TITLESTART):
                     # We strip keys from whitespace at the end and beginning
-                    dict_ms = line[len(TITLESTART):].strip()
+                    dict_ms = line[len(TITLESTART) :].strip()
                     dict_ms[dict_ms] = {}
                 elif line.startswith(prefix):
                     key, *liValue = line.split(delimiter)
                     # Key is also stripped from beginning or end whitespace
-                    key = key[len(prefix):].strip()
+                    key = key[len(prefix) :].strip()
                     strValue = liValue[0] if len(liValue) > 0 else ""
                     # remove whitespace at the beginning of value
                     strValue = strValue.strip()

@@ -33,7 +33,9 @@ testfile_map = (testfile_dir / "renishaw_test_map.wdf").resolve()
 testfile_zscan = (testfile_dir / "renishaw_test_zscan.wdf").resolve()
 testfile_undefined = (testfile_dir / "renishaw_test_undefined.wdf").resolve()
 testfile_streamline = (testfile_dir / "renishaw_test_streamline.wdf").resolve()
-testfile_map2 = (testfile_dir / "renishaw_test_map2.wdf").resolve()
+testfile_map_block = (testfile_dir / "renishaw_test_map2.wdf").resolve()
+testfile_timeseries = (testfile_dir / "renishaw_test_timeseries.wdf").resolve()
+testfile_focustrack = (testfile_dir / "renishaw_test_focustrack.wdf").resolve()
 
 
 class TestSpec:
@@ -156,7 +158,7 @@ class TestSpec:
         assert expected_metadata == original_metadata["WDF1_1"]
 
     def test_original_metadata_YLST(self):
-        expected_YLST = {"name": "Spatial_Y", "units": "px", "size": 1, "data": 25.0}
+        expected_YLST = {"name": "Y", "units": "px", "size": 1, "data": 25.0}
         assert self.s.original_metadata.YLST_0.as_dictionary() == expected_YLST
 
     def test_original_metadata_WXIS(self):
@@ -1095,11 +1097,11 @@ class TestStreamline:
         assert metadata_WDF1 == expected_WDF1
 
 
-class TestMap2:
+class TestMapBlock:
     @classmethod
     def setup_class(cls):
         cls.s = hs.load(
-            testfile_map2,
+            testfile_map_block,
             reader="Renishaw",
             use_uniform_signal_axis=True,
         )
@@ -1133,3 +1135,67 @@ class TestMap2:
             metadata_MAP1.data[-3:], [224.7265, 380.83423, 261.48608]
         )
         assert len(metadata_MAP1.data) == 400
+
+
+class TestTimeseries:
+    @classmethod
+    def setup_class(cls):
+        cls.s = hs.load(
+            testfile_timeseries,
+            reader="Renishaw",
+            use_uniform_signal_axis=True,
+        )
+
+    @classmethod
+    def teardown_class(cls):
+        del cls.s
+        gc.collect()
+
+    def test_axes(self):
+        axes_manager = self.s.axes_manager.as_dictionary()
+        assert len(axes_manager) == 2
+        time_axis = axes_manager.pop("axis-0")
+
+        np.testing.assert_allclose(time_axis["scale"], 3.1e7, atol=1e6)
+        np.testing.assert_allclose(time_axis["offset"], 0)
+
+    def test_data(self):
+        np.testing.assert_allclose(
+            self.s.inav[0].isig[:3].data, [3714.725, 3475.6548, 3458.7114]
+        )
+
+        np.testing.assert_allclose(
+            self.s.inav[-1].isig[-3:].data, [5167.7383, 5379.82, 5174.1406]
+        )
+
+
+class TestFocusTrack:
+    @classmethod
+    def setup_class(cls):
+        cls.s = hs.load(
+            testfile_focustrack,
+            reader="Renishaw",
+            use_uniform_signal_axis=True,
+        )
+
+    @classmethod
+    def teardown_class(cls):
+        del cls.s
+        gc.collect()
+
+    def test_axes(self):
+        axes_manager = self.s.axes_manager.as_dictionary()
+        assert len(axes_manager) == 2
+        z_axis = axes_manager.pop("axis-0")
+
+        np.testing.assert_allclose(z_axis["scale"], 2.9, atol=0.1)
+        np.testing.assert_allclose(z_axis["offset"], 26, atol=0.5)
+
+    def test_data(self):
+        np.testing.assert_allclose(
+            self.s.inav[0].isig[:3].data, [1.4015186, 1.402039, -0.7012797]
+        )
+
+        np.testing.assert_allclose(
+            self.s.inav[-1].isig[-3:].data, [4.8724666, 5.8486896, 3.8991265]
+        )

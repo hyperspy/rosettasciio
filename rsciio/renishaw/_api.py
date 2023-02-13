@@ -48,13 +48,13 @@
 #   - unclear what MAP contains
 #   - metadata mapping extendable (especially integration time)
 
-import logging
 import datetime
 import importlib.util
-from pathlib import Path
-from enum import IntEnum, Enum
+import logging
 from copy import deepcopy
+from enum import IntEnum, Enum
 from io import BytesIO
+from pathlib import Path
 
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
@@ -107,6 +107,7 @@ class MetadataTypeSingle(Enum):
     windows_filetime = "t"
 
 
+## no enum, because double entries
 MetadataLengthSingle = {
     "len_char": 1,
     "len_uint8": 1,
@@ -171,19 +172,19 @@ class ScanType(IntEnum):
 
 
 ## TODO: in testfiles maps have value 0. What does this mean? unspecified?
-## linescan is identified correctly (128),
-## but the flag is not necessary to identify a linescan
-## TODO: what is linefocus?
-## cases column_major vs alternating (vs row_major?) need to be covered
+## tested/covered cases: 0?, 2, 128
+## cases: 1, 4, 8, 64 not implemented
+## cases that should work, but are not tested: 16, 32 (negative scale)
 class MapType(IntEnum):
     randompoints = 1  # rectangle
     column_major = 2  # x then y
-    alternating = 4  # snake pattern
-    linefocus_mapping = 8  # ?
+    alternating = 4  # snake pattern, not implemented
+    linefocus_mapping = 8  # TODO: what is that?
     inverted_rows = 16  # rows collected right to left (negative scale)
     inverted_columns = 32  # columns collected bottom to top (negative scale)
     surface_profile = 64  # Z data is non-regular (gwyddion)?
-    xyline = 128  # linescan -> x always contains data, y is 0
+    xyline = 128  # linescan -> use absolute distance starting from zero
+    # offset + scale saved in metadata
 
 
 # TODO: wavelength is named wavenumber in py-wdf-reader, gwyddion
@@ -250,13 +251,18 @@ class UnitType(IntEnum):
 
 
 # used in ORGN/XLST
+# TODO: figure out difference between frequency and spectral
+# 1 (spectral) DEPRECATED according to gwyddion -> use frequency instead
+# in py-wdf-reader the naming of spectral and frequency is switched
+# in testfiles 1 (spectral) occurs exclusively for signal (XLST)
+# also there are no frequency units in UnitType
 class DataType(IntEnum):
     Arbitrary = 0
-    Frequency = 1  # TODO: DEPRECATED according to gwyddion (switched with spectral)
+    Spectral = 1
     Intensity = 2
-    Spatial_X = 3
-    Spatial_Y = 4
-    Spatial_Z = 5
+    X = 3
+    Y = 4
+    Z = 5
     Spatial_R = 6
     Spatial_Theta = 7
     Spatial_Phi = 8
@@ -270,7 +276,7 @@ class DataType(IntEnum):
     SpectrumDataChecksum = 16
     BitFlags = 17
     ElapsedTimeIntervals = 18
-    Spectral = 19
+    Frequency = 19
     Mp_Well_Spatial_X = 22
     Mp_Well_Spatial_Y = 23
     Mp_LocationIndex = 24
@@ -349,6 +355,14 @@ class WDFReader(object):
     Following the block name, there are two indicators:
     Block uid: uint32 (set, when blocks exist multiple times)
     Block size: uint64
+
+    Blocks with the same name can occur multiple times (MAP, WARP in testfiles),
+    these differ by UID.
+
+    This parser first skips through the file to extract all Datablocks
+    (__locate_all_blocks), the respective size and position is saved in _block_info.
+    After that all blocks are parsed individually, however the order matters in some
+    cases.
 
     Metadata is read from PSET blocks, whose structure is similar.
     However, there are lots of unmatched keys/values for unknown reasons.
@@ -435,7 +449,7 @@ class WDFReader(object):
             raise ValueError(
                 f"Trying to read number with unknown dataformat.\n"
                 f"Input: {type}\n"
-                f"Supported formats: {list(TypeNames.keys())}"
+                f"Supported types: {list(TypeNames.keys())}"
             )
         data = np.fromfile(self._file_obj, dtype=TypeNames[type], count=size)
         ## convert unsigned ints to ints
@@ -676,7 +690,7 @@ class WDFReader(object):
 
         ## TODO: what is ntracks?
         ## warning when file_status_error_code nonzero?
-        ## mulitple accumulations -> average or sum?
+        ## multiple accumulations -> average or sum?
         self._file_obj.seek(pos)
         header["flags"] = self.__read_numeric("uint64")
         header["uuid"] = f"{self.__read_numeric('uint32', convert=False)}"
@@ -737,7 +751,7 @@ class WDFReader(object):
 
     @staticmethod
     def _convert_signal_axis_name(type, unit):
-        if type == "Frequency":
+        if type == "Spectral":
             if unit == "1/cm":
                 type = "Wavenumber"
             elif unit in ["nm", "µm", "m", "mm"]:
@@ -822,17 +836,30 @@ class WDFReader(object):
             ax_tmp_dict["annotation"] = self.__read_utf8(0x10)
             ax_tmp_dict["data"] = self._set_data_for_ORGN(dtype)
 
-            # TODO: maybe need to add more types here (R, Theta, Phi, Time)
-            if dtype in [
-                DataType.Spatial_X.name,
-                DataType.Spatial_Y.name,
-                DataType.Spatial_Z.name,
+            if dtype not in [
+                DataType.SpectrumDataChecksum.name,
+                DataType.BitFlags.name,
             ]:
-                orgn_nav[f"{dtype[-1]}-axis"] = ax_tmp_dict
+                self._warning_msg_untested_dtype_ORGN(dtype)
+                orgn_nav[dtype] = ax_tmp_dict
             else:
                 orgn_metadata[dtype] = ax_tmp_dict
+        if self._measurement_type != MeasurementType.Series.name or len(orgn_nav) > 1:
+            orgn_metadata["Time"] = orgn_nav.pop("Time")
         self.original_metadata.update({"ORGN_0": orgn_metadata})
         return orgn_nav
+
+    def _warning_msg_untested_dtype_ORGN(self, dtype):
+        if dtype not in [
+            DataType.X.name,
+            DataType.Y.name,
+            DataType.Z.name,
+            DataType.Time.name,
+            DataType.FocusTrack_Z.name,
+        ]:
+            _logger.warning(
+                f"Loading {dtype}-axis from ORGN-Block, which is not supported by tests."
+            )
 
     def _set_data_for_ORGN(self, dtype):
         if dtype == DataType.Time.name:
@@ -874,21 +901,22 @@ class WDFReader(object):
 
     def _set_nav_via_WMAP(self, wmap_dict, units):
         result = {}
-        for idx, letter in enumerate(["X", "Y"]):
-            key_name = letter + "-axis"
+        for idx, ax_name in enumerate(["X", "Y"]):
             axis_tmp = {
-                "name": letter,
+                "name": ax_name,
                 "offset": wmap_dict["offset_xyz"][idx],
                 "scale": wmap_dict["scale_xyz"][idx],
                 "size": wmap_dict["size_xyz"][idx],
                 "navigate": True,
                 "units": units,
             }
-            result[key_name] = axis_tmp
+            result[ax_name] = axis_tmp
 
         # TODO: differentiate between more map_modes/flags
         if wmap_dict["flag"] == MapType.xyline:
-            result = self._set_wmap_nav_linexy(result["X-axis"], result["Y-axis"])
+            result = self._set_wmap_nav_linexy(result["X"], result["Y"])
+        elif wmap_dict["flag"] not in MapType._value2member_map_:
+            _logger.warning(f"Invalid flag ({wmap_dict['flag']}) for WMAP mapping.")
         return result
 
     def _set_wmap_nav_linexy(self, x_axis, y_axis):
@@ -917,14 +945,19 @@ class WDFReader(object):
 
     def _set_nav_via_ORGN(self, orgn_data):
         nav_dict = deepcopy(orgn_data)
+        if len(nav_dict) != 1:
+            _logger.warning(
+                f"Series, but number of navigation axes ({len(nav_dict)}) exist is not 1."
+            )
         for axis in orgn_data.keys():
             del nav_dict[axis]["annotation"]
             nav_dict[axis]["navigate"] = True
             data = np.unique(nav_dict[axis].pop("data"))
             nav_dict[axis]["size"] = data.size
             nav_dict[axis]["offset"] = data[0]
-            nav_dict[axis]["scale"] = data[1] - data[0]
-            nav_dict[axis]["name"] = axis[0]
+            ## time axis in test data is not perfectly uniform, but X,Y,Z are
+            nav_dict[axis]["scale"] = np.mean(np.diff(data))
+            nav_dict[axis]["name"] = axis
         return nav_dict
 
     def _compare_measurement_type_to_ORGN_WMAP(self, orgn_data, wmap_data):
@@ -954,8 +987,8 @@ class WDFReader(object):
     def _set_axes(self, signal_dict, nav_dict):
         signal_dict["index_in_array"] = len(nav_dict)
         if len(nav_dict) == 2:
-            nav_dict["Y-axis"]["index_in_array"] = 0
-            nav_dict["X-axis"]["index_in_array"] = 1
+            nav_dict["Y"]["index_in_array"] = 0
+            nav_dict["X"]["index_in_array"] = 1
         elif len(nav_dict) == 1:
             axis = next(iter(nav_dict))
             nav_dict[axis]["index_in_array"] = 0

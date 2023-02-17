@@ -152,21 +152,13 @@
                       </a>
                     </li>
                 
-            <div class="nav-item dropdown">
-                <button class="btn dropdown-toggle nav-item" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    More
-                </button>
-                <div class="dropdown-menu">
-                    
+
                     <li class="nav-item">
                       <a class="nav-link nav-internal" href="../changes.html">
                         Changelog
                       </a>
                     </li>
                 
-                </div>
-            </div>
-            
     </ul>
 </nav>
       </div>
@@ -201,8 +193,19 @@
           
           
           
-          <a href="https://github.com/hyperspy/rosettasciio" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><span><i class="fab fa-github-square"></i></span>
+          <a href="https://github.com/hyperspy/hyperspy" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><span><i class="fa-brands fa-square-github"></i></span>
             <label class="sr-only">GitHub</label></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://gitter.im/hyperspy/hyperspy" title="Gitter" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><span><i class="fab fa-gitter"></i></span>
+            <label class="sr-only">Gitter</label></a>
         </li>
       </ul>
       </div>
@@ -282,21 +285,13 @@
                       </a>
                     </li>
                 
-            <div class="nav-item dropdown">
-                <button class="btn dropdown-toggle nav-item" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    More
-                </button>
-                <div class="dropdown-menu">
-                    
+
                     <li class="nav-item">
                       <a class="nav-link nav-internal" href="../changes.html">
                         Changelog
                       </a>
                     </li>
                 
-                </div>
-            </div>
-            
     </ul>
 </nav>
       </div>
@@ -326,8 +321,19 @@
           
           
           
-          <a href="https://github.com/hyperspy/rosettasciio" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><span><i class="fab fa-github-square"></i></span>
+          <a href="https://github.com/hyperspy/hyperspy" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><span><i class="fa-brands fa-square-github"></i></span>
             <label class="sr-only">GitHub</label></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://gitter.im/hyperspy/hyperspy" title="Gitter" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><span><i class="fab fa-gitter"></i></span>
+            <label class="sr-only">Gitter</label></a>
         </li>
       </ul>
       </div>
@@ -424,8 +430,8 @@ Please note that in order to increase saving efficiency and speed, if possible,
 the inner-most structures are converted to numpy arrays when saved. This
 procedure homogenizes any types of the objects inside, most notably casting
 numbers as strings if any other strings are present:</p>
-<p>By default, a <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#zarr.storage.NestedDirectoryStore" title="(in zarr v2.13.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.NestedDirectoryStore</span></code></a> is used, but other
-zarr store can be used by providing a <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#module-zarr.storage" title="(in zarr v2.13.6)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">zarr.storage</span></code></a>
+<p>By default, a <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#zarr.storage.NestedDirectoryStore" title="(in zarr v2.14.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.NestedDirectoryStore</span></code></a> is used, but other
+zarr store can be used by providing a <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#module-zarr.storage" title="(in zarr v2.14.1)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">zarr.storage</span></code></a>
 instead as argument to the <code class="xref py py-meth docutils literal notranslate"><span class="pre">save()</span></code> or the
 <code class="xref py py-func docutils literal notranslate"><span class="pre">load()</span></code> function. If a <code class="docutils literal notranslate"><span class="pre">.zspy</span></code> file has been saved with a different
 store, it would need to be loaded by passing a store of the same type:</p>

@@ -100,12 +100,13 @@ def test_export_scalebar(ext, tmp_path):
     assert s.data.shape == s_reload.data.shape
 
 
-def test_export_scalebar_reciprocal(tmp_path):
+@pytest.mark.parametrize(("units"), ["1/nm", "1 / nm", "1 / nanometer", "1/nanometer"])
+def test_export_scalebar_reciprocal(tmp_path, units):
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     pixels = 512
     s = hs.signals.Signal2D(np.arange(pixels**2).reshape((pixels, pixels)))
     for axis in s.axes_manager.signal_axes:
-        axis.units = "1/nm"
+        axis.units = units
         axis.scale = 0.1
 
     filename = tmp_path / "test_scalebar_export.jpg"

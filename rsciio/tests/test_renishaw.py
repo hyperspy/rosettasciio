@@ -20,10 +20,13 @@ import gc
 import pytest
 from pathlib import Path
 from copy import deepcopy
+import shutil
 
 import numpy as np
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
+from rsciio.tests.generate_renishaw_test_file import WDFFileGenerator, WDFFileHandler
 
 testfile_dir = (Path(__file__).parent / "renishaw_data").resolve()
 
@@ -1199,3 +1202,81 @@ class TestFocusTrack:
         np.testing.assert_allclose(
             self.s.inav[-1].isig[-3:].data, [4.8724666, 5.8486896, 3.8991265]
         )
+
+
+class TestPSETMetadata:
+    data_directory = (
+        Path(__file__).parent / "renishaw_data" / "generated_files"
+    ).resolve()
+
+    def get_filepath(self, filename):
+        return (self.data_directory / filename).resolve()
+
+    @classmethod
+    def setup_class(cls):
+        pass
+
+    @classmethod
+    def teardown_class(cls):
+        shutil.rmtree(cls.data_directory)
+        gc.collect()
+
+    def test_pset_flat_normal(self):
+        filepath = self.get_filepath("test_renishaw_pset_flat_normal.bin")
+        wdf = WDFFileHandler(filepath)
+        wdf.write_file(WDFFileGenerator.generate_flat_normal_testfile)
+        data = wdf.read_file()
+
+        expected_result = {
+            "TEST_0": {
+                "single->key": "\x15",
+                "key->single": 46,
+                "order1": 72,
+                "order3": 347,
+                "order2": 379,
+                "order5": "1601-01-01#00:00:00",
+                "key for test string": "test string 123",
+                "key for binary": "binary: 62696E61727920737472696E6720313233",
+            }
+        }
+        np.testing.assert_allclose(data["TEST_0"].pop("order4"), 74.7843)
+        np.testing.assert_allclose(data["TEST_0"].pop("order6"), -378.36)
+        assert data == expected_result
+
+    def test_pset_nested_normal(self):
+        filepath = self.get_filepath("test_renishaw_pset_nested_normal.bin")
+        wdf = WDFFileHandler(filepath)
+        wdf.write_file(WDFFileGenerator.generate_nested_normal_testfile)
+        data = wdf.read_file()
+
+        expected_result = {
+            "TEST_0": {
+                "pair_before_nested": -10,
+                "key_before_nested": 87,
+                "nested1": {
+                    "pair_in_nested": 40891,
+                    "pair_in_nested_doubled_key": -8279,
+                },
+                "val_before_nested": 17,
+                "nested2": {
+                    "pair_in_nested_doubled_key": "+",
+                    "nested3": {"pair_in_double_nested": -123},
+                    "nested4": {},
+                },
+            }
+        }
+        assert expected_result == data
+
+    def test_pset_flat_array_compressed(self):
+        filepath = self.get_filepath("test_renishaw_pset_flat_array_compressed.bin")
+        wdf = WDFFileHandler(filepath)
+        wdf.write_file(WDFFileGenerator.generate_flat_array_compressed)
+        data = wdf.read_file()
+
+        expected_result = {
+            "TEST_0": {
+                "compressed": None,
+            }
+        }
+        np.testing.assert_allclose(data["TEST_0"].pop("array"), np.arange(1, 11, 1))
+        assert expected_result == data

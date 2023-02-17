@@ -24,7 +24,6 @@
 
 # TODO: general:
 #   - check axes order (snake pattern?)
-#   - check time axis
 #   - remove debug flag once unmatched keys values are understood
 #   - how to handle WHTL cropping
 #       - convert IFDRational in hyperspy?
@@ -41,9 +40,8 @@
 #   - MapType is not used -> snake pattern read incorrectly for example
 #   - quantity name is always set to Intensity (not extracted from file)
 #   - many DataTypes are not considered for axes, only the following are used
-#       - XLST for signal
-#       - X,Y,Z for nav
-#       - especially no time series
+#       - Spectral for signal
+#       - X,Y,Z,Time,FocusTrackZ for nav
 #   - ScanType not used for anything
 #   - unclear what MAP contains
 #   - metadata mapping extendable (especially integration time)
@@ -390,15 +388,25 @@ class WDFReader(object):
         "BKXL",
     ]
 
-    def __init__(self, f, filesize, filename, use_uniform_signal_axis, debug):
+    def __init__(self, f, filename, use_uniform_signal_axis, debug):
         self._file_obj = f
         self._filename = filename
         self._use_uniform_signal_axis = use_uniform_signal_axis
         self._debug = debug
+
         self.original_metadata = {}
         self._unmatched_metadata = {}
-        self._reverse_signal = False
 
+        self._reverse_signal = None
+        self._block_info = None
+        self._points_per_spectrum = None
+        self._num_spectra = None
+        self._measurement_type = None
+        self.data = None
+        self.axes = None
+        self.metadata = None
+
+    def read_file(self, filesize):
         ## first parse through to determine file structure (blocks)
         self._block_info = self.locate_all_blocks(filesize)
 
@@ -491,6 +499,11 @@ class WDFReader(object):
             except EOFError:
                 _logger.warning("Missing characters at the end of the file.")
                 break
+            except UnicodeDecodeError:
+                _logger.warning(
+                    f"{block_name} size ({block_size}) invalid or extra characters at EOF."
+                )
+                break
             else:
                 _logger.debug(f"{block_name}   {block_uid}   {curpos:<{9}}{block_size}")
                 block_info[block_name.replace(" ", "") + "_" + str(block_uid)] = (
@@ -560,9 +573,14 @@ class WDFReader(object):
         key_dict = {}
         value_dict = {}
         remaining = length
-        ## >4 instead of >0, because key without result meaningless
-        ## this case happens for MAP (see _parse_MAP)
-        while remaining > 4:
+        ## remaining > 0 may lead to problems as type, flag, key and entry still may be read
+        ## if remaing is just slightly above 0 (not happening in testfiles)
+        ## for most blocks it ends exactly on 0
+        ## however, MAP ends up below 0 (pset size too low -> extra 4 bytes read)
+        ## but this seems to produce correct results nevertheless
+        ## especially npoints/data after the pset entry requires the extra read
+        ## so avoid using an extra setback
+        while remaining > 0:
             type = self.__read_utf8(0x1)
             flag = self.__read_numeric("uint8")
             key = str(self.__read_numeric("uint16"))
@@ -625,7 +643,7 @@ class WDFReader(object):
             _logger.debug(f"array flag, but not single dtype: {type}")
         size = self.__read_numeric("uint32")
         result, num_bytes = self._pset_read_entry(type, size, id)
-        return result, num_bytes + 4  ## +4, because of size read
+        return result, num_bytes + 4  # +4, because of size read
 
     def _pset_read_compressed_flag(self, type, **kwargs):
         if type != "u":
@@ -633,7 +651,7 @@ class WDFReader(object):
         size = self.__read_numeric("uint32")
         self._file_obj.seek(size, 1)  # move fp from current position
         result = None
-        num_bytes = size + 4  ## +4, because of size read
+        num_bytes = size + 4  # +4, because of size read
         return result, num_bytes
 
     def _pset_read_entry(self, type, size, id):
@@ -641,11 +659,11 @@ class WDFReader(object):
             type_str = MetadataTypeSingle(type).name
             type_len = MetadataLengthSingle[f"len_{type_str}"]
             result = self.__read_numeric(type_str, size=size)
-            return result, type_len
+            return result, type_len * size
         elif type in MetadataTypeMulti._value2member_map_:
             length = self.__read_numeric("uint32")
             result = self._pset_read_multitype_entry_helper(type, length, id)
-            return result, length + 4  ## reading the length itself equals 4 bytes
+            return result, length + 4  # reading the length itself equals 4 bytes
         else:
             _logger.error(
                 f"Invalid type ({type}) encountered while parsing metadata from {id}-Block."
@@ -1197,11 +1215,11 @@ def file_reader(
     with open(str(filename), "rb") as f:
         wdf = WDFReader(
             f,
-            filesize=filesize,
             filename=original_filename,
             use_uniform_signal_axis=use_uniform_signal_axis,
             debug=debug,
         )
+        wdf.read_file(filesize)
 
         dictionary["data"] = wdf.data
         dictionary["axes"] = wdf.axes

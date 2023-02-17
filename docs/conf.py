@@ -14,6 +14,8 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+import pydata_sphinx_theme
+from packaging.version import Version
 
 # -- Project information -----------------------------------------------------
 
@@ -64,21 +66,17 @@ html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
 
 html_theme_options = {
+    "github_url": "https://github.com/hyperspy/hyperspy",
     "icon_links": [
         {
-            # Label for this link
-            "name": "GitHub",
-            # URL where the link will redirect
-            "url": "https://github.com/hyperspy/rosettasciio",  # required
-            # Icon class (if "type": "fontawesome"), or path to local image (if "type": "local")
-            "icon": "fab fa-github-square",
-            # The type of image to be used (see below for details)
-            "type": "fontawesome",
+            "name": "Gitter",
+            "url": "https://gitter.im/hyperspy/hyperspy",
+            "icon": "fab fa-gitter",
         },
     ],
     "logo": {
-        "image_light": "logo_rec_oct22.svg",
-        "image_dark": "logo_rec_dark_oct22.svg",
+        "image_light": "_static/logo_rec_oct22.svg",
+        "image_dark": "_static/logo_rec_dark_oct22.svg",
     },
     "favicons": [
         {
@@ -86,8 +84,13 @@ html_theme_options = {
             "href": "logo_sq.svg",
         },
     ],
+    "header_links_before_dropdown": 6,
 }
 
+# Remove when pydata_sphinx_theme minimum requirement is bumped to 0.13
+if Version(pydata_sphinx_theme.__version__) < Version("0.13.0.dev0"):
+    html_theme_options["logo"]["image_light"] = "logo_rec_oct22.svg"
+    html_theme_options["logo"]["image_dark"] = "logo_rec_dark_oct22.svg"
 
 # -- Options for towncrier_draft extension -----------------------------------
 

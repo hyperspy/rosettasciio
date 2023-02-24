@@ -36,7 +36,7 @@
 #   - cannot parse BKXL-Block
 #   - many blocks exist according to gwyddion that are not covered by testfiles
 #       -> not parsed
-#   - unmatched keys/values for pset metadata blocks
+#   - unmatched values for pset metadata blocks
 #   - MapType is not used -> snake pattern read incorrectly for example
 #   - quantity name is always set to Intensity (not extracted from file)
 #   - many DataTypes are not considered for axes, only the following are used
@@ -45,6 +45,7 @@
 #   - ScanType not used for anything
 #   - unclear what MAP contains
 #   - metadata mapping extendable (especially integration time)
+#   - accumulations from WDF1 and WXDM do not match
 
 import datetime
 import importlib.util
@@ -95,7 +96,7 @@ def convert_windowstime_to_datetime(wt):
 
 
 class MetadataTypeSingle(Enum):
-    char = "c"
+    int8 = "c"  # TODO: maybe char, but as far as I can tell only used as a number
     uint8 = "?"
     int16 = "s"
     int32 = "i"
@@ -107,7 +108,7 @@ class MetadataTypeSingle(Enum):
 
 ## no enum, because double entries
 MetadataLengthSingle = {
-    "len_char": 1,
+    "len_int8": 1,
     "len_uint8": 1,
     "len_int16": 2,
     "len_int32": 4,
@@ -134,7 +135,6 @@ class MetadataFlags(IntEnum):
 ## < specifies little endian
 ## no enum, because double entries
 TypeNames = {
-    "char": "<i1",  # same as int8, converted in __read_numeric
     "int8": "<i1",  # byte int
     "int16": "<i2",  # short int
     "int32": "<i4",  # int
@@ -397,6 +397,7 @@ class WDFReader(object):
         self.original_metadata = {}
         self._unmatched_metadata = {}
 
+        self._unmatched_WXDM_keys = None
         self._reverse_signal = None
         self._block_info = None
         self._points_per_spectrum = None
@@ -420,12 +421,13 @@ class WDFReader(object):
         self._parse_YLST(header_data["YLST_length"])
         self._parse_metadata("WXIS_0")
         self._parse_metadata("WXCS_0")
-        self._parse_metadata("WXDM_0")
         ## WXDA has extra 1025 bytes at the end (newline: n\x00\x00...)
         self._parse_metadata("WXDA_0")
         self._parse_metadata("ZLDC_0")
         self._parse_metadata("WARP_0")
         self._parse_metadata("WARP_1")
+        self._parse_metadata("WXDM_0")
+        self._map_WXDM()
         self._parse_MAP("MAP_0")
         self._parse_MAP("MAP_1")
         self._parse_TEXT()
@@ -467,8 +469,6 @@ class WDFReader(object):
             data = data.astype(np.dtype(dt))
         elif type == "windows_filetime" and convert:
             data = list(map(convert_windowstime_to_datetime, data))
-        elif type == "char" and convert:
-            data = list(map(chr, data))
         if size == 1 and not ret_array:
             return data[0]
         else:
@@ -614,7 +614,7 @@ class WDFReader(object):
             else:
                 result[key_dict.pop(key)] = val
         ## TODO: Why are there unmatched keys/values
-        if self._debug and (len(key_dict) != 0 or len(value_dict) != 0):
+        if len(key_dict) != 0 or len(value_dict) != 0:
             self._unmatched_metadata.update(
                 {id: {"keys": key_dict, "values": value_dict}}
             )
@@ -678,6 +678,52 @@ class WDFReader(object):
         elif type == "p":
             result = self._pset_read_metadata(length, id)
         return result
+
+    def _match_WXDM_values(self, level, keys_in, unmatched_keys):
+        result = {}
+        keys_lvl = [i for i in keys_in if i.count("_") == level]
+        for k in keys_lvl:
+            keys_in.remove(k)
+            subkeys = [i for i in keys_in if i.startswith(k)]
+            unmatched_values_k = self._unmatched_metadata[k]["values"]
+            result[k] = {
+                "subdicts": self._match_WXDM_values(level + 1, subkeys, unmatched_keys)
+            }
+            if len(result[k]["subdicts"]) == 0:
+                del result[k]["subdicts"]
+            matches = {}
+            for k2, v2 in unmatched_values_k.items():
+                try:
+                    matches[unmatched_keys[k2]] = v2
+                except KeyError:
+                    pass
+                else:
+                    self._unmatched_WXDM_keys.pop(k2, None)
+            result[k].update(matches)
+        return result
+
+    def _map_WXDM(self):
+        if "WXDM_0" not in list(self.original_metadata):
+            return
+        WXDM_entries = [
+            i for i in list(self._unmatched_metadata) if i.startswith("WXDM")
+        ]
+        ## only top level contains unmatched keys
+        ## these keys are used multiple times for different values in different subdicts
+        self._unmatched_WXDM_keys = self._unmatched_metadata["WXDM_0"].get("keys")
+        if self._unmatched_WXDM_keys is None:
+            return
+        matched_WXDM = self._match_WXDM_values(
+            1, WXDM_entries, deepcopy(self._unmatched_WXDM_keys)
+        )
+        self.original_metadata["WXDM_0"].update(
+            {"extra_matches": matched_WXDM["WXDM_0"]["subdicts"]}
+        )
+        ## remove matched values/keys from unmatched_metadata
+        for k in WXDM_entries:
+            for k2 in deepcopy(list(self._unmatched_metadata[k])):
+                if k2 not in self._unmatched_WXDM_keys:
+                    self._unmatched_metadata[k].pop(k2)
 
     ## `MAP ` contains more information than just PSET
     ## TODO: what is this extra data? max peak? (MAP slightly off, MAP1 different)

@@ -159,7 +159,7 @@ class WDFFileGenerator:
         ## START nested2 (key after)
         _write_pset_nested(f, 99, 126)
         _write_pset_key(f, 1, "pair_in_nested_doubled_key")
-        _write_pset_single(f, "char", 1, 43)
+        _write_pset_single(f, "int8", 1, 43)
         ## START nested3
         _write_pset_key(f, 1234, "nested3")
         _write_pset_nested(f, 1234, 41)
@@ -177,7 +177,7 @@ class WDFFileGenerator:
     def generate_flat_normal_testfile(f):
         _write_header(f, "TEST", 0, 311)
 
-        _write_pset_single(f, "char", 123, 789)
+        _write_pset_single(f, "int8", 123, -12)
         _write_pset_key(f, 123, "single->key")
         _write_pset_key(f, 456, "key->single")
         _write_pset_single(f, "uint8", 456, 46)

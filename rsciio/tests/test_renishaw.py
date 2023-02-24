@@ -612,11 +612,11 @@ class TestSpec:
             "ExportToSPC": 1,
             "ExportToTXT": 1,
             "extra_matches": {
-                "WXDM_0_3639": {
+                "sub0": {
                     "subdicts": {
-                        "WXDM_0_3639_896": {
+                        "sub0": {
                             "subdicts": {
-                                "WXDM_0_3639_896_305": {
+                                "sub0": {
                                     "сlsid": "{F22A2AF6-94E0-4814-B38B-68C824427192}",
                                     "LensSetID": 2,
                                     "id": 0,
@@ -646,15 +646,15 @@ class TestSpec:
                             "LT_Filter_ND_IN": 0,
                             "LT_Filter_Position": 1,
                         },
-                        "WXDM_0_3639_521": {
+                        "sub1": {
                             "subdicts": {
-                                "WXDM_0_3639_521_426": {
+                                "sub0": {
                                     "сlsid": "{F22A2AF6-94E0-4814-B38B-68C824427192}",
                                     "LensSetID": 2,
                                     "id": 0,
                                     "detID": 1,
                                 },
-                                "WXDM_0_3639_521_154": {
+                                "sub1": {
                                     "сlsid": "{6493207B-3132-46CC-BBE3-C915C277E83B}",
                                     "_nitems": 0,
                                     "ReadOnlyFlag": 0,
@@ -709,9 +709,9 @@ class TestSpec:
                     "_key1": "Scan",
                     "Scan": {},
                 },
-                "WXDM_0_2654": {
+                "sub1": {
                     "subdicts": {
-                        "WXDM_0_2654_300": {
+                        "sub0": {
                             "сlsid": "{D9303A2E-17E8-416C-AA67-9B0B4B2D8A19}",
                             "Count": 0,
                             "ReadOnly": 0,
@@ -842,7 +842,16 @@ class TestSpec:
         assert metadata["Signal"]["signal_type"] == ""
 
         assert metadata["Acquisition_instrument"]["Detector"]["detector_type"] == "CCD"
-        assert metadata["Acquisition_instrument"]["Detector"]["frames"] == 4
+        assert metadata["Acquisition_instrument"]["Detector"]["frames"] == 2
+        assert (
+            metadata["Acquisition_instrument"]["Detector"]["processing"][
+                "cosmic_ray_removal"
+            ]
+            == 1
+        )
+        np.testing.assert_allclose(
+            metadata["Acquisition_instrument"]["Detector"]["integration_time"], 180
+        )
         assert (
             metadata["Acquisition_instrument"]["Detector"]["model"]
             == "Renishaw Centrus 2URV61"

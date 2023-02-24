@@ -72,6 +72,24 @@ else:
     PIL_installed = True
 
 
+def find_key(data, target):
+    for key, value in data.items():
+        if isinstance(value, dict):
+            yield from find_key(value, target)
+        elif key == target:
+            yield value
+
+
+def get_key(data, target):
+    gen_obj = find_key(data, target)
+    try:
+        key = next(gen_obj)
+    except StopIteration:
+        key = None
+    finally:
+        return key
+
+
 def _convert_float(input):
     """Handle None-values when converting strings to float."""
     if input is None:
@@ -682,15 +700,15 @@ class WDFReader(object):
     def _match_WXDM_values(self, level, keys_in, unmatched_keys):
         result = {}
         keys_lvl = [i for i in keys_in if i.count("_") == level]
-        for k in keys_lvl:
+        for num, k in enumerate(keys_lvl):
             keys_in.remove(k)
             subkeys = [i for i in keys_in if i.startswith(k)]
             unmatched_values_k = self._unmatched_metadata[k]["values"]
-            result[k] = {
+            result[f"sub{num}"] = {
                 "subdicts": self._match_WXDM_values(level + 1, subkeys, unmatched_keys)
             }
-            if len(result[k]["subdicts"]) == 0:
-                del result[k]["subdicts"]
+            if len(result[f"sub{num}"]["subdicts"]) == 0:
+                del result[f"sub{num}"]["subdicts"]
             matches = {}
             for k2, v2 in unmatched_values_k.items():
                 try:
@@ -699,7 +717,7 @@ class WDFReader(object):
                     pass
                 else:
                     self._unmatched_WXDM_keys.pop(k2, None)
-            result[k].update(matches)
+            result[f"sub{num}"].update(matches)
         return result
 
     def _map_WXDM(self):
@@ -717,7 +735,7 @@ class WDFReader(object):
             1, WXDM_entries, deepcopy(self._unmatched_WXDM_keys)
         )
         self.original_metadata["WXDM_0"].update(
-            {"extra_matches": matched_WXDM["WXDM_0"]["subdicts"]}
+            {"extra_matches": matched_WXDM["sub0"]["subdicts"]}
         )
         ## remove matched values/keys from unmatched_metadata
         for k in WXDM_entries:
@@ -1162,9 +1180,19 @@ class WDFReader(object):
         detector["temperature"] = _convert_float(
             ccd_original_metadata.get("Target temperature")
         )
-        detector["frames"] = self.original_metadata.get("WDF1_1", {}).get(
-            "accumulations_per_spectrum"
+        # detector["frames"] = self.original_metadata.get("WDF1_1", {}).get(
+        #     "accumulations_per_spectrum"
+        # )
+        wxdm_metadata = self.original_metadata.get("WXDM_0", {}).get("extra_matches")
+        if wxdm_metadata is None:
+            return detector
+        processing = {}
+        detector["integration_time"] = get_key(wxdm_metadata, "Exposure Time") / 1000
+        detector["frames"] = get_key(wxdm_metadata, "Accumulations")
+        processing["cosmic_ray_removal"] = get_key(
+            wxdm_metadata, "Use Cosmic Ray Remove"
         )
+        detector["processing"] = processing
         return detector
 
     def map_metadata(self):

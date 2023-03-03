@@ -82,12 +82,12 @@ def find_key(data, target):
 
 def get_key(data, target):
     gen_obj = find_key(data, target)
+    key = None
     try:
         key = next(gen_obj)
     except StopIteration:
         key = None
-    finally:
-        return key
+    return key
 
 
 def _convert_float(input):

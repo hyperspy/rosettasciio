@@ -1,0 +1,304 @@
+# -*- coding: utf-8 -*-
+# Copyright 2007-2023 The HyperSpy developers
+#
+# This file is part of RosettaSciIO.
+#
+# RosettaSciIO is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# RosettaSciIO is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
+
+import gc
+import numpy as np
+import pytest
+from pathlib import Path
+from copy import deepcopy
+
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
+testfile_dir = (Path(__file__).parent / "hamamatsu_data").resolve()
+
+testfile_focus_mode_path = (testfile_dir / "focus_mode.img").resolve()
+testfile_operate_mode_path = (testfile_dir / "operate_mode.img").resolve()
+
+
+class TestOperate:
+    @classmethod
+    def setup_class(cls):
+        cls.s = hs.load(testfile_operate_mode_path, reader="Hamamatsu")
+
+    @classmethod
+    def teardown_class(cls):
+        del cls.s
+        gc.collect()
+
+    def test_data_deflection(self):
+        expected_data_start = [
+            [0, 2, 3405774848],
+            [4127195136, 2701131777, 3674210304],
+            [1778384899, 2197815296, 2],
+        ]
+        np.testing.assert_allclose(expected_data_start, self.s.isig[:3, :3].data)
+
+    def test_axes_deflection(self):
+        axes = self.s.axes_manager
+        assert axes.signal_dimension == 2
+        assert axes.navigation_dimension == 0
+        ax0 = axes[0]
+        ax1 = axes[1]
+        assert ax0.name == "X"
+        assert ax1.name == "Y"
+        assert ax0.size == 672
+        assert ax1.size == 512
+        assert ax0.units == "nm"
+        assert ax1.units == "us"
+
+        expected_data_start_X = [472.252, 472.33337, 472.41473, 472.4961, 472.57745]
+        expected_data_start_Y = [0.0, 0.031080816, 0.062164314, 0.09325048, 0.12433932]
+        np.testing.assert_allclose(ax0.axis[:5], expected_data_start_X)
+        np.testing.assert_allclose(ax1.axis[:5], expected_data_start_Y)
+
+    def test_original_metadata_no_comment(self):
+        original_metadata = deepcopy(self.s.original_metadata.as_dictionary())
+        del original_metadata["Comment"]
+        expected_metadata = {
+            "character_im": "IM",
+            "offset_x": 0,
+            "offset_y": 0,
+            "file_type": "bit32",
+            "num_img": 0,
+            "num_channels": 0,
+            "channel_number": 0,
+            "timestamp": 0.0,
+            "marker": "",
+            "additional_info": "",
+            "image_width_px": 672,
+            "image_height_lines": 512,
+            "com_len": 3311,
+        }
+        assert expected_metadata == original_metadata
+
+    def test_original_metadata_comment(self):
+        original_metadata = self.s.original_metadata.Comment.as_dictionary()
+        expected_metadata = {
+            "Application": {
+                "Enconding": "UTF-8",
+                "Date": "20/01/2023",
+                "Time": "11:34:55.147",
+                "Software": "HPD-TA",
+                "Application": "2",
+                "ApplicationTitle": "High Performance Digital Temporal Analyzer",
+                "SoftwareVersion": "9.5 pf10",
+                "SoftwareDate": "15.12.2020",
+            },
+            "Camera": {
+                "CameraName": "Orca R2",
+                "SerialNumber": "S/N: 891892",
+                "Type": "37",
+                "ScanMode": "1",
+                "Subarray": "0",
+                "Binning": "2",
+                "BitsPerChannel": "0",
+                "HighDynamicRangeMode": "0",
+                "ScanSpeed": "0",
+                "SubarrayHpos": "0",
+                "SubarrayHsize": "0",
+                "SubarrayVpos": "0",
+                "SubarrayVsize": "0",
+                "TriggerMode": "3",
+                "TriggerModeKeyVal": "Internal",
+                "TriggerPolarity": "1",
+                "TriggerPolarityKeyVal": "neg.",
+                "CoolerSwitch": "-1",
+                "Gain": "0",
+                "Prop_SensorMode": "1",
+                "Prop_Colortype": "1",
+                "Prop_TriggerTimes": "1",
+                "Prop_ExposureTimeControl": "2",
+                "Prop_TimingMinTriggerInterval": "0.500139",
+                "Prop_TimingExposure": "2",
+                "Prop_ImageTopOffsetBytes": "0",
+                "Prop_ImagePixelType": "2",
+                "Prop_BufferRowbytes": "1344",
+                "Prop_BufferFramebytes": "688128",
+                "Prop_BufferTopOffsetBytes": "0",
+                "Prop_BufferPixelType": "2",
+                "Prop_RecordFixedBytesPerFile": "256",
+                "Prop_RecordFixedBytesPerSession": "784",
+                "Prop_RecordFixedBytesPerFrame": "688176",
+                "Prop_NumberOfOutputTriggerConnector": "1",
+                "Prop_OutputTriggerPolarity": "1",
+                "Prop_OutputTriggerActive": "1",
+                "Prop_OutputTriggerDelay": "0",
+                "Prop_OutputTriggerPeriod": "0.0001",
+                "Prop_SystemAlive": "2",
+                "Prop_ImageDetectorPixelWidth": "6.45",
+                "Prop_ImageDetectorPixelHeight": "6.45",
+                "Prop_TimeStampProducer": "2",
+                "Prop_FrameStampProducer": "2",
+            },
+            "Acquisition": {
+                "NrExposure": "60",
+                "NrTrigger": "0",
+                "ExposureTime": "5 s",
+                "AcqMode": "4",
+                "DataType": "8",
+                "DataTypeOfSingleImage": "7",
+                "CurveCorr": "0",
+                "DefectCorrection": "0",
+                "areSource": "0,0,672,512",
+                "areGRBScan": "0,0,672,512",
+                "pntOrigCh": "0,0",
+                "pntOrigFB": "0,0",
+                "pntBinning": "2,2",
+                "BytesPerPixel": "4",
+                "IsLineData": "0",
+                "BacksubCorr": "-1",
+                "ShadingCorr": "0",
+                "ZAxisLabel": "Intensity",
+                "ZAxisUnit": "Count",
+                "miMirrorRotate": "0",
+            },
+            "Grabber": {"Type": "5", "SubType": "0"},
+            "DisplayLUT": {
+                "EntrySize": "9",
+                "LowerValue": "764",
+                "UpperValue": "3562",
+                "LowerValueEx": "0",
+                "UpperValueEx": "32767",
+                "BitRange": "16x bit",
+                "Color": "2",
+                "LUTType": "0",
+                "LUTInverted": "0",
+                "AutoLutInLiveMode": "0",
+                "DisplayNegative": "0",
+                "Gamma": "1",
+                "First812OvlCol": "1",
+                "Lut16xShift": "7",
+                "Lut16xOvlVal": "3932100",
+            },
+            "ExternalDevices": {
+                "TriggerDelay": "150",
+                "PostTriggerTime": "10",
+                "ExposureTime": "10",
+                "TDStatusCableConnected": "0",
+                "ConnectMonitorOut": "0",
+                "ConnectResetIn": "0",
+                "TriggerMethod": "2",
+                "UseDTBE": "0",
+                "ExpTimeAddMultiple": "-1",
+                "DontSendReset": "0",
+                "MultipleOfSweep": "1",
+                "A6538Connected": "0",
+                "CounterBoardInstalled": "0",
+                "MotorizedSlitInstalled": "0",
+                "UseSpecAsMono": "0",
+                "GPIBInstalled": "-1",
+                "CounterBoardIOBase": "0",
+                "MotorizedSlitPortID": "1",
+                "GPIBIOBase": "0",
+            },
+            "Streak camera": {
+                "UseDevice": "-1",
+                "DeviceName": "C5680",
+                "PluginName": "M5677",
+                "GPIBCableConnected": "-1",
+                "GPIBBase": "8",
+                "Time Range": "20 us",
+                "Mode": "Operate",
+                "Gate Mode": "Normal",
+                "MCP Gain": "50",
+                "Shutter": "Open",
+                "Gate Time": "0",
+                "Trig. Mode": "Cont",
+                "Trigger status": "Ready",
+                "Trig. level": "1",
+                "Trig. slope": "Rising",
+                "FocusTimeOver": "11",
+            },
+            "Spectrograph": {
+                "UseDevice": "-1",
+                "DeviceName": "Andor SG",
+                "PluginName": "Kymera 328i",
+                "GPIBCableConnected": "0",
+                "GPIBBase": "13",
+                "Wavelength": "500",
+                "Grating": "300 g/mm",
+                "Blaze": "500",
+                "Ruling": "300",
+                "Exit Mirror": "Front",
+                "Side Ent. Slitw.": "10",
+                "Turret": "1",
+                "Focus Mirror": "234",
+                "Side Entry Iris": "26",
+            },
+            "Delay box": {
+                "UseDevice": "-1",
+                "DeviceName": "C4792-01",
+                "PluginName": "",
+                "GPIBCableConnected": "0",
+                "Trig. Mode": "Int. Trig.",
+                "Repetition Rate": "1 Hz",
+                "L-Pulsewidth": "300 ns",
+                "Delay Int.Trig": "-999999999900",
+                "Delay Ext.Trig": "0",
+                "Dly Mode-Lock": "0",
+                "Dly1 DmpMode": "0",
+                "Dly2 DmpMode": "0",
+            },
+            "Delay2 box": {"UseDevice": "0"},
+            "Filter wheel": {"UseDevice": "0"},
+            "Scaling": {
+                "ScalingXType": "2",
+                "ScalingXScale": "1",
+                "ScalingXUnit": "nm",
+                "ScalingXScalingFile": "#1379631,0672",
+                "ScalingYType": "2",
+                "ScalingYScale": "1",
+                "ScalingYUnit": "us",
+                "ScalingYScalingFile": "#1382319,0512",
+            },
+            "Comment": "UserComment",
+        }
+
+        assert expected_metadata == original_metadata
+
+
+class TestFocus:
+    @classmethod
+    def setup_class(cls):
+        cls.s_focus = hs.load(testfile_focus_mode_path, reader="Hamamatsu")
+
+    @classmethod
+    def teardown_class(cls):
+        del cls.s_focus
+        gc.collect()
+
+    def test_data_focus(self):
+        expected_data_end = [[0, 0, 603979776], [0, 0, 0], [352321536, 0, 0]]
+        np.testing.assert_allclose(expected_data_end, self.s_focus.isig[-3:, -3:].data)
+
+    def test_axes_focus(self):
+        axes = self.s_focus.axes_manager
+        assert axes.signal_dimension == 2
+        assert axes.navigation_dimension == 0
+        ax0 = axes[0]
+        ax1 = axes[1]
+        assert ax0.name == "X"
+        assert ax1.name == "Y"
+        assert ax0.units == "nm"
+        assert ax0.size == 672
+        assert ax1.size == 512
+
+        expected_data_start_X = [472.252, 472.33337, 472.41473, 472.4961, 472.57745]
+        expected_data_start_Y = [0.0, 0.0390625, 0.078125, 0.1171875, 0.15625]
+        np.testing.assert_allclose(ax0.axis[:5], expected_data_start_X)
+        np.testing.assert_allclose(ax1.axis[:5], expected_data_start_Y)

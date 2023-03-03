@@ -242,7 +242,9 @@ def test_load_datacube_frames():
     filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[7]
     s = hs.load(filename, sum_frames=True, rebin_energy=rebin_energy, reader="JEOL")
     assert s.data.shape == (512, 512, 2)
-    s_frame = hs.load(filename, sum_frames=False, rebin_energy=rebin_energy, reader="JEOL")
+    s_frame = hs.load(
+        filename, sum_frames=False, rebin_energy=rebin_energy, reader="JEOL"
+    )
     assert s_frame.data.shape == (14, 512, 512, 2)
     np.testing.assert_allclose(s_frame.sum(axis="Frame").data, s.data)
     np.testing.assert_allclose(
@@ -375,12 +377,20 @@ def test_em_image_in_pts():
 
     # no SEM/STEM image
     s = hs.load(
-        dir1 / TEST_FILES[0], read_em_image=False, only_valid_data=False, cutoff_at_kV=1, reader="JEOL"
+        dir1 / TEST_FILES[0],
+        read_em_image=False,
+        only_valid_data=False,
+        cutoff_at_kV=1,
+        reader="JEOL",
     )
     assert len(s) == 7
 
     s = hs.load(
-        dir1 / TEST_FILES[0], read_em_image=True, only_valid_data=False, cutoff_at_kV=1, reader="JEOL"
+        dir1 / TEST_FILES[0],
+        read_em_image=True,
+        only_valid_data=False,
+        cutoff_at_kV=1,
+        reader="JEOL",
     )
     assert len(s) == 7
 
@@ -394,7 +404,11 @@ def test_em_image_in_pts():
     )
     assert len(s) == 22
     s = hs.load(
-        dir2 / TEST_FILES2[0], read_em_image=True, only_valid_data=False, cutoff_at_kV=1, reader="JEOL"
+        dir2 / TEST_FILES2[0],
+        read_em_image=True,
+        only_valid_data=False,
+        cutoff_at_kV=1,
+        reader="JEOL",
     )
     assert len(s) == 25
     assert (
@@ -467,7 +481,12 @@ def test_pts_frame_shift():
 
     # without frame shift
     ref = hs.load(
-        file, read_em_image=True, only_valid_data=False, sum_frames=False, lazy=False, reader="JEOL"
+        file,
+        read_em_image=True,
+        only_valid_data=False,
+        sum_frames=False,
+        lazy=False,
+        reader="JEOL",
     )
     #         x, y, en
     points = [[24, 23, 106], [21, 16, 106]]
@@ -530,7 +549,9 @@ def test_pts_frame_shift():
     max_sfts = sfts.max(axis=0)
     min_sfts = sfts.min(axis=0)
     fs = sfts - max_sfts
-    s = hs.load(file, frame_shifts=sfts, sum_frames=False, only_valid_data=False, reader="JEOL")
+    s = hs.load(
+        file, frame_shifts=sfts, sum_frames=False, only_valid_data=False, reader="JEOL"
+    )
     sz = min_sfts - max_sfts + ref[0].data.shape[1:3]
     assert s.data.shape == (2, sz[0], sz[1], 4096)
     for fr, sft in enumerate(fs):
@@ -665,7 +686,12 @@ def test_frame_start_index(tmp_path):
     ]
 
     ref = hs.load(
-        file, sum_frames=False, downsample=[32, 32], rebin_energy=512, SI_dtype=np.int32, reader="JEOL"
+        file,
+        sum_frames=False,
+        downsample=[32, 32],
+        rebin_energy=512,
+        SI_dtype=np.int32,
+        reader="JEOL",
     )
     frame_start_index = ref.original_metadata.jeol_pts_frame_start_index
     assert np.array_equal(frame_start_index, frame_start_index_ref)
@@ -716,5 +742,11 @@ def test_frame_start_index(tmp_path):
         data[0x1117] = 0x41
     with open(test_file, "wb") as f:
         f.write(data)
-        s = hs.load(test_file, downsample=[32, 32], rebin_energy=512, SI_dtype=np.int32, reader="JEOL")
+        s = hs.load(
+            test_file,
+            downsample=[32, 32],
+            rebin_energy=512,
+            SI_dtype=np.int32,
+            reader="JEOL",
+        )
     assert s.metadata["Signal"]["signal_type"] == "EDS_SEM"

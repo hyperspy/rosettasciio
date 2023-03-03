@@ -21,14 +21,11 @@
 # and https://ami.scripps.edu/software/mrctools/mrc_specification.php
 
 import logging
-import importlib.util
 from pathlib import Path
 from copy import deepcopy
-from enum import IntEnum, Enum
-from collections import defaultdict
+from enum import IntEnum
 
 import numpy as np
-from numpy.polynomial.polynomial import polyfit
 
 from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 
@@ -268,14 +265,12 @@ class IMGReader:
         return x_val, y_val
 
     def _extract_calibration_data(self, cal):
-        if cal is None:
-            return None
-        elif cal == "Focus mode":
-            return None
-        elif cal[0] == "#":
+        if cal[0] == "#":
             pos, size = map(int, cal[1:].split(","))
             self._file_obj.seek(pos)
             return self.__read_numeric("float", size=size)
+        else:
+            return None
 
     def _set_axis(self, name, scale_type, unit, cal_addr, scale_val):
         axis = {"units": unit, "name": name, "navigate": False}

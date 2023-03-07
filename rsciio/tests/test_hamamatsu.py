@@ -271,6 +271,45 @@ class TestOperate:
 
         assert expected_metadata == original_metadata
 
+    def test_metadata(self):
+        metadata = self.s.metadata
+
+        detector = self.s.metadata.Acquisition_instrument.Detector
+        spectrometer = self.s.metadata.Acquisition_instrument.Spectrometer
+
+        assert metadata.General.date == "2023-01-20"
+        assert metadata.General.time == "11:34:55"
+        assert metadata.General.original_filename == "operate_mode.img"
+        assert metadata.General.title == metadata.General.original_filename[:-4]
+
+        assert metadata.Signal.quantity == "Intensity (Counts)"
+        assert metadata.Signal.signal_type == ""
+
+        assert isinstance(detector.binning, tuple)
+        assert len(detector.binning) == 2
+        assert detector.binning[0] == 2
+        assert detector.binning[1] == 2
+        assert detector.detector_type == "StreakCamera"
+        assert detector.model == "C5680"
+        assert detector.frames == 60
+        np.testing.assert_allclose(detector.integration_time, 5)
+        assert isinstance(detector.sensor_roi, tuple)
+        assert len(detector.sensor_roi) == 4
+        assert detector.sensor_roi[0] == 0
+        assert detector.sensor_roi[1] == 0
+        assert detector.sensor_roi[2] == 672
+        assert detector.sensor_roi[3] == 512
+        assert detector.processing.background_correction == True
+        assert detector.processing.curvature_correction == False
+        assert detector.processing.defect_correction == False
+        assert detector.processing.shading_correction == False
+
+        np.testing.assert_allclose(spectrometer.entrance_slit_width, 10)
+        assert spectrometer.model == "Andor SG"
+        assert spectrometer.Grating.blazing_wavelength == 500
+        assert spectrometer.Grating.groove_density == 300
+        np.testing.assert_allclose(spectrometer.central_wavelength, 500)
+
 
 class TestFocus:
     @classmethod

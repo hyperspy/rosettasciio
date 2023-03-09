@@ -16,10 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-# The details of the format were taken from
-# https://www.biochem.mpg.de/doc_tom/TOM_Release_2008/IOfun/tom_mrcread.html
-# and https://ami.scripps.edu/software/mrctools/mrc_specification.php
-
 import logging
 import importlib.util
 from pathlib import Path
@@ -241,6 +237,7 @@ class IMGReader:
         self._original_filename = filename
 
         self.original_metadata = {}
+        self._h_lines = None
 
         self.data, comment = self.parse_file()
         self._map_comment(comment)
@@ -274,17 +271,22 @@ class IMGReader:
         header = {}
         header["character_im"] = self.__read_utf8(2)
         com_len = int(self.__read_numeric("int16"))
+        header["comment_length"] = com_len
         ## IMPORTANT to convert int16 to int
         ## as int16 leads to problems when defining sizes of numpy arrays
         ## -> data is read incorrectly
-        self.w_px = int(self.__read_numeric("int16"))
-        self.h_lines = int(self.__read_numeric("int16"))
+        w_px = int(self.__read_numeric("int16"))
+        header["image_width_px"] = w_px
+        self._h_lines = int(self.__read_numeric("int16"))
+        header["image_height_lines"] = self._h_lines
         header["offset_x"] = int(self.__read_numeric("int16"))
         header["offset_y"] = int(self.__read_numeric("int16"))
         file_type = FileType(int(self.__read_numeric("int16"))).name
         header["file_type"] = file_type
-        header["num_img"] = int.from_bytes(self._file_obj.read(3), "little")
-        header["num_channels"] = int(self.__read_numeric("int16"))
+        header["num_images_in_channel"] = int.from_bytes(
+            self._file_obj.read(3), "little"
+        )
+        header["num_additional_channels"] = int(self.__read_numeric("int16"))
         header["channel_number"] = int(self.__read_numeric("int16"))
         header["timestamp"] = self.__read_numeric("double")
         header["marker"] = self.__read_utf8(3)
@@ -299,10 +301,7 @@ class IMGReader:
             dtype = "uint32"
         else:
             raise NotImplementedError(f"reading dtype: {dtype} not implemented")
-        data = self.__read_numeric(dtype, size=self.w_px * self.h_lines)
-        header["image_width_px"] = self.w_px
-        header["image_height_lines"] = self.h_lines
-        header["com_len"] = com_len
+        data = self.__read_numeric(dtype, size=w_px * self._h_lines)
         _logger.debug(f"file read until: {self._file_obj.tell()}")
         _logger.debug(f"total file_size: {self._filesize}")
         ## missing bytes, because calibration data at the end
@@ -329,9 +328,9 @@ class IMGReader:
             ## in this mode (focus mode) the y-axis does not correspond to time
             ## photoelectrons are not deflected here -> natural spread
             ## TODO: scale, name, unit for this?
-            axis["scale"] = 20 / self.h_lines
+            axis["scale"] = 1
             axis["offset"] = 0
-            axis["size"] = self.h_lines
+            axis["size"] = self._h_lines
         elif scale_type == 2:
             data = self._extract_calibration_data(cal_addr)
             axis["axis"] = data
@@ -350,15 +349,15 @@ class IMGReader:
         x_unit, y_unit = self._get_scaling_entry(scaling_md, "Unit")
         x_type, y_type = map(int, self._get_scaling_entry(scaling_md, "Type"))
         x_scale, y_scale = map(float, self._get_scaling_entry(scaling_md, "Scale"))
-        x_axis = self._set_axis("X", x_type, x_unit, x_cal_address, x_scale)
-        y_axis = self._set_axis("Y", y_type, y_unit, y_cal_address, y_scale)
+        x_axis = self._set_axis("Wavelength", x_type, x_unit, x_cal_address, x_scale)
+        y_axis = self._set_axis("Time", y_type, y_unit, y_cal_address, y_scale)
         _logger.debug(f"file read until: {self._file_obj.tell()}")
         y_axis["index_in_array"] = 0
         x_axis["index_in_array"] = 1
         wavelength_axis = x_axis["axis"]
         if wavelength_axis[0] > wavelength_axis[1]:
             self._reverse_signal = True
-            x_axis["axis"] = wavelength_axis[::-1]
+            x_axis["axis"] = np.ascontiguousarray(wavelength_axis[::-1])
         else:
             self._reverse_signal = False
         axes_list = sorted([x_axis, y_axis], key=lambda item: item["index_in_array"])
@@ -374,7 +373,7 @@ class IMGReader:
 
         self.data = np.reshape(self.data, axes_sizes)
         if self._reverse_signal:
-            self.data = np.flip(self.data, 1)
+            self.data = np.ascontiguousarray(self.data[:, ::-1])
 
     @staticmethod
     def _split_header_from_comment(input):
@@ -421,6 +420,7 @@ class IMGReader:
             result[key] = val
         return result
 
+    ## TODO: refactor comment extraction
     def _map_comment(self, comment):
         initial_split = self._split_header_from_comment(comment)
         result = {}

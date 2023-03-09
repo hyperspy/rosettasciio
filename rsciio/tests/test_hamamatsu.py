@@ -54,8 +54,8 @@ class TestOperate:
         assert axes.navigation_dimension == 0
         ax0 = axes[0]
         ax1 = axes[1]
-        assert ax0.name == "X"
-        assert ax1.name == "Y"
+        assert ax0.name == "Wavelength"
+        assert ax1.name == "Time"
         assert ax0.size == 672
         assert ax1.size == 512
         assert ax0.units == "nm"
@@ -74,15 +74,15 @@ class TestOperate:
             "offset_x": 0,
             "offset_y": 0,
             "file_type": "bit32",
-            "num_img": 0,
-            "num_channels": 0,
+            "num_images_in_channel": 0,
+            "num_additional_channels": 0,
             "channel_number": 0,
             "timestamp": 0.0,
             "marker": "",
             "additional_info": "",
             "image_width_px": 672,
             "image_height_lines": 512,
-            "com_len": 3311,
+            "comment_length": 3311,
         }
         assert expected_metadata == original_metadata
 
@@ -331,13 +331,14 @@ class TestFocus:
         assert axes.navigation_dimension == 0
         ax0 = axes[0]
         ax1 = axes[1]
-        assert ax0.name == "X"
-        assert ax1.name == "Y"
+        assert ax0.name == "Wavelength"
+        assert ax1.name == "Time"
         assert ax0.units == "nm"
         assert ax0.size == 672
         assert ax1.size == 512
 
+        np.testing.assert_allclose(ax1.scale, 1)
+        np.testing.assert_allclose(ax1.offset, 0)
+
         expected_data_start_X = [472.252, 472.33337, 472.41473, 472.4961, 472.57745]
-        expected_data_start_Y = [0.0, 0.0390625, 0.078125, 0.1171875, 0.15625]
         np.testing.assert_allclose(ax0.axis[:5], expected_data_start_X)
-        np.testing.assert_allclose(ax1.axis[:5], expected_data_start_Y)

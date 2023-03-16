@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2007-2022 The HyperSpy developers
+# Copyright 2007-2023 The HyperSpy developers
 #
 # This file is part of HyperSpy.
 #
@@ -16,21 +16,38 @@
 # You should have received a copy of the GNU General Public License
 # along with HyperSpy. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-# TODO: manage licensing and acknowledge previous contributions
-# upon this reader is based on
+# TODO: manage licenses
+# This Code is based on the py-wdf-reader (https://github.com/alchem0x2A/py-wdf-reader),
+# which is inspired by Henderson, Alex DOI:10.5281/zenodo.495477
 
-# Renishaw wdf Raman spectroscopy file reader
-# Code inspired by Henderson, Alex DOI:10.5281/zenodo.495477
+# MIT License
+#
+# Copyright (c) 2022 T.Tian
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# Moreover, this code is inspired by gwyddion
+# (https://github.com/christian-sahlmann/gwyddion)
 
 # TODO: general:
-#   - check axes order (snake pattern?)
 #   - remove debug flag once unmatched keys values are understood
-#   - how to handle WHTL cropping
-#       - convert IFDRational in hyperspy?
-#       - show cropped image?
-#   - how to incorporate start points for linescan outside of original_metadata?
-#       - currently only saved in WMAP
-#   - remove UID from blocknames for more consistent names?
+#   - remove setting logger level
 
 # known limitations/problems:
 #   - cannot parse BKXL-Block
@@ -41,11 +58,8 @@
 #   - quantity name is always set to Intensity (not extracted from file)
 #   - many DataTypes are not considered for axes, only the following are used
 #       - Spectral for signal
-#       - X,Y,Z,Time,FocusTrackZ for nav
-#   - ScanType not used for anything
+#       - X, Y, Z, Time, FocusTrackZ for navigation
 #   - unclear what MAP contains
-#   - metadata mapping extendable (especially integration time)
-#   - accumulations from WDF1 and WXDM do not match
 
 import datetime
 import importlib.util
@@ -72,30 +86,24 @@ else:
     PIL_installed = True
 
 
-def find_key(data, target):
+def _find_key(data, target):
+    """Finds key in nested dictionary. Returns generator object."""
     for key, value in data.items():
         if isinstance(value, dict):
-            yield from find_key(value, target)
+            yield from _find_key(value, target)
         elif key == target:
             yield value
 
 
-def get_key(data, target):
-    gen_obj = find_key(data, target)
+def _get_key(data, target):
+    """Wrapper for _find_key(). Handles situation where no key is found."""
+    gen_obj = _find_key(data, target)
     key = None
     try:
         key = next(gen_obj)
     except StopIteration:
         key = None
     return key
-
-
-def _convert_float(input):
-    """Handle None-values when converting strings to float."""
-    if input is None:
-        return None  # pragma: no cover
-    else:
-        return float(input)
 
 
 def _remove_none_from_dict(dict_in):
@@ -114,7 +122,7 @@ def convert_windowstime_to_datetime(wt):
 
 
 class MetadataTypeSingle(Enum):
-    int8 = "c"  # TODO: maybe char, but as far as I can tell only used as a number
+    int8 = "c"  # maybe char, but as far as I can tell only used as a number
     uint8 = "?"
     int16 = "s"
     int32 = "i"
@@ -174,6 +182,7 @@ class MeasurementType(IntEnum):
     Mapping = 3
 
 
+## parser does not depend on this parameter (only put into original_metadata)
 ## testfiles: 2, 3, 4, 5, 8 missing
 class ScanType(IntEnum):
     Unspecified = 0
@@ -195,7 +204,7 @@ class MapType(IntEnum):
     randompoints = 1  # rectangle
     column_major = 2  # x then y
     alternating = 4  # snake pattern, not implemented
-    linefocus_mapping = 8  # TODO: what is that?
+    linefocus_mapping = 8  # linefocus -> laserspot is a line
     inverted_rows = 16  # rows collected right to left (negative scale)
     inverted_columns = 32  # columns collected bottom to top (negative scale)
     surface_profile = 64  # Z data is non-regular (gwyddion)?
@@ -264,6 +273,10 @@ class UnitType(IntEnum):
             microseconds="µs",
         )
         return unit_str[self.name]
+
+    @classmethod
+    def _missing_(cls, value):
+        return None
 
 
 # used in ORGN/XLST
@@ -406,11 +419,14 @@ class WDFReader(object):
         "BKXL",
     ]
 
-    def __init__(self, f, filename, use_uniform_signal_axis, debug):
+    def __init__(
+        self, f, filename, use_uniform_signal_axis, debug, load_unmatched_metadata
+    ):
         self._file_obj = f
         self._filename = filename
         self._use_uniform_signal_axis = use_uniform_signal_axis
         self._debug = debug
+        self._load_unmatched_metadata = load_unmatched_metadata
 
         self.original_metadata = {}
         self._unmatched_metadata = {}
@@ -468,7 +484,7 @@ class WDFReader(object):
         self.metadata = self.map_metadata()
 
         ## debug unmatched metadata
-        if self._debug:
+        if self._load_unmatched_metadata:
             _remove_none_from_dict(self._unmatched_metadata)
             self.original_metadata.update({"UNMATCHED": self._unmatched_metadata})
 
@@ -591,13 +607,9 @@ class WDFReader(object):
         key_dict = {}
         value_dict = {}
         remaining = length
-        ## remaining > 0 may lead to problems as type, flag, key and entry still may be read
-        ## if remaing is just slightly above 0 (not happening in testfiles)
-        ## for most blocks it ends exactly on 0
-        ## however, MAP ends up below 0 (pset size too low -> extra 4 bytes read)
-        ## but this seems to produce correct results nevertheless
-        ## especially npoints/data after the pset entry requires the extra read
-        ## so avoid using an extra setback
+        ## remaining slightly above 0 may lead to problems
+        ## as type, flag, key and entry are still read (for example remaining=2)
+        ## however, this does not happen in testfiles (always ends exactly on 0)
         while remaining > 0:
             type = self.__read_utf8(0x1)
             flag = self.__read_numeric("uint8")
@@ -750,7 +762,7 @@ class WDFReader(object):
             return
         pset_size = self._get_psetsize(id, warning=False)
         _, block_size = self._block_info[id]
-        metadata = self._pset_read_metadata(pset_size - 4, id)
+        metadata = self._pset_read_metadata(pset_size, id)
         npoints = self.__read_numeric("uint64")
         ## 8 bytes from npoints + 4*npoints data
         self._check_block_size(
@@ -771,8 +783,7 @@ class WDFReader(object):
             _logger.warning("Unexpected start of file. File might be invalid.")
 
         ## TODO: what is ntracks?
-        ## warning when file_status_error_code nonzero?
-        ## multiple accumulations -> average or sum?
+        ## TODO: warning when file_status_error_code nonzero?
         self._file_obj.seek(pos)
         header["flags"] = self.__read_numeric("uint64")
         header["uuid"] = f"{self.__read_numeric('uint32', convert=False)}"
@@ -784,6 +795,12 @@ class WDFReader(object):
         result["points_per_spectrum"] = self.__read_numeric("uint32")
         header["capacity"] = self.__read_numeric("uint64")
         result["num_spectra"] = self.__read_numeric("uint64")
+        ## if cosmic ray removal (crr) is enabled,
+        ## then 2 extra spectra are collected
+        ## each frame is then averaged with these 2 extra spectra
+        ## accumulations in the WDF1 section includes crr
+        ## whereas accumulations in WXDM does not
+        ## the WXDM accumulations is used for the metadata attribute
         header["accumulations_per_spectrum"] = self.__read_numeric("uint32")
         result["YLST_length"] = self.__read_numeric("uint32")
         header["XLST_length"] = self.__read_numeric("uint32")
@@ -826,19 +843,28 @@ class WDFReader(object):
 
         self._file_obj.seek(pos)
         type = DataType(self.__read_numeric("uint32")).name
-        unit = str(UnitType(self.__read_numeric("uint32")))
-        axis_name = self._convert_signal_axis_name(type, unit)
+        if type != "Spectral":
+            _logger.warning(
+                "Signal axis not classified as spectral. File may be invalid"
+            )
+        unit_type = UnitType(self.__read_numeric("uint32"))
+        unit = str(unit_type)
+        axis_name = self._convert_signal_axis_name(unit_type)
         data = self.__read_numeric("float", size=size)
         return axis_name, unit, data
 
     @staticmethod
-    def _convert_signal_axis_name(type, unit):
-        if type == "Spectral":
-            if unit == "1/cm":
-                type = "Wavenumber"
-            elif unit in ["nm", "µm", "m", "mm"]:
-                type = "Wavelength"
-        return type
+    def _convert_signal_axis_name(unit_type):
+        if unit_type == UnitType.raman_shift:
+            name = "Raman Shift"
+        elif unit_type == UnitType.wavelength:
+            name = "Wavenumber"
+        elif unit_type in [UnitType.nanometer, UnitType.micrometer]:
+            name = "Wavelength"
+        else:
+            _logger.warning("Cannot identify axis name.")
+            name = "Unknown"
+        return name
 
     def _parse_XLST(self):
         if not self._check_block_exists("XLST_0"):
@@ -995,6 +1021,7 @@ class WDFReader(object):
             result[ax_name] = axis_tmp
 
         # TODO: differentiate between more map_modes/flags
+        # add extra warning for untested flags
         if wmap_dict["flag"] == MapType.xyline:
             result = self._set_wmap_nav_linexy(result["X"], result["Y"])
         elif wmap_dict["flag"] not in MapType._value2member_map_:
@@ -1055,7 +1082,7 @@ class WDFReader(object):
             _logger.warning("Mapping expected, but no WMAP Block.")
             return False
         elif self._measurement_type == "Series" and no_orgn:
-            _logger.warning("Series expected, but no (X, Y, Z) data.")
+            _logger.warning("Series expected, but no (X, Y, Z, time) data.")
             return False
         elif self._measurement_type == "Single" and (not no_orgn or not no_wmap):
             _logger.warning("Spectrum expected, but extra axis present.")
@@ -1150,10 +1177,7 @@ class WDFReader(object):
         laser_original_md = self.original_metadata.get("WXCS_0", {}).get("Lasers")
         if laser_original_md is None:
             return None
-        if len(laser_original_md) != 1:
-            return laser
-        laser_wavenumber = next(iter(laser_original_md.values())).get("Wavenumber")
-        laser["wavelength"] = 1e7 / _convert_float(laser_wavenumber)
+        laser["wavelength"] = 1e7 / _get_key(laser_original_md, "Wavenumber")
         return laser
 
     def _map_spectrometer_md(self):
@@ -1161,13 +1185,9 @@ class WDFReader(object):
         gratings_original_md = self.original_metadata.get("WXCS_0", {}).get("Gratings")
         if gratings_original_md is None:
             return None
-        if len(gratings_original_md) != 1:
-            return spectrometer
-        skip_lvl_dict = next(iter(gratings_original_md.values()))
-        for v in skip_lvl_dict.values():
-            if isinstance(v, dict):
-                groove_density = v.get("Groove Density (lines/mm)")
-        spectrometer["Grating"]["groove_density"] = _convert_float(groove_density)
+        spectrometer["Grating"]["groove_density"] = _get_key(
+            gratings_original_md, "Groove Density (lines/mm)"
+        )
         return spectrometer
 
     def _map_detector_md(self):
@@ -1177,25 +1197,20 @@ class WDFReader(object):
         if ccd_original_metadata is None:
             return None
         detector["model"] = ccd_original_metadata.get("CCD")
-        detector["temperature"] = _convert_float(
-            ccd_original_metadata.get("Target temperature")
-        )
-        # detector["frames"] = self.original_metadata.get("WDF1_1", {}).get(
-        #     "accumulations_per_spectrum"
-        # )
+        detector["temperature"] = ccd_original_metadata.get("Target temperature")
         wxdm_metadata = self.original_metadata.get("WXDM_0", {}).get("extra_matches")
         if wxdm_metadata is None:
             return detector
         processing = {}
-        detector["frames"] = get_key(wxdm_metadata, "Accumulations")
-        exposure_per_frame = get_key(wxdm_metadata, "Exposure Time")  # ms
+        detector["frames"] = _get_key(wxdm_metadata, "Accumulations")
+        exposure_per_frame = _get_key(wxdm_metadata, "Exposure Time")  # ms
         try:
             detector["integration_time"] = (
                 exposure_per_frame * detector["frames"] / 1000
             )  # s
         except TypeError:
             pass
-        processing["cosmic_ray_removal"] = get_key(
+        processing["cosmic_ray_removal"] = _get_key(
             wxdm_metadata, "Use Cosmic Ray Remove"
         )
         detector["processing"] = processing
@@ -1241,39 +1256,39 @@ class WDFReader(object):
         ## extract EXIF tags and store them in metadata
         if PIL_installed:
             pil_img = Image.open(img)
-            # missing header keys when Pillow >= 8.2.0 -> does not flatten IFD anymore
-            # see https://pillow.readthedocs.io/en/stable/releasenotes/8.2.0.html#image-getexif-exif-and-gps-ifd
-            # Use fall-back _getexif method instead
+            ## missing header keys when Pillow >= 8.2.0 -> does not flatten IFD anymore
+            ## see https://pillow.readthedocs.io/en/stable/releasenotes/8.2.0.html#image-getexif-exif-and-gps-ifd
+            ## Use fall-back _getexif method instead
             exif_header = dict(pil_img._getexif())
-            try:
-                w_px = exif_header[ExifTags.FocalPlaneXResolution]
-                h_px = exif_header[ExifTags.FocalPlaneYResolution]
-                x0_img_micro, y0_img_micro = exif_header[ExifTags.FocalPlaneXYOrigins]
-                img_dimension_unit = str(
-                    UnitType(exif_header[ExifTags.FocalPlaneResolutionUnit])
-                )
-                img_description = exif_header[ExifTags.ImageDescription]
-                make = exif_header[ExifTags.Make]
-                unknown = exif_header[ExifTags.Unknown]
-                fov_xy = exif_header[ExifTags.FieldOfViewXY]
-            except KeyError:
-                _logger.debug("Some keys in white light image header cannot be read!")
-            else:
-                whtl_metadata["FocalPlaneResolutionUnit"] = img_dimension_unit
-                whtl_metadata["FocalPlaneXResolution"] = w_px
-                whtl_metadata["FocalPlaneYResolution"] = h_px
-                whtl_metadata["FocalPlaneXOrigin"] = x0_img_micro
-                whtl_metadata["FocalPlaneYOrigin"] = y0_img_micro
-                whtl_metadata["ImageDescription"] = img_description
-                whtl_metadata["Make"] = make
-                whtl_metadata["Unknown"] = unknown
-                whtl_metadata["FieldOfViewXY"] = fov_xy
+            whtl_metadata["FocalPlaneResolutionUnit"] = str(
+                UnitType(exif_header.get(ExifTags.FocalPlaneResolutionUnit))
+            )
+            whtl_metadata["FocalPlaneXResolution"] = exif_header.get(
+                ExifTags.FocalPlaneXResolution
+            )
+            whtl_metadata["FocalPlaneYResolution"] = exif_header.get(
+                ExifTags.FocalPlaneYResolution
+            )
+            whtl_metadata["FocalPlaneXYOrigins"] = exif_header.get(
+                ExifTags.FocalPlaneXYOrigins
+            )
+            whtl_metadata["ImageDescription"] = exif_header.get(
+                ExifTags.ImageDescription
+            )
+            whtl_metadata["Make"] = exif_header.get(ExifTags.Make)
+            whtl_metadata["Unknown"] = exif_header.get(ExifTags.Unknown)
+            whtl_metadata["FieldOfViewXY"] = exif_header.get(ExifTags.FieldOfViewXY)
 
         self.original_metadata.update({"WHTL_0": whtl_metadata})
 
 
 def file_reader(
-    filename, lazy=False, use_uniform_signal_axis=True, debug=False, **kwds
+    filename,
+    lazy=False,
+    use_uniform_signal_axis=True,
+    debug=False,
+    load_unmatched_metadata=False,
+    **kwds,
 ):
     """Reads Renishaw's ``.wdf`` file.
 
@@ -1286,6 +1301,12 @@ def file_reader(
         If `True`, the ``scale`` attribute is calculated from the average delta
         along the signal axis and a warning is raised in case the delta varies
         by more than 1%%.
+    load_unmatched_metadata: bool, default=False
+        Some of the original_metadata cannot be matched (no key just value).
+        Part of this is a VB-Script used for data acquisition (~230kB),
+        which blows up the original_metadata size. If this option is set to
+        `True` this metadata will be included and can be accessed by
+        s.original_metadata.UNMATCHED, otherwise the UNMATCHED tag will not exist.
 
     %s
     """
@@ -1298,6 +1319,7 @@ def file_reader(
             filename=original_filename,
             use_uniform_signal_axis=use_uniform_signal_axis,
             debug=debug,
+            load_unmatched_metadata=load_unmatched_metadata,
         )
         wdf.read_file(filesize)
 

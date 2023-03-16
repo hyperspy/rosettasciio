@@ -1187,8 +1187,14 @@ class WDFReader(object):
         if wxdm_metadata is None:
             return detector
         processing = {}
-        detector["integration_time"] = get_key(wxdm_metadata, "Exposure Time") / 1000
         detector["frames"] = get_key(wxdm_metadata, "Accumulations")
+        exposure_per_frame = get_key(wxdm_metadata, "Exposure Time")  # ms
+        try:
+            detector["integration_time"] = (
+                exposure_per_frame * detector["frames"] / 1000
+            )  # s
+        except TypeError:
+            pass
         processing["cosmic_ray_removal"] = get_key(
             wxdm_metadata, "Use Cosmic Ray Remove"
         )

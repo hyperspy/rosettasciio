@@ -39,6 +39,9 @@ testfile_streamline = (testfile_dir / "renishaw_test_streamline.wdf").resolve()
 testfile_map_block = (testfile_dir / "renishaw_test_map2.wdf").resolve()
 testfile_timeseries = (testfile_dir / "renishaw_test_timeseries.wdf").resolve()
 testfile_focustrack = (testfile_dir / "renishaw_test_focustrack.wdf").resolve()
+testfile_acc1_exptime1 = (testfile_dir / "renishaw_test_exptime1_acc1.wdf").resolve()
+testfile_acc1_exptime10 = (testfile_dir / "renishaw_test_exptime10_acc1.wdf").resolve()
+testfile_acc2_exptime1 = (testfile_dir / "renishaw_test_exptime1_acc2.wdf").resolve()
 
 
 class TestSpec:
@@ -850,7 +853,7 @@ class TestSpec:
             == 1
         )
         np.testing.assert_allclose(
-            metadata["Acquisition_instrument"]["Detector"]["integration_time"], 180
+            metadata["Acquisition_instrument"]["Detector"]["integration_time"], 360
         )
         assert (
             metadata["Acquisition_instrument"]["Detector"]["model"]
@@ -1428,3 +1431,46 @@ class TestPSETMetadata:
         }
         np.testing.assert_allclose(data["TEST_0"].pop("array"), np.arange(1, 11, 1))
         assert expected_result == data
+
+
+class TestIntegrationtime:
+    @classmethod
+    def setup_class(cls):
+        cls.s_11 = hs.load(
+            testfile_acc1_exptime1,
+            reader="Renishaw",
+            use_uniform_signal_axis=False,
+        )
+        cls.s_21 = hs.load(
+            testfile_acc2_exptime1,
+            reader="Renishaw",
+            use_uniform_signal_axis=False,
+        )
+        cls.s_110 = hs.load(
+            testfile_acc1_exptime10,
+            reader="Renishaw",
+            use_uniform_signal_axis=False,
+        )
+
+    @classmethod
+    def teardown_class(cls):
+        del cls.s_11
+        del cls.s_21
+        del cls.s_110
+        gc.collect()
+
+    def test_frames(self):
+        assert self.s_11.metadata.Acquisition_instrument.Detector.frames == 1
+        assert self.s_110.metadata.Acquisition_instrument.Detector.frames == 1
+        assert self.s_21.metadata.Acquisition_instrument.Detector.frames == 2
+
+    def test_integration_time(self):
+        np.testing.assert_allclose(
+            self.s_11.metadata.Acquisition_instrument.Detector.integration_time, 1
+        )
+        np.testing.assert_allclose(
+            self.s_110.metadata.Acquisition_instrument.Detector.integration_time, 10
+        )
+        np.testing.assert_allclose(
+            self.s_21.metadata.Acquisition_instrument.Detector.integration_time, 2
+        )

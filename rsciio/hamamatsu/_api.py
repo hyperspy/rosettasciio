@@ -238,10 +238,14 @@ class IMGReader:
 
         self.original_metadata = {}
         self._h_lines = None
+        self._reverse_signal = False
 
         self.data, comment = self.parse_file()
-        self._map_comment(comment)
-        self.axes = self._read_calibration()
+
+        processed_comment = self._process_comment(comment)
+        self.original_metadata.update({"Comment": processed_comment})
+
+        self.axes = self._get_axes()
         self._reshape_data()
         self.metadata = self.map_metadata()
 
@@ -300,7 +304,7 @@ class IMGReader:
         elif file_type == "bit32":
             dtype = "uint32"
         else:
-            raise NotImplementedError(f"reading dtype: {dtype} not implemented")
+            raise NotImplementedError(f"reading type: {file_type} not implemented")
         data = self.__read_numeric(dtype, size=w_px * self._h_lines)
         _logger.debug(f"file read until: {self._file_obj.tell()}")
         _logger.debug(f"total file_size: {self._filesize}")
@@ -320,9 +324,10 @@ class IMGReader:
             self._file_obj.seek(pos)
             return self.__read_numeric("float", size=size)
         else:
+            _logger.warning(f"Cannot read axis data (invalid start for address {cal})")
             return None
 
-    def _set_axis(self, name, scale_type, unit, cal_addr, scale_val):
+    def _set_axis(self, name, scale_type, unit, cal_addr):
         axis = {"units": unit, "name": name, "navigate": False}
         if scale_type == 1:
             ## in this mode (focus mode) the y-axis does not correspond to time
@@ -339,8 +344,7 @@ class IMGReader:
             raise ValueError
         return axis
 
-    ## TODO: refactor into get_axes
-    def _read_calibration(self):
+    def _get_axes(self):
         scaling_md = self.original_metadata.get("Comment", {}).get("Scaling", {})
         x_cal_address, y_cal_address = self._get_scaling_entry(
             scaling_md, "ScalingFile"
@@ -348,16 +352,16 @@ class IMGReader:
         ## TODO: unit us == µs or ns?
         x_unit, y_unit = self._get_scaling_entry(scaling_md, "Unit")
         x_type, y_type = map(int, self._get_scaling_entry(scaling_md, "Type"))
-        x_scale, y_scale = map(float, self._get_scaling_entry(scaling_md, "Scale"))
-        x_axis = self._set_axis("Wavelength", x_type, x_unit, x_cal_address, x_scale)
-        y_axis = self._set_axis("Time", y_type, y_unit, y_cal_address, y_scale)
+        # x_scale, y_scale = map(float, self._get_scaling_entry(scaling_md, "Scale"))
+        x_axis = self._set_axis("Wavelength", x_type, x_unit, x_cal_address)
+        y_axis = self._set_axis("Time", y_type, y_unit, y_cal_address)
         _logger.debug(f"file read until: {self._file_obj.tell()}")
         y_axis["index_in_array"] = 0
         x_axis["index_in_array"] = 1
-        wavelength_axis = x_axis["axis"]
-        if wavelength_axis[0] > wavelength_axis[1]:
+        x_axis_data = x_axis["axis"]
+        if x_axis_data[0] > x_axis_data[1]:
             self._reverse_signal = True
-            x_axis["axis"] = np.ascontiguousarray(wavelength_axis[::-1])
+            x_axis["axis"] = np.ascontiguousarray(x_axis_data[::-1])
         else:
             self._reverse_signal = False
         axes_list = sorted([x_axis, y_axis], key=lambda item: item["index_in_array"])
@@ -376,8 +380,8 @@ class IMGReader:
             self.data = np.ascontiguousarray(self.data[:, ::-1])
 
     @staticmethod
-    def _split_header_from_comment(input):
-        initial_split = input.split("[")[1:]
+    def _split_sections_from_comment(input):
+        initial_split = input[1:].split("[")  # ignore opening bracket at start
         result = {}
         for entry in initial_split:
             sep_idx = entry.index("]")
@@ -401,32 +405,31 @@ class IMGReader:
             total_end = end_val + 1
         return start_val, end_val, total_end
 
-    def _extract_entries_from_comment(self, v):
+    def _extract_entries_from_section(self, entries_str):
         result = {}
-        str_len = len(v)
+        str_len = len(entries_str)
         cur_pos = 0
-        count = 0
-        num_entries = v.count("=")
+        counter = 0
+        num_entries = entries_str.count("=")
         if num_entries == 0:
-            return v
+            return entries_str
         while cur_pos < str_len:
-            count += 1
-            sep = v.index("=", cur_pos)
-            key = v[cur_pos:sep]
+            counter += 1
+            sep_idx = entries_str.index("=", cur_pos)
+            key = entries_str[cur_pos:sep_idx]
             start_val, end_val, cur_pos = self._get_range_for_val(
-                v, sep, count, num_entries, str_len
+                entries_str, sep_idx, counter, num_entries, str_len
             )
-            val = v[start_val:end_val]
+            val = entries_str[start_val:end_val]
             result[key] = val
         return result
 
-    ## TODO: refactor comment extraction
-    def _map_comment(self, comment):
-        initial_split = self._split_header_from_comment(comment)
+    def _process_comment(self, comment):
+        section_split = self._split_sections_from_comment(comment)
         result = {}
-        for k, v in initial_split.items():
-            result[k] = self._extract_entries_from_comment(v)
-        self.original_metadata.update({"Comment": result})
+        for k, v in section_split.items():
+            result[k] = self._extract_entries_from_section(v)
+        return result
 
     def _map_general_md(self):
         general = {}

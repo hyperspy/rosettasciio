@@ -1,0 +1,16 @@
+.. _hamamatsu-format:
+
+Hamamatsu
+---------
+
+Reader for spectroscopy data saved from the HPD-TA
+(High Performance Digital Temporal Analyzer) from Hamamatsu.
+
+If `LumiSpy <https://lumispy.org>`_ is installed, ``Luminescence`` will be
+used as the ``signal_type``.
+
+API functions
+^^^^^^^^^^^^^
+
+.. automodule:: rsciio.hamamatsu
+   :members:

@@ -227,14 +227,14 @@ def get_chunk_index(
     """
     nav_shape = np.delete(np.array(shape), signal_axes)
     num_frames = np.prod(nav_shape)
-    indexes = da.arange(num_frames)
-    indexes = da.reshape(indexes, nav_shape)
+    indexes = np.arange(num_frames)
+    indexes = np.reshape(indexes, nav_shape)
     chunks = da.core.normalize_chunks(
         chunks=chunks, shape=shape, limit=block_size_limit, dtype=dtype
     )
 
     nav_chunks = tuple(np.delete(np.array(chunks, dtype=object), signal_axes))
-    indexes = da.rechunk(indexes, chunks=nav_chunks)
+    indexes = da.from_array(indexes, chunks=nav_chunks)
     return indexes
 
 

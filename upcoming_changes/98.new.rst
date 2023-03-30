@@ -1,0 +1,1 @@
+Added subclassing of .sur files in CL signal type and updated metadata parsing

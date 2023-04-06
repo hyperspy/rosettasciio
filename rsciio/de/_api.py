@@ -67,6 +67,9 @@ def file_reader(
     celeritas: bool
         If the data came from the celeritas camera.  Important for loading
         data saved with a prebuffer and split between top and bottom frames.
+    chunks: int, tuple, dict or str, optional
+            The new block dimensions to create. -1 indicates the full size of the
+            corresponding dimension. Default is “auto” which automatically determines chunk sizes.
     distributed: bool
         If the data should be loaded in a way that is supported by the
         distributed backend. Slightly slower for smaller datasets but could
@@ -322,6 +325,14 @@ class SeqReader:
         navigation_shape: None or tuple
             Reads the data and then coerces it into the navigation shape
             given
+        chunks: int, tuple, dict or str, optional
+            The new block dimensions to create. -1 indicates the full size of the
+            corresponding dimension. Default is “auto” which automatically determines chunk sizes.
+        distributed: bool
+            If the data should be loaded in a distributed compatible way.  In many cases this is
+            preferred if you have a specific target chunking style.
+        lazy: bool
+            Whether to open the file lazily or not
         """
         header = self._read_file_header()
         dark_img, gain_img = self._read_dark_gain()
@@ -677,7 +688,6 @@ def read_stitch_binary_distributed(
     dark=None,
     gain=None,
 ):
-
     indexes = get_chunk_index(
         shape=shape,
         signal_axes=(-1, -2),

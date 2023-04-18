@@ -1207,7 +1207,7 @@ class DigitalSurfHandler(object):
                             dict_ms[key_main][key] = li_value[0]  # we don't want to eval this one
                         else:
                             dict_ms[key_main][key] = eval(li_value[0])
-                    except KeyError:
+                    except Exception:
                         dict_ms[key_main][key] = li_value[0]
                     if len(li_value) > 1:
                         dict_ms[key_main][key + '_units'] = li_value[1]

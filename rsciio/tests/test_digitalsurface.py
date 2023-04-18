@@ -421,7 +421,7 @@ def test_choose_signal_type():
     assert not reader._choose_signal_type(mock_dict)
 
 def test_metadata_mapping():
-    fname = os.path.join(MY_PATH, "digitalsurf_data", "test_surface.sur")
+    fname = os.path.join(MY_PATH, "digitalsurf_data", "test_spectral_map_compressed.sur")
 
     #Initialize  reader
     reader = DigitalSurfHandler(fname)

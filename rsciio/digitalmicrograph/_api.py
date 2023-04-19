@@ -101,6 +101,10 @@ class DigitalMicrographReader(object):
             _logger.debug("Reading tag name at address: %s", self.f.tell())
             tag_header = self.parse_tag_header()
             tag_name = tag_header["tag_name"]
+            if "." in tag_name:
+                # remove '.' from tag_name to avoid conflict with flattened
+                # syntax of box.Box
+                tag_name = tag_name.replace(".", "")
 
             skip = True if (group_name == "ImageData" and tag_name == "Data") else False
             _logger.debug("Tag name: %s", tag_name[:20])

@@ -183,6 +183,11 @@ def test_read_EELS_metadata():
     np.testing.assert_allclose(
         md.Signal.Noise_properties.Variance_linear_model.gain_offset, 0.0
     )
+    # tag name is "align min. correlation coefficient"
+    assert (
+        s.original_metadata.ImageList.TagGroup0.ImageTags.EELS.Acquisition.Align_min_correlation_coefficient
+        == 0.5
+    )
 
 
 def test_read_SI_metadata():

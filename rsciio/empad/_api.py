@@ -59,7 +59,6 @@ def _parse_xml(filename):
         "width": 128,
         "height": 128,
         "raw_height": 130,
-        "record-by": "image",
     }
     if om.has_item("root.scan_parameters.series_count"):
         # Stack of images
@@ -113,7 +112,7 @@ def file_reader(filename, lazy=False, **kwds):
             "original_filename": fname,
             "title": os.path.splitext(fname)[0],
         },
-        "Signal": {"signal_type": "electron_diffraction", "record_by": "image"},
+        "Signal": {"signal_type": "electron_diffraction"},
     }
 
     if om.has_item("root.timestamp.isoformat"):
@@ -132,12 +131,14 @@ def file_reader(filename, lazy=False, **kwds):
     axes = []
     index_in_array = 0
     names = ["height", "width"]
+    navigate = [False, False]
 
     if "series_count" in info.keys():
         names = ["series_count"] + names
         units.insert(0, "ms")
         scales.insert(0, 1)
         origins.insert(0, 0)
+        navigate.insert(0, True)
     else:
         names = ["scan_x", "scan_y"] + names
         units.insert(0, "")
@@ -146,6 +147,8 @@ def file_reader(filename, lazy=False, **kwds):
         scales.insert(0, 1)
         origins.insert(0, 0)
         origins.insert(0, 0)
+        navigate.insert(0, True)
+        navigate.insert(0, True)
 
     sizes = [info[name] for name in names]
 
@@ -178,6 +181,7 @@ def file_reader(filename, lazy=False, **kwds):
                     "scale": scales[i],
                     "offset": origins[i] * scales[i],
                     "units": units[i],
+                    "navigate": navigate[i],
                 }
             )
             index_in_array += 1

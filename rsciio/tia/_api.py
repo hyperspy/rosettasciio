@@ -562,6 +562,7 @@ def ser_reader(filename, objects=None, lazy=False, only_valid_data=True):
                         "units": units,
                         "size": header["Dim-%i_DimensionSize" % idim][0],
                         "name": name,
+                        "navigate": True,
                     }
                 )
                 array_shape[i] = header["Dim-%i_DimensionSize" % idim][0]
@@ -589,6 +590,7 @@ def ser_reader(filename, objects=None, lazy=False, only_valid_data=True):
                 "scale": data["CalibrationDelta"][0],
                 "size": data["ArrayLength"][0],
                 "index_in_array": header["NumberDimensions"][0],
+                "navigate": False,
             }
         )
 
@@ -613,6 +615,7 @@ def ser_reader(filename, objects=None, lazy=False, only_valid_data=True):
                 "scale": data["CalibrationDeltaY"][0],
                 "units": units,
                 "size": data["ArraySizeY"][0],
+                "navigate": False,
             }
         )
         array_shape.append(data["ArraySizeY"][0])
@@ -625,6 +628,7 @@ def ser_reader(filename, objects=None, lazy=False, only_valid_data=True):
                 "scale": data["CalibrationDeltaX"][0],
                 "size": data["ArraySizeX"][0],
                 "units": units,
+                "navigate": False,
             }
         )
         array_shape.append(data["ArraySizeX"][0])
@@ -672,7 +676,6 @@ def ser_reader(filename, objects=None, lazy=False, only_valid_data=True):
         },
         "Signal": {
             "signal_type": "",
-            "record_by": record_by,
         },
     }
     if date is not None and time is not None:

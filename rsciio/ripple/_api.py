@@ -302,17 +302,17 @@ def file_reader(
 
     if rpl_info["record-by"] == "vector":
         _logger.info("Loading as Signal1D")
-        record_by = "spectrum"
+        navigate = [True, True, False]
     elif rpl_info["record-by"] == "image":
         _logger.info("Loading as Signal2D")
-        record_by = "image"
+        navigate = [True, False, False]
     else:
         if len(data.shape) == 1:
             _logger.info("Loading as Signal1D")
-            record_by = "spectrum"
+            navigate = [True, True, False]
         else:
             _logger.info("Loading as Signal2D")
-            record_by = "image"
+            navigate = [True, False, False]
 
     if rpl_info["record-by"] == "vector":
         idepth, iheight, iwidth = 2, 0, 1
@@ -390,7 +390,7 @@ def file_reader(
                 "time": rpl_info["time"],
                 "title": rpl_info["title"],
             },
-            "Signal": {"signal_type": rpl_info["signal"], "record_by": record_by},
+            "Signal": {"signal_type": rpl_info["signal"]},
         },
         box_dots=True,
     )
@@ -449,6 +449,7 @@ def file_reader(
                     "scale": scales[i],
                     "offset": origins[i],
                     "units": units[i],
+                    "navigate": navigate[i],
                 }
             )
             index_in_array += 1

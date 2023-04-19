@@ -198,6 +198,7 @@ def _read_img(filename, **kwargs):
             "offset": 0,
             "scale": yscale,
             "units": units,
+            "navigate": False,
         },
         {
             "name": "x",
@@ -205,6 +206,7 @@ def _read_img(filename, **kwargs):
             "offset": 0,
             "scale": xscale,
             "units": units,
+            "navigate": False,
         },
     ]
 
@@ -228,9 +230,7 @@ def _read_img(filename, **kwargs):
             "time": datefile.time().isoformat(),
             "title": header_long["Image"]["Title"],
         },
-        "Signal": {
-            "record_by": "image",
-        },
+        "Signal": {},
     }
 
     dictionary = {
@@ -494,6 +494,7 @@ def _read_pts(
                     "offset": 0,
                     "scale": pixel_time * height * width / 1e3,
                     "units": "s",
+                    "navigate": True,
                 }
             ]
             width = data.shape[2]
@@ -506,6 +507,7 @@ def _read_pts(
                     "offset": origin[1],
                     "scale": yscale,
                     "units": units,
+                    "navigate": False,
                 },
                 {
                     "name": "x",
@@ -513,10 +515,13 @@ def _read_pts(
                     "offset": origin[0],
                     "scale": xscale,
                     "units": units,
+                    "navigate": False,
                 },
             ]
         )
         axes = axes_em.copy()
+        for ax in axes:
+            ax["navigate"] = True
         axes.append(
             {
                 "name": "Energy",
@@ -524,6 +529,7 @@ def _read_pts(
                 "offset": energy_offset,
                 "scale": energy_scale,
                 "units": "keV",
+                "navigate": False,
             },
         )
         if (not last_valid) and only_valid_data:
@@ -561,7 +567,6 @@ def _read_pts(
                 "title": "EDS extracted from " + os.path.basename(filename),
             },
             "Signal": {
-                "record_by": "spectrum",
                 "quantity": "X-rays (Counts)",
                 "signal_type": "EDS_" + mode,
             },
@@ -579,9 +584,7 @@ def _read_pts(
                 "time": datefile.time().isoformat(),
                 "title": "S(T)EM Image extracted from " + os.path.basename(filename),
             },
-            "Signal": {
-                "record_by": "image",
-            },
+            "Signal": {},
         }
 
         image_list = [
@@ -1391,6 +1394,7 @@ def _read_eds(filename, **kwargs):
             "offset": header["CoefB"],
             "scale": header["CoefA"],
             "units": "keV",
+            "navigate": False,
         }
     ]
 
@@ -1416,7 +1420,6 @@ def _read_eds(filename, **kwargs):
             "title": "EDX",
         },
         "Signal": {
-            "record_by": "spectrum",
             "quantity": "X-rays (Counts)",
             "signal_type": "EDS_" + mode,
         },

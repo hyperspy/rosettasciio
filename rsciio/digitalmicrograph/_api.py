@@ -449,7 +449,6 @@ class ImageObject(object):
         self.imdict = Box(imdict, box_dots=True)
         self.file = file
         self._order = order if order else "C"
-        self._record_by = None
 
     @property
     def shape(self):
@@ -521,11 +520,10 @@ class ImageObject(object):
         return title if title else ""
 
     @property
-    def record_by(self):
-        if self._record_by is not None:
-            return self._record_by
+    def navigate(self):
+        result = [True] * len(self.shape)
         if len(self.scales) == 1:
-            return "spectrum"
+            result[-1] = False
         elif (
             (
                 self.imdict.get("ImageTags.Meta Data.Format") is not None
@@ -534,9 +532,10 @@ class ImageObject(object):
             )
             or (self.imdict.get("ImageTags.spim") is not None)
         ) and len(self.scales) == 2:
-            return "spectrum"
+            result[-1] = False
         else:
-            return "image"
+            result[-2:] = (False, False)
+        return result
 
     @property
     def to_spectrum(self):
@@ -733,9 +732,17 @@ class ImageObject(object):
                 "scale": scale,
                 "offset": offset,
                 "units": str(units),
+                "navigate": nav,
             }
-            for i, (name, size, scale, offset, units) in enumerate(
-                zip(self.names, self.shape, self.scales, self.offsets, self.units)
+            for i, (name, size, scale, offset, units, nav) in enumerate(
+                zip(
+                    self.names,
+                    self.shape,
+                    self.scales,
+                    self.offsets,
+                    self.units,
+                    self.navigate,
+                )
             )
         ]
 
@@ -747,7 +754,6 @@ class ImageObject(object):
         if "Signal" not in metadata:
             metadata["Signal"] = {}
         metadata["General"]["title"] = self.title
-        metadata["Signal"]["record_by"] = self.record_by
         metadata["Signal"]["signal_type"] = self.signal_type
         return metadata
 

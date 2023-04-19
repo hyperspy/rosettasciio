@@ -284,11 +284,11 @@ def parse_msa_string(string, filename=None):
             "scale": parameters["XPERCHAN"] if "XPERCHAN" in parameters else 1,
             "offset": parameters["OFFSET"] if "OFFSET" in parameters else 0,
             "units": parameters["XUNITS"] if "XUNITS" in parameters else "",
+            "navigate": False,
         }
     ]
     if filename is not None:
         mapped.set_item("General.original_filename", os.path.split(filename)[1])
-    mapped.set_item("Signal.record_by", "spectrum")
     if "SIGNALTYPE" in parameters and parameters["SIGNALTYPE"]:
         if parameters["SIGNALTYPE"] == "ELS":
             mapped.set_item("Signal.signal_type", "EELS")

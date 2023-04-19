@@ -234,6 +234,9 @@ def _build_axes_dictionaries(shape, names=None, scales=None, offsets=None, units
     if units is None:
         scales = [None] * len(shape)
 
+    navigate = [True] * len(shape)
+    navigate[-2:] = (False, False)
+
     axes = [
         {
             "size": size,
@@ -241,8 +244,11 @@ def _build_axes_dictionaries(shape, names=None, scales=None, offsets=None, units
             "scale": scale,
             "offset": offset,
             "units": unit,
+            "navigate": nav,
         }
-        for size, name, scale, offset, unit in zip(shape, names, scales, offsets, units)
+        for size, name, scale, offset, unit, nav in zip(
+            shape, names, scales, offsets, units, navigate
+        )
     ]
     return axes
 
@@ -293,7 +299,7 @@ def _read_tiff(
 
     md = {
         "General": {"original_filename": os.path.split(filename)[1]},
-        "Signal": {"signal_type": "", "record_by": "image"},
+        "Signal": {"signal_type": ""},
     }
 
     if "DateTime" in op:

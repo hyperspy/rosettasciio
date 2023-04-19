@@ -732,6 +732,7 @@ def spc_reader(filename, lazy=False, endianess="<", load_all_spc=False, **kwargs
         "scale": original_metadata["spc_header"]["evPerChan"] / 1000.0,
         "offset": original_metadata["spc_header"]["startEnergy"],
         "units": "keV",
+        "navigate": False,
     }
 
     # Assign metadata for spectrum:
@@ -742,7 +743,6 @@ def spc_reader(filename, lazy=False, endianess="<", load_all_spc=False, **kwargs
         },
         "Signal": {
             "signal_type": "EDS_SEM",
-            "record_by": "spectrum",
         },
     }
     metadata = _add_spc_metadata(metadata, spc_dict)
@@ -897,6 +897,7 @@ def spd_reader(
         else 1,
         "offset": original_metadata["spc_header"]["startEnergy"] if read_spc else 1,
         "units": "keV" if read_spc else None,
+        "navigate": False,
     }
 
     nav_units = "µm"
@@ -908,6 +909,7 @@ def spd_reader(
         "scale": original_metadata["ipr_header"]["mppX"] if read_ipr else 1,
         "offset": 0,
         "units": nav_units if read_ipr else None,
+        "navigate": True,
     }
 
     y_axis = {
@@ -917,6 +919,7 @@ def spd_reader(
         "scale": original_metadata["ipr_header"]["mppY"] if read_ipr else 1,
         "offset": 0,
         "units": nav_units if read_ipr else None,
+        "navigate": True,
     }
 
     # Assign metadata for spectrum image:
@@ -927,7 +930,6 @@ def spd_reader(
         },
         "Signal": {
             "signal_type": "EDS_SEM",
-            "record_by": "spectrum",
         },
     }
 

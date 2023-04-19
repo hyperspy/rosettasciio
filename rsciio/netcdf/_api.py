@@ -173,6 +173,7 @@ def nc_hyperspy_reader_0dot1(ncfile, filename, *args, **kwds):
         scaleskeys = ["zscale", "yscale", "xscale"]
         originskeys = ["zorigin", "yorigin", "xorigin"]
         unitskeys = ["zunits", "yunits", "xunits"]
+        navigate = [True, False, False]
 
     elif record_by == "spectrum":
         dim = len(data.shape)
@@ -180,6 +181,7 @@ def nc_hyperspy_reader_0dot1(ncfile, filename, *args, **kwds):
         scaleskeys = ["yscale", "xscale", "energyscale"]
         originskeys = ["yorigin", "xorigin", "energyorigin"]
         unitskeys = ["yunits", "xunits", "energyunits"]
+        navigate = [True, True, False]
 
     # The images are recorded in the Fortran order
     data = data.T.copy()
@@ -203,12 +205,12 @@ def nc_hyperspy_reader_0dot1(ncfile, filename, *args, **kwds):
             "scale": scales[i],
             "offset": origins[i],
             "units": units[i],
+            "navigate": navigate[i],
         }
         for i in range(dim)
     ]
     metadata = {"General": {}, "Signal": {}}
     metadata["General"]["original_filename"] = os.path.split(filename)[1]
-    metadata["Signal"]["record_by"] = record_by
     metadata["General"]["signal_type"] = ""
     dictionary = {
         "data": data,

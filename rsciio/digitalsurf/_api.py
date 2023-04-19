@@ -912,7 +912,7 @@ class DigitalSurfHandler(object):
                 unpacked_dict['_44_Month'],
                 unpacked_dict['_43_Day']]
         if not all(v == 0 for v in date):
-            date_str = "{:4d}-{:2d}-{:2d}".format(date[0], date[1], date[2])
+            date_str = "{:4d}-{:02d}-{:02d}".format(date[0], date[1], date[2])
         else:
             date_str = ""
 
@@ -921,7 +921,7 @@ class DigitalSurfHandler(object):
                 unpacked_dict['_40_Seconds']]
 
         if not all(v == 0 for v in time):
-            time_str = "{:d}:{:d}:{:d}".format(time[0], time[1], time[2])
+            time_str = "{:02d}:{:02d}:{:02d}".format(time[0], time[1], time[2])
         else:
             time_str = ""
 
@@ -988,7 +988,7 @@ class DigitalSurfHandler(object):
         # get nested dictionaries in an error-handling way
         atto_omd = atto_omd.get('Object_0_Channel_0', {})
         atto_omd = atto_omd.get('Parsed', {})
-        if atto_omd is None:
+        if not atto_omd:
             return {}
         else:
             sem = atto_omd.get('SEM', {})
@@ -1026,7 +1026,7 @@ class DigitalSurfHandler(object):
         # get nested dictionaries in an error-handling way
         atto_omd = atto_omd.get('Object_0_Channel_0', {})
         atto_omd = atto_omd.get('Parsed', {})
-        if atto_omd is None:
+        if not atto_omd:
             return {}
         else:
             spectrometer = atto_omd.get('SPECTROMETER', {})
@@ -1061,7 +1061,7 @@ class DigitalSurfHandler(object):
         # get nested dictionaries in an error-handling way
         atto_omd = atto_omd.get('Object_0_Channel_0', {})
         atto_omd = atto_omd.get('Parsed', {})
-        if atto_omd is None:
+        if not atto_omd:
             return {}
         else:
             ccd = atto_omd.get('CCD', {})

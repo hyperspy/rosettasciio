@@ -21,7 +21,7 @@ import os
 import numpy as np
 import pytest
 
-from rsciio.digitalsurf._api import DigitalSurfHandler
+from rsciio.digitalsurf._api import DigitalSurfHandler, MountainsMapFileError
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -140,6 +140,35 @@ atto_scan_keys = [
     "Rotate_units",
 ]
 
+
+def test_invalid_data():
+    dsh = DigitalSurfHandler()
+
+    with pytest.raises(MountainsMapFileError):
+        dsh._Object_type = 'INVALID'
+        dsh._build_sur_dict()
+
+    dsh._list_sur_file_content = [{'img1': None}, {'img2': None}]
+
+    with pytest.raises(MountainsMapFileError):
+        dsh._build_hyperspectral_map()
+
+    with pytest.raises(MountainsMapFileError):
+        dsh._build_general_1D_data()
+
+    with pytest.raises(MountainsMapFileError):
+        dsh._build_surface()
+
+    dsh.signal_dict = {}
+    dsh.signal_dict['original_metadata'] = {}
+    res = dsh._map_SEM_metadata()
+    assert res == {}
+
+    res = dsh._map_Spectrometer_metadata()
+    assert res == {}
+
+    res = dsh._map_spectral_detector_metadata()
+    assert res == {}
 
 def test_load_profile():
     # Signal loading
@@ -420,6 +449,7 @@ def test_choose_signal_type():
     mock_dict = {'_26_Name_of_Z_Axis': "Hairy Monster"}
     assert not reader._choose_signal_type(mock_dict)
 
+
 def test_metadata_mapping():
     fname = os.path.join(MY_PATH, "digitalsurf_data", "test_spectral_map_compressed.sur")
 
@@ -436,6 +466,20 @@ def test_metadata_mapping():
     assert "General" in generic_metadata
     assert "Signal" in generic_metadata
     assert "Acquisition Instrument" not in generic_metadata
+
+    #Assert correct parsing from date
+    dict_from_sur_object['_45_Year'] = 1993
+    dict_from_sur_object['_44_Month'] = 5
+    dict_from_sur_object['_43_Day'] = 27
+
+    #Assert correct parsing from time
+    dict_from_sur_object['_42_Hours'] = 8
+    dict_from_sur_object['_41_Minutes'] = 45
+    dict_from_sur_object['_40_Seconds'] = 27
+
+    generic_metadata = reader._build_generic_metadata(dict_from_sur_object)
+    assert generic_metadata['General']['date'] == "1993-05-27"
+    assert generic_metadata['General']['time'] == "08:45:27"
 
     #Fake a generic signal
     dict_from_sur_object['_26_Name_of_Z_Axis'] = 'NothingSpecial1D'

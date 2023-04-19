@@ -1,0 +1,1 @@
+Fix exporting scalebar with reciprocal units containing space

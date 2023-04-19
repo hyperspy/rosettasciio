@@ -179,8 +179,13 @@ def file_writer(
             if units is None:
                 units = "px"
                 scalebar_kwds["dimension"] = "pixel-length"
-            if _UREG.Quantity(units).check("1/[length]"):
-                scalebar_kwds["dimension"] = "si-length-reciprocal"
+            else:
+                units = _UREG.Quantity(units)
+                if units.check("1/[length]"):
+                    scalebar_kwds["dimension"] = "si-length-reciprocal"
+                # Standard formatting of units to avoid issue with
+                # matplotlib-scalebar
+                units = f"{units.units:~C}"
 
             ax.add_artist(ScaleBar(axis["scale"], units, **scalebar_kwds))
 

@@ -350,7 +350,7 @@ def _read_tiff(
         )
 
     metadata_mapping = get_metadata_mapping(page, op)
-    if "SightX_Notes" in op:   # TODO: Why is this here?
+    if "SightX_Notes" in op:  # TODO move to get_jeol_sightx_mapping
         md["General"]["title"] = op["SightX_Notes"]
     return {
         "data": dc,
@@ -361,7 +361,7 @@ def _read_tiff(
     }
 
 
-def _load_data(handle, is_rgb, sl=None, memmap=None, **kwds):
+def _load_data(handle, is_rgb, memmap=None, **kwds):
     dc = handle.asarray(out=memmap)
     _logger.debug("data shape: {0}".format(dc.shape))
     if is_rgb:
@@ -369,8 +369,6 @@ def _load_data(handle, is_rgb, sl=None, memmap=None, **kwds):
 
         dc = rgb_tools.regular_array2rgbx(dc)
 
-    if sl is not None:  # TODO: What is sl; it is not covered.
-        dc = dc[tuple(sl)]
     return dc
 
 

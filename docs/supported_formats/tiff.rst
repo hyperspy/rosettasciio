@@ -23,6 +23,11 @@ RosettaSciIO can also import the scale and the units from ``.tiff`` files saved 
 FEI, Zeiss SEM, Olympus SIS, Jeol SightX and Hamamatsu HPD-TA (streak camera)
 software.
 
+Multipage tiff files are read using either series or pages interface built in tifffile,
+`series` (default) returns multipage series of images as single array with single metadata
+and original metadata structures. Using ``multipage_to_list=True`` will use ``pages``
+interface and will return a list of arrays and metadata per every page.
+
 API functions
 ^^^^^^^^^^^^^
 

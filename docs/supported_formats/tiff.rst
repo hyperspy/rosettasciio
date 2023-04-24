@@ -24,9 +24,10 @@ FEI, Zeiss SEM, Olympus SIS, Jeol SightX and Hamamatsu HPD-TA (streak camera)
 software.
 
 Multipage tiff files are read using either series or pages interface built in tifffile,
-`series` (default) returns multipage series of images as single array with single metadata
-and original metadata structures. Using ``multipage_to_list=True`` will use ``pages``
-interface and will return a list of arrays and metadata per every page.
+``series`` interface (default) returns multipage series of images as a single array
+with single metadata and original metadata structure of first page.
+Using ``multipage_to_list=True`` will use ``pages`` interface and will return a list
+of separate arrays and metadata per every page.
 
 API functions
 ^^^^^^^^^^^^^

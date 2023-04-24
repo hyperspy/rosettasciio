@@ -1,0 +1,1 @@
+Migrate to API v3 of ``imageio.v3``

@@ -129,7 +129,8 @@ def file_writer(filename, signal, export_scale=True, extratags=[], **kwds):
 file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
 
 
-def file_reader(filename, lazy=False, force_read_resolution=False, **kwds):
+def file_reader(filename, lazy=False, force_read_resolution=False,
+                multipage_as_list=False, **kwds):
     """
     Read data from tif files using Christoph Gohlke's tifffile library.
     The units and the scale of images saved with ImageJ or Digital

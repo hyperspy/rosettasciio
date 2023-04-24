@@ -155,7 +155,7 @@ install_requires = [
     "dask[array]>=2.11",
     "python-dateutil",
     "h5py>=2.3",
-    "imageio",
+    "imageio>=2.16",
     "numba>=0.52",
     "numpy>=1.17.1",
     "pint>=0.8",

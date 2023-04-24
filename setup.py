@@ -157,7 +157,7 @@ install_requires = [
     "h5py>=2.3",
     "imageio>=2.16",
     "numba>=0.52",
-    "numpy>=1.17.1",
+    "numpy>=1.20.0",
     "pint>=0.8",
     "python-box>=6,<7",
     "pyyaml",

@@ -26,7 +26,7 @@ import re
 import warnings
 
 import numpy as np
-from tifffile import imwrite, TiffFile, TIFF
+from tifffile import imwrite, TiffFile, TiffPage, TIFF
 from tifffile import __version__ as tiffversion
 
 from rsciio.docstrings import (
@@ -145,6 +145,13 @@ def file_reader(filename, lazy=False, force_read_resolution=False, **kwds):
         and ``resolution_unit`` tiff tags. Beware: most software don't (properly)
         use these tags when saving ``.tiff`` files.
         See `<https://www.awaresystems.be/imaging/tiff/tifftags/resolutionunit.html>`_.
+    multipage_as_list: bool, Default=False
+        Read multipage tiff and return list with full content of every page. This
+        utilises ``tifffile``s ``pages`` instead of ``series`` way of data access,
+        which differently to ``series`` is able to return metadata per page,
+        where ``series`` (default) is able to access only metadata from first page.
+        This is recommended to be used when data is from dynamic experiments (where
+        some of parameters of instrument are changing during acquisition).
     hamamatsu_streak_axis_type: str, optional
         Decide the type of the time axis for hamamatsu streak files:
 
@@ -178,9 +185,13 @@ def file_reader(filename, lazy=False, force_read_resolution=False, **kwds):
     with TiffFile(filename, **kwds) as tiff:
         if tmp is not None:
             kwds.update({"hamamatsu_streak_axis_type": tmp})
+        if multipage_as_list:
+            handles = tiff.pages  # use full access with pages interface
+        else:
+            handles = tiff.series # use fast access with series interface
         dict_list = [
-            _read_serie(tiff, serie, filename, force_read_resolution, lazy=lazy, **kwds)
-            for serie in tiff.series
+            _read_tiff(tiff, handle, filename, force_read_resolution, lazy=lazy, **kwds)
+            for handle in handles
         ]
 
     return dict_list
@@ -234,9 +245,9 @@ def _build_axes_dictionaries(shape, names=None, scales=None, offsets=None, units
     return axes
 
 
-def _read_serie(
+def _read_tiff(
     tiff,
-    serie,
+    handle,
     filename,
     force_read_resolution=False,
     lazy=False,
@@ -244,15 +255,15 @@ def _read_serie(
     RGB_as_structured_array=True,
     **kwds,
 ):
-    axes = serie.axes
-    page = serie.pages[0]
-    if hasattr(serie, "shape"):
-        shape = serie.shape
-        dtype = serie.dtype
+    """handle - one of either of TiffPage type or TiffPageSeries type"""
+    axes = handle.axes
+    if isinstance(handle, TiffPage):
+        page = handle
     else:
-        shape = serie["shape"]
-        dtype = serie["dtype"]
-
+        page = handle.pages[0]
+    shape = handle.shape
+    dtype = handle.dtype
+    
     is_rgb = page.photometric == TIFF.PHOTOMETRIC.RGB and RGB_as_structured_array
     _logger.debug("Is RGB: %s" % is_rgb)
     if is_rgb:
@@ -262,11 +273,8 @@ def _read_serie(
         dtype = np.dtype({"names": names[:lastshape], "formats": [dtype] * lastshape})
         shape = shape[:-1]
 
-    if Version(tiffversion) >= Version("2020.2.16"):
-        op = {tag.name: tag.value for tag in page.tags}
-    else:
-        op = {key: tag.value for key, tag in page.tags.items()}
-
+    op = {tag.name: tag.value for tag in page.tags}
+    
     names = [axes_label_codes[axis] for axis in axes]
 
     _logger.debug("Tiff tags list: %s" % op)
@@ -323,7 +331,7 @@ def _read_serie(
         }
         md["Signal"]["Noise_properties"] = {"Variance_linear_model": dic}
 
-    data_args = serie, is_rgb
+    data_args = handle, is_rgb
     if lazy:
         from dask import delayed
         from dask.array import from_delayed
@@ -341,7 +349,7 @@ def _read_serie(
         )
 
     metadata_mapping = get_metadata_mapping(page, op)
-    if "SightX_Notes" in op:
+    if "SightX_Notes" in op:   # TODO: Why is this here?
         md["General"]["title"] = op["SightX_Notes"]
     return {
         "data": dc,
@@ -352,15 +360,15 @@ def _read_serie(
     }
 
 
-def _load_data(serie, is_rgb, sl=None, memmap=None, **kwds):
-    dc = serie.asarray(out=memmap)
+def _load_data(handle, is_rgb, sl=None, memmap=None, **kwds):
+    dc = handle.asarray(out=memmap)
     _logger.debug("data shape: {0}".format(dc.shape))
     if is_rgb:
         from rsciio.utils import rgb_tools
 
         dc = rgb_tools.regular_array2rgbx(dc)
 
-    if sl is not None:
+    if sl is not None:  # TODO: What is sl; it is not covered.
         dc = dc[tuple(sl)]
     return dc
 

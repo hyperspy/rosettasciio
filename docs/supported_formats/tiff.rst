@@ -27,7 +27,7 @@ Multipage tiff files are read using either series or pages interface built in ti
 ``series`` interface (default) returns multipage series of images as a single array
 with single metadata and original metadata structure of first page.
 Using ``multipage_to_list=True`` will use ``pages`` interface and will return a list
-of separate arrays and metadata per every page.
+of separate arrays and metadata per page.
 
 API functions
 ^^^^^^^^^^^^^

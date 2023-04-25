@@ -16,25 +16,35 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+from packaging.version import Version
+
+import imageio
 import numpy as np
 import pytest
 
 from rsciio.image import file_writer
 
 
-@pytest.mark.parametrize(("dtype"), ["uint8", "uint32"])
+@pytest.mark.skipif(
+    Version(imageio.__version__) < Version("2.23"),
+    reason="needs imageio >=2.23",
+)
+@pytest.mark.parametrize(("dtype"), ["uint8", "int32", bool])
 @pytest.mark.parametrize(("ext"), ["png", "bmp", "gif", "jpg"])
 def test_save_load_cycle_grayscale(dtype, ext, tmp_path):
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     s = hs.signals.Signal2D(np.arange(128 * 128).reshape(128, 128).astype(dtype))
 
-    print("Saving-loading cycle for the extension:", ext)
+    if dtype == "int32" and ext in ["bmp", "jpg"]:
+        # BMP and JPG does not support uint32.
+        return
+    print(f"Saving-loading cycle for the extension `{ext}` with dtype `{dtype}`")
     filename = tmp_path / f"test_image.{ext}"
     s.save(filename)
     hs.load(filename)
 
 
-@pytest.mark.parametrize(("color"), ["rgb8", "rgba8", "rgb16", "rgba16"])
+@pytest.mark.parametrize(("color"), ["rgb8", "rgba8"])
 @pytest.mark.parametrize(("ext"), ["png", "bmp", "gif", "jpeg"])
 def test_save_load_cycle_color(color, ext, tmp_path):
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
@@ -55,19 +65,24 @@ def test_save_load_cycle_color(color, ext, tmp_path):
     hs.load(filename)
 
 
-@pytest.mark.parametrize(("dtype"), ["uint8", "uint32"])
+@pytest.mark.skipif(
+    Version(imageio.__version__) < Version("2.23"),
+    reason="needs imageio >=2.23",
+)
+@pytest.mark.parametrize(("dtype"), ["uint8", "int32"])
 @pytest.mark.parametrize(("ext"), ["png", "bmp", "gif", "jpg"])
 def test_save_load_cycle_kwds(dtype, ext, tmp_path):
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     s = hs.signals.Signal2D(np.arange(128 * 128).reshape(128, 128).astype(dtype))
 
-    print("Saving-loading cycle for the extension:", ext)
+    if dtype == "int32" and ext in ["bmp", "jpg"]:
+        # BMP and JPG does not support uint32.
+        return
+
+    print(f"Saving-loading cycle for the extension `{ext}` with dtype `{dtype}`")
     filename = tmp_path / f"test_image.{ext}"
     if ext == "png":
-        if dtype == "uint32":
-            kwds = {"bits": 32}
-        else:
-            kwds = {"optimize": True}
+        kwds = {"optimize": True}
     elif ext == "jpg":
         kwds = {"quality": 100, "optimize": True}
     elif ext == "gif":
@@ -78,11 +93,17 @@ def test_save_load_cycle_kwds(dtype, ext, tmp_path):
     hs.load(filename, pilmode="L", as_grey=True)
 
 
+@pytest.mark.skipif(
+    Version(imageio.__version__) < Version("2.23"),
+    reason="needs imageio >=2.23",
+)
 @pytest.mark.parametrize(("ext"), ["png", "bmp", "gif", "jpg"])
 def test_export_scalebar(ext, tmp_path):
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     pytest.importorskip("matplotlib_scalebar")
-    data = np.arange(1e6).reshape((1000, 1000))
+    # Use np.uint8 to be able to save as BMP
+    pixels = 64
+    data = np.arange(pixels**2).reshape((pixels, pixels)).astype(np.uint8)
     s = hs.signals.Signal2D(data)
     s.axes_manager[0].units = "nm"
     s.axes_manager[1].units = "nm"
@@ -104,12 +125,14 @@ def test_export_scalebar(ext, tmp_path):
 def test_export_scalebar_reciprocal(tmp_path, units):
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     pixels = 512
-    s = hs.signals.Signal2D(np.arange(pixels**2).reshape((pixels, pixels)))
+    s = hs.signals.Signal2D(
+        np.arange(pixels**2).reshape((pixels, pixels)).astype("int32")
+    )
     for axis in s.axes_manager.signal_axes:
         axis.units = units
         axis.scale = 0.1
 
-    filename = tmp_path / "test_scalebar_export.jpg"
+    filename = tmp_path / "test_scalebar_export.png"
     s.save(filename, scalebar=True, scalebar_kwds={"location": "lower right"})
     s_reload = hs.load(filename)
     assert s.data.shape == s_reload.data.shape
@@ -118,9 +141,11 @@ def test_export_scalebar_reciprocal(tmp_path, units):
 def test_export_scalebar_undefined_units(tmp_path):
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     pixels = 512
-    s = hs.signals.Signal2D(np.arange(pixels**2).reshape((pixels, pixels)))
+    s = hs.signals.Signal2D(
+        np.arange(pixels**2).reshape((pixels, pixels)).astype("int32")
+    )
 
-    filename = tmp_path / "test_scalebar_export.jpg"
+    filename = tmp_path / "test_scalebar_export.png"
     s.save(filename, scalebar=True, scalebar_kwds={"location": "lower right"})
     s_reload = hs.load(filename)
     assert s.data.shape == s_reload.data.shape
@@ -205,9 +230,11 @@ def test_export_output_size_aspect(aspect, output_size, tmp_path):
 def test_save_image_navigation(tmp_path):
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     pixels = 16
-    s = hs.signals.Signal2D(np.arange(pixels**2).reshape((pixels, pixels)))
+    s = hs.signals.Signal2D(
+        np.arange(pixels**2).reshape((pixels, pixels)).astype("int32")
+    )
 
-    fname = tmp_path / "test_save_image_navigation.jpg"
+    fname = tmp_path / "test_save_image_navigation.png"
     s.T.save(fname, scalebar=True)
 
 

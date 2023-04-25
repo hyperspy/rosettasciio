@@ -19,7 +19,7 @@ jobs:
           # test oldest supported version of main dependencies on python 3.6
           - os: ubuntu
             PYTHON_VERSION: '3.7'
-            DEPENDENCIES: matplotlib==3.1.3 numpy==1.17.1 scipy==1.1 imagecodecs==2020.1.31 tifffile==2020.2.16 dask==2.11.0 distributed==2.11.0 numba==0.52
+            DEPENDENCIES: matplotlib==3.1.3 numpy==1.20.0 scipy==1.1 imagecodecs==2020.1.31 tifffile==2020.2.16 dask==2.11.0 distributed==2.11.0 numba==0.52 imageio==2.16 pillow==8.3.2
             LABEL: '-oldest'
           # test minimum requirement
           - os: ubuntu
@@ -60,6 +60,12 @@ jobs:
           python --version
           pip --version
 
+      - name: Install (HyperSpy dev)
+        if: "!contains(matrix.LABEL, 'wo-hyperspy')"
+        # Need to install hyperspy dev until hyperspy 2.0 is released
+        run: |
+          pip install https://github.com/hyperspy/hyperspy/archive/refs/heads/RELEASE_next_major.zip
+
       - name: Install oldest supported version
         if: contains(matrix.LABEL, 'oldest')
         run: |
@@ -69,12 +75,6 @@ jobs:
         shell: bash
         run: |
           pip install --upgrade -e .'${{ env.PIP_SELECTOR }}'
-
-      - name: Install (HyperSpy dev)
-        if: "!contains(matrix.LABEL, 'wo-hyperspy')"
-        # Need to install hyperspy dev until hyperspy 2.0 is released
-        run: |
-          pip install https://github.com/hyperspy/hyperspy/archive/refs/heads/RELEASE_next_major.zip
 
       - name: Pip list
         run: |

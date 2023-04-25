@@ -19,7 +19,8 @@
 import os
 import logging
 
-from imageio import imread, imwrite
+import imageio.v3 as iio
+import numpy as np
 
 from rsciio.docstrings import (
     FILENAME_DOC,
@@ -191,7 +192,7 @@ def file_writer(
 
         fig.savefig(filename, dpi=dpi, pil_kwargs=kwds)
     else:
-        imwrite(filename, data, **kwds)
+        iio.imwrite(filename, data, **kwds)
 
 
 file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
@@ -244,7 +245,7 @@ file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
 
 
 def _read_data(filename, **kwds):
-    dc = imread(filename)
+    dc = np.squeeze(iio.imread(filename))
     if len(dc.shape) > 2:
         # It may be a grayscale image that was saved in the RGB or RGBA
         # format

@@ -19,7 +19,8 @@ jobs:
           # test oldest supported version of main dependencies on python 3.8
           - os: ubuntu
             PYTHON_VERSION: '3.8'
-            DEPENDENCIES: matplotlib==3.1.3 numpy==1.20.0 scipy==1.1 imagecodecs==2020.1.31 tifffile==2020.2.16 dask==2.11.0 distributed==2.11.0 numba==0.52 imageio==2.16 pillow==8.3.2
+            # Set pillow and scikit-image version to be compatible imageio and scipy
+            DEPENDENCIES: matplotlib==3.1.3 numpy==1.20.0 scipy==1.4.0 imagecodecs==2020.1.31 tifffile==2020.2.16 dask==2.11.0 distributed==2.11.0 numba==0.52 imageio==2.16 pillow==8.3.2 scikit-image==0.18.0
             LABEL: '-oldest'
           # test minimum requirement
           - os: ubuntu
@@ -67,16 +68,16 @@ jobs:
         run: |
           pip install numba --pre
 
+      - name: Install oldest supported version
+        if: contains(matrix.LABEL, 'oldest')
+        run: |
+          pip install ${{ matrix.DEPENDENCIES }}
+
       - name: Install (HyperSpy dev)
         if: "!contains(matrix.LABEL, 'wo-hyperspy')"
         # Need to install hyperspy dev until hyperspy 2.0 is released
         run: |
           pip install https://github.com/hyperspy/hyperspy/archive/refs/heads/RELEASE_next_major.zip
-
-      - name: Install oldest supported version
-        if: contains(matrix.LABEL, 'oldest')
-        run: |
-          pip install ${{ matrix.DEPENDENCIES }}
 
       - name: Install
         shell: bash

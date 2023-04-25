@@ -1,9 +1,10 @@
 """skimage's `rescale_intensity` that takes and returns dask arrays.
 """
-
+from packaging.version import Version
 import warnings
 
 import numpy as np
+import skimage
 from skimage.exposure.exposure import intensity_range, _output_dtype
 
 
@@ -99,10 +100,13 @@ def rescale_intensity(image, in_range="image", out_range="dtype"):
     >>> rescale_intensity(image, out_range=(0, 127)).astype(np.int32)
     array([127, 127, 127], dtype=int32)
     """
+    args = ()
+    if Version(skimage.__version__) >= Version("0.19.0"):
+        args = (image.dtype,)
     if out_range in ["dtype", "image"]:
-        out_dtype = _output_dtype(image.dtype.type, image.dtype)
+        out_dtype = _output_dtype(image.dtype.type, *args)
     else:
-        out_dtype = _output_dtype(out_range, image.dtype)
+        out_dtype = _output_dtype(out_range, *args)
 
     imin, imax = map(float, intensity_range(image, in_range))
     omin, omax = map(

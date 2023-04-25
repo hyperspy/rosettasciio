@@ -1,1 +1,1 @@
-Remove record_by attribute from file readers where remaining
+Remove deprecated `record_by` attribute from file readers where remaining

@@ -153,7 +153,7 @@ def file_reader(
         which differently to ``series`` is able to return metadata per page,
         where ``series`` (default) is able to access only metadata from first page.
         This is recommended to be used when data is from dynamic experiments (where
-        some of parameters of instrument are changing during acquisition).
+        some of parameters of the instrument are changing during acquisition).
     hamamatsu_streak_axis_type: str, optional
         Decide the type of the time axis for hamamatsu streak files:
 

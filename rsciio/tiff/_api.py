@@ -129,8 +129,9 @@ def file_writer(filename, signal, export_scale=True, extratags=[], **kwds):
 file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
 
 
-def file_reader(filename, lazy=False, force_read_resolution=False,
-                multipage_as_list=False, **kwds):
+def file_reader(
+    filename, lazy=False, force_read_resolution=False, multipage_as_list=False, **kwds
+):
     """
     Read data from tif files using Christoph Gohlke's tifffile library.
     The units and the scale of images saved with ImageJ or Digital
@@ -189,7 +190,7 @@ def file_reader(filename, lazy=False, force_read_resolution=False,
         if multipage_as_list:
             handles = tiff.pages  # use full access with pages interface
         else:
-            handles = tiff.series # use fast access with series interface
+            handles = tiff.series  # use fast access with series interface
         dict_list = [
             _read_tiff(tiff, handle, filename, force_read_resolution, lazy=lazy, **kwds)
             for handle in handles
@@ -264,7 +265,7 @@ def _read_tiff(
         page = handle.pages[0]
     shape = handle.shape
     dtype = handle.dtype
-    
+
     is_rgb = page.photometric == TIFF.PHOTOMETRIC.RGB and RGB_as_structured_array
     _logger.debug("Is RGB: %s" % is_rgb)
     if is_rgb:
@@ -275,7 +276,7 @@ def _read_tiff(
         shape = shape[:-1]
 
     op = {tag.name: tag.value for tag in page.tags}
-    
+
     names = [axes_label_codes[axis] for axis in axes]
 
     _logger.debug("Tiff tags list: %s" % op)

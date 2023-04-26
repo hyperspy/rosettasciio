@@ -843,7 +843,7 @@ class WDFReader(object):
 
         self._file_obj.seek(pos)
         type = DataType(self.__read_numeric("uint32")).name
-        if type != "Spectral":
+        if type != "Spectral" and name.upper() == "X":
             _logger.warning(
                 "Signal axis not classified as spectral. File may be invalid"
             )

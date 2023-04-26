@@ -213,7 +213,11 @@ class WDFFileHandler:
     def read_file(self):
         with open(self.filepath, "rb") as file:
             wdf = WDFReader(
-                file, self.filepath.name, use_uniform_signal_axis=True, debug=False
+                file,
+                self.filepath.name,
+                use_uniform_signal_axis=True,
+                debug=False,
+                load_unmatched_metadata=False,
             )
             filesize = self.filepath.stat().st_size
             wdf._block_info = wdf.locate_all_blocks(filesize)

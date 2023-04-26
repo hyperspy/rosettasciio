@@ -164,7 +164,7 @@ class TestSpec:
         assert expected_metadata == original_metadata["WDF1_1"]
 
     def test_original_metadata_YLST(self):
-        expected_YLST = {"name": "Y", "units": "px", "size": 1, "data": 25.0}
+        expected_YLST = {"name": "Unknown", "units": "px", "size": 1, "data": 25.0}
         assert self.s.original_metadata.YLST_0.as_dictionary() == expected_YLST
 
     def test_original_metadata_WXIS(self):
@@ -1125,7 +1125,7 @@ class TestZscan:
         np.testing.assert_allclose(z_axis.pop("offset"), -10)
         assert z_axis == expected_axis
         assert axes_manager["axis-1"]["units"] == "1/cm"
-        assert axes_manager["axis-1"]["name"] == "Wavenumber"
+        assert axes_manager["axis-1"]["name"] == "Raman Shift"
 
     def test_data(self):
         np.testing.assert_allclose(self.s.inav[0].isig[:3].data, [0, 0, 0])

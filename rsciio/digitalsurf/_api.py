@@ -62,7 +62,7 @@ class DigitalSurfHandler(object):
     Attributes
     ----------
     filename, signal_dict, _work_dict, _list_sur_file_content, _Object_type,
-    _N_data_object, _N_data_channels, _initialized
+    _N_data_object, _N_data_channels,
 
     Methods
     -------
@@ -447,7 +447,7 @@ class DigitalSurfHandler(object):
         self._N_data_object = 1
         self._N_data_channels = 1
 
-    ### Read methods
+    # Read methods
     def _read_sur_file(self):
         """Read the binary, possibly compressed, content of the surface
         file. Surface files can be encoded as single or a succession
@@ -465,13 +465,13 @@ class DigitalSurfHandler(object):
 
             # Determine how many objects we need to read
             if self._N_data_channels > 0 and self._N_data_object > 0:
-                N_objects_to_read = self._N_data_channels * self._N_data_object
+                n_objects_to_read = self._N_data_channels * self._N_data_object
             elif self._N_data_channels > 0:
-                N_objects_to_read = self._N_data_channels
+                n_objects_to_read = self._N_data_channels
             elif self._N_data_object > 0:
-                N_objects_to_read = self._N_data_object
+                n_objects_to_read = self._N_data_object
             else:
-                N_objects_to_read = 1
+                n_objects_to_read = 1
 
             # Lookup what object type we are dealing with and save
             self._Object_type = DigitalSurfHandler._mountains_object_types[
@@ -479,9 +479,9 @@ class DigitalSurfHandler(object):
             ]
 
             # if more than 1
-            if N_objects_to_read > 1:
+            if n_objects_to_read > 1:
                 # continue reading until everything is done
-                for i in range(1, N_objects_to_read):
+                for i in range(1, n_objects_to_read):
                     # We read an object
                     self._read_single_sur_object(f)
                     # We append it to content list
@@ -499,7 +499,7 @@ class DigitalSurfHandler(object):
     def _get_work_dict_key_value(self, key):
         return self._work_dict[key]["value"]
 
-    ### Signal dictionary methods
+    # Signal dictionary methods
     def _build_sur_dict(self):
         """Create a signal dict with an unpacked object"""
 
@@ -508,10 +508,8 @@ class DigitalSurfHandler(object):
             "_HYPCARD",
         ]:
             self._build_hyperspectral_map()
-            # self._build_hyperspectral_signal_type()
         elif self._Object_type in ["_SPECTRUM"]:
             self._build_spectrum()
-            # self._build_spectrum_signal_type()
         elif self._Object_type in ["_PROFILE"]:
             self._build_general_1D_data()
         elif self._Object_type in ["_PROFILESERIE"]:
@@ -537,10 +535,11 @@ class DigitalSurfHandler(object):
 
         return self.signal_dict
 
-    def _build_Xax(self, unpacked_dict, ind=0, nav=False, binned=False):
+    @staticmethod
+    def _build_Xax(unpacked_dict, ind=0, nav=False, binned=False):
         """Return X axis dictionary from an unpacked dict. index int and navigate
         boolean can be optionally passed. Default 0 and False respectively."""
-        Xax = {
+        xax = {
             "name": unpacked_dict["_24_Name_of_X_Axis"],
             "size": unpacked_dict["_18_Number_of_Points"],
             "index_in_array": ind,
@@ -550,12 +549,13 @@ class DigitalSurfHandler(object):
             "navigate": nav,
             "is_binned": binned,
         }
-        return Xax
+        return xax
 
-    def _build_Yax(self, unpacked_dict, ind=1, nav=False, binned=False):
+    @staticmethod
+    def _build_Yax(unpacked_dict, ind=1, nav=False, binned=False):
         """Return X axis dictionary from an unpacked dict. index int and navigate
         boolean can be optionally passed. Default 1 and False respectively."""
-        Yax = {
+        yax = {
             "name": unpacked_dict["_25_Name_of_Y_Axis"],
             "size": unpacked_dict["_19_Number_of_Lines"],
             "index_in_array": ind,
@@ -565,9 +565,10 @@ class DigitalSurfHandler(object):
             "navigate": nav,
             "is_binned": binned,
         }
-        return Yax
+        return yax
 
-    def _build_Tax(self, unpacked_dict, size_key, ind=0, nav=True, binned=False):
+    @staticmethod
+    def _build_Tax(unpacked_dict, size_key, ind=0, nav=True, binned=False):
         """Return T axis dictionary from an unpacked surface object dict.
         Unlike x and y axes, the size key can be determined from various keys:
         _14_W_Size, _15_Size_of_Points or _03_Number_of_Objects. index int
@@ -583,7 +584,7 @@ class DigitalSurfHandler(object):
         if scale == 0:
             scale = 1
 
-        Tax = {
+        tax = {
             "name": unpacked_dict["_58_T_Axis_Name"],
             "size": unpacked_dict[size_key],
             "index_in_array": ind,
@@ -593,9 +594,9 @@ class DigitalSurfHandler(object):
             "navigate": nav,
             "is_binned": binned,
         }
-        return Tax
+        return tax
 
-    ### Build methods for individual surface objects
+    # Build methods for individual surface objects
     def _build_hyperspectral_map(
         self,
     ):
@@ -628,9 +629,7 @@ class DigitalSurfHandler(object):
             hypdic["_14_W_Size"],
         )
 
-        self.signal_dict["metadata"] = self._build_metadata(hypdic)
-
-        self.signal_dict["original_metadata"] = self._build_original_metadata()
+        self._set_metadata_and_original_metadata(hypdic)
 
     def _build_general_1D_data(
         self,
@@ -663,21 +662,19 @@ class DigitalSurfHandler(object):
         # We get the dictionary with all the data
         hypdic = self._list_sur_file_content[0]
 
-        # Add the signal axis_src to the signal dict
-        self.signal_dict["axes"].append(self._build_Xax(hypdic, ind=1, nav=False))
-
         # If there is more than 1 spectrum also add the navigation axis
         if hypdic["_19_Number_of_Lines"] != 1:
             self.signal_dict["axes"].append(self._build_Yax(hypdic, ind=0, nav=True))
 
+        # Add the signal axis_src to the signal dict
+        self.signal_dict["axes"].append(self._build_Xax(hypdic, ind=1, nav=False))
+
         # We reshape the data in the correct format.
         # Edit: the data is now squeezed for unneeded dimensions
-        self.signal_dict["data"] = np.squeeze(
-            hypdic["_62_points"].reshape(
-                hypdic["_19_Number_of_Lines"],
-                hypdic["_18_Number_of_Points"],
-            )
-        )
+        data_shape = (hypdic["_19_Number_of_Lines"], hypdic["_18_Number_of_Points"])
+        data_array = np.squeeze(hypdic["_62_points"].reshape(data_shape, order="C"))
+
+        self.signal_dict["data"] = data_array
 
         self._set_metadata_and_original_metadata(hypdic)
 
@@ -825,8 +822,17 @@ class DigitalSurfHandler(object):
 
         self.signal_dict.update({"post_process": [self.post_process_RGB]})
 
-    ### Metadata utility methods
-    def _build_metadata(self, unpacked_dict):
+    # Metadata utility methods
+
+    @staticmethod
+    def _choose_signal_type(unpacked_dict: dict) -> str:
+        """Choose the correct signal type based on the header content"""
+        if unpacked_dict.get("_26_Name_of_Z_Axis") in ["CL Intensity"]:
+            return "CL"
+        else:
+            return ""
+
+    def _build_generic_metadata(self, unpacked_dict):
         """Return a minimalistic metadata dictionary according to hyperspy
         format. Accept a dictionary as an input because dictionary with the
         headers of a mountians object.
@@ -859,7 +865,7 @@ class DigitalSurfHandler(object):
             unpacked_dict["_43_Day"],
         ]
         if not all(v == 0 for v in date):
-            date_str = "{:4d}-{:2d}-{:2d}".format(date[0], date[1], date[2])
+            date_str = "{:4d}-{:02d}-{:02d}".format(date[0], date[1], date[2])
         else:
             date_str = ""
 
@@ -870,9 +876,11 @@ class DigitalSurfHandler(object):
         ]
 
         if not all(v == 0 for v in time):
-            time_str = "{:d}:{:d}:{:d}".format(time[0], time[1], time[2])
+            time_str = "{:02d}:{:02d}:{:02d}".format(time[0], time[1], time[2])
         else:
             time_str = ""
+
+        signal_type = self._choose_signal_type(unpacked_dict)
 
         # Metadata dictionary initialization
         metadict = {
@@ -884,7 +892,7 @@ class DigitalSurfHandler(object):
             },
             "Signal": {
                 "quantity": quantity_str,
-                "signal_type": "",
+                "signal_type": signal_type,
             },
         }
 
@@ -893,7 +901,7 @@ class DigitalSurfHandler(object):
     def _build_original_metadata(
         self,
     ):
-        """Builds a metadata dictionnary from the header"""
+        """Builds a metadata dictionary from the header"""
         original_metadata_dict = {}
 
         # Iteration over Number of data objects
@@ -910,45 +918,165 @@ class DigitalSurfHandler(object):
 
                 # Save it as original metadata dictionary
                 headerdict = {
-                    "H" + l.lstrip("_"): a[l]
-                    for l in a
-                    if l not in ("_62_points", "_61_Private_zone")
+                    "H" + k.lstrip("_"): a[k]
+                    for k in a
+                    if k not in ("_62_points", "_61_Private_zone")
                 }
+
                 original_metadata_dict[key].update({"Header": headerdict})
 
                 # The second dictionary might contain custom mountainsmap params
-                parsedict = {}
-
-                # Check if it is the case and append it to
-                # original metadata if yes
-
+                # Check if it is the case and append it to original metadata if yes
                 valid_comment = self._check_comments(a["_60_Comment"], "$", "=")
                 if valid_comment:
                     parsedict = self._MS_parse(a["_60_Comment"], "$", "=")
-                    parsedict = {l.lstrip("_"): m for l, m in parsedict.items()}
+                    parsedict = {k.lstrip("_"): m for k, m in parsedict.items()}
                     original_metadata_dict[key].update({"Parsed": parsedict})
 
         return original_metadata_dict
+
+    def _build_signal_specific_metadata(
+        self,
+    ) -> dict:
+        """Build additional metadata specific to signal type.
+        return a dictionary for update in the metadata."""
+        if self.signal_dict["metadata"]["Signal"]["signal_type"] == "CL":
+            return self._map_CL_metadata()
+        else:
+            return {}
+
+    def _map_SEM_metadata(self) -> dict:
+        """Return SEM metadata according to hyperspy specifications"""
+        atto_omd = self.signal_dict["original_metadata"]
+        # get nested dictionaries in an error-handling way
+        atto_omd = atto_omd.get("Object_0_Channel_0", {})
+        atto_omd = atto_omd.get("Parsed", {})
+        if not atto_omd:
+            return {}
+        else:
+            sem = atto_omd.get("SEM", {})
+            stage_image = atto_omd.get("SITE IMAGE", {})
+
+        sem_metadata = {
+            # "beam_current": None,
+            "beam_energy": sem.get("Beam Energy"),
+            "beam_energy_units": sem.get("Beam Energy_units"),
+            # "probe_area" : None,
+            # "convergence_angle": None,
+            "magnification": sem.get("Real Magnification"),
+            "microscope": "Attolight Allalin",
+            "Stage": {
+                "rotation": stage_image.get("stage_rotation_z"),
+                "rotation_units": "deg",
+                "tilt_alpha": stage_image.get("stage_rotation_x"),
+                "tilt_alpha_units": "deg",
+                "tilt_beta": stage_image.get("stage_rotation_y"),
+                "tilt_beta_units": "deg",
+                "x": stage_image.get("stage_position_x"),
+                "x_units": "mm",
+                "y": stage_image.get("stage_position_y"),
+                "y_units": "mm",
+                "z": stage_image.get("stage_position_z"),
+                "z_units": "mm",
+            },
+        }
+
+        return sem_metadata
+
+    def _map_Spectrometer_metadata(self) -> dict:
+        """return Spectrometer metadata according to lumispy specifications"""
+        atto_omd = self.signal_dict["original_metadata"]
+        # get nested dictionaries in an error-handling way
+        atto_omd = atto_omd.get("Object_0_Channel_0", {})
+        atto_omd = atto_omd.get("Parsed", {})
+        if not atto_omd:
+            return {}
+        else:
+            spectrometer = atto_omd.get("SPECTROMETER", {})
+
+        spectrometer_metadata = {
+            # "model":
+            # "acquisition_mode": ,
+            "entrance_slit_width": spectrometer.get("Entrance slit width"),
+            "entrance_slit_width_units": spectrometer.get("Entrance slit width_units"),
+            "exit_slit_width": spectrometer.get("Exit slit width"),
+            "exit_slit_width_units": spectrometer.get("Exit slit width_units"),
+            "central_wavelength": spectrometer.get("Central wavelength"),
+            "central_wavelength_units": spectrometer.get("Central wavelength_units"),
+            # "start_wavelength(nm)":
+            # "step_size(nm)"
+            "Grating": spectrometer.get("Grating"),
+            "groove_density": spectrometer.get("Grating - Groove Density"),
+            "groove_density_units": spectrometer.get("Grating - Groove Density_units"),
+            "blazing_wavelength": spectrometer.get("Grating - Blaze Angle"),
+            "blazing_wavelength_units": spectrometer.get("Central wavelength_units"),
+            "Filter": {"filter_type": spectrometer.get("Filter")},
+        }
+
+        return spectrometer_metadata
+
+    def _map_spectral_detector_metadata(self) -> dict:
+        """return Spectrometer metadata according to lumispy specifications"""
+
+        atto_omd = self.signal_dict["original_metadata"]
+        # get nested dictionaries in an error-handling way
+        atto_omd = atto_omd.get("Object_0_Channel_0", {})
+        atto_omd = atto_omd.get("Parsed", {})
+        if not atto_omd:
+            return {}
+        else:
+            ccd = atto_omd.get("CCD", {})
+
+        spectral_detector_metadata = {
+            "detector_type": "CCD",
+            "model": ccd.get("Camera Model"),
+            # "frames": ,
+            "integration_time": ccd.get("Exposure Time"),
+            "integration_time_units": ccd.get("Exposure Time"),
+            # "saturation_fraction": CCD.get(''),
+            "binning": (ccd.get("ReadMode"), ccd.get("Horizontal Binning")),
+            # "processing": ,
+            # "sensor_roi": ,
+            "pixel_size": ccd.get("Pixel Width"),
+            "pixel_size_units": ccd.get("Pixel Width_units"),
+        }
+
+        return spectral_detector_metadata
+
+    def _map_CL_metadata(self) -> dict:
+        """Build CL-signal-specific metadata. Currently maps from the hyperspy metadata format"""
+
+        cl_metadata_dict = {
+            "Acquisition_instrument": {
+                "SEM": self._map_SEM_metadata(),
+                "Spectrometer": self._map_Spectrometer_metadata(),
+                "Detector": self._map_spectral_detector_metadata(),
+            }
+        }
+
+        return cl_metadata_dict
 
     def _set_metadata_and_original_metadata(self, unpacked_dict):
         """Run successively _build_metadata and _build_original_metadata
         and set signal dictionary with results"""
 
-        self.signal_dict["metadata"] = self._build_metadata(unpacked_dict)
+        self.signal_dict["metadata"] = self._build_generic_metadata(unpacked_dict)
         self.signal_dict["original_metadata"] = self._build_original_metadata()
+        self.signal_dict["metadata"].update(self._build_signal_specific_metadata())
 
-    def _check_comments(self, commentsstr, prefix, delimiter):
+    @staticmethod
+    def _check_comments(commentsstr, prefix, delimiter):
         """Check if comment string is parsable into metadata dictionary.
         Some specific lines (empty or starting with @@) will be ignored,
         but any non-ignored line must conform to being a title line (beginning
-        with the TITLESTART indicator) or being parsable (starting with Prefix
+        with the titlestart indicator) or being parsable (starting with Prefix
         and containing the key data delimiter). At the end, the comment is
         considered parsable if it contains minimum 1 parsable line and no
         non-ignorable non-parsable non-title line.
 
         Parameters
         ----------
-        commentstr: string containing comments
+        commentsstr: string containing comments
         prefix: string (or char) character assumed to start each line.
         '$' if a .sur file.
         delimiter: string that delimits the keyword from value. always '='
@@ -959,12 +1087,12 @@ class DigitalSurfHandler(object):
         """
 
         # Titlestart markers start with Prefix ($) followed by underscore
-        TITLESTART = "{:s}_".format(prefix)
+        titlestart = "{:s}_".format(prefix)
 
         # We start by assuming that the comment string is valid
         # but contains 0 valid (= parsable) lines
         valid = True
-        N_valid_lines = 0
+        n_valid_lines = 0
 
         for line in commentsstr.splitlines():
             # Here we ignore any empty line or line starting with @@
@@ -974,82 +1102,84 @@ class DigitalSurfHandler(object):
             # If the line must not be ignored
             if not ignore:
                 # If line starts with a titlestart marker we it counts as valid
-                if line.startswith(TITLESTART):
-                    N_valid_lines += 1
+                if line.startswith(titlestart):
+                    n_valid_lines += 1
                 # if it does not we check that it has the delimiter and
                 # starts with prefix
                 else:
                     # We check that line contains delimiter and prefix
                     # if it does the count of valid line is increased
                     if delimiter in line and line.startswith(prefix):
-                        N_valid_lines += 1
+                        n_valid_lines += 1
                     # Otherwise the whole comment string is thrown out
                     else:
                         valid = False
 
         # finally, it total number of valid line is 0 we throw out this comments
-        if N_valid_lines == 0:
+        if n_valid_lines == 0:
             valid = False
 
         # return falsiness of the string.
         return valid
 
-    def _MS_parse(self, strMS, prefix, delimiter):
+    @staticmethod
+    def _MS_parse(str_ms, prefix, delimiter):
         """Parses a string containing metadata information. The string can be
         read from the comment section of a .sur file, or, alternatively, a file
         containing them with a similar formatting.
 
         Parameters
         ----------
-        strMS: string containing metadata
+        str_ms: string containing metadata
         prefix: string (or char) character assumed to start each line.
         '$' if a .sur file.
         delimiter: string that delimits the keyword from value. always '='
 
         Returns
         -------
-        dictMS: dictionnary in the correct hyperspy metadata format
+        dict_ms: dictionnary in the correct hyperspy metadata format
 
         """
-        # dictMS is created as an empty dictionnary
-        dictMS = {}
+        # dict_ms is created as an empty dictionnary
+        dict_ms = {}
         # Title lines start with an underscore
-        TITLESTART = "{:s}_".format(prefix)
+        titlestart = "{:s}_".format(prefix)
 
-        for line in strMS.splitlines():
+        for line in str_ms.splitlines():
             # Here we ignore any empty line or line starting with @@
             ignore = False
             if not line.strip() or line.startswith("@@"):
                 ignore = True
             # If the line must not be ignored
             if not ignore:
-                if line.startswith(TITLESTART):
+                if line.startswith(titlestart):
                     # We strip keys from whitespace at the end and beginning
-                    keyMain = line[len(TITLESTART) :].strip()
-                    dictMS[keyMain] = {}
+                    key_main = line[len(titlestart) :].strip()
+                    dict_ms[key_main] = {}
                 elif line.startswith(prefix):
-                    key, *liValue = line.split(delimiter)
+                    key, *li_value = line.split(delimiter)
                     # Key is also stripped from beginning or end whitespace
                     key = key[len(prefix) :].strip()
-                    strValue = liValue[0] if len(liValue) > 0 else ""
+                    str_value = li_value[0] if len(li_value) > 0 else ""
                     # remove whitespace at the beginning of value
-                    strValue = strValue.strip()
-                    liValue = strValue.split(" ")
+                    str_value = str_value.strip()
+                    li_value = str_value.split(" ")
                     try:
                         if key == "Grating":
-                            dictMS[keyMain][key] = liValue[
+                            dict_ms[key_main][key] = li_value[
                                 0
                             ]  # we don't want to eval this one
                         else:
-                            dictMS[keyMain][key] = eval(liValue[0])
+                            dict_ms[key_main][key] = eval(li_value[0])
                     except Exception:
-                        dictMS[keyMain][key] = liValue[0]
-                    if len(liValue) > 1:
-                        dictMS[keyMain][key + "_units"] = liValue[1]
-        return dictMS
+                        dict_ms[key_main][key] = li_value[0]
+                    if len(li_value) > 1:
+                        dict_ms[key_main][key + "_units"] = li_value[1]
+        return dict_ms
 
-    ### Post processing
-    def post_process_RGB(self, signal):
+    # Post processing
+    @staticmethod
+    def post_process_RGB(signal):
         signal = signal.transpose()
         max_data = np.nanmax(signal.data)
         if max_data <= 256:
@@ -1066,8 +1196,9 @@ class DigitalSurfHandler(object):
 
         return signal
 
-    ### pack/unpack binary quantities
-    def _get_int16(self, file, default=None, signed=True):
+    # pack/unpack binary quantities
+    @staticmethod
+    def _get_int16(file, default=None):
         """Read a 16-bits int with a user-definable default value if
         no file is given"""
         if file is None:
@@ -1078,10 +1209,12 @@ class DigitalSurfHandler(object):
         else:
             return struct.unpack("<h", b)[0]
 
-    def _set_int16(self, file, val):
+    @staticmethod
+    def _set_int16(file, val):
         file.write(struct.pack("<h", val))
 
-    def _get_str(self, file, size, default=None, encoding="latin-1"):
+    @staticmethod
+    def _get_str(file, size, default=None, encoding="latin-1"):
         """Read a str of defined size in bytes with a user-definable default
         value if no file is given"""
         if file is None:
@@ -1089,7 +1222,8 @@ class DigitalSurfHandler(object):
         read_str = file.read(size).decode(encoding)
         return read_str.strip(" \t\n")
 
-    def _set_str(self, file, val, size, encoding="latin-1"):
+    @staticmethod
+    def _set_str(file, val, size, encoding="latin-1"):
         """Write a str of defined size in bytes to a file. struct.pack
         will automatically trim the string if it is too long"""
         file.write(
@@ -1099,7 +1233,8 @@ class DigitalSurfHandler(object):
             )
         )
 
-    def _get_int32(self, file, default=None):
+    @staticmethod
+    def _get_int32(file, default=None):
         """Read a 32-bits int with a user-definable default value if no
         file is given"""
         if file is None:
@@ -1110,22 +1245,26 @@ class DigitalSurfHandler(object):
         else:
             return struct.unpack("<i", b)[0]
 
-    def _set_int32(self, file, val):
+    @staticmethod
+    def _set_int32(file, val):
         """Write a 32-bits int in a file f"""
         file.write(struct.pack("<i", val))
 
-    def _get_float(self, file, default=None):
+    @staticmethod
+    def _get_float(file, default=None):
         """Read a 4-bytes (single precision) float from a binary file f with a
         default value if no file is given"""
         if file is None:
             return default
         return struct.unpack("<f", file.read(4))[0]
 
-    def _set_float(self, file, val):
+    @staticmethod
+    def _set_float(file, val):
         """write a 4-bytes (single precision) float in a file"""
         file.write(struct.pack("<f", val))
 
-    def _get_uint32(self, file, default=None):
+    @staticmethod
+    def _get_uint32(file, default=None):
         if file is None:
             return default
         b = file.read(4)
@@ -1134,16 +1273,19 @@ class DigitalSurfHandler(object):
         else:
             return struct.unpack("<I", b)[0]
 
-    def _set_uint32(self, file, val):
+    @staticmethod
+    def _set_uint32(file, val):
         file.write(struct.pack("<I", val))
 
-    def _get_bytes(self, file, size, default=None):
+    @staticmethod
+    def _get_bytes(file, size, default=None):
         if file is None:
             return default
         else:
             return file.read(size)
 
-    def _set_bytes(self, file, val, size):
+    @staticmethod
+    def _set_bytes(file, val, size):
         file.write(struct.pack("<{:d}s".format(size), val))
 
     def _unpack_comment(self, file, encoding="latin-1"):
@@ -1167,8 +1309,8 @@ class DigitalSurfHandler(object):
         file. This causes an error in the series of data"""
 
         # Size of datapoints in bytes. Always int16 (==2) or 32 (==4)
-        Psize = int(self._get_work_dict_key_value("_15_Size_of_Points") / 8)
-        dtype = np.int16 if Psize == 2 else np.int32
+        psize = int(self._get_work_dict_key_value("_15_Size_of_Points") / 8)
+        dtype = np.int16 if psize == 2 else np.int32
 
         if self._get_work_dict_key_value("_01_Signature") != "DSCOMPRESSED":
             # If the points are not compressed we need to read the exact
@@ -1182,7 +1324,7 @@ class DigitalSurfHandler(object):
             # We need to take into account the fact that Wsize is often
             # set to 0 instead of 1 in non-spectral data to compute the
             # space occupied by data in the file
-            readsize = Npts_tot * Psize
+            readsize = Npts_tot * psize
             if Wsize != 0:
                 readsize *= Wsize
             # if Npts_channel is not 0:
@@ -1247,7 +1389,6 @@ class DigitalSurfHandler(object):
 def file_reader(filename, **kwds):
     """Read a mountainsmap .sur file and return a dictionnary containing the
     information necessary for creating the data object.
-
     Parameters
     ----------
     %s

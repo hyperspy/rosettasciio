@@ -482,16 +482,14 @@ contains a description of the binary format.</p>
 <dt class="sig sig-object py" id="rsciio.digitalsurf.file_reader">
 <span class="sig-prename descclassname"><span class="pre">rsciio.digitalsurf.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.digitalsurf.file_reader" title="Permalink to this definition">#</a></dt>
 <dd><p>Read a mountainsmap .sur file and return a dictionnary containing the
-information necessary for creating the data object.</p>
+information necessary for creating the data object.
+:param filename: Filename of the file to read or corresponding <cite>pathlib.Path</cite>.
+:type filename: str, pathlib.Path
+:param lazy: Whether to open the file lazily or not.
+:type lazy: bool, Default=False</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
-<li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><p>List of dictionaries containing the following fields:</p>
 <ul class="simple">
 <li><p>’data’ – multidimensional numpy array</p></li>
 <li><p>’axes’ – list of dictionaries describing the axes
@@ -503,8 +501,8 @@ containing the full axes vector</p></li>
 </ul>
 </p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list of dicts</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of dicts</p>
 </dd>
 </dl>
 </dd></dl>

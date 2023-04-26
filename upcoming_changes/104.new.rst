@@ -1,0 +1,1 @@
+add optional kwarg to tiff reader ``multipage_as_list`` which when set to True uses ``pages`` interface and returns list of signal for every page with full metadata.

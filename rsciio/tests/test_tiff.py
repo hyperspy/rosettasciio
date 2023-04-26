@@ -667,6 +667,30 @@ class TestReadZeissSEM:
         del s.metadata.General.FileIO.Number_0.timestamp
         assert_deep_almost_equal(s.metadata.as_dictionary(), md)
 
+    def test_zeiss_multipage_as_separate_signals(self):
+        fname = self.path / "ZEISS_SEM_multipage.tif"
+        s = hs.load(fname, multipage_as_list=True)
+        assert len(s) == 2
+        assert s[0].metadata.General.time == "22:42:02"
+        assert s[1].metadata.General.time == "22:45:19"
+        assert s[0].original_metadata.CZ_SEM.ap_fib_slice_index == ("Slice Index", 2)
+        assert s[1].original_metadata.CZ_SEM.ap_fib_slice_index == ("Slice Index", 5)
+        # ('C3 Lens I', 716.29, 'mA')
+        # ('C3 Lens I', 716.28, 'mA')
+        np.testing.assert_allclose(
+            s[0].original_metadata.CZ_SEM.ap_c3[1], 716.29, rtol=1e-6
+        )
+        np.testing.assert_allclose(
+            s[1].original_metadata.CZ_SEM.ap_c3[1], 716.28, rtol=1e-6
+        )
+        np.testing.assert_allclose(
+            s[0].metadata.Acquisition_instrument.SEM.working_distance, 4.5, rtol=1e-3
+        )
+        np.testing.assert_allclose(
+            s[1].metadata.Acquisition_instrument.SEM.working_distance, 4.5, rtol=1e-3
+        )
+        # yes, working distance is such a low resolution record of beam focus...
+
 
 def test_read_RGB_Zeiss_optical_scale_metadata():
     fname = os.path.join(MY_PATH2, "optical_Zeiss_AxioVision_RGB.tif")

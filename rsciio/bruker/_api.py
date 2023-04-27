@@ -32,12 +32,14 @@ import re
 import logging
 from zlib import decompress as unzip_block
 from struct import unpack as strct_unp
-from datetime import datetime, timedelta
+from datetime import datetime
 from ast import literal_eval
 import codecs
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 import io
+
+from rsciio.utils.date_time_tools import msfiletime_to_unix
 
 import dask.delayed as dd
 import dask.array as da
@@ -105,9 +107,9 @@ class SFSTreeItem(object):
             name,
             _,
         ) = strct_unp("<iQQQQIi176s?3s256s32s", item_raw_string)
-        self.create_time = self._filetime_to_unix(create_time)
-        self.mod_time = self._filetime_to_unix(mod_time)
-        self.some_time = self._filetime_to_unix(some_time)
+        self.create_time = msfiletime_to_unix(create_time)
+        self.mod_time = msfiletime_to_unix(mod_time)
+        self.some_time = msfiletime_to_unix(some_time)
         self.name = name.strip(b"\x00").decode("utf-8")
         self.size_in_chunks = self._calc_pointer_table_size()
         if self.is_dir == 0:
@@ -116,10 +118,6 @@ class SFSTreeItem(object):
     def _calc_pointer_table_size(self):
         n_chunks = ceil(self.size / self.sfs.usable_chunk)
         return n_chunks
-
-    def _filetime_to_unix(self, time):
-        """Return recalculated windows filetime to unix time."""
-        return datetime(1601, 1, 1) + timedelta(microseconds=time / 10)
 
     def _fill_pointer_table(self):
         """Parse the sfs and populate self.pointers table.

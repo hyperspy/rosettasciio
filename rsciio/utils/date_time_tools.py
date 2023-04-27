@@ -106,3 +106,19 @@ def get_date_time_from_metadata(metadata, formatting="ISO"):
         res = np.datetime64(f"{date}T{time}")
 
     return res
+
+
+def msfiletime_to_unix(msfiletime):
+    """Convert microsoft's filetime to unix datetime used in python
+    built-in datetime
+    Parameters
+    ----------
+    msfiletime: 64-bit integer representing number of 10 microsecond ticks
+    from 1601
+
+    Returns
+    -------
+        datetime.datetime object"""
+    dt = datetime.datetime(1601, 1, 1) +\ 
+         datetime.timedelta(microseconds=msfiletime / 10)
+    return dt

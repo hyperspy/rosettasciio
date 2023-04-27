@@ -21,7 +21,8 @@ import logging
 import xml.etree.ElementTree as ET
 from pathlib import Path
 import os
-from collections import OrderedDict
+from ast import literal_eval
+from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
 import importlib
 
@@ -144,6 +145,90 @@ def overwrite(filename):
             return False
     else:
         return True
+
+
+def interpret(string):
+    """interpret any string and return casted to appropriate
+    dtype python object
+    """
+    try:
+        return literal_eval(string)
+    except (ValueError, SyntaxError):
+        # SyntaxError due to:
+        # literal_eval have problems with strings like this '8842_80'
+        return string
+
+
+class XML2Dict:
+    def __init__(self, tags_to_flatten=[]):
+        """create parser for XML etree node to dict/list conversion
+        Parameters for initialization
+        -----------------------------
+           tags_to_flatten: string or list of strings with tag names
+           which should be flattened/skipped, bringing children of such tag
+           one level up. It is useful when OEM generated XML are not human
+           designed, but machine/programming language generated:
+           
+           Example:
+           by initialization of parser with "ClassInstance"
+           such overly-verbose tree (i.e. Bruker):
+           
+           DetectorHeader
+           |-ClassInstance
+            |-ClassInstance
+              |-Type
+              |-Window
+              ...
+
+           can be sanitized to such:
+
+           DetectorHeader
+           |-Type
+           |-Window
+           ...
+           
+           where produced dict/list structures are good enought to be
+           returned as part of original metadata without making any more
+           copies.
+        """
+
+        if type(tags_to_flatten) not in [str, list]:
+            raise KeyError(
+                "tags_to_flatten keyword accepts string or list of strings")
+        if isinstance(tags_to_flatten, str):
+            tags_to_flatten = [tags_to_flatten]
+        self.tags_to_flatten = tags_to_flatten
+
+    def dictionarize(self, el):
+        """take etree XML node and return its conversion into
+        pythonic dict/list representation of that XML tree
+        with some sanitization"""
+        d = {el.tag: {} if el.attrib else None}
+        children = list(el)
+        if children:
+            dd = defaultdict(list)
+            for dc in map(self.dictionarize, children):
+                for key, val in dc.items():
+                    dd[key].append(val)
+            d = {el.tag: {key: interpret(val[0]) if len(val) == 1
+                          else val
+                          for key, val in dd.items()}}
+        if el.attrib:
+            d[el.tag].update(
+                ("XmlClass" + key if list(el) else key, interpret(val))
+                for key, val in el.attrib.items()
+                )
+        if el.text:
+            text = el.text.strip()
+            if children or el.attrib:
+                if text:
+                    d[el.tag]["#text"] = interpret(text)
+            else:
+                d[el.tag] = interpret(text)
+        for tag in self.tags_to_flatten:
+            if tag in d:
+                return d[tag]
+        return d
 
 
 def xml2dtb(et, dictree):

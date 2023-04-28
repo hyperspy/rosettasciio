@@ -1209,7 +1209,7 @@ class TestStreamline:
     def test_original_metadata_WMAP(self):
         expected_WMAP = {
             "linefocus_size": 0,
-            "flag": 2,
+            "flag": "column_major",
         }
         metadata_WMAP = deepcopy(self.s.original_metadata.WMAP_0.as_dictionary())
 

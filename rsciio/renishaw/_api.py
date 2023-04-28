@@ -16,9 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with HyperSpy. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-# TODO: manage licenses
 # This Code is based on the py-wdf-reader (https://github.com/alchem0x2A/py-wdf-reader),
-# which is inspired by Henderson, Alex DOI:10.5281/zenodo.495477
+# which is inspired by Henderson, Alex (https://doi.org/10.5281/zenodo.495477)
 
 # MIT License
 #
@@ -42,12 +41,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Moreover, this code is inspired by gwyddion
-# (https://github.com/christian-sahlmann/gwyddion)
-
-# TODO: general:
-#   - remove debug flag once unmatched keys values are understood
-#   - remove setting logger level
+# Moreover, this code is inspired by gwyddion (http://gwyddion.net)
 
 # known limitations/problems:
 #   - cannot parse BKXL-Block
@@ -65,7 +59,7 @@ import datetime
 import importlib.util
 import logging
 from copy import deepcopy
-from enum import IntEnum, Enum
+from enum import IntEnum, Enum, EnumMeta
 from io import BytesIO
 from pathlib import Path
 
@@ -75,8 +69,9 @@ from numpy.polynomial.polynomial import polyfit
 from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 
 _logger = logging.getLogger(__name__)
-_logger.setLevel(10)
 
+## PIL alternative: imageio.v3.immeta extracts exif as binary
+## but then this binary string needs to be parsed
 try:
     from PIL import Image
 except ImportError:
@@ -121,7 +116,19 @@ def convert_windowstime_to_datetime(wt):
     return (base + delta).isoformat("#", "seconds")
 
 
-class MetadataTypeSingle(Enum):
+class DefaultEnum(IntEnum):
+    Unknown = 0
+
+
+class DefaultEnumMeta(EnumMeta):
+    def __call__(cls, value, *args, **kwargs):
+        if value not in cls._value2member_map_:
+            return DefaultEnum(0)
+        else:
+            return super().__call__(value, *args, **kwargs)
+
+
+class MetadataTypeSingle(Enum, metaclass=DefaultEnumMeta):
     int8 = "c"  # maybe char, but as far as I can tell only used as a number
     uint8 = "?"
     int16 = "s"
@@ -145,14 +152,14 @@ MetadataLengthSingle = {
 }
 
 
-class MetadataTypeMulti(Enum):
+class MetadataTypeMulti(Enum, metaclass=DefaultEnumMeta):
     string = "u"
     nested = "p"
     key = "k"
     binary = "b"
 
 
-class MetadataFlags(IntEnum):
+class MetadataFlags(IntEnum, metaclass=DefaultEnumMeta):
     normal = 0
     compressed = 64
     array = 128
@@ -175,7 +182,7 @@ TypeNames = {
 }
 
 
-class MeasurementType(IntEnum):
+class MeasurementType(IntEnum, metaclass=DefaultEnumMeta):
     Unspecified = 0
     Single = 1
     Series = 2
@@ -184,7 +191,7 @@ class MeasurementType(IntEnum):
 
 ## parser does not depend on this parameter (only put into original_metadata)
 ## testfiles: 2, 3, 4, 5, 8 missing
-class ScanType(IntEnum):
+class ScanType(IntEnum, metaclass=DefaultEnumMeta):
     Unspecified = 0
     Static = 1
     Continuous = 2
@@ -200,7 +207,7 @@ class ScanType(IntEnum):
 ## tested/covered cases: 0?, 2, 128
 ## cases: 1, 4, 8, 64 not implemented
 ## cases that should work, but are not tested: 16, 32 (negative scale)
-class MapType(IntEnum):
+class MapType(IntEnum, metaclass=DefaultEnumMeta):
     randompoints = 1  # rectangle
     column_major = 2  # x then y
     alternating = 4  # snake pattern, not implemented
@@ -213,7 +220,7 @@ class MapType(IntEnum):
 
 
 # TODO: wavelength is named wavenumber in py-wdf-reader, gwyddion
-class UnitType(IntEnum):
+class UnitType(IntEnum, metaclass=DefaultEnumMeta):
     arbitrary = 0
     raman_shift = 1
     wavelength = 2
@@ -274,10 +281,6 @@ class UnitType(IntEnum):
         )
         return unit_str[self.name]
 
-    @classmethod
-    def _missing_(cls, value):
-        return None
-
 
 # used in ORGN/XLST
 # TODO: figure out difference between frequency and spectral
@@ -285,7 +288,7 @@ class UnitType(IntEnum):
 # in py-wdf-reader the naming of spectral and frequency is switched
 # in testfiles 1 (spectral) occurs exclusively for signal (XLST)
 # also there are no frequency units in UnitType
-class DataType(IntEnum):
+class DataType(IntEnum, metaclass=DefaultEnumMeta):
     Arbitrary = 0
     Spectral = 1
     Intensity = 2
@@ -317,7 +320,7 @@ class DataType(IntEnum):
 
 
 # for wthl image
-class ExifTags(IntEnum):
+class ExifTags(IntEnum, metaclass=DefaultEnumMeta):
     # Standard EXIF TAGS
     ImageDescription = 0x10E  # 270
     Make = 0x10F  # 271
@@ -419,13 +422,10 @@ class WDFReader(object):
         "BKXL",
     ]
 
-    def __init__(
-        self, f, filename, use_uniform_signal_axis, debug, load_unmatched_metadata
-    ):
+    def __init__(self, f, filename, use_uniform_signal_axis, load_unmatched_metadata):
         self._file_obj = f
         self._filename = filename
         self._use_uniform_signal_axis = use_uniform_signal_axis
-        self._debug = debug
         self._load_unmatched_metadata = load_unmatched_metadata
 
         self.original_metadata = {}
@@ -612,29 +612,31 @@ class WDFReader(object):
         ## however, this does not happen in testfiles (always ends exactly on 0)
         while remaining > 0:
             type = self.__read_utf8(0x1)
-            flag = self.__read_numeric("uint8")
+            flag = MetadataFlags(self.__read_numeric("uint8"))
+            if flag == DefaultEnum.Unknown.name:
+                _logger.error(
+                    f"Invalid metadata flag ({flag}) encountered while parsing {id}."
+                    f"Cannot read metadata from this Block."
+                )
+                return None
             key = str(self.__read_numeric("uint16"))
             remaining -= 4
-            try:
-                entry, num_bytes = self._pset_switch_read_on_flag(
-                    flag, type, f"{id}_{remaining}"
-                )
-            except RuntimeError:
-                return None
+            entry, num_bytes = self._pset_switch_read_on_flag(
+                flag, type, f"{id}_{remaining}"
+            )
+            if type == "k":
+                key_dict[key] = entry
             else:
-                if type == "k":
-                    key_dict[key] = entry
-                else:
-                    value_dict[key] = entry
-                remaining -= num_bytes
+                value_dict[key] = entry
+            remaining -= num_bytes
         return self._pset_match_keys_and_values(id, key_dict, value_dict)
 
     def _pset_match_keys_and_values(self, id, key_dict, value_dict):
         result = {}
-        if self._debug:
-            print(f"{id}(keys, {len(list(key_dict))}): {list(key_dict)}")
-            print(f"{id}(values, {len(list(value_dict))}): {list(value_dict)}")
-            print()
+        ## TODO: debug setup, remove once it is understood why there are unmatched keys/values
+        ## print(f"{id}(keys, {len(list(key_dict))}): {list(key_dict)}")
+        ## print(f"{id}(values, {len(list(value_dict))}): {list(value_dict)}")
+        ## print()
         for key in list(key_dict.keys()):
             ## keep mismatched keys for debugging
             try:
@@ -655,14 +657,7 @@ class WDFReader(object):
             MetadataFlags.normal: self._pset_read_normal_flag,
             MetadataFlags.array: self._pset_read_array_flag,
             MetadataFlags.compressed: self._pset_read_compressed_flag,
-        }.get(flag, self._pset_error_msg_invalid_flag)(type=type, id=id, flag=flag)
-
-    def _pset_error_msg_invalid_flag(self, id, flag, **kwargs):
-        _logger.error(
-            f"Invalid metadata flag ({flag}) encountered while parsing {id}."
-            f"Cannot read metadata from this Block."
-        )
-        raise RuntimeError
+        }.get(flag)(type=type, id=id, flag=flag)
 
     def _pset_read_normal_flag(self, type, id, **kwargs):
         result, num_bytes = self._pset_read_entry(type, 1, id)
@@ -862,7 +857,6 @@ class WDFReader(object):
         elif unit_type in [UnitType.nanometer, UnitType.micrometer]:
             name = "Wavelength"
         else:
-            _logger.warning("Cannot identify axis name.")
             name = "Unknown"
         return name
 
@@ -872,6 +866,8 @@ class WDFReader(object):
                 "File contains no information on signal axis (XLST-Block missing)."
             )
         name, unit, data = self._parse_XLST_or_YLST("X", self._points_per_spectrum)
+        if name == "Unknown":
+            _logger.warning("Cannot identify signal axis name.")
         signal_dict = {}
         signal_dict["size"] = self._points_per_spectrum
         signal_dict["navigate"] = False
@@ -990,7 +986,7 @@ class WDFReader(object):
             "WMAP", "Navigation axes", block_size - 16, 4 * (3 + 3 * 3)
         )
 
-        flag = self.__read_numeric("uint32")
+        flag = MapType(self.__read_numeric("uint32")).name
         unused = self.__read_numeric("uint32")
         offset_xyz = [self.__read_numeric("float") for _ in range(3)]
         scale_xyz = [self.__read_numeric("float") for _ in range(3)]
@@ -1021,14 +1017,16 @@ class WDFReader(object):
             result[ax_name] = axis_tmp
 
         # TODO: differentiate between more map_modes/flags
-        # add extra warning for untested flags
-        if wmap_dict["flag"] == MapType.xyline:
+        flag = wmap_dict["flag"]
+        if flag == MapType.xyline.name:
             result = self._set_wmap_nav_linexy(result["X"], result["Y"])
-        elif wmap_dict["flag"] not in MapType._value2member_map_:
-            _logger.warning(f"Invalid flag ({wmap_dict['flag']}) for WMAP mapping.")
+        elif flag == DefaultEnum.Unknown.name:
+            _logger.warning(f"Unknown flag ({wmap_dict['flag']}) for WMAP mapping.")
         return result
 
     def _set_wmap_nav_linexy(self, x_axis, y_axis):
+        # TODO: save original axis scales and offset in metadata?
+        # currently only in original_metadata.WMAP_0
         result = deepcopy(x_axis)
         scale_abs = np.sqrt(x_axis["scale"] ** 2 + y_axis["scale"] ** 2)
         result["scale"] = scale_abs
@@ -1286,7 +1284,6 @@ def file_reader(
     filename,
     lazy=False,
     use_uniform_signal_axis=True,
-    debug=False,
     load_unmatched_metadata=False,
     **kwds,
 ):
@@ -1318,7 +1315,6 @@ def file_reader(
             f,
             filename=original_filename,
             use_uniform_signal_axis=use_uniform_signal_axis,
-            debug=debug,
             load_unmatched_metadata=load_unmatched_metadata,
         )
         wdf.read_file(filesize)

@@ -216,7 +216,6 @@ class WDFFileHandler:
                 file,
                 self.filepath.name,
                 use_uniform_signal_axis=True,
-                debug=False,
                 load_unmatched_metadata=False,
             )
             filesize = self.filepath.stat().st_size

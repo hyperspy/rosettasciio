@@ -25,6 +25,7 @@ from collections import OrderedDict
 from contextlib import contextmanager
 import importlib
 
+import dask.array as da
 import numpy as np
 from box import Box
 from pint import UnitRegistry
@@ -38,6 +39,203 @@ _logger = logging.getLogger(__name__)
 @contextmanager
 def dummy_context_manager(*args, **kwargs):
     yield
+
+
+def seek_read(file, dtype, pos):
+    file.seek(pos)
+    data = np.squeeze(np.fromfile(file, dtype, count=1))[()]
+    return data
+
+
+def read_binary_metadata(file, mapping_dict):
+    """This function reads binary metadata in a batch like process.
+    The mapping dict is passed as dictionary with a "key":[data,location]"
+    format.
+    """
+    if file is None:
+        return None
+    try:
+        with open(file, mode="rb") as f:
+            metadata = {
+                m: seek_read(f, mapping_dict[m][0], mapping_dict[m][1])
+                for m in mapping_dict
+            }
+        return metadata
+    except FileNotFoundError:
+        _logger.warning(
+            msg="File " + file + " not found. Please"
+            "move it to the same directory to read"
+            " the metadata "
+        )
+        return None
+
+
+def xml_branch(child):
+    new_dict = {}
+    if len(child) != 0:
+        for k in child.keys():
+            try:
+                new_dict[k] = float(child.get(key=k))
+            except ValueError:
+                new_dict[k] = child.get(key=k)
+        for c in child:
+            if c.tag not in new_dict:
+                new_dict[c.tag] = xml_branch(c)
+            else:
+                if isinstance(new_dict[c.tag], list):
+                    new_dict[c.tag].append(xml_branch(c))
+                else:
+                    new_dict[c.tag] = [new_dict[c.tag], xml_branch(c)]
+        return new_dict
+    else:
+        new_dict = child.attrib
+        for key in new_dict:
+            try:
+                new_dict[key] = float(new_dict[key])
+            except ValueError:
+                new_dict[key] = new_dict[key]
+        return new_dict
+
+
+def parse_xml(file):
+    try:
+        tree = ET.parse(file)
+        xml_dict = xml_branch(tree.getroot())
+    except FileNotFoundError:
+        _logger.warning(
+            msg="File " + file + " not found. Please"
+            "move it to the same directory to read"
+            " the metadata "
+        )
+        return None
+    return xml_dict
+
+
+def get_chunk_slice(
+    shape,
+    chunks="auto",
+    block_size_limit=None,
+    dtype=None,
+):
+    chunks = da.core.normalize_chunks(
+        chunks=chunks, shape=shape, limit=block_size_limit, dtype=dtype
+    )
+    chunks_shape = tuple([len(c) for c in chunks])
+    slices = np.empty(shape=chunks_shape, dtype=object)
+    for ind in np.ndindex(chunks_shape):
+        current_chunk = [chunk[i] for i, chunk in zip(ind, chunks)]
+        starts = [int(np.sum(chunk[:i])) for i, chunk in zip(ind, chunks)]
+        stops = [s + c for s, c in zip(starts, current_chunk)]
+        slices[ind] = tuple([slice(start, stop) for start, stop in zip(starts, stops)])
+    return da.from_array(slices, chunks=1), chunks
+
+
+def slice_memmap(slice, file, dtypes, key=None, **kwargs):
+    slice = np.squeeze(slice)[()]
+    print(slice)
+
+    data = np.memmap(file, dtypes, **kwargs)
+    if key is not None:
+        data = data[key]
+    return data[slice]
+
+
+def memmap_distributed(
+    file,
+    dtype,
+    offset=0,
+    shape=None,
+    order="C",
+    chunks="auto",
+    block_size_limit=None,
+    key="Array",
+):
+    """Drop in replacement for `np.memmap` allowing for distributed loading of data.
+    This always loads the data using dask which can be beneficial in many cases, but
+    may not be ideal in others.
+
+    The chunks and block_size_limit are for describing an ideal chunk shape and size
+    as defined using the `da.core.normalize_chunks` function.
+
+    Notes
+    -----
+    Currently `da.map_blocks` does not allow for multiple outputs.  As a result one
+    "Key" is allowed which can be used when the give dtpye has a keyed input.
+    For example: dtype = (("Array", int, (128,128)),
+             ("sec", "<u4"),("ms", "<u2"),("mis", "<u2"),("empty", bytes, empty),)
+    """
+    if not isinstance(dtype, np.dtype):
+        dtype = np.dtype(dtype)
+    if dtype.names is not None:
+        array_dtype = dtype[key].base
+        sub_array_shape = dtype[key].shape
+    else:
+        array_dtype = dtype.base
+        sub_array_shape = dtype.shape
+    if shape is None:
+        unit_size = np.dtype(dtype).itemsize
+        shape = int(os.path.getsize(file) / unit_size)
+    if not isinstance(shape, tuple):
+        shape = (shape,)
+    full_shape = shape + sub_array_shape
+
+    # Separates slices into appropriately sized chunks.
+    chunked_slices, data_chunks = get_chunk_slice(
+        shape=full_shape,
+        chunks=chunks,
+        block_size_limit=block_size_limit,
+        dtype=array_dtype,
+    )
+
+    data = da.map_blocks(
+        slice_memmap,
+        chunked_slices,
+        file=file,
+        dtype=array_dtype,
+        shape=shape,
+        order=order,
+        mode="r",
+        dtypes=dtype,
+        offset=offset,
+        chunks=data_chunks,
+        key=key,
+    )
+    return data
+
+
+def get_chunk_index(
+    shape,
+    signal_axes=(-1, -2),
+    chunks="auto",
+    block_size_limit=None,
+    dtype=None,
+):
+    """Returns a chunk index for distributed chunking of some dataset. This is
+    particularly useful with np.memmap and creating arrays from binary data
+    which work with dask.distributed.  Note that for almost all cases `get_chunk_slice`
+    is preferred. This is particularly useful for when data is nested or otherwise
+    non-uniformly distributed
+
+    Parameters
+    ----------
+    shape: tuple
+        The shape of the resulting array. This is used to determine the chunk
+        size for some dataset. Based on the underlying datatype this automatically
+        creates chunks of around ~100 mb.
+    signal_axes: tuple
+        The signal axes are the axes t
+    """
+    nav_shape = np.delete(np.array(shape), signal_axes)
+    num_frames = np.prod(nav_shape)
+    indexes = np.arange(num_frames)
+    indexes = np.reshape(indexes, nav_shape)
+    chunks = da.core.normalize_chunks(
+        chunks=chunks, shape=shape, limit=block_size_limit, dtype=dtype
+    )
+
+    nav_chunks = tuple(np.delete(np.array(chunks, dtype=object), signal_axes))
+    indexes = da.from_array(indexes, chunks=nav_chunks)
+    return indexes
 
 
 def dump_dictionary(

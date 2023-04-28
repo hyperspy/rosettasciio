@@ -1,0 +1,11 @@
+name: DE
+name_aliases: []
+description: Reads .seq files from Direct Electron Detectors
+version: '1.0'
+full_support: False
+# Recognised file extension
+file_extensions: ['seq',]
+default_extension: 0
+# Writing capabilities
+writes: False
+non_uniform_axis: False

@@ -25,6 +25,7 @@ from ast import literal_eval
 from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
 import importlib
+import re
 
 import numpy as np
 from box import Box
@@ -39,6 +40,41 @@ _logger = logging.getLogger(__name__)
 @contextmanager
 def dummy_context_manager(*args, **kwargs):
     yield
+
+
+# MSXML sanitization ###
+# re pattern with two capturing groups with comma in between;
+# firstgroup looks for numeric value after <tag> (the '>' char) with or
+# without minus sign, second group looks for numeric value with following
+# closing <\tag> (the '<' char); '([Ee]-?\d*)' part (optionally a third group)
+# checks for scientific notation (e.g. 8,843E-7 -> 'E-7');
+# compiled pattern is binary, as raw xml string is binary string.:
+_fix_dec_patterns = re.compile(b"(>-?\\d+),(\\d*([Ee]-?\\d*)?<)")
+
+
+def sanitize_msxml_float(xml_b_string):
+    """replace comma with dot in floatng point numbers in given xml
+    raw string.
+
+    Parameters
+    ----------
+    xml_b_string: raw binary string representing the xml to be parsed
+
+    Returns
+    ---------
+    binary string with commas used as decimal marks replaced with dots
+    to adhere to XML standard
+
+    What, why, how?
+    ----------------------------
+    In case OEM software runs on MS Windows and directly uses system
+    built-in MSXML lib, which does not comply with XML standards,
+    and OS is set to locale of some country with weird and illogical
+    preferences of using comma as decimal separation;
+    Software in conjunction of these above listed conditions can produce
+    not-interoperable XML, which leads to wrong interpretation of context.
+    """
+    return _fix_dec_patterns.sub(b"\\1.\\2", xml_b_string)
 
 
 def dump_dictionary(
@@ -159,76 +195,115 @@ def interpret(string):
         return string
 
 
-class XML2Dict:
-    def __init__(self, tags_to_flatten=[]):
+class XmlToDict:
+    """Customisable XML to python dict and list based tree translator"""
+    def __init__(self,
+                 pre_str_dub_attr="@",
+                 str_dub_text="#text",
+                 tags_to_flatten=None):
         """create parser for XML etree node to dict/list conversion
         Parameters for initialization
         -----------------------------
-           tags_to_flatten: string or list of strings with tag names
-           which should be flattened/skipped, bringing children of such tag
-           one level up. It is useful when OEM generated XML are not human
-           designed, but machine/programming language generated:
-           
-           Example:
-           by initialization of parser with "ClassInstance"
-           such overly-verbose tree (i.e. Bruker):
-           
-           DetectorHeader
-           |-ClassInstance
+        pre_str_dub_attr: string (default: "@"), which
+            is going to be prepend to attribute name when creating
+            dictionary tree if children element with same name is used
+        str_dub_text: string (default: "#text"), which is going to be
+            used for key in case element contains text and children tag
+        tags_to_flatten: string or list of strings with tag names
+            which should be flattened/skipped, bringing children of such tag
+            one level up. It is useful when OEM generated XML are not human
+            designed, but machine/programming language generated:
+
+            Example:
+            by initialization of parser with "ClassInstance"
+            such overly-verbose tree (i.e. Bruker):
+
+            DetectorHeader
             |-ClassInstance
-              |-Type
-              |-Window
-              ...
+              |-ClassInstance
+                |-Type
+                |-Window
+                ...
 
-           can be sanitized to such:
+            can be sanitized to such:
 
-           DetectorHeader
-           |-Type
-           |-Window
-           ...
-           
-           where produced dict/list structures are good enought to be
-           returned as part of original metadata without making any more
-           copies.
+            DetectorHeader
+            |-Type
+            |-Window
+            ...
+
+            where produced dict/list structures are good enought to be
+            returned as part of original metadata without making any more
+            copies.
+
+        Usage
+        ------
+        in target format parser:
+
+        from rsciio.utils.tools import XmlToDict
+        
+        #setup the parser:
+        xml_to_dict = XmlToDict(pre_str_dub_attr="XmlClass",
+                                tags_to_flatten=["ClassInstance",
+                                                 "ChildrenClassInstance",
+                                                 "JustOtherPointlessNode"])
+        # use parser:
+        pytree = xml_to_dict.dictionarize(etree_node)
         """
-
+        if tags_to_flatten is None:
+            tags_to_flatten = []
         if type(tags_to_flatten) not in [str, list]:
-            raise KeyError(
-                "tags_to_flatten keyword accepts string or list of strings")
+            raise ValueError(
+                "tags_to_flatten keyword accepts string or list of strings"
+            )
+        if not isinstance(pre_str_dub_attr, str):
+            raise ValueError(
+                "pre_str_dub_attr value is not set with string type"
+            )
+        if not isinstance(str_dub_text, str):
+            raise ValueError(
+                "str_dub_text value is not set with string type"
+            )
         if isinstance(tags_to_flatten, str):
             tags_to_flatten = [tags_to_flatten]
         self.tags_to_flatten = tags_to_flatten
+        self.pre_str_dub_attr = pre_str_dub_attr
+        self.str_dub_text = str_dub_text
 
-    def dictionarize(self, el):
+    def dictionarize(self, et_node):
         """take etree XML node and return its conversion into
         pythonic dict/list representation of that XML tree
         with some sanitization"""
-        d = {el.tag: {} if el.attrib else None}
-        children = list(el)
+        d_node = {et_node.tag: {} if et_node.attrib else None}
+        children = list(et_node)
         if children:
-            dd = defaultdict(list)
-            for dc in map(self.dictionarize, children):
-                for key, val in dc.items():
-                    dd[key].append(val)
-            d = {el.tag: {key: interpret(val[0]) if len(val) == 1
-                          else val
-                          for key, val in dd.items()}}
-        if el.attrib:
-            d[el.tag].update(
-                ("XmlClass" + key if list(el) else key, interpret(val))
-                for key, val in el.attrib.items()
+            dd_node = defaultdict(list)
+            for dc_node in map(self.dictionarize, children):
+                for key, val in dc_node.items():
+                    dd_node[key].append(val)
+            d_node[et_node.tag] = {
+                key: interpret(val[0]) if len(val) == 1 else val
+                for key, val in dd_node.items()}
+        if et_node.attrib:
+            d_node[et_node.tag].update(
+                (self.pre_str_dub_attr + key if children else key,
+                 interpret(val))
+                for key, val in et_node.attrib.items()
                 )
-        if el.text:
-            text = el.text.strip()
-            if children or el.attrib:
-                if text:
-                    d[el.tag]["#text"] = interpret(text)
+        if et_node.text:
+            text = et_node.text.strip()
+            # if there is tags (children  or attributes
+            # present and text, then text cant go directly under
+            # key, but needs to be denoted alongside the attributes
+            # or children with specified text as the key:
+            if (children or et_node.attrib) and text:
+                d_node[et_node.tag][self.str_dub_text] = interpret(text)
             else:
-                d[el.tag] = interpret(text)
+                d_node[et_node.tag] = interpret(text)
         for tag in self.tags_to_flatten:
-            if tag in d:
-                return d[tag]
-        return d
+            if tag in d_node:
+                return d_node[tag]
+        return d_node
 
 
 def xml2dtb(et, dictree):

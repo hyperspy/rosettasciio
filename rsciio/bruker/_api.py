@@ -28,7 +28,6 @@
 # ----------------------
 from os.path import splitext, basename
 from math import ceil
-import re
 import logging
 from zlib import decompress as unzip_block
 from struct import unpack as strct_unp
@@ -36,10 +35,10 @@ from datetime import datetime
 from ast import literal_eval
 import codecs
 import xml.etree.ElementTree as ET
-from collections import defaultdict
 import io
 
 from rsciio.utils.date_time_tools import msfiletime_to_unix
+from rsciio.utils.tools import sanitize_msxml_float, XmlToDict
 
 import dask.delayed as dd
 import dask.array as da
@@ -63,13 +62,9 @@ except ImportError:  # pragma: no cover
 Falling back to slow python only backend."""
     )
 
-# define re with two capturing groups with comma in between
-# firstgroup looks for numeric value after <tag> (the '>' char) with or
-# without minus sign, second group looks for numeric value with following
-# closing <\tag> (the '<' char); '([Ee]-?\d*)' part (optionally a third group)
-# checks for scientific notation (e.g. 8,843E-7 -> 'E-7');
-# compiled pattern is binary, as raw xml string is binary.:
-fix_dec_patterns = re.compile(b"(>-?\\d+),(\\d*([Ee]-?\\d*)?<)")
+# create dictionizer customized to Bruker Xml streams:
+x2d = XmlToDict(pre_str_dub_attr="XmlClass",
+                tags_to_flatten=["ClassInstance"])
 
 
 class Container(object):
@@ -365,7 +360,7 @@ class SFS_reader(object):
                 raw_tree = temp_str.read(self.n_tree_items * 0x200)
                 temp_str.close()
             temp_item_list = [
-                SFSTreeItem(raw_tree[i * 0x200 : (i + 1) * 0x200], self)
+                SFSTreeItem(raw_tree[i * 0x200: (i + 1) * 0x200], self)
                 for i in range(self.n_tree_items)
             ]
             # temp list with parents of items
@@ -460,45 +455,6 @@ class SFS_reader(object):
         return item
 
 
-def interpret(string):
-    """interpret any string and return casted to appropriate
-    dtype python object
-    """
-    try:
-        return literal_eval(string)
-    except (ValueError, SyntaxError):
-        # SyntaxError due to:
-        # literal_eval have problems with strings like this '8842_80'
-        return string
-
-
-def dictionarize(t):
-    d = {t.tag: {} if t.attrib else None}
-    children = list(t)
-    if children:
-        dd = defaultdict(list)
-        for dc in map(dictionarize, children):
-            for k, v in dc.items():
-                dd[k].append(v)
-        d = {t.tag: {k: interpret(v[0]) if len(v) == 1 else v for k, v in dd.items()}}
-    if t.attrib:
-        d[t.tag].update(
-            ("XmlClass" + k if list(t) else k, interpret(v))
-            for k, v in t.attrib.items()
-        )
-    if t.text:
-        text = t.text.strip()
-        if children or t.attrib:
-            if text:
-                d[t.tag]["#text"] = interpret(text)
-        else:
-            d[t.tag] = interpret(text)
-    if "ClassInstance" in d:
-        return d["ClassInstance"]
-    else:
-        return d
-
-
 class EDXSpectrum(object):
     def __init__(self, spectrum):
         """
@@ -523,11 +479,11 @@ class EDXSpectrum(object):
         xrf_header = TRTHeader.find("./ClassInstance[@Type='TRTXrfHeader']")
 
         # map stuff from harware xml branch:
-        self.hardware_metadata = dictionarize(hardware_header)
+        self.hardware_metadata = x2d.dictionarize(hardware_header)
         self.amplification = self.hardware_metadata["Amplification"]  # USED
 
         # map stuff from detector xml branch
-        self.detector_metadata = dictionarize(detector_header)
+        self.detector_metadata = x2d.dictionarize(detector_header)
         self.detector_type = self.detector_metadata["Type"]  # USED
 
         # decode silly hidden detector layer info:
@@ -540,9 +496,9 @@ class EDXSpectrum(object):
 
         # map stuff from esma xml branch:
         if esma_header:
-            self.esma_metadata = dictionarize(esma_header)
+            self.esma_metadata = x2d.dictionarize(esma_header)
         if xrf_header:
-            xrf_header_dict = dictionarize(xrf_header)
+            xrf_header_dict = x2d.dictionarize(xrf_header)
             self.esma_metadata = {
                 "PrimaryEnergy": xrf_header_dict["Voltage"],
                 "ElevationAngle": xrf_header_dict["ExcitationAngle"],
@@ -554,7 +510,7 @@ class EDXSpectrum(object):
         if date_time is not None:
             self.date, self.time = date_time
 
-        self.spectrum_metadata = dictionarize(spectrum_header)
+        self.spectrum_metadata = x2d.dictionarize(spectrum_header)
         self.offset = self.spectrum_metadata["CalibAbs"]
         self.scale = self.spectrum_metadata["CalibLin"]
 
@@ -613,7 +569,7 @@ class HyperHeader(object):
         self._set_images(root)
         self.elements = {}
         self._set_elements(root)
-        self.line_counter = interpret(root.find("./LineCounter").text)
+        self.line_counter = literal_eval(root.find("./LineCounter").text)
         self.channel_count = int(root.find("./ChCount").text)
         self.mapping_count = int(root.find("./DetectorCount").text)
         # self.channel_factors = {}
@@ -632,7 +588,7 @@ class HyperHeader(object):
         """
 
         semData = root.find("./ClassInstance[@Type='TRTSEMData']")
-        self.sem_metadata = dictionarize(semData)
+        self.sem_metadata = x2d.dictionarize(semData)
         # parse values for use in hspy metadata:
         self.hv = self.sem_metadata.get("HV", 0.0)  # in kV
         # image/hypermap resolution in um/pixel:
@@ -644,10 +600,10 @@ class HyperHeader(object):
         self.y_res = self.sem_metadata.get("DY", 1.0)
         # stage position:
         semStageData = root.find("./ClassInstance[@Type='TRTSEMStageData']")
-        self.stage_metadata = dictionarize(semStageData)
+        self.stage_metadata = x2d.dictionarize(semStageData)
         # DSP configuration (always present, part of Bruker system):
         DSPConf = root.find("./ClassInstance[@Type='TRTDSPConfiguration']")
-        self.dsp_metadata = dictionarize(DSPConf)
+        self.dsp_metadata = x2d.dictionarize(DSPConf)
 
     def _set_mode(self, instrument=None):
         if instrument is not None:
@@ -672,22 +628,23 @@ class HyperHeader(object):
     def _parse_image(self, xml_node, overview=False):
         """parse image from bruker xml image node."""
         if overview:
-            rect_node = xml_node.find(
+            overlay_node = xml_node.find(
                 "./ChildClassInstances"
                 "/ClassInstance["
                 # "@Type='TRTRectangleOverlayElement' and "
                 "@Name='Map']/TRTSolidOverlayElement/"
                 "TRTBasicLineOverlayElement/TRTOverlayElement"
             )
-            if rect_node is not None:
-                over_rect = dictionarize(rect_node)["TRTOverlayElement"]["Rect"]
+            if overlay_node is not None:
+                overlay_dict = x2d.dictionarize(overlay_node)
+                over_rect = overlay_dict["TRTOverlayElement"]["Rect"]
                 rect = {
                     "y1": over_rect["Top"] * self.y_res,
                     "x1": over_rect["Left"] * self.x_res,
                     "y2": over_rect["Bottom"] * self.y_res,
                     "x2": over_rect["Right"] * self.x_res,
                 }
-                over_dict = {
+                md_over_dict = {
                     "marker_type": "Rectangle",
                     "plot_on_signal": True,
                     "data": rect,
@@ -715,8 +672,8 @@ class HyperHeader(object):
                 item["metadata"]["General"] = {}
                 if desc is not None:
                     item["metadata"]["General"]["title"] = str(desc.text)
-                if overview and (rect_node is not None):
-                    item["metadata"]["Markers"] = {"overview": over_dict}
+                if overview and (overlay_node is not None):
+                    item["metadata"]["Markers"] = {"overview": md_over_dict}
                 image.images.append(item)
         return image
 
@@ -755,7 +712,7 @@ class HyperHeader(object):
                 "/ChildClassInstances"
             )
             for j in elements.findall("./ClassInstance[@Type='TRTSpectrumRegion']"):
-                tmp_d = dictionarize(j)
+                tmp_d = x2d.dictionarize(j)
                 # In case no information on the specific selected X-ray line is
                 # available, assume it is a 'Ka' line, reflecting the fact that element
                 # tables in Bruker Esprit (1.9 and 2.1) store a single K line for Li-Al
@@ -941,10 +898,10 @@ class BCF_reader(SFS_reader):
             if "SpectrumData" in i:
                 self.available_indexes.append(int(i[-1]))
         self.def_index = min(self.available_indexes)
-        header_byte_str = header_file.get_as_BytesIO_string().getvalue()
-        hd_bt_str = fix_dec_patterns.sub(b"\\1.\\2", header_byte_str)
+        header_bytes = header_file.get_as_BytesIO_string().getvalue()
+        sanitized_bytes = sanitize_msxml_float(header_bytes)
         self.header = HyperHeader(
-            hd_bt_str, self.available_indexes, instrument=instrument
+            sanitized_bytes, self.available_indexes, instrument=instrument
         )
         self.hypermap = {}
 
@@ -1092,9 +1049,9 @@ def spx_reader(filename, lazy=False):
         },
     }
     if results_xml is not None:
-        hy_spec["original_metadata"]["Results"] = dictionarize(results_xml)
+        hy_spec["original_metadata"]["Results"] = x2d.dictionarize(results_xml)
     if elements_xml is not None:
-        elem = dictionarize(elements_xml)["ChildClassInstances"]
+        elem = x2d.dictionarize(elements_xml)["ChildClassInstances"]
         hy_spec["original_metadata"]["Selected_elements"] = elem
         hy_spec["metadata"]["Sample"]["elements"] = elem["XmlClassName"]
     return [hy_spec]

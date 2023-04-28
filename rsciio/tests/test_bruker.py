@@ -254,7 +254,7 @@ def test_fast_bcf():
 
 
 def test_decimal_regex():
-    from rsciio.bruker._api import fix_dec_patterns
+    from rsciio.utils.tools import sanitize_msxml_float
 
     dummy_xml_positive = [
         b"<dummy_tag>85,658</dummy_tag>",
@@ -268,9 +268,9 @@ def test_decimal_regex():
         b"<dum_tag>12e1,23,-24E-5</dum_tag>",
     ]
     for i in dummy_xml_positive:
-        assert b"85.658" in fix_dec_patterns.sub(b"\\1.\\2", i)
+        assert b"85.658" in sanitize_msxml_float(i)
     for j in dummy_xml_negative:
-        assert b"." not in fix_dec_patterns.sub(b"\\1.\\2", j)
+        assert b"." not in sanitize_msxml_float(j)
 
 
 def test_all_spx_loads():

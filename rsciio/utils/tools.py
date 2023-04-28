@@ -281,9 +281,9 @@ class XmlToDict:
             for dc_node in map(self.dictionarize, children):
                 for key, val in dc_node.items():
                     dd_node[key].append(val)
-            d_node[et_node.tag] = {
+            d_node = {et_node.tag: {
                 key: interpret(val[0]) if len(val) == 1 else val
-                for key, val in dd_node.items()}
+                for key, val in dd_node.items()}}
         if et_node.attrib:
             d_node[et_node.tag].update(
                 (self.pre_str_dub_attr + key if children else key,
@@ -296,8 +296,9 @@ class XmlToDict:
             # present and text, then text cant go directly under
             # key, but needs to be denoted alongside the attributes
             # or children with specified text as the key:
-            if (children or et_node.attrib) and text:
-                d_node[et_node.tag][self.str_dub_text] = interpret(text)
+            if (children or et_node.attrib):
+                if text:
+                    d_node[et_node.tag][self.str_dub_text] = interpret(text)
             else:
                 d_node[et_node.tag] = interpret(text)
         for tag in self.tags_to_flatten:

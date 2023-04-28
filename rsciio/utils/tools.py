@@ -183,31 +183,18 @@ def overwrite(filename):
         return True
 
 
-def interpret(string):
-    """interpret any string and return casted to appropriate
-    dtype python object
-    """
-    try:
-        return literal_eval(string)
-    except (ValueError, SyntaxError):
-        # SyntaxError due to:
-        # literal_eval have problems with strings like this '8842_80'
-        return string
-
-
 class XmlToDict:
     """Customisable XML to python dict and list based tree translator"""
-    def __init__(self,
-                 pre_str_dub_attr="@",
-                 str_dub_text="#text",
-                 tags_to_flatten=None):
+    def __init__(
+        self, dub_attr_pre_str="@", dub_text_str="#text", tags_to_flatten=None
+    ):
         """create parser for XML etree node to dict/list conversion
         Parameters for initialization
         -----------------------------
-        pre_str_dub_attr: string (default: "@"), which
+        dub_attr_pre_str: string (default: "@"), which
             is going to be prepend to attribute name when creating
             dictionary tree if children element with same name is used
-        str_dub_text: string (default: "#text"), which is going to be
+        dub_text_str: string (default: "#text"), which is going to be
             used for key in case element contains text and children tag
         tags_to_flatten: string or list of strings with tag names
             which should be flattened/skipped, bringing children of such tag
@@ -241,7 +228,7 @@ class XmlToDict:
         in target format parser:
 
         from rsciio.utils.tools import XmlToDict
-        
+
         #setup the parser:
         xml_to_dict = XmlToDict(pre_str_dub_attr="XmlClass",
                                 tags_to_flatten=["ClassInstance",
@@ -256,19 +243,27 @@ class XmlToDict:
             raise ValueError(
                 "tags_to_flatten keyword accepts string or list of strings"
             )
-        if not isinstance(pre_str_dub_attr, str):
-            raise ValueError(
-                "pre_str_dub_attr value is not set with string type"
-            )
-        if not isinstance(str_dub_text, str):
-            raise ValueError(
-                "str_dub_text value is not set with string type"
-            )
+        if not isinstance(dub_attr_pre_str, str):
+            raise ValueError("dub_attr_pre_str value is not set with string type")
+        if not isinstance(dub_text_str, str):
+            raise ValueError("dub_text_str value is not set with string type")
         if isinstance(tags_to_flatten, str):
             tags_to_flatten = [tags_to_flatten]
         self.tags_to_flatten = tags_to_flatten
-        self.pre_str_dub_attr = pre_str_dub_attr
-        self.str_dub_text = str_dub_text
+        self.dub_attr_pre_str = dub_attr_pre_str
+        self.dub_text_str = dub_text_str
+
+    @staticmethod
+    def _eval(string):
+        """interpret any string and return casted to appropriate
+        dtype python object
+        """
+        try:
+            return literal_eval(string)
+        except (ValueError, SyntaxError):
+            # SyntaxError due to:
+            # literal_eval have problems with strings like this '8842_80'
+            return string
 
     def dictionarize(self, et_node):
         """take etree XML node and return its conversion into
@@ -281,26 +276,28 @@ class XmlToDict:
             for dc_node in map(self.dictionarize, children):
                 for key, val in dc_node.items():
                     dd_node[key].append(val)
-            d_node = {et_node.tag: {
-                key: interpret(val[0]) if len(val) == 1 else val
-                for key, val in dd_node.items()}}
+            d_node = {
+                et_node.tag: {
+                    key: self._eval(val[0]) if len(val) == 1 else val
+                    for key, val in dd_node.items()
+                }
+            }
         if et_node.attrib:
             d_node[et_node.tag].update(
-                (self.pre_str_dub_attr + key if children else key,
-                 interpret(val))
+                (self.dub_attr_pre_str + key if children else key, self._eval(val))
                 for key, val in et_node.attrib.items()
-                )
+            )
         if et_node.text:
             text = et_node.text.strip()
-            # if there is tags (children  or attributes
+            # if there are children  or attributes
             # present and text, then text cant go directly under
             # key, but needs to be denoted alongside the attributes
-            # or children with specified text as the key:
-            if (children or et_node.attrib):
+            # or children with pre-specified str as the key:
+            if children or et_node.attrib:
                 if text:
-                    d_node[et_node.tag][self.str_dub_text] = interpret(text)
+                    d_node[et_node.tag][self.dub_text_str] = self._eval(text)
             else:
-                d_node[et_node.tag] = interpret(text)
+                d_node[et_node.tag] = self._eval(text)
         for tag in self.tags_to_flatten:
             if tag in d_node:
                 return d_node[tag]

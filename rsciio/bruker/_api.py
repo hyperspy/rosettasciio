@@ -63,8 +63,7 @@ Falling back to slow python only backend."""
     )
 
 # create dictionizer customized to Bruker Xml streams:
-x2d = XmlToDict(pre_str_dub_attr="XmlClass",
-                tags_to_flatten=["ClassInstance"])
+x2d = XmlToDict(dub_attr_pre_str="XmlClass", tags_to_flatten="ClassInstance")
 
 
 class Container(object):
@@ -360,7 +359,7 @@ class SFS_reader(object):
                 raw_tree = temp_str.read(self.n_tree_items * 0x200)
                 temp_str.close()
             temp_item_list = [
-                SFSTreeItem(raw_tree[i * 0x200: (i + 1) * 0x200], self)
+                SFSTreeItem(raw_tree[i * 0x200 : (i + 1) * 0x200], self)
                 for i in range(self.n_tree_items)
             ]
             # temp list with parents of items

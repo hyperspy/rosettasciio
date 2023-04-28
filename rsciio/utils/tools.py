@@ -185,6 +185,7 @@ def overwrite(filename):
 
 class XmlToDict:
     """Customisable XML to python dict and list based tree translator"""
+
     def __init__(
         self, dub_attr_pre_str="@", dub_text_str="#text", tags_to_flatten=None
     ):

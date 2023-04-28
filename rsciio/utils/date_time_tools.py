@@ -120,4 +120,5 @@ def msfiletime_to_unix(msfiletime):
     -------
         datetime.datetime object"""
     return datetime.datetime(1601, 1, 1) + datetime.timedelta(
-        microseconds=msfiletime / 10)
+        microseconds=msfiletime / 10
+    )

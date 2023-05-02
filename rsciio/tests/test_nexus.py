@@ -40,6 +40,7 @@ from rsciio.nexus._api import (
     _check_search_keys,
     _parse_from_file,
     _nexus_dataset_to_signal,
+    _find_data,
 )
 from hyperspy.signals import BaseSignal
 
@@ -51,6 +52,7 @@ file2 = os.path.join(dirpath, "nexus_files", "saved_multi_signal.nxs")
 file3 = os.path.join(dirpath, "nexus_files", "nexus_dls_example.nxs")
 file4 = os.path.join(dirpath, "nexus_files", "nexus_dls_example_no_axes.nxs")
 file5 = os.path.join(dirpath, "nexus_files", "nexus_test_datakey.nxs")
+file6 = os.path.join(dirpath, "nexus_files", "nxdata_tagged_as_string.nxs")
 
 
 my_path = os.path.dirname(__file__)
@@ -607,3 +609,10 @@ def test_axes_key_str_or_bytes_with_nonlinear_axis():
 
     assert nav_list[0]["offset"] == 6
     assert nav_list[1]["offset"] == 0
+
+def test_nxdata_tag_str_or_bytes():
+    with h5py.File(file6, 'r') as f:
+        nx, hdf5 = _find_data(f['/entry1/'], ['dummy'])
+
+    assert len(nx) == 2
+    assert len(hdf5) == 2

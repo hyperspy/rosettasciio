@@ -745,8 +745,7 @@ def _find_data(group, search_keys=None, hardlinks_only=False, absolute_path=None
                 target = _getlink(group, rootkey, key)
                 if "NX_class" in value.attrs:
                     if (
-                        (value.attrs["NX_class"] == b"NXdata"
-                        or value.attrs["NX_class"] == "NXdata")
+                        value.attrs["NX_class"] in [b"NXdata", "NXdata"]
                         and "signal" in value.attrs.keys()
                     ):
                         all_nx_datasets.append(rootkey)

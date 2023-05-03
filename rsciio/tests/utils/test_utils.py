@@ -20,7 +20,7 @@ XML_TEST_NODE = ET.fromstring(weird_but_valid_xml_str)
 
 
 def test_msxml_sanitization():
-    bad_msxml = """
+    bad_msxml = b"""
     <main>
       <simpleFloat>0,2</simpleFloat>
       <scientificSmall>1,9E-5</scientificSmall>

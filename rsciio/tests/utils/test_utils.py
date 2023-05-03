@@ -94,6 +94,7 @@ def test_list_interchild_text_val_flatten():
         "SDD risks to be Toasted."
     ]
 
+
 def x2d_subclass_for_custom_bool():
     """test subclass of XmlToDict with updated eval function"""
     class CusXmlToDict(XmlToDict):
@@ -113,6 +114,17 @@ def x2d_subclass_for_custom_bool():
     pynode = x2d.dictionarize(node)
     assert pynode["IsToasted"] is False
     assert pynode["IsToasting"] is True
+
+
+def test_wrong_type_x2d_initiation():
+    with pytest.raises(ValueError):
+        XmlToDict(dub_attr_pre_str=1)
+    with pytest.raises(ValueError):
+        XmlToDict(tags_to_flatten=0)
+    with pytest.raises(ValueError):
+        XmlToDict(interchild_text_parsing="simple")
+    with pytest.raises(ValueError):
+        XmlToDict(dub_text_str=2)
 
 
 def _get_example(date, time, time_zone=None):

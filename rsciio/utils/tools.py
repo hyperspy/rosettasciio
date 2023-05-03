@@ -73,6 +73,8 @@ def sanitize_msxml_float(xml_b_string):
     preferences of using comma as decimal separation;
     Software in conjunction of these above listed conditions can produce
     not-interoperable XML, which leads to wrong interpretation of context.
+    This sanitizer searches and corrects that - it should be used before
+    being fed to .fromsting of element tree.
     """
     return _fix_dec_patterns.sub(b"\\1.\\2", xml_b_string)
 
@@ -184,10 +186,15 @@ def overwrite(filename):
 
 
 class XmlToDict:
-    """Customisable XML to python dict and list based tree translator"""
+    """Customisable XML to python dict and list based Hierarchical tree
+    translator.
+    """
 
     def __init__(
-        self, dub_attr_pre_str="@", dub_text_str="#value", tags_to_flatten=None,
+        self,
+        dub_attr_pre_str="@",
+        dub_text_str="#value",
+        tags_to_flatten=None,
         interchild_text_parsing="first"
     ):
         """Create translator for hierarchical XML etree node into
@@ -268,8 +275,10 @@ class XmlToDict:
         if isinstance(tags_to_flatten, str):
             tags_to_flatten = [tags_to_flatten]
         if interchild_text_parsing not in ("skip", "first", "cat", "list"):
-            raise ValueError("interleaved_text_parsing should be set to the one of: "
-                             "('skip', 'first', 'cat', 'list')")
+            raise ValueError(
+                "interleaved_text_parsing should be set to the one of: "
+                "('skip', 'first', 'cat', 'list')"
+            )
         self.tags_to_flatten = tags_to_flatten
         self.dub_attr_pre_str = dub_attr_pre_str
         self.dub_text_str = dub_text_str
@@ -280,7 +289,17 @@ class XmlToDict:
         """interpret any string and return casted to appropriate
         dtype python object.
         If this does not return desired type, consider subclassing
-        and reimplementing this method.
+        and reimplementing this method like this:
+
+        class SubclassedXmlToDict(XmlToDict):
+            @staticmethod
+            def eval(string):
+                if condition check to catch the case
+                ...
+                elif
+                ...
+                else:
+                    return XmlToDict.eval(string)
         """
         try:
             return literal_eval(string)
@@ -320,11 +339,16 @@ class XmlToDict:
                     if self.poor_text_mode == "first":
                         d_node[et_node.tag][self.dub_text_str] = self.eval(text)
                     elif self.poor_text_mode in ("cat", "list"):
-                        inter_pieces = [text]
-                        inter_pieces.extend([str(child.tail).strip() for child in children])
-                        if self.poor_text_mode == "cat":
-                            inter_pieces = " ".join(inter_pieces)
-                        d_node[et_node.tag]["#interchild_text"] = inter_pieces
+                        tails = [str(c.tail if c.tail is not None else "").strip()
+                                 for c in children]
+                        if any(tails):
+                            inter_pieces = [text]
+                            inter_pieces.extend(tails)
+                            if self.poor_text_mode == "cat":
+                                inter_pieces = "".join(inter_pieces)
+                            d_node[et_node.tag]["#interchild_text"] = inter_pieces
+                        else:
+                            d_node[et_node.tag][self.dub_text_str] = self.eval(text)
                 elif et_node.attrib:
                     d_node[et_node.tag][self.dub_text_str] = self.eval(text)
         for tag in self.tags_to_flatten:

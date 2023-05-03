@@ -21,13 +21,13 @@
           <Dim axes="width, depth, height">33.3,27.4,25.2</Dim>
           <IsCoated/>
           <IsToasted>not today</IsToasted>
-          <IsToasting>True</IsToasting>
+          <IsToasting>affirmative</IsToasting>
        </Instrument>
        <Sample name="breakfast test" number="23">With one of these components
           <Components>
             <ComponentChildren>
               <Instance name="Eggs" calories="345.2" breaking-speed="5.2"></Instance>
-              <Instance name="Bakon" calories="5000" breaking-speed="11"></Instance>
+              <Instance name="Bacon" calories="5000" breaking-speed="11"></Instance>
               <Instance name="Spam" calories="0.1" breaking-speed="24.6"></Instance>
             </ComponentChildren>
           </Components>

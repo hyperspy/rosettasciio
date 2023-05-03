@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 
 from rsciio.utils.tools import DTBox, dict2sarray, XmlToDict, ET
+from rsciio.utils.tools import sanitize_msxml_float
 import rsciio.utils.date_time_tools as dtt
 
 dt = [("x", np.uint8), ("y", np.uint16), ("text", (bytes, 6))]
@@ -12,10 +13,106 @@ dt = [("x", np.uint8), ("y", np.uint16), ("text", (bytes, 6))]
 MY_PATH = os.path.dirname(__file__)
 TEST_XML_PATH = os.path.join(MY_PATH, "ToastedBreakFastSDD.xml")
 
-with open(TEST_XML_PATH, 'r') as fn:
+with open(TEST_XML_PATH, "r") as fn:
     weird_but_valid_xml_str = fn.read()
 
 XML_TEST_NODE = ET.fromstring(weird_but_valid_xml_str)
+
+
+def test_msxml_sanitization():
+    bad_msxml = """
+    <main>
+      <simpleFloat>0,2</simpleFloat>
+      <scientificSmall>1,9E-5</scientificSmall>
+      <scientificBig>0,2E10</scientificBig>
+      <actuallyList>0,2,3</actuallyList>
+    </main>
+    """
+    sanitized_xml_bytes = sanitize_msxml_float(bad_msxml)
+    et = ET.fromstring(sanitized_xml_bytes)
+    assert et[0].text == "0.2"
+    assert et[1].text == "1.9E-5"
+    assert et[2].text == "0.2E10"
+    assert et[3].text == "0,2,3"  # is not float
+
+
+def test_default_x2d():
+    """test of default XmlToDict translation with attributes prefixed with @,
+    interchild_text_parsing set to 'first',
+    no flattening tags set, and dub_text_str set to '#value'
+    """
+    x2d = XmlToDict()
+    pynode = x2d.dictionarize(XML_TEST_NODE)
+    assert pynode["TestXML"]["Main"]["ClassInstance"]["Sample"]["Components"]["ComponentChildren"]["Instance"][0]["name"] == 'Eggs'
+    t = "With one of these components"
+    assert pynode["TestXML"]["Main"]["ClassInstance"]["Sample"]["#value"] == t
+
+def test_skip_interchild_text_flatten():
+    """test of XmlToDict translation with interchild_text_parsing set to 'skip',
+    three string containing list set to flattening tags. Other kwrds - default.
+    """
+    x2d = XmlToDict(
+        interchild_text_parsing='skip',
+        tags_to_flatten=["ClassInstance", "ComponentChildren", "Instance", "TestXML"]
+    )
+    pynode = x2d.dictionarize(XML_TEST_NODE)
+    assert pynode["Main"]["Sample"]["Components"]["name"][0] == "Eggs"
+    assert pynode["Main"]["Sample"].get("#value") is None
+
+
+def test_concat_interchild_text_val_flatten():
+    """test of XmlToDict translator with interchild_text_parsing set to
+    'cat' (concatenation), four flattening tags set, and dub_text_str set
+    to '#text'
+    """
+    x2d = XmlToDict(
+        dub_text_str="#text",
+        interchild_text_parsing='cat',
+        tags_to_flatten=["ClassInstance", "ComponentChildren", "Instance", "Main"]
+    )
+    pynode = x2d.dictionarize(XML_TEST_NODE.find("Main"))
+    assert pynode["Instrument"]["Type"].get("#value") is None
+    assert pynode["Instrument"]["type"]["#text"] == "Toaster"
+    assert pynode["Sample"].get("#value") is None
+    assert pynode["Sample"].get("#text") is None
+    t = "With one of these componentsSDD risks to be Toasted."
+    assert pynode["Sample"]["#interchild_text"] == t
+
+
+def test_list_interchild_text_val_flatten():
+    """test of XmlToDict translator interchild_text_parsing set to 'list'
+    """
+    x2d = XmlToDict(
+        dub_text_str="#value",
+        interchild_text_parsing='list',
+        tags_to_flatten=["ClassInstance", "ComponentChildren", "Instance"]
+    )
+    pynode = x2d.dictionarize(XML_TEST_NODE.find("Main//Sample"))
+    assert pynode["Sample"]["#interchild_text"] == [
+        "With one of these components",
+        "",
+        "SDD risks to be Toasted."
+    ]
+
+def x2d_subclass_for_custom_bool():
+    """test subclass of XmlToDict with updated eval function"""
+    class CusXmlToDict(XmlToDict):
+        @staticmethod
+        def eval(string):
+            if string == "not today":
+                return False
+            if string == "affirmative":
+                return True
+            return XmlToDict.eval(string)
+
+    x2d = CusXmlToDict(
+        dub_text_str="#value",
+        tags_to_flatten=["ClassInstance", "ComponentChildren", "Instance"]
+    )
+    node = XML_TEST_NODE.find("Main//Instrument")
+    pynode = x2d.dictionarize(node)
+    assert pynode["IsToasted"] is False
+    assert pynode["IsToasting"] is True
 
 
 def _get_example(date, time, time_zone=None):

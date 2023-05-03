@@ -72,7 +72,7 @@ def test_concat_interchild_text_val_flatten():
     )
     pynode = x2d.dictionarize(XML_TEST_NODE.find("Main"))
     assert pynode["Instrument"]["Type"].get("#value") is None
-    assert pynode["Instrument"]["type"]["#text"] == "Toaster"
+    assert pynode["Instrument"]["Type"]["#text"] == "Toaster"
     assert pynode["Sample"].get("#value") is None
     assert pynode["Sample"].get("#text") is None
     t = "With one of these componentsSDD risks to be Toasted."

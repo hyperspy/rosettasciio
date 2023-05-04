@@ -43,9 +43,15 @@ def test_default_x2d():
     """
     x2d = XmlToDict()
     pynode = x2d.dictionarize(XML_TEST_NODE)
-    assert pynode["TestXML"]["Main"]["ClassInstance"]["Sample"]["Components"]["ComponentChildren"]["Instance"][0]["name"] == 'Eggs'
+    assert (
+        pynode["TestXML"]["Main"]["ClassInstance"]["Sample"]["Components"][
+            "ComponentChildren"
+        ]["Instance"][0]["name"]
+        == 'Eggs'
+    )
     t = "With one of these components"
     assert pynode["TestXML"]["Main"]["ClassInstance"]["Sample"]["#value"] == t
+
 
 def test_skip_interchild_text_flatten():
     """test of XmlToDict translation with interchild_text_parsing set to 'skip',
@@ -53,12 +59,11 @@ def test_skip_interchild_text_flatten():
     """
     x2d = XmlToDict(
         interchild_text_parsing='skip',
-        tags_to_flatten=["ClassInstance", "ComponentChildren", "Instance", "TestXML"]
+        tags_to_flatten=["ClassInstance", "ComponentChildren", "Instance", "TestXML"],
     )
     pynode = x2d.dictionarize(XML_TEST_NODE)
     assert pynode["Main"]["Sample"]["Components"]["name"][0] == "Eggs"
     assert pynode["Main"]["Sample"].get("#value") is None
-# fmt: on
 
 
 def test_concat_interchild_text_val_flatten():
@@ -69,7 +74,7 @@ def test_concat_interchild_text_val_flatten():
     x2d = XmlToDict(
         dub_text_str="#text",
         interchild_text_parsing='cat',
-        tags_to_flatten=["ClassInstance", "ComponentChildren", "Instance", "Main"]
+        tags_to_flatten=["ClassInstance", "ComponentChildren", "Instance", "Main"],
     )
     pynode = x2d.dictionarize(XML_TEST_NODE.find("Main"))
     assert pynode["Instrument"]["Type"].get("#value") is None
@@ -92,13 +97,14 @@ def test_list_interchild_text_val_flatten():
     assert pynode["Sample"]["#interchild_text"] == [
         "With one of these components",
         "",
-        "SDD risks to be Toasted."
+        "SDD risks to be Toasted.",
     ]
 
 
 def x2d_subclass_for_custom_bool():
     """test subclass of XmlToDict with updated eval function"""
-    class CusXmlToDict(XmlToDict):
+
+    class CustomXmlToDict(XmlToDict):
         @staticmethod
         def eval(string):
             if string == "not today":
@@ -107,9 +113,9 @@ def x2d_subclass_for_custom_bool():
                 return True
             return XmlToDict.eval(string)
 
-    x2d = CusXmlToDict(
+    x2d = CustomXmlToDict(
         dub_text_str="#value",
-        tags_to_flatten=["ClassInstance", "ComponentChildren", "Instance"]
+        tags_to_flatten=["ClassInstance", "ComponentChildren", "Instance"],
     )
     node = XML_TEST_NODE.find("Main//Instrument")
     pynode = x2d.dictionarize(node)

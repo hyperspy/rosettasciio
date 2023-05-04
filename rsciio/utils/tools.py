@@ -195,7 +195,7 @@ class XmlToDict:
         dub_attr_pre_str="@",
         dub_text_str="#value",
         tags_to_flatten=None,
-        interchild_text_parsing="first"
+        interchild_text_parsing="first",
     ):
         """Create translator for hierarchical XML etree node into
         dict/list conversion.
@@ -339,8 +339,10 @@ class XmlToDict:
                     if self.poor_text_mode == "first":
                         d_node[et_node.tag][self.dub_text_str] = self.eval(text)
                     elif self.poor_text_mode in ("cat", "list"):
-                        tails = [str(c.tail if c.tail is not None else "").strip()
-                                 for c in children]
+                        tails = [
+                            str(c.tail if c.tail is not None else "").strip()
+                            for c in children
+                        ]
                         if any(tails):
                             inter_pieces = [text]
                             inter_pieces.extend(tails)

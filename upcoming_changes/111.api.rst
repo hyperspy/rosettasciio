@@ -1,0 +1,4 @@
+Move, enhance and share xml to dict/list translation and other tools (new api for devs) from Bruker._api to utils:
+``utils.date_time_tools.msfiletime_to_unix`` function to convert the uint64 MSFILETIME to  datetime.datetime object.
+``utils.tools.sanitize_msxml_float`` function to sanitize some MSXML generated xml where comma is used as float decimal separator.
+``utils.tools.XmlToDict`` Xml to dict/list translator class with rich customization options as kwargs, and main method for translation ``dictionarize``

@@ -18,7 +18,7 @@ with open(TEST_XML_PATH, "r") as fn:
 
 XML_TEST_NODE = ET.fromstring(weird_but_valid_xml_str)
 
-
+# fmt: off
 def test_msxml_sanitization():
     bad_msxml = b"""
     <main>
@@ -58,6 +58,7 @@ def test_skip_interchild_text_flatten():
     pynode = x2d.dictionarize(XML_TEST_NODE)
     assert pynode["Main"]["Sample"]["Components"]["name"][0] == "Eggs"
     assert pynode["Main"]["Sample"].get("#value") is None
+# fmt: on
 
 
 def test_concat_interchild_text_val_flatten():

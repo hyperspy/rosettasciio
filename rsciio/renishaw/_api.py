@@ -1299,11 +1299,12 @@ def file_reader(
         along the signal axis and a warning is raised in case the delta varies
         by more than 1%%.
     load_unmatched_metadata: bool, default=False
-        Some of the original_metadata cannot be matched (no key just value).
-        Part of this is a VB-Script used for data acquisition (~230kB),
-        which blows up the original_metadata size. If this option is set to
-        `True` this metadata will be included and can be accessed by
-        s.original_metadata.UNMATCHED, otherwise the UNMATCHED tag will not exist.
+        Some of the original_metadata cannot be matched (no key, just value).
+        Part of this is a VisualBasic-Script used for data acquisition (~230kB),
+        which blows up the size of ``original_metadata``. If this option is set to
+        `True`, this metadata will be included and can be accessed by
+        ``s.original_metadata.UNMATCHED``,
+        otherwise the ``UNMATCHED`` tag will not exist.
 
     %s
     """

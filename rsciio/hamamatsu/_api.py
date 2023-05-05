@@ -20,7 +20,7 @@ import logging
 import importlib.util
 from pathlib import Path
 from copy import deepcopy
-from enum import IntEnum
+from enum import IntEnum, EnumMeta
 
 import numpy as np
 
@@ -75,30 +75,36 @@ TypeNames = {
 }
 
 
-## contradicting info in documentation
-## 0: not used vs 8bit
-## 1: 8bit vs compressed(not used)
-## 3: 32bit, but claimed to be unused, however testfiles use 32bit
-## rgb not used
-class FileType(IntEnum):
-    bit8_itex = 0
-    compressed = 1
+class DefaultEnum(IntEnum):
+    Unknown = 0
+
+
+class DefaultEnumMeta(EnumMeta):
+    def __call__(cls, value, *args, **kwargs):
+        if value not in cls._value2member_map_:
+            return DefaultEnum(0)
+        else:
+            return super().__call__(value, *args, **kwargs)
+
+
+## general itex formats may have different conventions
+## here the convention from the HPD-TA manual is used
+class FileType(IntEnum, metaclass=DefaultEnumMeta):
+    bit8 = 0
+    compressed = 1  # not used by HPD-TA
     bit16 = 2
     bit32 = 3
-    bit24_rgb = 11
-    bit48_rgb = 12
-    bit96_rgb = 13
 
 
 ## exists in testfiles
-class ApplicationType(IntEnum):
+class ApplicationType(IntEnum, metaclass=DefaultEnumMeta):
     application_hipic = 1
     application_ta = 2
     application_em = 3
 
 
 ## type is 37 in testfile -> not used
-class CameraType(IntEnum):
+class CameraType(IntEnum, metaclass=DefaultEnumMeta):
     no_camera = 0
     C4880 = 1
     C4742 = 2
@@ -121,7 +127,7 @@ class CameraType(IntEnum):
 
 
 ## not in testfiles
-class CameraSubType(IntEnum):
+class CameraSubType(IntEnum, metaclass=DefaultEnumMeta):
     C4880_00 = 1
     C4880_60 = 2
     C4880_80 = 3
@@ -163,7 +169,7 @@ class CameraSubType(IntEnum):
 
 
 ## exists in testfiles
-class AcqMode(IntEnum):
+class AcqMode(IntEnum, metaclass=DefaultEnumMeta):
     live = 1
     acquire = 2
     photon_counting = 3
@@ -171,7 +177,7 @@ class AcqMode(IntEnum):
 
 
 ## exists in file, doubled with FileType?
-class DatType(IntEnum):
+class DatType(IntEnum, metaclass=DefaultEnumMeta):
     dat8 = 1
     dat10 = 2
     dat12 = 3
@@ -183,7 +189,7 @@ class DatType(IntEnum):
 
 
 ## GrabberType, exists in some files
-class FrameGrabber(IntEnum):
+class FrameGrabber(IntEnum, metaclass=DefaultEnumMeta):
     grbNone = 0
     grbAFG = 1
     grbICP = 2
@@ -193,14 +199,14 @@ class FrameGrabber(IntEnum):
 
 
 ## Grabber SubType, exists in testfiles, but has value 0 -> not in here
-class AcquisitionMode(IntEnum):
+class AcquisitionModule(IntEnum, metaclass=DefaultEnumMeta):
     amdig = 1
     amvs = 2
     cam_link = 3
 
 
 ## exists in testfiles
-class LUTSize(IntEnum):
+class LUTSize(IntEnum, metaclass=DefaultEnumMeta):
     lut_size_8 = 1
     lut_size_10 = 2
     lut_size_12 = 3
@@ -211,21 +217,21 @@ class LUTSize(IntEnum):
 
 
 ## exists in testfiles
-class LUTColor(IntEnum):
+class LUTColor(IntEnum, metaclass=DefaultEnumMeta):
     lut_color_bw = 1
     lut_color_rainbow = 2
     lut_color_bw_without_color = 3
 
 
 ## no numbers in user manual, 0 in testfile -> linear?
-class LUTType(IntEnum):
+class LUTType(IntEnum, metaclass=DefaultEnumMeta):
     lut_type_linear = 1
     lut_type_gamma = 2
     lut_type_sigmoid = 3
 
 
 ## exists in testfiles
-class Scaling_Type(IntEnum):
+class Scaling_Type(IntEnum, metaclass=DefaultEnumMeta):
     scaling_linear = 1
     scaling_table = 2
 
@@ -296,8 +302,7 @@ class IMGReader:
         header["marker"] = self.__read_utf8(3)
         header["additional_info"] = self.__read_utf8(29)
         comment = self.__read_utf8(com_len)
-        ## TODO: implement rgb filetypes
-        if file_type == "bit8_itex":
+        if file_type == "bit8":
             dtype = "uint8"
         elif file_type == "bit16":
             dtype = "uint16"
@@ -316,6 +321,8 @@ class IMGReader:
     def _get_scaling_entry(scaling_dict, attr_name):
         x_val = scaling_dict.get("ScalingX" + attr_name)
         y_val = scaling_dict.get("ScalingY" + attr_name)
+        if y_val == "us":
+            y_val = "µs"
         return x_val, y_val
 
     def _extract_calibration_data(self, cal):
@@ -332,14 +339,18 @@ class IMGReader:
         if scale_type == 1:
             ## in this mode (focus mode) the y-axis does not correspond to time
             ## photoelectrons are not deflected here -> natural spread
-            ## TODO: scale, name, unit for this?
+            ## TODO: name for this?
+            axis["units"] = "px"
             axis["scale"] = 1
             axis["offset"] = 0
             axis["size"] = self._h_lines
+            axis["name"] = "Screen Position"
         elif scale_type == 2:
             data = self._extract_calibration_data(cal_addr)
+            # TODO: convert to uniform axis?
+            # in testfile wavelength is exactly uniform
+            # time is close
             axis["axis"] = data
-            axis["_type"] = "DataAxis"
         else:
             raise ValueError
         return axis
@@ -349,7 +360,6 @@ class IMGReader:
         x_cal_address, y_cal_address = self._get_scaling_entry(
             scaling_md, "ScalingFile"
         )
-        ## TODO: unit us == µs or ns?
         x_unit, y_unit = self._get_scaling_entry(scaling_md, "Unit")
         x_type, y_type = map(int, self._get_scaling_entry(scaling_md, "Type"))
         # x_scale, y_scale = map(float, self._get_scaling_entry(scaling_md, "Scale"))
@@ -473,7 +483,9 @@ class IMGReader:
     def _map_detector_md(self):
         detector = {}
         acq_dict = self.original_metadata.get("Comment", {}).get("Acquisition", {})
+        streak_dict = self.original_metadata.get("Comment", {}).get("Streak camera", {})
 
+        detector["frames"] = _str2numeric(acq_dict.get("NrExposure"), "int")
         try:
             exp_time_str = acq_dict["ExposureTime"]
         except KeyError:
@@ -486,8 +498,10 @@ class IMGReader:
             elif exp_time_units == "ms":
                 exp_time /= 1000
             else:
-                _logger.warning(f"integration_time is given in {exp_time_units}.")
-            detector["integration_time"] = exp_time
+                _logger.warning(
+                    f"integration_time is given in {exp_time_units} instead of seconds."
+                )
+            detector["integration_time"] = exp_time * detector["frames"]
 
         try:
             binning_str = acq_dict["pntBinning"]
@@ -496,33 +510,29 @@ class IMGReader:
         else:
             detector["binning"] = tuple(map(int, binning_str.split(",")))
 
-        ## TODO: areSource or areGRBScan for roi
-        try:
-            roi_str = acq_dict["areSource"]
-        except KeyError:
-            pass
-        else:
-            detector["sensor_roi"] = tuple(map(int, roi_str.split(",")))
-
         detector["processing"] = {
             "shading_correction": _str2bool(acq_dict.get("ShadingCorr")),
             "background_correction": _str2bool(acq_dict.get("BacksubCorr")),
             "curvature_correction": _str2bool(acq_dict.get("CurveCorr")),
             "defect_correction": _str2bool(acq_dict.get("DefectCorrection")),
         }
-        ## TODO: NrExposure == frames?
-        detector["frames"] = _str2numeric(acq_dict.get("NrExposure"), "int")
         detector["detector_type"] = "StreakCamera"
-        detector["model"] = (
-            self.original_metadata.get("Comment", {})
-            .get("Streak camera", {})
-            .get("DeviceName")
-        )
-        return detector
+        detector["model"] = streak_dict.get("DeviceName")
 
-    def _map_laser_md(self):
-        ## TODO: is there any information on this?
-        pass
+        detector["mcp_gain"] = _str2numeric(streak_dict.get("MCP Gain"), "float")
+        try:
+            time_range_str = streak_dict["Time Range"]
+        except KeyError:
+            pass
+        else:
+            time_range, time_range_units = time_range_str.split(" ")
+            time_range = float(time_range)
+            if time_range_units == "us":
+                time_range_units = "µs"
+            detector["time_range"] = time_range
+            detector["time_range_units"] = time_range_units
+        detector["acquisition_mode"] = AcqMode(int(acq_dict.get("AcqMode"))).name
+        return detector
 
     def _map_spectrometer_md(self):
         spectrometer = {}
@@ -551,7 +561,6 @@ class IMGReader:
         else:
             spectrometer["entrance_slit_width"] = entrance_slit_width
             ## TODO: units?, side entry iris?
-        ## TODO: wavelength -> laser_wavelength, central_wavelength?
         spectrometer["central_wavelength"] = _str2numeric(
             spectro_dict.get("Wavelength"), "float"
         )
@@ -562,12 +571,10 @@ class IMGReader:
         general = self._map_general_md()
         signal = self._map_signal_md()
         detector = self._map_detector_md()
-        laser = self._map_laser_md()
         spectrometer = self._map_spectrometer_md()
 
         acquisition_instrument = {
             "Detector": detector,
-            "Laser": laser,
             "Spectrometer": spectrometer,
         }
 
@@ -577,7 +584,6 @@ class IMGReader:
             "Signal": signal,
         }
         _remove_none_from_dict(metadata)
-        ## TODO: any other important metadata (MCP Gain, Time Range?)
         return metadata
 
 

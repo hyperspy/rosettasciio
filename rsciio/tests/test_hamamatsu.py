@@ -59,7 +59,7 @@ class TestOperate:
         assert ax0.size == 672
         assert ax1.size == 512
         assert ax0.units == "nm"
-        assert ax1.units == "us"
+        assert ax1.units == "µs"
 
         expected_data_start_X = [472.252, 472.33337, 472.41473, 472.4961, 472.57745]
         expected_data_start_Y = [0.0, 0.031080816, 0.062164314, 0.09325048, 0.12433932]
@@ -292,17 +292,15 @@ class TestOperate:
         assert detector.detector_type == "StreakCamera"
         assert detector.model == "C5680"
         assert detector.frames == 60
-        np.testing.assert_allclose(detector.integration_time, 5)
-        assert isinstance(detector.sensor_roi, tuple)
-        assert len(detector.sensor_roi) == 4
-        assert detector.sensor_roi[0] == 0
-        assert detector.sensor_roi[1] == 0
-        assert detector.sensor_roi[2] == 672
-        assert detector.sensor_roi[3] == 512
+        np.testing.assert_allclose(detector.integration_time, 300)
         assert detector.processing.background_correction == True
         assert detector.processing.curvature_correction == False
         assert detector.processing.defect_correction == False
         assert detector.processing.shading_correction == False
+        np.testing.assert_allclose(detector.time_range, 20)
+        assert detector.time_range_units == "µs"
+        np.testing.assert_allclose(detector.mcp_gain, 50)
+        assert detector.acquisition_mode == "analog_integration"
 
         np.testing.assert_allclose(spectrometer.entrance_slit_width, 10)
         assert spectrometer.model == "Andor SG"
@@ -332,7 +330,8 @@ class TestFocus:
         ax0 = axes[0]
         ax1 = axes[1]
         assert ax0.name == "Wavelength"
-        assert ax1.name == "Time"
+        assert ax1.name == "Screen Position"
+        assert ax1.units == "px"
         assert ax0.units == "nm"
         assert ax0.size == 672
         assert ax1.size == 512

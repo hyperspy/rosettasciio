@@ -66,7 +66,7 @@ html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
 
 html_theme_options = {
-    "github_url": "https://github.com/hyperspy/hyperspy",
+    "github_url": "https://github.com/hyperspy/rosettasciio",
     "icon_links": [
         {
             "name": "Gitter",

@@ -876,7 +876,7 @@ def _load_metadata(group, lazy=False, skip_array_metadata=False):
 
             elif type(item) is h5py.Group:
                 if "NX_class" in item.attrs:
-                    if item.attrs["NX_class"] not in [b"NXdata", 'NXdata']:
+                    if item.attrs["NX_class"] not in [b"NXdata", "NXdata"]:
                         tree[new_key] = find_meta_in_tree(
                             item,
                             rootkey,

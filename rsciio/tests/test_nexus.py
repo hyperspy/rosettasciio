@@ -610,9 +610,10 @@ def test_axes_key_str_or_bytes_with_nonlinear_axis():
     assert nav_list[0]["offset"] == 6
     assert nav_list[1]["offset"] == 0
 
+
 def test_nxdata_tag_str_or_bytes():
-    with h5py.File(file6, 'r') as f:
-        nx, hdf5 = _find_data(f['/entry1/'], ['dummy'])
+    with h5py.File(file6, "r") as f:
+        nx, hdf5 = _find_data(f["/entry1/"], ["dummy"])
 
     assert len(nx) == 2
     assert len(hdf5) == 2

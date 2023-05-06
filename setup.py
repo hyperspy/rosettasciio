@@ -179,7 +179,7 @@ extras_require = {
         "pytest-cov",
     ],  # for testing
     "docs": [
-        "pydata-sphinx-theme",
+        "pydata-sphinx-theme>=0.13",
         "sphinxcontrib-towncrier",
         # TODO: Remove explicit dependency on sphinx when pydata-sphinx-theme >= 0.13
         #  is available, and 0.13 as minimial supported version of pydata-sphinx-theme

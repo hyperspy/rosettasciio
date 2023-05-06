@@ -1,4 +1,3 @@
-
 Contributing
 ************
 
@@ -30,8 +29,18 @@ Please refer to the
 `HyperSpy developer guide <http://hyperspy.org/hyperspy-doc/current/dev_guide/intro.html>`_
 in order to get started and for detailed contributing guidelines.
 
-Reviewing
----------
+Lint
+----
+To keep the code style consistent (and more readable), `black <https://black.readthedocs.io/>`_
+is used to check the code formatting. When the code doesn't comply with the expected formatting,
+the `lint <https://github.com/hyperspy/rosettasciio/actions/workflows/black.yml>`_ will fail. 
+In practise, the code formatting can be fixed by installing ``black`` and running it on the
+source code or by using `pre-commit <https://pre-commit.com>`_ to format code automatically.
+Alternatively, the comment ``pre-commit.ci autofix`` can be added to a PR to fix the formatting
+using `pre-commit.ci <https://pre-commit.ci>`_.
+
+Review
+------
 
 As quality assurance, to improve the code, and to ensure a generalized
 functionality, pull requests need to be thoroughly reviewed by at least one

@@ -218,7 +218,7 @@ document.write(`
           
           
           
-          <a href="https://github.com/hyperspy/hyperspy" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
+          <a href="https://github.com/hyperspy/rosettasciio" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
             <label class="sr-only">GitHub</label></a>
         </li>
         <li class="nav-item">
@@ -353,7 +353,7 @@ document.write(`
           
           
           
-          <a href="https://github.com/hyperspy/hyperspy" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
+          <a href="https://github.com/hyperspy/rosettasciio" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
             <label class="sr-only">GitHub</label></a>
         </li>
         <li class="nav-item">
@@ -448,8 +448,18 @@ file format - if needed, we’ll help you to get the code ready to common standa
 <p>Please refer to the
 <a class="reference external" href="http://hyperspy.org/hyperspy-doc/current/dev_guide/intro.html">HyperSpy developer guide</a>
 in order to get started and for detailed contributing guidelines.</p>
-<section id="reviewing">
-<h3>Reviewing<a class="headerlink" href="#reviewing" title="Permalink to this heading">#</a></h3>
+<section id="lint">
+<h3>Lint<a class="headerlink" href="#lint" title="Permalink to this heading">#</a></h3>
+<p>To keep the code style consistent (and more readable), <a class="reference external" href="https://black.readthedocs.io/">black</a>
+is used to check the code formatting. When the code doesn’t comply with the expected formatting,
+the <a class="reference external" href="https://github.com/hyperspy/rosettasciio/actions/workflows/black.yml">lint</a> will fail.
+In practise, the code formatting can be fixed by installing <code class="docutils literal notranslate"><span class="pre">black</span></code> and running it on the
+source code or by using <a class="reference external" href="https://pre-commit.com">pre-commit</a> to format code automatically.
+Alternatively, the comment <code class="docutils literal notranslate"><span class="pre">pre-commit.ci</span> <span class="pre">autofix</span></code> can be added to a PR to fix the formatting
+using <a class="reference external" href="https://pre-commit.ci">pre-commit.ci</a>.</p>
+</section>
+<section id="review">
+<h3>Review<a class="headerlink" href="#review" title="Permalink to this heading">#</a></h3>
 <p>As quality assurance, to improve the code, and to ensure a generalized
 functionality, pull requests need to be thoroughly reviewed by at least one
 other member of the development team before being merged.</p>
@@ -581,7 +591,8 @@ for maintenance guidelines.</p>
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#issues">Issues</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pull-requests">Pull Requests</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#reviewing">Reviewing</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#lint">Lint</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#review">Review</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#defining-new-rosettasciio-plugins">Defining new RosettaSciIO plugins</a></li>

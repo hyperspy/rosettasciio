@@ -27,7 +27,6 @@ import numpy as np
 from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 
 _logger = logging.getLogger(__name__)
-_logger.setLevel(10)
 
 
 def _str2numeric(input, type):
@@ -97,79 +96,6 @@ class FileType(IntEnum, metaclass=DefaultEnumMeta):
     bit32 = 3
 
 
-## exists in testfiles
-class ApplicationType(IntEnum, metaclass=DefaultEnumMeta):
-    application_hipic = 1
-    application_ta = 2
-    application_em = 3
-
-
-## type is 37 in testfile -> not used
-class CameraType(IntEnum, metaclass=DefaultEnumMeta):
-    no_camera = 0
-    C4880 = 1
-    C4742 = 2
-    analog0 = 3
-    analog1 = 4
-    analog2 = 5
-    analog3 = 6
-    C474295 = 7
-    C488080 = 8
-    C474298 = 9
-    C7300 = 19
-    C800020 = 20
-    C800010 = 21
-    FlatPanel = 22
-    DCam = 23
-    OrcaHR = 24
-    C8484 = 25
-    C9100 = 26
-    C8800 = 27
-
-
-## not in testfiles
-class CameraSubType(IntEnum, metaclass=DefaultEnumMeta):
-    C4880_00 = 1
-    C4880_60 = 2
-    C4880_80 = 3
-    C4880_91 = 4
-    C4880_92 = 5
-    C4880_93 = 6
-    C4742_95 = 7
-    C4880_60OU = 8
-    C4880_1K2K = 9
-    C4742_98 = 11
-    C7300_10 = 12
-    C4880_10 = 13
-    C4880_20 = 14
-    C4880_21 = 15
-    C4880_30 = 16
-    C4880_40 = 17
-    C7190_10 = 18
-    C8000_20 = 19
-    C4742_95ER = 20
-    C4880_31 = 21
-    C4880_50 = 22
-    C8000_10 = 23
-    FlatPanel_C7942 = 24
-    FlatPanel_C7943 = 25
-    C4742_95HR = 26
-    C8484_01 = 27
-    FlatPanel_C7921 = 28
-    C4742_98ER = 29
-    C4742_98BT_K = 30
-    C4742_98BT_L = 31
-    C7300_10_NRK = 32
-    FlatPanel_C7930DP = 33
-    C9100_01 = 34
-    C9100_02 = 35
-    C9100_11 = 36
-    C9100_12 = 37
-    C8800_01 = 38
-    C8800_21 = 39
-
-
-## exists in testfiles
 class AcqMode(IntEnum, metaclass=DefaultEnumMeta):
     live = 1
     acquire = 2
@@ -177,61 +103,6 @@ class AcqMode(IntEnum, metaclass=DefaultEnumMeta):
     analog_integration = 4
 
 
-## exists in file, doubled with FileType?
-class DatType(IntEnum, metaclass=DefaultEnumMeta):
-    dat8 = 1
-    dat10 = 2
-    dat12 = 3
-    dat16 = 4
-    dat812 = 5
-    dat14 = 6
-    dat16u = 7
-    dat32 = 8
-
-
-## GrabberType, exists in some files
-class FrameGrabber(IntEnum, metaclass=DefaultEnumMeta):
-    grbNone = 0
-    grbAFG = 1
-    grbICP = 2
-    grbPC = 3
-    grbNI = 4
-    grbDCam = 5
-
-
-## Grabber SubType, exists in testfiles, but has value 0 -> not in here
-class AcquisitionModule(IntEnum, metaclass=DefaultEnumMeta):
-    amdig = 1
-    amvs = 2
-    cam_link = 3
-
-
-## exists in testfiles
-class LUTSize(IntEnum, metaclass=DefaultEnumMeta):
-    lut_size_8 = 1
-    lut_size_10 = 2
-    lut_size_12 = 3
-    lut_size_16 = 4
-    lut_size_812 = 5
-    lut_size_14 = 6
-    lut_size_16x = 9
-
-
-## exists in testfiles
-class LUTColor(IntEnum, metaclass=DefaultEnumMeta):
-    lut_color_bw = 1
-    lut_color_rainbow = 2
-    lut_color_bw_without_color = 3
-
-
-## no numbers in user manual, 0 in testfile -> linear?
-class LUTType(IntEnum, metaclass=DefaultEnumMeta):
-    lut_type_linear = 1
-    lut_type_gamma = 2
-    lut_type_sigmoid = 3
-
-
-## exists in testfiles
 class Scaling_Type(IntEnum, metaclass=DefaultEnumMeta):
     scaling_linear = 1
     scaling_table = 2
@@ -557,10 +428,6 @@ class IMGReader:
     def _map_spectrometer_md(self):
         spectrometer = {}
         spectro_dict = self.original_metadata.get("Comment", {}).get("Spectrograph", {})
-        ## TODO: use Ruling as an alternative?
-        ## Remove grating when no unit (->1 or 2, but not lines per mm)?
-        ## Same for blaze
-        ## warning for these cases?
         try:
             groove_density_str = spectro_dict["Grating"]
         except KeyError:
@@ -576,6 +443,9 @@ class IMGReader:
                     )
             else:
                 groove_density = groove_density_str
+        ## Remove grating when no unit (->1 or 2, but not lines per mm)
+        ## Same for blaze
+        ## warning for these cases?
         if spectro_dict.get("Ruling") != "0" and spectro_dict.get("Blaze") != 0:
             spectrometer["Grating"] = {
                 "blazing_wavelength": _str2numeric(spectro_dict.get("Blaze"), "float"),

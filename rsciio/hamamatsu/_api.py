@@ -32,13 +32,14 @@ _logger.setLevel(10)
 
 def _str2numeric(input, type):
     """Handle None-values when converting strings to float."""
-    if input is None:
-        return None
-    if type == "float":
-        return float(input)
-    elif type == "int":
-        return int(input)
-    else:
+    try:
+        if type == "float":
+            return float(input)
+        elif type == "int":
+            return int(input)
+        else:
+            return None
+    except (ValueError, TypeError):
         return None
 
 
@@ -339,12 +340,11 @@ class IMGReader:
         if scale_type == 1:
             ## in this mode (focus mode) the y-axis does not correspond to time
             ## photoelectrons are not deflected here -> natural spread
-            ## TODO: name for this?
             axis["units"] = "px"
             axis["scale"] = 1
             axis["offset"] = 0
             axis["size"] = self._h_lines
-            axis["name"] = "Screen Position"
+            axis["name"] = "Vertical CCD Position"
         elif scale_type == 2:
             data = self._extract_calibration_data(cal_addr)
             # TODO: convert to uniform axis?
@@ -451,8 +451,17 @@ class IMGReader:
         except KeyError:  # pragma: no cover
             pass  # pragma: no cover
         else:
-            date_split = date.split("/")
-            general["date"] = date_split[-1] + "-" + date_split[1] + "-" + date_split[0]
+            delimiters = ["/", "."]
+            for d in delimiters:
+                date_split = date.split(d)
+                if len(date_split) == 3:
+                    general["date"] = (
+                        date_split[2] + "-" + date_split[1] + "-" + date_split[0]
+                    )
+                    break
+            else:
+                _logger.warning("Unknown date format, cannot transfrom to ISO.")
+                general["date"] = date
             general["time"] = time.split(".")[0]
         return general
 
@@ -491,24 +500,29 @@ class IMGReader:
         except KeyError:
             pass
         else:
-            exp_time, exp_time_units = exp_time_str.split(" ")
-            exp_time = float(exp_time)
-            if exp_time_units == "s":
-                pass
-            elif exp_time_units == "ms":
-                exp_time /= 1000
+            exp_time_split = exp_time_str.split(" ")
+            if len(exp_time_split) == 2:
+                exp_time, exp_time_units = exp_time_split
+                exp_time = _str2numeric(exp_time, "float")
+                if exp_time_units == "s":
+                    pass
+                elif exp_time_units == "ms":
+                    exp_time /= 1000
+                else:
+                    _logger.warning(
+                        f"integration_time is given in {exp_time_units} instead of seconds."
+                    )
+                detector["integration_time"] = exp_time * detector["frames"]
             else:
-                _logger.warning(
-                    f"integration_time is given in {exp_time_units} instead of seconds."
-                )
-            detector["integration_time"] = exp_time * detector["frames"]
+                _logger.warning("integration_time could not be extracted")
 
         try:
             binning_str = acq_dict["pntBinning"]
         except KeyError:
             pass
         else:
-            detector["binning"] = tuple(map(int, binning_str.split(",")))
+            if len(binning_str.split(",")) == 2:
+                detector["binning"] = tuple(map(int, binning_str.split(",")))
 
         detector["processing"] = {
             "shading_correction": _str2bool(acq_dict.get("ShadingCorr")),
@@ -525,12 +539,18 @@ class IMGReader:
         except KeyError:
             pass
         else:
-            time_range, time_range_units = time_range_str.split(" ")
-            time_range = float(time_range)
-            if time_range_units == "us":
-                time_range_units = "µs"
-            detector["time_range"] = time_range
-            detector["time_range_units"] = time_range_units
+            time_range_split = time_range_str.split(" ")
+            if len(time_range_split) == 2:
+                time_range, time_range_units = time_range_split
+                time_range = _str2numeric(time_range, "float")
+                if time_range_units == "us":
+                    time_range_units = "µs"
+                detector["time_range"] = time_range
+                detector["time_range_units"] = time_range_units
+            else:
+                # TODO: add warning? only occurs for shading file
+                time_range = _str2numeric(time_range_str, "float")
+                detector["time_range"] = time_range
         detector["acquisition_mode"] = AcqMode(int(acq_dict.get("AcqMode"))).name
         return detector
 
@@ -538,29 +558,33 @@ class IMGReader:
         spectrometer = {}
         spectro_dict = self.original_metadata.get("Comment", {}).get("Spectrograph", {})
         ## TODO: use Ruling as an alternative?
+        ## Remove grating when no unit (->1 or 2, but not lines per mm)?
+        ## Same for blaze
+        ## warning for these cases?
         try:
             groove_density_str = spectro_dict["Grating"]
         except KeyError:
             groove_density = None
         else:
-            groove_density, groove_density_units = groove_density_str.split(" ")
-            groove_density = _str2numeric(groove_density, "int")
-            if groove_density_units != "g/mm":
-                _logger.warning(f"groove_density is given in {groove_density_units}")
-        spectrometer["Grating"] = {
-            "blazing_wavelength": _str2numeric(spectro_dict.get("Blaze"), "int"),
-            "groove_density": groove_density,
-        }
+            groove_density_split = groove_density_str.split(" ")
+            if len(groove_density_split) == 2:
+                groove_density, groove_density_units = groove_density_str.split(" ")
+                groove_density = _str2numeric(groove_density, "int")
+                if groove_density_units != "g/mm":
+                    _logger.warning(
+                        f"groove_density is given in {groove_density_units}"
+                    )
+            else:
+                groove_density = groove_density_str
+        if spectro_dict.get("Ruling") != "0" and spectro_dict.get("Blaze") != 0:
+            spectrometer["Grating"] = {
+                "blazing_wavelength": _str2numeric(spectro_dict.get("Blaze"), "float"),
+                "groove_density": _str2numeric(groove_density, "float"),
+            }
         spectrometer["model"] = spectro_dict.get("DeviceName")
-        try:
-            entrance_slit_width = _str2numeric(
-                spectro_dict["Side Ent. Slitw."], "float"
-            )
-        except KeyError:
-            pass
-        else:
-            spectrometer["entrance_slit_width"] = entrance_slit_width
-            ## TODO: units?, side entry iris?
+        spectrometer["entrance_slit_width"] = _str2numeric(
+            spectro_dict.get("Side Ent. Slitw."), "float"
+        )  ## TODO: units?, side entry iris?
         spectrometer["central_wavelength"] = _str2numeric(
             spectro_dict.get("Wavelength"), "float"
         )

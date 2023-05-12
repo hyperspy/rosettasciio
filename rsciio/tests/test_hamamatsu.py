@@ -28,6 +28,8 @@ testfile_dir = (Path(__file__).parent / "hamamatsu_data").resolve()
 
 testfile_focus_mode_path = (testfile_dir / "focus_mode.img").resolve()
 testfile_operate_mode_path = (testfile_dir / "operate_mode.img").resolve()
+testfile_photon_count_path = (testfile_dir / "photon_counting.img").resolve()
+testfile_shading_path = (testfile_dir / "shading_file.img").resolve()
 
 
 class TestOperate:
@@ -330,7 +332,7 @@ class TestFocus:
         ax0 = axes[0]
         ax1 = axes[1]
         assert ax0.name == "Wavelength"
-        assert ax1.name == "Screen Position"
+        assert ax1.name == "Vertical CCD Position"
         assert ax1.units == "px"
         assert ax0.units == "nm"
         assert ax0.size == 672
@@ -341,3 +343,46 @@ class TestFocus:
 
         expected_data_start_X = [472.252, 472.33337, 472.41473, 472.4961, 472.57745]
         np.testing.assert_allclose(ax0.axis[:5], expected_data_start_X)
+
+
+class TestPhotonCount:
+    @classmethod
+    def setup_class(cls):
+        cls.s = hs.load(testfile_photon_count_path, reader="Hamamatsu")
+
+    @classmethod
+    def teardown_class(cls):
+        del cls.s
+        gc.collect()
+
+    def test_data(self):
+        expected_data = [0, 34, 8765]
+        np.testing.assert_allclose(self.s.isig[-3:, 0].data, expected_data)
+
+    def test_metadata(self):
+        metadata = self.s.metadata
+        assert metadata.General.date == "2018-08-29"
+        assert (
+            metadata.Acquisition_instrument.Detector.acquisition_mode
+            == "photon_counting"
+        )
+        assert "Grating" not in list(
+            self.s.metadata.Acquisition_instrument.Spectrometer.as_dictionary()
+        )
+        assert self.s.original_metadata.file_type == "bit16"
+
+
+class TestShading:
+    @classmethod
+    def setup_class(cls):
+        cls.s = hs.load(testfile_shading_path, reader="Hamamatsu")
+
+    @classmethod
+    def teardown_class(cls):
+        del cls.s
+        gc.collect()
+
+    def test_metadata(self):
+        np.testing.assert_allclose(
+            self.s.metadata.Acquisition_instrument.Detector.time_range, 4
+        )

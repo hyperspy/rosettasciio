@@ -540,15 +540,17 @@ def _is_jeol_sightx(op) -> bool:
 
 def _axes_jeol_sightx(tiff, op, shape, names):
     # convert xml text to dictionary of tiff op['ImageDescription']
-    # convert_xml_to_dict need to remove white spaces before decoding XML
-    scales, offsets, units = _axes_defaults()
+    import xml.etree.ElementTree as ET
+    from rsciio.utils.tools import XmlToDict
+    from box import Box
 
+    scales, offsets, units = _axes_defaults()
     jeol_xml = "".join(
         [line.strip(" \r\n\t\x01\x00") for line in op["ImageDescription"].split("\n")]
     )
-    from rsciio.utils.tools import convert_xml_to_dict
-
-    jeol_dict = convert_xml_to_dict(jeol_xml)
+    jeol_xml_obj = ET.fromstring(jeol_xml)
+    xml_to_dict = XmlToDict()
+    jeol_dict = Box(xml_to_dict.dictionarize(jeol_xml_obj))
     op["ImageDescription"] = jeol_dict["TemReporter"]
     eos = op["ImageDescription"]["Eos"]["EosMode"]
     illumi = op["ImageDescription"]["IlluminationSystem"]

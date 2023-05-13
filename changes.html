@@ -426,8 +426,8 @@ document.write(`
 <h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this heading">#</a></h1>
 <p>Changelog entries for the development version are available at
 <a class="reference external" href="https://rosettasciio.readthedocs.io/en/latest/changes.html">https://rosettasciio.readthedocs.io/en/latest/changes.html</a></p>
-<section id="release-unreleased-2023-05-09">
-<h2> [UNRELEASED] (2023-05-09)<a class="headerlink" href="#release-unreleased-2023-05-09" title="Permalink to this heading">#</a></h2>
+<section id="release-unreleased-2023-05-13">
+<h2> [UNRELEASED] (2023-05-13)<a class="headerlink" href="#release-unreleased-2023-05-13" title="Permalink to this heading">#</a></h2>
 <section id="new-features">
 <h3>New features<a class="headerlink" href="#new-features" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
@@ -445,6 +445,7 @@ document.write(`
 <li><p>Fix error when reading JEOL .pts file with un-ordered frame list or when length of <code class="docutils literal notranslate"><span class="pre">frame_start_index</span></code> is smaller than the sweep count (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/68">#68</a>)</p></li>
 <li><p>Fix exporting scalebar with reciprocal units containing space (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/90">#90</a>)</p></li>
 <li><p>Fix array indexing bug when loading a <code class="docutils literal notranslate"><span class="pre">sur</span></code> file format containing spectra series. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/98">#98</a>)</p></li>
+<li><p>For more robust xml to dict conversion, convert_xml_to_dict is replaced by XmlToDict (introduced by PR #111). (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/101">#101</a>)</p></li>
 </ul>
 </section>
 <section id="improved-documentation">
@@ -483,7 +484,7 @@ Set maximal major version of Sphinx to 5. (<a class="reference external" href="h
 <li><p>Following the deprecation cycle announced in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/changes.html">HyperSpy</a>,
 the following keywords and attributes have been removed:</p>
 <ul>
-<li><p><a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/io.html#bcf-format" title="(in HyperSpy v1.7.4)"><span class="xref std std-ref">Bruker composite file (BCF)</span></a>: The ‘spectrum’ option for the
+<li><p><a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/io.html#bcf-format" title="(in HyperSpy v1.7.5)"><span class="xref std std-ref">Bruker composite file (BCF)</span></a>: The ‘spectrum’ option for the
 <cite>select_type</cite> parameter was removed. Use ‘spectrum_image’ instead.</p></li>
 <li><p><a class="reference internal" href="supported_formats/emd.html#emd-ncem-format"><span class="std std-ref">Electron Microscopy Dataset (EMD) NCEM</span></a>: Using the
 keyword ‘dataset_name’ was removed, use ‘dataset_path’ instead.</p></li>
@@ -551,7 +552,7 @@ new repository.</p></li>
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#release-unreleased-2023-05-09"> [UNRELEASED] (2023-05-09)</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#release-unreleased-2023-05-13"> [UNRELEASED] (2023-05-13)</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#new-features">New features</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#bug-fixes">Bug Fixes</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#improved-documentation">Improved Documentation</a></li>

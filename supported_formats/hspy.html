@@ -472,7 +472,7 @@ in HyperSpy, it is the only format that guarantees that no
 information will be lost in the writing process and that supports saving data
 of arbitrary dimensions. It is based on the <a class="reference external" href="https://www.hdfgroup.org/solutions/hdf5/">HDF5 open standard</a>. The HDF5 file format is supported by <a class="reference external" href="https://support.hdfgroup.org/products/hdf5_tools/SWSummarybyName.htm">many
 applications</a>.
-Parts of the specifications are documented in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/metadata_structure.html#metadata-structure" title="(in HyperSpy v1.7.4)"><span>Metadata structure</span></a>.</p>
+Parts of the specifications are documented in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/metadata_structure.html#metadata-structure" title="(in HyperSpy v1.7.5)"><span>Metadata structure</span></a>.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version HyperSpy_v1.2: </span>Enable saving HSpy files with the <code class="docutils literal notranslate"><span class="pre">.hspy</span></code> extension. Previously only the
 <code class="docutils literal notranslate"><span class="pre">.hdf5</span></code> extension was recognised.</p>
@@ -495,7 +495,7 @@ filename e.g.:</p>
 </pre></div>
 </div>
 <p>When saving to <code class="docutils literal notranslate"><span class="pre">.hspy</span></code>, all supported objects in the signal’s
-<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/api/hyperspy.signal.html#hyperspy.signal.BaseSignal.metadata" title="(in HyperSpy v1.7.4)"><code class="xref py py-attr docutils literal notranslate"><span class="pre">hyperspy.signal.BaseSignal.metadata</span></code></a> are stored. This includes lists, tuples
+<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/api/hyperspy.signal.html#hyperspy.signal.BaseSignal.metadata" title="(in HyperSpy v1.7.5)"><code class="xref py py-attr docutils literal notranslate"><span class="pre">hyperspy.signal.BaseSignal.metadata</span></code></a> are stored. This includes lists, tuples
 and signals. Please note that in order to increase saving efficiency and speed,
 if possible, the inner-most structures are converted to numpy arrays when saved.
 This procedure homogenizes any types of the objects inside, most notably casting
@@ -510,7 +510,7 @@ numbers as strings if any other strings are present:</p>
 <p>The change of type is done using numpy “safe” rules, so no information is lost,
 as numbers are represented to full machine precision.</p>
 <p>This feature is particularly useful when using
-<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/api/hyperspy._signals.eds.html#hyperspy._signals.eds.EDSSpectrum.get_lines_intensity" title="(in HyperSpy v1.7.4)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">hyperspy._signals.eds.EDSSpectrum.get_lines_intensity()</span></code></a>:</p>
+<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/api/hyperspy._signals.eds.html#hyperspy._signals.eds.EDSSpectrum.get_lines_intensity" title="(in HyperSpy v1.7.5)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">hyperspy._signals.eds.EDSSpectrum.get_lines_intensity()</span></code></a>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">example_signals</span><span class="o">.</span><span class="n">EDS_SEM_Spectrum</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">Sample</span><span class="o">.</span><span class="n">intensities</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">get_lines_intensity</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;EDS_spectrum.hspy&#39;</span><span class="p">)</span>
@@ -548,7 +548,7 @@ constrain of storing at least one signal per chunk. For example, for the signal 
 passing <code class="docutils literal notranslate"><span class="pre">chunks=True</span></code> results in chunks of <code class="docutils literal notranslate"><span class="pre">(7,</span> <span class="pre">7,</span> <span class="pre">256)</span></code>.</p>
 <p>Choosing the correct chunk-size can significantly affect the speed of reading,
 writing and performance of many HyperSpy algorithms. See the
-<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/big_data.html#big-data-chunking" title="(in HyperSpy v1.7.4)"><span class="xref std std-ref">HyperSpy chunking section</span></a> for more information.</p>
+<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/big_data.html#big-data-chunking" title="(in HyperSpy v1.7.5)"><span class="xref std std-ref">HyperSpy chunking section</span></a> for more information.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Also see the <a class="reference internal" href="../api/utils.html#hdf5-utils"><span class="std std-ref">HDF5 utility functions</span></a> for inspecting HDF5 files.</p>

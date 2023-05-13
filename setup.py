@@ -152,7 +152,7 @@ class Recythonize(Command):
 
 
 install_requires = [
-    "dask[array]>=2.11",
+    "dask[array]>=2021.3.1",
     "python-dateutil",
     "h5py>=2.3",
     "imageio>=2.16",
@@ -161,7 +161,7 @@ install_requires = [
     "pint>=0.8",
     "python-box>=6,<7",
     "pyyaml",
-    "scipy>=1.4.0",
+    "scipy>=1.5.0",
     "sparse",
 ]
 
@@ -181,11 +181,7 @@ extras_require = {
     "docs": [
         "pydata-sphinx-theme>=0.13",
         "sphinxcontrib-towncrier",
-        # TODO: Remove explicit dependency on sphinx when pydata-sphinx-theme >= 0.13
-        #  is available, and 0.13 as minimial supported version of pydata-sphinx-theme
-        "sphinx~=5.3",
-        # pin towncrier until https://github.com/sphinx-contrib/sphinxcontrib-towncrier/issues/60 is fixed
-        "towncrier<22.8",
+        "towncrier",
     ],  # for building the docs
 }
 

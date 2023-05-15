@@ -18,7 +18,7 @@ test_files = [
     "bcf_v2_50x50px.bcf",
     "bcf-edx-ebsd.bcf",
 ]
-np_file = ["30x30_16bit.npy", "30x30_16bit_ds.npy"]
+np_files = ["30x30_16bit.npy", "30x30_16bit_ds.npy"]
 spx_files = ["extracted_from_bcf.spx", "bruker_nano.spx"]
 
 TEST_DATA_DIR = Path(__file__).parent / "data" / "bruker"
@@ -35,9 +35,11 @@ def test_load_16bit():
     # Bruker saves all images in true 16bit:
     assert bse.data.dtype == np.uint16
     assert bse.data.shape == (30, 30)
-    np_filename = TEST_DATA_DIR / np_file[0]
+    np_filename = TEST_DATA_DIR / np_files[0]
     np.testing.assert_array_equal(hype.data[:, :, 222:224], np.load(np_filename))
     assert hype.data.shape == (30, 30, 2048)
+    assert hype.axes_manager.navigation_shape == (30, 30)
+    assert hype.axes_manager.signal_shape == (2048,)
     assert bse.metadata.get_item("Stage.x", full_path=False) == 66940.81
     assert hype.metadata.get_item("Stage.x", full_path=False) == 66940.81
 
@@ -49,9 +51,13 @@ def test_load_16bit_reduced():
     bse, hype = s
     # sem images are never downsampled
     assert bse.data.shape == (30, 30)
-    np_filename = TEST_DATA_DIR / np_file[1]
+    assert bse.axes_manager.signal_shape == (30, 30)
+    assert bse.axes_manager.navigation_shape == ()
+    np_filename = TEST_DATA_DIR / np_files[1]
     np.testing.assert_array_equal(hype.data[:, :, 222:224], np.load(np_filename))
     assert hype.data.shape == (8, 8, 1047)
+    assert hype.axes_manager.navigation_shape == (8, 8)
+    assert hype.axes_manager.signal_shape == (1047,)
     # Bruker saves all images in true 16bit:
     assert bse.data.dtype == np.uint16
     # hypermaps should always return unsigned integers:
@@ -63,6 +69,8 @@ def test_load_16bit_cutoff_zealous():
     print("testing downsampled 16bit bcf with cutoff_at_kV=zealous...")
     hype = hs.load(filename, cutoff_at_kV="zealous", select_type="spectrum_image")
     assert hype.data.shape == (30, 30, 2048)
+    assert hype.axes_manager.navigation_shape == (30, 30)
+    assert hype.axes_manager.signal_shape == (2048,)
 
 
 def test_load_16bit_cutoff_auto():
@@ -70,18 +78,26 @@ def test_load_16bit_cutoff_auto():
     print("testing downsampled 16bit bcf with cutoff_at_kV=auto...")
     hype = hs.load(filename, cutoff_at_kV="auto", select_type="spectrum_image")
     assert hype.data.shape == (30, 30, 2048)
+    assert hype.axes_manager.navigation_shape == (30, 30)
+    assert hype.axes_manager.signal_shape == (2048,)
 
 
 def test_load_8bit():
-    for bcffile in test_files[1:3]:
+    bse_sig_shapes = [(16, 16), (100, 75)]  # identical to hype nav shapes
+    hype_sig_shapes = [(2048,), (2048,)]
+    for i, bcffile in enumerate(test_files[1:3]):
         filename = TEST_DATA_DIR / bcffile
         print("testing simple 8bit bcf...")
         s = hs.load(filename)
         bse, hype = s[0], s[-1]
         # Bruker saves all images in true 16bit:
         assert bse.data.dtype == np.uint16
+        assert bse.axes_manager.navigation_shape == ()
+        assert bse.axes_manager.signal_shape == bse_sig_shapes[i]
         # hypermaps should always return unsigned integers:
         assert str(hype.data.dtype)[0] == "u"
+        assert hype.axes_manager.navigation_shape == bse.axes_manager.signal_shape
+        assert hype.axes_manager.signal_shape == hype_sig_shapes[i]
 
 
 def test_hyperspy_wrap():
@@ -274,11 +290,14 @@ def test_decimal_regex():
 
 
 def test_all_spx_loads():
-    for spxfile in spx_files:
+    signal_shape = [(1548,), (4096,)]
+    for i, spxfile in enumerate(spx_files):
         filename = TEST_DATA_DIR / spxfile
         s = hs.load(filename)
         assert s.data.dtype == np.uint64
         assert s.metadata.Signal.signal_type == "EDS_SEM"
+        assert s.axes_manager.navigation_shape == ()
+        assert s.axes_manager.signal_shape == signal_shape[i]
 
 
 def test_stand_alone_spx():
@@ -295,3 +314,5 @@ def test_bruker_XRF():
     s = hs.load(filename)
     assert s.metadata.Acquisition_instrument.TEM.Detector.EDS.live_time == 28.046
     assert s.metadata.Acquisition_instrument.TEM.beam_energy == 50
+    assert s.axes_manager.signal_shape == (4096,)
+    assert s.axes_manager.navigation_shape == ()

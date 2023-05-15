@@ -152,6 +152,50 @@ def _read_asw(filename, **kwargs):
 
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
 
+def _read_epma_img(filename, **kwargs):
+    with open(filename, "br") as fd:
+        file_magic = np.fromfile(fd, "<I", 1)[0]
+        if file_magic != 1:
+            return None
+        fd.seek(32)
+        _w = 256
+        _h = 256
+        _count = _w * _h
+        epma_img = np.fromfile(fd, dtype=np.double, count=_count).reshape((_h, _w))
+
+    axes = [
+        {
+            "name": "y",
+            "size": _h,
+            "offset": 0,
+            "scale": 1.0,
+            "units": "pixels",
+        },
+        {
+            "name": "x",
+            "size": _w,
+            "offset": 0,
+            "scale": 1.0,
+            "units": "pixels",
+        },
+    ]
+    metadata = {
+        "General": {
+            "original_filename": os.path.basename(filename),
+            "title": os.path.basename(filename),
+        },
+        "Signal": {
+            "record_by": "image",
+            "signal_type": "EPMA",
+        },
+    }
+
+    dictionary = {
+        "data": epma_img,
+        "axes": axes,
+        "metadata": metadata,
+    }
+    return [dictionary]
 
 def _read_img(filename, **kwargs):
     """
@@ -171,8 +215,12 @@ def _read_img(filename, **kwargs):
     with open(filename, "br") as fd:
         file_magic = np.fromfile(fd, "<I", 1)[0]
         if file_magic != 52:
-            _logger.warning(f"Not a valid JEOL img format '{filename}'")
-            return []
+            _epma = _read_epma_img(filename)
+            if _epma == None:
+                _logger.warning(f"Not a valid JEOL img format '{filename}'")
+                return []
+            else:
+                return _epma
 
         # fileformat
         _ = _decode(fd.read(32).rstrip(b"\x00"))

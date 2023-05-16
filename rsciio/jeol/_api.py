@@ -153,9 +153,23 @@ def _read_asw(filename, **kwargs):
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
 
 def _read_epma_img(filename, **kwargs):
+    """
+    Parameters
+    ----------
+    filename : str
+        img file name
+    kwargs :
+        not used
+
+    Returns
+    -------
+    image_list : list of images(dict)
+        (Always len(image_list) == 1)
+        None if image is not an EPMA map.
+    """
     with open(filename, "br") as fd:
         file_magic = np.fromfile(fd, "<I", 1)[0]
-        if file_magic != 1:
+        if file_magic != 1:   #  Is this correct?
             return None
         fd.seek(32)
         _w = 256
@@ -214,13 +228,14 @@ def _read_img(filename, **kwargs):
 
     with open(filename, "br") as fd:
         file_magic = np.fromfile(fd, "<I", 1)[0]
-        if file_magic != 52:
+        if file_magic != 52:  # Not an EDS related image
+            # Try to read as an EPMA image
             _epma = _read_epma_img(filename)
-            if _epma == None:
-                _logger.warning(f"Not a valid JEOL img format '{filename}'")
-                return []
-            else:
+            if _epma is not None:
                 return _epma
+
+            _logger.warning(f"Not a valid JEOL img format '{filename}'")
+            return []
 
         # fileformat
         _ = _decode(fd.read(32).rstrip(b"\x00"))

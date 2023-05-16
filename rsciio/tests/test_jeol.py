@@ -702,20 +702,21 @@ def test_frame_start_index(tmp_path):
         data[0x1117] = 0x41
     with open(test_file, "wb") as f:
         f.write(data)
-        s = hs.load(
-            test_file, downsample=[32, 32], rebin_energy=512, SI_dtype=np.int32
-        )
+        s = hs.load(test_file, downsample=[32, 32], rebin_energy=512, SI_dtype=np.int32)
     assert s.metadata["Signal"]["signal_type"] == "EDS_SEM"
 
+
 def test_epma_map(tmp_path):
-    EPMA_HEADER = b'\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00' \
-                  b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    EPMA_HEADER = (
+        b'\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00'
+        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    )
     img_size = 256
     test_file = Path(tmp_path) / "epma.map"
     vals = np.arange(img_size * img_size, dtype=np.double)
     with open(test_file, "wb") as f:
         f.write(EPMA_HEADER)
-        vals.tofile(f, '')
+        vals.tofile(f, "")
     s = hs.load(test_file)
     assert s.metadata.Signal.signal_type == "EPMA"
     for y in range(img_size):

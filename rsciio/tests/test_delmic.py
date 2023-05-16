@@ -1,10 +1,13 @@
 import pytest
 import numpy as np
 import gc
+import os
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
-filename = "./delmic_data/test_hyperspectral.h5"
+Path = os.path.dirname(__file__)
+
+filename = "/delmic_data/test_hyperspectral.h5"
 
 ref = np.array(
     [
@@ -524,33 +527,26 @@ ref = np.array(
 )
 
 
-class TestRead:
-    @classmethod
-    def setup_class(cls):
-        cls.s = hs.load(filename, reader="Delmic hdf5 format",)
 
-    @classmethod
-    def teardown_class(cls):
-        del cls.s
-        gc.collect()
 
-    def test_read(self):
+def test_read():
+    s = hs.load(Path+filename, reader="delmic")
 
-        np.testing.assert_allclose(self.s.axes_manager[0].scale, 6.989630790303323e-07)
-        np.testing.assert_allclose(self.s.axes_manager[0].offset, 0)
-        np.testing.assert_allclose(self.s.axes_manager[0].size, 182)
+    np.testing.assert_allclose(s.axes_manager[0].scale, 6.989630790303323e-07)
+    np.testing.assert_allclose(s.axes_manager[0].offset, 0)
+    np.testing.assert_allclose(s.axes_manager[0].size, 182)
 
-        np.testing.assert_allclose(self.s.axes_manager[1].scale, 6.989630790303323e-07)
-        np.testing.assert_allclose(self.s.axes_manager[1].offset, 0)
-        np.testing.assert_allclose(self.s.axes_manager[1].size, 132)
+    np.testing.assert_allclose(s.axes_manager[1].scale, 6.989630790303323e-07)
+    np.testing.assert_allclose(s.axes_manager[1].offset, 0)
+    np.testing.assert_allclose(s.axes_manager[1].size, 132)
 
-        np.testing.assert_allclose(self.s.axes_manager[2].axis, ref)
+    np.testing.assert_allclose(s.axes_manager[2].axis, ref)
 
-        assert self.s.axes_manager[0].name == "X"
-        assert self.s.axes_manager[0].units == "µm"
+    assert s.axes_manager[0].name == "X"
+    assert s.axes_manager[0].units == "µm"
 
-        assert self.s.axes_manager[1].name == "Y"
-        assert self.s.axes_manager[1].units == "µm"
+    assert s.axes_manager[1].name == "Y"
+    assert s.axes_manager[1].units == "µm"
 
-        assert self.s.axes_manager[2].units == "nm"
-        assert self.s.axes_manager[2].name == "Wavelength"
+    assert s.axes_manager[2].units == "nm"
+    assert s.axes_manager[2].name == "Wavelength"

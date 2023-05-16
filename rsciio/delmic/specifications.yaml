@@ -1,4 +1,4 @@
-name: Delmic hdf5 format
+name: "Delmic hdf5 format"
 name_aliases: [Delmic hdf5, Delmic h5, delmic hdf5, delmic h5, delmic HDF5, delmic H5, DELMIC HDF5, DELMIC H5]
 description: Read data from Delmic hdf5 files.
 full_support: False

@@ -289,7 +289,7 @@ but compression signature is missing in the header. Aborting...."""
         return data
 
 
-class SFS_reader(object):
+class SfsReader(object):
     """Class to read sfs file.
     SFS is AidAim software's(tm) single file system.
     The class provides basic reading capabilities of such container.
@@ -871,11 +871,11 @@ class HyperHeader(object):
         return i
 
 
-class BCF_reader(SFS_reader):
+class BCF_reader(SfsReader):
 
     """Class to read bcf (Bruker hypermapping) file.
 
-    Inherits SFS_reader and all its attributes and methods.
+    Inherits SfsReader and all its attributes and methods.
 
     Attributes:
     filename
@@ -888,7 +888,7 @@ class BCF_reader(SFS_reader):
     """
 
     def __init__(self, filename, instrument=None):
-        SFS_reader.__init__(self, filename)
+        SfsReader.__init__(self, filename)
         header_file = self.get_file("EDSDatabase/HeaderData")
         self.available_indexes = []
         # get list of presented indexes from file tree of binary sfs container
@@ -968,7 +968,7 @@ class BCF_reader(SFS_reader):
             ceil(self.header.image.width / downsample),
             n_channels,
         )
-        sfs_file = SFS_reader(self.filename)
+        sfs_file = SfsReader(self.filename)
         vrt_file_hand = sfs_file.get_file("EDSDatabase/SpectrumData" + str(index))
         if fast_unbcf:
             parse_func = unbcf_fast.parse_to_numpy
@@ -1076,7 +1076,7 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
 
     Parameters
     ----------
-    virtual_file -- virtual file handle returned by SFS_reader instance
+    virtual_file -- virtual file handle returned by SfsReader instance
         or by object inheriting it (e.g. BCF_reader instance)
     shape -- numpy shape
     dtype -- numpy dtype

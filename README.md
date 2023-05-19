@@ -36,6 +36,6 @@ See the [documentation](https://hyperspy.org/rosettasciio) for further details.
 RosettaSciIO has recently been split out of the [HyperSpy repository](https://github.com/hyperspy/hyperspy) and the new API is still under development. HyperSpy will use the RosettaSciIO IO-plugins from v2.0. It is already possible to import the readers directly from RosettaSciIO as follows:
 
 ```python
-from rsciio.msa import api
-api.file_reader("your_msa_file.msa")
+from rsciio import msa
+msa.file_reader("your_msa_file.msa")
 ```

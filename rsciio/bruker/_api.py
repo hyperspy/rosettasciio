@@ -46,6 +46,10 @@ import numpy as np
 
 from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 
+__all__ = [
+    "SfsReader",
+]
+
 _logger = logging.getLogger(__name__)
 
 warn_once = True
@@ -71,22 +75,23 @@ class Container(object):
 
 
 class SFSTreeItem(object):
-    """Class to manage one internal sfs file.
-
-    Reading, reading in chunks, reading and extracting, reading without
-    extracting even if compression is pressent.
+    """Class to manage one internal SFS file.
+    This class provides means to Read, read in blocks, read and extract
+    compressed blocks and read without extracting even if compression
+    is present (for debuging purpoises).
 
     Attributes:
     item_raw_string -- the bytes from sfs file table describing the file
-    parent -- the item higher hierarchicaly in the sfs file tree
+    parent -- the index of parent item in SFS file table. 
+    The index of root is -1.
 
     Methods:
     read_piece, setup_compression_metadata, get_iter_and_properties,
     get_as_BytesIO_string
     """
 
-    def __init__(self, item_raw_string, parent):
-        self.sfs = parent
+    def __init__(self, item_raw_string, sfs):
+        self.sfs = sfs
         (
             self._pointer_to_pointer_table,
             self.size,
@@ -108,6 +113,11 @@ class SFSTreeItem(object):
         self.size_in_chunks = self._calc_pointer_table_size()
         if self.is_dir == 0:
             self._fill_pointer_table()
+            self.uncompressed_block_size = None
+            self.n_compressed_blocks = None
+
+    def __repr__(self):
+        return f"<SFSTreeItem {self.name}  {self.size} Bytes>"
 
     def _calc_pointer_table_size(self):
         n_chunks = ceil(self.size / self.sfs.usable_chunk)
@@ -119,13 +129,10 @@ class SFSTreeItem(object):
         self.pointer is the sfs pointer table containing addresses of
         every chunk of the file.
 
-        The pointer table if the file is big can extend throught many
-        sfs chunks. Differently than files, the pointer table of file have no
-        table of pointers to the chunks. Instead if pointer table is larger
-        than sfs chunk, the chunk header contains next chunk number (address
-        can be calculated using known chunk size and global offset) with
-        continuation of file pointer table, thus it have to be read and filled
-        consecutive.
+        The pointer table, if the internal file is large enough, can extend
+        throught many sfs blocks. In case pointer table or its continuation
+        do not fit inside single SFS block, then the block's header contains
+        next block index.
         """
         # table size in number of chunks:
         n_of_chunks = ceil(self.size_in_chunks / (self.sfs.usable_chunk // 4))
@@ -198,7 +205,6 @@ class SFSTreeItem(object):
 
         Keyword arguments:
         first -- the index of first chunk from which to read. (default 0)
-        chunks -- the number of chunks to read. (default False)
         """
         last = self.size_in_chunks
         with open(self.sfs.filename, "rb") as fn:
@@ -206,35 +212,13 @@ class SFSTreeItem(object):
                 fn.seek(self.pointers[idx])
                 yield fn.read(self.sfs.usable_chunk)
             fn.seek(self.pointers[last - 1])
-            last_stuff = self.size % self.sfs.usable_chunk
-            if last_stuff != 0:
-                yield fn.read(last_stuff)
+            last_n_bytes = self.size % self.sfs.usable_chunk
+            if last_n_bytes != 0:
+                yield fn.read(last_n_bytes)
             else:
                 yield fn.read(self.sfs.usable_chunk)
 
-    def setup_compression_metadata(self):
-        """parse and setup the number of compression chunks
-
-        and uncompressed chunk size as class attributes.
-
-        Sets up attributes:
-        self.uncompressed_blk_size, self.no_of_compr_blk
-
-        """
-        with open(self.sfs.filename, "rb") as fn:
-            fn.seek(self.pointers[0])
-            # AACS signature, uncompressed size, undef var, number of blocks
-            aacs, uc_size, _, n_of_blocks = strct_unp("<IIII", fn.read(16))
-        if aacs == 0x53434141:  # AACS as string
-            self.uncompressed_blk_size = uc_size
-            self.no_of_compr_blk = n_of_blocks
-        else:
-            raise ValueError(
-                """The file is marked to be compressed,
-but compression signature is missing in the header. Aborting...."""
-            )
-
-    def _iter_read_compr_chunks(self):
+    def _iter_read_compressed_chunks(self):
         """Generate and return reader and decompressor iterator
         for compressed with zlib compression sfs internal file.
 
@@ -243,7 +227,7 @@ but compression signature is missing in the header. Aborting...."""
         """
 
         offset = 0x80  # the 1st compression block header
-        for dummy1 in range(self.no_of_compr_blk):
+        for dummy1 in range(self.n_compressed_blocks):
             cpr_size = strct_unp("<I12x", self.read_piece(offset, 16))[0]
             # cpr_size, dum_size, dum_unkn, dum_size2 = strct_unp('<IIII',...
             # dum_unkn is probably some kind of checksum but
@@ -257,22 +241,26 @@ but compression signature is missing in the header. Aborting...."""
             yield unzip_block(raw_string)
 
     def get_iter_and_properties(self):
-        """Generate and return the iterator of data chunks and
-        properties of such chunks such as size and count.
+        """Generate and return the iterator of data blocks and
+        properties of set of blocks such as single block size
+        and number of blocks.
+
+        This method is memory efficient, as it returns iterator
+        which loads blocks iteratively.
 
         Method detects if data is compressed and uses iterator with
         decompression involved, else uses simple iterator of chunks.
 
         Returns:
-            (iterator, chunk_size, number_of_chunks)
+            tuple of (iterator, single block size, number of chunks)
         """
         if self.sfs.compression == "None":
             return self._iter_read_chunks(), self.sfs.usable_chunk, self.size_in_chunks
         elif self.sfs.compression == "zlib":
             return (
-                self._iter_read_compr_chunks(),
-                self.uncompressed_blk_size,
-                self.no_of_compr_blk,
+                self._iter_read_compressed_chunks(),
+                self.uncompressed_block_size,
+                self.n_compressed_blocks,
             )
         else:
             raise RuntimeError(
@@ -290,24 +278,52 @@ but compression signature is missing in the header. Aborting...."""
 
 
 class SfsReader(object):
-    """Class to read sfs file.
-    SFS is AidAim software's(tm) single file system.
+    """Class to read sfs file. SFS is known to be used by bruker for
+    saving particle analysis (*.pan) frames, hyperspectral maps and
+    EBSD maps and metadata (*.bcf).
+    SFS stands for AidAim software's(tm) [s]ingle [f]ile [s]ystem.
     The class provides basic reading capabilities of such container.
     It is capable to read compressed data in zlib, but
     SFS can contain other compression which is not implemented here.
     It is also not able to read encrypted sfs containers.
 
     This class can be used stand alone or inherited in construction of
-    file readers using sfs technolgy.
+    file readers for files using this format.
+
+    The format can be recognised independently from file extension
+    by file "magic" in the first 8 bytes: AAMVHFSS
 
     Attributes
     ----------
     filename
 
+    Attributes:
+    ----------
+    vfs - virtual file system -- the dictionarized representation of sfs
+      file tree.
+    filename - filename or full path (depends from initialization)
+      which is used for opening and reading SFS internal file content.
+    compression - if internal files are compressed.
+    sfs_version - SFS version (for debug)
+    chunksize - block size including block header and data (often a "round"
+      number in hexidecimali, but in EBSD cases could be "optimized")
+    usable_chunk - usable size within single block after subtraction size
+      of block header (-32 bytes)
+    tree_address - block index where file tree descriptor starts
+    n_tree_items - number of items in tree descriptor (including files and
+      directories)
+    sfs_n_of_chunks - total number of blocks in the SFS file (serves
+      no purpoise in reading, probably used for appending data)
+
+    Methods:
+    ----------
+    get_file - get file at pointed internal path as SFSTreeItem
+
     """
 
     def __init__(self, filename):
         self.filename = filename
+        self.compression = None
         # read the file header
         with open(filename, "rb") as fn:
             a = fn.read(8)
@@ -365,24 +381,47 @@ class SfsReader(object):
             # temp list with parents of items
             paths = [[h.parent] for h in temp_item_list]
         # checking the compression header which can be different per file:
-        self._check_the_compresion(temp_item_list)
+        self._check_the_compression(temp_item_list)
         if self.compression == "zlib":
-            for c in temp_item_list:
-                if not c.is_dir:
-                    c.setup_compression_metadata()
+            for item in temp_item_list:
+                if item.is_dir == 0:
+                    self._setup_compression_metadata(item)
         # convert the items to virtual file system tree
         dict_tree = self._flat_items_to_dict(paths, temp_item_list)
         # and finaly set the Virtual file system:
         self.vfs = dict_tree["root"]
 
-    def _flat_items_to_dict(self, paths, temp_item_list):
+    def _setup_compression_metadata(self, item):
+        """parse and setup the number of compression chunks
+
+        and uncompressed chunk size as class attributes.
+
+        Sets up attributes:
+        item.uncompressed_blk_size, item.no_of_compr_blk
+
+        """
+        with open(self.filename, "rb") as sfs:
+            sfs.seek(item.pointers[0])
+            # AACS signature, uncompressed size, undef var, number of blocks
+            aacs, uc_size, _, n_of_blocks = strct_unp("<IIII", sfs.read(16))
+        if aacs == 0x53434141:  # AACS as string
+            item.uncompressed_block_size = uc_size
+            item.n_compressed_blocks = n_of_blocks
+        else:
+            raise ValueError(
+                """The file is marked to be compressed,
+but compression signature is missing in the header. Aborting...."""
+            )
+
+    @staticmethod
+    def _flat_items_to_dict(paths, temp_item_list):
         """place items from flat list into dictionary tree
         of virtual file system
         """
         while not all(g[-1] == -1 for g in paths):
-            for f in range(len(paths)):
-                if paths[f][-1] != -1:
-                    paths[f].extend(paths[paths[f][-1]])
+            for path in paths:
+                if path[-1] != -1:
+                    path.extend(paths[path[-1]])
         names = [j.name for j in temp_item_list]
         names.append("root")  # temp root item in dictionary
         for p in paths:
@@ -406,7 +445,7 @@ class SfsReader(object):
         # return dict tree:
         return root
 
-    def _check_the_compresion(self, temp_item_list):
+    def _check_the_compression(self, temp_item_list):
         """parse, check and setup the self.compression"""
         with open(self.filename, "rb") as fn:
             # Find if there is compression:
@@ -441,7 +480,7 @@ class SfsReader(object):
         to get "file" object 'kitten.png' in folder 'catz' which
         resides in root directory of sfs, you would use:
 
-        >>> instance_of_SFSReader.get_file('catz/kitten.png')
+        >>> instance_of_SfsReader.get_file('catz/kitten.png')
 
         See also
         --------

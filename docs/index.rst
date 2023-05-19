@@ -30,10 +30,11 @@ Similarly, it takes a dictionary as input for file writers.
    HyperSpy will use the RosettaSciIO IO-plugins from v2.0. It is already possible to import
    the readers directly from RosettaSciIO as follows:
 
-.. code::
+   .. code::
 
-   from rsciio.msa import api
-   api.file_reader("your_msa_file.msa")
+      from rsciio import msa
+      msa.file_reader("your_msa_file.msa")
+
 
 Table of contents
 =================

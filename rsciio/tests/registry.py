@@ -17,20 +17,31 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 from packaging.version import Version
-from rsciio.tests.registry_utils import download_all
+from pathlib import Path
 
-try:
-    import hyperspy
+import pooch
 
-    if Version(hyperspy.__version__) < Version("2.0.dev"):
-        raise Exception(
-            "To run the test suite using hyperspy, \
-            hyperspy 2.0 or higher is required."
-        )
-except ImportError:
-    pass
+import rsciio
+
+version = rsciio.__version__
+
+if not Version(version).release:
+    version = "main"
+
+TESTS_PATH = Path(__file__).parent
 
 
-def pytest_configure(config):
-    # Run in pytest_configure hook to avoid capturing stdout by pytest
-    download_all(ignore_hash=True)
+# We don't use the version functionality of pooch because we want to use the
+# local test folder (rsciio.tests.data)
+POOCH = pooch.create(
+    path=TESTS_PATH / "data",
+    # base_url=f"https://github.com/hyperspy/rosettasciio/raw/v{version}/rsciio/tests/data/",
+    base_url="https://github.com/ericpre/rosettasciio/raw/pooch/rsciio/tests/data/",
+    version=None,
+    # We'll load it from a file later
+    registry=None,
+    allow_updates=False,
+    retry_if_failed=3,
+)
+
+POOCH.load_registry(Path(__file__).parent / "registry.txt")

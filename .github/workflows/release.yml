@@ -1,0 +1,70 @@
+name: Release
+
+# This workflow builds the wheels "on tag".
+# If run from the hyperspy/hyperspy repository, the wheels will be uploaded to pypi ;
+# otherwise, the wheels will be available as a github artifact.
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    env:
+      CIBW_TEST_COMMAND: "pytest --pyargs rsciio"
+      CIBW_TEST_EXTRAS: "tests"
+      CIBW_SKIP: "*-musllinux*"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: "ubuntu-latest"
+            cibw_archs: "x86_64"
+          - os: "ubuntu-latest"
+            cibw_archs: "aarch64"
+          - os: "windows-latest"
+            cibw_archs: "AMD64"
+          - os: "macos-latest"
+            cibw_archs: "x86_64 universal2 arm64"
+
+    steps:
+      - name: Set up QEMU
+        if: contains(matrix.cibw_archs, 'aarch64')
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm64
+
+      - uses: actions/checkout@v3
+
+      - name: Build wheels for CPython 3.11
+        uses: pypa/cibuildwheel@v2.12.3
+        env:
+          CIBW_BUILD: "cp311-*"
+          CIBW_ARCHS: ${{ matrix.cibw_archs }}
+
+      - name: Build wheels for CPython 3.10
+        uses: pypa/cibuildwheel@v2.12.3
+        env:
+          CIBW_BUILD: "cp310-*"
+          CIBW_ARCHS: ${{ matrix.cibw_archs }}
+
+      - name: Build wheels for CPython 3.9
+        uses: pypa/cibuildwheel@v2.12.3
+        env:
+          CIBW_BUILD: "cp39-*"
+          CIBW_ARCHS: ${{ matrix.cibw_archs }}
+
+      - name: Build wheels for CPython 3.8
+        uses: pypa/cibuildwheel@v2.12.3
+        env:
+          CIBW_BUILD: "cp38-*"
+          CIBW_ARCHS: ${{ matrix.cibw_archs }}
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: wheels
+          path: ./wheelhouse/*.whl
+          if-no-files-found: error

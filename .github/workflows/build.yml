@@ -69,4 +69,5 @@ jobs:
 
       - name: Test distribution
         run: |
-          pytest --pyargs rsciio --reruns 3 -n 2
+          # can't use `-n 2` because xdist ignore the `conftest.py`
+          pytest --pyargs rsciio --reruns 3

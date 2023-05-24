@@ -16,7 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import os
 from packaging.version import Version
+
 from rsciio.tests.registry_utils import download_all
 
 try:
@@ -33,4 +35,13 @@ except ImportError:
 
 def pytest_configure(config):
     # Run in pytest_configure hook to avoid capturing stdout by pytest
-    download_all(ignore_hash=True)
+
+    # Workaround to avoid running it for each worker
+    worker_id = os.environ.get("PYTEST_XDIST_WORKER")
+    print("worker_id:", worker_id)
+    if worker_id is None:
+        print("Downloading missing test data...")
+        # ignore hash because for some files th sha generated locally doesn't
+        # match the one from files downloaded from github...
+        download_all(ignore_hash=True)
+        print("Download completed.")

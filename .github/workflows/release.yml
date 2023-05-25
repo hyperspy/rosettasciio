@@ -68,3 +68,58 @@ jobs:
           name: wheels
           path: ./wheelhouse/*.whl
           if-no-files-found: error
+
+  make_sdist:
+    name: Make SDist
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Build SDist
+      run: pipx run build --sdist
+
+    - uses: actions/upload-artifact@v3
+      with:
+        path: dist/*.tar.gz
+
+  upload_to_pypi:
+    needs: [build_wheels, make_sdist]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download dist
+      uses: actions/download-artifact@v3
+      with:
+        name: artifact
+        path: dist
+
+    - name: Download wheels
+      uses: actions/download-artifact@v3
+      with:
+        name: wheels
+        path: dist
+
+    - name: Display structure of downloaded files
+      run: ls -R
+      working-directory: dist
+
+    - uses: pypa/gh-action-pypi-publish@release/v1
+      if: github.repository_owner == 'hyperspy'
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
+        repository-url: https://test.pypi.org/legacy/
+
+  create_release:
+    # TODO: once we are happy with the workflow
+    # setup zenodo to create a DOI automatically
+    needs: upload_to_pypi
+    permissions:
+      contents: write
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844

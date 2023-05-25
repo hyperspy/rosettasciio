@@ -1064,6 +1064,18 @@ class ImageObject(object):
                         "Acquisition_instrument.TEM.Detector.EDS.solid_angle",
                         None,
                     ),
+                    "{}.EDS.Images.Count rate".format(tags_path): (
+                        "EDS.Count_rate_map",
+                        lambda x: np.array(x).reshape(self.shape[1:]),
+                    ),
+                    "{}.EDS.Images.Live time".format(tags_path): (
+                        "EDS.Live_time_map",
+                        lambda x: np.array(x).reshape(self.shape[1:])
+                    ),
+                    "{}.EDS.Images.Real time".format(tags_path): (
+                        "EDS.Real_time_map",
+                        lambda x: np.array(x).reshape(self.shape[1:])
+                    ),
                     "{}.EDS.Live_time".format(tags_path): (
                         "Acquisition_instrument.TEM.Detector.EDS.live_time",
                         None,

@@ -133,14 +133,14 @@ def compare_usid_from_signal(
                 sig.axes_manager.navigation_axes,
                 h5_main.pos_dim_labels,
                 h5_main.get_pos_values,
-                **kwargs
+                **kwargs,
             )
         else:
             _compare_axes(
                 sig.axes_manager.navigation_axes,
                 h5_main.pos_dim_descriptors,
                 h5_main.get_pos_values,
-                **kwargs
+                **kwargs,
             )
         # 4. Check to make sure that there is only one spectroscopic dimension
         # of size 1
@@ -149,14 +149,14 @@ def compare_usid_from_signal(
                 sig.axes_manager.signal_axes,
                 h5_main.spec_dim_labels,
                 h5_main.get_spec_values,
-                **kwargs
+                **kwargs,
             )
         else:
             _compare_axes(
                 sig.axes_manager.signal_axes,
                 h5_main.spec_dim_descriptors,
                 h5_main.get_spec_values,
-                **kwargs
+                **kwargs,
             )
 
 
@@ -168,7 +168,7 @@ def compare_signal_from_usid(
     sig_type=hs.signals.BaseSignal,
     dataset_path=None,
     compound_comp_name=None,
-    **kwargs
+    **kwargs,
 ):
     # 1. Validate object type
     assert isinstance(new_sig, sig_type)
@@ -188,7 +188,7 @@ def compare_signal_from_usid(
                 new_sig.axes_manager.navigation_axes,
                 h5_main.pos_dim_descriptors,
                 h5_main.get_pos_values,
-                **kwargs
+                **kwargs,
             )
         else:
             assert new_sig.axes_manager.navigation_dimension == 0
@@ -199,14 +199,14 @@ def compare_signal_from_usid(
                 new_sig.axes_manager.signal_axes,
                 h5_main.pos_dim_descriptors,
                 h5_main.get_pos_values,
-                **kwargs
+                **kwargs,
             )
         else:
             _compare_axes(
                 new_sig.axes_manager.signal_axes,
                 h5_main.spec_dim_descriptors,
                 h5_main.get_spec_values,
-                **kwargs
+                **kwargs,
             )
 
         # 5. Validate that metadata has been read in correctly:

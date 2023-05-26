@@ -642,9 +642,10 @@ def generate_parameters():
     return parameters
 
 
+## modify this test for axes, maybe extra tests for metadata reads?
 @pytest.mark.parametrize("pdict", generate_parameters())
 @pytest.mark.parametrize("lazy", (True, False))
-def test_data(pdict, lazy):
+def test_data_and_axes(pdict, lazy):
     s = hs.load(pdict["filename"], lazy=lazy)
     if lazy:
         s.compute(close_file=True)
@@ -654,10 +655,16 @@ def test_data(pdict, lazy):
     print(pdict["subfolder"])
     if subfolder == "1D":
         dat = np.arange(1, 3)
+        assert s.axes_manager.signal_shape == (2,)
+        assert s.axes_manager.navigation_shape == ()
     elif subfolder == "2D":
         dat = np.arange(1, 5).reshape(2, 2)
+        assert s.axes_manager.signal_shape == (2, 2)
+        assert s.axes_manager.navigation_shape == ()
     elif subfolder == "3D":
         dat = np.arange(1, 9).reshape(2, 2, 2)
+        assert s.axes_manager.signal_shape == (2, 2)
+        assert s.axes_manager.navigation_shape == (2,)
     else:
         raise ValueError
     dat = dat.astype(dm4_data_types[key])

@@ -33,9 +33,6 @@ def update_registry():
     )
 
 
-# TODO: see https://www.fatiando.org/pooch/v1.3.0/advanced.html to fix hash issue
-
-
 def make_registry(directory, output, recursive=True, exclude_pattern=None):
     """
     Make a registry of files and hashes for the given directory.

@@ -23,20 +23,25 @@ import pooch
 
 import rsciio
 
+
 version = rsciio.__version__
 
-if not Version(version).release:
+
+if Version(version).is_devrelease:
+    version = f"v{version}"
+else:
     version = "main"
+
 
 TESTS_PATH = Path(__file__).parent
 
 
-# We don't use the version functionality of pooch because we want to use the
-# local test folder (rsciio.tests.data)
 POOCH = pooch.create(
     path=TESTS_PATH / "data",
-    # base_url=f"https://github.com/hyperspy/rosettasciio/raw/v{version}/rsciio/tests/data/",
+    # base_url=f"https://github.com/hyperspy/rosettasciio/raw/{version}/rsciio/tests/data/",
     base_url="https://github.com/ericpre/rosettasciio/raw/pooch/rsciio/tests/data/",
+    # We don't use the version functionality of pooch because we want to use the
+    # local test folder (rsciio.tests.data)
     version=None,
     # We'll load it from a file later
     registry=None,
@@ -44,4 +49,4 @@ POOCH = pooch.create(
     retry_if_failed=3,
 )
 
-POOCH.load_registry(Path(__file__).parent / "registry.txt")
+POOCH.load_registry(TESTS_PATH / "registry.txt")

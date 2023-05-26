@@ -30,25 +30,17 @@ import numpy as np
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
-testfile_dir = (Path(__file__).parent / "jobinyvon_data").resolve()
+testfile_dir = Path(__file__).parent / "data" / "jobinyvon"
 
-testfile_spec_wavelength_path = (testfile_dir / "jobinyvon_test_spec.xml").resolve()
-testfile_spec_wavenumber_path = (
-    testfile_dir / "jobinyvon_test_spec_3s_cm-1.xml"
-).resolve()
-testfile_spec_abs_wavenumber_path = (
-    testfile_dir / "jobinyvon_test_spec_3s_abs-cm-1.xml"
-).resolve()
-testfile_spec_energy_path = (testfile_dir / "jobinyvon_test_spec_3s_eV.xml").resolve()
-testfile_linescan_path = (testfile_dir / "jobinyvon_test_linescan.xml").resolve()
-testfile_map_path = (testfile_dir / "jobinyvon_test_map_x3-y2.xml").resolve()
-testfile_map_rotated_path = (
-    testfile_dir / "jobinyvon_test_map_x2-y2_rotated.xml"
-).resolve()
-testfile_glue_path = (testfile_dir / "jobinyvon_test_spec_range.xml").resolve()
-testfile_spec_count_path = (
-    testfile_dir / "jobinyvon_test_spec_3s_counts.xml"
-).resolve()
+testfile_spec_wavelength_path = testfile_dir / "jobinyvon_test_spec.xml"
+testfile_spec_wavenumber_path = testfile_dir / "jobinyvon_test_spec_3s_cm-1.xml"
+testfile_spec_abs_wavenumber_path = testfile_dir / "jobinyvon_test_spec_3s_abs-cm-1.xml"
+testfile_spec_energy_path = testfile_dir / "jobinyvon_test_spec_3s_eV.xml"
+testfile_linescan_path = testfile_dir / "jobinyvon_test_linescan.xml"
+testfile_map_path = testfile_dir / "jobinyvon_test_map_x3-y2.xml"
+testfile_map_rotated_path = testfile_dir / "jobinyvon_test_map_x2-y2_rotated.xml"
+testfile_glue_path = testfile_dir / "jobinyvon_test_spec_range.xml"
+testfile_spec_count_path = testfile_dir / "jobinyvon_test_spec_3s_counts.xml"
 
 
 if importlib.util.find_spec("lumispy") is None:

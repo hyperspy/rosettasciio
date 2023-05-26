@@ -25,7 +25,8 @@ import pytest
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 from hyperspy.misc.test_utils import assert_deep_almost_equal
 
-my_path = Path(__file__).parent
+
+TEST_DATA_PATH = Path(__file__).parent / "data" / "pantarhei"
 
 
 class TestLoadingPrzFiles:
@@ -65,7 +66,7 @@ class TestLoadingPrzFiles:
             },
         }
 
-        s = hs.load(my_path / "pantarhei_data" / "panta_rhei_sample_v5.prz")
+        s = hs.load(TEST_DATA_PATH / "panta_rhei_sample_v5.prz")
 
         md_file = s.metadata.as_dictionary()
         md_file.pop("_HyperSpy")
@@ -81,7 +82,7 @@ class TestLoadingPrzFiles:
 def test_save_load_cycle(tmp_path):
     fname = tmp_path / "test_file.prz"
 
-    s = hs.load(my_path / "pantarhei_data" / "panta_rhei_sample_v5.prz")
+    s = hs.load(TEST_DATA_PATH / "panta_rhei_sample_v5.prz")
     s.save(fname)
     assert fname.is_file()
 

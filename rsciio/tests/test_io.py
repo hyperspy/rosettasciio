@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import hashlib
 import os
+import hashlib
 import logging
 import tempfile
 from pathlib import Path
@@ -32,7 +32,9 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 from hyperspy.axes import DataAxis
 
-FULLFILENAME = Path(__file__).resolve().parent.joinpath("test_io_overwriting.hspy")
+
+TEST_DATA_PATH = Path(__file__).parent / "data"
+FULLFILENAME = Path(__file__).parent / "test_io_overwriting.hspy"
 
 
 class TestIOOverwriting:
@@ -51,8 +53,8 @@ class TestIOOverwriting:
         return file_hashed
 
     def _clean_file(self):
-        if os.path.exists(FULLFILENAME):
-            os.remove(FULLFILENAME)
+        if FULLFILENAME.exists():
+            FULLFILENAME.unlink()
 
     def _check_file_is_written(self, filename):
         # Check that we have a different hash, in case the file have different
@@ -101,21 +103,21 @@ class TestNonUniformAxisCheck:
         self.s = hs.signals.Signal1D(np.arange(10), axes=(axis.get_axis_dictionary(),))
         # make sure we start from a clean state
 
-    def test_io_nonuniform(self):
+    def test_io_nonuniform(self, tmp_path):
         assert self.s.axes_manager[0].is_uniform == False
-        self.s.save("tmp.hspy", overwrite=True)
+        self.s.save(tmp_path / "tmp.hspy")
         with pytest.raises(TypeError, match="not supported for non-uniform"):
-            self.s.save("tmp.msa", overwrite=True)
+            self.s.save(tmp_path / "tmp.msa")
 
     def test_nonuniform_writer_characteristic(self):
         for plugin in IO_PLUGINS:
             if not "non_uniform_axis" in plugin:
                 print(
-                    plugin.name + " IO-plugin is missing the "
+                    f"{plugin.name} IO-plugin is missing the "
                     "characteristic `non_uniform_axis`"
                 )
 
-    def test_nonuniform_error(self):
+    def test_nonuniform_error(self, tmp_path):
         assert self.s.axes_manager[0].is_uniform == False
         incompatible_writers = [
             plugin["file_extensions"][plugin["default_extension"]]
@@ -130,13 +132,7 @@ class TestNonUniformAxisCheck:
         for ext in incompatible_writers:
             with pytest.raises(TypeError, match="not supported for non-uniform"):
                 filename = "tmp." + ext
-                self.s.save(filename, overwrite=True)
-
-    def teardown_method(self):
-        if os.path.exists("tmp.hspy"):
-            os.remove("tmp.hspy")
-        if os.path.exists("tmp.msa"):
-            os.remove("tmp.msa")
+                self.s.save(tmp_path / filename, overwrite=True)
 
 
 def test_glob_wildcards():
@@ -183,30 +179,28 @@ def test_glob_wildcards():
         assert len(t) == 2
 
 
-def test_file_not_found_error():
-    with tempfile.TemporaryDirectory() as dirpath:
-        temp_fname = os.path.join(dirpath, "temp.hspy")
+def test_file_not_found_error(tmp_path):
+    temp_fname = tmp_path / "temp.hspy"
 
-        if os.path.exists(temp_fname):
-            os.remove(temp_fname)
+    if os.path.exists(temp_fname):
+        os.remove(temp_fname)
 
-        with pytest.raises(ValueError, match="No filename matches the pattern"):
-            _ = hs.load(temp_fname)
+    with pytest.raises(ValueError, match="No filename matches the pattern"):
+        _ = hs.load(temp_fname)
 
-        with pytest.raises(FileNotFoundError):
-            _ = hs.load([temp_fname])
+    with pytest.raises(FileNotFoundError):
+        _ = hs.load([temp_fname])
 
 
-def test_file_reader_error():
+def test_file_reader_error(tmp_path):
     # Only None, str or objects with attr "file_reader" are supported
     s = hs.signals.Signal1D(np.arange(10))
 
-    with tempfile.TemporaryDirectory() as dirpath:
-        f = os.path.join(dirpath, "temp.hspy")
-        s.save(f)
+    f = tmp_path / "temp.hspy"
+    s.save(f)
 
-        with pytest.raises(ValueError, match="reader"):
-            _ = hs.load(f, reader=123)
+    with pytest.raises(ValueError, match="reader"):
+        _ = hs.load(f, reader=123)
 
 
 def test_file_reader_warning(caplog, tmp_path):
@@ -269,41 +263,35 @@ def test_file_reader_options():
         np.testing.assert_allclose(t.data, np.arange(10))
 
 
-def test_save_default_format():
+def test_save_default_format(tmp_path):
     s = hs.signals.Signal1D(np.arange(10))
 
-    with tempfile.TemporaryDirectory() as dirpath:
-        f = os.path.join(dirpath, "temp")
-        s.save(f)
+    f = tmp_path / "temp"
+    s.save(f)
 
-        t = hs.load(Path(dirpath, "temp.hspy"))
-        assert len(t) == 1
+    t = hs.load(tmp_path / "temp.hspy")
+    assert len(t) == 1
 
 
-def test_load_original_metadata():
+def test_load_original_metadata(tmp_path):
     s = hs.signals.Signal1D(np.arange(10))
     s.original_metadata.a = 0
 
-    with tempfile.TemporaryDirectory() as dirpath:
-        f = os.path.join(dirpath, "temp")
-        s.save(f)
-        assert s.original_metadata.as_dictionary() != {}
+    f = tmp_path / "temp"
+    s.save(f)
+    assert s.original_metadata.as_dictionary() != {}
 
-        t = hs.load(Path(dirpath, "temp.hspy"))
-        assert (
-            t.original_metadata.as_dictionary() == s.original_metadata.as_dictionary()
-        )
+    t = hs.load(tmp_path / "temp.hspy")
+    assert t.original_metadata.as_dictionary() == s.original_metadata.as_dictionary()
 
-        t = hs.load(Path(dirpath, "temp.hspy"), load_original_metadata=False)
-        assert t.original_metadata.as_dictionary() == {}
+    t = hs.load(tmp_path / "temp.hspy", load_original_metadata=False)
+    assert t.original_metadata.as_dictionary() == {}
 
 
 def test_load_save_filereader_metadata():
     # tests that original FileReader metadata is correctly persisted and
     # appended through a save and load cycle
-
-    my_path = os.path.dirname(__file__)
-    s = hs.load(os.path.join(my_path, "msa_files", "example1.msa"))
+    s = hs.load(TEST_DATA_PATH / "msa" / "example1.msa")
     assert s.metadata.General.FileIO.Number_0.io_plugin == "rsciio.msa"
     assert s.metadata.General.FileIO.Number_0.operation == "load"
     assert s.metadata.General.FileIO.Number_0.hyperspy_version == hs.__version__

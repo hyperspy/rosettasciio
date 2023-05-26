@@ -19,6 +19,7 @@
 
 import gc
 import os
+from pathlib import Path
 import tempfile
 import warnings
 
@@ -39,9 +40,9 @@ except NameError:
     WindowsError = None
 
 
-DIRPATH = os.path.dirname(__file__)
-FILE1 = os.path.join(DIRPATH, "blockfile_data", "test1.blo")
-FILE2 = os.path.join(DIRPATH, "blockfile_data", "test2.blo")
+TEST_DATA_DIR = Path(__file__).parent / "data" / "blockfile"
+FILE1 = TEST_DATA_DIR / "test1.blo"
+FILE2 = TEST_DATA_DIR / "test2.blo"
 
 
 @pytest.fixture()
@@ -56,12 +57,11 @@ def fake_signal():
 
 
 @pytest.fixture()
-def save_path():
-    with tempfile.TemporaryDirectory() as tmp:
-        filepath = os.path.join(tmp, "blockfile_data", "save_temp.blo")
-        yield filepath
-        # Force files release (required in Windows)
-        gc.collect()
+def save_path(tmp_path):
+    filepath = tmp_path / "save_temp.blo"
+    yield filepath
+    # Force files release (required in Windows)
+    gc.collect()
 
 
 ref_data2 = np.array(

@@ -1,6 +1,6 @@
 from dateutil import parser, tz
+from pathlib import Path
 
-import os
 import numpy as np
 import pytest
 
@@ -8,15 +8,20 @@ from rsciio.utils.tools import DTBox, dict2sarray, XmlToDict, ET
 from rsciio.utils.tools import sanitize_msxml_float
 import rsciio.utils.date_time_tools as dtt
 
+
 dt = [("x", np.uint8), ("y", np.uint16), ("text", (bytes, 6))]
 
-MY_PATH = os.path.dirname(__file__)
-TEST_XML_PATH = os.path.join(MY_PATH, "ToastedBreakFastSDD.xml")
+
+MY_PATH = Path(__file__).parent
+TEST_XML_PATH = MY_PATH / ".." / "data" / "ToastedBreakFastSDD.xml"
+
 
 with open(TEST_XML_PATH, "r") as fn:
     weird_but_valid_xml_str = fn.read()
 
+
 XML_TEST_NODE = ET.fromstring(weird_but_valid_xml_str)
+
 
 # fmt: off
 def test_msxml_sanitization():

@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import os
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -26,11 +26,11 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 import traits.api as t
 
 
-FILES_PATH = os.path.join(os.path.dirname(__file__), "emd_files")
+TEST_DATA_PATH = Path(__file__).parent / "data" / "emd"
 
 
 def test_all_but_4D():
-    filename = os.path.join(FILES_PATH, "Si100_2D_3D_DPC_potential_2slices.emd")
+    filename = TEST_DATA_PATH / "Si100_2D_3D_DPC_potential_2slices.emd"
     s = hs.load(filename)
 
     assert len(s) == 4
@@ -92,7 +92,7 @@ def test_all_but_4D():
 
 
 def test_depth_axis_zStart():
-    filename = os.path.join(FILES_PATH, "Si100_1x1x3-zStart5.43.emd")
+    filename = TEST_DATA_PATH / "Si100_1x1x3-zStart5.43.emd"
     s = hs.load(filename)
     axis = s.axes_manager[1]
 
@@ -104,7 +104,7 @@ def test_depth_axis_zStart():
 
     # non-uniform depth axis, not supported yet
     # only the depth of the last image differ from others
-    filename = os.path.join(FILES_PATH, "Si100_1x1x3-zStart6.7875.emd")
+    filename = TEST_DATA_PATH / "Si100_1x1x3-zStart6.7875.emd"
     s = hs.load(filename)
     axis = s.axes_manager[1]
 
@@ -116,7 +116,7 @@ def test_depth_axis_zStart():
 
 
 def test_all_but_4D_no_stack():
-    filename = os.path.join(FILES_PATH, "Si100_2D_3D_DPC_potential_2slices.emd")
+    filename = TEST_DATA_PATH / "Si100_2D_3D_DPC_potential_2slices.emd"
     s = hs.load(filename, stack_group=False)
     assert len(s) == 7
 
@@ -134,14 +134,14 @@ def test_all_but_4D_no_stack():
     ],
 )
 def test_load_single_dataset(dataset_path):
-    filename = os.path.join(FILES_PATH, "Si100_2D_3D_DPC_potential_2slices.emd")
+    filename = TEST_DATA_PATH / "Si100_2D_3D_DPC_potential_2slices.emd"
     s = hs.load(filename, dataset_path=dataset_path)
 
     assert isinstance(s, hs.signals.Signal2D)
 
 
 def test_load_specific_datasets():
-    filename = os.path.join(FILES_PATH, "Si100_2D_3D_DPC_potential_2slices.emd")
+    filename = TEST_DATA_PATH / "Si100_2D_3D_DPC_potential_2slices.emd"
     dataset_path = [
         "4DSTEM_simulation/data/realslices/annular_detector_depth0000/realslice",
         "4DSTEM_simulation/data/realslices/virtual_detector_depth0000/realslice",
@@ -153,7 +153,7 @@ def test_load_specific_datasets():
 
 @pytest.mark.parametrize("lazy", (True, False))
 def test_3D_only(lazy):
-    filename = os.path.join(FILES_PATH, "Si100_3D.emd")
+    filename = TEST_DATA_PATH / "Si100_3D.emd"
     s = hs.load(filename, lazy=lazy)
     if lazy:
         s.compute(close_file=True)
@@ -180,7 +180,7 @@ def test_3D_only(lazy):
 
 
 def test_non_square_3D():
-    filename = os.path.join(FILES_PATH, "Si100_2x1x1_3D.emd")
+    filename = TEST_DATA_PATH / "Si100_2x1x1_3D.emd"
     s = hs.load(filename)
 
     assert s.data.shape == (22, 44)
@@ -199,7 +199,7 @@ def test_non_square_3D():
 
 @pytest.mark.parametrize("lazy", (True, False))
 def test_4D(lazy):
-    filename = os.path.join(FILES_PATH, "Si100_4D.emd")
+    filename = TEST_DATA_PATH / "Si100_4D.emd"
     s = hs.load(filename, lazy=lazy)
     if lazy:
         s.compute(close_file=True)

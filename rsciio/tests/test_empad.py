@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import os
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -29,9 +29,9 @@ import traits.api as t
 from rsciio.empad._api import _parse_xml
 
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "empad_data")
-FILENAME_STACK_RAW = os.path.join(DATA_DIR, "series_x10.raw")
-FILENAME_MAP_RAW = os.path.join(DATA_DIR, "scan_x4_y4.raw")
+DATA_DIR = Path(__file__).parent / "data" / "empad"
+FILENAME_STACK_RAW = DATA_DIR / "series_x10.raw"
+FILENAME_MAP_RAW = DATA_DIR / "scan_x4_y4.raw"
 
 
 def _create_raw_data(filename, shape):
@@ -49,16 +49,17 @@ def teardown_module(module):
     # run garbage collection to release file on windows
     gc.collect()
 
-    fs = [f for f in [FILENAME_STACK_RAW, FILENAME_MAP_RAW] if os.path.exists(f)]
+    fs = [f for f in [FILENAME_STACK_RAW, FILENAME_MAP_RAW] if f.exists()]
 
     for f in fs:
-        os.remove(f)
+        # remove file
+        f.unlink()
 
 
 @pytest.mark.parametrize("lazy", (False, True))
 def test_read_stack(lazy):
     # xml file version 0.51 211118
-    s = hs.load(os.path.join(DATA_DIR, "stack_images.xml"), lazy=lazy, reader="EMPAD")
+    s = hs.load(DATA_DIR / "stack_images.xml", lazy=lazy, reader="EMPAD")
     assert s.data.dtype == "float32"
     ref_data = np.arange(166400).reshape((10, 130, 128))[..., :128, :]
     np.testing.assert_allclose(s.data, ref_data.astype("float32"))
@@ -83,7 +84,7 @@ def test_read_stack(lazy):
 @pytest.mark.parametrize("lazy", (False, True))
 def test_read_map(lazy):
     # xml file version 0.51 211118
-    s = hs.load(os.path.join(DATA_DIR, "map4x4.xml"), lazy=lazy, reader="EMPAD")
+    s = hs.load(DATA_DIR / "map4x4.xml", lazy=lazy, reader="EMPAD")
     assert s.data.dtype == "float32"
     ref_data = np.arange(266240).reshape((4, 4, 130, 128))[..., :128, :]
     np.testing.assert_allclose(s.data, ref_data.astype("float32"))
@@ -109,7 +110,7 @@ def test_read_map(lazy):
 
 def test_parse_xml_1_2_0():
     # xml file version 1.2.0 (2020-10-29)
-    filename = os.path.join(DATA_DIR, "map128x128_version1.2.0.xml")
+    filename = DATA_DIR / "map128x128_version1.2.0.xml"
     om, info = _parse_xml(filename)
     assert info["scan_x"] == 128
     assert info["scan_y"] == 128

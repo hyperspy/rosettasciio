@@ -21,13 +21,15 @@
 # National Lab (see https://emdatasets.com/ for more information).
 # NOT to be confused with the FEI EMD format which was developed later.
 
+import os
+from pathlib import Path
+
 import dask.array as da
 from datetime import datetime
 from dateutil import tz
 import gc
 import h5py
 import numpy as np
-import os
 import pytest
 import tempfile
 import shutil
@@ -36,7 +38,9 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 from hyperspy.misc.test_utils import assert_deep_almost_equal
 
-my_path = os.path.dirname(__file__)
+
+TEST_DATA_PATH = Path(__file__).parent / "data" / "emd"
+
 
 # Reference data:
 data_signal = np.arange(27).reshape((3, 3, 3)).T
@@ -58,9 +62,7 @@ test_title = "This is a test!"
 
 @pytest.mark.parametrize("lazy", (True, False))
 def test_signal_3d_loading(lazy):
-    signal = hs.load(
-        os.path.join(my_path, "emd_files", "example_signal.emd"), lazy=lazy
-    )
+    signal = hs.load(TEST_DATA_PATH / "example_signal.emd", lazy=lazy)
     if lazy:
         signal.compute(close_file=True)
     np.testing.assert_equal(signal.data, data_signal)
@@ -68,19 +70,19 @@ def test_signal_3d_loading(lazy):
 
 
 def test_image_2d_loading():
-    signal = hs.load(os.path.join(my_path, "emd_files", "example_image.emd"))
+    signal = hs.load(TEST_DATA_PATH / "example_image.emd")
     np.testing.assert_equal(signal.data, data_image)
     assert isinstance(signal, hs.signals.Signal2D)
 
 
 def test_spectrum_1d_loading():
-    signal = hs.load(os.path.join(my_path, "emd_files", "example_spectrum.emd"))
+    signal = hs.load(TEST_DATA_PATH / "example_spectrum.emd")
     np.testing.assert_equal(signal.data, data_spectrum)
     assert isinstance(signal, hs.signals.Signal1D)
 
 
 def test_metadata():
-    signal = hs.load(os.path.join(my_path, "emd_files", "example_metadata.emd"))
+    signal = hs.load(TEST_DATA_PATH / "example_metadata.emd")
     om = signal.original_metadata
     np.testing.assert_equal(signal.data, data_image)
     np.testing.assert_equal(signal.metadata.General.title, test_title)
@@ -93,7 +95,7 @@ def test_metadata():
 
 def test_metadata_with_bytes_string():
     pytest.importorskip("natsort", minversion="5.1.0")
-    filename = os.path.join(my_path, "emd_files", "example_bytes_string_metadata.emd")
+    filename = TEST_DATA_PATH / "example_bytes_string_metadata.emd"
     f = h5py.File(filename, "r")
     dim1 = f["test_group"]["data_group"]["dim1"]
     dim1_name = dim1.attrs["name"]
@@ -101,17 +103,17 @@ def test_metadata_with_bytes_string():
     f.close()
     assert isinstance(dim1_name, np.bytes_)
     assert isinstance(dim1_units, np.bytes_)
-    _ = hs.load(os.path.join(my_path, "emd_files", filename))
+    _ = hs.load(TEST_DATA_PATH / filename)
 
 
 def test_data_numpy_object_dtype():
-    filename = os.path.join(my_path, "emd_files", "example_object_dtype_data.emd")
+    filename = TEST_DATA_PATH / "example_object_dtype_data.emd"
     signal = hs.load(filename)
     np.testing.assert_equal(signal.data, np.array([["a, 2, test1", "a, 2, test1"]]))
 
 
 def test_data_axis_length_1():
-    filename = os.path.join(my_path, "emd_files", "example_axis_len_1.emd")
+    filename = TEST_DATA_PATH / "example_axis_len_1.emd"
     signal = hs.load(filename)
     assert signal.data.shape == (5, 1, 5)
 
@@ -174,109 +176,89 @@ class TestDatasetName:
             )
 
 
-def test_minimal_save():
+def test_minimal_save(tmp_path):
     signal = hs.signals.Signal1D([0, 1])
-    with tempfile.TemporaryDirectory() as tmp:
-        signal.save(os.path.join(tmp, "testfile.emd"))
+    signal.save(tmp_path / "testfile.emd")
 
 
-class TestReadSeveralDatasets:
-    def setup_method(self):
-        tmpdir = tempfile.TemporaryDirectory()
-        hdf5_dataset_path = os.path.join(tmpdir.name, "test_dataset.emd")
-        f = h5py.File(hdf5_dataset_path, mode="w")
-        f.attrs.create("version_major", 0)
-        f.attrs.create("version_minor", 2)
+def test_load_file(tmp_path):
+    hdf5_dataset_path = tmp_path / "test_dataset.emd"
+    f = h5py.File(hdf5_dataset_path, mode="w")
+    f.attrs.create("version_major", 0)
+    f.attrs.create("version_minor", 2)
 
-        group_path_list = ["/exp/data_0/data", "/exp/data_1/data", "/calc/data_0/data"]
+    group_path_list = ["/exp/data_0/data", "/exp/data_1/data", "/calc/data_0/data"]
 
-        for group_path in group_path_list:
-            group = f.create_group(group_path)
-            group.attrs.create("emd_group_type", 1)
-            data = np.random.random((128, 128))
-            group.create_dataset(name="data", data=data)
-            group.create_dataset(name="dim1", data=range(128))
-            group.create_dataset(name="dim2", data=range(128))
+    for group_path in group_path_list:
+        group = f.create_group(group_path)
+        group.attrs.create("emd_group_type", 1)
+        data = np.random.random((128, 128))
+        group.create_dataset(name="data", data=data)
+        group.create_dataset(name="dim1", data=range(128))
+        group.create_dataset(name="dim2", data=range(128))
 
-        f.close()
+    f.close()
 
-        self.group_path_list = group_path_list
-        self.hdf5_dataset_path = hdf5_dataset_path
-        self.tmpdir = tmpdir
-
-    def teardown_method(self):
-        self.tmpdir.cleanup()
-
-    def test_load_file(self):
-        s = hs.load(self.hdf5_dataset_path)
-        assert len(s) == len(self.group_path_list)
-        for _s, path in zip(s, self.group_path_list):
-            assert _s.metadata.General.title in path
+    s = hs.load(hdf5_dataset_path)
+    assert len(s) == len(group_path_list)
+    for _s, path in zip(s, group_path_list):
+        assert _s.metadata.General.title in path
 
 
-class TestCaseSaveAndRead:
-    @pytest.mark.parametrize("lazy", (True, False))
-    def test_save_and_read(self, lazy):
-        signal_ref = hs.signals.BaseSignal(data_save)
-        signal_ref.metadata.General.title = test_title
-        signal_ref.axes_manager[0].name = "x"
-        signal_ref.axes_manager[1].name = "y"
-        signal_ref.axes_manager[2].name = "z"
-        signal_ref.axes_manager[0].scale = 2
-        signal_ref.axes_manager[1].scale = 3
-        signal_ref.axes_manager[2].scale = 4
-        signal_ref.axes_manager[0].offset = 10
-        signal_ref.axes_manager[1].offset = 20
-        signal_ref.axes_manager[2].offset = 30
-        signal_ref.axes_manager[0].units = "nm"
-        signal_ref.axes_manager[1].units = "µm"
-        signal_ref.axes_manager[2].units = "mm"
-        signal_ref.original_metadata.add_dictionary({"user": user})
-        signal_ref.original_metadata.add_dictionary({"microscope": microscope})
-        signal_ref.original_metadata.add_dictionary({"sample": sample})
-        signal_ref.original_metadata.add_dictionary({"comments": comments})
+@pytest.mark.parametrize("lazy", (True, False))
+def test_save_and_read(lazy, tmp_path):
+    signal_ref = hs.signals.BaseSignal(data_save)
+    signal_ref.metadata.General.title = test_title
+    signal_ref.axes_manager[0].name = "x"
+    signal_ref.axes_manager[1].name = "y"
+    signal_ref.axes_manager[2].name = "z"
+    signal_ref.axes_manager[0].scale = 2
+    signal_ref.axes_manager[1].scale = 3
+    signal_ref.axes_manager[2].scale = 4
+    signal_ref.axes_manager[0].offset = 10
+    signal_ref.axes_manager[1].offset = 20
+    signal_ref.axes_manager[2].offset = 30
+    signal_ref.axes_manager[0].units = "nm"
+    signal_ref.axes_manager[1].units = "µm"
+    signal_ref.axes_manager[2].units = "mm"
+    signal_ref.original_metadata.add_dictionary({"user": user})
+    signal_ref.original_metadata.add_dictionary({"microscope": microscope})
+    signal_ref.original_metadata.add_dictionary({"sample": sample})
+    signal_ref.original_metadata.add_dictionary({"comments": comments})
 
-        signal_ref.save(
-            os.path.join(my_path, "emd_files", "example_temp.emd"), overwrite=True
-        )
-        signal = hs.load(
-            os.path.join(my_path, "emd_files", "example_temp.emd"), lazy=lazy
-        )
-        if lazy:
-            signal.compute(close_file=True)
-        om = signal.original_metadata
-        np.testing.assert_equal(signal.data, signal_ref.data)
-        np.testing.assert_equal(signal.axes_manager[0].name, "x")
-        np.testing.assert_equal(signal.axes_manager[1].name, "y")
-        np.testing.assert_equal(signal.axes_manager[2].name, "z")
-        np.testing.assert_equal(signal.axes_manager[0].scale, 2)
-        np.testing.assert_almost_equal(signal.axes_manager[1].scale, 3.0)
-        np.testing.assert_almost_equal(signal.axes_manager[2].scale, 4.0)
-        np.testing.assert_equal(signal.axes_manager[0].offset, 10)
-        np.testing.assert_almost_equal(signal.axes_manager[1].offset, 20.0)
-        np.testing.assert_almost_equal(signal.axes_manager[2].offset, 30.0)
-        np.testing.assert_equal(signal.axes_manager[0].units, "nm")
-        np.testing.assert_equal(signal.axes_manager[1].units, "µm")
-        np.testing.assert_equal(signal.axes_manager[2].units, "mm")
-        np.testing.assert_equal(signal.metadata.General.title, test_title)
-        np.testing.assert_equal(om.user.as_dictionary(), user)
-        np.testing.assert_equal(om.microscope.as_dictionary(), microscope)
-        np.testing.assert_equal(om.sample.as_dictionary(), sample)
-        np.testing.assert_equal(om.comments.as_dictionary(), comments)
+    signal_ref.save(tmp_path / "example_temp.emd", overwrite=True)
+    signal = hs.load(tmp_path / "example_temp.emd", lazy=lazy)
+    if lazy:
+        signal.compute(close_file=True)
+    om = signal.original_metadata
+    np.testing.assert_equal(signal.data, signal_ref.data)
+    np.testing.assert_equal(signal.axes_manager[0].name, "x")
+    np.testing.assert_equal(signal.axes_manager[1].name, "y")
+    np.testing.assert_equal(signal.axes_manager[2].name, "z")
+    np.testing.assert_equal(signal.axes_manager[0].scale, 2)
+    np.testing.assert_almost_equal(signal.axes_manager[1].scale, 3.0)
+    np.testing.assert_almost_equal(signal.axes_manager[2].scale, 4.0)
+    np.testing.assert_equal(signal.axes_manager[0].offset, 10)
+    np.testing.assert_almost_equal(signal.axes_manager[1].offset, 20.0)
+    np.testing.assert_almost_equal(signal.axes_manager[2].offset, 30.0)
+    np.testing.assert_equal(signal.axes_manager[0].units, "nm")
+    np.testing.assert_equal(signal.axes_manager[1].units, "µm")
+    np.testing.assert_equal(signal.axes_manager[2].units, "mm")
+    np.testing.assert_equal(signal.metadata.General.title, test_title)
+    np.testing.assert_equal(om.user.as_dictionary(), user)
+    np.testing.assert_equal(om.microscope.as_dictionary(), microscope)
+    np.testing.assert_equal(om.sample.as_dictionary(), sample)
+    np.testing.assert_equal(om.comments.as_dictionary(), comments)
 
-        assert isinstance(signal, hs.signals.BaseSignal)
-
-    def teardown_method(self, method):
-        os.remove(os.path.join(my_path, "emd_files", "example_temp.emd"))
+    assert isinstance(signal, hs.signals.BaseSignal)
 
 
-def test_chunking_saving_lazy():
+def test_chunking_saving_lazy(tmp_path):
     s = hs.signals.Signal2D(da.zeros((50, 100, 100))).as_lazy()
     s.data = s.data.rechunk([50, 25, 25])
-    with tempfile.TemporaryDirectory() as tmp:
-        filename = os.path.join(tmp, "test_chunking_saving_lazy.emd")
-        filename2 = os.path.join(tmp, "test_chunking_saving_lazy_chunks_True.emd")
-        filename3 = os.path.join(tmp, "test_chunking_saving_lazy_chunks_specify.emd")
+    filename = tmp_path / "test_chunking_saving_lazy.emd"
+    filename2 = tmp_path / "test_chunking_saving_lazy_chunks_True.emd"
+    filename3 = tmp_path / "test_chunking_saving_lazy_chunks_specify.emd"
     s.save(filename)
     s1 = hs.load(filename, lazy=True)
     assert s.data.chunks == s1.data.chunks
@@ -304,13 +286,13 @@ def _generate_parameters():
 
 
 class TestFeiEMD:
-    fei_files_path = os.path.join(my_path, "emd_files", "fei_emd_files")
+    fei_files_path = TEST_DATA_PATH / "fei_emd_files"
 
     @classmethod
     def setup_class(cls):
         import zipfile
 
-        zipf = os.path.join(my_path, "emd_files", "fei_emd_files.zip")
+        zipf = TEST_DATA_PATH / "fei_emd_files.zip"
         with zipfile.ZipFile(zipf, "r") as zipped:
             zipped.extractall(cls.fei_files_path)
 
@@ -370,15 +352,13 @@ class TestFeiEMD:
         md["General"]["date"] = date
         md["General"]["time"] = time
 
-        signal = hs.load(
-            os.path.join(self.fei_files_path, "fei_emd_image.emd"), lazy=lazy
-        )
+        signal = hs.load(self.fei_files_path / "fei_emd_image.emd", lazy=lazy)
         # delete timestamp from metadata since it's runtime dependent
         del signal.metadata.General.FileIO.Number_0.timestamp
         if lazy:
             assert signal._lazy
             signal.compute(close_file=True)
-        fei_image = np.load(os.path.join(self.fei_files_path, "fei_emd_image.npy"))
+        fei_image = np.load(self.fei_files_path / "fei_emd_image.npy")
         assert signal.axes_manager[0].name == "x"
         assert signal.axes_manager[0].units == "µm"
         assert signal.axes_manager[0].is_binned == False
@@ -393,32 +373,28 @@ class TestFeiEMD:
 
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_spectrum(self, lazy):
-        signal = hs.load(
-            os.path.join(self.fei_files_path, "fei_emd_spectrum.emd"), lazy=lazy
-        )
+        signal = hs.load(self.fei_files_path / "fei_emd_spectrum.emd", lazy=lazy)
         if lazy:
             assert signal._lazy
             signal.compute(close_file=True)
-        fei_spectrum = np.load(
-            os.path.join(self.fei_files_path, "fei_emd_spectrum.npy")
-        )
+        fei_spectrum = np.load(self.fei_files_path / "fei_emd_spectrum.npy")
         np.testing.assert_equal(signal.data, fei_spectrum)
         assert isinstance(signal, hs.signals.Signal1D)
 
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_si(self, lazy):
-        signal = hs.load(os.path.join(self.fei_files_path, "fei_emd_si.emd"), lazy=lazy)
+        signal = hs.load(self.fei_files_path / "fei_emd_si.emd", lazy=lazy)
         if lazy:
             assert signal[1]._lazy
             signal[1].compute(close_file=True)
-        fei_si = np.load(os.path.join(self.fei_files_path, "fei_emd_si.npy"))
+        fei_si = np.load(self.fei_files_path / "fei_emd_si.npy")
         np.testing.assert_equal(signal[1].data, fei_si)
         assert isinstance(signal[1], hs.signals.Signal1D)
 
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_si_non_square_10frames(self, lazy):
         s = hs.load(
-            os.path.join(self.fei_files_path, "fei_SI_SuperX-HAADF_10frames_10x50.emd"),
+            self.fei_files_path / "fei_SI_SuperX-HAADF_10frames_10x50.emd",
             lazy=lazy,
         )
         signal = s[1]
@@ -453,7 +429,7 @@ class TestFeiEMD:
         assert signal0.axes_manager[1].units == "nm"
 
         s = hs.load(
-            os.path.join(self.fei_files_path, "fei_SI_SuperX-HAADF_10frames_10x50.emd"),
+            self.fei_files_path / "fei_SI_SuperX-HAADF_10frames_10x50.emd",
             lazy=lazy,
             load_SI_image_stack=True,
         )
@@ -492,7 +468,7 @@ class TestFeiEMD:
         assert signal0.axes_manager[2].units == "nm"
 
         s = hs.load(
-            os.path.join(self.fei_files_path, "fei_SI_SuperX-HAADF_10frames_10x50.emd"),
+            self.fei_files_path / "fei_SI_SuperX-HAADF_10frames_10x50.emd",
             sum_frames=False,
             SI_dtype=np.uint8,
             rebin_energy=256,
@@ -522,7 +498,7 @@ class TestFeiEMD:
         np.testing.assert_allclose(signal.axes_manager[3].scale, 1.28, atol=1e-5)
 
         s = hs.load(
-            os.path.join(self.fei_files_path, "fei_SI_SuperX-HAADF_10frames_10x50.emd"),
+            self.fei_files_path / "fei_SI_SuperX-HAADF_10frames_10x50.emd",
             sum_frames=False,
             last_frame=5,
             SI_dtype=np.uint8,
@@ -553,7 +529,7 @@ class TestFeiEMD:
         np.testing.assert_allclose(signal.axes_manager[3].scale, 1.28, atol=1e-5)
 
         s = hs.load(
-            os.path.join(self.fei_files_path, "fei_SI_SuperX-HAADF_10frames_10x50.emd"),
+            self.fei_files_path / "fei_SI_SuperX-HAADF_10frames_10x50.emd",
             sum_frames=False,
             first_frame=4,
             SI_dtype=np.uint8,
@@ -586,7 +562,7 @@ class TestFeiEMD:
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_si_non_square_20frames(self, lazy):
         s = hs.load(
-            os.path.join(self.fei_files_path, "fei_SI_SuperX-HAADF_20frames_10x50.emd"),
+            self.fei_files_path / "fei_SI_SuperX-HAADF_20frames_10x50.emd",
             lazy=lazy,
         )
         signal = s[1]
@@ -610,9 +586,7 @@ class TestFeiEMD:
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_si_non_square_20frames_2eV(self, lazy):
         s = hs.load(
-            os.path.join(
-                self.fei_files_path, "fei_SI_SuperX-HAADF_20frames_10x50_2ev.emd"
-            ),
+            self.fei_files_path / "fei_SI_SuperX-HAADF_20frames_10x50_2ev.emd",
             lazy=lazy,
         )
         signal = s[1]
@@ -636,12 +610,12 @@ class TestFeiEMD:
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_si_frame_range(self, lazy):
         signal = hs.load(
-            os.path.join(self.fei_files_path, "fei_emd_si.emd"),
+            self.fei_files_path / "fei_emd_si.emd",
             first_frame=2,
             last_frame=4,
             lazy=lazy,
         )
-        fei_si = np.load(os.path.join(self.fei_files_path, "fei_emd_si_frame.npy"))
+        fei_si = np.load(self.fei_files_path / "fei_emd_si_frame.npy")
         if lazy:
             assert signal[1]._lazy
             signal[1].compute(close_file=True)
@@ -650,9 +624,7 @@ class TestFeiEMD:
 
     @pytest.mark.parametrize(["lazy", "sum_EDS_detectors"], _generate_parameters())
     def test_fei_si_4detectors(self, lazy, sum_EDS_detectors):
-        fname = os.path.join(
-            self.fei_files_path, "fei_SI_EDS-HAADF-4detectors_2frames.emd"
-        )
+        fname = self.fei_files_path / "fei_SI_EDS-HAADF-4detectors_2frames.emd"
         signal = hs.load(fname, sum_EDS_detectors=sum_EDS_detectors, lazy=lazy)
         if lazy:
             assert signal[1]._lazy
@@ -664,7 +636,7 @@ class TestFeiEMD:
         # TODO: add parsing azimuth_angle
 
     def test_fei_emd_ceta_camera(self):
-        signal = hs.load(os.path.join(self.fei_files_path, "1532 Camera Ceta.emd"))
+        signal = hs.load(self.fei_files_path / "1532 Camera Ceta.emd")
         np.testing.assert_allclose(signal.data, np.zeros((64, 64)))
         assert isinstance(signal, hs.signals.Signal2D)
         date, time = self._convert_datetime(1512055942.914275).split("T")
@@ -672,7 +644,7 @@ class TestFeiEMD:
         assert signal.metadata.General.time == time
         assert signal.metadata.General.time_zone == self._get_local_time_zone()
 
-        signal = hs.load(os.path.join(self.fei_files_path, "1854 Camera Ceta.emd"))
+        signal = hs.load(self.fei_files_path / "1854 Camera Ceta.emd")
         np.testing.assert_allclose(signal.data, np.zeros((64, 64)))
         assert isinstance(signal, hs.signals.Signal2D)
 
@@ -693,12 +665,12 @@ class TestFeiEMD:
         point_measurement = 15
         frame_offsets = np.arange(0, point_measurement * frame_number, frame_number)
         time_data = np.zeros_like(frame_offsets)
-        path = "path to large dataset"
+        path = Path("path to large dataset")
         for i, frame_offset in enumerate(frame_offsets):
             print(frame_offset + frame_number)
             t0 = time.time()
             hs.load(
-                os.path.join(path, "large dataset.emd"),
+                path / "large dataset.emd",
                 first_frame=frame_offset,
                 last_frame=frame_offset + frame_number,
             )
@@ -712,26 +684,24 @@ class TestFeiEMD:
 
 
 def test_fei_complex_loading():
-    signal = hs.load(os.path.join(my_path, "emd_files", "fei_example_complex_fft.emd"))
+    signal = hs.load(TEST_DATA_PATH / "fei_example_complex_fft.emd")
     assert isinstance(signal, hs.signals.ComplexSignal2D)
 
 
 def test_fei_complex_loading_lazy():
-    signal = hs.load(
-        os.path.join(my_path, "emd_files", "fei_example_complex_fft.emd"), lazy=True
-    )
+    signal = hs.load(TEST_DATA_PATH / "fei_example_complex_fft.emd", lazy=True)
     assert isinstance(signal, hs.signals.ComplexSignal2D)
 
 
 def test_fei_no_frametime():
-    signal = hs.load(os.path.join(my_path, "emd_files", "fei_example_tem_stack.emd"))
+    signal = hs.load(TEST_DATA_PATH / "fei_example_tem_stack.emd")
     assert isinstance(signal, hs.signals.Signal2D)
     assert signal.data.shape == (2, 3, 3)
     assert signal.axes_manager["Time"].scale == 0.8
 
 
 def test_fei_dpc_loading():
-    signals = hs.load(os.path.join(my_path, "emd_files", "fei_example_dpc_titles.emd"))
+    signals = hs.load(TEST_DATA_PATH / "fei_example_dpc_titles.emd")
     assert signals[0].metadata.General.title == "B-D"
     assert signals[1].metadata.General.title == "DPC"
     assert signals[2].metadata.General.title == "iDPC"
@@ -755,8 +725,8 @@ def test_fei_dpc_loading():
 @pytest.mark.parametrize("fname", ["FFTComplexEven.emd", "FFTComplexOdd.emd"])
 def test_velox_fft_odd_number(fname):
     print("0", fname)
-    print(os.path.join(my_path, "emd_files", fname))
-    s = hs.load(os.path.join(my_path, "emd_files", fname))
+    print(TEST_DATA_PATH / fname)
+    s = hs.load(TEST_DATA_PATH / fname)
     assert len(s) == 2
 
     shape = (36, 70) if fname == "FFTComplexEven.emd" else (32, 64)

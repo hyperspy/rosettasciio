@@ -18,7 +18,7 @@
 
 
 import json
-import os
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -29,7 +29,10 @@ from rsciio.tests.generate_dm_testing_files import dm3_data_types, dm4_data_type
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 
-MY_PATH = os.path.dirname(__file__)
+TEST_DATA_PATH = Path(__file__).parent / "data" / "digitalmicrograph"
+DM_1D_PATH = TEST_DATA_PATH / "1D"
+DM_2D_PATH = TEST_DATA_PATH / "2D"
+DM_3D_PATH = TEST_DATA_PATH / "3D"
 
 
 class TestImageObject:
@@ -44,15 +47,13 @@ class TestImageObject:
         return [ImageObject(imdict, fname) for imdict in self.imdict]
 
     def test_get_microscope_name(self):
-        fname = os.path.join(
-            MY_PATH, "dm3_2D_data", "test_diffraction_pattern_tags_removed.dm3"
-        )
+        fname = DM_2D_PATH / "test_diffraction_pattern_tags_removed.dm3"
         images = self._load_file(fname)
         image = images[0]
         # Should return None because the tags are missing
         assert image._get_microscope_name(image.imdict.ImageTags) is None
 
-        fname = os.path.join(MY_PATH, "dm3_2D_data", "test_diffraction_pattern.dm3")
+        fname = DM_2D_PATH / "test_diffraction_pattern.dm3"
         images = self._load_file(fname)
         image = images[0]
         assert image._get_microscope_name(image.imdict.ImageTags) == "FEI Tecnai"
@@ -74,9 +75,7 @@ class TestImageObject:
 
 
 def test_missing_tag():
-    fname = os.path.join(
-        MY_PATH, "dm3_2D_data", "test_diffraction_pattern_tags_removed.dm3"
-    )
+    fname = DM_2D_PATH / "test_diffraction_pattern_tags_removed.dm3"
     s = hs.load(fname)
     md = s.metadata
     np.testing.assert_allclose(md.Acquisition_instrument.TEM.beam_energy, 200.0)
@@ -87,7 +86,7 @@ def test_missing_tag():
 
 
 def test_read_TEM_metadata():
-    fname = os.path.join(MY_PATH, "tiff_files", "test_dm_image_um_unit.dm3")
+    fname = TEST_DATA_PATH / ".." / "tiff" / "test_dm_image_um_unit.dm3"
     s = hs.load(fname)
     md = s.metadata
     assert md.Acquisition_instrument.TEM.acquisition_mode == "TEM"
@@ -104,7 +103,7 @@ def test_read_TEM_metadata():
 
 
 def test_read_Diffraction_metadata():
-    fname = os.path.join(MY_PATH, "dm3_2D_data", "test_diffraction_pattern.dm3")
+    fname = DM_2D_PATH / "test_diffraction_pattern.dm3"
     s = hs.load(fname)
     md = s.metadata
     assert md.Acquisition_instrument.TEM.acquisition_mode == "TEM"
@@ -121,7 +120,7 @@ def test_read_Diffraction_metadata():
 
 
 def test_read_STEM_metadata():
-    fname = os.path.join(MY_PATH, "dm3_2D_data", "test_STEM_image.dm3")
+    fname = DM_2D_PATH / "test_STEM_image.dm3"
     s = hs.load(fname)
     md = s.metadata
     assert md.Acquisition_instrument.TEM.acquisition_mode == "STEM"
@@ -139,7 +138,7 @@ def test_read_STEM_metadata():
 
 
 def test_read_EELS_metadata():
-    fname = os.path.join(MY_PATH, "dm3_1D_data", "test-EELS_spectrum.dm3")
+    fname = DM_1D_PATH / "test-EELS_spectrum.dm3"
     s = hs.load(fname)
     md = s.metadata
     assert md.Acquisition_instrument.TEM.acquisition_mode == "STEM"
@@ -191,7 +190,7 @@ def test_read_EELS_metadata():
 
 
 def test_read_SI_metadata():
-    fname = os.path.join(MY_PATH, "dm4_3D_data", "EELS_SI.dm4")
+    fname = DM_3D_PATH / "EELS_SI.dm4"
     s = hs.load(fname)
     md = s.metadata
     assert md.Acquisition_instrument.TEM.acquisition_mode == "STEM"
@@ -213,7 +212,7 @@ def test_read_SI_metadata():
 
 
 def test_read_EDS_metadata():
-    fname = os.path.join(MY_PATH, "dm3_1D_data", "test-EDS_spectrum.dm3")
+    fname = DM_1D_PATH / "test-EDS_spectrum.dm3"
     s = hs.load(fname)
     md = s.metadata
     assert md.Acquisition_instrument.TEM.acquisition_mode == "STEM"
@@ -255,7 +254,7 @@ def test_read_EDS_metadata():
 
 
 def test_read_MonoCL_pmt_metadata():
-    fname = os.path.join(MY_PATH, "dm4_1D_data", "test-MonoCL_spectrum-pmt.dm4")
+    fname = DM_1D_PATH / "test-MonoCL_spectrum-pmt.dm4"
     s = hs.load(fname)
     md = s.metadata
     assert md.Signal.signal_type == "CL"
@@ -277,7 +276,7 @@ def test_read_MonoCL_pmt_metadata():
 
 
 def test_read_MonarcCL_pmt_metadata():
-    fname = os.path.join(MY_PATH, "dm4_1D_data", "test-MonarcCL_spectrum-pmt.dm4")
+    fname = DM_1D_PATH / "test-MonarcCL_spectrum-pmt.dm4"
     s = hs.load(fname)
     md = s.metadata
     assert md.Signal.signal_type == "CL"
@@ -299,7 +298,7 @@ def test_read_MonarcCL_pmt_metadata():
 
 
 def test_read_MonoCL_ccd_metadata():
-    fname = os.path.join(MY_PATH, "dm4_1D_data", "test-MonoCL_spectrum-ccd.dm4")
+    fname = DM_1D_PATH / "test-MonoCL_spectrum-ccd.dm4"
     s = hs.load(fname)
     md = s.metadata
     assert md.Signal.signal_type == "CL"
@@ -334,7 +333,7 @@ def test_read_MonoCL_ccd_metadata():
 
 
 def test_read_MonarcCL_ccd_metadata():
-    fname = os.path.join(MY_PATH, "dm4_1D_data", "test-MonarcCL_spectrum-ccd.dm4")
+    fname = DM_1D_PATH / "test-MonarcCL_spectrum-ccd.dm4"
     s = hs.load(fname)
     md = s.metadata
     assert md.Signal.signal_type == "CL"
@@ -370,7 +369,7 @@ def test_read_MonarcCL_ccd_metadata():
 
 
 def test_read_MonoCL_SI_metadata():
-    fname = os.path.join(MY_PATH, "dm4_2D_data", "test-MonoCL_spectrum-SI.dm4")
+    fname = DM_2D_PATH / "test-MonoCL_spectrum-SI.dm4"
     s = hs.load(fname)
     md = s.metadata
     assert md.Signal.signal_type == "CL"
@@ -416,7 +415,7 @@ def test_read_MonoCL_SI_metadata():
 
 
 def test_read_MonarcCL_SI_metadata():
-    fname = os.path.join(MY_PATH, "dm4_2D_data", "test-MonarcCL_spectrum-SI.dm4")
+    fname = DM_2D_PATH / "test-MonarcCL_spectrum-SI.dm4"
     s = hs.load(fname)
     md = s.metadata
     assert md.Signal.signal_type == "CL"
@@ -459,7 +458,7 @@ def test_read_MonarcCL_SI_metadata():
 
 
 def test_read_MonarcCL_image_metadata():
-    fname = os.path.join(MY_PATH, "dm4_2D_data", "test-MonarcCL_mono-image.dm4")
+    fname = DM_2D_PATH / "test-MonarcCL_mono-image.dm4"
     s = hs.load(fname)
     md = s.metadata
     assert md.Signal.signal_type == "CL"
@@ -488,22 +487,22 @@ def test_location():
         "Fei HAADF-MX_location.dm3",
         "Fei HAADF-UK_location.dm3",
     ]
-    s = hs.load(os.path.join(MY_PATH, "dm3_locale", fname_list[0]))
+    s = hs.load(TEST_DATA_PATH / fname_list[0])
     assert s.metadata.General.date == "2016-08-27"
     assert s.metadata.General.time == "20:54:33"
-    s = hs.load(os.path.join(MY_PATH, "dm3_locale", fname_list[1]))
+    s = hs.load(TEST_DATA_PATH / fname_list[1])
     assert s.metadata.General.date == "2016-08-27"
     assert s.metadata.General.time == "20:55:20"
-    s = hs.load(os.path.join(MY_PATH, "dm3_locale", fname_list[2]))
+    s = hs.load(TEST_DATA_PATH / fname_list[2])
     assert s.metadata.General.date == "2016-08-27"
     #    assert_equal(s.metadata.General.time, "20:55:20") # MX not working
-    s = hs.load(os.path.join(MY_PATH, "dm3_locale", fname_list[3]))
+    s = hs.load(TEST_DATA_PATH / fname_list[3])
     assert s.metadata.General.date == "2016-08-27"
     assert s.metadata.General.time == "20:52:30"
 
 
 def test_multi_signal():
-    fname = os.path.join(MY_PATH, "dm3_2D_data", "multi_signal.dm3")
+    fname = DM_2D_PATH / "multi_signal.dm3"
     s = hs.load(fname)
 
     # Make sure file is read as a list, and exactly two signals are found
@@ -621,9 +620,8 @@ def generate_parameters():
     parameters = []
     for dim in range(1, 4):
         for key in dm3_data_types.keys():
-            subfolder = "dm3_%iD_data" % dim
-            fname = "test-%s.dm3" % key
-            filename = os.path.join(MY_PATH, subfolder, fname)
+            subfolder = f"{dim}D"
+            filename = TEST_DATA_PATH / subfolder / f"test-{key}.dm3"
             parameters.append(
                 {
                     "filename": filename,
@@ -632,9 +630,8 @@ def generate_parameters():
                 }
             )
         for key in dm4_data_types.keys():
-            subfolder = "dm4_%iD_data" % dim
-            fname = "test-%s.dm4" % key
-            filename = os.path.join(MY_PATH, subfolder, fname)
+            subfolder = f"{dim}D"
+            filename = TEST_DATA_PATH / subfolder / f"test-{key}.dm4"
             parameters.append(
                 {
                     "filename": filename,
@@ -655,11 +652,11 @@ def test_data(pdict, lazy):
     assert s.data.dtype == np.dtype(dm4_data_types[key])
     subfolder = pdict["subfolder"]
     print(pdict["subfolder"])
-    if subfolder in ("dm3_1D_data", "dm4_1D_data"):
+    if subfolder == "1D":
         dat = np.arange(1, 3)
-    elif subfolder in ("dm3_2D_data", "dm4_2D_data"):
+    elif subfolder == "2D":
         dat = np.arange(1, 5).reshape(2, 2)
-    elif subfolder in ("dm3_3D_data", "dm4_3D_data"):
+    elif subfolder == "3D":
         dat = np.arange(1, 9).reshape(2, 2, 2)
     else:
         raise ValueError
@@ -669,12 +666,44 @@ def test_data(pdict, lazy):
     np.testing.assert_array_equal(
         s.data,
         dat,
-        err_msg="content %s type % i: "
-        "\n%s not equal to \n%s" % (subfolder, key, str(s.data), str(dat)),
+        err_msg=f"content {subfolder} type {key}: "
+        f"\n{str(s.data)} not equal to \n{str(dat)}",
     )
 
 
 def test_axes_bug_for_image():
-    fname = os.path.join(MY_PATH, "dm3_2D_data", "test_STEM_image.dm3")
+    fname = DM_2D_PATH / "test_STEM_image.dm3"
     s = hs.load(fname)
     assert s.axes_manager[1].name == "y"
+
+
+def test_load_stackbuilder_imagestack():
+    image_stack = hs.load(TEST_DATA_PATH / "test_stackbuilder_imagestack.dm3")
+    data_dimensions = image_stack.data.ndim
+    am = image_stack.axes_manager
+    axes_dimensions = am.signal_dimension + am.navigation_dimension
+    assert data_dimensions == axes_dimensions
+    md = image_stack.metadata
+    assert md.Acquisition_instrument.TEM.acquisition_mode == "STEM"
+    np.testing.assert_allclose(md.Acquisition_instrument.TEM.beam_current, 0.0)
+    np.testing.assert_allclose(md.Acquisition_instrument.TEM.beam_energy, 200.0)
+    np.testing.assert_allclose(md.Acquisition_instrument.TEM.camera_length, 15.0)
+    np.testing.assert_allclose(
+        md.Acquisition_instrument.TEM.dwell_time, 0.03000005078125
+    )
+    np.testing.assert_allclose(md.Acquisition_instrument.TEM.magnification, 200000.0)
+    assert md.Acquisition_instrument.TEM.microscope == "JEM-ARM200F"
+    assert md.General.date == "2015-05-17"
+    assert md.General.original_filename == "test_stackbuilder_imagestack.dm3"
+    assert md.General.title == "stackbuilder_test4_16x2"
+    assert md.General.time == "17:00:16"
+    assert md.Sample.description == "DWNC"
+    assert md.Signal.quantity == "Electrons (Counts)"
+    assert md.Signal.signal_type == ""
+    assert am.signal_axes[0].is_binned == False
+    np.testing.assert_allclose(
+        md.Signal.Noise_properties.Variance_linear_model.gain_factor, 0.15674974
+    )
+    np.testing.assert_allclose(
+        md.Signal.Noise_properties.Variance_linear_model.gain_offset, 2228741.5
+    )

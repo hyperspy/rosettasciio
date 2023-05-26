@@ -38,13 +38,15 @@ jobs:
         with:
           path: ./dist/*
 
-      - name: Install distribution
-        run: |
-          pip install --pre --find-links dist rosettasciio[all,tests]
-
       - name: Install HyperSpy (dev)
         run: |
           pip install https://github.com/hyperspy/hyperspy/archive/refs/heads/RELEASE_next_major.zip
+
+      - name: Install distribution
+        run: |
+          # neeed --force-reinstall until a first version of rosettasciio is
+          # release otherwise hyperspy install a version and this dist is ignored
+          pip install --force-reinstall --pre --find-links dist rosettasciio[all,tests]
 
       - name: Test distribution
         run: |

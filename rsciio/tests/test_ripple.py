@@ -1,6 +1,5 @@
 import gc
-import os.path
-import tempfile
+from pathlib import Path
 
 import numpy as np
 import numpy.testing as npt
@@ -17,7 +16,7 @@ SHAPES_SDIM = (
     ((2, 3, 4), (1, 2)),
 )
 
-MYPATH = os.path.dirname(__file__)
+TEST_DATA_PATH = Path(__file__).parent / "data" / "ripple"
 
 
 def test_write_unsupported_data_shape():
@@ -45,35 +44,33 @@ def test_write_unsupported_data_type():
 #        np.testing.assert_allclose(s.data, s2.data)
 
 
-def test_write_without_metadata():
+def test_write_without_metadata(tmp_path):
     data = np.arange(5 * 10 * 15).reshape((5, 10, 15))
     s = hs.signals.Signal1D(data)
-    with tempfile.TemporaryDirectory() as tmpdir:
-        fname = os.path.join(tmpdir, "test_write_without_metadata.rpl")
-        s.save(fname)
-        s2 = hs.load(fname)
-        np.testing.assert_allclose(s.data, s2.data)
-        # for windows
-        del s2
-        gc.collect()
+    fname = tmp_path / "test_write_without_metadata.rpl"
+    s.save(fname)
+    s2 = hs.load(fname)
+    np.testing.assert_allclose(s.data, s2.data)
+    # for windows
+    del s2
+    gc.collect()
 
 
-def test_write_with_metadata():
+def test_write_with_metadata(tmp_path):
     data = np.arange(5 * 10).reshape((5, 10))
     s = hs.signals.Signal1D(data)
     s.metadata.set_item("General.date", "2016-08-06")
     s.metadata.set_item("General.time", "10:55:00")
     s.metadata.set_item("General.title", "Test title")
-    with tempfile.TemporaryDirectory() as tmpdir:
-        fname = os.path.join(tmpdir, "test_write_with_metadata.rpl")
-        s.save(fname)
-        s2 = hs.load(fname)
-        np.testing.assert_allclose(s.data, s2.data)
-        assert s.metadata.General.date == s2.metadata.General.date
-        assert s.metadata.General.title == s2.metadata.General.title
-        assert s.metadata.General.time == s2.metadata.General.time
-        del s2
-        gc.collect()
+    fname = tmp_path / "test_write_with_metadata.rpl"
+    s.save(fname)
+    s2 = hs.load(fname)
+    np.testing.assert_allclose(s.data, s2.data)
+    assert s.metadata.General.date == s2.metadata.General.date
+    assert s.metadata.General.title == s2.metadata.General.title
+    assert s.metadata.General.time == s2.metadata.General.time
+    del s2
+    gc.collect()
 
 
 def generate_parameters():
@@ -143,72 +140,67 @@ def _create_signal(shape, dim, dtype, metadata):
 
 
 @pytest.mark.parametrize("pdict", generate_parameters())
-def test_data(pdict):
+def test_data(pdict, tmp_path):
     dtype, shape, dim, metadata = (
         pdict["dtype"],
         pdict["shape"],
         pdict["dim"],
         pdict["metadata"],
     )
-    with tempfile.TemporaryDirectory() as tmpdir:
-        s = _create_signal(shape=shape, dim=dim, dtype=dtype, metadata=metadata)
-        filename = _get_filename(s, metadata)
-        s.save(os.path.join(tmpdir, filename))
-        s_just_saved = hs.load(os.path.join(tmpdir, filename))
-        s_ref = hs.load(os.path.join(MYPATH, "ripple_files", filename))
-        try:
-            for stest in (s_just_saved, s_ref):
-                npt.assert_array_equal(s.data, stest.data)
-                assert s.data.dtype == stest.data.dtype
-                assert (
-                    s.axes_manager.signal_dimension
-                    == stest.axes_manager.signal_dimension
+    s = _create_signal(shape=shape, dim=dim, dtype=dtype, metadata=metadata)
+    filename = _get_filename(s, metadata)
+    s.save(tmp_path / filename)
+    s_just_saved = hs.load(tmp_path / filename)
+    s_ref = hs.load(TEST_DATA_PATH / filename)
+    try:
+        for stest in (s_just_saved, s_ref):
+            npt.assert_array_equal(s.data, stest.data)
+            assert s.data.dtype == stest.data.dtype
+            assert (
+                s.axes_manager.signal_dimension == stest.axes_manager.signal_dimension
+            )
+            assert s.metadata.General.title == stest.metadata.General.title
+            mdpaths = ("Signal.signal_type",)
+            if s.metadata.Signal.signal_type == "EELS" and metadata:
+                mdpaths += (
+                    "Acquisition_instrument.TEM.convergence_angle",
+                    "Acquisition_instrument.TEM.beam_energy",
+                    "Acquisition_instrument.TEM.Detector.EELS.collection_angle",
                 )
-                assert s.metadata.General.title == stest.metadata.General.title
-                mdpaths = ("Signal.signal_type",)
-                if s.metadata.Signal.signal_type == "EELS" and metadata:
-                    mdpaths += (
-                        "Acquisition_instrument.TEM.convergence_angle",
-                        "Acquisition_instrument.TEM.beam_energy",
-                        "Acquisition_instrument.TEM.Detector.EELS.collection_angle",
-                    )
-                elif "EDS" in s.metadata.Signal.signal_type and metadata:
-                    mdpaths += (
-                        "Acquisition_instrument.TEM.Stage.tilt_alpha",
-                        "Acquisition_instrument.TEM.Detector.EDS.azimuth_angle",
-                        "Acquisition_instrument.TEM.Detector.EDS.elevation_angle",
-                        "Acquisition_instrument.TEM.Detector."
-                        "EDS.energy_resolution_MnKa",
-                        "Acquisition_instrument.TEM.Detector.EDS.live_time",
-                    )
-                if metadata:
-                    mdpaths = (
-                        "General.date",
-                        "General.time",
-                        "General.title",
-                    )
-                for mdpath in mdpaths:
-                    assert s.metadata.get_item(mdpath) == stest.metadata.get_item(
-                        mdpath
-                    )
-                for saxis, taxis in zip(s.axes_manager._axes, stest.axes_manager._axes):
-                    taxis.convert_to_units()
-                    assert saxis.scale == taxis.scale
-                    assert saxis.offset == taxis.offset
-                    assert saxis.units == taxis.units
-                    assert saxis.name == taxis.name
-        except Exception:
-            raise
-        finally:
-            # As of v0.8.5 the data in the ripple files are loaded as memmaps
-            # instead of array. In Windows the garbage collector doesn't close
-            # the file before attempting to delete it making the test fail.
-            # The following lines simply make sure that the memmap is closed.
-            # del s_just_saved.data
-            # del s_ref.data
-            del s_just_saved
-            del s_ref
-            gc.collect()
+            elif "EDS" in s.metadata.Signal.signal_type and metadata:
+                mdpaths += (
+                    "Acquisition_instrument.TEM.Stage.tilt_alpha",
+                    "Acquisition_instrument.TEM.Detector.EDS.azimuth_angle",
+                    "Acquisition_instrument.TEM.Detector.EDS.elevation_angle",
+                    "Acquisition_instrument.TEM.Detector." "EDS.energy_resolution_MnKa",
+                    "Acquisition_instrument.TEM.Detector.EDS.live_time",
+                )
+            if metadata:
+                mdpaths = (
+                    "General.date",
+                    "General.time",
+                    "General.title",
+                )
+            for mdpath in mdpaths:
+                assert s.metadata.get_item(mdpath) == stest.metadata.get_item(mdpath)
+            for saxis, taxis in zip(s.axes_manager._axes, stest.axes_manager._axes):
+                taxis.convert_to_units()
+                assert saxis.scale == taxis.scale
+                assert saxis.offset == taxis.offset
+                assert saxis.units == taxis.units
+                assert saxis.name == taxis.name
+    except Exception:
+        raise
+    finally:
+        # As of v0.8.5 the data in the ripple files are loaded as memmaps
+        # instead of array. In Windows the garbage collector doesn't close
+        # the file before attempting to delete it making the test fail.
+        # The following lines simply make sure that the memmap is closed.
+        # del s_just_saved.data
+        # del s_ref.data
+        del s_just_saved
+        del s_ref
+        gc.collect()
 
 
 def generate_files():
@@ -226,5 +218,4 @@ def generate_files():
                         shape=shape, dim=dim, dtype=dtype, metadata=metadata
                     )
                     filename = _get_filename(s, metadata)
-                    filepath = os.path.join(MYPATH, "ripple_files", filename)
-                    s.save(filepath, overwrite=True)
+                    s.save(TEST_DATA_PATH / filename, overwrite=True)

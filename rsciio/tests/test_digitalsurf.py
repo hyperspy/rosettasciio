@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import os
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -25,8 +25,7 @@ from rsciio.digitalsurf._api import DigitalSurfHandler, MountainsMapFileError
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
-
-MY_PATH = os.path.dirname(__file__)
+TEST_DATA_PATH = Path(__file__).parent / "data" / "digitalsurf"
 
 header_keys = [
     "H01_Signature",
@@ -173,7 +172,7 @@ def test_invalid_data():
 
 def test_load_profile():
     # Signal loading
-    fname = os.path.join(MY_PATH, "digitalsurf_data", "test_profile.pro")
+    fname = TEST_DATA_PATH / "test_profile.pro"
     s = hs.load(fname)
 
     # Verifying signal shape and axes dimensions, navigation (not data themselves)
@@ -199,7 +198,7 @@ def test_load_profile():
 
 
 def test_load_RGB():
-    fname = os.path.join(MY_PATH, "digitalsurf_data", "test_RGB.sur")
+    fname = TEST_DATA_PATH / "test_RGB.sur"
     s = hs.load(fname)
     assert s.data.shape == (200, 200)
     assert s.data.dtype == np.dtype([("R", "u1"), ("G", "u1"), ("B", "u1")])
@@ -231,7 +230,7 @@ def test_load_RGB():
 
 
 def test_load_spectra():
-    fname = os.path.join(MY_PATH, "digitalsurf_data", "test_spectra.pro")
+    fname = TEST_DATA_PATH / "test_spectra.pro"
     s = hs.load(fname)
 
     assert s.data.shape == (65, 512)
@@ -261,9 +260,7 @@ def test_load_spectra():
 
 
 def test_load_spectral_map_compressed():
-    fname = os.path.join(
-        MY_PATH, "digitalsurf_data", "test_spectral_map_compressed.sur"
-    )
+    fname = TEST_DATA_PATH / "test_spectral_map_compressed.sur"
     s = hs.load(fname)
 
     assert s.data.shape == (12, 10, 281)
@@ -311,7 +308,7 @@ def test_load_spectral_map_compressed():
 
 
 def test_load_spectral_map():
-    fname = os.path.join(MY_PATH, "digitalsurf_data", "test_spectral_map.sur")
+    fname = TEST_DATA_PATH / "test_spectral_map.sur"
     s = hs.load(fname)
 
     assert s.data.shape == (12, 10, 310)
@@ -359,7 +356,7 @@ def test_load_spectral_map():
 
 
 def test_load_spectrum_compressed():
-    fname = os.path.join(MY_PATH, "digitalsurf_data", "test_spectrum_compressed.pro")
+    fname = TEST_DATA_PATH / "test_spectrum_compressed.pro"
     s = hs.load(fname)
     md = s.metadata
     assert md.Signal.quantity == "CL Intensity (a.u.)"
@@ -385,7 +382,7 @@ def test_load_spectrum_compressed():
 
 
 def test_load_spectrum():
-    fname = os.path.join(MY_PATH, "digitalsurf_data", "test_spectrum.pro")
+    fname = TEST_DATA_PATH / "test_spectrum.pro"
     s = hs.load(fname)
     assert s.data.shape == (512,)
 
@@ -412,7 +409,7 @@ def test_load_spectrum():
 
 
 def test_load_surface():
-    fname = os.path.join(MY_PATH, "digitalsurf_data", "test_surface.sur")
+    fname = TEST_DATA_PATH / "test_surface.sur"
     s = hs.load(fname)
     md = s.metadata
     assert md.Signal.quantity == "CL Intensity (a.u.)"
@@ -452,9 +449,7 @@ def test_choose_signal_type():
 
 
 def test_metadata_mapping():
-    fname = os.path.join(
-        MY_PATH, "digitalsurf_data", "test_spectral_map_compressed.sur"
-    )
+    fname = TEST_DATA_PATH / "test_spectral_map_compressed.sur"
 
     # Initialize  reader
     reader = DigitalSurfHandler(fname)

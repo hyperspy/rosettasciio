@@ -17,26 +17,25 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 
-import os
+from pathlib import Path
 
 import numpy as np
 import pytest
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
+TEST_DATA_DIR = Path(__file__).parent / "data" / "dens"
+FILE1 = TEST_DATA_DIR / "file1.dens"
+FILE2 = TEST_DATA_DIR / "file2.dens"
+FILE3 = TEST_DATA_DIR / "file3.dens"
 
-dirpath = os.path.dirname(__file__)
-
-file1 = os.path.join(dirpath, "dens_data", "file1.dens")
-file2 = os.path.join(dirpath, "dens_data", "file2.dens")
-file3 = os.path.join(dirpath, "dens_data", "file3.dens")
 
 ref_T = np.array([15.091, 16.828, 13.232, 50.117, 49.927, 49.986, 49.981])
 ref_t = np.array([15.091, 16.828, 13.232, 50.117, 49.927, 49.986, 49.981])
 
 
 def test_read1():
-    s = hs.load(file1)
+    s = hs.load(FILE1)
     np.testing.assert_allclose(s.data, ref_T)
     np.testing.assert_allclose(s.axes_manager[0].scale, 0.33)
     np.testing.assert_allclose(s.axes_manager[0].offset, 50077.68)
@@ -49,18 +48,18 @@ def test_read1():
 
 
 def test_read_convert_units():
-    s = hs.load(file1, convert_units=None)
+    s = hs.load(FILE1, convert_units=None)
     np.testing.assert_allclose(s.data, ref_T)
     np.testing.assert_allclose(s.axes_manager[0].scale, 0.33)
     np.testing.assert_allclose(s.axes_manager[0].offset, 50077.68)
     assert s.axes_manager[0].units == "s"
 
-    s = hs.load(file1, convert_units=False)
+    s = hs.load(FILE1, convert_units=False)
     np.testing.assert_allclose(s.axes_manager[0].scale, 0.33)
     np.testing.assert_allclose(s.axes_manager[0].offset, 50077.68)
     assert s.axes_manager[0].units == "s"
 
-    s = hs.load(file1, convert_units=True)
+    s = hs.load(FILE1, convert_units=True)
     np.testing.assert_allclose(s.data, ref_T)
     np.testing.assert_allclose(s.axes_manager[0].scale, 330.0)
     np.testing.assert_allclose(s.axes_manager[0].offset, 50077680.0)
@@ -69,9 +68,9 @@ def test_read_convert_units():
 
 def test_read2():
     with pytest.raises(AssertionError):
-        hs.load(file2)
+        hs.load(FILE2)
 
 
 def test_read3():
     with pytest.raises(AssertionError):
-        hs.load(file3)
+        hs.load(FILE3)

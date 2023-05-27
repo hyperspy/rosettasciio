@@ -82,7 +82,7 @@ class SFSTreeItem(object):
 
     Attributes:
     item_raw_string -- the bytes from sfs file table describing the file
-    parent -- the index of parent item in SFS file table. 
+    parent -- the index of parent item in SFS file table.
     The index of root is -1.
 
     Methods:
@@ -116,7 +116,7 @@ class SFSTreeItem(object):
             self.uncompressed_block_size = None
             self.n_compressed_blocks = None
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return f"<SFSTreeItem {self.name}  {self.size} Bytes>"
 
     def _calc_pointer_table_size(self):

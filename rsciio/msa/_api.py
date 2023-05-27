@@ -30,7 +30,7 @@ from rsciio.docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
-from rsciio.version import __version__
+from rsciio._version import __version__
 from rsciio.utils.tools import DTBox
 
 _logger = logging.getLogger(__name__)
@@ -445,7 +445,7 @@ def file_writer(filename, signal, format=None, separator=", ", encoding="latin-1
         #        'YLABEL' : '',
         "XUNITS": signal["axes"][0]["units"],
         #        'YUNITS' : '',
-        "COMMENT": "File created by RosettaSciIO version %s" % __version__,
+        f"COMMENT": "File created by RosettaSciIO version {__version__}",
         # Microscope
         #        'BEAMKV' : ,
         #        'EMISSION' : ,

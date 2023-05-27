@@ -80,8 +80,7 @@ testpaths = [
 ]
 
 [tool.setuptools.dynamic]
-readme = {file = ["README.md"], content-type = "text/markdown"}
-version = {attr = "rsciio.version.__version__"}
+version = {attr = "rsciio._version.__version__"}
 
 [tool.setuptools.packages.find]
 include = ["rsciio*"]

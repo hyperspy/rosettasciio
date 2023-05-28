@@ -36,7 +36,7 @@ else:
 TESTS_PATH = Path(__file__).parent
 
 
-POOCH = pooch.create(
+TEST_DATA_REGISTRY = pooch.create(
     path=TESTS_PATH / "data",
     # base_url=f"https://github.com/hyperspy/rosettasciio/raw/{version}/rsciio/tests/data/",
     base_url="https://github.com/ericpre/rosettasciio/raw/pooch/rsciio/tests/data/",
@@ -49,4 +49,4 @@ POOCH = pooch.create(
     retry_if_failed=3,
 )
 
-POOCH.load_registry(TESTS_PATH / "registry.txt")
+TEST_DATA_REGISTRY.load_registry(TESTS_PATH / "registry.txt")

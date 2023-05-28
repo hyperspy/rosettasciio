@@ -17,14 +17,27 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 from pathlib import Path
+import sys
+
 import pooch
 
-from rsciio.tests.registry import POOCH
+from rsciio.tests.registry import TEST_DATA_REGISTRY
 
 PATH = Path(__file__).parent
 
 
 def update_registry():
+    """
+    Update the ``rsciio.tests.registry.txt`` file, which is required after
+    adding or updating test data files.
+
+    Unix system only. This is not supported on windows, because the hash
+    comparison will fail for non-binary file, because of difference in line
+    ending.
+    """
+    if sys.platform == "win32":
+        raise RuntimeError("This is not supported on Windows.")
+
     make_registry(
         PATH / "data",
         PATH / "registry.txt",
@@ -89,11 +102,47 @@ def make_registry(directory, output, recursive=True, exclude_pattern=None):
             outfile.write("'{}' {}\n".format(fname.replace("\\", "/"), fhash))
 
 
-def download_all(pooch_object=None, ignore_hash=False, progressbar=True):
+def download_all(pooch_object=None, ignore_hash=None, progressbar=True):
+    """
+    Download all test data if they are not already locally available in
+    ``rsciio.tests.data`` folder.
+
+    Parameters
+    ----------
+    pooch_object : pooch registry instance or None
+        The registry to be used. If None, a RosettaSciIO registry will
+        be used.
+    ignore_hash : bool or None
+        Don't compare the hash of the downloaded file with the corresponding
+        hash in the registry. On windows, the hash comparison will fail for
+        non-binary file, because of difference in line ending. If None, the
+        comparision will only be used on unix system. Default is None.
+    progressbar : bool
+        Display a progress bar for the download of all files. Requires the
+        `tqdm` library. Default is True
+
+    """
     if pooch_object is None:
-        pooch_object = POOCH
+        pooch_object = TEST_DATA_REGISTRY
+    if ignore_hash is None:
+        ignore_hash = sys.platform == "win32"
     if ignore_hash:
         for key in pooch_object.registry.keys():
             pooch_object.registry[key] = None
-    for file in pooch_object.registry_files:
-        pooch_object.fetch(file, progressbar=progressbar)
+
+    if progressbar:
+        try:
+            from tqdm import tqdm
+
+            pbar = tqdm(total=len(pooch_object.registry_files))
+        except ImportError:
+            print("Using progresbar requires the `tqdm` library.")
+            progressbar = False
+
+    for i, file in enumerate(pooch_object.registry_files):
+        pooch_object.fetch(file, progressbar=False)
+        if progressbar:
+            pbar.update(i)
+
+    if progressbar:
+        pbar.close()

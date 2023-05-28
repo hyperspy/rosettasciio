@@ -41,7 +41,5 @@ def pytest_configure(config):
     worker_id = os.environ.get("PYTEST_XDIST_WORKER")
     if worker_id is None:
         print("Checking if test data need downloading...")
-        # ignore hash on windows, because for text-like file, the hash is
-        # different on windows due to the line ending difference
-        download_all(ignore_hash=(sys.platform == "win32"))
+        download_all()
         print("All test data available.")

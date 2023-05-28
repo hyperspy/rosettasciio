@@ -39,6 +39,28 @@ source code or by using `pre-commit <https://pre-commit.com>`_ to format code au
 Alternatively, the comment ``pre-commit.ci autofix`` can be added to a PR to fix the formatting
 using `pre-commit.ci <https://pre-commit.ci>`_.
 
+
+.. _adding-and-updating-test-data:
+
+Adding and Updating Test Data
+-----------------------------
+The test data are located in the corresponding subfolder of the ``rsciio/tests/data`` folder.
+To add or update test data:
+
+#. use git as usual to add files to the repository.
+#. Update ``rsciio.tests.registry.txt``.  The test data are not packaged in RosettaSciIO to
+   keep the packages as small as possible in size. However, to be able to run the test suite
+   of RosettaSciIO after installation or when packaging on conda-forge, pooch is used to
+   download the data when necessary. It means that when adding and updating test files, it
+   is necessary to update the registry ``rsciio.tests.registry.txt``, which can be done by
+   running :py:func:`~.tests.registry_utils.update_registry` (Unix only):
+
+   .. code-block:: python
+
+      from rsciio.tests.registry_utils import update_registry
+
+      update_registry()
+    
 Review
 ------
 
@@ -98,7 +120,9 @@ directory should contain the following files:
 **Tests** covering the functionality of the plugin should be added to the
 ``tests`` directory with the naming ``test_spamandeggs.py`` corresponsing to
 the plugin residing in the directory ``spamandeggs``. Data files for the tests
-should be placed in a corresponding subdirectory [change for pooch].
+should be placed in a corresponding subdirectory - see the
+:ref:`Adding and Updating Test Data <adding-and-updating-test-data>` section for more
+information.
 
 **Documentation** should be added both as **docstring**, as well as to the **user guide**,
 for which a corresponding ``spamandeggs.rst`` file should be created in the directory

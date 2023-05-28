@@ -1,0 +1,1 @@
+Define packaging in ``pyproject.toml`` and keep ``setup.py`` to handle compilation of C extension

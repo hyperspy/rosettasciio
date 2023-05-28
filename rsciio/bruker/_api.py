@@ -47,7 +47,7 @@ import numpy as np
 from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 
 __all__ = [
-    "SfsReader",
+    "SFSReader",
 ]
 
 _logger = logging.getLogger(__name__)
@@ -277,25 +277,21 @@ class SFSTreeItem(object):
         return data
 
 
-class SfsReader(object):
-    """Class to read sfs file. SFS is known to be used by bruker for
-    saving particle analysis (*.pan) frames, hyperspectral maps and
+class SFSReader(object):
+    """Class to read sfs file. SFS is known to be used by Bruker for
+    saving particle analysis (*.pan) frames, hyper-spectral maps and
     EBSD maps and metadata (*.bcf).
     SFS stands for AidAim software's(tm) [s]ingle [f]ile [s]ystem.
     The class provides basic reading capabilities of such container.
     It is capable to read compressed data in zlib, but
-    SFS can contain other compression which is not implemented here.
-    It is also not able to read encrypted sfs containers.
+    SFS can use other compression than zlib, which is not implemented
+    here. This implementation also does not cover SFS internal encryption.
 
-    This class can be used stand alone or inherited in construction of
+    This class can be used stand-alone or inherited in construction of
     file readers for files using this format.
 
     The format can be recognised independently from file extension
     by file "magic" in the first 8 bytes: AAMVHFSS
-
-    Attributes
-    ----------
-    filename
 
     Attributes:
     ----------
@@ -313,7 +309,7 @@ class SfsReader(object):
     n_tree_items - number of items in tree descriptor (including files and
       directories)
     sfs_n_of_chunks - total number of blocks in the SFS file (serves
-      no purpoise in reading, probably used for appending data)
+      no purpose in reading, probably used for appending data)
 
     Methods:
     ----------
@@ -322,6 +318,8 @@ class SfsReader(object):
     """
 
     def __init__(self, filename):
+        """SFSReader requires valid relative or absolute path-like object.
+        which is used in python built-in open() function"""
         self.filename = filename
         self.compression = None
         # read the file header
@@ -407,11 +405,12 @@ class SfsReader(object):
         if aacs == 0x53434141:  # AACS as string
             item.uncompressed_block_size = uc_size
             item.n_compressed_blocks = n_of_blocks
-        else:
+        else:  # pragma: no cover
             raise ValueError(
                 """The file is marked to be compressed,
 but compression signature is missing in the header. Aborting...."""
             )
+            # Such kind of bug failed to be replicated more than once
 
     @staticmethod
     def _flat_items_to_dict(paths, temp_item_list):
@@ -480,7 +479,7 @@ but compression signature is missing in the header. Aborting...."""
         to get "file" object 'kitten.png' in folder 'catz' which
         resides in root directory of sfs, you would use:
 
-        >>> instance_of_SfsReader.get_file('catz/kitten.png')
+        >>> instance_of_SFSReader.get_file('catz/kitten.png')
 
         See also
         --------
@@ -910,11 +909,11 @@ class HyperHeader(object):
         return i
 
 
-class BCF_reader(SfsReader):
+class BCFReader(SFSReader):
 
     """Class to read bcf (Bruker hypermapping) file.
 
-    Inherits SfsReader and all its attributes and methods.
+    Inherits SFSReader and all its attributes and methods.
 
     Attributes:
     filename
@@ -927,7 +926,7 @@ class BCF_reader(SfsReader):
     """
 
     def __init__(self, filename, instrument=None):
-        SfsReader.__init__(self, filename)
+        SFSReader.__init__(self, filename)
         header_file = self.get_file("EDSDatabase/HeaderData")
         self.available_indexes = []
         # get list of presented indexes from file tree of binary sfs container
@@ -1007,7 +1006,7 @@ class BCF_reader(SfsReader):
             ceil(self.header.image.width / downsample),
             n_channels,
         )
-        sfs_file = SfsReader(self.filename)
+        sfs_file = SFSReader(self.filename)
         vrt_file_hand = sfs_file.get_file("EDSDatabase/SpectrumData" + str(index))
         if fast_unbcf:
             parse_func = unbcf_fast.parse_to_numpy
@@ -1115,8 +1114,8 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
 
     Parameters
     ----------
-    virtual_file -- virtual file handle returned by SfsReader instance
-        or by object inheriting it (e.g. BCF_reader instance)
+    virtual_file -- virtual file handle returned by SFSReader instance
+        or by object inheriting it (e.g. instance of BCFReader)
     shape -- numpy shape
     dtype -- numpy dtype
     downsample -- downsample factor
@@ -1391,7 +1390,7 @@ def bcf_reader(
     """
 
     # objectified bcf file:
-    obj_bcf = BCF_reader(filename, instrument=instrument)
+    obj_bcf = BCFReader(filename, instrument=instrument)
     if select_type == "image":
         return bcf_images(obj_bcf)
     elif select_type == "spectrum_image":

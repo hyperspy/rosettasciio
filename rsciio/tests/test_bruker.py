@@ -243,7 +243,7 @@ def test_fast_bcf():
 
     for bcffile in test_files:
         filename = os.path.join(my_path, "bruker_data", bcffile)
-        thingy = _api.BCF_reader(filename)
+        thingy = _api.BCFReader(filename)
         for j in range(2, 5, 1):
             print("downsampling:", j)
             _api.fast_unbcf = True  # manually enabling fast parsing

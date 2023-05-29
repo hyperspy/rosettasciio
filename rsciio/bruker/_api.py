@@ -1035,8 +1035,9 @@ def spx_reader(filename, lazy=False):
         xml_str = spx.read()
     root = ET.fromstring(xml_str)
     sp_node = root.find("./ClassInstance[@Type='TRTSpectrum']")
-    rsc_sig = spectra_from_xml(sp_node)
-    rsc_sig[0]["metadata"]["General"]["original_filename"] = basename(filename)
+    spect = spectra_from_xml(sp_node)
+    spect[0]["metadata"]["General"]["original_filename"] = basename(filename)
+    return spect
 
 
 def spectra_from_xml(sp_node):
@@ -1079,7 +1080,7 @@ def spectra_from_xml(sp_node):
             },
             "Sample": {"name": name},
             "Signal": {
-                "signal_type": "EDS_%s" % mode,
+                "signal_type": f"EDS_{mode}",
                 "record_by": "spectrum",
                 "quantity": "X-rays (Counts)",
             },

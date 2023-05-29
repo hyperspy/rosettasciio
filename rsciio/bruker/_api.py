@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2016 Petras Jokubauskas
-# Copyright 2016 The HyperSpy developers
+# Copyright 2023 Petras Jokubauskas
+# Copyright 2023 The HyperSpy developers
 #
 # This library is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,10 +18,10 @@
 # If not, see <https://www.gnu.org/licenses/#GPL>.
 #
 # This python library subset provides read functionality of
-#  Bruker bcf files.
+#  Bruker bcf and spx files.
 # The basic reading capabilities of proprietary AidAim Software(tm)
-#  SFS (Single File System) (used in bcf technology) is present in
-#  the same library.
+#  SFS (Single File System) used in bcf technology is exposed for
+#  eventual reuse for other Bruker files.
 
 
 # Plugin characteristics
@@ -30,7 +30,7 @@ from os.path import splitext, basename
 from math import ceil
 import logging
 from zlib import decompress as unzip_block
-from struct import unpack as strct_unp
+from struct import unpack
 from datetime import datetime
 from ast import literal_eval
 import codecs
@@ -47,7 +47,9 @@ import numpy as np
 from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 
 __all__ = [
+    "BCFReader",
     "SFSReader",
+    "spectra_from_xml",
 ]
 
 _logger = logging.getLogger(__name__)
@@ -105,7 +107,7 @@ class SFSTreeItem(object):
             _,
             name,
             _,
-        ) = strct_unp("<iQQQQIi176s?3s256s32s", item_raw_string)
+        ) = unpack("<iQQQQIi176s?3s256s32s", item_raw_string)
         self.create_time = msfiletime_to_unix(create_time)
         self.mod_time = msfiletime_to_unix(mod_time)
         self.some_time = msfiletime_to_unix(some_time)
@@ -142,7 +144,7 @@ class SFSTreeItem(object):
                 temp_string = io.BytesIO()
                 for dummy1 in range(n_of_chunks):
                     fn.seek(self.sfs.chunksize * next_chunk + 0x118)
-                    next_chunk = strct_unp("<I", fn.read(4))[0]
+                    next_chunk = unpack("<I", fn.read(4))[0]
                     fn.seek(28, 1)
                     temp_string.write(fn.read(self.sfs.usable_chunk))
                 temp_string.seek(0)
@@ -228,8 +230,8 @@ class SFSTreeItem(object):
 
         offset = 0x80  # the 1st compression block header
         for dummy1 in range(self.n_compressed_blocks):
-            cpr_size = strct_unp("<I12x", self.read_piece(offset, 16))[0]
-            # cpr_size, dum_size, dum_unkn, dum_size2 = strct_unp('<IIII',...
+            cpr_size = unpack("<I12x", self.read_piece(offset, 16))[0]
+            # cpr_size, dum_size, dum_unkn, dum_size2 = unpack('<IIII',...
             # dum_unkn is probably some kind of checksum but
             # none of known (crc16, crc32, adler32) algorithm could match.
             # dum_size2 == cpr_size + 0x10 which have no use...
@@ -254,20 +256,13 @@ class SFSTreeItem(object):
         Returns:
             tuple of (iterator, single block size, number of chunks)
         """
-        if self.sfs.compression == "None":
+        if not self.sfs.compression:
             return self._iter_read_chunks(), self.sfs.usable_chunk, self.size_in_chunks
-        elif self.sfs.compression == "zlib":
+        if self.sfs.compression:
             return (
                 self._iter_read_compressed_chunks(),
                 self.uncompressed_block_size,
                 self.n_compressed_blocks,
-            )
-        else:
-            raise RuntimeError(
-                "file",
-                str(self.sfs.filename),
-                " is compressed by not known and not",
-                "implemented algorithm.\n Aborting...",
             )
 
     def get_as_BytesIO_string(self):
@@ -308,7 +303,7 @@ class SFSReader(object):
     tree_address - block index where file tree descriptor starts
     n_tree_items - number of items in tree descriptor (including files and
       directories)
-    sfs_n_of_chunks - total number of blocks in the SFS file (serves
+    n_sfs_chunks - total number of blocks in the SFS file (serves
       no purpose in reading, probably used for appending data)
 
     Methods:
@@ -319,25 +314,25 @@ class SFSReader(object):
 
     def __init__(self, filename):
         """SFSReader requires valid relative or absolute path-like object.
-        which is used in python built-in open() function"""
+        It should be same valid as it would for python built-in open()"""
         self.filename = filename
         self.compression = None
         # read the file header
-        with open(filename, "rb") as fn:
-            a = fn.read(8)
-            if a != b"AAMVHFSS":
-                raise TypeError("file '{0}' is not SFS container".format(filename))
-            fn.seek(0x124)  # this looks to be version, as float value is always
+        with open(filename, "rb") as file:
+            magic = file.read(8)
+            if magic != b"AAMVHFSS":
+                raise TypeError(f"file '{filename}' is not SFS container")
+            file.seek(0x124)  # this looks to be version, as float value is
             # nicely rounded and at older bcf versions (<1.9) it was 2.40,
             # at new (v2) - 2.60
-            version, self.chunksize = strct_unp("<fI", fn.read(8))
-            self.sfs_version = "{0:4.2f}".format(version)
+            version, self.chunksize = unpack("<fI", file.read(8))
+            self.sfs_version = f"{version:4.2f}"
             self.usable_chunk = self.chunksize - 32
-            fn.seek(0x140)
+            file.seek(0x140)
             # the sfs tree and number of the items / files + directories in it,
             # and the number in chunks of whole sfs:
-            self.tree_address, self.n_tree_items, self.sfs_n_of_chunks = strct_unp(
-                "<III", fn.read(12)
+            self.tree_address, self.n_tree_items, self.n_sfs_chunks = unpack(
+                "<III", file.read(12)
             )
         self._setup_vfs()
 
@@ -349,26 +344,26 @@ class SFSReader(object):
         --------
         SFSTreeItem
         """
-        with open(self.filename, "rb") as fn:
+        with open(self.filename, "rb") as sfs:
             # check if file tree do not exceed one chunk:
             n_file_tree_chunks = ceil(
                 (self.n_tree_items * 0x200) / (self.chunksize - 0x20)
             )
             if n_file_tree_chunks == 1:
                 # file tree do not exceed one chunk in bcf:
-                fn.seek(self.chunksize * self.tree_address + 0x138)
-                raw_tree = fn.read(0x200 * self.n_tree_items)
+                sfs.seek(self.chunksize * self.tree_address + 0x138)
+                raw_tree = sfs.read(0x200 * self.n_tree_items)
             else:
                 temp_str = io.BytesIO()
                 tree_address = self.tree_address
                 tree_items_in_chunk = (self.chunksize - 0x20) // 0x200
                 for i in range(n_file_tree_chunks):
                     # jump to tree/list address:
-                    fn.seek(self.chunksize * tree_address + 0x118)
+                    sfs.seek(self.chunksize * tree_address + 0x118)
                     # next tree/list address:
-                    tree_address = strct_unp("<I", fn.read(4))[0]
-                    fn.seek(28, 1)
-                    temp_str.write(fn.read(tree_items_in_chunk * 0x200))
+                    tree_address = unpack("<I", sfs.read(4))[0]
+                    sfs.seek(28, 1)
+                    temp_str.write(sfs.read(tree_items_in_chunk * 0x200))
                 temp_str.seek(0)
                 raw_tree = temp_str.read(self.n_tree_items * 0x200)
                 temp_str.close()
@@ -376,16 +371,14 @@ class SFSReader(object):
                 SFSTreeItem(raw_tree[i * 0x200 : (i + 1) * 0x200], self)
                 for i in range(self.n_tree_items)
             ]
-            # temp list with parents of items
-            paths = [[h.parent] for h in temp_item_list]
         # checking the compression header which can be different per file:
         self._check_the_compression(temp_item_list)
-        if self.compression == "zlib":
+        if self.compression:
             for item in temp_item_list:
                 if item.is_dir == 0:
                     self._setup_compression_metadata(item)
         # convert the items to virtual file system tree
-        dict_tree = self._flat_items_to_dict(paths, temp_item_list)
+        dict_tree = self._flat_items_to_dict(temp_item_list)
         # and finaly set the Virtual file system:
         self.vfs = dict_tree["root"]
 
@@ -401,7 +394,7 @@ class SFSReader(object):
         with open(self.filename, "rb") as sfs:
             sfs.seek(item.pointers[0])
             # AACS signature, uncompressed size, undef var, number of blocks
-            aacs, uc_size, _, n_of_blocks = strct_unp("<IIII", sfs.read(16))
+            aacs, uc_size, _, n_of_blocks = unpack("<IIII", sfs.read(16))
         if aacs == 0x53434141:  # AACS as string
             item.uncompressed_block_size = uc_size
             item.n_compressed_blocks = n_of_blocks
@@ -413,49 +406,56 @@ but compression signature is missing in the header. Aborting...."""
             # Such kind of bug failed to be replicated more than once
 
     @staticmethod
-    def _flat_items_to_dict(paths, temp_item_list):
+    def _flat_items_to_dict(temp_item_list):
         """place items from flat list into dictionary tree
         of virtual file system
         """
+        # init path defined by indices with direct parent of item:
+        paths = [[h.parent] for h in temp_item_list]
+
         while not all(g[-1] == -1 for g in paths):
             for path in paths:
                 if path[-1] != -1:
                     path.extend(paths[path[-1]])
         names = [j.name for j in temp_item_list]
         names.append("root")  # temp root item in dictionary
-        for p in paths:
-            for r in range(len(p)):
-                p[r] = names[p[r]]
-        for p in paths:
-            p.reverse()
+        for path in paths:
+            for idx, parent in enumerate(path):
+                path[idx] = names[parent]
+        # reverse sequences of parent indexes:
+        for path in paths:
+            path.reverse()
         root = {}
-        for i in range(len(temp_item_list)):
+        for idx, item in enumerate(temp_item_list):
             dir_pointer = root
-            for j in paths[i]:
+            for j in paths[idx]:
                 if j in dir_pointer:
                     dir_pointer = dir_pointer[j]
                 else:
                     dir_pointer[j] = {}
                     dir_pointer = dir_pointer[j]
-            if temp_item_list[i].is_dir:
-                dir_pointer[temp_item_list[i].name] = {}
+            if item.is_dir:
+                dir_pointer[item.name] = {}
             else:
-                dir_pointer[temp_item_list[i].name] = temp_item_list[i]
+                dir_pointer[item.name] = item
         # return dict tree:
         return root
 
     def _check_the_compression(self, temp_item_list):
         """parse, check and setup the self.compression"""
-        with open(self.filename, "rb") as fn:
+        with open(self.filename, "rb") as sfs:
             # Find if there is compression:
-            for c in temp_item_list:
-                if not c.is_dir:
-                    fn.seek(c.pointers[0])
-                    if fn.read(4) == b"\x41\x41\x43\x53":  # string AACS
-                        self.compression = "zlib"
+            for entry in temp_item_list:
+                if not entry.is_dir:
+                    sfs.seek(entry.pointers[0])
+                    # this only checks for compression, not the type.
+                    # bruker is known to use only zlib, thus this
+                    # function is simplified.
+                    if sfs.read(4) == b"\x41\x41\x43\x53":  # string AACS
+                        self.compression = True
                     else:
-                        self.compression = "None"
-                    # compression is global, can't be diferent per file in sfs
+                        self.compression = False
+                    # compression is global - same for all  files in sfs
                     break
 
     def get_file(self, path):
@@ -1031,10 +1031,17 @@ class BCFReader(SFSReader):
 
 
 def spx_reader(filename, lazy=False):
-    with open(filename, "br") as fn:
-        xml_str = fn.read()
+    with open(filename, "br") as spx:
+        xml_str = spx.read()
     root = ET.fromstring(xml_str)
     sp_node = root.find("./ClassInstance[@Type='TRTSpectrum']")
+    rsc_sig = spectra_from_xml(sp_node)
+    rsc_sig[0]["metadata"]["General"]["original_filename"] = basename(filename)
+
+
+def spectra_from_xml(sp_node):
+    """translate etree node from bruker xml [with attribute Type='TRTSpectrum']
+    and return rsciio type of signal"""
     try:
         name = str(sp_node.attrib["Name"])
     except KeyError:
@@ -1066,7 +1073,6 @@ def spx_reader(filename, lazy=False):
                 }
             },
             "General": {
-                "original_filename": basename(filename),
                 "title": "EDX",
                 "date": spectrum.date,
                 "time": spectrum.time,
@@ -1132,7 +1138,7 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
     dwn_factor = downsample
     max_chan = shape[2]
     buffer1 = next(iter_data)
-    height, width = strct_unp("<ii", buffer1[:8])
+    height, width = unpack("<ii", buffer1[:8])
     # hyper map as very flat array:
     vfa = np.zeros(shape[0] * shape[1] * shape[2], dtype=dtype)
     offset = 0x1A0
@@ -1142,7 +1148,7 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
             size = size_chnk + size - offset
             buffer1 = buffer1[offset:] + next(iter_data)
             offset = 0
-        line_head = strct_unp("<i", buffer1[offset : offset + 4])[0]
+        line_head = unpack("<i", buffer1[offset : offset + 4])[0]
         offset += 4
         for dummy1 in range(line_head):
             if (offset + 22) >= size:
@@ -1171,7 +1177,7 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
                 dummy_size1,
                 n_of_pulses,
                 data_size2,
-            ) = strct_unp("<IHHIHHHI", buffer1[offset : offset + 22])
+            ) = unpack("<IHHIHHHI", buffer1[offset : offset + 22])
             pix_idx = (x_pix // dwn_factor) + (
                 ceil(width / dwn_factor) * (line_cnt // dwn_factor)
             )
@@ -1214,12 +1220,12 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
                     # this would work on py3
                     # size_p, channels = buffer1[offset:offset + 2]
                     # this is needed on py2:
-                    size_p, channels = strct_unp("<BB", buffer1[offset : offset + 2])
+                    size_p, channels = unpack("<BB", buffer1[offset : offset + 2])
                     offset += 2
                     if size_p == 0:
                         pixel += channels * [0]
                     else:
-                        gain = strct_unp(
+                        gain = unpack(
                             "<" + st[size_p * 2], buffer1[offset : offset + size_p]
                         )[0]
                         offset += size_p
@@ -1227,18 +1233,18 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
                             # special case with nibble switching
                             length = ceil(channels / 2)
                             # valid py3 code
-                            # a = list(buffer1[offset:offset + length])
+                            a = list(buffer1[offset:offset + length])
                             # this have to be used on py2:
-                            a = strct_unp(
-                                "<" + "B" * length, buffer1[offset : offset + length]
-                            )
+                            # a = unpack(
+                            #    "<" + "B" * length, buffer1[offset : offset + length]
+                            # )
                             g = []
                             for i in a:
                                 g += (i & 0x0F) + gain, (i >> 4) + gain
                             pixel += g[:channels]
                         else:
                             length = int(channels * size_p / 2)
-                            temp = strct_unp(
+                            temp = unpack(
                                 "<" + channels * st[size_p],
                                 buffer1[offset : offset + length],
                             )
@@ -1249,14 +1255,14 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
                     pixel += rest * [0]
                 # additional data size:
                 if n_of_pulses > 0:
-                    add_s = strct_unp("<I", buffer1[offset : offset + 4])[0]
+                    add_s = unpack("<I", buffer1[offset : offset + 4])[0]
                     offset += 4
                     if (offset + add_s) >= size:
                         buffer1 = buffer1[offset:] + next(iter_data)
                         size = size_chnk + size - offset
                         offset = 0
                     # the additional pulses:
-                    add_pulses = strct_unp(
+                    add_pulses = unpack(
                         "<" + "H" * n_of_pulses, buffer1[offset : offset + add_s]
                     )
                     offset += add_s

@@ -239,11 +239,11 @@ def test_wrong_file():
 
 def test_fast_bcf():
     thingy = pytest.importorskip("rsciio.bruker.unbcf_fast")
-    from rsciio.bruker import _api
+    from rsciio.bruker import _api, api
 
     for bcffile in test_files:
         filename = os.path.join(my_path, "bruker_data", bcffile)
-        thingy = _api.BCFReader(filename)
+        thingy = api.BCFReader(filename)
         for j in range(2, 5, 1):
             print("downsampling:", j)
             _api.fast_unbcf = True  # manually enabling fast parsing

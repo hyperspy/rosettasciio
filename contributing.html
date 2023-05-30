@@ -454,6 +454,26 @@ source code or by using <a class="reference external" href="https://pre-commit.c
 Alternatively, the comment <code class="docutils literal notranslate"><span class="pre">pre-commit.ci</span> <span class="pre">autofix</span></code> can be added to a PR to fix the formatting
 using <a class="reference external" href="https://pre-commit.ci">pre-commit.ci</a>.</p>
 </section>
+<section id="adding-and-updating-test-data">
+<span id="id2"></span><h3>Adding and Updating Test Data<a class="headerlink" href="#adding-and-updating-test-data" title="Permalink to this heading">#</a></h3>
+<p>The test data are located in the corresponding subfolder of the <code class="docutils literal notranslate"><span class="pre">rsciio/tests/data</span></code> folder.
+To add or update test data:</p>
+<ol class="arabic">
+<li><p>use git as usual to add files to the repository.</p></li>
+<li><p>Update <code class="docutils literal notranslate"><span class="pre">rsciio.tests.registry.txt</span></code>.  The test data are not packaged in RosettaSciIO to
+keep the packages as small as possible in size. However, to be able to run the test suite
+of RosettaSciIO after installation or when packaging on conda-forge, pooch is used to
+download the data when necessary. It means that when adding and updating test files, it
+is necessary to update the registry <code class="docutils literal notranslate"><span class="pre">rsciio.tests.registry.txt</span></code>, which can be done by
+running <code class="xref py py-func docutils literal notranslate"><span class="pre">update_registry()</span></code> (Unix only):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rsciio.tests.registry_utils</span> <span class="kn">import</span> <span class="n">update_registry</span>
+
+<span class="n">update_registry</span><span class="p">()</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
 <section id="review">
 <h3>Review<a class="headerlink" href="#review" title="Permalink to this heading">#</a></h3>
 <p>As quality assurance, to improve the code, and to ensure a generalized
@@ -509,7 +529,9 @@ that returns the <a class="reference internal" href="api/index.html#interfacing-
 <p><strong>Tests</strong> covering the functionality of the plugin should be added to the
 <code class="docutils literal notranslate"><span class="pre">tests</span></code> directory with the naming <code class="docutils literal notranslate"><span class="pre">test_spamandeggs.py</span></code> corresponsing to
 the plugin residing in the directory <code class="docutils literal notranslate"><span class="pre">spamandeggs</span></code>. Data files for the tests
-should be placed in a corresponding subdirectory [change for pooch].</p>
+should be placed in a corresponding subdirectory - see the
+<a class="reference internal" href="#adding-and-updating-test-data"><span class="std std-ref">Adding and Updating Test Data</span></a> section for more
+information.</p>
 <p><strong>Documentation</strong> should be added both as <strong>docstring</strong>, as well as to the <strong>user guide</strong>,
 for which a corresponding <code class="docutils literal notranslate"><span class="pre">spamandeggs.rst</span></code> file should be created in the directory
 <code class="docutils literal notranslate"><span class="pre">docs/supported_formats/</span></code> and the format added to the lists in
@@ -588,6 +610,7 @@ for maintenance guidelines.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#issues">Issues</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pull-requests">Pull Requests</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#lint">Lint</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-and-updating-test-data">Adding and Updating Test Data</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#review">Review</a></li>
 </ul>
 </li>

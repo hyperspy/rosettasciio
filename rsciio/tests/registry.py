@@ -28,9 +28,9 @@ version = rsciio.__version__
 
 
 if Version(version).is_devrelease:
-    version = f"v{version}"
-else:
     version = "main"
+else:
+    version = f"v{version}"
 
 
 TESTS_PATH = Path(__file__).parent
@@ -38,8 +38,7 @@ TESTS_PATH = Path(__file__).parent
 
 TEST_DATA_REGISTRY = pooch.create(
     path=TESTS_PATH / "data",
-    # base_url=f"https://github.com/hyperspy/rosettasciio/raw/{version}/rsciio/tests/data/",
-    base_url="https://github.com/ericpre/rosettasciio/raw/pooch/rsciio/tests/data/",
+    base_url=f"https://github.com/hyperspy/rosettasciio/raw/{version}/rsciio/tests/data/",
     # We don't use the version functionality of pooch because we want to use the
     # local test folder (rsciio.tests.data)
     version=None,

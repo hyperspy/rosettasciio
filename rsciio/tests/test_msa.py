@@ -1,6 +1,6 @@
 import copy
-import os.path
-import tempfile
+from pathlib import Path
+
 import pytest
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
@@ -8,7 +8,8 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 from hyperspy.misc.test_utils import assert_deep_almost_equal
 
 
-my_path = os.path.dirname(__file__)
+TEST_DATA_PATH = Path(__file__).parent / "data" / "msa"
+
 
 example1_TEM = {
     "Detector": {
@@ -199,7 +200,7 @@ example2_parameters = {
 
 class TestExample1:
     def setup_method(self, method):
-        self.s = hs.load(os.path.join(my_path, "msa_files", "example1.msa"))
+        self.s = hs.load(TEST_DATA_PATH / "example1.msa")
         # delete timestamp from metadata since it's runtime dependent
         del self.s.metadata.General.FileIO.Number_0.timestamp
 
@@ -234,26 +235,25 @@ class TestExample1:
     def test_metadata(self):
         assert_deep_almost_equal(self.s.metadata.as_dictionary(), example1_metadata)
 
-    def test_write_load_cycle(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            fname2 = os.path.join(tmpdir, "example1-export.msa")
-            self.s.save(fname2)
-            s2 = hs.load(fname2)
-            # delete timestamp from metadata since it's runtime dependent
-            del s2.metadata.General.FileIO.Number_0.timestamp
-            del self.s.metadata.General.FileIO.Number_1
-            if "timestamp" in self.s.metadata.General.FileIO.Number_0:
-                del self.s.metadata.General.FileIO.Number_0.timestamp
-            assert s2.metadata.General.original_filename == "example1-export.msa"
-            s2.metadata.General.original_filename = "example1.msa"
-            assert_deep_almost_equal(
-                self.s.metadata.as_dictionary(), s2.metadata.as_dictionary()
-            )
+    def test_write_load_cycle(self, tmp_path):
+        fname2 = tmp_path / "example1-export.msa"
+        self.s.save(fname2)
+        s2 = hs.load(fname2)
+        # delete timestamp from metadata since it's runtime dependent
+        del s2.metadata.General.FileIO.Number_0.timestamp
+        del self.s.metadata.General.FileIO.Number_1
+        if "timestamp" in self.s.metadata.General.FileIO.Number_0:
+            del self.s.metadata.General.FileIO.Number_0.timestamp
+        assert s2.metadata.General.original_filename == "example1-export.msa"
+        s2.metadata.General.original_filename = "example1.msa"
+        assert_deep_almost_equal(
+            self.s.metadata.as_dictionary(), s2.metadata.as_dictionary()
+        )
 
 
 class TestExample1WrongDate:
     def setup_method(self, method):
-        self.s = hs.load(os.path.join(my_path, "msa_files", "example1_wrong_date.msa"))
+        self.s = hs.load(TEST_DATA_PATH / "example1_wrong_date.msa")
         # delete timestamp from metadata since it's runtime dependent
         del self.s.metadata.General.FileIO.Number_0.timestamp
 
@@ -267,7 +267,7 @@ class TestExample1WrongDate:
 
 class TestExample2:
     def setup_method(self, method):
-        self.s = hs.load(os.path.join(my_path, "msa_files", "example2.msa"))
+        self.s = hs.load(TEST_DATA_PATH / "example2.msa")
         # delete timestamp from metadata since it's runtime dependent
         del self.s.metadata.General.FileIO.Number_0.timestamp
 
@@ -361,48 +361,58 @@ class TestExample2:
     def test_metadata(self):
         assert_deep_almost_equal(self.s.metadata.as_dictionary(), example2_metadata)
 
-    def test_write_load_cycle(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            fname2 = os.path.join(tmpdir, "example2-export.msa")
-            self.s.save(fname2)
-            s2 = hs.load(fname2)
-            assert s2.metadata.General.original_filename == "example2-export.msa"
-            s2.metadata.General.original_filename = "example2.msa"
-            # delete timestamp from metadata since it's runtime dependent
-            del s2.metadata.General.FileIO.Number_0.timestamp
-            del self.s.metadata.General.FileIO.Number_1
-            assert_deep_almost_equal(
-                self.s.metadata.as_dictionary(), s2.metadata.as_dictionary()
-            )
+    def test_write_load_cycle(self, tmp_path):
+        fname2 = tmp_path / "example2-export.msa"
+        self.s.save(fname2)
+        s2 = hs.load(fname2)
+        assert s2.metadata.General.original_filename == "example2-export.msa"
+        s2.metadata.General.original_filename = "example2.msa"
+        # delete timestamp from metadata since it's runtime dependent
+        del s2.metadata.General.FileIO.Number_0.timestamp
+        del self.s.metadata.General.FileIO.Number_1
+        assert_deep_almost_equal(
+            self.s.metadata.as_dictionary(), s2.metadata.as_dictionary()
+        )
 
 
 def test_minimum_metadata_example():
-    s = hs.load(os.path.join(my_path, "msa_files", "minimum_metadata.msa"))
+    s = hs.load(TEST_DATA_PATH / "minimum_metadata.msa")
     assert minimum_md_om == s.original_metadata.as_dictionary()
 
 
 class TestSignalType:
     def setup_method(self, method):
-        self.s = hs.load(os.path.join(my_path, "msa_files", "minimum_metadata.msa"))
+        self.s = hs.load(TEST_DATA_PATH / "minimum_metadata.msa")
         # delete timestamp from metadata since it's runtime dependent
         del self.s.metadata.General.FileIO.Number_0.timestamp
 
     @pytest.mark.parametrize(
         "signaltype", ("EDS_SEM", "EDS_TEM", "CL", "EELS", "PES", "brian")
     )
-    def test_write_minimum_metadata_signaltype(self, signaltype):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            fname2 = os.path.join(tmpdir, "example-min-export.msa")
-            self.s.metadata.Signal.signal_type = signaltype
-            self.s.save(fname2)
-            s2 = hs.load(fname2)
-            if "EDS" in signaltype:
-                assert s2.original_metadata["SIGNALTYPE"] == "EDS"
-            elif signaltype == "CL":
-                assert s2.original_metadata["SIGNALTYPE"] == "CLS"
-            elif signaltype == "EELS":
-                assert s2.original_metadata["SIGNALTYPE"] == "ELS"
-            elif signaltype not in [
+    def test_write_minimum_metadata_signaltype(self, signaltype, tmp_path):
+        fname2 = tmp_path / "example-min-export.msa"
+        self.s.metadata.Signal.signal_type = signaltype
+        self.s.save(fname2)
+        s2 = hs.load(fname2)
+        if "EDS" in signaltype:
+            assert s2.original_metadata["SIGNALTYPE"] == "EDS"
+        elif signaltype == "CL":
+            assert s2.original_metadata["SIGNALTYPE"] == "CLS"
+        elif signaltype == "EELS":
+            assert s2.original_metadata["SIGNALTYPE"] == "ELS"
+        elif signaltype not in [
+            "EDS",
+            "WDS",
+            "ELS",
+            "AES",
+            "PES",
+            "XRF",
+            "CLS",
+            "GAM",
+        ]:
+            assert s2.original_metadata["SIGNALTYPE"] == ""
+        else:
+            assert s2.original_metadata["SIGNALTYPE"] in [
                 "EDS",
                 "WDS",
                 "ELS",
@@ -411,16 +421,4 @@ class TestSignalType:
                 "XRF",
                 "CLS",
                 "GAM",
-            ]:
-                assert s2.original_metadata["SIGNALTYPE"] == ""
-            else:
-                assert s2.original_metadata["SIGNALTYPE"] in [
-                    "EDS",
-                    "WDS",
-                    "ELS",
-                    "AES",
-                    "PES",
-                    "XRF",
-                    "CLS",
-                    "GAM",
-                ]
+            ]

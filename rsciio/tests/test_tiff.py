@@ -37,8 +37,8 @@ from hyperspy.misc.test_utils import assert_deep_almost_equal
 import rsciio.tiff
 
 
-MY_PATH = os.path.dirname(__file__)
-MY_PATH2 = os.path.join(MY_PATH, "tiff_files")
+TEST_DATA_PATH = Path(__file__).parent / "data" / "tiff"
+TEST_NPZ_DATA_PATH = Path(__file__).parent / "data" / "npz"
 TMP_DIR = tempfile.TemporaryDirectory()
 
 
@@ -46,14 +46,12 @@ def teardown_module():
     TMP_DIR.cleanup()
 
 
-def test_rgba16():
-    path = Path(TMP_DIR.name)
-    zipf = os.path.join(MY_PATH2, "test_rgba16.zip")
-    with zipfile.ZipFile(zipf, "r") as zipped:
-        zipped.extractall(path)
+def test_rgba16(tmp_path):
+    with zipfile.ZipFile(TEST_DATA_PATH / "test_rgba16.zip", "r") as zipped:
+        zipped.extractall(tmp_path)
 
-    s = hs.load(path / "test_rgba16.tif")
-    data = np.load(Path(MY_PATH) / "npz_files" / "test_rgba16.npz")["a"]
+    s = hs.load(tmp_path / "test_rgba16.tif")
+    data = np.load(TEST_NPZ_DATA_PATH / "test_rgba16.npz")["a"]
     assert (s.data == data).all()
     assert s.axes_manager[0].units == t.Undefined
     assert s.axes_manager[1].units == t.Undefined
@@ -70,30 +68,30 @@ def _compare_signal_shape_data(s0, s1):
     np.testing.assert_equal(s0.data, s1.data)
 
 
-def test_read_unit_um():
+def test_read_unit_um(tmp_path):
     # Load DM file and save it as tif
-    s = hs.load(os.path.join(MY_PATH2, "test_dm_image_um_unit.dm3"))
+    s = hs.load(TEST_DATA_PATH / "test_dm_image_um_unit.dm3")
     assert s.axes_manager[0].units == "µm"
     assert s.axes_manager[1].units == "µm"
     np.testing.assert_allclose(s.axes_manager[0].scale, 0.16867, atol=1e-5)
     np.testing.assert_allclose(s.axes_manager[1].scale, 0.16867, atol=1e-5)
     assert s.metadata.General.date == "2015-07-20"
     assert s.metadata.General.time == "18:48:25"
-    with tempfile.TemporaryDirectory() as tmpdir:
-        fname = os.path.join(tmpdir, "tiff_files", "test_export_um_unit.tif")
-        s.save(fname, overwrite=True, export_scale=True)
-        # load tif file
-        s2 = hs.load(fname)
-        assert s.axes_manager[0].units == "µm"
-        assert s.axes_manager[1].units == "µm"
-        np.testing.assert_allclose(s2.axes_manager[0].scale, 0.16867, atol=1e-5)
-        np.testing.assert_allclose(s2.axes_manager[1].scale, 0.16867, atol=1e-5)
-        assert s2.metadata.General.date == s.metadata.General.date
-        assert s2.metadata.General.time == s.metadata.General.time
+
+    fname = tmp_path / "test_export_um_unit.tif"
+    s.save(fname, overwrite=True, export_scale=True)
+    # load tif file
+    s2 = hs.load(fname)
+    assert s.axes_manager[0].units == "µm"
+    assert s.axes_manager[1].units == "µm"
+    np.testing.assert_allclose(s2.axes_manager[0].scale, 0.16867, atol=1e-5)
+    np.testing.assert_allclose(s2.axes_manager[1].scale, 0.16867, atol=1e-5)
+    assert s2.metadata.General.date == s.metadata.General.date
+    assert s2.metadata.General.time == s.metadata.General.time
 
 
 def test_write_read_intensity_axes_DM():
-    s = hs.load(os.path.join(MY_PATH2, "test_dm_image_um_unit.dm3"))
+    s = hs.load(TEST_DATA_PATH / "test_dm_image_um_unit.dm3")
     s.metadata.Signal.set_item("quantity", "Electrons (Counts)")
     d = {"gain_factor": 5.0, "gain_offset": 2.0}
     s.metadata.Signal.set_item("Noise_properties.Variance_linear_model", d)
@@ -107,10 +105,7 @@ def test_write_read_intensity_axes_DM():
 
 
 def test_read_unit_from_imagej():
-    fname = os.path.join(
-        MY_PATH, "tiff_files", "test_loading_image_saved_with_imageJ.tif"
-    )
-    s = hs.load(fname)
+    s = hs.load(TEST_DATA_PATH / "test_loading_image_saved_with_imageJ.tif")
     assert s.axes_manager[0].units == "µm"
     assert s.axes_manager[1].units == "µm"
     np.testing.assert_allclose(s.axes_manager[0].scale, 0.16867, atol=1e-5)
@@ -118,10 +113,7 @@ def test_read_unit_from_imagej():
 
 
 def test_read_unit_from_imagej_stack():
-    fname = os.path.join(
-        MY_PATH, "tiff_files", "test_loading_image_saved_with_imageJ_stack.tif"
-    )
-    s = hs.load(fname)
+    s = hs.load(TEST_DATA_PATH / "test_loading_image_saved_with_imageJ_stack.tif")
     assert s.data.shape == (2, 68, 68)
     assert s.axes_manager[0].units == t.Undefined
     assert s.axes_manager[1].units == "µm"
@@ -132,11 +124,10 @@ def test_read_unit_from_imagej_stack():
 
 
 @pytest.mark.parametrize("lazy", [True, False])
-def test_read_unit_from_DM_stack(lazy):
-    fname = os.path.join(
-        MY_PATH, "tiff_files", "test_loading_image_saved_with_DM_stack.tif"
+def test_read_unit_from_DM_stack(lazy, tmp_path):
+    s = hs.load(
+        TEST_DATA_PATH / "test_loading_image_saved_with_DM_stack.tif", lazy=lazy
     )
-    s = hs.load(fname, lazy=lazy)
     assert s.data.shape == (2, 68, 68)
     assert s.axes_manager[0].units == "s"
     assert s.axes_manager[1].units == "µm"
@@ -144,39 +135,38 @@ def test_read_unit_from_DM_stack(lazy):
     np.testing.assert_allclose(s.axes_manager[0].scale, 2.5, atol=1e-5)
     np.testing.assert_allclose(s.axes_manager[1].scale, 0.16867, atol=1e-5)
     np.testing.assert_allclose(s.axes_manager[2].scale, 1.68674, atol=1e-5)
-    with tempfile.TemporaryDirectory() as tmpdir:
-        fname2 = os.path.join(tmpdir, "test_loading_image_saved_with_DM_stack2.tif")
-        s.save(fname2, overwrite=True)
-        s2 = hs.load(fname2)
-        _compare_signal_shape_data(s, s2)
-        assert s2.axes_manager[0].units == s.axes_manager[0].units
-        assert s2.axes_manager[1].units == "µm"
-        assert s2.axes_manager[2].units == "µm"
-        np.testing.assert_allclose(
-            s2.axes_manager[0].scale, s.axes_manager[0].scale, atol=1e-5
-        )
-        np.testing.assert_allclose(
-            s2.axes_manager[1].scale, s.axes_manager[1].scale, atol=1e-5
-        )
-        np.testing.assert_allclose(
-            s2.axes_manager[2].scale, s.axes_manager[2].scale, atol=1e-5
-        )
-        np.testing.assert_allclose(
-            s2.axes_manager[0].offset, s.axes_manager[0].offset, atol=1e-5
-        )
-        np.testing.assert_allclose(
-            s2.axes_manager[1].offset, s.axes_manager[1].offset, atol=1e-5
-        )
-        np.testing.assert_allclose(
-            s2.axes_manager[2].offset, s.axes_manager[2].offset, atol=1e-5
-        )
+
+    fname2 = tmp_path / "test_loading_image_saved_with_DM_stack2.tif"
+    s.save(fname2, overwrite=True)
+    s2 = hs.load(fname2)
+    _compare_signal_shape_data(s, s2)
+    assert s2.axes_manager[0].units == s.axes_manager[0].units
+    assert s2.axes_manager[1].units == "µm"
+    assert s2.axes_manager[2].units == "µm"
+    np.testing.assert_allclose(
+        s2.axes_manager[0].scale, s.axes_manager[0].scale, atol=1e-5
+    )
+    np.testing.assert_allclose(
+        s2.axes_manager[1].scale, s.axes_manager[1].scale, atol=1e-5
+    )
+    np.testing.assert_allclose(
+        s2.axes_manager[2].scale, s.axes_manager[2].scale, atol=1e-5
+    )
+    np.testing.assert_allclose(
+        s2.axes_manager[0].offset, s.axes_manager[0].offset, atol=1e-5
+    )
+    np.testing.assert_allclose(
+        s2.axes_manager[1].offset, s.axes_manager[1].offset, atol=1e-5
+    )
+    np.testing.assert_allclose(
+        s2.axes_manager[2].offset, s.axes_manager[2].offset, atol=1e-5
+    )
 
 
 def test_read_unit_from_imagej_stack_no_scale():
-    fname = os.path.join(
-        MY_PATH, "tiff_files", "test_loading_image_saved_with_imageJ_stack_no_scale.tif"
+    s = hs.load(
+        TEST_DATA_PATH / "test_loading_image_saved_with_imageJ_stack_no_scale.tif"
     )
-    s = hs.load(fname)
     assert s.data.shape == (2, 68, 68)
     assert s.axes_manager[0].units == t.Undefined
     assert s.axes_manager[1].units == t.Undefined
@@ -187,10 +177,7 @@ def test_read_unit_from_imagej_stack_no_scale():
 
 
 def test_read_unit_from_imagej_no_scale():
-    fname = os.path.join(
-        MY_PATH, "tiff_files", "test_loading_image_saved_with_imageJ_no_scale.tif"
-    )
-    s = hs.load(fname)
+    s = hs.load(TEST_DATA_PATH / "test_loading_image_saved_with_imageJ_no_scale.tif")
     assert s.axes_manager[0].units == t.Undefined
     assert s.axes_manager[1].units == t.Undefined
     np.testing.assert_allclose(s.axes_manager[0].scale, 1.0, atol=1e-5)
@@ -198,10 +185,9 @@ def test_read_unit_from_imagej_no_scale():
 
 
 def test_write_read_unit_imagej():
-    fname = os.path.join(
-        MY_PATH, "tiff_files", "test_loading_image_saved_with_imageJ.tif"
+    s = hs.load(
+        TEST_DATA_PATH / "test_loading_image_saved_with_imageJ.tif", convert_units=True
     )
-    s = hs.load(fname, convert_units=True)
     s.axes_manager[0].units = "µm"
     s.axes_manager[1].units = "µm"
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -214,10 +200,7 @@ def test_write_read_unit_imagej():
 
 
 def test_write_read_unit_imagej_with_description():
-    fname = os.path.join(
-        MY_PATH, "tiff_files", "test_loading_image_saved_with_imageJ.tif"
-    )
-    s = hs.load(fname)
+    s = hs.load(TEST_DATA_PATH / "test_loading_image_saved_with_imageJ.tif")
     s.axes_manager[0].units = "µm"
     s.axes_manager[1].units = "µm"
     np.testing.assert_allclose(s.axes_manager[0].scale, 0.16867, atol=1e-5)
@@ -240,18 +223,18 @@ def test_write_read_unit_imagej_with_description():
         np.testing.assert_allclose(s3.axes_manager[1].scale, 0.16867, atol=1e-5)
 
 
-def test_saving_with_custom_tag():
+def test_saving_with_custom_tag(tmp_path):
     s = hs.signals.Signal2D(np.arange(10 * 15, dtype=np.uint8).reshape((10, 15)))
-    with tempfile.TemporaryDirectory() as tmpdir:
-        fname = os.path.join(tmpdir, "test_saving_with_custom_tag.tif")
-        extratag = [(65000, "s", 1, "Random metadata", False)]
-        s.save(fname, extratags=extratag, overwrite=True)
-        s2 = hs.load(fname)
-        assert s2.original_metadata["Number_65000"] == "Random metadata"
+
+    fname = tmp_path / "test_saving_with_custom_tag.tif"
+    extratag = [(65000, "s", 1, "Random metadata", False)]
+    s.save(fname, extratags=extratag, overwrite=True)
+    s2 = hs.load(fname)
+    assert s2.original_metadata["Number_65000"] == "Random metadata"
 
 
 def _test_read_unit_from_dm():
-    fname = os.path.join(MY_PATH2, "test_loading_image_saved_with_DM.tif")
+    fname = TEST_DATA_PATH / "test_loading_image_saved_with_DM.tif"
     s = hs.load(fname)
     assert s.axes_manager[0].units == "µm"
     assert s.axes_manager[1].units == "µm"
@@ -332,29 +315,29 @@ def test_write_scale_with_undefined_unit():
         s.save(fname, overwrite=True, export_scale=True)
 
 
-def test_write_scale_with_undefined_scale():
+def test_write_scale_with_undefined_scale(tmp_path):
     """Lazy test, still need to open the files in ImageJ or DM to check if the
     scale and unit are correct"""
     s = hs.signals.Signal2D(np.arange(10 * 15, dtype=np.uint8).reshape((10, 15)))
-    with tempfile.TemporaryDirectory() as tmpdir:
-        fname = os.path.join(tmpdir, "test_export_scale_undefined_scale.tif")
-        s.save(fname, overwrite=True, export_scale=True)
-        s1 = hs.load(fname)
-        _compare_signal_shape_data(s, s1)
+
+    fname = tmp_path / "test_export_scale_undefined_scale.tif"
+    s.save(fname, overwrite=True, export_scale=True)
+    s1 = hs.load(fname)
+    _compare_signal_shape_data(s, s1)
 
 
-def test_write_scale_with_um_unit():
+def test_write_scale_with_um_unit(tmp_path):
     """Lazy test, still need to open the files in ImageJ or DM to check if the
     scale and unit are correct"""
-    s = hs.load(os.path.join(MY_PATH, "tiff_files", "test_dm_image_um_unit.dm3"))
-    with tempfile.TemporaryDirectory() as tmpdir:
-        fname = os.path.join(tmpdir, "test_export_um_unit.tif")
-        s.save(fname, overwrite=True, export_scale=True)
-        s1 = hs.load(fname)
-        _compare_signal_shape_data(s, s1)
+    s = hs.load(TEST_DATA_PATH / "test_dm_image_um_unit.dm3")
+
+    fname = tmp_path / "test_export_um_unit.tif"
+    s.save(fname, overwrite=True, export_scale=True)
+    s1 = hs.load(fname)
+    _compare_signal_shape_data(s, s1)
 
 
-def test_write_scale_unit_image_stack():
+def test_write_scale_unit_image_stack(tmp_path):
     """Lazy test, still need to open the files in ImageJ or DM to check if the
     scale and unit are correct"""
     s = hs.signals.Signal2D(np.arange(5 * 10 * 15, dtype=np.uint8).reshape((5, 10, 15)))
@@ -364,18 +347,18 @@ def test_write_scale_unit_image_stack():
     s.axes_manager[0].units = "nm"
     s.axes_manager[1].units = "µm"
     s.axes_manager[2].units = "µm"
-    with tempfile.TemporaryDirectory() as tmpdir:
-        fname = os.path.join(tmpdir, "test_export_scale_unit_stack2.tif")
-        s.save(fname, overwrite=True, export_scale=True)
-        s1 = hs.load(fname, convert_units=True)
-        _compare_signal_shape_data(s, s1)
-        assert s1.axes_manager[0].units == "pm"
-        # only one unit can be read
-        assert s1.axes_manager[1].units == "µm"
-        assert s1.axes_manager[2].units == "µm"
-        np.testing.assert_allclose(s1.axes_manager[0].scale, 250.0)
-        np.testing.assert_allclose(s1.axes_manager[1].scale, s.axes_manager[1].scale)
-        np.testing.assert_allclose(s1.axes_manager[2].scale, s.axes_manager[2].scale)
+
+    fname = tmp_path / "test_export_scale_unit_stack2.tif"
+    s.save(fname, overwrite=True, export_scale=True)
+    s1 = hs.load(fname, convert_units=True)
+    _compare_signal_shape_data(s, s1)
+    assert s1.axes_manager[0].units == "pm"
+    # only one unit can be read
+    assert s1.axes_manager[1].units == "µm"
+    assert s1.axes_manager[2].units == "µm"
+    np.testing.assert_allclose(s1.axes_manager[0].scale, 250.0)
+    np.testing.assert_allclose(s1.axes_manager[1].scale, s.axes_manager[1].scale)
+    np.testing.assert_allclose(s1.axes_manager[2].scale, s.axes_manager[2].scale)
 
 
 def test_saving_loading_stack_no_scale():
@@ -468,7 +451,7 @@ class TestReadFEIHelios:
 
     @classmethod
     def setup_class(cls):
-        zipf = os.path.join(MY_PATH2, "tiff_FEI_Helios.zip")
+        zipf = TEST_DATA_PATH / "tiff_FEI_Helios.zip"
         with zipfile.ZipFile(zipf, "r") as zipped:
             zipped.extractall(cls.path)
 
@@ -553,7 +536,7 @@ class TestReadZeissSEM:
 
     @classmethod
     def setup_class(cls):
-        zipf = os.path.join(MY_PATH2, "tiff_Zeiss_SEM.zip")
+        zipf = TEST_DATA_PATH / "tiff_Zeiss_SEM.zip"
         with zipfile.ZipFile(zipf, "r") as zipped:
             zipped.extractall(cls.path)
 
@@ -693,10 +676,7 @@ class TestReadZeissSEM:
 
 
 def test_read_RGB_Zeiss_optical_scale_metadata():
-    fname = os.path.join(MY_PATH2, "optical_Zeiss_AxioVision_RGB.tif")
-    s = hs.load(
-        fname,
-    )
+    s = hs.load(TEST_DATA_PATH / "optical_Zeiss_AxioVision_RGB.tif")
     dtype = np.dtype([("R", "u1"), ("G", "u1"), ("B", "u1")])
     assert s.data.dtype == dtype
     assert s.data.shape == (10, 13)
@@ -711,8 +691,11 @@ def test_read_RGB_Zeiss_optical_scale_metadata():
 
 
 def test_read_BW_Zeiss_optical_scale_metadata():
-    fname = os.path.join(MY_PATH2, "optical_Zeiss_AxioVision_BW.tif")
-    s = hs.load(fname, force_read_resolution=True, convert_units=True)
+    s = hs.load(
+        TEST_DATA_PATH / "optical_Zeiss_AxioVision_BW.tif",
+        force_read_resolution=True,
+        convert_units=True,
+    )
     assert s.data.dtype == np.uint8
     assert s.data.shape == (10, 13)
     assert s.axes_manager[0].units == "µm"
@@ -724,8 +707,11 @@ def test_read_BW_Zeiss_optical_scale_metadata():
 
 
 def test_read_BW_Zeiss_optical_scale_metadata_convert_units_false():
-    fname = os.path.join(MY_PATH2, "optical_Zeiss_AxioVision_BW.tif")
-    s = hs.load(fname, force_read_resolution=True, convert_units=False)
+    s = hs.load(
+        TEST_DATA_PATH / "optical_Zeiss_AxioVision_BW.tif",
+        force_read_resolution=True,
+        convert_units=False,
+    )
     assert s.data.dtype == np.uint8
     assert s.data.shape == (10, 13)
     assert s.axes_manager[0].units == "µm"
@@ -735,8 +721,11 @@ def test_read_BW_Zeiss_optical_scale_metadata_convert_units_false():
 
 
 def test_read_BW_Zeiss_optical_scale_metadata2():
-    fname = os.path.join(MY_PATH2, "optical_Zeiss_AxioVision_BW.tif")
-    s = hs.load(fname, force_read_resolution=True, convert_units=True)
+    s = hs.load(
+        TEST_DATA_PATH / "optical_Zeiss_AxioVision_BW.tif",
+        force_read_resolution=True,
+        convert_units=True,
+    )
     assert s.data.dtype == np.uint8
     assert s.data.shape == (10, 13)
     assert s.axes_manager[0].units == "µm"
@@ -748,8 +737,9 @@ def test_read_BW_Zeiss_optical_scale_metadata2():
 
 
 def test_read_BW_Zeiss_optical_scale_metadata3():
-    fname = os.path.join(MY_PATH2, "optical_Zeiss_AxioVision_BW.tif")
-    s = hs.load(fname, force_read_resolution=False)
+    s = hs.load(
+        TEST_DATA_PATH / "optical_Zeiss_AxioVision_BW.tif", force_read_resolution=False
+    )
     assert s.data.dtype == np.uint8
     assert s.data.shape == (10, 13)
     assert s.axes_manager[0].units == t.Undefined
@@ -760,7 +750,7 @@ def test_read_BW_Zeiss_optical_scale_metadata3():
     assert s.metadata.General.time == "16:08:49"
 
 
-def test_read_TVIPS_metadata():
+def test_read_TVIPS_metadata(tmp_path):
     md = {
         "Acquisition_instrument": {
             "TEM": {
@@ -799,11 +789,10 @@ def test_read_TVIPS_metadata():
         },
     }
 
-    zipf = os.path.join(MY_PATH2, "TVIPS_bin4.zip")
-    path = Path(TMP_DIR.name)
+    zipf = TEST_DATA_PATH / "TVIPS_bin4.zip"
     with zipfile.ZipFile(zipf, "r") as zipped:
-        zipped.extractall(path)
-        s = hs.load(path / "TVIPS_bin4.tif", convert_units=True)
+        zipped.extractall(tmp_path)
+        s = hs.load(tmp_path / "TVIPS_bin4.tif", convert_units=True)
 
     assert s.data.dtype == np.uint8
     assert s.data.shape == (1024, 1024)
@@ -845,7 +834,7 @@ def test_axes_metadata():
 
 def test_olympus_SIS():
     pytest.importorskip("imagecodecs", reason="imagecodecs is required")
-    fname = os.path.join(MY_PATH2, "olympus_SIS.tif")
+    fname = TEST_DATA_PATH / "olympus_SIS.tif"
     s = hs.load(fname)
     # This olympus SIS contains two images:
     # - the first one is a RGB 8-bits (used for preview purposes)
@@ -882,7 +871,7 @@ def test_save_angstrom_units():
         assert s2.axes_manager[0].is_binned == s.axes_manager[0].is_binned
 
 
-def test_JEOL_SightX():
+def test_JEOL_SightX(tmp_path):
     files = [
         ("JEOL-SightX-Ronchigram-dummy.tif.gz", 1.0, t.Undefined),
         ("JEOL-SightX-SAED-dummy.tif.gz", 0.2723, "1 / nm"),
@@ -893,16 +882,14 @@ def test_JEOL_SightX():
         if fname[-3:] == ".gz":
             import gzip
 
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                with gzip.open(os.path.join(MY_PATH2, fname), "rb") as f:
-                    content = f.read()
-                fname = os.path.join(tmp_dir, fname[:-3])
-                with open(fname, "wb") as f2:
-                    f2.write(content)
-                s = hs.load(fname)
-        else:
-            fname = os.path.join(MY_PATH2, file[0])
+            with gzip.open(TEST_DATA_PATH / fname, "rb") as f:
+                content = f.read()
+            fname = tmp_path / fname[:-3]
+            with open(fname, "wb") as f2:
+                f2.write(content)
             s = hs.load(fname)
+        else:
+            s = hs.load(TEST_DATA_PATH / file[0])
         for i in range(2):  # x, y
             assert s.axes_manager[i].size == 556
             np.testing.assert_allclose(s.axes_manager[i].scale, file[1], rtol=1e-3)
@@ -914,7 +901,7 @@ class TestReadHamamatsu:
 
     @classmethod
     def setup_class(cls):
-        zipf = os.path.join(MY_PATH2, "tiff_hamamatsu.zip")
+        zipf = TEST_DATA_PATH / "tiff_hamamatsu.zip"
         with zipfile.ZipFile(zipf, "r") as zipped:
             zipped.extractall(cls.path)
 

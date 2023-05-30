@@ -18,7 +18,6 @@
 
 import gc
 from pathlib import Path
-import tempfile
 import zipfile
 
 import numpy as np
@@ -36,7 +35,7 @@ def teardown_module(module):
     gc.collect()
 
 
-TESTS_FILE_PATH = Path(__file__).resolve().parent / "JEOL_files"
+TESTS_FILE_PATH = Path(__file__).resolve().parent / "data" / "jeol"
 TESTS_FILE_PATH2 = TESTS_FILE_PATH / "InvalidFrame"
 
 TEST_FILES = [
@@ -531,24 +530,23 @@ def test_pts_frame_shift():
         )
 
 
-def test_broken_files():
+def test_broken_files(tmp_path):
     TEST_BROKEN_FILES = ["test.asw", "test.pts", "test.img"]
-    with tempfile.TemporaryDirectory() as tmpdir:
-        for _file in TEST_BROKEN_FILES:
-            file = Path(tmpdir) / _file
-            with open(file, "w") as fd:
-                fd.write("aaaaaaaa")
-            if file.suffix == ".asw":
-                # in case of asw, valid data can not be obtained
-                with pytest.raises(ValueError, match="Not a valid JEOL asw format"):
-                    _ = hs.load(file)
-            else:
-                # just skipping broken files
-                s = hs.load(file)
-                assert s == []
+    for _file in TEST_BROKEN_FILES:
+        file = tmp_path / _file
+        with open(file, "w") as fd:
+            fd.write("aaaaaaaa")
+        if file.suffix == ".asw":
+            # in case of asw, valid data can not be obtained
+            with pytest.raises(ValueError, match="Not a valid JEOL asw format"):
+                _ = hs.load(file)
+        else:
+            # just skipping broken files
+            s = hs.load(file)
+            assert s == []
 
 
-def test_seq_eds_files():
+def test_seq_eds_files(tmp_path):
     pos0 = [0.0, 0.0, -0.000132, 0.000132]
     pos = [
         [0.0, 0.0, 0.0, 0.0],
@@ -556,87 +554,87 @@ def test_seq_eds_files():
         [1.91154599e-05, -3.07397260e-05, -5.45048924e-05, 5.16634051e-05],
     ]
     memo = ["", "030", "035"]
-    test_file = Path(__file__).resolve().parent / "jeol_seq_eds_files.zip"
-    with tempfile.TemporaryDirectory() as tmpdir:
-        with zipfile.ZipFile(test_file, "r") as zipped:
-            zipped.extractall(tmpdir)
+    test_file = TESTS_FILE_PATH / "jeol_seq_eds_files.zip"
 
-        # test reading sequential acuired EDS spectrum
-        s = hs.load(Path(tmpdir) / "1" / "1.ASW")
-        # check if three subfiles are in file (img, eds, eds)
-        assert len(s) == 3
-        # check positional information in subfiles
-        for i, p in enumerate(pos):
-            sampleinfo = s[i].original_metadata["asw"]["SampleInfo"]["0"]
-            viewinfo = sampleinfo["ViewInfo"]["0"]
-            np.testing.assert_allclose(viewinfo["PositionMM2"], pos0)
-            viewdata_asw = viewinfo["ViewData"]
-            viewdata = s[i].original_metadata["asw_viewdata"]
-            np.testing.assert_allclose(viewdata["PositionMM2"], p)
-            np.testing.assert_allclose(
-                viewdata["PositionMM2"], viewdata_asw[i]["PositionMM2"]
-            )
-            assert viewdata["Memo"] == memo[i]
-        assert isinstance(s[1], hs.signals.EDSTEMSpectrum)
-        assert isinstance(s[2], hs.signals.EDSTEMSpectrum)
+    with zipfile.ZipFile(test_file, "r") as zipped:
+        zipped.extractall(tmp_path)
 
-        # test with broken asw file
-        fname = Path(tmpdir) / "1" / "1.ASW"
-        fname2 = Path(tmpdir) / "1" / "2.ASW"
-        with open(fname, "rb") as f:
-            data = bytearray(f.read())
+    # test reading sequential acuired EDS spectrum
+    s = hs.load(tmp_path / "1" / "1.ASW")
+    # check if three subfiles are in file (img, eds, eds)
+    assert len(s) == 3
+    # check positional information in subfiles
+    for i, p in enumerate(pos):
+        sampleinfo = s[i].original_metadata["asw"]["SampleInfo"]["0"]
+        viewinfo = sampleinfo["ViewInfo"]["0"]
+        np.testing.assert_allclose(viewinfo["PositionMM2"], pos0)
+        viewdata_asw = viewinfo["ViewData"]
+        viewdata = s[i].original_metadata["asw_viewdata"]
+        np.testing.assert_allclose(viewdata["PositionMM2"], p)
+        np.testing.assert_allclose(
+            viewdata["PositionMM2"], viewdata_asw[i]["PositionMM2"]
+        )
+        assert viewdata["Memo"] == memo[i]
+    assert isinstance(s[1], hs.signals.EDSTEMSpectrum)
+    assert isinstance(s[2], hs.signals.EDSTEMSpectrum)
 
-        # No ViewData
-        data2 = data.copy()
-        data2[0x42D] = 0x30
-        with open(fname2, "wb") as f:
-            f.write(data2)
-        dat = hs.load(fname2)
-        assert len(dat) == 0
+    # test with broken asw file
+    fname = tmp_path / "1" / "1.ASW"
+    fname2 = tmp_path / "1" / "2.ASW"
+    with open(fname, "rb") as f:
+        data = bytearray(f.read())
 
-        # No ViewInfo
-        data2 = data.copy()
-        data2[0x1AD] = 0x30
-        with open(fname2, "wb") as f:
-            f.write(data2)
-        dat = hs.load(fname2)
-        assert len(dat) == 0
+    # No ViewData
+    data2 = data.copy()
+    data2[0x42D] = 0x30
+    with open(fname2, "wb") as f:
+        f.write(data2)
+    dat = hs.load(fname2)
+    assert len(dat) == 0
 
-        # No SampleInfo
-        data2 = data.copy()
-        data2[0x6E] = 0x30
-        with open(fname2, "wb") as f:
-            f.write(data2)
-        dat = hs.load(fname2)
-        assert len(dat) == 0
+    # No ViewInfo
+    data2 = data.copy()
+    data2[0x1AD] = 0x30
+    with open(fname2, "wb") as f:
+        f.write(data2)
+    dat = hs.load(fname2)
+    assert len(dat) == 0
 
-        # test read for pseudo SEM eds/img data
-        sub_dir = Path(tmpdir) / "1" / "Sample" / "00_View002"
-        test_files = ["View002_0000000.img", "View002_0000001.eds"]
+    # No SampleInfo
+    data2 = data.copy()
+    data2[0x6E] = 0x30
+    with open(fname2, "wb") as f:
+        f.write(data2)
+    dat = hs.load(fname2)
+    assert len(dat) == 0
 
-        # rewrite AccV  200 kV to 20 kV to generate pseudo SEM data
-        # .img
-        with open(sub_dir / test_files[0], "rb") as f:
-            data = bytearray(f.read())
-            data[0x75BC] = 0xA0
-            data[0x75BD] = 0x41
-        with open(sub_dir / ("x" + test_files[0]), "wb") as f:
-            f.write(data)
-        s = hs.load(sub_dir / ("x" + test_files[0]))
-        assert "SEM" in s.metadata["Acquisition_instrument"]
+    # test read for pseudo SEM eds/img data
+    sub_dir = tmp_path / "1" / "Sample" / "00_View002"
+    test_files = ["View002_0000000.img", "View002_0000001.eds"]
 
-        # .eds
-        with open(sub_dir / test_files[1], "rb") as f:
-            data = bytearray(f.read())
-            data[0x4B13] = 0x34
-        with open(sub_dir / ("x" + test_files[1]), "wb") as f:
-            f.write(data)
-        s = hs.load(sub_dir / ("x" + test_files[1]))
-        assert isinstance(s, hs.signals.EDSSEMSpectrum)
-        assert "SEM" in s.metadata["Acquisition_instrument"]
+    # rewrite AccV  200 kV to 20 kV to generate pseudo SEM data
+    # .img
+    with open(sub_dir / test_files[0], "rb") as f:
+        data = bytearray(f.read())
+        data[0x75BC] = 0xA0
+        data[0x75BD] = 0x41
+    with open(sub_dir / ("x" + test_files[0]), "wb") as f:
+        f.write(data)
+    s = hs.load(sub_dir / ("x" + test_files[0]))
+    assert "SEM" in s.metadata["Acquisition_instrument"]
+
+    # .eds
+    with open(sub_dir / test_files[1], "rb") as f:
+        data = bytearray(f.read())
+        data[0x4B13] = 0x34
+    with open(sub_dir / ("x" + test_files[1]), "wb") as f:
+        f.write(data)
+    s = hs.load(sub_dir / ("x" + test_files[1]))
+    assert isinstance(s, hs.signals.EDSSEMSpectrum)
+    assert "SEM" in s.metadata["Acquisition_instrument"]
 
 
-def test_frame_start_index():
+def test_frame_start_index(tmp_path):
     file = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[7]
     frame_start_index_ref = [
         0,
@@ -697,16 +695,13 @@ def test_frame_start_index():
     assert s.data.shape == (2, 16, 16, 8)
 
     # test with pseudo "SEM" data
-    with tempfile.TemporaryDirectory() as tmpdir:
-        test_file = Path(tmpdir) / "test.pts"
-        with open(file, "rb") as f:
-            data = bytearray(f.read())
-            # AcckV = 20 kV
-            data[0x1116] = 0xA0
-            data[0x1117] = 0x41
-        with open(test_file, "wb") as f:
-            f.write(data)
-            s = hs.load(
-                test_file, downsample=[32, 32], rebin_energy=512, SI_dtype=np.int32
-            )
-        assert s.metadata["Signal"]["signal_type"] == "EDS_SEM"
+    test_file = tmp_path / "test.pts"
+    with open(file, "rb") as f:
+        data = bytearray(f.read())
+        # AcckV = 20 kV
+        data[0x1116] = 0xA0
+        data[0x1117] = 0x41
+    with open(test_file, "wb") as f:
+        f.write(data)
+        s = hs.load(test_file, downsample=[32, 32], rebin_energy=512, SI_dtype=np.int32)
+    assert s.metadata["Signal"]["signal_type"] == "EDS_SEM"

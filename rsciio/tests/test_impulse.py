@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO.  If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import os
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -26,15 +26,14 @@ from rsciio.impulse._api import ImpulseCSV, invalid_file_error, invalid_filenami
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 
-testdirpath = os.path.dirname(__file__)
-dirpath = os.path.join(testdirpath, "impulse_data")
+TEST_DATA_PATH = Path(__file__).parent / "data" / "impulse"
 
 
 # Load a synchronized data log file
 
 
 def test_read_sync_file():
-    filename = os.path.join(dirpath, "StubExperiment_Synchronized data.csv")
+    filename = TEST_DATA_PATH / "StubExperiment_Synchronized data.csv"
     s = hs.load(filename, reader="impulse")
     assert len(s) == 13
     assert s[0].metadata.General.title == "Temperature Measured (degC)"
@@ -67,7 +66,7 @@ def test_read_sync_file():
 
 class testSyncFile:
     def setup_method(self, method):
-        filename = os.path.join(dirpath, "StubExperiment_Synchronized data.csv")
+        filename = TEST_DATA_PATH / "StubExperiment_Synchronized data.csv"
         self.s_list = hs.load(filename, reader="impulse")
 
     def test_read_metadata(self):
@@ -106,15 +105,13 @@ class testSyncFile:
         assert om.System_version == "G+"
 
     def test_read_data(self):
-        expected_data = np.load(
-            os.path.join(dirpath, "StubExperiment_Synchronized data.npy")
-        )
+        expected_data = np.load(TEST_DATA_PATH / "StubExperiment_Synchronized data.npy")
         np.testing.assert_allclose(self.s_list.T, expected_data)
 
 
 class testSyncFileCSVreader:
     def setup_method(self, method):
-        self.filename = os.path.join(dirpath, "StubExperiment_Synchronized data.csv")
+        self.filename = TEST_DATA_PATH / "StubExperiment_Synchronized data.csv"
         self.isf = ImpulseCSV(self.filename)
 
     def test_read_column_name(self):
@@ -139,9 +136,7 @@ class testSyncFileCSVreader:
             self.isf._data_dictionary[key] for key in self.isf.logged_quantity_name_list
         )
         data = np.vstack(list(dicts))
-        expected_data = np.load(
-            os.path.join(dirpath, "StubExperiment_Synchronized data.npy")
-        )
+        expected_data = np.load(TEST_DATA_PATH / "StubExperiment_Synchronized data.npy")
         np.testing.assert_allclose(data.T, expected_data)
 
 
@@ -149,7 +144,7 @@ class testSyncFileCSVreader:
 
 
 def test_loading_random_csv_file():
-    filename = os.path.join(dirpath, "random_csv_file.csv")
+    filename = TEST_DATA_PATH / "random_csv_file.csv"
     with pytest.raises(IOError) as cm:
         ImpulseCSV(filename)
         cm.match(invalid_file_error)
@@ -159,7 +154,7 @@ def test_loading_random_csv_file():
 
 
 def test_loading_invalid_impulse_filename():
-    filename = os.path.join(dirpath, "changed_file_name.csv")
+    filename = TEST_DATA_PATH / "changed_file_name.csv"
     with pytest.raises(IOError) as cm:
         hs.load(filename, reader="impulse")
         cm.match(invalid_filenaming_error)
@@ -170,7 +165,7 @@ def test_loading_invalid_impulse_filename():
 
 class testRawFile:
     def setup_method(self, method):
-        filename = os.path.join(dirpath, "StubExperiment_Heat raw.csv")
+        filename = TEST_DATA_PATH / "StubExperiment_Heat raw.csv"
         self.s_list = hs.load(filename, reader="impulse")
 
     def test_read_metadata(self):
@@ -211,7 +206,7 @@ class testRawFile:
 
 class testRawFileCSVreader:
     def setup_method(self, method):
-        self.filename = os.path.join(dirpath, "StubExperiment_Heat raw.csv")
+        self.filename = TEST_DATA_PATH / "StubExperiment_Heat raw.csv"
         self.isf = ImpulseCSV(self.filename)
 
     def test_read_column_name(self):

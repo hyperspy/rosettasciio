@@ -53,12 +53,6 @@ issue_format = "`#{issue} <https://github.com/hyperspy/rosettasciio/issues/{issu
   name = "Maintenance"
   showcontent = true
 
-
-[tool.pytest]
-addopts = "-ra -n auto --dist loadfile"
-testpaths = "rsciio/tests/"
-
-
 [tool.coverage.run]
 branch = true
 source = ["rsciio"]

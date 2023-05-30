@@ -18,9 +18,8 @@
 
 
 import gc
-import os
-import tempfile
-from packaging import version as pversion
+from packaging.version import Version
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -53,7 +52,7 @@ except NameError:
     WindowsError = None
 
 
-DIRPATH = os.path.join(os.path.dirname(__file__), "tvips_files")
+TEST_DATA_PATH = Path(__file__).parent / "data" / "tvips"
 
 
 @pytest.fixture()
@@ -330,14 +329,14 @@ def test_guess_scan_index_grid(rotators, startstop, expected):
 
 def _dask_supports_assignment():
     # direct assignment as follows is possible in newer versions (>2021.04.1) of dask, for backward compatibility we use workaround
-    return pversion.parse(dask.__version__) >= pversion.parse("2021.04.1")
+    return Version(dask.__version__) >= Version("2021.04.1")
 
 
 @pytest.mark.parametrize(
     "filename, kwargs",
     [
         (
-            os.path.join(DIRPATH, "test_tvips_2233_000.tvips"),
+            TEST_DATA_PATH / "test_tvips_2233_000.tvips",
             {
                 "scan_shape": "auto",
                 "scan_start_frame": 20,
@@ -346,7 +345,7 @@ def _dask_supports_assignment():
             },
         ),
         (
-            os.path.join(DIRPATH, "test_tvips_2345_000.tvips"),
+            TEST_DATA_PATH / "test_tvips_2345_000.tvips",
             {
                 "scan_shape": (2, 3),
                 "scan_start_frame": 0,
@@ -355,7 +354,7 @@ def _dask_supports_assignment():
             },
         ),
         (
-            os.path.join(DIRPATH, "test_tvips_2345_split_000.tvips"),
+            TEST_DATA_PATH / "test_tvips_2345_split_000.tvips",
             {
                 "scan_shape": (2, 2),
                 "scan_start_frame": 2,
@@ -402,28 +401,27 @@ def test_tvips_file_reader(filename, lazy, kwargs, wsa):
 
 @pytest.mark.xfail(raises=ValueError)
 def test_read_fail_version():
-    file = (os.path.join(DIRPATH, "test_tvips_2345_split_000.tvips"),)
-    hs.load(file, scan_shape="auto")
+    hs.load(TEST_DATA_PATH / "test_tvips_2345_split_000.tvips", scan_shape="auto")
 
 
 @pytest.mark.xfail(raises=ValueError)
 def test_read_fail_wind_axis():
-    file = (os.path.join(DIRPATH, "test_tvips_2345_split_000.tvips"),)
-    hs.load(file, scan_shape=(2, 3), winding_scan_axis="z")
+    hs.load(
+        TEST_DATA_PATH / "test_tvips_2345_split_000.tvips",
+        scan_shape=(2, 3),
+        winding_scan_axis="z",
+    )
 
 
 @pytest.mark.xfail(raises=ValueError)
 def test_read_fail_scan_shape():
-    file = (os.path.join(DIRPATH, "test_tvips_2345_split_000.tvips"),)
-    hs.load(file, scan_shape=(3, 3))
+    hs.load(TEST_DATA_PATH / "test_tvips_2345_split_000.tvips", scan_shape=(3, 3))
 
 
 @pytest.mark.xfail(raises=ValueError)
-def test_write_fail_signal_type():
-    with tempfile.TemporaryDirectory() as tdir:
-        fake_signal = hs.signals.BaseSignal(np.zeros((1, 2, 3, 4)))
-        path = os.path.join(tdir, "test_000.tvips")
-        fake_signal.save(path)
+def test_write_fail_signal_type(tmp_path):
+    fake_signal = hs.signals.BaseSignal(np.zeros((1, 2, 3, 4)))
+    fake_signal.save(tmp_path / "test_000.tvips")
 
 
 @pytest.mark.parametrize(
@@ -439,7 +437,7 @@ def test_write_fail_signal_type():
 )
 @pytest.mark.parametrize("lazy", [True, False])
 def test_file_writer(
-    sig, meta, max_file_size, fheb, fake_signals, fake_metadatas, lazy
+    sig, meta, max_file_size, fheb, fake_signals, fake_metadatas, lazy, tmp_path
 ):
     signal = fake_signals[sig]
     if lazy:
@@ -448,40 +446,39 @@ def test_file_writer(
         metadata = fake_metadatas[meta]
         signal.metadata.add_dictionary(metadata.as_dictionary())
     metadata = signal.metadata
-    with tempfile.TemporaryDirectory() as tmp:
-        filepath = os.path.join(tmp, "test_tvips_save_000.tvips")
-        scan_shape = signal.axes_manager.navigation_shape
-        file_writer(
-            filepath,
-            signal._to_dictionary(),
-            max_file_size=max_file_size,
-            frame_header_extra_bytes=fheb,
+
+    filepath = tmp_path / "test_tvips_save_000.tvips"
+    scan_shape = signal.axes_manager.navigation_shape
+    file_writer(
+        filepath,
+        signal._to_dictionary(),
+        max_file_size=max_file_size,
+        frame_header_extra_bytes=fheb,
+    )
+    if max_file_size is None:
+        assert len(list(tmp_path.iterdir())) == 1
+    else:
+        assert len(list(tmp_path.iterdir())) >= 1
+    filepath_load = str(tmp_path / "test_tvips_save_000.tvips")
+    dtc = file_reader(filepath_load, scan_shape=scan_shape[::-1], lazy=False)[0]
+    np.testing.assert_allclose(signal.data, dtc["data"])
+    assert signal.data.dtype == dtc["data"].dtype
+    if metadata and meta is not None:
+        assert dtc["metadata"]["General"]["date"] == metadata.General.date
+        assert dtc["metadata"]["General"]["time"] == metadata.General.time
+        assert (
+            dtc["metadata"]["Acquisition_instrument"]["TEM"]["beam_energy"]
+            == metadata.Acquisition_instrument.TEM.beam_energy
         )
-        if max_file_size is None:
-            assert len(os.listdir(tmp)) == 1
-        else:
-            assert len(os.listdir(tmp)) >= 1
-        filepath_load = os.path.join(tmp, "test_tvips_save_000.tvips")
-        dtc = file_reader(filepath_load, scan_shape=scan_shape[::-1], lazy=False)[0]
-        np.testing.assert_allclose(signal.data, dtc["data"])
-        assert signal.data.dtype == dtc["data"].dtype
-        if metadata and meta is not None:
-            assert dtc["metadata"]["General"]["date"] == metadata.General.date
-            assert dtc["metadata"]["General"]["time"] == metadata.General.time
-            assert (
-                dtc["metadata"]["Acquisition_instrument"]["TEM"]["beam_energy"]
-                == metadata.Acquisition_instrument.TEM.beam_energy
-            )
-            assert (
-                dtc["metadata"]["Acquisition_instrument"]["TEM"]["beam_current"]
-                == metadata.Acquisition_instrument.TEM.beam_current
-            )
-        gc.collect()
+        assert (
+            dtc["metadata"]["Acquisition_instrument"]["TEM"]["beam_current"]
+            == metadata.Acquisition_instrument.TEM.beam_current
+        )
+    gc.collect()
 
 
 @pytest.mark.xfail(raises=ValueError)
-def test_file_writer_fail():
+def test_file_writer_fail(tmp_path):
     signal = hs.signals.Signal1D(np.array([1, 2, 3]))
-    with tempfile.TemporaryDirectory() as tmp:
-        filepath = os.path.join(tmp, "test.tvips")
-        file_writer(filepath, signal._to_dictionary())
+
+    file_writer(str(tmp_path / "test.tvips"), signal._to_dictionary())

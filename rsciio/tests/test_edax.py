@@ -19,7 +19,7 @@
 import gc
 import hashlib
 import os
-import os.path
+from pathlib import Path
 import tempfile
 import zipfile
 
@@ -29,9 +29,8 @@ import pytest
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 requests = pytest.importorskip("requests", reason="requests not installed")
 
-
-MY_PATH = os.path.dirname(__file__)
-ZIPF = os.path.join(MY_PATH, "edax_files.zip")
+TEST_DATA_PATH = Path(__file__).parent / "data" / "edax"
+ZIPF = TEST_DATA_PATH / "edax_files.zip"
 TMP_DIR = tempfile.TemporaryDirectory()
 TEST_FILES_OK = os.path.isfile(ZIPF)
 REASON = ""

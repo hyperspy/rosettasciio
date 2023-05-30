@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-
 import os
+from pathlib import Path
 
 import pytest
 
@@ -26,12 +26,13 @@ imagecodecs = pytest.importorskip(
     "imagecodecs", reason="skipping test_phenom tests, requires imagecodecs"
 )
 
-DIRPATH = os.path.dirname(__file__)
-ELID2VERSION0 = os.path.join(DIRPATH, "phenom_data", "Elid2Version0.elid")
-ELID2VERSION1 = os.path.join(DIRPATH, "phenom_data", "Elid2Version1.elid")
-ELID2VERSION2 = os.path.join(DIRPATH, "phenom_data", "Elid2Version2.elid")
-ELID2VERSION3 = os.path.join(DIRPATH, "phenom_data", "Elid2Version3.elid")
-ELID2VERSION4 = os.path.join(DIRPATH, "phenom_data", "Elid2Version4.elid")
+TEST_DATA_PATH = Path(__file__).parent / "data" / "phenom"
+
+ELID2VERSION0 = TEST_DATA_PATH / "Elid2Version0.elid"
+ELID2VERSION1 = TEST_DATA_PATH / "Elid2Version1.elid"
+ELID2VERSION2 = TEST_DATA_PATH / "Elid2Version2.elid"
+ELID2VERSION3 = TEST_DATA_PATH / "Elid2Version3.elid"
+ELID2VERSION4 = TEST_DATA_PATH / "Elid2Version4.elid"
 
 
 @pytest.mark.parametrize(

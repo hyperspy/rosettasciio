@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import os.path
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -45,17 +45,15 @@ from rsciio.nexus._api import (
 from hyperspy.signals import BaseSignal
 
 
-dirpath = os.path.dirname(__file__)
-
-file1 = os.path.join(dirpath, "nexus_files", "simple_signal.nxs")
-file2 = os.path.join(dirpath, "nexus_files", "saved_multi_signal.nxs")
-file3 = os.path.join(dirpath, "nexus_files", "nexus_dls_example.nxs")
-file4 = os.path.join(dirpath, "nexus_files", "nexus_dls_example_no_axes.nxs")
-file5 = os.path.join(dirpath, "nexus_files", "nexus_test_datakey.nxs")
-file6 = os.path.join(dirpath, "nexus_files", "nxdata_tagged_as_string.nxs")
+TEST_DATA_PATH = Path(__file__).parent / "data" / "nexus"
 
 
-my_path = os.path.dirname(__file__)
+file1 = TEST_DATA_PATH / "simple_signal.nxs"
+file2 = TEST_DATA_PATH / "saved_multi_signal.nxs"
+file3 = TEST_DATA_PATH / "nexus_dls_example.nxs"
+file4 = TEST_DATA_PATH / "nexus_dls_example_no_axes.nxs"
+file5 = TEST_DATA_PATH / "nexus_test_datakey.nxs"
+file6 = TEST_DATA_PATH / "nxdata_tagged_as_string.nxs"
 
 
 class TestDLSNexus:

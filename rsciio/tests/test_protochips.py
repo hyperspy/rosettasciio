@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO.  If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import os
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -25,8 +25,8 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 from rsciio.protochips._api import ProtochipsCSV, invalid_file_error
 
-testdirpath = os.path.dirname(__file__)
-dirpath = os.path.join(testdirpath, "protochips_data")
+
+TEST_DATA_PATH = Path(__file__).parent / "data" / "protochips"
 
 # To generate a new reference numpy file
 generate_numpy_file = False
@@ -44,7 +44,7 @@ def create_numpy_file(filename, obj):
 
 
 def test_read_protochips_gas_cell():
-    filename = os.path.join(dirpath, "protochips_gas_cell.csv")
+    filename = TEST_DATA_PATH / "protochips_gas_cell.csv"
     s = hs.load(filename, reader="protochips")
     assert len(s) == 5
     assert s[0].metadata.General.title == "Holder Temperature (Degrees C)"
@@ -76,14 +76,14 @@ datetime_gas_cell_no_user = get_datetime("2016-10-17T16:59:20.391000")
 
 
 def test_loading_random_csv_file():
-    filename = os.path.join(dirpath, "random_csv_file.csv")
+    filename = TEST_DATA_PATH / "random_csv_file.csv"
     with pytest.raises(IOError) as cm:
         ProtochipsCSV(filename)
         cm.match(invalid_file_error)
 
 
 def test_loading_invalid_protochips_file():
-    filename = os.path.join(dirpath, "invalid_protochips_file.csv")
+    filename = TEST_DATA_PATH / "invalid_protochips_file.csv"
     with pytest.raises(IOError) as cm:
         hs.load(filename, reader="protochips")
         cm.match(invalid_file_error)
@@ -91,7 +91,7 @@ def test_loading_invalid_protochips_file():
 
 class TestProtochipsGasCellCSV:
     def setup_method(self, method):
-        filename = os.path.join(dirpath, "protochips_gas_cell.csv")
+        filename = TEST_DATA_PATH / "protochips_gas_cell.csv"
         self.s_list = hs.load(filename, reader="protochips")
 
     def test_read_metadata(self):
@@ -123,7 +123,7 @@ class TestProtochipsGasCellCSV:
 
 class TestProtochipsGasCellCSVNoUser:
     def setup_method(self, method):
-        filename = os.path.join(dirpath, "protochips_gas_cell_no_user.csv")
+        filename = TEST_DATA_PATH / "protochips_gas_cell_no_user.csv"
         self.s_list = hs.load(filename, reader="protochips")
 
     def test_read_metadata(self):
@@ -154,10 +154,10 @@ class TestProtochipsGasCellCSVNoUser:
 
 class TestProtochipsGasCellCSVReader:
     def setup_method(self, method):
-        self.filename = os.path.join(dirpath, "protochips_gas_cell.csv")
+        self.filename = TEST_DATA_PATH / "protochips_gas_cell.csv"
         self.pgc = ProtochipsCSV(self.filename)
         if generate_numpy_file:
-            create_numpy_file(self.filename.replace(".csv", ".npy"), self.pgc)
+            create_numpy_file(self.filename.with_suffix(".npy"), self.pgc)
 
     def test_read_column_name(self):
         assert self.pgc.column_name == [
@@ -178,7 +178,7 @@ class TestProtochipsGasCellCSVReader:
             self.pgc._data_dictionary[key] for key in self.pgc.logged_quantity_name_list
         )
         data = np.vstack(list(gen))
-        expected_data = np.load(os.path.join(dirpath, "protochips_gas_cell.npy"))
+        expected_data = np.load(TEST_DATA_PATH / "protochips_gas_cell.npy")
         np.testing.assert_allclose(data.T, expected_data)
 
     def test_read_metadata_header(self):
@@ -198,7 +198,7 @@ class TestProtochipsGasCellCSVReader:
 
 
 def test_read_protochips_electrical():
-    filename = os.path.join(dirpath, "protochips_electrical.csv")
+    filename = TEST_DATA_PATH / "protochips_electrical.csv"
     s = hs.load(filename, reader="protochips")
     assert len(s) == 6
     assert s[0].metadata.General.title == "Channel A Current (Amps)"
@@ -223,10 +223,10 @@ def test_read_protochips_electrical():
 
 class TestProtochipsElectricalCSVReader:
     def setup_method(self, method):
-        self.filename = os.path.join(dirpath, "protochips_electrical.csv")
+        self.filename = TEST_DATA_PATH / "protochips_electrical.csv"
         self.pa = ProtochipsCSV(self.filename)
         if generate_numpy_file:
-            create_numpy_file(self.filename.replace(".csv", ".npy"), self.pa)
+            create_numpy_file(self.filename.with_suffix(".npy"), self.pa)
 
     def test_read_column_name(self):
         assert self.pa.column_name == [
@@ -249,7 +249,7 @@ class TestProtochipsElectricalCSVReader:
             self.pa._data_dictionary[key] for key in self.pa.logged_quantity_name_list
         )
         data = np.vstack(list(gen))
-        expected_data = np.load(os.path.join(dirpath, "protochips_electrical.npy"))
+        expected_data = np.load(TEST_DATA_PATH / "protochips_electrical.npy")
         np.testing.assert_allclose(data.T, expected_data)
 
 
@@ -259,7 +259,7 @@ class TestProtochipsElectricalCSVReader:
 
 
 def test_read_protochips_thermal():
-    filename = os.path.join(dirpath, "protochips_thermal.csv")
+    filename = TEST_DATA_PATH / "protochips_thermal.csv"
     s = hs.load(filename, reader="protochips")
     assert s.metadata.General.title == "Channel A Temperature (Degrees C)"
     assert s.metadata.Signal.signal_type == ""
@@ -269,10 +269,10 @@ def test_read_protochips_thermal():
 
 class TestProtochipsThermallCSVReader:
     def setup_method(self, method):
-        self.filename = os.path.join(dirpath, "protochips_thermal.csv")
+        self.filename = TEST_DATA_PATH / "protochips_thermal.csv"
         self.pt = ProtochipsCSV(self.filename)
         if generate_numpy_file:
-            create_numpy_file(self.filename.replace(".csv", ".npy"), self.pt)
+            create_numpy_file(self.filename.with_suffix(".npy"), self.pt)
 
     def test_read_column_name(self):
         assert self.pt.column_name == ["Time", "Notes", "Channel A Temperature"]
@@ -286,7 +286,7 @@ class TestProtochipsThermallCSVReader:
             self.pt._data_dictionary[key] for key in self.pt.logged_quantity_name_list
         )
         data = np.vstack(list(gen))
-        expected_data = np.load(os.path.join(dirpath, "protochips_thermal.npy"))
+        expected_data = np.load(TEST_DATA_PATH / "protochips_thermal.npy")
         np.testing.assert_allclose(data.T, expected_data)
 
 
@@ -296,7 +296,7 @@ class TestProtochipsThermallCSVReader:
 
 
 def test_read_protochips_electrothermal():
-    filename = os.path.join(dirpath, "protochips_electrothermal.csv")
+    filename = TEST_DATA_PATH / "protochips_electrothermal.csv"
     s = hs.load(filename, reader="protochips")
     assert len(s) == 4
     assert s[0].metadata.General.title == "Channel A Temperature (Degrees C)"
@@ -316,10 +316,10 @@ def test_read_protochips_electrothermal():
 
 class TestProtochipsElectrothermalCSVReader:
     def setup_method(self, method):
-        self.filename = os.path.join(dirpath, "protochips_electrothermal.csv")
+        self.filename = TEST_DATA_PATH / "protochips_electrothermal.csv"
         self.pet = ProtochipsCSV(self.filename)
         if generate_numpy_file:
-            create_numpy_file(self.filename.replace(".csv", ".npy"), self.pet)
+            create_numpy_file(self.filename.with_suffix(".npy"), self.pet)
 
     def test_read_column_name(self):
         assert self.pet.column_name == [
@@ -340,7 +340,5 @@ class TestProtochipsElectrothermalCSVReader:
             self.pet._data_dictionary[key] for key in self.pet.logged_quantity_name_list
         )
         data = np.vstack(list(gen))
-        expected_data = np.load(
-            os.path.join(dirpath, self.filename.replace(".csv", ".npy"))
-        )
+        expected_data = np.load(TEST_DATA_PATH / self.filename.with_suffix(".npy"))
         np.testing.assert_allclose(data.T, expected_data)

@@ -3,19 +3,18 @@ name: Build
 on: [push, pull_request]
 
 jobs:
-  build-and-test:
+  build:
     name: Build
     runs-on: ubuntu-latest
     env:
       PYTHON_VERSION: '3.10'
-
     steps:
       - uses: actions/checkout@v3
 
       - uses: actions/setup-python@v4
         name: Install Python
         with:
-          python-version: '3.10'
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Display version
         run: |
@@ -32,20 +31,43 @@ jobs:
 
       - name: Display content dist folder
         run: |
-          ls dist/
+          ls -l dist/
 
       - uses: actions/upload-artifact@v3
         with:
           path: ./dist/*
+          name: dist
 
-      - name: Install distribution
+  test:
+    name: Test Packaging
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      PYTHON_VERSION: '3.10'
+    steps:
+      - uses: actions/setup-python@v4
+        name: Install Python
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - uses: actions/download-artifact@v3
+
+      - name: Display content working folder
         run: |
-          pip install --pre --find-links dist rosettasciio[all,tests]
+          ls -R
 
       - name: Install HyperSpy (dev)
         run: |
           pip install https://github.com/hyperspy/hyperspy/archive/refs/heads/RELEASE_next_major.zip
 
+      - name: Install distribution
+        run: |
+          # uninstall version from installed by hyperspy first
+          # release otherwise hyperspy install a version and this dist is ignored
+          pip uninstall --yes rosettasciio
+          pip install --pre --find-links dist rosettasciio[all,tests]
+
       - name: Test distribution
         run: |
-          pytest --pyargs rsciio --reruns 3 -n 2
+          # can't use `-n 2` because xdist ignore the `conftest.py`
+          pytest --pyargs rsciio --reruns 3

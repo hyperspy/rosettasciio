@@ -25,23 +25,20 @@ from copy import deepcopy
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
-testfile_dir = (Path(__file__).parent / "trivista_data").resolve()
+TEST_DATA_PATH = Path(__file__).parent / "data" / "trivista"
 
-testfile_spec_path = (testfile_dir / "spec_1s_1acc_1frame_average.tvf").resolve()
-testfile_spec_2frames_path = (
-    testfile_dir / "spec_3s_1acc_2frames_average.tvf"
-).resolve()
-testfile_spec_2acc_path = (testfile_dir / "spec_3s_2acc_1frame_average.tvf").resolve()
+testfile_spec_path = TEST_DATA_PATH / "spec_1s_1acc_1frame_average.tvf"
+testfile_spec_2frames_path = TEST_DATA_PATH / "spec_3s_1acc_2frames_average.tvf"
+testfile_spec_2acc_path = TEST_DATA_PATH / "spec_3s_2acc_1frame_average.tvf"
 testfile_spec_2acc_no_average_path = (
-    testfile_dir / "spec_3s_2acc_1frame_no_average.tvf"
-).resolve()
-testfile_spec_timeseries_path = (
-    testfile_dir / "spec_timeseries_2x1s_delta3s.tvf"
-).resolve()
-testfile_map_path = (testfile_dir / "map.tvf").resolve()
-testfile_step_and_glue_path = (testfile_dir / "spec_step_and_glue.tvf").resolve()
-testfile_triple_add_path = (testfile_dir / "spec_multiple_spectrometers.tvf").resolve()
-testfile_linescan_path = (testfile_dir / "linescan.tvf").resolve()
+    TEST_DATA_PATH / "spec_3s_2acc_1frame_no_average.tvf"
+)
+testfile_spec_timeseries_path = TEST_DATA_PATH / "spec_timeseries_2x1s_delta3s.tvf"
+testfile_map_path = TEST_DATA_PATH / "map.tvf"
+testfile_step_and_glue_path = TEST_DATA_PATH / "spec_step_and_glue.tvf"
+testfile_triple_add_path = TEST_DATA_PATH / "spec_multiple_spectrometers.tvf"
+testfile_linescan_path = TEST_DATA_PATH / "linescan.tvf"
+
 
 if importlib.util.find_spec("lumispy") is None:
     lumispy_installed = False

@@ -153,8 +153,7 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
     if f.tell() == 1024 + std_header["NEXT"]:
         _logger.debug("The FEI header was correctly loaded")
     else:
-        _logger.warning("There was a problem reading the extended header")
-        f.seek(1024 + std_header["NEXT"])
+        f.seek(1024 + std_header["NEXT"][0])
         fei_header = None
     NX, NY, NZ = std_header["NX"], std_header["NY"], std_header["NZ"]
     if mmap_mode is None:

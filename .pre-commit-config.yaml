@@ -3,7 +3,14 @@ repos:
     # Version can be updated by running "pre-commit autoupdate"
     rev: 23.3.0
     hooks:
-    -   id: black
+    - id: black
+  - repo: local
+    hooks:
+    - id: registry
+      additional_dependencies: ["pooch"]
+      name: Update registry
+      entry: python update_registry.py
+      language: python
 ci:
     # Don't run automatically on PRs, instead add the comment
     # "pre-commit.ci autofix" on a pull request to manually trigger auto-fixing 

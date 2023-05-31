@@ -18,10 +18,9 @@
 
 from pathlib import Path
 import sys
+import warnings
 
 import pooch
-
-from rsciio.tests.registry import TEST_DATA_REGISTRY
 
 PATH = Path(__file__).parent
 
@@ -36,7 +35,8 @@ def update_registry():
     ending.
     """
     if sys.platform == "win32":
-        raise RuntimeError("This is not supported on Windows.")
+        warnings.warn("This is not supported on Windows. Nothing done.")
+        return
 
     make_registry(
         PATH / "data",
@@ -122,6 +122,9 @@ def download_all(pooch_object=None, ignore_hash=None, progressbar=True):
         `tqdm` library. Default is True
 
     """
+
+    from rsciio.tests.registry import TEST_DATA_REGISTRY
+
     if pooch_object is None:
         pooch_object = TEST_DATA_REGISTRY
     if ignore_hash is None:
@@ -146,3 +149,8 @@ def download_all(pooch_object=None, ignore_hash=None, progressbar=True):
 
     if progressbar:
         pbar.close()
+
+
+if __name__ == "__main__":
+    # Used by the pre-commit hook
+    update_registry()

@@ -118,20 +118,26 @@ def get_fei_dtype_list(endianess="<"):
     return dtype_list
 
 
-def get_data_type(index, endianess="<"):
-    end = endianess
-    data_type = [
-        end + "u2",  # 0 = Signal2D     unsigned bytes
-        end + "i2",  # 1 = Signal2D     signed short integer (16 bits)
-        end + "f4",  # 2 = Signal2D     float
-        (end + "i2", 2),  # 3 = Complex   short*2
-        end + "c8",  # 4 = Complex   float*2
-    ]
-    return data_type[index]
+def get_data_type(mode):
+    mode_to_dtype = {
+        0: np.int8,
+        1: np.int16,
+        2: np.float32,
+        4: np.complex64,
+        6: np.uint16,
+        12: np.float16,
+    }
+
+    mode = int(mode)
+    if mode in mode_to_dtype:
+        return np.dtype(mode_to_dtype[mode])
+    else:
+        raise ValueError(f"Unrecognised mode '{mode}'.")
 
 
 def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
-    """File reader for the MRC format for tomographic data.
+    """
+    File reader for the MRC format for tomographic data.
 
     Parameters
     ----------
@@ -148,7 +154,7 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
     std_header = np.fromfile(f, dtype=get_std_dtype_list(endianess), count=1)
     fei_header = None
     if std_header["NEXT"] / 1024 == 128:
-        _logger.info("%s seems to contain an extended FEI header", filename)
+        _logger.info(f"{filename} seems to contain an extended FEI header")
         fei_header = np.fromfile(f, dtype=get_fei_dtype_list(endianess), count=1024)
     if f.tell() == 1024 + std_header["NEXT"]:
         _logger.debug("The FEI header was correctly loaded")
@@ -163,10 +169,10 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
             f,
             mode=mmap_mode,
             offset=f.tell(),
-            dtype=get_data_type(std_header["MODE"][0], endianess),
+            dtype=get_data_type(std_header["MODE"]),
         )
-        .squeeze()
         .reshape((NX[0], NY[0], NZ[0]), order="F")
+        .squeeze()
         .T
     )
 

@@ -156,8 +156,9 @@ def test_data(pdict, tmp_path):
         for stest in (s_just_saved, s_ref):
             npt.assert_array_equal(s.data, stest.data)
             assert s.data.dtype == stest.data.dtype
+            assert s.axes_manager.signal_shape == stest.axes_manager.signal_shape
             assert (
-                s.axes_manager.signal_dimension == stest.axes_manager.signal_dimension
+                s.axes_manager.navigation_shape == stest.axes_manager.navigation_shape
             )
             assert s.metadata.General.title == stest.metadata.General.title
             mdpaths = ("Signal.signal_type",)

@@ -35,7 +35,7 @@ def update_registry():
     ending.
     """
     if sys.platform == "win32":
-        warnings.warn("This is not supported on Windows. Nothing done.")
+        warnings.warn("Updating registry is not supported on Windows. Nothing done.")
         return
 
     make_registry(

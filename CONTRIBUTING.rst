@@ -20,10 +20,11 @@ Pull Requests
 =============
 
 If you want to contribute to the RosettaSciIO source code, you can send us a
-`pull request <https://github.com/hyperspy/rosettasciio/pulls>`_. Small bug fixes
-are corrections to the user guide are typically a good starting point. But don't
-hesitate also for significant code contributions, such as support for a new
-file format - if needed, we'll help you to get the code ready to common standards.
+`pull request <https://github.com/hyperspy/rosettasciio/pulls>`_ against the ``main``
+branch. Small bug fixes are corrections to the user guide are typically a good
+starting point. But don't hesitate also for significant code contributions, such
+as support for a new file format - if needed, we'll help you to get the code ready
+to common standards.
 
 Please refer to the 
 `HyperSpy developer guide <http://hyperspy.org/hyperspy-doc/current/dev_guide/intro.html>`_
@@ -35,9 +36,7 @@ To keep the code style consistent (and more readable), `black <https://black.rea
 is used to check the code formatting. When the code doesn't comply with the expected formatting,
 the `lint <https://github.com/hyperspy/rosettasciio/actions/workflows/black.yml>`_ will fail. 
 In practise, the code formatting can be fixed by installing ``black`` and running it on the
-source code or by using `pre-commit <https://pre-commit.com>`_ to format code automatically.
-Alternatively, the comment ``pre-commit.ci autofix`` can be added to a PR to fix the formatting
-using `pre-commit.ci <https://pre-commit.ci>`_.
+source code or by using :ref:`pre-commit hooks <pre-commit-hooks>`.
 
 
 .. _adding-and-updating-test-data:
@@ -60,7 +59,10 @@ To add or update test data:
       from rsciio.tests.registry_utils import update_registry
 
       update_registry()
-    
+  
+   On windows, you can use :ref:`pre-commit.ci <pre-commit-hooks>` by adding a message to
+   the pull request to update the registry.
+
 Review
 ------
 
@@ -68,6 +70,18 @@ As quality assurance, to improve the code, and to ensure a generalized
 functionality, pull requests need to be thoroughly reviewed by at least one
 other member of the development team before being merged.
 
+.. _pre-commit-hooks:
+
+Pre-commit Hooks
+----------------
+Two pre-commit hooks are set up:
+
+* Linting: run ``black``
+* Update test data registry (Unix only)
+
+These can be run locally by using `pre-commit <https://pre-commit.com>`__.
+Alternatively, the comment ``pre-commit.ci autofix`` can be added to a PR to fix the formatting
+using `pre-commit.ci <https://pre-commit.ci>`_.
 
 .. _defining-plugins:
 

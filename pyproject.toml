@@ -1,6 +1,74 @@
 [build-system]
-requires = ["setuptools>=49.0", "wheel", "cython", "pyyaml"]
-build-backend = "setuptools.build_meta:__legacy__"
+requires = ["setuptools>=49.0", "wheel", "cython"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rosettasciio"
+description = "Reading and writing scientific file formats"
+requires-python = ">=3.8"
+readme = "README.md"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Scientific/Engineering",
+    "License :: OSI Approved :: GPL-v3 License",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
+    "Operating System :: MacOS",
+]
+dependencies = [
+    "dask[array]>=2021.3.1",
+    "python-dateutil",
+    "h5py>=2.3",
+    "imageio>=2.16",
+    "numba>=0.52",
+    "numpy>=1.20.0",
+    "pint>=0.8",
+    "python-box>=6,<7",
+    "pyyaml",
+    "scipy>=1.5.0",
+    "sparse",
+]
+dynamic = ["version"]
+
+[project.urls]
+"Homepage" = "https://hyperspy.org/rosettasciio"
+"Bug Reports" = "https://github.com/hyperspy/rosettasciio/issues"
+"Source" = "https://github.com/hyperspy/rosettasciio"
+
+[project.license]
+file = "COPYING.txt"
+
+[project.optional-dependencies]
+blockfile = ["scikit-image>=0.18"]
+mrcz = ["blosc>=1.5", "mrcz>=0.3.6"]
+scalebar_export = ["matplotlib-scalebar", "matplotlib>=3.1.3"]
+tiff = ["tifffile>=2020.2.16", "imagecodecs>=2020.1.31"]
+usid = ["pyUSID"]
+zspy = ["zarr"]
+tests = ["pooch", "pytest>=3.6", "pytest-xdist", "pytest-rerunfailures", "pytest-cov"]
+docs = ["pydata-sphinx-theme>=0.13", "sphinxcontrib-towncrier", "towncrier"]
+all = [
+    "rosettasciio[blockfile]",
+    "rosettasciio[mrcz]",
+    "rosettasciio[scalebar_export]",
+    "rosettasciio[tiff]",
+    "rosettasciio[usid]",
+    "rosettasciio[zspy]",
+]
+dev = [
+    "black",
+    "rosettasciio[docs]",
+    "rosettasciio[all]",
+    "rosettasciio[tests]"
+]
 
 [tool.pytest.ini_options]
 # Note we may need to use `-n 2` argument for pytest-xdist on CI
@@ -10,6 +78,16 @@ minversion = "6.0"
 testpaths = [
   "rsciio/tests",
 ]
+
+[tool.setuptools.dynamic]
+version = {attr = "rsciio._version.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["rsciio*"]
+exclude = ["rsciio.tests.data*"]
+
+[tool.setuptools.package-data]
+"*" = ["*test_compilers.c", "*.yaml", "*registry.txt"]
 
 [tool.towncrier]
 package = "rsciio"

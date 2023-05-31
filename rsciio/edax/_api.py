@@ -769,7 +769,7 @@ def spd_reader(
     spc_fname=None,
     ipr_fname=None,
     load_all_spc=False,
-    **kwargs
+    **kwargs,
 ):
     """
     Read data from an SPD spectral map specified by filename.

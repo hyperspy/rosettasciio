@@ -194,7 +194,7 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
         # The scale is in Amstrongs, we convert it to nm
         scales = [
             10 * float(std_header["Zlen"] / std_header["MZ"])
-            if float(std_header["MZ"]) != 0
+            if float(std_header["Zlen"]) != 0 and float(std_header["MZ"]) != 0
             else 1,
             10 * float(std_header["Ylen"] / std_header["MY"])
             if float(std_header["MY"]) != 0

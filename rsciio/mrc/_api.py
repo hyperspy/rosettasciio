@@ -191,22 +191,22 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
 
     dim = len(data.shape)
     if fei_header is None:
-        # The scale is in Amstrongs, we convert it to nm
+        # The scale is in Angstroms, we convert it to nm
         scales = [
-            10 * float(std_header["Zlen"] / std_header["MZ"])
+            float(std_header["Zlen"] / std_header["MZ"]) / 10
             if float(std_header["Zlen"]) != 0 and float(std_header["MZ"]) != 0
             else 1,
-            10 * float(std_header["Ylen"] / std_header["MY"])
+            float(std_header["Ylen"] / std_header["MY"]) / 10
             if float(std_header["MY"]) != 0
             else 1,
-            10 * float(std_header["Xlen"] / std_header["MX"])
+            float(std_header["Xlen"] / std_header["MX"]) / 10
             if float(std_header["MX"]) != 0
             else 1,
         ]
         offsets = [
-            10 * float(std_header["ZORIGIN"]),
-            10 * float(std_header["YORIGIN"]),
-            10 * float(std_header["XORIGIN"]),
+            float(std_header["ZORIGIN"]) / 10,
+            float(std_header["YORIGIN"]) / 10,
+            float(std_header["XORIGIN"]) / 10,
         ]
 
     else:

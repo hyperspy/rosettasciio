@@ -85,6 +85,9 @@ jobs:
   upload_to_pypi:
     needs: [build_wheels, make_sdist]
     runs-on: ubuntu-latest
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
     steps:
     - name: Download dist
       uses: actions/download-artifact@v3
@@ -104,10 +107,7 @@ jobs:
 
     - uses: pypa/gh-action-pypi-publish@release/v1
       if: github.repository_owner == 'hyperspy'
-      with:
-        user: __token__
-        password: ${{ secrets.pypi_password }}
-        repository-url: https://test.pypi.org/legacy/
+      # See https://docs.pypi.org/trusted-publishers/using-a-publisher/
 
   create_release:
     # TODO: once we are happy with the workflow

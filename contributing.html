@@ -437,10 +437,11 @@ useful:</p>
 <section id="pull-requests">
 <h2>Pull Requests<a class="headerlink" href="#pull-requests" title="Permalink to this heading">#</a></h2>
 <p>If you want to contribute to the RosettaSciIO source code, you can send us a
-<a class="reference external" href="https://github.com/hyperspy/rosettasciio/pulls">pull request</a>. Small bug fixes
-are corrections to the user guide are typically a good starting point. But don’t
-hesitate also for significant code contributions, such as support for a new
-file format - if needed, we’ll help you to get the code ready to common standards.</p>
+<a class="reference external" href="https://github.com/hyperspy/rosettasciio/pulls">pull request</a> against the <code class="docutils literal notranslate"><span class="pre">main</span></code>
+branch. Small bug fixes are corrections to the user guide are typically a good
+starting point. But don’t hesitate also for significant code contributions, such
+as support for a new file format - if needed, we’ll help you to get the code ready
+to common standards.</p>
 <p>Please refer to the
 <a class="reference external" href="http://hyperspy.org/hyperspy-doc/current/dev_guide/intro.html">HyperSpy developer guide</a>
 in order to get started and for detailed contributing guidelines.</p>
@@ -450,9 +451,7 @@ in order to get started and for detailed contributing guidelines.</p>
 is used to check the code formatting. When the code doesn’t comply with the expected formatting,
 the <a class="reference external" href="https://github.com/hyperspy/rosettasciio/actions/workflows/black.yml">lint</a> will fail.
 In practise, the code formatting can be fixed by installing <code class="docutils literal notranslate"><span class="pre">black</span></code> and running it on the
-source code or by using <a class="reference external" href="https://pre-commit.com">pre-commit</a> to format code automatically.
-Alternatively, the comment <code class="docutils literal notranslate"><span class="pre">pre-commit.ci</span> <span class="pre">autofix</span></code> can be added to a PR to fix the formatting
-using <a class="reference external" href="https://pre-commit.ci">pre-commit.ci</a>.</p>
+source code or by using <a class="reference internal" href="#pre-commit-hooks"><span class="std std-ref">pre-commit hooks</span></a>.</p>
 </section>
 <section id="adding-and-updating-test-data">
 <span id="id2"></span><h3>Adding and Updating Test Data<a class="headerlink" href="#adding-and-updating-test-data" title="Permalink to this heading">#</a></h3>
@@ -471,6 +470,8 @@ running <code class="xref py py-func docutils literal notranslate"><span class="
 <span class="n">update_registry</span><span class="p">()</span>
 </pre></div>
 </div>
+<p>On windows, you can use <a class="reference internal" href="#pre-commit-hooks"><span class="std std-ref">pre-commit.ci</span></a> by adding a message to
+the pull request to update the registry.</p>
 </li>
 </ol>
 </section>
@@ -479,6 +480,17 @@ running <code class="xref py py-func docutils literal notranslate"><span class="
 <p>As quality assurance, to improve the code, and to ensure a generalized
 functionality, pull requests need to be thoroughly reviewed by at least one
 other member of the development team before being merged.</p>
+</section>
+<section id="pre-commit-hooks">
+<span id="id3"></span><h3>Pre-commit Hooks<a class="headerlink" href="#pre-commit-hooks" title="Permalink to this heading">#</a></h3>
+<p>Two pre-commit hooks are set up:</p>
+<ul class="simple">
+<li><p>Linting: run <code class="docutils literal notranslate"><span class="pre">black</span></code></p></li>
+<li><p>Update test data registry (Unix only)</p></li>
+</ul>
+<p>These can be run locally by using <a class="reference external" href="https://pre-commit.com">pre-commit</a>.
+Alternatively, the comment <code class="docutils literal notranslate"><span class="pre">pre-commit.ci</span> <span class="pre">autofix</span></code> can be added to a PR to fix the formatting
+using <a class="reference external" href="https://pre-commit.ci">pre-commit.ci</a>.</p>
 </section>
 </section>
 <section id="defining-new-rosettasciio-plugins">
@@ -612,6 +624,7 @@ for maintenance guidelines.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#lint">Lint</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-and-updating-test-data">Adding and Updating Test Data</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#review">Review</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pre-commit-hooks">Pre-commit Hooks</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#defining-new-rosettasciio-plugins">Defining new RosettaSciIO plugins</a></li>

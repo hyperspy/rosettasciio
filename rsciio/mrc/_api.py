@@ -219,12 +219,10 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
 
     units = [None, "nm", "nm"]
     names = ["z", "y", "x"]
+    navigate = [True, False, False]
     metadata = {
         "General": {"original_filename": os.path.split(filename)[1]},
-        "Signal": {
-            "signal_type": "",
-            "record_by": "image",
-        },
+        "Signal": {"signal_type": ""},
     }
     # create the axis objects for each axis
     axes = [
@@ -235,6 +233,7 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
             "scale": scales[i + 3 - dim],
             "offset": offsets[i + 3 - dim],
             "units": units[i + 3 - dim],
+            "navigate": navigate[i + 3 - dim],
         }
         for i in range(dim)
     ]

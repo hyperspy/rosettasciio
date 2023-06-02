@@ -667,7 +667,7 @@ class HyperHeader(object):
                 item["data"] = data
                 item["axes"][0]["size"] = image.height
                 item["axes"][1]["size"] = image.width
-                item["metadata"]["Signal"] = {"record_by": "image"}
+                item["metadata"]["Signal"] = {}
                 item["metadata"]["General"] = {}
                 if desc is not None:
                     item["metadata"]["General"]["title"] = str(desc.text)
@@ -1015,6 +1015,7 @@ def spx_reader(filename, lazy=False):
                 "offset": spectrum.offset,
                 "scale": spectrum.scale,
                 "units": "keV",
+                "navigate": False,
             }
         ],
         "metadata":
@@ -1036,7 +1037,6 @@ def spx_reader(filename, lazy=False):
             "Sample": {"name": name},
             "Signal": {
                 "signal_type": "EDS_%s" % mode,
-                "record_by": "spectrum",
                 "quantity": "X-rays (Counts)",
             },
         },
@@ -1427,6 +1427,7 @@ For more information, check the 'Installing HyperSpy' section in the documentati
                         "offset": 0,
                         "scale": obj_bcf.header.y_res * downsample,
                         "units": obj_bcf.header.units,
+                        "navigate": True,
                     },
                     {
                         "name": "width",
@@ -1434,6 +1435,7 @@ For more information, check the 'Installing HyperSpy' section in the documentati
                         "offset": 0,
                         "scale": obj_bcf.header.y_res * downsample,
                         "units": obj_bcf.header.units,
+                        "navigate": True,
                     },
                     {
                         "name": "Energy",
@@ -1441,6 +1443,7 @@ For more information, check the 'Installing HyperSpy' section in the documentati
                         "offset": eds_metadata.offset,
                         "scale": eds_metadata.scale,
                         "units": "keV",
+                        "navigate": False,
                     },
                 ],
                 "metadata":
@@ -1465,7 +1468,6 @@ For more information, check the 'Installing HyperSpy' section in the documentati
                     },
                     "Signal": {
                         "signal_type": "EDS_%s" % mode,
-                        "record_by": "spectrum",
                         "quantity": "X-rays (Counts)",
                     },
                 },

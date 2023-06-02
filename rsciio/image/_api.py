@@ -232,10 +232,7 @@ def file_reader(filename, **kwds):
             "data": dc,
             "metadata": {
                 "General": {"original_filename": os.path.split(filename)[1]},
-                "Signal": {
-                    "signal_type": "",
-                    "record_by": "image",
-                },
+                "Signal": {"signal_type": ""},
             },
         }
     ]

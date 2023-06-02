@@ -295,6 +295,7 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<"):
 
     units = ["nm", "nm", "cm", "cm"]
     names = ["y", "x", "dy", "dx"]
+    navigate = [True, True, False, False]
     scales = [header["SY"], header["SX"], SDP, SDP]
     date, time, time_zone = serial_date_to_ISO_format(header["Acquisition_time"])
     metadata = {
@@ -305,10 +306,7 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<"):
             "time_zone": time_zone,
             "notes": header["Note"],
         },
-        "Signal": {
-            "signal_type": "diffraction",
-            "record_by": "image",
-        },
+        "Signal": {"signal_type": "diffraction"},
     }
     # Create the axis objects for each axis
     dim = data.ndim
@@ -320,6 +318,7 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<"):
             "scale": scales[i],
             "offset": 0.0,
             "units": units[i],
+            "navigate": navigate[i],
         }
         for i in range(dim)
     ]

@@ -1,0 +1,1 @@
+Add pre-commit hook to update test data registry and pre-commit.ci to run from pull request

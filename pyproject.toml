@@ -137,6 +137,7 @@ source = ["rsciio"]
 omit = [
   "rsciio/tests/*",
   "setup.py",
+  "update_registry.py"
 ]
 
 [tool.coverage.report]

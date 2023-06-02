@@ -9,8 +9,12 @@ on `this specification
 partly support FEI's custom header. We do not provide writing features for this
 format, but, as it is an open format, we may implement this feature in the
 future on demand.
-It supports 4D-STEM data saved by the Velox software but the calibration is incorrect and
-the navigation dimension will be one and therefore the navigation space will need reshaping.
+
+.. Note::
+    When reading 4D-STEM data saved by the Velox software, the data are read as a stack
+    of diffraction pattern, but the ``navigation_shape`` argument can be used to
+    specify the shape of the navigation space.
+
 
 .. Note ::
     For ``.mrc`` files, the ``file_reader`` takes the ``mmap_mode`` keyword argument

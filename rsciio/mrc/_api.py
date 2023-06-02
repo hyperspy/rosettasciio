@@ -135,7 +135,9 @@ def get_data_type(mode):
         raise ValueError(f"Unrecognised mode '{mode}'.")
 
 
-def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
+def file_reader(
+    filename, lazy=False, mmap_mode=None, navigation_shape=None, endianess="<", **kwds
+):
     """
     File reader for the MRC format for tomographic data.
 
@@ -144,6 +146,8 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
     %s
     %s
     %s
+    navigation_shape : tuple, None
+        Specify the shape of the navigation space.
     %s
 
     %s
@@ -164,6 +168,9 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
     NX, NY, NZ = std_header["NX"], std_header["NY"], std_header["NZ"]
     if mmap_mode is None:
         mmap_mode = "r" if lazy else "c"
+    shape = (NX[0], NY[0], NZ[0])
+    if navigation_shape is not None:
+        shape = shape[:2] + navigation_shape
     data = (
         np.memmap(
             f,
@@ -171,7 +178,7 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
             offset=f.tell(),
             dtype=get_data_type(std_header["MODE"]),
         )
-        .reshape((NX[0], NY[0], NZ[0]), order="F")
+        .reshape(shape, order="F")
         .squeeze()
         .T
     )
@@ -189,7 +196,6 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
         del fei_dict["empty"]
         original_metadata["fei_header"] = fei_dict
 
-    dim = len(data.shape)
     if fei_header is None:
         # The scale is in Angstroms, we convert it to nm
         scales = [
@@ -225,20 +231,32 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
     units = [None, "nm", "nm"]
     names = ["z", "y", "x"]
     navigate = [True, False, False]
+    nav_axis_to_add = 0
+    if navigation_shape is not None:
+        nav_axis_to_add = len(navigation_shape) - 1
+        for i in range(nav_axis_to_add):
+            print(i)
+            units.insert(0, None)
+            names.insert(0, "")
+            navigate.insert(0, True)
+            scales.insert(0, 1)
+            offsets.insert(0, 0)
+
     metadata = {
         "General": {"original_filename": os.path.split(filename)[1]},
         "Signal": {"signal_type": ""},
     }
     # create the axis objects for each axis
+    dim = len(data.shape)
     axes = [
         {
             "size": data.shape[i],
             "index_in_array": i,
-            "name": names[i + 3 - dim],
-            "scale": scales[i + 3 - dim],
-            "offset": offsets[i + 3 - dim],
-            "units": units[i + 3 - dim],
-            "navigate": navigate[i + 3 - dim],
+            "name": names[i + nav_axis_to_add + 3 - dim],
+            "scale": scales[i + nav_axis_to_add + 3 - dim],
+            "offset": offsets[i + nav_axis_to_add + 3 - dim],
+            "units": units[i + nav_axis_to_add + 3 - dim],
+            "navigate": navigate[i + nav_axis_to_add + 3 - dim],
         }
         for i in range(dim)
     ]

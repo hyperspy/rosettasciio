@@ -44,3 +44,24 @@ def test_4DSTEM_image():
     assert s.data.shape == (256, 256, 256)
     assert s.axes_manager.signal_shape == (256, 256)
     assert s.axes_manager.navigation_shape == (256,)
+
+
+def test_4DSTEM_image_navigation_shape_16_16():
+    # Acquired from Velox
+    s = hs.load(
+        TEST_DATA_DIR / "4DSTEMscan.mrc",
+        navigation_shape=(16, 16),
+    )
+    assert s.data.shape == (16, 16, 256, 256)
+    assert s.axes_manager.signal_shape == (256, 256)
+    assert s.axes_manager.navigation_shape == (16, 16)
+
+
+def test_4DSTEM_image_navigation_shape_8_32():
+    s = hs.load(
+        TEST_DATA_DIR / "4DSTEMscan.mrc",
+        navigation_shape=(8, 32),
+    )
+    assert s.data.shape == (32, 8, 256, 256)
+    assert s.axes_manager.signal_shape == (256, 256)
+    assert s.axes_manager.navigation_shape == (8, 32)

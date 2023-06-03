@@ -5,7 +5,7 @@ Cut a Release
 Create a PR to the `main` branch and go through the following steps:
 
 **Preparation**
-- Bump version in `rsciio/version.py`
+- Bump version in `rsciio/_version.py`
 - Update and check changelog in `CHANGES.rst`: run `towncrier build` (to preview, run `towncrier build --draft`)
 - (optional) check conda-forge and wheels build. Pushing a tag to a fork will run the release workflow. It will not upload to pypi, because it is only enabled from the `hyperspy` organisation
 - Let that PR collect comments for a day to ensure that other maintainers are comfortable with releasing

@@ -73,7 +73,9 @@ dev = [
 [tool.pytest.ini_options]
 # Note we may need to use `-n 2` argument for pytest-xdist on CI
 # due to https://github.com/pytest-dev/pytest-xdist/issues/9.
-addopts = "-ra -n auto --dist loadfile"
+#  "-ra",  # Display summary: "all except passes"
+#  "--numprocesses auto --dist loadfile", # for pytest-xdist
+addopts = "-ra --numprocesses auto --dist loadfile"
 minversion = "6.0"
 testpaths = [
   "rsciio/tests",

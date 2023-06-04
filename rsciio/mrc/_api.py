@@ -118,26 +118,36 @@ def get_fei_dtype_list(endianess="<"):
     return dtype_list
 
 
-def get_data_type(index, endianess="<"):
-    end = endianess
-    data_type = [
-        end + "u2",  # 0 = Signal2D     unsigned bytes
-        end + "i2",  # 1 = Signal2D     signed short integer (16 bits)
-        end + "f4",  # 2 = Signal2D     float
-        (end + "i2", 2),  # 3 = Complex   short*2
-        end + "c8",  # 4 = Complex   float*2
-    ]
-    return data_type[index]
+def get_data_type(mode):
+    mode_to_dtype = {
+        0: np.int8,
+        1: np.int16,
+        2: np.float32,
+        4: np.complex64,
+        6: np.uint16,
+        12: np.float16,
+    }
+
+    mode = int(mode)
+    if mode in mode_to_dtype:
+        return np.dtype(mode_to_dtype[mode])
+    else:
+        raise ValueError(f"Unrecognised mode '{mode}'.")
 
 
-def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
-    """File reader for the MRC format for tomographic data.
+def file_reader(
+    filename, lazy=False, mmap_mode=None, navigation_shape=None, endianess="<", **kwds
+):
+    """
+    File reader for the MRC format for tomographic data.
 
     Parameters
     ----------
     %s
     %s
     %s
+    navigation_shape : tuple, None
+        Specify the shape of the navigation space.
     %s
 
     %s
@@ -148,26 +158,28 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
     std_header = np.fromfile(f, dtype=get_std_dtype_list(endianess), count=1)
     fei_header = None
     if std_header["NEXT"] / 1024 == 128:
-        _logger.info("%s seems to contain an extended FEI header", filename)
+        _logger.info(f"{filename} seems to contain an extended FEI header")
         fei_header = np.fromfile(f, dtype=get_fei_dtype_list(endianess), count=1024)
     if f.tell() == 1024 + std_header["NEXT"]:
         _logger.debug("The FEI header was correctly loaded")
     else:
-        _logger.warning("There was a problem reading the extended header")
-        f.seek(1024 + std_header["NEXT"])
+        f.seek(1024 + std_header["NEXT"][0])
         fei_header = None
     NX, NY, NZ = std_header["NX"], std_header["NY"], std_header["NZ"]
     if mmap_mode is None:
         mmap_mode = "r" if lazy else "c"
+    shape = (NX[0], NY[0], NZ[0])
+    if navigation_shape is not None:
+        shape = shape[:2] + navigation_shape
     data = (
         np.memmap(
             f,
             mode=mmap_mode,
             offset=f.tell(),
-            dtype=get_data_type(std_header["MODE"][0], endianess),
+            dtype=get_data_type(std_header["MODE"]),
         )
+        .reshape(shape, order="F")
         .squeeze()
-        .reshape((NX[0], NY[0], NZ[0]), order="F")
         .T
     )
 
@@ -184,24 +196,23 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
         del fei_dict["empty"]
         original_metadata["fei_header"] = fei_dict
 
-    dim = len(data.shape)
     if fei_header is None:
-        # The scale is in Amstrongs, we convert it to nm
+        # The scale is in Angstroms, we convert it to nm
         scales = [
-            10 * float(std_header["Zlen"] / std_header["MZ"])
-            if float(std_header["MZ"]) != 0
+            float(std_header["Zlen"] / std_header["MZ"]) / 10
+            if float(std_header["Zlen"]) != 0 and float(std_header["MZ"]) != 0
             else 1,
-            10 * float(std_header["Ylen"] / std_header["MY"])
+            float(std_header["Ylen"] / std_header["MY"]) / 10
             if float(std_header["MY"]) != 0
             else 1,
-            10 * float(std_header["Xlen"] / std_header["MX"])
+            float(std_header["Xlen"] / std_header["MX"]) / 10
             if float(std_header["MX"]) != 0
             else 1,
         ]
         offsets = [
-            10 * float(std_header["ZORIGIN"]),
-            10 * float(std_header["YORIGIN"]),
-            10 * float(std_header["XORIGIN"]),
+            float(std_header["ZORIGIN"]) / 10,
+            float(std_header["YORIGIN"]) / 10,
+            float(std_header["XORIGIN"]) / 10,
         ]
 
     else:
@@ -220,20 +231,32 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<", **kwds):
     units = [None, "nm", "nm"]
     names = ["z", "y", "x"]
     navigate = [True, False, False]
+    nav_axis_to_add = 0
+    if navigation_shape is not None:
+        nav_axis_to_add = len(navigation_shape) - 1
+        for i in range(nav_axis_to_add):
+            print(i)
+            units.insert(0, None)
+            names.insert(0, "")
+            navigate.insert(0, True)
+            scales.insert(0, 1)
+            offsets.insert(0, 0)
+
     metadata = {
         "General": {"original_filename": os.path.split(filename)[1]},
         "Signal": {"signal_type": ""},
     }
     # create the axis objects for each axis
+    dim = len(data.shape)
     axes = [
         {
             "size": data.shape[i],
             "index_in_array": i,
-            "name": names[i + 3 - dim],
-            "scale": scales[i + 3 - dim],
-            "offset": offsets[i + 3 - dim],
-            "units": units[i + 3 - dim],
-            "navigate": navigate[i + 3 - dim],
+            "name": names[i + nav_axis_to_add + 3 - dim],
+            "scale": scales[i + nav_axis_to_add + 3 - dim],
+            "offset": offsets[i + nav_axis_to_add + 3 - dim],
+            "units": units[i + nav_axis_to_add + 3 - dim],
+            "navigate": navigate[i + nav_axis_to_add + 3 - dim],
         }
         for i in range(dim)
     ]

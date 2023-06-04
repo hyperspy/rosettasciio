@@ -29,7 +29,7 @@ import numpy as np
 from copy import deepcopy
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
-import rsciio.utils.utils_readfile as iou
+import rsciio.utils.readfile as iou
 from rsciio.utils.exceptions import DM3TagIDError, DM3DataTypeError, DM3TagTypeError
 from box import Box
 

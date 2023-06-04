@@ -463,19 +463,37 @@ document.write(`
                   
   <section id="mrcz-format">
 <span id="id1"></span><h1>MRCZ format<a class="headerlink" href="#mrcz-format" title="Permalink to this heading">#</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">.mrcz</span></code> format is an extension of the CCP-EM MRC2014 file format.
+<p>The <code class="docutils literal notranslate"><span class="pre">mrcz</span></code> format is an extension of the CCP-EM MRC2014 file format.
 <a class="reference external" href="https://www.ccpem.ac.uk/mrc_format/mrc2014.php">CCP-EM MRC2014</a> file format.
 It uses the <cite>blosc</cite> meta-compression library to bitshuffle and compress files in
-a blocked, multi-threaded environment. The supported data types are:</p>
-<p>[<cite>float32</cite>,`int8`,`uint16`,`int16`,`complex64`]</p>
+a blocked, multi-threaded environment. The supported data types are <code class="docutils literal notranslate"><span class="pre">float32</span></code>,
+<code class="docutils literal notranslate"><span class="pre">int8</span></code>, <code class="docutils literal notranslate"><span class="pre">uint16</span></code>, <code class="docutils literal notranslate"><span class="pre">int16</span></code> and <code class="docutils literal notranslate"><span class="pre">complex64</span></code>.</p>
 <p>It supports arbitrary meta-data, which is serialized into JSON.</p>
 <p>MRCZ also supports asynchronous reads and writes.</p>
-<p>Repository: <a class="github reference external" href="https://github.com/em-MRCZ">em-MRCZ</a>
-PyPI:       <a class="reference external" href="https://pypi.org/project/mrcz">https://pypi.org/project/mrcz</a>
-Citation:   Submitted.
-Preprint:   <a class="reference external" href="https://www.biorxiv.org/content/10.1101/116533v1">https://www.biorxiv.org/content/10.1101/116533v1</a></p>
-<p>Support for this format is not enabled by default. In order to enable it
-install the <cite>mrcz</cite> and optionally the <cite>blosc</cite> Python packages.</p>
+<table class="table" id="id2">
+<caption><span class="caption-text">More information on the <code class="docutils literal notranslate"><span class="pre">mrcz</span></code> format</span><a class="headerlink" href="#id2" title="Permalink to this table">#</a></caption>
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 75.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Repository</p></td>
+<td><p><a class="github reference external" href="https://github.com/em-MRCZ">em-MRCZ</a></p></td>
+</tr>
+<tr class="row-even"><td><p>PyPI</p></td>
+<td><p><a class="reference external" href="https://pypi.org/project/mrcz">https://pypi.org/project/mrcz</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Citation</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1016/j.jsb.2017.11.012">https://doi.org/10.1016/j.jsb.2017.11.012</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Preprint</p></td>
+<td><p><a class="reference external" href="https://www.biorxiv.org/content/10.1101/116533v1">https://www.biorxiv.org/content/10.1101/116533v1</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>Support for this format is not enabled by default. In order to enable it,
+the <cite>mrcz</cite> library needs to be installed and optionally <cite>blosc</cite> to use
+compression.</p>
 <section id="api-functions">
 <h2>API functions<a class="headerlink" href="#api-functions" title="Permalink to this heading">#</a></h2>
 </section>

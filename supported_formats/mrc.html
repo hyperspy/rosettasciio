@@ -463,11 +463,15 @@ document.write(`
                   
   <section id="mrc-format">
 <span id="id1"></span><h1>MRC format<a class="headerlink" href="#mrc-format" title="Permalink to this heading">#</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">.mrc</span></code> format is widely used for tomographic data. Our implementation is based
-on <a class="reference external" href="https://www2.mrc-lmb.cam.ac.uk/research/locally-developed-software/image-processing-software/">this specification</a>. We also
-partly support FEI’s custom header. We do not provide writing features for this
-format, but, as it is an open format, we may implement this feature in the
-future on demand.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">.mrc</span></code> format is widely used for tomographic data. The implementation of this plugin
+is based on <a class="reference external" href="https://www2.mrc-lmb.cam.ac.uk/research/locally-developed-software/image-processing-software/">this specification</a>
+and has partial support for FEI’s custom header.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When reading 4D-STEM data saved by the Velox software, the data are read as a stack
+of diffraction patterns, but the <code class="docutils literal notranslate"><span class="pre">navigation_shape</span></code> argument can be used to
+specify the shape of the navigation space.</p>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>For <code class="docutils literal notranslate"><span class="pre">.mrc</span></code> files, the <code class="docutils literal notranslate"><span class="pre">file_reader</span></code> takes the <code class="docutils literal notranslate"><span class="pre">mmap_mode</span></code> keyword argument
@@ -477,11 +481,36 @@ the <code class="docutils literal notranslate"><span class="pre">r+</span></code
 </div>
 <p>See also the <a class="reference external" href="https://www.ccpem.ac.uk/mrc_format/mrc_format.php">format documentation</a>
 by the Collaborative Computational Project for Electron cryo-Microscopy (CCP-EM).</p>
+<p>This plugin does not support writing <code class="docutils literal notranslate"><span class="pre">.mrc</span></code> files, which can however be done
+using the <a class="reference internal" href="mrcz.html#mrcz-format"><span class="std std-ref">mrcz</span></a> plugin. No additional feature of the
+<a class="reference external" href="https://python-mrcz.readthedocs.io">mrcz format</a> should be used in order
+to write a <code class="docutils literal notranslate"><span class="pre">.mrc</span></code> compliant file. In particular, the <code class="docutils literal notranslate"><span class="pre">compressor</span></code> argument should
+not be passed (Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">rsciio</span> <span class="kn">import</span> <span class="n">mrcz</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int16&#39;</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">Signal2D</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">s_dict</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">as_dictionary</span><span class="p">()</span>
+
+<span class="n">mrcz</span><span class="o">.</span><span class="n">file_writer</span><span class="p">(</span><span class="s1">&#39;test.mrc&#39;</span><span class="p">,</span> <span class="n">s_dict</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Alternatively, use <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/api/hyperspy.signal.html#hyperspy.signal.BaseSignal.save" title="(in HyperSpy v1.7.5)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">hyperspy.signal.BaseSignal.save()</span></code></a>, which will pick the
+<code class="docutils literal notranslate"><span class="pre">mrcz</span></code> plugin automatically:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">hyperspy.api</span> <span class="k">as</span> <span class="nn">hs</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int16&#39;</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">Signal2D</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;data.mrc&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 <section id="module-rsciio.mrc">
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.mrc" title="Permalink to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.mrc.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.mrc.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.mrc.file_reader" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.mrc.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">navigation_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.mrc.file_reader" title="Permalink to this definition">#</a></dt>
 <dd><p>File reader for the MRC format for tomographic data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -490,6 +519,7 @@ by the Collaborative Computational Project for Electron cryo-Microscopy (CCP-EM)
 <li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
 <li><p><strong>endianess</strong> (<em>str</em><em>, </em><em>Default=&quot;&lt;&quot;</em>) – <code class="docutils literal notranslate"><span class="pre">&quot;&lt;&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;&gt;&quot;</span></code>, depending on how the bits are written to
 the file.</p></li>
+<li><p><strong>navigation_shape</strong> (<em>tuple</em><em>, </em><em>None</em>) – Specify the shape of the navigation space.</p></li>
 <li><p><strong>mmap_mode</strong> (<em>{None</em><em>, </em><em>&quot;r+&quot;</em><em>, </em><em>&quot;r&quot;</em><em>, </em><em>&quot;w+&quot;</em><em>, </em><em>&quot;c&quot;}</em><em>, </em><em>Default=None</em>) – Argument passed to <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.memmap()</span></code>. If None (default), the
 value is <code class="docutils literal notranslate"><span class="pre">&quot;r&quot;</span></code> when <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code>, otherwise it is <code class="docutils literal notranslate"><span class="pre">&quot;c&quot;</span></code>.</p></li>
 </ul>

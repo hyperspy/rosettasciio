@@ -37,7 +37,7 @@ import numpy as np
 import dask.array as da
 from dateutil import tz
 
-from rsciio.docstrings import (
+from rsciio._docstrings import (
     FILENAME_DOC,
     LAZY_DOC,
     RETURNS_DOC,

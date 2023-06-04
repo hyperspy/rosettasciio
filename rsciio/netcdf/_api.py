@@ -21,7 +21,7 @@ import logging
 
 import numpy as np
 
-from rsciio.docstrings import FILENAME_DOC, RETURNS_DOC
+from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC
 
 _logger = logging.getLogger(__name__)
 

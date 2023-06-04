@@ -28,9 +28,9 @@ import dateutil.parser
 import numpy as np
 from copy import deepcopy
 
-from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 import rsciio.utils.utils_readfile as iou
-from rsciio.exceptions import DM3TagIDError, DM3DataTypeError, DM3TagTypeError
+from rsciio.utils.exceptions import DM3TagIDError, DM3DataTypeError, DM3TagTypeError
 from box import Box
 
 

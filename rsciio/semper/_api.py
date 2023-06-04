@@ -81,7 +81,7 @@ from datetime import datetime
 
 import numpy as np
 
-from rsciio.docstrings import (
+from rsciio._docstrings import (
     FILENAME_DOC,
     LAZY_DOC,
     RETURNS_DOC,

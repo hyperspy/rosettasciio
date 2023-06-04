@@ -143,7 +143,7 @@ for which a corresponding ``spamandeggs.rst`` file should be created in the dire
 ``docs/supported_formats/`` and the format added to the lists in
 ``docs/supported_formats/index.rst`` and ``docs/supported_formats/supported_formats.rst``.
 
-A few standard *docstring* components are provided by ``docstrings.py`` and should
+A few standard *docstring* components are provided by ``rsciio._docstrings.py`` and should
 be used (see existing plugins).
 
 The *docstrings* are automatically added in the *user guide* using the following lines

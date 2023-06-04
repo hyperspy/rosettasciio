@@ -20,7 +20,7 @@ from packaging.version import Version
 import mrcz as _mrcz
 import logging
 
-from rsciio.docstrings import (
+from rsciio._docstrings import (
     FILENAME_DOC,
     LAZY_DOC,
     ENDIANESS_DOC,

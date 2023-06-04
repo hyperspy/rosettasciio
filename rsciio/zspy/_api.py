@@ -23,7 +23,7 @@ import dask.array as da
 import numcodecs
 import zarr
 
-from rsciio.docstrings import (
+from rsciio._docstrings import (
     FILENAME_DOC,
     LAZY_DOC,
     RETURNS_DOC,

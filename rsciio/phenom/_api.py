@@ -45,7 +45,7 @@ from dateutil import tz
 import tifffile
 import xml.etree.ElementTree as ET
 
-from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 
 
 def element_symbol(z):

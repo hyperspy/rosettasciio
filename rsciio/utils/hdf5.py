@@ -21,7 +21,7 @@
 import h5py
 import pprint
 
-from rsciio.docstrings import FILENAME_DOC
+from rsciio._docstrings import FILENAME_DOC
 from rsciio.nexus._api import (
     _check_search_keys,
     _load_metadata,

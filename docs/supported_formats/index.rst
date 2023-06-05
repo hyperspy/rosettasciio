@@ -36,6 +36,7 @@ big datasets is supported.
    pantarhei
    phenom
    protochips
+   renishaw
    ripple
    semper
    tia

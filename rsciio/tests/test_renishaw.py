@@ -28,7 +28,7 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 from rsciio.tests.generate_renishaw_test_file import WDFFileGenerator, WDFFileHandler
 
-testfile_dir = (Path(__file__).parent / "renishaw_data").resolve()
+testfile_dir = Path(__file__).parent / "data" / "renishaw"
 
 testfile_spec = (testfile_dir / "renishaw_test_spectrum.wdf").resolve()
 testfile_linescan = (testfile_dir / "renishaw_test_linescan.wdf").resolve()
@@ -1356,7 +1356,7 @@ class TestFocusTrack:
 
 class TestPSETMetadata:
     data_directory = (
-        Path(__file__).parent / "renishaw_data" / "generated_files"
+        Path(__file__).parent / "data" / "renishaw" / "generated_files"
     ).resolve()
 
     def get_filepath(self, filename):

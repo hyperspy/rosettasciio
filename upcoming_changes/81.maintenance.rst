@@ -1,1 +1,0 @@
-Unify naming of folders/submodules to match documented format ``name``

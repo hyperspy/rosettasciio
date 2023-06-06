@@ -1,1 +1,0 @@
-Add support for reading the ``.xml``-format from Horiba Jobin Yvon's LabSpec software.

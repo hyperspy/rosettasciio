@@ -1,1 +1,0 @@
-Ensure that the ``.msa`` plugin handles ``SIGNALTYPE`` values according to the official format specification.

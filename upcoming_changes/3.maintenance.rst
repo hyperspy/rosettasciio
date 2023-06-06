@@ -1,1 +1,0 @@
-Initiate towncrier changelog and create templates for PRs and issues.

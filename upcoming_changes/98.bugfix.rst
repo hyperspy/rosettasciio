@@ -1,1 +1,0 @@
-Fix array indexing bug when loading a ``sur`` file format containing spectra series.

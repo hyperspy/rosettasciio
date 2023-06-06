@@ -70,7 +70,7 @@ from pathlib import Path
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
 
-from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 
 _logger = logging.getLogger(__name__)
 

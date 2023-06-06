@@ -1,0 +1,1 @@
+Tidy up ``rsciio`` namespace: privatise ``docstrings``, move ``conftest.py`` and ``exceptions`` to tests and utils folder, respectively

@@ -24,7 +24,7 @@
 import struct
 import logging
 
-from rsciio.exceptions import ByteOrderError
+from rsciio.utils.exceptions import ByteOrderError
 
 _logger = logging.getLogger(__name__)
 

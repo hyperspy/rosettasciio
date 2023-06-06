@@ -44,7 +44,7 @@ import dask.delayed as dd
 import dask.array as da
 import numpy as np
 
-from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 
 _logger = logging.getLogger(__name__)
 

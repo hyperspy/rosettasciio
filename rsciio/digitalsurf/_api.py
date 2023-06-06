@@ -42,7 +42,7 @@ import warnings
 
 # Maybe later we can implement reading the class with the io utils tools instead
 # of re-defining read functions in the class
-# import rsciio.utils.utils_readfile as iou
+# import rsciio.utils.readfile as iou
 
 # This module will prove useful when we write the export function
 # import rsciio.utils.tools
@@ -50,8 +50,8 @@ import warnings
 # DictionaryTreeBrowser class handles the fancy metadata dictionnaries
 # from hyperspy.misc.utils import DictionaryTreeBrowser
 
-from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
-from rsciio.exceptions import MountainsMapFileError
+from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio.utils.exceptions import MountainsMapFileError
 
 _logger = logging.getLogger(__name__)
 

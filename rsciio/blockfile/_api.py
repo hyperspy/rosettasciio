@@ -27,7 +27,7 @@ import dask
 from dask.diagnostics import ProgressBar
 from skimage import dtype_limits
 
-from rsciio.docstrings import (
+from rsciio._docstrings import (
     FILENAME_DOC,
     LAZY_DOC,
     ENDIANESS_DOC,

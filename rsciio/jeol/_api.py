@@ -24,7 +24,7 @@ import logging
 import numpy as np
 import numba
 
-from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 
 
 _logger = logging.getLogger(__name__)

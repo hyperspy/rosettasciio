@@ -29,7 +29,7 @@ import numpy as np
 from tifffile import imwrite, TiffFile, TiffPage, TIFF
 from tifffile import __version__ as tiffversion
 
-from rsciio.docstrings import (
+from rsciio._docstrings import (
     FILENAME_DOC,
     LAZY_DOC,
     RETURNS_DOC,

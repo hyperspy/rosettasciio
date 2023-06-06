@@ -22,7 +22,7 @@ import os
 import scipy
 from datetime import datetime
 
-from rsciio.docstrings import FILENAME_DOC, RETURNS_DOC
+from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC
 
 
 def _cnv_time(timestr):

@@ -26,7 +26,7 @@ import numpy as np
 import pyUSID as usid
 import sidpy
 
-from rsciio.docstrings import (
+from rsciio._docstrings import (
     FILENAME_DOC,
     LAZY_DOC,
     RETURNS_DOC,

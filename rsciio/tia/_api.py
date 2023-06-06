@@ -27,7 +27,7 @@ from collections import OrderedDict
 
 import numpy as np
 
-from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 from rsciio.utils.tools import sarray2dict
 from rsciio.utils.tools import DTBox
 

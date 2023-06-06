@@ -22,7 +22,7 @@ import logging
 import imageio.v3 as iio
 import numpy as np
 
-from rsciio.docstrings import (
+from rsciio._docstrings import (
     FILENAME_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,

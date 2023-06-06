@@ -24,7 +24,7 @@ import dask.array as da
 import h5py
 import numpy as np
 
-from rsciio.docstrings import (
+from rsciio._docstrings import (
     FILENAME_DOC,
     LAZY_DOC,
     RETURNS_DOC,

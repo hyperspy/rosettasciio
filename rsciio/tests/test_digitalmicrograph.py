@@ -23,7 +23,11 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from rsciio.digitalmicrograph._api import DigitalMicrographReader, ImageObject
+from rsciio.digitalmicrograph._api import (
+    DigitalMicrographReader,
+    ImageObject,
+    file_reader,
+)
 from rsciio.tests.generate_dm_testing_files import dm3_data_types, dm4_data_types
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
@@ -714,3 +718,11 @@ def test_load_stackbuilder_imagestack():
     np.testing.assert_allclose(
         md.Signal.Noise_properties.Variance_linear_model.gain_offset, 2228741.5
     )
+
+
+def test_load_packed_complex():
+    # Packed complex is typically used for FFT data
+    fname = DM_2D_PATH / "test_fft_packed_complex8.dm4"
+    file_content = file_reader(fname)
+    data_dtype = file_content[0]["data"].dtype
+    assert data_dtype == np.complex64

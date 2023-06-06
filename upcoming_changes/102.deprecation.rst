@@ -1,1 +1,0 @@
-Remove deprecated `record_by` attribute from file readers where remaining

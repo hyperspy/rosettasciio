@@ -1,1 +1,0 @@
-Add github CI workflow to check links, build docs and push to the ``gh-pages`` branch. Fix links and add EDAX reference file specification

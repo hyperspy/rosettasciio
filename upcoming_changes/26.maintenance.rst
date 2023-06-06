@@ -1,1 +1,0 @@
-Added github action for code scanning using the codeQL engine.

@@ -1,1 +1,0 @@
-Add support for reading the ``.tvf``-format from TriVista.

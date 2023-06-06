@@ -1,1 +1,0 @@
-Add release GitHub workflow to automate release process and add corresponding documentation in `releasing_guide.md <https://github.com/hyperspy/rosettasciio/blob/main/releasing_guide.md>`_

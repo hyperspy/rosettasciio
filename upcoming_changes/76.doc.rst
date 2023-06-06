@@ -1,1 +1,0 @@
-Consolidate docstrings and documentation for all plugins (see also `#47 <https://github.com/hyperspy/rosettasciio/pull/47>`_, `#59 <https://github.com/hyperspy/rosettasciio/pull/59>`_, `#64 <https://github.com/hyperspy/rosettasciio/pull/64>`_, `#72 <https://github.com/hyperspy/rosettasciio/pull/72>`_)

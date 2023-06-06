@@ -1,1 +1,0 @@
-Add azure pipelines CI to run test suite using conda-forge packages. Add pytest and coverage configuration in ``pyproject.toml``

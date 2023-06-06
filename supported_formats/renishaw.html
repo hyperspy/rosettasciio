@@ -478,8 +478,48 @@ Reading maps obtained in a serpentine path is not implemented.</p>
 <p>This reader is based on the <a class="reference external" href="https://github.com/alchem0x2A/py-wdf-reader.git">py-wdf-reader</a>,
 which is inspired by the <a class="reference external" href="https://doi.org/10.5281/zenodo.495477">matlab reader</a> from Alex Henderson.
 Moreover, inspiration is taken from <a class="reference external" href="http://gwyddion.net">gwyddion’s reader</a>.</p>
-<section id="api-functions">
-<h2>API functions<a class="headerlink" href="#api-functions" title="Permalink to this heading">#</a></h2>
+<section id="module-rsciio.renishaw">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.renishaw" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.renishaw.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.renishaw.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_uniform_signal_axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_unmatched_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.renishaw.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Reads Renishaw’s <code class="docutils literal notranslate"><span class="pre">.wdf</span></code> file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
+<li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
+<li><p><strong>use_uniform_signal_axis</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Can be specified to choose between non-uniform or uniform signal axes.
+If <cite>True</cite>, the <code class="docutils literal notranslate"><span class="pre">scale</span></code> attribute is calculated from the average delta
+along the signal axis and a warning is raised in case the delta varies
+by more than 1%.</p></li>
+<li><p><strong>load_unmatched_metadata</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Some of the original_metadata cannot be matched (no key, just value).
+Part of this is a VisualBasic-Script used for data acquisition (~230kB),
+which blows up the size of <code class="docutils literal notranslate"><span class="pre">original_metadata</span></code>. If this option is set to
+<cite>True</cite>, this metadata will be included and can be accessed by
+<code class="docutils literal notranslate"><span class="pre">s.original_metadata.UNMATCHED</span></code>,
+otherwise the <code class="docutils literal notranslate"><span class="pre">UNMATCHED</span></code> tag will not exist.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>’data’ – multidimensional numpy array</p></li>
+<li><p>’axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dicts</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -530,7 +570,10 @@ Moreover, inspiration is taken from <a class="reference external" href="http://g
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#api-functions">API functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.renishaw">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.renishaw.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 

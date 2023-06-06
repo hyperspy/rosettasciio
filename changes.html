@@ -422,16 +422,16 @@ document.write(`
 <h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this heading">#</a></h1>
 <p>Changelog entries for the development version are available at
 <a class="reference external" href="https://rosettasciio.readthedocs.io/en/latest/changes.html">https://rosettasciio.readthedocs.io/en/latest/changes.html</a></p>
-<section id="release-unreleased-2023-06-06">
-<h2> [UNRELEASED] (2023-06-06)<a class="headerlink" href="#release-unreleased-2023-06-06" title="Permalink to this heading">#</a></h2>
+<section id="id1">
+<h2>0.1 (2023-06-06)<a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h2>
 <section id="new-features">
 <h3>New features<a class="headerlink" href="#new-features" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Add support for reading the <code class="docutils literal notranslate"><span class="pre">.xml</span></code>-format from Horiba Jobin Yvon’s LabSpec software. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/25">#25</a>)</p></li>
 <li><p>Add support for reading the <code class="docutils literal notranslate"><span class="pre">.tvf</span></code>-format from TriVista. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/27">#27</a>)</p></li>
 <li><p>Add support for reading the <code class="docutils literal notranslate"><span class="pre">.wdf</span></code>-format from Renishaw’s WIRE software. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/55">#55</a>)</p></li>
-<li><p>Added subclassing of .sur files in CL signal type and updated metadata parsing (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/98">#98</a>)</p></li>
-<li><p>add optional kwarg to tiff reader <code class="docutils literal notranslate"><span class="pre">multipage_as_list</span></code> which when set to True uses <code class="docutils literal notranslate"><span class="pre">pages</span></code> interface and returns list of signal for every page with full metadata. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/104">#104</a>)</p></li>
+<li><p>Added subclassing of <code class="docutils literal notranslate"><span class="pre">.sur</span></code> files in CL signal type and updated metadata parsing (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/98">#98</a>)</p></li>
+<li><p>Add optional kwarg to tiff reader <code class="docutils literal notranslate"><span class="pre">multipage_as_list</span></code> which when set to True uses <code class="docutils literal notranslate"><span class="pre">pages</span></code> interface and returns list of signal for every page with full metadata. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/104">#104</a>)</p></li>
 </ul>
 </section>
 <section id="bug-fixes">
@@ -439,10 +439,10 @@ document.write(`
 <ul class="simple">
 <li><p>Ensure that the <code class="docutils literal notranslate"><span class="pre">.msa</span></code> plugin handles <code class="docutils literal notranslate"><span class="pre">SIGNALTYPE</span></code> values according to the official format specification. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/39">#39</a>)</p></li>
 <li><p>Fix error when reading Velox file containing FFT with an odd number of pixels (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/49">#49</a>)</p></li>
-<li><p>Fix error when reading JEOL .pts file with un-ordered frame list or when length of <code class="docutils literal notranslate"><span class="pre">frame_start_index</span></code> is smaller than the sweep count (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/68">#68</a>)</p></li>
+<li><p>Fix error when reading JEOL <code class="docutils literal notranslate"><span class="pre">.pts</span></code> file with un-ordered frame list or when length of <code class="docutils literal notranslate"><span class="pre">frame_start_index</span></code> is smaller than the sweep count (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/68">#68</a>)</p></li>
 <li><p>Fix exporting scalebar with reciprocal units containing space (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/90">#90</a>)</p></li>
 <li><p>Fix array indexing bug when loading a <code class="docutils literal notranslate"><span class="pre">sur</span></code> file format containing spectra series. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/98">#98</a>)</p></li>
-<li><p>For more robust xml to dict conversion, convert_xml_to_dict is replaced by XmlToDict (introduced by PR #111). (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/101">#101</a>)</p></li>
+<li><p>For more robust xml to dict conversion, <code class="docutils literal notranslate"><span class="pre">convert_xml_to_dict</span></code> is replaced by <code class="docutils literal notranslate"><span class="pre">XmlToDict</span></code> (introduced by PR #111). (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/101">#101</a>)</p></li>
 <li><p>Fix bugs with reading non-FEI and Velox <code class="docutils literal notranslate"><span class="pre">mrc</span></code> files, improve documentation of <code class="docutils literal notranslate"><span class="pre">mrc</span></code> and <code class="docutils literal notranslate"><span class="pre">mrcz</span></code> file format. Closes <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/71">#71</a>, <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/91">#91</a>, <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/93">#93</a>, <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/96">#96</a>, <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/130">#130</a>. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/131">#131</a>)</p></li>
 </ul>
 </section>
@@ -457,19 +457,19 @@ Set maximal major version of Sphinx to 5. (<a class="reference external" href="h
 <section id="deprecations">
 <h3>Deprecations<a class="headerlink" href="#deprecations" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
-<li><p>Remove deprecated <cite>record_by</cite> attribute from file readers where remaining (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/102">#102</a>)</p></li>
+<li><p>Remove deprecated <code class="docutils literal notranslate"><span class="pre">record_by</span></code> attribute from file readers where remaining (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/102">#102</a>)</p></li>
 </ul>
 </section>
 <section id="enhancements">
 <h3>Enhancements<a class="headerlink" href="#enhancements" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
-<li><p>Recognise both byte and string object for NXdata tag in NeXus reader (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/112">#112</a>)</p></li>
+<li><p>Recognise both byte and string object for <code class="docutils literal notranslate"><span class="pre">NXdata</span></code> tag in NeXus reader (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/112">#112</a>)</p></li>
 </ul>
 </section>
 <section id="api-changes">
 <h3>API changes<a class="headerlink" href="#api-changes" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
-<li><p>Move, enhance and share xml to dict/list translation and other tools (new api for devs) from Bruker._api to utils:
+<li><p>Move, enhance and share xml to dict/list translation and other tools (new api for devs) from <code class="docutils literal notranslate"><span class="pre">Bruker._api</span></code> to utils:
 <code class="docutils literal notranslate"><span class="pre">utils.date_time_tools.msfiletime_to_unix</span></code> function to convert the uint64 MSFILETIME to  datetime.datetime object.
 <code class="docutils literal notranslate"><span class="pre">utils.tools.sanitize_msxml_float</span></code> function to sanitize some MSXML generated xml where comma is used as float decimal separator.
 <code class="docutils literal notranslate"><span class="pre">utils.tools.XmlToDict</span></code> Xml to dict/list translator class with rich customization options as kwargs, and main method for translation <code class="docutils literal notranslate"><span class="pre">dictionarize</span></code> (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/111">#111</a>)</p></li>
@@ -488,10 +488,10 @@ Set maximal major version of Sphinx to 5. (<a class="reference external" href="h
 <li><p>Following the deprecation cycle announced in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/changes.html">HyperSpy</a>,
 the following keywords and attributes have been removed:</p>
 <ul>
-<li><p><a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/io.html#bcf-format" title="(in HyperSpy v1.7.5)"><span class="xref std std-ref">Bruker composite file (BCF)</span></a>: The ‘spectrum’ option for the
-<cite>select_type</cite> parameter was removed. Use ‘spectrum_image’ instead.</p></li>
+<li><p><a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/io.html#bcf-format" title="(in HyperSpy v1.7.5)"><span class="xref std std-ref">Bruker composite file (BCF)</span></a>: The <code class="docutils literal notranslate"><span class="pre">'spectrum'</span></code> option for the
+<code class="docutils literal notranslate"><span class="pre">select_type</span></code> parameter was removed. Use ‘spectrum_image’ instead.</p></li>
 <li><p><a class="reference internal" href="supported_formats/emd.html#emd-ncem-format"><span class="std std-ref">Electron Microscopy Dataset (EMD) NCEM</span></a>: Using the
-keyword ‘dataset_name’ was removed, use ‘dataset_path’ instead.</p></li>
+keyword <code class="docutils literal notranslate"><span class="pre">'dataset_name'</span></code> was removed, use <code class="docutils literal notranslate"><span class="pre">'dataset_path'</span></code> instead.</p></li>
 <li><p><a class="reference internal" href="supported_formats/nexus.html#nexus-format"><span class="std std-ref">NeXus data format</span></a>: The <code class="docutils literal notranslate"><span class="pre">dataset_keys</span></code>, <code class="docutils literal notranslate"><span class="pre">dataset_paths</span></code>
 and <code class="docutils literal notranslate"><span class="pre">metadata_keys</span></code> keywords were removed. Use <code class="docutils literal notranslate"><span class="pre">dataset_key</span></code>, <code class="docutils literal notranslate"><span class="pre">dataset_path</span></code>
 and <code class="docutils literal notranslate"><span class="pre">metadata_key</span></code> instead. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/30">#30</a>)</p></li>
@@ -561,7 +561,7 @@ new repository.</p></li>
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#release-unreleased-2023-06-06"> [UNRELEASED] (2023-06-06)</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">0.1 (2023-06-06)</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#new-features">New features</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#bug-fixes">Bug Fixes</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#improved-documentation">Improved Documentation</a></li>

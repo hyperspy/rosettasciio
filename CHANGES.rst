@@ -17,8 +17,8 @@ New features
 - Add support for reading the ``.xml``-format from Horiba Jobin Yvon's LabSpec software. (`#25 <https://github.com/hyperspy/rosettasciio/issues/25>`_)
 - Add support for reading the ``.tvf``-format from TriVista. (`#27 <https://github.com/hyperspy/rosettasciio/issues/27>`_)
 - Add support for reading the ``.wdf``-format from Renishaw's WIRE software. (`#55 <https://github.com/hyperspy/rosettasciio/issues/55>`_)
-- Added subclassing of .sur files in CL signal type and updated metadata parsing (`#98 <https://github.com/hyperspy/rosettasciio/issues/98>`_)
-- add optional kwarg to tiff reader ``multipage_as_list`` which when set to True uses ``pages`` interface and returns list of signal for every page with full metadata. (`#104 <https://github.com/hyperspy/rosettasciio/issues/104>`_)
+- Added subclassing of ``.sur`` files in CL signal type and updated metadata parsing (`#98 <https://github.com/hyperspy/rosettasciio/issues/98>`_)
+- Add optional kwarg to tiff reader ``multipage_as_list`` which when set to True uses ``pages`` interface and returns list of signal for every page with full metadata. (`#104 <https://github.com/hyperspy/rosettasciio/issues/104>`_)
 
 
 Bug Fixes
@@ -26,10 +26,10 @@ Bug Fixes
 
 - Ensure that the ``.msa`` plugin handles ``SIGNALTYPE`` values according to the official format specification. (`#39 <https://github.com/hyperspy/rosettasciio/issues/39>`_)
 - Fix error when reading Velox file containing FFT with an odd number of pixels (`#49 <https://github.com/hyperspy/rosettasciio/issues/49>`_)
-- Fix error when reading JEOL .pts file with un-ordered frame list or when length of ``frame_start_index`` is smaller than the sweep count (`#68 <https://github.com/hyperspy/rosettasciio/issues/68>`_)
+- Fix error when reading JEOL ``.pts`` file with un-ordered frame list or when length of ``frame_start_index`` is smaller than the sweep count (`#68 <https://github.com/hyperspy/rosettasciio/issues/68>`_)
 - Fix exporting scalebar with reciprocal units containing space (`#90 <https://github.com/hyperspy/rosettasciio/issues/90>`_)
 - Fix array indexing bug when loading a ``sur`` file format containing spectra series. (`#98 <https://github.com/hyperspy/rosettasciio/issues/98>`_)
-- For more robust xml to dict conversion, convert_xml_to_dict is replaced by XmlToDict (introduced by PR #111). (`#101 <https://github.com/hyperspy/rosettasciio/issues/101>`_)
+- For more robust xml to dict conversion, ``convert_xml_to_dict`` is replaced by ``XmlToDict`` (introduced by PR #111). (`#101 <https://github.com/hyperspy/rosettasciio/issues/101>`_)
 - Fix bugs with reading non-FEI and Velox ``mrc`` files, improve documentation of ``mrc`` and ``mrcz`` file format. Closes `#71 <https://github.com/hyperspy/rosettasciio/issues/71>`_, `#91 <https://github.com/hyperspy/rosettasciio/issues/91>`_, `#93 <https://github.com/hyperspy/rosettasciio/issues/93>`_, `#96 <https://github.com/hyperspy/rosettasciio/issues/96>`_, `#130 <https://github.com/hyperspy/rosettasciio/issues/130>`_. (`#131 <https://github.com/hyperspy/rosettasciio/issues/131>`_)
 
 
@@ -44,19 +44,19 @@ Improved Documentation
 Deprecations
 ------------
 
-- Remove deprecated `record_by` attribute from file readers where remaining (`#102 <https://github.com/hyperspy/rosettasciio/issues/102>`_)
+- Remove deprecated ``record_by`` attribute from file readers where remaining (`#102 <https://github.com/hyperspy/rosettasciio/issues/102>`_)
 
 
 Enhancements
 ------------
 
-- Recognise both byte and string object for NXdata tag in NeXus reader (`#112 <https://github.com/hyperspy/rosettasciio/issues/112>`_)
+- Recognise both byte and string object for ``NXdata`` tag in NeXus reader (`#112 <https://github.com/hyperspy/rosettasciio/issues/112>`_)
 
 
 API changes
 -----------
 
-- Move, enhance and share xml to dict/list translation and other tools (new api for devs) from Bruker._api to utils:
+- Move, enhance and share xml to dict/list translation and other tools (new api for devs) from ``Bruker._api`` to utils:
   ``utils.date_time_tools.msfiletime_to_unix`` function to convert the uint64 MSFILETIME to  datetime.datetime object.
   ``utils.tools.sanitize_msxml_float`` function to sanitize some MSXML generated xml where comma is used as float decimal separator.
   ``utils.tools.XmlToDict`` Xml to dict/list translator class with rich customization options as kwargs, and main method for translation ``dictionarize`` (`#111 <https://github.com/hyperspy/rosettasciio/issues/111>`_)
@@ -75,10 +75,10 @@ Maintenance
 - Following the deprecation cycle announced in `HyperSpy <https://hyperspy.org/hyperspy-doc/current/user_guide/changes.html>`_,
   the following keywords and attributes have been removed:
 
-  - :ref:`Bruker composite file (BCF) <bcf-format>`: The 'spectrum' option for the
-    `select_type` parameter was removed. Use 'spectrum_image' instead.
+  - :ref:`Bruker composite file (BCF) <bcf-format>`: The ``'spectrum'`` option for the
+    ``select_type`` parameter was removed. Use 'spectrum_image' instead.
   - :ref:`Electron Microscopy Dataset (EMD) NCEM <emd_ncem-format>`: Using the
-    keyword 'dataset_name' was removed, use 'dataset_path' instead.
+    keyword ``'dataset_name'`` was removed, use ``'dataset_path'`` instead.
   - :ref:`NeXus data format <nexus-format>`: The ``dataset_keys``, ``dataset_paths``
     and ``metadata_keys`` keywords were removed. Use ``dataset_key``, ``dataset_path``
     and ``metadata_key`` instead. (`#30 <https://github.com/hyperspy/rosettasciio/issues/30>`_)

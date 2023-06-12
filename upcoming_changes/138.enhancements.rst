@@ -1,0 +1,1 @@
+Switch to `utils.tools.XMlDict` to convert an `ET` to a `dict` for the trivista filereader.

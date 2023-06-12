@@ -21,14 +21,17 @@ import logging
 import importlib.util
 from pathlib import Path
 from copy import deepcopy
-from collections import defaultdict
 
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
 
+from rsciio.utils.tools import XmlToDict
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 
 _logger = logging.getLogger(__name__)
+
+## no name collision between children and attrib in testfiles
+x2d_translator = XmlToDict(dub_attr_pre_str="")
 
 
 def _error_handling_find_location(len_entry, name):
@@ -44,14 +47,6 @@ def _error_handling_find_location(len_entry, name):
         )  # pragma: no cover
 
 
-def _convert_float(input):
-    """Handle None-values when converting strings to float."""
-    if input is None:
-        return None  # pragma: no cover
-    else:
-        return float(input)
-
-
 def _remove_none_from_dict(dict_in):
     """Recursive removal of None-values from a dictionary."""
     for key, value in list(dict_in.items()):
@@ -61,28 +56,11 @@ def _remove_none_from_dict(dict_in):
             del dict_in[key]
 
 
-def _etree_to_dict(t, only_top_lvl=False):
-    """Recursive conversion from xml.etree.ElementTree to a dictionary."""
-    d = {t.tag: {} if t.attrib else None}
-    if not only_top_lvl:
-        children = list(t)
-        if children:
-            dd = defaultdict(list)
-            for dc in map(_etree_to_dict, children):
-                for k, v in dc.items():
-                    dd[k].append(v)
-            d = {t.tag: {k: v[0] if len(v) == 1 else v for k, v in dd.items()}}
-        if t.text:
-            if children or t.attrib:
-                ## in this case, the text is ignored
-                ## if children=True -> text is just empty space in test data
-                ## if t.attrib=True and children=False doesn't occur in test data
-                pass
-            else:
-                d[t.tag] = t.text.strip()
+def _et_node_attrib2dict(t):
+    result = None
     if t.attrib:
-        d[t.tag].update((k, v) for k, v in t.attrib.items())
-    return d
+        result = {t.tag: {k: XmlToDict.eval(v) for k, v in t.attrib.items()}}
+    return result
 
 
 def _process_info_serialized(head):
@@ -204,24 +182,31 @@ class TrivistaTVFReader:
         et_root = ET.parse(self._file_path).getroot()
 
         ## root level metadata
-        filtered_original_metadata.update(_etree_to_dict(et_root, only_top_lvl=True))
-        et_fileInfoSerialized = ET.fromstring(
-            filtered_original_metadata["XmlMain"]["FileInfoSerialized"]
-        )
-        fileInfoSerialized = _etree_to_dict(et_fileInfoSerialized, only_top_lvl=False)
-        filtered_original_metadata["XmlMain"]["FileInfoSerialized"] = fileInfoSerialized
+        root_level_md = _et_node_attrib2dict(et_root)
+        fileInfoSerialized = root_level_md.get("XmlMain", {}).get("FileInfoSerialized")
+        if fileInfoSerialized is not None:
+            et_fileInfoSerialized = ET.fromstring(fileInfoSerialized)
+            root_level_md["XmlMain"][
+                "FileInfoSerialized"
+            ] = x2d_translator.dictionarize(et_fileInfoSerialized)
+        filtered_original_metadata.update(root_level_md)
 
         ## Documents / Document section
         data_head = et_root[1][0]
-        filtered_original_metadata.update(_etree_to_dict(data_head, only_top_lvl=True))
-        et_infoSerialized = ET.fromstring(
-            filtered_original_metadata["Document"]["InfoSerialized"]
-        )
-        infoSerialized = _etree_to_dict(et_infoSerialized, only_top_lvl=False)
+        data_head_md = _et_node_attrib2dict(data_head)
+        filtered_original_metadata.update(data_head_md)
+        infoSerialized = data_head_md.get("Document", {}).get("InfoSerialized")
+        if infoSerialized is not None:
+            et_infoSerialized = ET.fromstring(infoSerialized)
+            infoSerialized = x2d_translator.dictionarize(et_infoSerialized)
+        else:
+            raise RuntimeError(
+                "Invalid file (InfoSerialized Block missing), cannot read axis data."
+            )
 
         ## Hardware section
         metadata_head = et_root[0]
-        metadata_hardware = _etree_to_dict(metadata_head, only_top_lvl=False)
+        metadata_hardware = x2d_translator.dictionarize(metadata_head)
 
         if not filter_original_metadata:
             unfiltered_original_metadata = deepcopy(filtered_original_metadata)
@@ -275,7 +260,7 @@ class TrivistaTVFReader:
         """Filter microscope section (objective) via isEnabled tag"""
         for microscope in metadata_hardware["Hardware"]["Microscopes"]["Microscope"]:
             for objective in microscope["Objectives"]["Objective"]:
-                if objective["IsEnabled"] == "True":
+                if objective["IsEnabled"]:
                     metadata_hardware["Hardware"]["Microscopes"][
                         "Microscope"
                     ] = microscope

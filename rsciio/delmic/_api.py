@@ -4,7 +4,7 @@ import h5py as hf
 from rsciio.docstrings import FILENAME_DOC, RETURNS_DOC
 
 
-def file_reader(filename):
+def file_reader(filename, *args, **kwds):
     """Read a Delmic hdf5 hyperspectral image.
 
     Parameters
@@ -57,10 +57,19 @@ def file_reader(filename):
             "navigate": False,
         },
     ]
+    
+    metadata={
+        'signal':
+            {'signal_type': '','quantity':'Intensity (counts)'}
+            }
+    
+    original_metadata=dict(DimensionScaleX='182',DimensionScaleY='132')
 
     spim = {
         "data": data,
         "axes": axes,
+        "metadata": metadata,
+        "original_metadata": original_metadata,
     }
 
     return [

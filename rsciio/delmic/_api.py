@@ -1,7 +1,7 @@
 import numpy as np
 import h5py as hf
 
-from rsciio.docstrings import FILENAME_DOC, RETURNS_DOC
+from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC
 
 
 def file_reader(filename, *args, **kwds):

@@ -57,13 +57,10 @@ def file_reader(filename, *args, **kwds):
             "navigate": False,
         },
     ]
-    
-    metadata={
-        'signal':
-            {'signal_type': '','quantity':'Intensity (counts)'}
-            }
-    
-    original_metadata=dict(DimensionScaleX='182',DimensionScaleY='132')
+
+    metadata = {"signal": {"signal_type": "", "quantity": "Intensity (counts)"}}
+
+    original_metadata = dict(DimensionScaleX="182", DimensionScaleY="132")
 
     spim = {
         "data": data,

@@ -499,7 +499,7 @@ class TestUSID2HSbase:
             slow_to_fast=slow_to_fast,
         )
 
-        new_sig = hs.load(file_path)
+        new_sig = hs.load(file_path,reader='USID')
         compare_signal_from_usid(
             file_path, ndata, new_sig, sig_type=hs.signals.BaseSignal, axes_to_spec=[]
         )
@@ -525,7 +525,7 @@ class TestUSID2HSbase:
             slow_to_fast=slow_to_fast,
         )
 
-        new_sig = hs.load(file_path)
+        new_sig = hs.load(file_path,reader='USID')
         compare_signal_from_usid(
             file_path, ndata, new_sig, sig_type=hs.signals.BaseSignal, axes_to_spec=[]
         )
@@ -550,7 +550,7 @@ class TestUSID2HSbase:
             slow_to_fast=slow_to_fast,
         )
 
-        new_sig = hs.load(file_path, lazy=lazy)
+        new_sig = hs.load(file_path, reader='USID', lazy=lazy)
         compare_signal_from_usid(
             file_path,
             ndata,
@@ -584,7 +584,7 @@ class TestUSID2HSdtype:
             slow_to_fast=slow_to_fast,
         )
 
-        new_sig = hs.load(file_path)
+        new_sig = hs.load(file_path,reader='USID')
         compare_signal_from_usid(
             file_path,
             ndata,
@@ -613,7 +613,7 @@ class TestUSID2HSdtype:
             slow_to_fast=slow_to_fast,
         )
 
-        objects = hs.load(file_path)
+        objects = hs.load(file_path,reader='USID')
         assert isinstance(objects, list)
         assert len(objects) == 2
 
@@ -656,10 +656,10 @@ class TestUSID2HSdtype:
         )
 
         with pytest.raises(ValueError):
-            _ = hs.load(file_path, ignore_non_uniform_dims=False)
+            _ = hs.load(file_path,reader='USID', ignore_non_uniform_dims=False)
 
         with pytest.warns(UserWarning) as _:
-            new_sig = hs.load(file_path)
+            new_sig = hs.load(file_path,reader='USID')
         compare_signal_from_usid(
             file_path,
             ndata,
@@ -713,7 +713,7 @@ class TestUSID2HSmultiDsets:
             )
 
         dataset_path = "/Measurement_001/Channel_000/Raw_Data"
-        new_sig = hs.load(file_path, dataset_path=dataset_path)
+        new_sig = hs.load(file_path, dataset_path=dataset_path,reader='USID')
         compare_signal_from_usid(file_path, ndata_2, new_sig, dataset_path=dataset_path)
 
     def test_read_all_by_default(self):
@@ -755,7 +755,7 @@ class TestUSID2HSmultiDsets:
                 slow_to_fast=slow_to_fast,
             )
 
-        objects = hs.load(file_path)
+        objects = hs.load(file_path,reader='USID')
         assert isinstance(objects, list)
         assert len(objects) == 2
 

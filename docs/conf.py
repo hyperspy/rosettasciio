@@ -42,9 +42,12 @@ extensions = [
 ]
 
 intersphinx_mapping = {
+    "dask": ("https://docs.dask.org/en/latest", None),
     "hyperspy": ("https://hyperspy.org/hyperspy-doc/current/", None),
     "h5py": ("https://docs.h5py.org/en/stable/", None),
+    "matplotlib": ("https://matplotlib.org", None),
     "numcodecs": ("https://numcodecs.readthedocs.io/en/stable", None),
+    "numpy": ("https://docs.scipy.org/doc/numpy", None),
     "python": ("https://docs.python.org/3", None),
     "pyusid": ("https://pycroscopy.github.io/pyUSID/", None),
     "zarr": ("https://zarr.readthedocs.io/en/stable", None),

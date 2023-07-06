@@ -47,7 +47,7 @@ ENDIANESS_DOC = """endianess : str, Default="<"
     """
 
 MMAP_DOC = """mmap_mode : {None, "r+", "r", "w+", "c"}, Default=None
-        Argument passed to :py:func:`numpy.memmap`. If None (default), the
+        Argument passed to :py:class:`numpy.memmap`. If None (default), the
         value is ``"r"`` when ``lazy=True``, otherwise it is ``"c"``.
     """
 
@@ -58,7 +58,7 @@ RETURNS_DOC = """Returns
     list of dict
         List of dictionaries containing the following fields:
 
-        - 'data' – multidimensional numpy array
+        - 'data' – multidimensional :py:class:`numpy.ndarray` or :py:class:`dask.array.Array`
         - 'axes' – list of dictionaries describing the axes
           containing the fields 'name', 'units', 'index_in_array', and
           either 'size', 'offset', and 'scale' or a numpy array 'axis'

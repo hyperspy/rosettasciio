@@ -356,12 +356,12 @@ def file_writer(
     %s
     %s
     intensity_scaling : str or 2-Tuple of float/int
-        If the signal datatype is not :py:class:`numpy.uint8`, casting to this
+        If the signal datatype is not :py:class:`numpy.ubyte`, casting to this
         datatype without intensity rescaling results in overflow errors (default behavior)
         This argument provides intensity scaling strategies and the options are:
 
         - ``'dtype'``: the limits of the datatype of the dataset, e.g. 0-65535 for
-          :py:class:`numpy.uint16`, are mapped onto 0-255, respectively. Does not work
+          :py:class:`numpy.ushort`, are mapped onto 0-255, respectively. Does not work
           for ``float`` data types.
         - ``'minmax'``: the minimum and maximum in the dataset are mapped to 0-255.
         - ``'crop'``: everything below 0 and above 255 is set to 0 and 255, respectively
@@ -371,7 +371,7 @@ def file_writer(
         A ``.blo`` file also saves a virtual bright field image for navigation.
         This option determines what kind of data is stored for this image.
         By default this is set to ``'navigator'``, which results in using the
-        :py:attr:`hyperspy.signal.BaseSignal.navigator` attribute if used with HyperSpy.
+        :py:attr:`hyperspy.api.signals.BaseSignal.navigator` attribute if used with HyperSpy.
         Otherwise, it is calculated during saving which can take  some time for large
         datasets. Alternatively, an array-like of the right shape may also be provided.
         If set to None, a zero array is stored in the file.

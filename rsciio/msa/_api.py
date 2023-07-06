@@ -174,9 +174,7 @@ def parse_msa_string(string, filename=None):
     Returns
     -------
     file_data_list: list
-        The list containts a dictionary that contains the parsed
-        information. It can be used to create a :py:class:`~.signal.BaseSignal`
-        using :py:func:`~.io.dict2signal`.
+        List of a single dictionary to be returned by ``file_reader``.
 
     """
     if not hasattr(string, "readlines"):

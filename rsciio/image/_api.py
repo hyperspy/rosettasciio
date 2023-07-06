@@ -57,15 +57,15 @@ def file_writer(
         Dictionary of keyword arguments for the scalebar. Useful to set
         formatting, location, etc. of the scalebar. See the documentation of
         the 'matplotlib-scalebar' library for more information.
-    output_size : {tuple of length 2, int, None}, Default=None
+    output_size : {2-tuple, int, None}, Default=None
         The output size of the image in pixels (width, height):
 
-            * if *int*, defines the width of the image, the height is
+            * if ``int``, defines the width of the image, the height is
               determined from the aspec ratio of the image
-            * if *tuple of length 2*, defines the width and height of the
+            * if ``2-tuple``, defines the width and height of the
               image. Padding with white pixels is used to maintain the aspect
               ratio of the image.
-            * if *None*, the size of the data is used.
+            * if ``None``, the size of the data is used.
 
         For output sizes larger than the data size, "nearest" interpolation is
         used by default and this behaviour can be changed through the
@@ -73,7 +73,7 @@ def file_writer(
 
     imshow_kwds : dict, optional
         Keyword arguments dictionary for :py:func:`~.matplotlib.pyplot.imshow`.
-    **kwds : keyword arguments, optional
+    **kwds : dict, optional
         Allows to pass keyword arguments supported by the individual file
         writers as documented at
         https://imageio.readthedocs.io/en/stable/formats/index.html when
@@ -210,7 +210,7 @@ def file_reader(filename, **kwds):
     format: str, optional
         The format to use to read the file. By default imageio selects the
         appropriate format based on the filename and its contents.
-    **kwds: keyword arguments
+    **kwds : dict, optional
         Allows to pass keyword arguments supported by the individual file
         readers as documented at
         https://imageio.readthedocs.io/en/stable/formats/index.html

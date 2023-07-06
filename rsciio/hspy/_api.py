@@ -135,7 +135,7 @@ def file_writer(filename, signal, close_file=True, **kwds):
         it supports all `compression filters supported by h5py
         <https://docs.h5py.org/en/stable/high/dataset.html#dataset-compression>`_.
         The default is ``'gzip'``. Also see notes below.
-    chunks : tuple of integer or None, Default=None
+    chunks : tuple of int or None, Default=None
         Define the chunking used for saving the dataset. If ``None``, calculates
         chunks for the signal, with preferably at least one chunk per signal
         space.

@@ -446,13 +446,13 @@ def file_reader(
     ----------
     %s
     %s
-    dataset_key  : None, str, list of strings, default : None
+    dataset_key  : None, str, list of str, default : None
         If None all datasets are returned.
         If a string or list of strings is provided only items
         whose path contain the string(s) are returned. For example
         dataset_key = ["instrument", "Fe"] will return
         data entries with instrument or Fe in their hdf path.
-    dataset_path : None, str, list of strings, default : None
+    dataset_path : None, str, list of str, default : None
         If None, no absolute path is searched.
         If a string or list of strings is provided items with the absolute
         paths specified will be returned. For example, dataset_path =
@@ -460,7 +460,7 @@ def file_reader(
         It is not filtered by dataset_key, i.e. with dataset_key = ['Fe'],
         it still returns the specific dataset at '/data/spectrum/Mn'. It is
         empty if no dataset matching the absolute path provided is present.
-    metadata_key: : None, str, list of strings, default : None
+    metadata_key: : None, str, list of str, default : None
         Only return items from the original metadata whose path contain the
         strings .e.g metadata_key = ["instrument", "Fe"] will return
         all metadata entries with "instrument" or "Fe" in their hdf path.

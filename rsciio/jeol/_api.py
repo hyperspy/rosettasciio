@@ -67,10 +67,10 @@ def file_reader(filename, **kwargs):
         is loaded. Be aware that loading each individual frame will use a lot of memory.
         However, it can be used in combination with ``rebin_energy``, ``cutoff_at_kV``
         and ``downsample`` to reduce memory usage.
-    SI_dtype : dtype, Default=np.uint8
-        Set ``dtype`` of the eds dataset. Useful to adjust memory usage
+    SI_dtype : numpy.dtype, Default=np.uint8
+        Set the dtype of the eds dataset. Useful to adjust memory usage
         and maximum number of X-rays per channel.
-    cutoff_at_kV : int, float, or None, default=None
+    cutoff_at_kV : int, float, None, default=None
         If set (>= 0), use to crop the energy range up to the specified energy.
         If ``None``, the whole energy range is loaded.
         Useful to reduce memory usage.
@@ -88,11 +88,11 @@ def file_reader(filename, **kwargs):
         For ``.pts`` files only. If ``True``,
         read SEM/STEM image from ``.pts`` file if available. In this case, both
         the spectrum Image and SEM/STEM Image will be returned as list.
-    frame_list : list of integer or None, Default=None
+    frame_list : list of int, None, Default=None
         For ``.pts`` files only. Frames in ``frame_list`` will be loaded.
         For example, ``frame_list=[1,3]`` means second and forth frame will be loaded.
         If ``None``, all frames are loaded.
-    frame_shifts : list of [int, int], list of [int, int, int], or None, Default=None
+    frame_shifts : list of [int, int], list of [int, int, int], None, Default=None
         For ``.pts`` files only. Each frame will be loaded with offset of
         [dy, dx (, and optionary dEnergy)]. Units are pixels/channels.
         The result of estimate_shift2D() can be used as a parameter of frame_shifts.
@@ -266,8 +266,8 @@ def _read_pts(
         Binning parameter along energy axis. Must be 2^n.
     sum_frames : bool
         If False, returns each frame.
-    SI_dtype : dtype
-        data type for spectrum image. default is uint8
+    SI_dtype : numpy.dtype
+        The data type for spectrum image. Default is numpy.uint8
     cutoff_at_kV : float
         The maximum energy. Useful to reduce memory size of spectrum image.
         Default is None (no cutoff)
@@ -983,8 +983,9 @@ def _readframe_dense(
     countup : 1 for summing up the X-ray events, -1 to cancel selected frame
     hypermap : numpy.ndarray(width, height, channel_number)
         numpy.ndarray to store decoded spectrum image.
-    em_image : numpy.ndarray(width, height), dtype = np.uint16 or np.uint32
-        numpy.ndarray to store decoded SEM/TEM image.
+    em_image : numpy.ndarray
+        numpy.ndarray to store decoded SEM/TEM image with dimension (width, height)
+        and dtype np.uint16 or np.uint32
     width : int
     height : int
     channel_number : int

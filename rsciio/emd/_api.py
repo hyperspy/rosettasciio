@@ -1579,10 +1579,10 @@ def file_reader(filename, lazy=False, **kwds):
         Velox only: Rebin the energy axis by given factor. Useful in combination
         with ``sum_frames=False`` to reduce the data size when reading the
         individual frames of the spectrum image.
-    SI_dtype : numpy dtype or None, default=None
+    SI_dtype : numpy.dtype or None, default=None
         Velox only: Change the datatype of a spectrum image. Useful in combination
         with ``sum_frames=False`` to reduce the data size when reading the individual
-        frames of the spectrum image. If not specified, the dtype of the data in
+        frames of the spectrum image. If ``None``, the dtype of the data in
         the emd file is used.
     load_SI_image_stack : bool, default=False
         Velox only: Allows loading the stack of STEM images acquired

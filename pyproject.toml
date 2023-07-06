@@ -54,7 +54,7 @@ tiff = ["tifffile>=2020.2.16", "imagecodecs>=2020.1.31"]
 usid = ["pyUSID"]
 zspy = ["zarr"]
 tests = ["pooch", "pytest>=3.6", "pytest-xdist", "pytest-rerunfailures", "pytest-cov"]
-docs = ["pydata-sphinx-theme>=0.13", "sphinx-favicon", "sphinxcontrib-towncrier", "towncrier"]
+docs = ["numpydoc", "pydata-sphinx-theme>=0.13", "sphinx", "sphinx-favicon", "sphinxcontrib-towncrier", "towncrier"]
 all = [
     "rosettasciio[blockfile]",
     "rosettasciio[mrcz]",

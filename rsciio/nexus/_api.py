@@ -492,8 +492,8 @@ def file_reader(
 
     See Also
     --------
-    * :py:meth:`~.utils.hdf5.list_datasets_in_file`
-    * :py:meth:`~.utils.hdf5.read_metadata_from_file`
+    rsciio.utils.hdf5.list_datasets_in_file
+    rsciio.utils.hdf5.read_metadata_from_file
     """
     # search for NXdata sets...
 
@@ -1162,9 +1162,8 @@ def file_writer(
 
     See Also
     --------
-    * :py:meth:`~.nexus.file_reader`
-    * :py:meth:`~.utils.hdf5.list_datasets_in_file`
-    * :py:meth:`~.utils.hdf5.read_metadata_from_file`
+    rsciio.utils.hdf5.list_datasets_in_file
+    rsciio.utils.hdf5.read_metadata_from_file
 
     """
     if not isinstance(signals, list):

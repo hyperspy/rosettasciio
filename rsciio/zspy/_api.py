@@ -107,7 +107,15 @@ class ZspyWriter(HierarchicalWriter):
             dset[:] = data
 
 
-def file_writer(filename, signal, close_file=True, **kwds):
+def file_writer(
+    filename,
+    signal,
+    close_file=True,
+    chunks=None,
+    compressor=None,
+    write_dataset=True,
+    **kwds,
+):
     """Writes data to HyperSpy's zarr format.
 
     Parameters
@@ -120,14 +128,14 @@ def file_writer(filename, signal, close_file=True, **kwds):
         requiring store to flush data to disk. If ``False``, doesn't close the
         file after writing. The file should not be closed if the data needs to be
         accessed lazily after saving.
-    chunks : tuple of integer or None, default=None
+    chunks : tuple of int or None, default=None
         Define the chunking used for saving the dataset. If None, calculates
         chunks for the signal, with preferably at least one chunk per signal
         space.
-    compressor : numcodecs compression, optional
+    compressor : numcodecs.abc.Codec or None, default=None
         A compressor can be passed to the save function to compress the data
         efficiently, see `Numcodecs codec <https://numcodecs.readthedocs.io/en/stable>`_.
-        The default is to use a Blosc compressor.
+        If None, use a Blosc compressor.
     write_dataset : bool, default=True
         If ``False``, doesn't write the dataset when writing the file. This can
         be useful to overwrite signal attributes only (for example ``axes_manager``)
@@ -139,11 +147,11 @@ def file_writer(filename, signal, close_file=True, **kwds):
     Examples
     --------
     >>> from numcodecs import Blosc
-    >>> compressor=Blosc(cname='zstd', clevel=1, shuffle=Blosc.SHUFFLE) # Used by default
+    >>> compressor = Blosc(cname='zstd', clevel=1, shuffle=Blosc.SHUFFLE) # Used by default
     >>> file_writer('test.zspy', s, compressor = compressor) # will save with Blosc compression
     """
-    if "compressor" not in kwds:
-        kwds["compressor"] = numcodecs.Blosc(
+    if compressor is None:
+        compressor = numcodecs.Blosc(
             cname="zstd", clevel=1, shuffle=numcodecs.Blosc.SHUFFLE
         )
 
@@ -153,10 +161,7 @@ def file_writer(filename, signal, close_file=True, **kwds):
         store = zarr.storage.NestedDirectoryStore(
             filename,
         )
-    write_dataset = kwds.get("write_dataset", True)
-    if not isinstance(write_dataset, bool):
-        raise ValueError("`write_dataset` argument must a boolean.")
-    mode = "w" if kwds.get("write_dataset", True) else "a"
+    mode = "w" if write_dataset else "a"
 
     _logger.debug(f"File mode: {mode}")
     _logger.debug(f"Zarr store: {store}")
@@ -172,7 +177,15 @@ def file_writer(filename, signal, close_file=True, **kwds):
         group_name = group_name.replace("/", "-")
     expg = exps.require_group(group_name)
 
-    writer = ZspyWriter(f, signal, expg, **kwds)
+    writer = ZspyWriter(
+        f,
+        signal,
+        expg,
+        chunks=chunks,
+        compressor=compressor,
+        write_dataset=write_dataset,
+        **kwds,
+    )
     writer.write()
 
     if isinstance(store, (zarr.ZipStore, zarr.DBMStore, zarr.LMDBStore)):
@@ -193,8 +206,8 @@ def file_reader(filename, lazy=False, **kwds):
     ----------
     %s
     %s
-    **kwds: optional
-        Pass keyword arguments to the :py:meth:`zarr.open` function.
+    **kwds
+        Pass keyword arguments to the :py:func:`zarr.convenience.open` function.
 
     %s
     """

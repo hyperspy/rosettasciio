@@ -55,7 +55,7 @@ MMAP_DOC = """mmap_mode : {None, "r+", "r", "w+", "c"}, Default=None
 RETURNS_DOC = """Returns
     -------
 
-    list of dicts
+    list of dict
         List of dictionaries containing the following fields:
 
         - 'data' – multidimensional numpy array

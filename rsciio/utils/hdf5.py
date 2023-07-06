@@ -63,9 +63,7 @@ def read_metadata_from_file(
 
     See Also
     --------
-    * :py:meth:`~.io_plugins.nexus.file_reader`
-    * :py:meth:`~.io_plugins.nexus.file_writer`
-    * :py:meth:`~.io_plugins.nexus.list_datasets_in_file`
+    rsciio.utils.hdf5.list_datasets_in_file
 
 
     """
@@ -123,9 +121,7 @@ def list_datasets_in_file(
 
     See Also
     --------
-    * :py:meth:`~.io_plugins.nexus.file_reader`
-    * :py:meth:`~.io_plugins.nexus.file_writer`
-    * :py:meth:`~.io_plugins.nexus.read_metadata_from_file`
+    rsciio.utils.hdf5.read_metadata_from_file
 
 
     """
@@ -154,3 +150,13 @@ def list_datasets_in_file(
 
 
 list_datasets_in_file.__doc__ %= FILENAME_DOC
+
+
+__all__ = [
+    "read_metadata_from_file",
+    "list_datasets_in_file",
+]
+
+
+def __dir__():
+    return sorted(__all__)

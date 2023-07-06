@@ -30,6 +30,9 @@ author = "HyperSpy Developers"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    # numpydoc is necessary to parse the docstring using sphinx
+    # otherwise the nitpicky option will raise many warnings
+    "numpydoc",
     "sphinx_favicon",
     "sphinx.ext.autodoc",
     "sphinx.ext.githubpages",
@@ -41,6 +44,8 @@ extensions = [
 intersphinx_mapping = {
     "hyperspy": ("https://hyperspy.org/hyperspy-doc/current/", None),
     "h5py": ("https://docs.h5py.org/en/stable/", None),
+    "numcodecs": ("https://numcodecs.readthedocs.io/en/stable", None),
+    "python": ("https://docs.python.org/3", None),
     "pyusid": ("https://pycroscopy.github.io/pyUSID/", None),
     "zarr": ("https://zarr.readthedocs.io/en/stable", None),
 }
@@ -84,6 +89,9 @@ html_theme_options = {
 
 
 favicons = {"rel": "icon", "href": "logo_sq.svg", "type": "image/svg+xml"}
+
+# Check links to API when building documentation
+nitpicky = True
 
 # -- Options for towncrier_draft extension -----------------------------------
 

@@ -30,6 +30,7 @@ author = "HyperSpy Developers"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "sphinx_favicon",
     "sphinx.ext.autodoc",
     "sphinx.ext.githubpages",
     "sphinx.ext.intersphinx",
@@ -78,14 +79,11 @@ html_theme_options = {
         "image_light": "_static/logo_rec_oct22.svg",
         "image_dark": "_static/logo_rec_dark_oct22.svg",
     },
-    "favicons": [
-        {
-            "rel": "icon",
-            "href": "logo_sq.svg",
-        },
-    ],
     "header_links_before_dropdown": 6,
 }
+
+
+favicons = {"rel": "icon", "href": "logo_sq.svg", "type": "image/svg+xml"}
 
 # -- Options for towncrier_draft extension -----------------------------------
 

@@ -109,7 +109,7 @@ def download_all(pooch_object=None, ignore_hash=None, progressbar=True):
 
     Parameters
     ----------
-    pooch_object : pooch registry instance or None
+    pooch_object : pooch.Pooch or None
         The registry to be used. If None, a RosettaSciIO registry will
         be used.
     ignore_hash : bool or None

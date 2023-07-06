@@ -43,7 +43,7 @@ def read_metadata_from_file(
     Parameters
     ----------
     %s
-    metadata_key  : None,str or list_of_strings , default : None
+    metadata_key : None, str or list of str , default : None
         None will return all datasets found including linked data.
         Providing a string or list of strings will only return items
         which contain the string(s).
@@ -102,7 +102,7 @@ def list_datasets_in_file(
     Parameters
     ----------
     %s
-    dataset_key  : str, list of strings or None , default: None
+    dataset_key  : str, list of str or None , default: None
         If a str or list of strings is provided only return items whose
         path contain the strings.
         For example, dataset_key = ["instrument", "Fe"] will only return

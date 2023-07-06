@@ -48,6 +48,7 @@ intersphinx_mapping = {
     "matplotlib": ("https://matplotlib.org", None),
     "numcodecs": ("https://numcodecs.readthedocs.io/en/stable", None),
     "numpy": ("https://docs.scipy.org/doc/numpy", None),
+    "pooch": ("https://www.fatiando.org/pooch/latest", None),
     "python": ("https://docs.python.org/3", None),
     "pyusid": ("https://pycroscopy.github.io/pyUSID/", None),
     "zarr": ("https://zarr.readthedocs.io/en/stable", None),
@@ -90,11 +91,17 @@ html_theme_options = {
     "header_links_before_dropdown": 6,
 }
 
+# -- Options for sphinx_favicon extension -----------------------------------
 
 favicons = {"rel": "icon", "href": "logo_sq.svg", "type": "image/svg+xml"}
 
 # Check links to API when building documentation
 nitpicky = True
+
+# -- Options for numpydoc extension -----------------------------------
+
+numpydoc_xref_param_type = True
+numpydoc_xref_ignore = {"type", "optional", "default", "of"}
 
 # -- Options for towncrier_draft extension -----------------------------------
 

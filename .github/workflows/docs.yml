@@ -44,7 +44,7 @@ jobs:
       - name: Install build docs
         shell: bash -l {0}
         run: |
-          pip install .[docs]
+          pip install .'[all, docs]'
 
       - name: Update packages list
         shell: bash -l {0}
@@ -64,7 +64,7 @@ jobs:
         shell: bash -l {0}
         run: |
           cd docs
-          make html
+          make SPHINXOPTS="-W --keep-going" html
 
       - uses: actions/upload-artifact@v3
         with:

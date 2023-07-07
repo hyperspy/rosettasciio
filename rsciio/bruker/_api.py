@@ -1312,9 +1312,9 @@ def file_reader(
     channels. Note that setting ``downsample`` higher than 1 currently locks out using SEM
     images for navigation in the plotting.
     """
-    ext = splitext(filename)[1][1:]
+    ext = splitext(filename)[1][1:].lower()
     if ext == "bcf":
-        return bcf_reader(
+        to_return = bcf_reader(
             filename=filename,
             lazy=lazy,
             select_type=select_type,
@@ -1324,10 +1324,14 @@ def file_reader(
             instrument=instrument,
         )
     elif ext == "spx":
-        return spx_reader(
+        to_return = spx_reader(
             filename=filename,
             lazy=lazy,
         )
+    else:
+        raise ValueError(f"'{ext}' is not a supported extension for the bruker reader.")
+
+    return to_return
 
 
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)

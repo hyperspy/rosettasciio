@@ -300,16 +300,16 @@ def file_reader(filename, lazy=False, only_valid_data=True):
     %s
     """
     ext = os.path.splitext(filename)[1][1:]
-    ser_extensions = ("ser", "SER")
-    emi_extensions = ("emi", "EMI")
-    if ext in ser_extensions:
-        return [
-            ser_reader(
-                filename, objects=None, lazy=lazy, only_valid_data=only_valid_data
-            ),
-        ]
-    elif ext in emi_extensions:
-        return emi_reader(filename, lazy, only_valid_data)
+    if ext.lower() == "ser":
+        to_return = ser_reader(
+            filename, objects=None, lazy=lazy, only_valid_data=only_valid_data
+        )
+    elif ext.lower() == "emi":
+        to_return = emi_reader(filename, lazy, only_valid_data)
+    else:
+        raise ValueError(f"'{ext}' is not a supported extension for the TIA reader.")
+
+    return to_return
 
 
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)

@@ -99,6 +99,8 @@ favicons = {"rel": "icon", "href": "logo_sq.svg", "type": "image/svg+xml"}
 
 # Check links to API when building documentation
 nitpicky = True
+# Remove when fixed in hyperspy
+nitpick_ignore_regex = [(r"py:.*", r"hyperspy.api.*")]
 
 # -- Options for numpydoc extension -----------------------------------
 

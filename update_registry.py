@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 import os
 import subprocess
-import sys
 
 
 def main():
     os.chdir(r"rsciio/tests")
-    print(os.listdir())
-    cmd = ("python", "registry_utils.py", *sys.argv[1:])
+    cmd = ("python", "registry_utils.py")
 
     return subprocess.call(cmd)
 

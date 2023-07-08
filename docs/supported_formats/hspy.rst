@@ -108,10 +108,71 @@ writing and performance of many HyperSpy algorithms. See the
 
     Also see the :ref:`hdf5-utils` for inspecting HDF5 files.
 
+Format description
+^^^^^^^^^^^^^^^^^^
+The root of the file must contain a group called ``Experiments``. The ``Experiments``
+group can contain any number of subgroups and each subgroup is an experiment or
+signal. Each subgroup must contain at least one dataset called ``data``. The
+data is an array of arbitrary dimension. In addition, a number equal to the
+number of dimensions of the ``data`` dataset of empty groups called ``axis``
+followed by a number must exist with the following attributes:
+
+* ``'name'``
+* ``'offset'``
+* ``'scale'``
+* ``'units'``
+* ``'size'``
+* ``'index_in_array'``
+
+Alternatively to ``'offset'`` and ``'scale'``, the coordinate groups may
+contain an ``'axis'`` vector attribute defining the axis points.
+The experiment group contains a number of attributes that will be
+directly assigned as class attributes of the
+:py:class:`hyperspy.api.signals.BaseSignal` instance. In
+addition the experiment groups may contain ``'original_metadata'`` and
+``'metadata'``-subgroup that will be assigned to the same name attributes
+of the :py:class:`hyperspy.api.signals.BaseSignal` instance as a
+:py:class:`hyperspy.misc.utils.DictionaryTreeBrowser`.
+The ``Experiments`` group can contain attributes that may be common to all
+the experiments and that will be accessible as attributes of the
+``Experiments`` instance.
+
+
+Changelog
+^^^^^^^^^
+
+v3.2
+""""
+- Deprecated ``record_by`` attribute is removed
+
+v3.1
+""""
+- add read support for non-uniform DataAxis defined by ``'axis'`` vector
+- move ``metadata.Signal.binned`` attribute to ``axes.is_binned`` parameter
+
+v3.0
+""""
+- add ``Camera`` and ``Stage`` node
+- move ``tilt_stage`` to ``Stage.tilt_alpha``
+
+v2.2
+""""
+- store more metadata as string: ``date``, ``time``, ``notes``, ``authors`` and ``doi``
+- store ``quantity`` for intensity axis
+
+v2.1
+""""
+- Store the ``navigate`` attribute
+- ``record_by`` is stored only for backward compatibility but the axes ``navigate``
+  attribute takes precendence over ``record_by`` for files with version >= 2.1
+
+v1.3
+""""
+- Added support for lists, tuples and binary strings
+
 
 API functions
 ^^^^^^^^^^^^^
 
 .. automodule:: rsciio.hspy
    :members:
-

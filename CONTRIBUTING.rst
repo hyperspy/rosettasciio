@@ -2,8 +2,8 @@ Contributing
 ************
 
 RosettaSciIO is meant to be a community maintained project. We welcome contributions
-in the form of bug reports, documentation, code (in particular :ref:`new io plugins 
-<defining-plugins>`), feature requests, and more. In the following we refer to some 
+in the form of bug reports, documentation, code (in particular :ref:`new io plugins
+<defining-plugins>`), feature requests, and more. In the following we refer to some
 resources to help you make useful contributions.
 
 Issues
@@ -26,7 +26,7 @@ starting point. But don't hesitate also for significant code contributions, such
 as support for a new file format - if needed, we'll help you to get the code ready
 to common standards.
 
-Please refer to the 
+Please refer to the
 `HyperSpy developer guide <http://hyperspy.org/hyperspy-doc/current/dev_guide/intro.html>`_
 in order to get started and for detailed contributing guidelines.
 
@@ -34,7 +34,7 @@ Lint
 ----
 To keep the code style consistent (and more readable), `black <https://black.readthedocs.io/>`_
 is used to check the code formatting. When the code doesn't comply with the expected formatting,
-the `lint <https://github.com/hyperspy/rosettasciio/actions/workflows/black.yml>`_ will fail. 
+the `lint <https://github.com/hyperspy/rosettasciio/actions/workflows/black.yml>`_ will fail.
 In practise, the code formatting can be fixed by installing ``black`` and running it on the
 source code or by using :ref:`pre-commit hooks <pre-commit-hooks>`.
 
@@ -59,7 +59,7 @@ To add or update test data:
       from rsciio.tests.registry_utils import update_registry
 
       update_registry()
-  
+
    On windows, you can use :ref:`pre-commit.ci <pre-commit-hooks>` by adding a message to
    the pull request to update the registry.
 
@@ -128,7 +128,7 @@ directory should contain the following files:
 
   * A function called ``file_reader`` with at least one attribute: ``filename``
     that returns the :ref:`standardized signal dictionary <interfacing-api>`.
-  * (optional) A function called ``file_writer`` with at least two attributes: 
+  * (optional) A function called ``file_writer`` with at least two attributes:
     ``filename`` and ``signal`` (a python dictionary) in that order.
 
 **Tests** covering the functionality of the plugin should be added to the
@@ -156,6 +156,12 @@ The *docstrings* are automatically added in the *user guide* using the following
     .. automodule:: rsciio.spamandeggs
        :members:
 
+The *docstrings* follow `Numpy docstring style <https://numpydoc.readthedocs.io>`_. The
+links to RosettaSciIO API and other Sphinx documented API are checked when building the documentation
+and broken links will raise warnings. In order to identify potential broken links during pull
+request review, the `Docs <https://github.com/hyperspy/rosettasciio/actions/workflows/docs.yml>`_
+GitHub CI workflow is set to fail when the doc build raises warnings.
+
 .. Note ::
     It is advisable to clone the files of an existing plugin when initiating a new
     plugin.
@@ -164,6 +170,6 @@ The *docstrings* are automatically added in the *user guide* using the following
 Maintenance
 ===========
 
-Please refer to the 
+Please refer to the
 `HyperSpy developer guide <http://hyperspy.org/hyperspy-doc/current/dev_guide/intro.html>`_
 for maintenance guidelines.

@@ -1312,6 +1312,9 @@ def file_reader(
 
     %s
     """
+    if lazy is not False:
+        raise NotImplementedError("Lazy loading is not supported.")
+
     filesize = Path(filename).stat().st_size
     original_filename = Path(filename).name
     dictionary = {}

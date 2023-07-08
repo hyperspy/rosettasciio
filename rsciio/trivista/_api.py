@@ -769,6 +769,9 @@ def file_reader(
 
     %s
     """
+    if lazy is not False:
+        raise NotImplementedError("Lazy loading is not supported.")
+
     t = TrivistaTVFReader(
         Path(filename),
         use_uniform_signal_axis=use_uniform_signal_axis,

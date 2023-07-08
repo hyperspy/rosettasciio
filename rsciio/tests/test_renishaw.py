@@ -842,7 +842,13 @@ class TestSpec:
         assert metadata["General"]["title"] == "Single scan measurement 7"
 
         assert metadata["Signal"]["quantity"] == "Intensity (Counts)"
-        assert metadata["Signal"]["signal_type"] == ""
+        try:
+            import lumispy
+
+            signal_type = "Luminescence"
+        except ImportError:
+            signal_type = ""
+        assert metadata["Signal"]["signal_type"] == signal_type
 
         assert metadata["Acquisition_instrument"]["Detector"]["detector_type"] == "CCD"
         assert metadata["Acquisition_instrument"]["Detector"]["frames"] == 2

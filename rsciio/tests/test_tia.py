@@ -25,7 +25,7 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 import traits.api as t
 
-from rsciio.tia._api import load_ser_file
+from rsciio.tia._api import load_ser_file, file_reader
 
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "tia"
@@ -526,3 +526,8 @@ def test_metadata_diffraction():
         s.metadata.Acquisition_instrument.TEM.microscope
         == "Tecnai 200 kV D2267 SuperTwin"
     )
+
+
+def test_unsupported_extension():
+    with pytest.raises(ValueError):
+        file_reader("fname.unsupported_extension")

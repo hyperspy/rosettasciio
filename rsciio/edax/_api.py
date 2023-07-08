@@ -37,10 +37,6 @@ from rsciio.utils.elements import atomic_number2name
 _logger = logging.getLogger(__name__)
 
 
-spd_extensions = ("spd", "SPD", "Spd")
-spc_extensions = ("spc", "SPC", "Spc")
-
-
 def get_spd_dtype_list(endianess="<"):
     """
     Get the data type list for an SPD map.
@@ -1002,8 +998,8 @@ def file_reader(
     The file specification is available at :ref:`edax-file_specification`.
     """
 
-    ext = os.path.splitext(filename)[1][1:]
-    if ext in spd_extensions:
+    ext = os.path.splitext(filename)[1][1:].lower()
+    if ext == "spd":
         return spd_reader(
             filename,
             lazy,
@@ -1013,10 +1009,10 @@ def file_reader(
             load_all_spc=load_all_spc,
             **kwds,
         )
-    elif ext in spc_extensions:
+    elif ext == "spc":
         return spc_reader(filename, lazy, endianess, load_all_spc=load_all_spc, **kwds)
     else:
-        raise IOError("Did not understand input file format.")
+        raise ValueError(f"'{ext}' is not a supported extension for the edax reader.")
 
 
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, RETURNS_DOC)

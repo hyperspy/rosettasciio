@@ -23,9 +23,6 @@
 #  SFS (Single File System) (used in bcf technology) is present in
 #  the same library.
 
-
-# Plugin characteristics
-# ----------------------
 from os.path import splitext, basename
 from math import ceil
 import logging

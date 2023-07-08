@@ -26,23 +26,17 @@ from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
 _logger = logging.getLogger(__name__)
 
 
-no_netcdf = False
 try:
-    from netCDF4 import Dataset
+    from netCDF4 import Dataset as netcdf_file_reader
 
-    which_netcdf = "netCDF4"
+    netcdf_reader = "netCDF4"
 except Exception:
     try:
-        from netCDF3 import Dataset
+        from scipy.io import netcdf_file as netcdf_file_reader
 
-        which_netcdf = "netCDF3"
+        netcdf_reader = "scipy"
     except Exception:
-        try:
-            from Scientific.IO.NetCDF import NetCDFFile as Dataset
-
-            which_netcdf = "Scientific Python"
-        except Exception:
-            no_netcdf = True
+        netcdf_reader = None
 
 
 attrib2netcdf = {
@@ -90,20 +84,21 @@ def file_reader(filename, lazy=False):
     ----------
     %s
     %s
+
     %s
     """
-    if no_netcdf is True:
+    if netcdf_reader is None:
         raise ImportError(
             "No netCDF library installed. "
             "To read EELSLab netcdf files install "
             "one of the following packages:"
-            "netCDF4, netCDF3, netcdf, scientific"
+            "netCDF4 or scipy."
         )
 
     if lazy is not False:
         raise NotImplementedError("Lazy loading is not supported.")
 
-    ncfile = Dataset(filename, "r")
+    ncfile = netcdf_file_reader(filename, "r")
 
     if (
         hasattr(ncfile, "file_format_version")

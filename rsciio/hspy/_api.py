@@ -66,6 +66,9 @@ _logger = logging.getLogger(__name__)
 #
 # CHANGES
 #
+# v3.2
+# - deprecated record_by attribute is removed
+#
 # v3.1
 # - add read support for non-uniform DataAxis defined by 'axis' vector
 # - move metadata.Signal.binned attribute to axes.is_binned parameter
@@ -82,8 +85,8 @@ _logger = logging.getLogger(__name__)
 # - Store the navigate attribute
 # - record_by is stored only for backward compatibility but the axes navigate
 #   attribute takes precendence over record_by for files with version >= 2.1
+#
 # v1.3
-# ----
 # - Added support for lists, tuples and binary strings
 
 not_valid_format = "The file is not a valid HyperSpy hdf5 file"
@@ -257,22 +260,8 @@ def file_writer(filename, signal, close_file=True, **kwds):
         group_name = group_name.replace("/", "-")
     expg = exps.require_group(group_name)
 
-    # Add record_by metadata for backward compatibility
-    signal_dimension = len([axis for axis in signal["axes"] if not axis["navigate"]])
-    smd = signal["metadata"]["Signal"]
-    if signal_dimension == 1:
-        smd["record_by"] = "spectrum"
-    elif signal_dimension == 2:
-        smd["record_by"] = "image"
-    else:
-        smd["record_by"] = ""
-    try:
-        writer = HyperspyWriter(f, signal, expg, **kwds)
-        writer.write()
-    except Exception:
-        raise
-    finally:
-        del smd["record_by"]
+    writer = HyperspyWriter(f, signal, expg, **kwds)
+    writer.write()
 
     if close_file:
         f.close()

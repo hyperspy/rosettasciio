@@ -551,6 +551,79 @@ writing and performance of many HyperSpy algorithms. See the
 <p>Also see the <a class="reference internal" href="../api/utils.html#hdf5-utils"><span class="std std-ref">HDF5 utility functions</span></a> for inspecting HDF5 files.</p>
 </div>
 </section>
+<section id="format-description">
+<h2>Format description<a class="headerlink" href="#format-description" title="Permalink to this heading">#</a></h2>
+<p>The root of the file must contain a group called <code class="docutils literal notranslate"><span class="pre">Experiments</span></code>. The <code class="docutils literal notranslate"><span class="pre">Experiments</span></code>
+group can contain any number of subgroups and each subgroup is an experiment or
+signal. Each subgroup must contain at least one dataset called <code class="docutils literal notranslate"><span class="pre">data</span></code>. The
+data is an array of arbitrary dimension. In addition, a number equal to the
+number of dimensions of the <code class="docutils literal notranslate"><span class="pre">data</span></code> dataset of empty groups called <code class="docutils literal notranslate"><span class="pre">axis</span></code>
+followed by a number must exist with the following attributes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">'name'</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'offset'</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'scale'</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'units'</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'size'</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'index_in_array'</span></code></p></li>
+</ul>
+<p>Alternatively to <code class="docutils literal notranslate"><span class="pre">'offset'</span></code> and <code class="docutils literal notranslate"><span class="pre">'scale'</span></code>, the coordinate groups may
+contain an <code class="docutils literal notranslate"><span class="pre">'axis'</span></code> vector attribute defining the axis points.
+The experiment group contains a number of attributes that will be
+directly assigned as class attributes of the
+<code class="xref py py-class docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal</span></code> instance. In
+addition the experiment groups may contain <code class="docutils literal notranslate"><span class="pre">'original_metadata'</span></code> and
+<code class="docutils literal notranslate"><span class="pre">'metadata'</span></code>-subgroup that will be assigned to the same name attributes
+of the <code class="xref py py-class docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal</span></code> instance as a
+<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/api/hyperspy.misc.utils.html#hyperspy.misc.utils.DictionaryTreeBrowser" title="(in HyperSpy v1.7.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">hyperspy.misc.utils.DictionaryTreeBrowser</span></code></a>.
+The <code class="docutils literal notranslate"><span class="pre">Experiments</span></code> group can contain attributes that may be common to all
+the experiments and that will be accessible as attributes of the
+<code class="docutils literal notranslate"><span class="pre">Experiments</span></code> instance.</p>
+</section>
+<section id="changelog">
+<h2>Changelog<a class="headerlink" href="#changelog" title="Permalink to this heading">#</a></h2>
+<section id="v3-2">
+<h3>v3.2<a class="headerlink" href="#v3-2" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Deprecated <code class="docutils literal notranslate"><span class="pre">record_by</span></code> attribute is removed</p></li>
+</ul>
+</section>
+<section id="v3-1">
+<h3>v3.1<a class="headerlink" href="#v3-1" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>add read support for non-uniform DataAxis defined by <code class="docutils literal notranslate"><span class="pre">'axis'</span></code> vector</p></li>
+<li><p>move <code class="docutils literal notranslate"><span class="pre">metadata.Signal.binned</span></code> attribute to <code class="docutils literal notranslate"><span class="pre">axes.is_binned</span></code> parameter</p></li>
+</ul>
+</section>
+<section id="v3-0">
+<h3>v3.0<a class="headerlink" href="#v3-0" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>add <code class="docutils literal notranslate"><span class="pre">Camera</span></code> and <code class="docutils literal notranslate"><span class="pre">Stage</span></code> node</p></li>
+<li><p>move <code class="docutils literal notranslate"><span class="pre">tilt_stage</span></code> to <code class="docutils literal notranslate"><span class="pre">Stage.tilt_alpha</span></code></p></li>
+</ul>
+</section>
+<section id="v2-2">
+<h3>v2.2<a class="headerlink" href="#v2-2" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>store more metadata as string: <code class="docutils literal notranslate"><span class="pre">date</span></code>, <code class="docutils literal notranslate"><span class="pre">time</span></code>, <code class="docutils literal notranslate"><span class="pre">notes</span></code>, <code class="docutils literal notranslate"><span class="pre">authors</span></code> and <code class="docutils literal notranslate"><span class="pre">doi</span></code></p></li>
+<li><p>store <code class="docutils literal notranslate"><span class="pre">quantity</span></code> for intensity axis</p></li>
+</ul>
+</section>
+<section id="v2-1">
+<h3>v2.1<a class="headerlink" href="#v2-1" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Store the <code class="docutils literal notranslate"><span class="pre">navigate</span></code> attribute</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">record_by</span></code> is stored only for backward compatibility but the axes <code class="docutils literal notranslate"><span class="pre">navigate</span></code>
+attribute takes precendence over <code class="docutils literal notranslate"><span class="pre">record_by</span></code> for files with version &gt;= 2.1</p></li>
+</ul>
+</section>
+<section id="v1-3">
+<h3>v1.3<a class="headerlink" href="#v1-3" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Added support for lists, tuples and binary strings</p></li>
+</ul>
+</section>
+</section>
 <section id="module-rsciio.hspy">
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.hspy" title="Permalink to this heading">#</a></h2>
 <dl class="py function">
@@ -684,6 +757,16 @@ platforms. For more details, see the <a class="reference external" href="https:/
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#chunking">Chunking</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#format-description">Format description</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#changelog">Changelog</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#v3-2">v3.2</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#v3-1">v3.1</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#v3-0">v3.0</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#v2-2">v2.2</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#v2-1">v2.1</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#v1-3">v1.3</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.hspy">API functions</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.hspy.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.hspy.file_writer"><code class="docutils literal notranslate"><span class="pre">file_writer()</span></code></a></li>

@@ -1,0 +1,1 @@
+Remove deprecated ``record_by`` attribute in :ref:`hspy <hspy-format>`/:ref:`zspy <zspy-format>`,

@@ -29,7 +29,7 @@ import numpy as np
 from rsciio.utils.tools import ensure_unicode
 
 
-version = "3.1"
+version = "3.2"
 
 default_version = Version(version)
 

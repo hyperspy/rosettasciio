@@ -172,23 +172,8 @@ def file_writer(filename, signal, close_file=True, **kwds):
         group_name = group_name.replace("/", "-")
     expg = exps.require_group(group_name)
 
-    # Add record_by metadata for backward compatibility
-    signal_dimension = len([axis for axis in signal["axes"] if not axis["navigate"]])
-    smd = signal["metadata"]["Signal"]
-    if signal_dimension == 1:
-        smd["record_by"] = "spectrum"
-    elif signal_dimension == 2:
-        smd["record_by"] = "image"
-    else:
-        smd["record_by"] = ""
-
-    try:
-        writer = ZspyWriter(f, signal, expg, **kwds)
-        writer.write()
-    except Exception:
-        raise
-    finally:
-        del smd["record_by"]
+    writer = ZspyWriter(f, signal, expg, **kwds)
+    writer.write()
 
     if isinstance(store, (zarr.ZipStore, zarr.DBMStore, zarr.LMDBStore)):
         if close_file:

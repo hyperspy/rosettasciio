@@ -24,6 +24,7 @@ import numpy as np
 
 from rsciio._docstrings import (
     FILENAME_DOC,
+    LAZY_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
 )
@@ -42,9 +43,12 @@ def file_writer(
     imshow_kwds=None,
     **kwds,
 ):
-    """Writes data to any format supported by pillow. The file format is defined by
-    the file extension that is any one supported by imageio. When any of the
-    parameters ``output_size``, ``scalebar`` or ``imshow_kwds`` is given,
+    """
+    Write data to any format supported by pillow.
+
+    The file format is defined by  the file extension that is any one
+    supported by imageio. When any of the parameters ``output_size``,
+    ``scalebar`` or ``imshow_kwds`` is given,
     :py:func:`~.matplotlib.pyplot.imshow` is used to generate a figure.
 
     Parameters
@@ -79,8 +83,7 @@ def file_writer(
         https://imageio.readthedocs.io/en/stable/formats/index.html when
         exporting an image without scalebar. When exporting with a scalebar,
         the keyword arguments are passed to the `pil_kwargs` dictionary of
-        :py:func:`~matplotlib.pyplot.savefig`
-
+        :py:func:`~matplotlib.pyplot.savefig`.
     """
     data = signal["data"]
     sig_axes = [ax for ax in signal["axes"] if not ax["navigate"]]
@@ -198,35 +201,35 @@ def file_writer(
 file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
 
 
-def file_reader(filename, **kwds):
-    """Read data from any format supported by imageio (PIL/pillow). The file
-    format is defined by the file extension that is any one supported by imageio.
-    For a list of formats see
-    https://imageio.readthedocs.io/en/stable/formats/index.html
+def file_reader(filename, lazy=False, **kwds):
+    """
+    Read data from any format supported by imageio (PIL/pillow).
+
+    The file format is defined by the file extension that is any one supported by
+    imageio. For a list of formats see
+    https://imageio.readthedocs.io/en/stable/formats/index.html.
 
     Parameters
     ----------
     %s
-    format: str, optional
-        The format to use to read the file. By default imageio selects the
-        appropriate format based on the filename and its contents.
+    %s
     **kwds : dict, optional
         Allows to pass keyword arguments supported by the individual file
         readers as documented at
-        https://imageio.readthedocs.io/en/stable/formats/index.html
+        https://imageio.readthedocs.io/en/stable/formats/index.html.
 
     %s
     """
-    dc = _read_data(filename, **kwds)
-    lazy = kwds.pop("lazy", False)
     if lazy:
         # load the image fully to check the dtype and shape, should be cheap.
         # Then store this info for later re-loading when required
         from dask.array import from_delayed
         from dask import delayed
 
-        val = delayed(_read_data, pure=True)(filename)
+        val = delayed(_read_data, pure=True)(filename, **kwds)
         dc = from_delayed(val, shape=dc.shape, dtype=dc.dtype)
+    else:
+        dc = _read_data(filename, **kwds)
     return [
         {
             "data": dc,
@@ -238,7 +241,7 @@ def file_reader(filename, **kwds):
     ]
 
 
-file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
 
 
 def _read_data(filename, **kwds):

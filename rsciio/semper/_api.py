@@ -419,12 +419,12 @@ class SemperFormat(object):
         )
         return cls(data, title, offsets, scales, units, metadata)
 
-    def save_to_unf(self, filename="semper.unf", skip_header=False):
+    def save_to_unf(self, filename, skip_header=False):
         """Save a :class:`~.SemperFormat` to a file.
 
         Parameters
         ----------
-        filename : string, optional
+        filename : string
             The name of the unf-file to which the data should be written.
         skip_header : bool, optional
             Determines if the header, title and label should be skipped (useful
@@ -688,7 +688,7 @@ def file_reader(filename, lazy=False):
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
 
 
-def file_writer(filename, signal, **kwds):
+def file_writer(filename, signal, skip_header=False):
     """
     Write signal to a Semper ``.unf`` file.
 
@@ -701,7 +701,7 @@ def file_writer(filename, signal, **kwds):
         for some other programs).
     """
     semper = SemperFormat.from_signal(signal)
-    semper.save_to_unf(filename)
+    semper.save_to_unf(filename, skip_header)
 
 
 file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)

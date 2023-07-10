@@ -436,14 +436,14 @@ class SFS_reader(object):
             SFSTreeItem, which can be read into byte stream, in chunks or
             whole using objects methods.
 
-        Example
-        -------
+        Examples
+        --------
         to get "file" object 'kitten.png' in folder 'catz' which
         resides in root directory of sfs, you would use:
 
         >>> instance_of_SFSReader.get_file('catz/kitten.png')
 
-        See also
+        See Also
         --------
         SFSTreeItem
         """
@@ -1086,8 +1086,8 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
     to be properly calculated otherwise wrong output or segfault
     is expected
 
-    Return
-    ------
+    Returns
+    -------
     numpy array of bruker hypermap, with (y, x, E) shape.
     """
     iter_data, size_chnk = virtual_file.get_iter_and_properties()[:2]
@@ -1243,7 +1243,15 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
     return vfa
 
 
-def file_reader(filename, lazy=False, *args, **kwds):
+def file_reader(
+    filename,
+    lazy=False,
+    select_type=None,
+    index=None,
+    downsample=1,
+    cutoff_at_kV=None,
+    instrument=None,
+):
     """
     Read a Bruker ``.bcf`` or ``.spx`` file.
 
@@ -1251,23 +1259,22 @@ def file_reader(filename, lazy=False, *args, **kwds):
     ----------
     %s
     %s
-    select_type : ``'spectrum_image'``, ``'image'`` or None
+    select_type : ``'spectrum_image'``, ``'image'`` or None, default=None
         If specified, only the corresponding type of data, either spectrum
         image or image, is returned.
         By default (None), all data are loaded.
-    index : int, None or str
+    index : int, None or str, default=None
         Allow to select the index of the dataset in the ``.bcf`` file, which
         can contain several datasets. The default value (``None``) results in
         loading the first dataset. When set to ``'all'``, all available datasets
         will be loaded and returned as separate signals.
-    downsample : int
+    downsample : int, default=1
         The downsampling ratio of a hyperspectral array (height and width only),
-        can be an integer >=1, where value of 1 results in no downsampling .
-        The default is 1.
+        can be an integer >=1, where value of 1 results in no downsampling.
         The underlying method of downsampling is unchangeable: sum. Differently
         than :py:func:``skimage.measure.block_reduce``, it is memory efficient
-        as it doesn't create intermediate arrays
-    cutoff_at_kV : int, float, ``'zealous'``, ``'auto'`` or None
+        as it doesn't create intermediate arrays.
+    cutoff_at_kV : int, float, ``'zealous'``, ``'auto'`` or None, default=None
         It can be used either to crop or enlarge the energy (or number of channels)
         range at max values. It can be used to conserve memory or enlarge
         the range if needed to mach the size of other file. The default value
@@ -1278,8 +1285,8 @@ def file_reader(filename, lazy=False, *args, **kwds):
         acceleration voltage or energy at last channel, depending which is smaller.
         In case the hv info is not there or hv is off (0 kV) then it falls back to
         the full channel range.
-    instrument : str or None
-        Can be either ``'TEM'`` or ``'SEM'``. Default is ``None``.
+    instrument : str or None, default=None
+        Can be either ``'TEM'`` or ``'SEM'``.
 
     %s
 
@@ -1307,9 +1314,20 @@ def file_reader(filename, lazy=False, *args, **kwds):
     """
     ext = splitext(filename)[1][1:]
     if ext == "bcf":
-        return bcf_reader(filename, lazy, *args, **kwds)
+        return bcf_reader(
+            filename=filename,
+            lazy=lazy,
+            select_type=select_type,
+            index=index,
+            downsample=downsample,
+            cutoff_at_kV=cutoff_at_kV,
+            instrument=instrument,
+        )
     elif ext == "spx":
-        return spx_reader(filename, lazy, *args, **kwds)
+        return spx_reader(
+            filename=filename,
+            lazy=lazy,
+        )
 
 
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
@@ -1331,24 +1349,24 @@ def bcf_reader(
 
     Parameters
     ----------
-    select_type : str or None
+    select_type : str or None, default=None
         One of: spectrum_image, image. If none specified, then function
         loads everything, else if specified, loads either just sem imagery,
-        or just hyper spectral mapping data (default None).
-    index : int, None or str
-        Index of dataset in bcf v2 can be None integer and 'all'
-        (default None); None will select first available mapping if more than
-        one. 'all' will return all maps if more than one present;
+        or just hyper spectral mapping data.
+    index : int, None or str, default=None
+        Index of dataset in bcf v2 can be None integer and 'all';
+        None will select first available mapping if more than one.
+        'all' will return all maps if more than one present;
         integer will return only selected map.
-    downsample : int
+    downsample : int, default=1
         the downsample ratio of hyperspectral array (downsampling
         height and width only), can be integer from 1 to inf, where '1' means
-        no downsampling will be applied. (default 1)
-    cutoff_at_kV : int, float or None
+        no downsampling will be applied.
+    cutoff_at_kV : int, float or None, default=None
         if set (can be int of float >= 0) can be used either, to
-        crop or enlarge energy range at max values. (default None)
-    instrument : str or None
-        Can be either 'TEM' or 'SEM'. Default is None.
+        crop or enlarge energy range at max values.
+    instrument : str or None, default=None
+        Can be either 'TEM' or 'SEM'.
     """
 
     # objectified bcf file:

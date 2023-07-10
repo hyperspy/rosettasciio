@@ -688,7 +688,7 @@ def _add_spc_metadata(metadata, spc_header):
     return metadata
 
 
-def spc_reader(filename, lazy=False, endianess="<", load_all_spc=False, **kwargs):
+def spc_reader(filename, lazy=False, endianess="<", load_all_spc=False, **kwds):
     """
     Read data from an SPC spectrum specified by filename.
 
@@ -699,8 +699,8 @@ def spc_reader(filename, lazy=False, endianess="<", load_all_spc=False, **kwargs
     %s
     load_all_spc : bool, Default=False
         Switch to control whether the complete .spc header is read, or just the
-        important parts for import into HyperSpy.
-    **kwargs
+        important parts for import into RosettaSciIO.
+    **kwds
         Remaining arguments are passed to the Numpy ``memmap`` function
 
     %s
@@ -715,13 +715,13 @@ def spc_reader(filename, lazy=False, endianess="<", load_all_spc=False, **kwargs
         nz = original_metadata["spc_header"]["numPts"]
         data_offset = original_metadata["spc_header"]["dataStart"]
 
-        mode = kwargs.pop("mode", "c")
+        mode = kwds.pop("mode", "c")
         if lazy:
             mode = "r"
 
         # Read data from file into a numpy memmap object
         data = np.memmap(
-            f, mode=mode, offset=data_offset, dtype="u4", shape=(1, nz), **kwargs
+            f, mode=mode, offset=data_offset, dtype="u4", shape=(1, nz), **kwds
         ).squeeze()
 
     # create the energy axis dictionary:
@@ -769,7 +769,7 @@ def spd_reader(
     spc_fname=None,
     ipr_fname=None,
     load_all_spc=False,
-    **kwargs,
+    **kwds,
 ):
     """
     Read data from an SPD spectral map specified by filename.
@@ -796,7 +796,7 @@ def spd_reader(
     load_all_spc : bool, Default=False
         Switch to control whether the complete .spc header is read, or just the
         important parts for import into HyperSpy.
-    **kwargs
+    **kwds
         Remaining arguments are passed to the Numpy ``memmap`` function.
 
     %s
@@ -814,13 +814,13 @@ def spd_reader(
         data_type = {"1": "u1", "2": "u2", "4": "u4"}[
             str(original_metadata["spd_header"]["countBytes"])
         ]
-        mode = kwargs.pop("mode", "c")
+        mode = kwds.pop("mode", "c")
         if lazy:
             mode = "r"
 
         # Read data from file into a numpy memmap object
         data = (
-            np.memmap(f, mode=mode, offset=data_offset, dtype=data_type, **kwargs)
+            np.memmap(f, mode=mode, offset=data_offset, dtype=data_type, **kwds)
             .squeeze()
             .reshape((nz, nx, ny), order="F")
             .T
@@ -955,17 +955,24 @@ def spd_reader(
 spd_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, RETURNS_DOC)
 
 
-def file_reader(filename, lazy=False, endianess="<", **kwargs):
+def file_reader(
+    filename,
+    lazy=False,
+    load_all_spc=False,
+    spc_fname=None,
+    ipr_fname=None,
+    endianess="<",
+    **kwds,
+):
     """
-    Reads ``.spc`` (spectrum) or ``.spd`` (spectrum image) files from EDAX
+    Read ``.spc`` (spectrum) or ``.spd`` (spectrum image) files from EDAX
     Genesis or TEAMS software.
 
     Parameters
     ----------
     %s
     %s
-    %s
-    load_all_spc : bool, Default=False
+    load_all_spc : bool, default=False
         Switch to control whether the complete .spc header is read, or just the
         important parts for import into HyperSpy.
     spc_fname : None or str
@@ -984,8 +991,9 @@ def file_reader(filename, lazy=False, endianess="<", **kwargs):
         If `None`, the default filename will be searched for.
         Otherwise, the name of the .ipr file to use for spatial calibration
         can be explicitly given as a string.
-    **kwargs
-        Remaining arguments are passed to the Numpy ``memmap`` function.
+    %s
+    **kwds : dict, optional
+        Remaining arguments are passed to :py:class:`numpy.memmap`.
 
     %s
 
@@ -993,11 +1001,20 @@ def file_reader(filename, lazy=False, endianess="<", **kwargs):
     -----
     The file specification is available at :ref:`edax-file_specification`.
     """
+
     ext = os.path.splitext(filename)[1][1:]
     if ext in spd_extensions:
-        return spd_reader(filename, lazy, endianess, **kwargs)
+        return spd_reader(
+            filename,
+            lazy,
+            endianess,
+            spc_fname=spc_fname,
+            ipr_fname=ipr_fname,
+            load_all_spc=load_all_spc,
+            **kwds,
+        )
     elif ext in spc_extensions:
-        return spc_reader(filename, lazy, endianess, **kwargs)
+        return spc_reader(filename, lazy, endianess, load_all_spc=load_all_spc, **kwds)
     else:
         raise IOError("Did not understand input file format.")
 

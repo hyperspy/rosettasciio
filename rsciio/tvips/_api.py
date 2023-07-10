@@ -35,6 +35,7 @@ from rsciio._docstrings import (
     LAZY_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
+    SHOW_PROGRESSBAR_DOC,
 )
 from rsciio.utils.tools import DTBox, sarray2dict
 from rsciio.utils.tools import dummy_context_manager
@@ -218,25 +219,24 @@ def _guess_scan_index_grid(rotidx, start, stop):
 
 def file_reader(
     filename,
-    lazy=True,
+    lazy=False,
     scan_shape=None,
     scan_start_frame=0,
     winding_scan_axis=None,
     hysteresis=0,
     rechunking="auto",
-    **kwds,
 ):
     """
-    TVIPS stream file reader for in-situ and 4D STEM data
+    Read TVIPS stream file for in-situ and 4D STEM data.
 
     Parameters
     ----------
     %s
     %s
-    scan_shape : str or tuple of int, optional
+    scan_shape : str or tuple of int or None, optional
         By default the data is loaded as an image stack (1 navigation axis).
         A tuple of integers can be provided to indicate the shape of the
-        navigation axes. For example, `(3, 4)` will have 3 scan points in the y
+        navigation axes. For example, ``(3, 4)`` will have 3 scan points in the y
         direction and 4 in the x direction.
         If it concerns a 4D-STEM dataset, the (..., ``scan_y``, ``scan_x)``
         dimension can be provided. ``"auto"`` can also be selected, in which case
@@ -254,12 +254,12 @@ def file_reader(
         ``"x"`` or ``"y"``, depending on whether winding happened along the
         primary or secondary axis. By default, flyback scan without winding
         is assumed with ``x`` the fast scan and ``y`` the slow scan direction.
-    hysteresis: int, optional
+    hysteresis : int, optional
         Only applicable if ``winding_scan_axis`` is not ``None``, as it is likely
         there is an overshoot of a few pixels (2-5) every second scan row. This
         parameter allows shifts every second row by the indicated number of scan
         points to align even and odd scan rows. Default is 0, no hysteresis.
-    rechunking: bool, str, or Dict, Default="auto"
+    rechunking : bool, str, dict, Default="auto"
         Only relevant when using lazy loading. If set to False each tvips file is
         a single chunk. For a better experience, with the default setting of
         ``"auto"`` rechunking is performed such that the navigation axes
@@ -503,14 +503,18 @@ def file_reader(
     ]
 
 
-file_reader.__doc__ %= (
-    FILENAME_DOC,
-    LAZY_DOC.replace("False", "True"),
-    RETURNS_DOC,
-)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
 
 
-def file_writer(filename, signal, **kwds):
+def file_writer(
+    filename,
+    signal,
+    max_file_size=None,
+    version=2,
+    frame_header_extra_bytes=0,
+    mode=None,
+    show_progressbar=None,
+):
     """
     Write signal to TVIPS file.
 
@@ -518,22 +522,21 @@ def file_writer(filename, signal, **kwds):
     ----------
     %s
     %s
-    max_file_size: int, optional
+    max_file_size : int or None, default=None
         Approximate maximum size of individual files in bytes. In this way a
         dataset can be split into multiple files. A file needs to be at least the
         size of the main header in the first file plus one frame and its frame
         header. Sequential files are denoted by a suffix _xxx starting from _000.
-        By default there is no maximum and the entire dataset is stored in a
+        By default (``None``) there is no maximum and the entire dataset is stored in a
         single file.
-    version: int, optional
-        TVIPS file format version (only version ``1`` or ``2`` supported),
-        defaults to version ``2``.
-    frame_header_extra_bytes: int, optional
-        Number of bytes to pad the frame headers with, defaults to 0
-    mode: int, optional
+    version : int, default=2
+        TVIPS file format version (only version ``1`` or ``2`` supported).
+    frame_header_extra_bytes : int, default=0
+        Number of bytes to pad the frame headers with.
+    mode : int or None, default=None
         ``1`` for imaging, ``2`` for diffraction. By default, the mode is
         guessed from signal type and signal units.
-    """
+    %s"""
     # only signal2d is allowed
     axes = signal["axes"]
     metadata = DTBox(signal["metadata"], box_dots=True)
@@ -545,13 +548,12 @@ def file_writer(filename, signal, **kwds):
     fnb, ext = os.path.splitext(filename)
     if fnb.endswith("_000"):
         fnb = fnb[:-4]
-    version = kwds.pop("version", 2)
-    fheb = kwds.pop("frame_header_extra_bytes", 0)
-    main_header = _get_main_header_from_signal(signal, version, fheb)
+    main_header = _get_main_header_from_signal(
+        signal, version, frame_header_extra_bytes
+    )
     # frame header + frame dtype
-    record_dtype = _get_frame_record_dtype_from_signal(signal, fheb)
+    record_dtype = _get_frame_record_dtype_from_signal(signal, frame_header_extra_bytes)
     total_file_size = main_header.itemsize + num_frames * record_dtype.itemsize
-    max_file_size = kwds.pop("max_file_size", None)
     if max_file_size is None:
         max_file_size = total_file_size
     minimum_file_size = main_header.itemsize + record_dtype.itemsize
@@ -578,7 +580,6 @@ def file_writer(filename, signal, **kwds):
         except (AttributeError, pint.UndefinedUnitError, pint.DimensionalityError):
             time_increment = 1
     # imaging or diffraction
-    mode = kwds.pop("mode", None)
     if mode is None:
         mode = _guess_image_mode(signal)
     mode = 2 if mode is None else mode
@@ -634,13 +635,6 @@ def file_writer(filename, signal, **kwds):
         file_memmap["rotidx"] = rotator + 1
         data = fdata[current_frame : current_frame + frames_saved]
         if signal["attributes"]["_lazy"]:
-            try:
-                from hyperspy.defaults_parser import preferences
-
-                hs_show_progressbar = preferences.General.show_progressbar
-            except Exception:  # pragma: no cover
-                hs_show_progressbar = None
-            show_progressbar = kwds.get("show_progressbar", hs_show_progressbar)
             cm = ProgressBar if show_progressbar else dummy_context_manager
             with cm():
                 data.store(file_memmap["data"])
@@ -652,4 +646,8 @@ def file_writer(filename, signal, **kwds):
         current_frame += frames_saved
 
 
-file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
+file_writer.__doc__ %= (
+    FILENAME_DOC.replace("read", "write to"),
+    SIGNAL_DOC,
+    SHOW_PROGRESSBAR_DOC,
+)

@@ -21,7 +21,7 @@ import logging
 
 import numpy as np
 
-from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC
+from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
 
 _logger = logging.getLogger(__name__)
 
@@ -82,14 +82,14 @@ treatments2netcdf = {
 }
 
 
-def file_reader(filename, *args, **kwds):
+def file_reader(filename, lazy=False):
     """
     Read netCDF ``.nc`` files saved using the HyperSpy predecessor EELSlab.
 
     Parameters
     ----------
     %s
-
+    %s
     %s
     """
     if no_netcdf is True:
@@ -100,13 +100,16 @@ def file_reader(filename, *args, **kwds):
             "netCDF4, netCDF3, netcdf, scientific"
         )
 
+    if lazy is not False:
+        raise NotImplementedError("Lazy loading is not supported.")
+
     ncfile = Dataset(filename, "r")
 
     if (
         hasattr(ncfile, "file_format_version")
         and ncfile.file_format_version == "EELSLab 0.1"
     ):
-        dictionary = nc_hyperspy_reader_0dot1(ncfile, filename, *args, **kwds)
+        dictionary = nc_hyperspy_reader_0dot1(ncfile, filename)
     else:
         ncfile.close()
         raise IOError("Unsupported netCDF file")
@@ -114,10 +117,10 @@ def file_reader(filename, *args, **kwds):
     return (dictionary,)
 
 
-file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC)
 
 
-def nc_hyperspy_reader_0dot1(ncfile, filename, *args, **kwds):
+def nc_hyperspy_reader_0dot1(ncfile, filename):
     calibration_dict, acquisition_dict, treatments_dict = {}, {}, {}
     dc = ncfile.variables["data_cube"]
     data = dc[:]

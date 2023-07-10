@@ -24,7 +24,12 @@ import os
 
 import numpy as np
 
-from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC, SIGNAL_DOC
+from rsciio._docstrings import (
+    FILENAME_DOC,
+    RETURNS_DOC,
+    SIGNAL_DOC,
+    LAZY_UNSUPPORTED_DOC,
+)
 from rsciio.utils.tools import DTBox
 
 _logger = logging.getLogger(__name__)
@@ -37,26 +42,30 @@ _logger = logging.getLogger(__name__)
 # array (containing all data) with a dictionary containing all metadata.
 
 
-def file_reader(filename, **kwds):
+def file_reader(filename, lazy=False):
     """
     Read a PantaRhei ``.prz`` file.
 
     Parameters
     ----------
     %s
+    %s
 
     %s
     """
+    if lazy is not False:
+        raise NotImplementedError("Lazy loading is not supported.")
+
     prz_file = np.load(filename, allow_pickle=True)
     data = prz_file["data"]
     meta_data = prz_file["meta_data"][0]
     return import_pr(data, meta_data, filename)
 
 
-file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC)
 
 
-def file_writer(filename, signal, **kwds):
+def file_writer(filename, signal):
     """
     Write signal to PantaRhei ``.prz`` format.
 

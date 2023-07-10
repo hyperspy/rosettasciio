@@ -24,6 +24,7 @@ import numcodecs
 import zarr
 
 from rsciio._docstrings import (
+    CHUNKS_DOC,
     FILENAME_DOC,
     LAZY_DOC,
     RETURNS_DOC,
@@ -110,32 +111,30 @@ class ZspyWriter(HierarchicalWriter):
 def file_writer(
     filename,
     signal,
-    close_file=True,
     chunks=None,
     compressor=None,
+    close_file=True,
     write_dataset=True,
     **kwds,
 ):
-    """Writes data to HyperSpy's zarr format.
+    """
+    Write data to HyperSpy's zarr format.
 
     Parameters
     ----------
     %s
     %s
+    %s
+    compressor : numcodecs.abc.Codec or None, default=None
+        A compressor can be passed to the save function to compress the data
+        efficiently, see `Numcodecs codec <https://numcodecs.readthedocs.io/en/stable>`_.
+        If None, use a Blosc compressor.
     close_file : bool, default=True
         Close the file after writing. Only relevant for some zarr storages
         (:py:class:`zarr.storage.ZipStore`, :py:class:`zarr.storage.DBMStore`)
         requiring store to flush data to disk. If ``False``, doesn't close the
         file after writing. The file should not be closed if the data needs to be
         accessed lazily after saving.
-    chunks : tuple of int or None, default=None
-        Define the chunking used for saving the dataset. If None, calculates
-        chunks for the signal, with preferably at least one chunk per signal
-        space.
-    compressor : numcodecs.abc.Codec or None, default=None
-        A compressor can be passed to the save function to compress the data
-        efficiently, see `Numcodecs codec <https://numcodecs.readthedocs.io/en/stable>`_.
-        If None, use a Blosc compressor.
     write_dataset : bool, default=True
         If ``False``, doesn't write the dataset when writing the file. This can
         be useful to overwrite signal attributes only (for example ``axes_manager``)
@@ -154,6 +153,8 @@ def file_writer(
         compressor = numcodecs.Blosc(
             cname="zstd", clevel=1, shuffle=numcodecs.Blosc.SHUFFLE
         )
+    if not isinstance(write_dataset, bool):
+        raise ValueError("`write_dataset` argument must a boolean.")
 
     if isinstance(filename, MutableMapping):
         store = filename
@@ -195,18 +196,23 @@ def file_writer(
             store.flush()
 
 
-file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
+file_writer.__doc__ %= (
+    FILENAME_DOC.replace("read", "write to"),
+    SIGNAL_DOC,
+    CHUNKS_DOC,
+)
 
 
 def file_reader(filename, lazy=False, **kwds):
-    """Read data from zspy files saved with the HyperSpy zarr format
+    """
+    Read data from zspy files saved with the HyperSpy zarr format
     specification.
 
     Parameters
     ----------
     %s
     %s
-    **kwds
+    **kwds : dict, optional
         Pass keyword arguments to the :py:func:`zarr.convenience.open` function.
 
     %s

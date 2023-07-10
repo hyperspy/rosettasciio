@@ -14,6 +14,7 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+import numpydoc
 import pydata_sphinx_theme
 from packaging.version import Version
 
@@ -46,6 +47,7 @@ intersphinx_mapping = {
     "hyperspy": ("https://hyperspy.org/hyperspy-doc/current/", None),
     "h5py": ("https://docs.h5py.org/en/stable/", None),
     "matplotlib": ("https://matplotlib.org", None),
+    "mrcz": ("https://python-mrcz.readthedocs.io", None),
     "numcodecs": ("https://numcodecs.readthedocs.io/en/stable", None),
     "numpy": ("https://docs.scipy.org/doc/numpy", None),
     "pooch": ("https://www.fatiando.org/pooch/latest", None),
@@ -102,6 +104,9 @@ nitpicky = True
 
 numpydoc_xref_param_type = True
 numpydoc_xref_ignore = {"type", "optional", "default", "of"}
+
+if Version(numpydoc.__version__) >= Version("1.6.0rc0"):
+    numpydoc_validation_checks = {"all", "ES01", "EX01", "GL02", "GL03", "SA01", "SS06"}
 
 # -- Options for towncrier_draft extension -----------------------------------
 

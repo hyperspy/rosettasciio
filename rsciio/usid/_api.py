@@ -229,29 +229,23 @@ def _convert_to_signal_dict(
     return sig
 
 
-def _usidataset_to_signal(h5_main, ignore_non_uniform_dims=True, lazy=True, *kwds):
+def _usidataset_to_signal_dict(h5_main, ignore_non_uniform_dims=True, lazy=False):
     """
     Converts a single specified USIDataset object to one or more Signal objects
 
     Parameters
     ----------
-    h5_main : pyUSID.USIDataset object
+    h5_main : pyUSID.USIDataset
         USID Main dataset
-    ignore_non_uniform_dims : bool, Optional
+    ignore_non_uniform_dims : bool, Default True
         If True, parameters that were varied non-uniformly in the desired
         dataset will result in Exceptions.
         Else, all such non-uniformly varied parameters will be treated as
         uniformly varied parameters and
         a Signal object will be generated.
-    lazy : bool, Optional
-        If set to True, data will be read as a Dask array.
-        Else, data will be read in as a numpy array
+    %s
 
-    Returns
-    -------
-    list of hyperspy.signals.BaseSignal objects
-        USIDatasets with compound datatypes are broken down to multiple Signal
-        objects.
+    %s
     """
     h5_main = usid.USIDataset(h5_main)
     # TODO: Cannot handle data without N-dimensional form yet
@@ -334,6 +328,9 @@ def _usidataset_to_signal(h5_main, ignore_non_uniform_dims=True, lazy=True, *kwd
     return sig
 
 
+_usidataset_to_signal_dict.__doc__ %= (LAZY_DOC, RETURNS_DOC)
+
+
 # ######## UTILITIES THAT SIMPLIFY WRITING TO H5USID FILES ####################
 
 
@@ -402,11 +399,9 @@ def _axes_list_to_dimensions(axes_list, data_shape, is_spec):
 # ####### REQUIRED FUNCTIONS FOR AN IO PLUGIN #################################
 
 
-def file_reader(
-    filename, lazy=False, dataset_path=None, ignore_non_uniform_dims=True, **kwds
-):
+def file_reader(filename, lazy=False, dataset_path=None, ignore_non_uniform_dims=True):
     """
-    Reads a USID Main dataset present in an HDF5 file into a HyperSpy Signal
+    Read a USID Main dataset present in an HDF5 file into a HyperSpy Signal.
 
     Parameters
     ----------
@@ -441,18 +436,17 @@ def file_reader(
         for h5_dset in all_main_dsets:
             # Note that the function returns a list already.
             # Should not append
-            signals += _usidataset_to_signal(
+            signals += _usidataset_to_signal_dict(
                 h5_dset,
                 ignore_non_uniform_dims=ignore_non_uniform_dims,
                 lazy=lazy,
-                **kwds,
             )
     else:
         if not isinstance(dataset_path, str):
             raise TypeError("'dataset_path' should be a string")
         h5_dset = h5_f[dataset_path]
-        signals = _usidataset_to_signal(
-            h5_dset, ignore_non_uniform_dims=ignore_non_uniform_dims, lazy=lazy, **kwds
+        signals = _usidataset_to_signal_dict(
+            h5_dset, ignore_non_uniform_dims=ignore_non_uniform_dims, lazy=lazy
         )
     if not lazy:
         h5_f.close()
@@ -464,16 +458,13 @@ file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
 
 def file_writer(filename, signal, **kwds):
     """
-    Writes a HyperSpy Signal object to a HDF5 file formatted according to USID.
+    Write a HyperSpy Signal object to a HDF5 file formatted according to USID.
 
     Parameters
     ----------
     %s
     %s
-    overwrite: bool, optional
-        If set to ``True``, the writer will append the data to the specified
-        HDF5 file.
-    **kwds: optional
+    **kwds : dict, optional
         All other keyword arguments will be passed to
         :py:func:`pyUSID.io.hdf_utils.model.write_main_dataset`.
     """

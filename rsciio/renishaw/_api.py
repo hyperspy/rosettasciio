@@ -1289,20 +1289,20 @@ def file_reader(
     lazy=False,
     use_uniform_signal_axis=True,
     load_unmatched_metadata=False,
-    **kwds,
 ):
-    """Reads Renishaw's ``.wdf`` file.
+    """
+    Read Renishaw's ``.wdf`` file.
 
     Parameters
     ----------
     %s
     %s
-    use_uniform_signal_axis: bool, default=False
+    use_uniform_signal_axis : bool, default=False
         Can be specified to choose between non-uniform or uniform signal axes.
         If `True`, the ``scale`` attribute is calculated from the average delta
         along the signal axis and a warning is raised in case the delta varies
         by more than 1%%.
-    load_unmatched_metadata: bool, default=False
+    load_unmatched_metadata : bool, default=False
         Some of the original_metadata cannot be matched (no key, just value).
         Part of this is a VisualBasic-Script used for data acquisition (~230kB),
         which blows up the size of ``original_metadata``. If this option is set to

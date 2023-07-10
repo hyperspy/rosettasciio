@@ -244,7 +244,7 @@ def emixml2dtb(et, dictree):
             emixml2dtb(child, dictree[et.tag])
 
 
-def emi_reader(filename, dump_xml=False, **kwds):
+def emi_reader(filename, lazy=False, only_valid_data=True, dump_xml=False):
     # TODO: recover the tags from the emi file. It is easy: just look for
     # <ObjectInfo> and </ObjectInfo>. It is standard xml :)
     # xml chunks are identified using UUID, if we can find how these UUID are
@@ -253,7 +253,7 @@ def emi_reader(filename, dump_xml=False, **kwds):
     objects = get_xml_info_from_emi(filename)
     orig_fname = filename
     filename = os.path.splitext(filename)[0]
-    if dump_xml is True:
+    if dump_xml:
         for i, obj in enumerate(objects):
             with open(filename + "-object-%s.xml" % i, "w") as f:
                 f.write(obj)
@@ -263,7 +263,7 @@ def emi_reader(filename, dump_xml=False, **kwds):
     for f in ser_files:
         _logger.info("Opening %s", f)
         try:
-            sers.append(ser_reader(f, objects, **kwds))
+            sers.extend(ser_reader(f, objects, lazy, only_valid_data))
         except IOError:  # Probably a single spectrum that we don't support
             continue
 
@@ -283,7 +283,7 @@ def emi_reader(filename, dump_xml=False, **kwds):
     return sers
 
 
-def file_reader(filename, *args, **kwds):
+def file_reader(filename, lazy=False, only_valid_data=True):
     """
     Read sets of ``.ser`` and ``.emi`` files from the FEI/ThermoFisher software TIA
     (TEM Imaging & Analysis).
@@ -292,7 +292,7 @@ def file_reader(filename, *args, **kwds):
     ----------
     %s
     %s
-    only_valid_data: bool, Default=True
+    only_valid_data : bool, Default=True
         For cases, where acquisition of series or linescan data stopped before
         the end. If `True`, load only the acquired data. If `False`, the empty
         data are filled with zeros.
@@ -304,10 +304,12 @@ def file_reader(filename, *args, **kwds):
     emi_extensions = ("emi", "EMI")
     if ext in ser_extensions:
         return [
-            ser_reader(filename, *args, **kwds),
+            ser_reader(
+                filename, objects=None, lazy=lazy, only_valid_data=only_valid_data
+            ),
         ]
     elif ext in emi_extensions:
-        return emi_reader(filename, *args, **kwds)
+        return emi_reader(filename, lazy, only_valid_data)
 
 
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
@@ -502,9 +504,9 @@ def convert_xml_to_dict(xml_object):
 
 
 def ser_reader(filename, objects=None, lazy=False, only_valid_data=True):
-    """Reads the information from the file and returns it in the HyperSpy
+    """
+    Reads the information from the file and returns it in the HyperSpy
     required format.
-
     """
     header, data = load_ser_file(filename)
     record_by = guess_record_by(header["DataTypeID"])
@@ -688,7 +690,9 @@ def ser_reader(filename, objects=None, lazy=False, only_valid_data=True):
         "original_metadata": original_metadata,
         "mapping": mapping,
     }
-    return dictionary
+    return [
+        dictionary,
+    ]
 
 
 def load_only_data(

@@ -38,6 +38,7 @@ import dask.array as da
 from dateutil import tz
 
 from rsciio._docstrings import (
+    CHUNKS_DOC,
     FILENAME_DOC,
     LAZY_DOC,
     RETURNS_DOC,
@@ -1536,7 +1537,20 @@ def is_EMD_Velox(file):
         return _is_EMD_velox(file)
 
 
-def file_reader(filename, lazy=False, **kwds):
+def file_reader(
+    filename,
+    lazy=False,
+    dataset_path=None,
+    stack_group=None,
+    select_type=None,
+    first_frame=0,
+    last_frame=None,
+    sum_frames=True,
+    sum_EDS_detectors=True,
+    rebin_energy=1,
+    SI_dtype=None,
+    load_SI_image_stack=False,
+):
     """
     Read EMD file, which can be an NCEM or a Velox variant of the EMD format.
     Also reads Direct Electron's DE5 format, which is read according to the
@@ -1546,9 +1560,6 @@ def file_reader(filename, lazy=False, **kwds):
     ----------
     %s
     %s
-    **kwds : dict
-        Keyword arguments passed to the EMD NCEM or EMD Velox reader as specified
-        in the following.
     dataset_path : None, str or list of str, default=None
         NCEM only: Path of the dataset. If None, load all supported datasets,
         otherwise the specified dataset(s).
@@ -1597,13 +1608,21 @@ def file_reader(filename, lazy=False, **kwds):
     try:
         if is_EMD_Velox(file):
             _logger.debug("EMD file is a Velox variant.")
-            emd_reader = FeiEMDReader(lazy=lazy, **kwds)
+            emd_reader = FeiEMDReader(
+                lazy=lazy,
+                select_type=select_type,
+                first_frame=first_frame,
+                last_frame=last_frame,
+                sum_frames=sum_frames,
+                sum_EDS_detectors=sum_EDS_detectors,
+                rebin_energy=rebin_energy,
+                SI_dtype=SI_dtype,
+                load_SI_image_stack=load_SI_image_stack,
+            )
             emd_reader.read_file(file)
         elif is_EMD_NCEM(file):
             _logger.debug("EMD file is a Berkeley variant.")
-            dataset_path = kwds.pop("dataset_path", None)
-            stack_group = kwds.pop("stack_group", None)
-            emd_reader = EMD_NCEM(**kwds)
+            emd_reader = EMD_NCEM()
             emd_reader.read_file(
                 file, lazy=lazy, dataset_path=dataset_path, stack_group=stack_group
             )
@@ -1623,7 +1642,7 @@ def file_reader(filename, lazy=False, **kwds):
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
 
 
-def file_writer(filename, signal, **kwds):
+def file_writer(filename, signal, chunks=None, **kwds):
     """
     Write signal to EMD file. Only the specifications by the National Center
     for Electron Microscopy (NCEM) are supported.
@@ -1632,14 +1651,16 @@ def file_writer(filename, signal, **kwds):
     ----------
     %s
     %s
-    chunks : None, True or tuple, Default=None
-        Determine the chunking of the dataset to save. See the :ref:`chunks
-        argument of the hspy-format <hspy-chunks>` for more details.
-    **kwargs : dict
+    %s
+    **kwds : dict, optional
         Dictionary containing metadata, which will be written as attribute
         of the root group.
     """
-    EMD_NCEM().write_file(filename, signal, **kwds)
+    EMD_NCEM().write_file(filename, signal, chunks=chunks, **kwds)
 
 
-file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
+file_writer.__doc__ %= (
+    FILENAME_DOC.replace("read", "write to"),
+    SIGNAL_DOC,
+    CHUNKS_DOC,
+)

@@ -93,15 +93,14 @@ def _convert_scale_units(value, units, factor=1):
     return converted_value, converted_units
 
 
-def file_reader(filename, lazy=False, **kwds):
+def file_reader(filename, lazy=False):
     """
-    Reads file format used by the Electron Microscope Pixel Array Detector (EMPAD).
+    Read file format used by the Electron Microscope Pixel Array Detector (EMPAD).
 
     Parameters
     ----------
     %s
     %s
-
     %s
     """
     om, info = _parse_xml(filename)

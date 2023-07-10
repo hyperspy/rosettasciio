@@ -25,6 +25,8 @@ import h5py
 import numpy as np
 
 from rsciio._docstrings import (
+    COMPRESSION_HDF5_DOC,
+    COMPRESSION_HDF5_NOTES_DOC,
     FILENAME_DOC,
     LAZY_DOC,
     RETURNS_DOC,
@@ -438,21 +440,22 @@ def file_reader(
     nxdata_only=False,
     hardlinks_only=False,
     use_default=False,
-    **kwds,
+    mapping=None,
 ):
-    """Read NXdata class or hdf datasets from a file and return signal(s).
+    """
+    Read NXdata class or hdf datasets from a file and return signal(s).
 
     Parameters
     ----------
     %s
     %s
-    dataset_key  : None, str, list of str, default : None
+    dataset_key : None, str, list of str, default=None
         If None all datasets are returned.
         If a string or list of strings is provided only items
         whose path contain the string(s) are returned. For example
         dataset_key = ["instrument", "Fe"] will return
         data entries with instrument or Fe in their hdf path.
-    dataset_path : None, str, list of str, default : None
+    dataset_path : None, str, list of str, default=None
         If None, no absolute path is searched.
         If a string or list of strings is provided items with the absolute
         paths specified will be returned. For example, dataset_path =
@@ -460,28 +463,38 @@ def file_reader(
         It is not filtered by dataset_key, i.e. with dataset_key = ['Fe'],
         it still returns the specific dataset at '/data/spectrum/Mn'. It is
         empty if no dataset matching the absolute path provided is present.
-    metadata_key: : None, str, list of str, default : None
+    metadata_key : None, str, list of str, default=None
         Only return items from the original metadata whose path contain the
         strings .e.g metadata_key = ["instrument", "Fe"] will return
         all metadata entries with "instrument" or "Fe" in their hdf path.
-    skip_array_metadata : bool, default : False
+    skip_array_metadata : bool, default=False
         Whether to skip loading metadata with an array entry. This is useful
         as metadata may contain large array that is redundant with the data.
-    nxdata_only : bool, default : False
+    nxdata_only : bool, default=False
         If True only NXdata will be converted into a signal
-        if False NXdata and any hdf datasets will be loaded as signals
-    hardlinks_only : bool, default : False
+        if False NXdata and any hdf datasets will be loaded as signals.
+    hardlinks_only : bool, default=False
         If True any links (soft or External) will be ignored when loading.
-    use_default : bool, default : False
+    use_default : bool, default=False
         If True and a default NXdata is defined in the file load this as a
         signal. This will ignore the other keyword options. If True and no
         default is defined the file will be loaded according to
         the keyword options.
+    mapping : None or dict
+        Define the mapping from the original metadata to the returned
+        metadata.
 
     %s
 
-    Note
-    ----
+    See Also
+    --------
+    rsciio.utils.hdf5.list_datasets_in_file : Convenience function to list
+        datasets present in a file.
+    rsciio.utils.hdf5.read_metadata_from_file : Convenience function to read
+        metadata present in a file.
+
+    Notes
+    -----
     Loading all datasets can result in a large number of signals
     Please review your datasets and use the dataset_key to target
     the datasets of interest.
@@ -489,15 +502,11 @@ def file_reader(
     structure to avoid any issues.
 
     Datasets are all arrays with size>2 (arrays, lists)
-
-    See Also
-    --------
-    rsciio.utils.hdf5.list_datasets_in_file
-    rsciio.utils.hdf5.read_metadata_from_file
     """
     # search for NXdata sets...
 
-    mapping = kwds.get("mapping", {})
+    if mapping is None:
+        mapping = {}
     original_metadata = {}
     learning = {}
     fin = h5py.File(filename, "r")
@@ -1131,14 +1140,14 @@ def _write_signal(signal, nxgroup, signal_name, **kwds):
 
 def file_writer(
     filename,
-    signals,
+    signal,
     save_original_metadata=True,
     skip_metadata_key=None,
     use_default=False,
-    *args,
-    **kwds,
+    compression="gzip",
 ):
-    """Write the signal and metadata as a NeXus file.
+    """
+    Write the signal and metadata as a NeXus file.
 
     This will save the signal in NXdata format in the file.
     As the form of the metadata can vary and is not validated it will
@@ -1149,38 +1158,43 @@ def file_writer(
     %s
     %s
     save_original_metadata : bool , default : True
-          Option to save hyperspy.original_metadata with the signal.
-          A loaded NeXus file may have a large amount of data
-          when loaded which you may wish to omit on saving.
+        Option to save hyperspy.original_metadata with the signal.
+        A loaded NeXus file may have a large amount of data
+        when loaded which you may wish to omit on saving.
     skip_metadata_key : str or list of str, default : None
         The key(s) to skip when saving original metadata. This is useful
         when some metadata keys should be ignored.
     use_default : bool , default : False
-          Option to define the default dataset in the file.
-          If set to True the signal or first signal in the list of signals
-          will be defined as the default (following NeXus v3 data rules).
+        Option to define the default dataset in the file.
+        If set to True the signal or first signal in the list of signals
+        will be defined as the default (following NeXus v3 data rules).
+    %s
 
     See Also
     --------
-    rsciio.utils.hdf5.list_datasets_in_file
-    rsciio.utils.hdf5.read_metadata_from_file
+    rsciio.utils.hdf5.list_datasets_in_file : Convenience function to list
+        datasets present in a file.
+    rsciio.utils.hdf5.read_metadata_from_file : Convenience function to read
+        metadata present in a file.
 
+    Notes
+    -----
+    %s
     """
-    if not isinstance(signals, list):
-        signals = [signals]
+    if not isinstance(signal, list):
+        signal = [signal]
 
     with h5py.File(filename, mode="w") as f:
         f.attrs["file_format"] = "nexus"
         f.attrs["file_writer"] = "hyperspy_nexus_v3"
-        if "compression" not in kwds:
-            kwds["compression"] = "gzip"
+
         if use_default:
             f.attrs["default"] = "entry1"
         #
-        # write the signals
+        # write the signal
         #
 
-        for i, sig in enumerate(signals):
+        for i, sig in enumerate(signal):
             md = DTBox(sig["metadata"], box_dots=True)
             nxentry = f.create_group(f"entry{i + 1}")
             nxentry.attrs["NX_class"] = _parse_to_file("NXentry")
@@ -1198,13 +1212,13 @@ def file_writer(
 
             nxaux = nxentry.create_group("auxiliary")
             nxaux.attrs["NX_class"] = _parse_to_file("NXentry")
-            _write_signal(sig, nxentry, signal_name, **kwds)
+            _write_signal(sig, nxentry, signal_name, compression=compression)
 
             learn = sig.get("learning_results")
             if learn:
                 nxlearn = nxaux.create_group("learning_results")
                 nxlearn.attrs["NX_class"] = _parse_to_file("NXcollection")
-                _write_nexus_groups(learn, nxlearn, **kwds)
+                _write_nexus_groups(learn, nxlearn, compression=compression)
                 _write_nexus_attr(learn, nxlearn)
             #
             # write metadata
@@ -1215,7 +1229,9 @@ def file_writer(
                     nxom = nxaux.create_group("original_metadata")
                     nxom.attrs["NX_class"] = _parse_to_file("NXcollection")
                     # write the groups and structure
-                    _write_nexus_groups(om, nxom, skip_keys=skip_metadata_key, **kwds)
+                    _write_nexus_groups(
+                        om, nxom, skip_keys=skip_metadata_key, compression=compression
+                    )
                     _write_nexus_attr(om, nxom, skip_keys=skip_metadata_key)
 
             md = sig.get("metadata")
@@ -1223,8 +1239,13 @@ def file_writer(
                 nxmd = nxaux.create_group("hyperspy_metadata")
                 nxmd.attrs["NX_class"] = _parse_to_file("NXcollection")
                 # write the groups and structure
-                _write_nexus_groups(md, nxmd, **kwds)
+                _write_nexus_groups(md, nxmd, compression=compression)
                 _write_nexus_attr(md, nxmd)
 
 
-file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
+file_writer.__doc__ %= (
+    FILENAME_DOC.replace("read", "write to"),
+    SIGNAL_DOC,
+    COMPRESSION_HDF5_DOC,
+    COMPRESSION_HDF5_NOTES_DOC,
+)

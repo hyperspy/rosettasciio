@@ -34,6 +34,7 @@ from rsciio._docstrings import (
     MMAP_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
+    SHOW_PROGRESSBAR_DOC,
 )
 from rsciio.utils.skimage_exposure import rescale_intensity
 from rsciio.utils.tools import DTBox, sarray2dict, dict2sarray
@@ -215,7 +216,6 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<"):
     %s
     %s
     %s
-
     %s
     """
 
@@ -337,7 +337,7 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<"):
     ]
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, MMAP_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, MMAP_DOC, ENDIANESS_DOC, RETURNS_DOC)
 
 
 def file_writer(
@@ -355,7 +355,7 @@ def file_writer(
     ----------
     %s
     %s
-    intensity_scaling : str or 2-Tuple of float/int
+    intensity_scaling : str, 2-tuple of float, 2-tuple of int
         If the signal datatype is not :py:class:`numpy.ubyte`, casting to this
         datatype without intensity rescaling results in overflow errors (default behavior)
         This argument provides intensity scaling strategies and the options are:
@@ -375,10 +375,8 @@ def file_writer(
         Otherwise, it is calculated during saving which can take  some time for large
         datasets. Alternatively, an array-like of the right shape may also be provided.
         If set to None, a zero array is stored in the file.
-    show_progressbar : bool
-        Whether to show the progressbar or not.
-    endianess : str
-        ``'<'`` (default) or ``'>'`` determining how the bits are written to the file
+    %s
+    %s
     """
     smetadata = DTBox(signal["metadata"], box_dots=True)
     if intensity_scaling is None:
@@ -484,4 +482,9 @@ def file_writer(
     file_memmap.flush()
 
 
-file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
+file_writer.__doc__ %= (
+    FILENAME_DOC.replace("read", "write to"),
+    SIGNAL_DOC,
+    SHOW_PROGRESSBAR_DOC,
+    ENDIANESS_DOC,
+)

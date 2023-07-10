@@ -63,21 +63,22 @@ axes_label_codes = {
 }
 
 
-def file_writer(filename, signal, export_scale=True, extratags=[], **kwds):
-    """Writes data to tif using Christoph Gohlke's tifffile library.
+def file_writer(filename, signal, export_scale=True, extratags=None, **kwds):
+    """
+    Write data to tif using Christoph Gohlke's tifffile library.
 
     Parameters
     ----------
     %s
     %s
-    export_scale: bool, default=True
+    export_scale : bool, default=True
         Export the scale and the units (compatible with DM and ImageJ) to
         appropriate tags.
-    extratags: tuple, list of tuples, optional
+    extratags : tuple, list of tuple, None, default=None
         Save custom tags through the ``tifffile`` library. Must conform to a
         specific convention (see `tifffile documentation
         <https://github.com/cgohlke/tifffile>`_ and example below).
-    **kwds: optional
+    **kwds : dict, optional
         Additional arguments to be passed to the ``imwrite`` function of the `tifffile library
         <https://github.com/cgohlke/tifffile>`_.
 
@@ -97,6 +98,9 @@ def file_writer(filename, signal, export_scale=True, extratags=[], **kwds):
     photometric = "MINISBLACK"
     # HyperSpy uses struct arrays to store RGBA data
     from rsciio.utils import rgb_tools
+
+    if extratags is None:
+        extratags = []
 
     if rgb_tools.is_rgbx(data):
         data = rgb_tools.rgbx2regular_array(data)
@@ -130,10 +134,16 @@ file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
 
 
 def file_reader(
-    filename, lazy=False, force_read_resolution=False, multipage_as_list=False, **kwds
+    filename,
+    lazy=False,
+    force_read_resolution=False,
+    multipage_as_list=False,
+    hamamatsu_streak_axis_type=None,
+    **kwds,
 ):
     """
     Read data from tif files using Christoph Gohlke's tifffile library.
+
     The units and the scale of images saved with ImageJ or Digital
     Micrograph is read. There is limited support for reading the scale of
     files created with Zeiss and FEI SEMs.
@@ -142,33 +152,33 @@ def file_reader(
     ----------
     %s
     %s
-    force_read_resolution: bool, Default=False
+    force_read_resolution : bool, default=False
         Force read image resolution using the ``x_resolution``, ``y_resolution``
         and ``resolution_unit`` tiff tags. Beware: most software don't (properly)
         use these tags when saving ``.tiff`` files.
         See `<https://www.awaresystems.be/imaging/tiff/tifftags/resolutionunit.html>`_.
-    multipage_as_list: bool, Default=False
+    multipage_as_list : bool, default=False
         Read multipage tiff and return list with full content of every page. This
         utilises ``tifffile``s ``pages`` instead of ``series`` way of data access,
         which differently to ``series`` is able to return metadata per page,
         where ``series`` (default) is able to access only metadata from first page.
         This is recommended to be used when data is from dynamic experiments (where
         some of parameters of the instrument are changing during acquisition).
-    hamamatsu_streak_axis_type: str, optional
+    hamamatsu_streak_axis_type : str, default=None
         Decide the type of the time axis for hamamatsu streak files:
 
-        - ``uniform``: the best-fit linear axis is used, inducing a (small)
+        - ``"uniform"``: the best-fit linear axis is used, inducing a (small)
           linearisation error. Initialise a UniformDataAxis.
-        - ``data``: the raw time axis parsed from the metadata is used.
+        - ``"data"``: the raw time axis parsed from the metadata is used.
           Initialise a DataAxis.
-        - ``functional``: the best-fit 3rd-order polynomial axis is used,
+        - ``"functional"``: the best-fit 3rd-order polynomial axis is used,
           avoiding linearisation error. Initialise a FunctionalDataAxis.
 
-        By default, ``uniform`` is used but a warning of the linearisation error
+        By default (``None``), ``uniform`` is used but a warning of the linearisation error
         is issued. Explicitly passing ``hamamatsu_streak_axis_type='uniform'``
         suppresses the warning. In all cases, the original axis values are stored
         in the ``original_metadata`` of the signal object.
-    **kwds: optional
+    **kwds : dict, optional
         Additional arguments to be passed to the ``TiffFile`` class of the `tifffile library
         <https://github.com/cgohlke/tifffile>`_.
 
@@ -182,17 +192,21 @@ def file_reader(
     >>> # Load a non-uniform axis from a hamamatsu streak file:
     >>> s = file_reader('file.tif', hamamatsu_streak_axis_type='data')
     """
-    tmp = kwds.pop("hamamatsu_streak_axis_type", None)
-
     with TiffFile(filename, **kwds) as tiff:
-        if tmp is not None:
-            kwds.update({"hamamatsu_streak_axis_type": tmp})
         if multipage_as_list:
             handles = tiff.pages  # use full access with pages interface
         else:
             handles = tiff.series  # use fast access with series interface
         dict_list = [
-            _read_tiff(tiff, handle, filename, force_read_resolution, lazy=lazy, **kwds)
+            _read_tiff(
+                tiff,
+                handle,
+                filename,
+                force_read_resolution,
+                lazy=lazy,
+                hamamatsu_streak_axis_type=hamamatsu_streak_axis_type,
+                **kwds,
+            )
             for handle in handles
         ]
 
@@ -229,10 +243,10 @@ def _build_axes_dictionaries(shape, names=None, scales=None, offsets=None, units
         names = [""] * len(shape)
     if scales is None:
         scales = [1.0] * len(shape)
-    if scales is None:
-        scales = [0.0] * len(shape)
+    if offsets is None:
+        offsets = [0.0] * len(shape)
     if units is None:
-        scales = [None] * len(shape)
+        units = [None] * len(shape)
 
     navigate = [True] * len(shape)
     navigate[-2:] = (False, False)
@@ -261,6 +275,7 @@ def _read_tiff(
     lazy=False,
     memmap=None,
     RGB_as_structured_array=True,
+    hamamatsu_streak_axis_type=None,
     **kwds,
 ):
     """handle - one of either of TiffPage type or TiffPageSeries type"""
@@ -289,9 +304,21 @@ def _read_tiff(
     _logger.debug("Photometric: %s" % op["PhotometricInterpretation"])
     _logger.debug("is_imagej: {}".format(page.is_imagej))
 
+    if hamamatsu_streak_axis_type not in [None, "functional", "data", "uniform"]:
+        raise ValueError(
+            "The `hamamatsu_streak_axis_type` argument only admits the "
+            "values `None`, `'data'`, `'functional'` and `'uniform'`."
+        )
+
     try:
         axes = _parse_scale_unit(
-            tiff, page, op, shape, force_read_resolution, names, **kwds
+            tiff,
+            page,
+            op,
+            shape,
+            force_read_resolution,
+            names,
+            hamamatsu_streak_axis_type,
         )
     except Exception:
         _logger.info("Scale and units could not be imported")
@@ -698,12 +725,10 @@ def _get_hamamatsu_streak_description(tiff, op):
     return dict_meta
 
 
-def _axes_hamamatsu_streak(tiff, op, shape, names, **kwds):
+def _axes_hamamatsu_streak(tiff, op, shape, names, hamamatsu_streak_axis_type):
     _logger.debug("Reading Hamamatsu Streak Map tif metadata")
 
-    if "hamamatsu_streak_axis_type" in kwds:
-        hamamatsu_streak_axis_type = kwds["hamamatsu_streak_axis_type"]
-    else:
+    if hamamatsu_streak_axis_type is None:
         hamamatsu_streak_axis_type = "uniform"
         warnings.warn(
             f"{tiff} contain a non linear axis. By default, "
@@ -712,14 +737,6 @@ def _axes_hamamatsu_streak(tiff, op, shape, names, **kwds):
             f"either a parabolic functional axis using `hamamatsu_streak_axis_type='functional'`, "
             f"a data axis using `hamamatsu_streak_axis_type='data'`, or use `hamamatsu_streak_axis_type='uniform'`to "
             f"linearize the axis and make this warning disappear",
-            UserWarning,
-        )
-
-    if hamamatsu_streak_axis_type not in ["functional", "data", "uniform"]:
-        hamamatsu_streak_axis_type = "uniform"
-        warnings.warn(
-            "The `hamamatsu_streak_axis_type`  argument only admits "
-            "the values `'data'`, `'functional'` and `'uniform'`",
             UserWarning,
         )
 
@@ -853,7 +870,9 @@ def _add_axes_digital_micrograph(op, scales, offsets, units):
     return scales, offsets, units
 
 
-def _parse_scale_unit(tiff, page, op, shape, force_read_resolution, names, **kwds):
+def _parse_scale_unit(
+    tiff, page, op, shape, force_read_resolution, names, hamamatsu_streak_axis_type
+):
     # Force reading always has priority
     if _is_force_readable(op, force_read_resolution):
         axes = _axes_force_read(op, shape, names)
@@ -875,7 +894,9 @@ def _parse_scale_unit(tiff, page, op, shape, force_read_resolution, names, **kwd
         axes = _axes_jeol_sightx(tiff, op, shape, names)
         return axes
     elif _is_streak_hamamatsu(op):
-        axes = _axes_hamamatsu_streak(tiff, op, shape, names, **kwds)
+        axes = _axes_hamamatsu_streak(
+            tiff, op, shape, names, hamamatsu_streak_axis_type
+        )
         return axes
     # Axes are otherwise set to defaults
     else:

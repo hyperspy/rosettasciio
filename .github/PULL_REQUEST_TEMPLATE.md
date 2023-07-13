@@ -16,8 +16,8 @@ A few sentences and/or a bulleted list to describe and motivate the change:
 - [ ] Change implemented (can be split into several points),
 - [ ] update docstring (if appropriate),
 - [ ] update user guide (if appropriate),
-- [ ] add an changelog entry in the `upcoming_changes` folder (see [`upcoming_changes/README.rst`](https://github.com/hyperspy/rosettasciio/blob/main/upcoming_changes/README.rst)),
-- [ ] Check formatting changelog entry in the `readthedocs` doc build of this PR (link in github checks)
+- [ ] add a changelog entry in the `upcoming_changes` folder (see [`upcoming_changes/README.rst`](https://github.com/hyperspy/rosettasciio/blob/main/upcoming_changes/README.rst)),
+- [ ] Check formatting of the changelog entry (and eventual user guide changes) in the `docs/readthedocs.org:rosettasciio` build of this PR (link in github checks)
 - [ ] add tests,
 - [ ] ready for review.
 

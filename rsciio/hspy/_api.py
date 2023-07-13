@@ -24,6 +24,9 @@ import dask.array as da
 import h5py
 
 from rsciio._docstrings import (
+    CHUNKS_DOC,
+    COMPRESSION_HDF5_DOC,
+    COMPRESSION_HDF5_NOTES_DOC,
     FILENAME_DOC,
     LAZY_DOC,
     RETURNS_DOC,
@@ -90,15 +93,16 @@ class HyperspyWriter(HierarchicalWriter):
 
 
 def file_reader(filename, lazy=False, **kwds):
-    """Read data from hdf5-files saved with the HyperSpy hdf5-format
+    """
+    Read data from hdf5-files saved with the HyperSpy hdf5-format
     specification (``.hspy``).
 
     Parameters
     ----------
     %s
     %s
-    **kwds
-
+    **kwds : dict, optional
+        The keyword arguments are passed to :py:class:`h5py.File`.
 
     %s
     """
@@ -121,28 +125,28 @@ def file_reader(filename, lazy=False, **kwds):
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
 
 
-def file_writer(filename, signal, close_file=True, **kwds):
-    """Writes data to HyperSpy's hdf5-format (``.hspy``).
+def file_writer(
+    filename,
+    signal,
+    chunks=None,
+    compression="gzip",
+    close_file=True,
+    write_dataset=True,
+    **kwds,
+):
+    """
+    Write data to HyperSpy's hdf5-format (``.hspy``).
 
     Parameters
     ----------
     %s
     %s
-    compression : None, 'gzip', 'szip', 'lzf', Default='gzip'.
-        Compression can significantly increase the saving speed. If file size is not
-        an issue, it can be disabled by setting ``compression=None``.
-        RosettaSciIO uses h5py for reading and writing HDF5 files and, therefore,
-        it supports all `compression filters supported by h5py
-        <https://docs.h5py.org/en/stable/high/dataset.html#dataset-compression>`_.
-        The default is ``'gzip'``. Also see notes below.
-    chunks : tuple of integer or None, Default=None
-        Define the chunking used for saving the dataset. If ``None``, calculates
-        chunks for the signal, with preferably at least one chunk per signal
-        space.
-    close_file : bool, Default=True
+    %s
+    %s
+    close_file : bool, default=True
         Close the file after writing.  The file should not be closed if the data
         needs to be accessed lazily after saving.
-    write_dataset : bool, Default=True
+    write_dataset : bool, default=True
         If True, write the dataset, otherwise, don't write it. Useful to
         overwrite attributes (for example ``axes_manager``) only without having
         to write the whole dataset.
@@ -152,18 +156,10 @@ def file_writer(filename, signal, close_file=True, **kwds):
 
     Notes
     -----
-    It is possible to enable other compression filters such as ``blosc`` by
-    installing e.g. `hdf5plugin <https://github.com/silx-kit/hdf5plugin>`_.
-    Similarly, the availability of ``'szip'`` depends on the HDF5 installation.
-    If not available an error will be raised. Be aware that loading those
-    files will require installing the package providing the compression filter
-    and it may thus not be possible to load it on some platforms.
-    Only ``compression=None`` and ``compression='gzip'`` are available on all
-    platforms. For more details, see the `h5py documentation
-    <https://docs.h5py.org/en/stable/faq.html#what-compression-processing-filters-are-supported>`_.
+    %s
     """
-    if "compression" not in kwds:
-        kwds["compression"] = "gzip"
+    if not isinstance(write_dataset, bool):
+        raise ValueError("`write_dataset` argument has to be a boolean.")
 
     if "shuffle" not in kwds:
         # Use shuffle by default to improve compression
@@ -186,9 +182,6 @@ def file_writer(filename, signal, close_file=True, **kwds):
             )
 
     if f is None:
-        write_dataset = kwds.get("write_dataset", True)
-        if not isinstance(write_dataset, bool):
-            raise ValueError("`write_dataset` argument must a boolean.")
         # with "write_dataset=False", we need mode='a', otherwise the dataset
         # will be flushed with using 'w' mode
         mode = kwds.get("mode", "w" if write_dataset else "a")
@@ -206,14 +199,28 @@ def file_writer(filename, signal, close_file=True, **kwds):
         group_name = group_name.replace("/", "-")
     expg = exps.require_group(group_name)
 
-    writer = HyperspyWriter(f, signal, expg, **kwds)
+    writer = HyperspyWriter(
+        f,
+        signal,
+        expg,
+        chunks=chunks,
+        compression=compression,
+        write_dataset=write_dataset,
+        **kwds,
+    )
     writer.write()
 
     if close_file:
         f.close()
 
 
-file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)
+file_writer.__doc__ %= (
+    FILENAME_DOC.replace("read", "write to"),
+    SIGNAL_DOC,
+    CHUNKS_DOC,
+    COMPRESSION_HDF5_DOC,
+    COMPRESSION_HDF5_NOTES_DOC,
+)
 
 
 overwrite_dataset = HyperspyWriter.overwrite_dataset

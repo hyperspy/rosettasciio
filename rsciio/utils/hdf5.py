@@ -21,7 +21,7 @@
 import h5py
 import pprint
 
-from rsciio._docstrings import FILENAME_DOC
+from rsciio._docstrings import FILENAME_DOC, LAZY_DOC
 from rsciio.nexus._api import (
     _check_search_keys,
     _load_metadata,
@@ -31,9 +31,10 @@ from rsciio.nexus._api import (
 
 
 def read_metadata_from_file(
-    filename, metadata_key=None, lazy=False, verbose=False, skip_array_metadata=False
+    filename, lazy=False, metadata_key=None, verbose=False, skip_array_metadata=False
 ):
-    """Read the metadata from a NeXus or ``.hdf`` file.
+    """
+    Read the metadata from a NeXus or ``.hdf`` file.
 
     This method iterates through the hdf5 file and returns a dictionary of
     the entries.
@@ -43,15 +44,16 @@ def read_metadata_from_file(
     Parameters
     ----------
     %s
-    metadata_key  : None,str or list_of_strings , default : None
+    %s
+    metadata_key : None, str, list of str, default=None
         None will return all datasets found including linked data.
         Providing a string or list of strings will only return items
         which contain the string(s).
         For example, search_keys = ["instrument","Fe"] will return
         hdf entries with "instrument" or "Fe" in their hdf path.
-    verbose: bool, default : False
-        Pretty Print the results to screen
-    skip_array_metadata : bool, default : False
+    verbose : bool, default=False
+        Pretty print the results to screen.
+    skip_array_metadata : bool, default=False
         Whether to skip loading array metadata. This is useful as a lot of
         large array may be present in the metadata and it is redundant with
         dataset itself.
@@ -63,11 +65,8 @@ def read_metadata_from_file(
 
     See Also
     --------
-    * :py:meth:`~.io_plugins.nexus.file_reader`
-    * :py:meth:`~.io_plugins.nexus.file_writer`
-    * :py:meth:`~.io_plugins.nexus.list_datasets_in_file`
-
-
+    rsciio.utils.hdf5.list_datasets_in_file : Convenience function to list
+        datasets present in a file.
     """
     search_keys = _check_search_keys(metadata_key)
     fin = h5py.File(filename, "r")
@@ -86,13 +85,14 @@ def read_metadata_from_file(
     return stripped_metadata
 
 
-read_metadata_from_file.__doc__ %= FILENAME_DOC
+read_metadata_from_file.__doc__ %= (FILENAME_DOC, LAZY_DOC)
 
 
 def list_datasets_in_file(
     filename, dataset_key=None, hardlinks_only=False, verbose=True
 ):
-    """Read from a NeXus or ``.hdf`` file and return a list of the dataset paths.
+    """
+    Read from a NeXus or ``.hdf`` file and return a list of the dataset paths.
 
     This method is used to inspect the contents of an hdf5 file.
     The method iterates through group attributes and returns NXdata or
@@ -104,30 +104,25 @@ def list_datasets_in_file(
     Parameters
     ----------
     %s
-    dataset_key  : str, list of strings or None , default: None
+    dataset_key : str, list of str, None , default=None
         If a str or list of strings is provided only return items whose
         path contain the strings.
         For example, dataset_key = ["instrument", "Fe"] will only return
         hdf entries with "instrument" or "Fe" somewhere in their hdf path.
-    hardlinks_only : bool, default : False
+    hardlinks_only : bool, default=False
         If true any links (soft or External) will be ignored when loading.
-    verbose : boolean, default : True
-        Prints the results to screen
-
+    verbose : bool, default=True
+        Prints the results to screen.
 
     Returns
     -------
     list
         List of paths to datasets.
 
-
     See Also
     --------
-    * :py:meth:`~.io_plugins.nexus.file_reader`
-    * :py:meth:`~.io_plugins.nexus.file_writer`
-    * :py:meth:`~.io_plugins.nexus.read_metadata_from_file`
-
-
+    rsciio.utils.hdf5.read_metadata_from_file : Convenience function to read
+        metadata present in a file.
     """
     search_keys = _check_search_keys(dataset_key)
     fin = h5py.File(filename, "r")
@@ -154,3 +149,13 @@ def list_datasets_in_file(
 
 
 list_datasets_in_file.__doc__ %= FILENAME_DOC
+
+
+__all__ = [
+    "read_metadata_from_file",
+    "list_datasets_in_file",
+]
+
+
+def __dir__():
+    return sorted(__all__)

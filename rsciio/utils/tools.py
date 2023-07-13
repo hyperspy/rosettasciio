@@ -197,11 +197,12 @@ class XmlToDict:
         tags_to_flatten=None,
         interchild_text_parsing="first",
     ):
-        """Create translator for hierarchical XML etree node into
+        """
+        Create translator for hierarchical XML etree node into
         dict/list conversion.
 
-        Parameters for initialization
-        -----------------------------
+        Parameters
+        ----------
         dub_attr_pre_str: string (default: "@"), which
             is going to be prepend to attribute name when creating
             dictionary tree if children element with same name is used
@@ -225,31 +226,32 @@ class XmlToDict:
             but machine/programming language/framework generated
             and painfully verboise. See example below:
 
-        Example:
-            Consider such redundant tree structure:
+        Examples
+        --------
+        Consider such redundant tree structure:
 
-            DetectorHeader
-            |-ClassInstances
-              |-ClassInstance
-                |-Type
-                |-Window
-                ...
-
-            it can be sanitized/simplified by setting tags_to_flatten keyword
-            with ["ClassInstances", "ClassInstance"] to eliminate redundant
-            levels of tree with such tag names:
-
-            DetectorHeader
+        DetectorHeader
+        |-ClassInstances
+            |-ClassInstance
             |-Type
             |-Window
             ...
 
-            Produced dict/list structures are then good enought to be
-            returned as part of original metadata without making any more
-            copies.
+        it can be sanitized/simplified by setting tags_to_flatten keyword
+        with ["ClassInstances", "ClassInstance"] to eliminate redundant
+        levels of tree with such tag names:
+
+        DetectorHeader
+        |-Type
+        |-Window
+        ...
+
+        Produced dict/list structures are then good enought to be
+        returned as part of original metadata without making any more
+        copies.
 
         Usage
-        ------
+        -----
         in target format parser:
 
         from rsciio.utils.tools import XmlToDict

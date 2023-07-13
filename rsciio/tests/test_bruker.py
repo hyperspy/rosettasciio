@@ -8,6 +8,9 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 from hyperspy.misc.test_utils import assert_deep_almost_equal
 
+from rsciio.bruker import file_reader
+
+
 test_files = [
     "30x30_instructively_packed_16bit_compressed.bcf",
     "16x16_12bit_packed_8bit.bcf",
@@ -316,3 +319,8 @@ def test_bruker_XRF():
     assert s.metadata.Acquisition_instrument.TEM.beam_energy == 50
     assert s.axes_manager.signal_shape == (4096,)
     assert s.axes_manager.navigation_shape == ()
+
+
+def test_unsupported_extension():
+    with pytest.raises(ValueError):
+        file_reader("fname.unsupported_extension")

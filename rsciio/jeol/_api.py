@@ -51,7 +51,20 @@ jTYPE = {
 }
 
 
-def file_reader(filename, **kwargs):
+def file_reader(
+    filename,
+    lazy=False,
+    rebin_energy=1,
+    sum_frames=True,
+    SI_dtype=np.uint8,
+    cutoff_at_kV=None,
+    downsample=1,
+    only_valid_data=True,
+    read_em_image=False,
+    frame_list=None,
+    frame_shifts=None,
+    frame_start_index=None,
+):
     """
     File reader for JEOL Analysist Station software format.
 
@@ -59,47 +72,62 @@ def file_reader(filename, **kwargs):
     ----------
     %s
     %s
-    rebin_energy : int, Default=1.
+    rebin_energy : int, default=1
         Factor used to rebin the energy dimension. It must be a
         divisor of the number of channels, typically 4096.
-    sum_frames : bool, Default=True.
+    sum_frames : bool, default=True
         If ``False``, each individual frame (sweep in JEOL software jargon)
         is loaded. Be aware that loading each individual frame will use a lot of memory.
         However, it can be used in combination with ``rebin_energy``, ``cutoff_at_kV``
         and ``downsample`` to reduce memory usage.
-    SI_dtype : dtype, Default=np.uint8
-        Set ``dtype`` of the eds dataset. Useful to adjust memory usage
+    SI_dtype : numpy.dtype, default=np.uint8
+        Set the dtype of the eds dataset. Useful to adjust memory usage
         and maximum number of X-rays per channel.
-    cutoff_at_kV : int, float, or None, default=None
+    cutoff_at_kV : int, float, None, default=None
         If set (>= 0), use to crop the energy range up to the specified energy.
         If ``None``, the whole energy range is loaded.
         Useful to reduce memory usage.
-    downsample : int, Default=1
+    downsample : int, default=1
         The downsample ratio of the navigation dimension of an EDS
         dataset. It can be an integer or a tuple of length 2 to define ``x`` and ``y``
         separetely and it must be a divisor of the size of the navigation dimension.
-    only_valid_data : bool, Default=True
+    only_valid_data : bool, default=True
         For ``.pts`` files only. Ignore incomplete and partly
         acquired last frame, which typically occurs when the acquisition was
         interrupted. When loading incomplete data (``only_valid_data=False``),
         the missing data are filled with zeros. If ``sum_frames=True``, this argument
         will be ignored to enforce consistent summing over the mapped area.
-    read_em_image : bool, Default=False
+    read_em_image : bool, default=False
         For ``.pts`` files only. If ``True``,
         read SEM/STEM image from ``.pts`` file if available. In this case, both
         the spectrum Image and SEM/STEM Image will be returned as list.
-    frame_list : list of integer or None, Default=None
+    frame_list : list of int, None, default=None
         For ``.pts`` files only. Frames in ``frame_list`` will be loaded.
         For example, ``frame_list=[1,3]`` means second and forth frame will be loaded.
         If ``None``, all frames are loaded.
-    frame_shifts : list of [int, int], list of [int, int, int], or None, Default=None
+    frame_shifts : list of [int, int], list of [int, int, int], None, default=None
         For ``.pts`` files only. Each frame will be loaded with offset of
         [dy, dx (, and optionary dEnergy)]. Units are pixels/channels.
         The result of estimate_shift2D() can be used as a parameter of frame_shifts.
         This is useful for express drift correction. Not suitable for accurate analysis.
+    frame_start_index : list, None, default=None
+        The list of offset pointers of each frame in the raw data.
+        The pointer for frame0 is 0.
 
     %s
     """
+    kwargs = dict(
+        lazy=lazy,
+        rebin_energy=rebin_energy,
+        sum_frames=sum_frames,
+        SI_dtype=SI_dtype,
+        cutoff_at_kV=cutoff_at_kV,
+        downsample=downsample,
+        only_valid_data=only_valid_data,
+        read_em_image=read_em_image,
+        frame_list=frame_list,
+        frame_shifts=frame_shifts,
+    )
     file_ext = os.path.splitext(filename)[-1][1:].lower()
     if file_ext in extension_to_reader_mapping:
         return extension_to_reader_mapping[file_ext](filename, **kwargs)
@@ -159,8 +187,8 @@ def _read_img(filename, **kwargs):
     ----------
     filename : str
         img file name
-    kwargs :
-        not used
+    kwargs : dict
+        Not used.
 
     Returns
     -------
@@ -266,8 +294,8 @@ def _read_pts(
         Binning parameter along energy axis. Must be 2^n.
     sum_frames : bool
         If False, returns each frame.
-    SI_dtype : dtype
-        data type for spectrum image. default is uint8
+    SI_dtype : numpy.dtype
+        The data type for spectrum image. Default is numpy.uint8
     cutoff_at_kV : float
         The maximum energy. Useful to reduce memory size of spectrum image.
         Default is None (no cutoff)
@@ -293,6 +321,8 @@ def _read_pts(
     lazy : bool, default False
         Read spectrum image into sparse array if lazy == True
         SEM/STEM image is always read into dense array (numpy.ndarray)
+    **kwargs : dict
+        Not used.
 
     Returns
     -------
@@ -983,8 +1013,9 @@ def _readframe_dense(
     countup : 1 for summing up the X-ray events, -1 to cancel selected frame
     hypermap : numpy.ndarray(width, height, channel_number)
         numpy.ndarray to store decoded spectrum image.
-    em_image : numpy.ndarray(width, height), dtype = np.uint16 or np.uint32
-        numpy.ndarray to store decoded SEM/TEM image.
+    em_image : numpy.ndarray
+        numpy.ndarray to store decoded SEM/TEM image with dimension (width, height)
+        and dtype np.uint16 or np.uint32
     width : int
     height : int
     channel_number : int

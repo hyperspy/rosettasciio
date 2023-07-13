@@ -136,7 +136,7 @@ def get_data_type(mode):
 
 
 def file_reader(
-    filename, lazy=False, mmap_mode=None, navigation_shape=None, endianess="<", **kwds
+    filename, lazy=False, mmap_mode=None, endianess="<", navigation_shape=None
 ):
     """
     File reader for the MRC format for tomographic data.
@@ -146,9 +146,9 @@ def file_reader(
     %s
     %s
     %s
-    navigation_shape : tuple, None
-        Specify the shape of the navigation space.
     %s
+    navigation_shape : tuple, None, default=None
+        Specify the shape of the navigation space.
 
     %s
     """
@@ -288,4 +288,4 @@ mapping = {
 }
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, MMAP_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, MMAP_DOC, ENDIANESS_DOC, RETURNS_DOC)

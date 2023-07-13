@@ -26,6 +26,9 @@ import zipfile
 import numpy as np
 import pytest
 
+from rsciio.edax import file_reader
+
+
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 requests = pytest.importorskip("requests", reason="requests not installed")
 
@@ -596,3 +599,8 @@ class TestSpdMap_061_xrf:
         )
         np.testing.assert_allclose(spc_header.kV, sem_dict["beam_energy"])
         np.testing.assert_allclose(spc_header.numElem, len(elements))
+
+
+def test_unsupported_extension():
+    with pytest.raises(ValueError):
+        file_reader("fname.unsupported_extension")

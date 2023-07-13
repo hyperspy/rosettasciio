@@ -29,7 +29,7 @@ from copy import deepcopy
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
 
-from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC
+from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
 
 
 _logger = logging.getLogger(__name__)
@@ -154,8 +154,8 @@ class JobinYvonXMLReader:
         tag: Str
             Used as the corresponding key in the original_metadata dictionary.
 
-        Example
-        -------
+        Examples
+        --------
         <LSX Format="9" ID="0x6D7361DE" Size="5">
                         <LSX Format="7" ID="0x6D6D616E">Laser (nm)</LSX>
                         <LSX Format="7" ID="0x7D6C61DB">633 </LSX>
@@ -675,14 +675,15 @@ class JobinYvonXMLReader:
         _remove_none_from_dict(self.metadata)
 
 
-def file_reader(filename, use_uniform_signal_axis=False, **kwds):
+def file_reader(filename, lazy=False, use_uniform_signal_axis=False):
     """
     Read data from .xml files saved using Horiba Jobin Yvon's LabSpec software.
 
     Parameters
     ----------
     %s
-    use_uniform_signal_axis: bool, default=False
+    %s
+    use_uniform_signal_axis : bool, default=False
         Can be specified to choose between non-uniform or uniform signal axis.
         If ``True``, the ``scale`` attribute is calculated from the average delta
         along the signal axis and a warning is raised in case the delta varies
@@ -690,6 +691,8 @@ def file_reader(filename, use_uniform_signal_axis=False, **kwds):
 
     %s
     """
+    if lazy is not False:
+        raise NotImplementedError("Lazy loading is not supported.")
     if not isinstance(filename, Path):
         filename = Path(filename)
     jy = JobinYvonXMLReader(
@@ -711,4 +714,4 @@ def file_reader(filename, use_uniform_signal_axis=False, **kwds):
     ]
 
 
-file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC)

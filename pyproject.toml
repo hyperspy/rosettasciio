@@ -8,33 +8,33 @@ description = "Reading and writing scientific file formats"
 requires-python = ">=3.8"
 readme = "README.md"
 classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "Intended Audience :: Science/Research",
-    "Topic :: Software Development :: Libraries",
-    "Topic :: Scientific/Engineering",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Operating System :: Microsoft :: Windows",
-    "Operating System :: POSIX",
-    "Operating System :: Unix",
-    "Operating System :: MacOS",
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Scientific/Engineering",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX",
+  "Operating System :: Unix",
+  "Operating System :: MacOS",
 ]
 dependencies = [
-    "dask[array]>=2021.3.1",
-    "python-dateutil",
-    "h5py>=2.3",
-    "imageio>=2.16",
-    "numba>=0.52",
-    "numpy>=1.20.0",
-    "pint>=0.8",
-    "python-box>=6,<7",
-    "pyyaml",
-    "scipy>=1.5.0",
-    "sparse",
+  "dask[array]>=2021.3.1",
+  "python-dateutil",
+  "h5py>=2.3",
+  "imageio>=2.16",
+  "numba>=0.52",
+  "numpy>=1.20.0",
+  "pint>=0.8",
+  "python-box>=6,<7",
+  "pyyaml",
+  "scipy>=1.5.0",
+  "sparse",
 ]
 dynamic = ["version"]
 
@@ -53,21 +53,35 @@ scalebar_export = ["matplotlib-scalebar", "matplotlib>=3.1.3"]
 tiff = ["tifffile>=2020.2.16", "imagecodecs>=2020.1.31"]
 usid = ["pyUSID"]
 zspy = ["zarr"]
-tests = ["pooch", "pytest>=3.6", "pytest-xdist", "pytest-rerunfailures", "pytest-cov"]
-docs = ["pydata-sphinx-theme>=0.13", "sphinxcontrib-towncrier", "towncrier"]
+tests = [
+  "pooch",
+  "pytest>=3.6",
+  "pytest-xdist",
+  "pytest-rerunfailures",
+  "pytest-cov"
+]
+docs = [
+  "numpydoc",
+  "pooch",
+  "pydata-sphinx-theme>=0.13",
+  "sphinx",
+  "sphinx-favicon",
+  "sphinxcontrib-towncrier",
+  "towncrier"
+]
 all = [
-    "rosettasciio[blockfile]",
-    "rosettasciio[mrcz]",
-    "rosettasciio[scalebar_export]",
-    "rosettasciio[tiff]",
-    "rosettasciio[usid]",
-    "rosettasciio[zspy]",
+  "rosettasciio[blockfile]",
+  "rosettasciio[mrcz]",
+  "rosettasciio[scalebar_export]",
+  "rosettasciio[tiff]",
+  "rosettasciio[usid]",
+  "rosettasciio[zspy]",
 ]
 dev = [
-    "black",
-    "rosettasciio[docs]",
-    "rosettasciio[all]",
-    "rosettasciio[tests]"
+  "black",
+  "rosettasciio[docs]",
+  "rosettasciio[all]",
+  "rosettasciio[tests]"
 ]
 
 [tool.pytest.ini_options]

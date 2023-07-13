@@ -31,6 +31,12 @@ def test_rsciio_dir():
     assert dir(rsciio) == ["IO_PLUGINS", "__version__"]
 
 
+def test_rsciio_utils():
+    from rsciio.utils import hdf5 as utils_hdf5
+
+    assert dir(utils_hdf5) == ["list_datasets_in_file", "read_metadata_from_file"]
+
+
 def test_import_all():
     from rsciio import IO_PLUGINS
 

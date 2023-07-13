@@ -24,6 +24,7 @@ from rsciio._docstrings import (
     FILENAME_DOC,
     LAZY_DOC,
     ENDIANESS_DOC,
+    MMAP_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
 )
@@ -75,16 +76,18 @@ mapping = {
 }
 
 
-def file_reader(filename, lazy=False, endianess="<", mmap_mode="c", **kwds):
-    """File reader for the MRCZ format for tomographic data.
+def file_reader(filename, lazy=False, mmap_mode="c", endianess="<", **kwds):
+    """
+    File reader for the MRCZ format for tomographic data.
 
     Parameters
     ----------
     %s
     %s
     %s
-    mmap_mode : str, Default="c"
-        The MRCZ reader currently only supports C-ordering memory-maps.
+    %s
+    **kwds : dict, optional
+        The keyword arguments are passed to :py:func:`mrcz.readMRC`.
 
     %s
 
@@ -140,11 +143,26 @@ def file_reader(filename, lazy=False, endianess="<", mmap_mode="c", **kwds):
     ]
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (
+    FILENAME_DOC,
+    LAZY_DOC,
+    MMAP_DOC.replace(
+        "incompatible).",
+        "incompatible). The MRCZ reader currently only supports C-ordering memory-maps.",
+    ),
+    ENDIANESS_DOC,
+    RETURNS_DOC,
+)
 
 
 def file_writer(
-    filename, signal, do_async=False, compressor=None, clevel=1, n_threads=None, **kwds
+    filename,
+    signal,
+    endianess="<",
+    do_async=False,
+    compressor=None,
+    clevel=1,
+    n_threads=None,
 ):
     """
     Write signal to MRCZ format.
@@ -187,7 +205,6 @@ def file_writer(
     >>> from rsciio.mrcz import file_writer
     >>> file_writer('file.mrcz', signal, do_async=True, compressor='zstd', clevel=1)
     """
-    endianess = kwds.pop("endianess", "<")
     mrcz_endian = "le" if endianess == "<" else "be"
 
     md = DTBox(signal["metadata"], box_dots=True)

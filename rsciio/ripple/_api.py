@@ -32,6 +32,7 @@ from rsciio._docstrings import (
     FILENAME_DOC,
     LAZY_DOC,
     ENCODING_DOC,
+    MMAP_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
 )
@@ -132,7 +133,8 @@ def correct_INCA_format(fp):
 
 
 def parse_ripple(fp):
-    """Parse information from ripple (.rpl) file.
+    """
+    Parse information from ripple (.rpl) file.
     Accepts file object 'fp. Returns dictionary rpl_info.
     """
 
@@ -187,26 +189,18 @@ def parse_ripple(fp):
     return rpl_info
 
 
-def read_raw(rpl_info, fp, mmap_mode="c"):
+def read_raw(rpl_info, filename, mmap_mode="c"):
     """Read the raw file object 'fp' based on the information given in the
     'rpl_info' dictionary.
 
     Parameters
     ----------
-    rpl_info: dict
-        A dictionary containing the keywords as parsed by read_rpl
-    fp:
-    mmap_mode: {None, 'r+', 'r', 'w+', 'c'}, optional
-        If not None, then memory-map the file, using the given mode
-        (see ``numpy.memmap``). The mode has no effect for pickled or
-        zipped files.
-        A memory-mapped array is stored on disk, and not directly loaded
-        into memory.  However, it can be accessed and sliced like any
-        ndarray.  Memory mapping is especially useful for accessing
-        small fragments of large files without reading the entire file
-        into memory.
-
-
+    rpl_info : dict
+        A dictionary containing the keywords as parsed by ``read_rpl``.
+    filename : str
+        The filename of the raw file.
+    mmap_mode : str, default='c'
+        The mmap_mode to use to read the file.
     """
     width = rpl_info["width"]
     height = rpl_info["height"]
@@ -237,7 +231,7 @@ def read_raw(rpl_info, fp, mmap_mode="c"):
     data_type = np.dtype(data_type)
     data_type = data_type.newbyteorder(endian)
 
-    data = np.memmap(fp, offset=offset, dtype=data_type, mode=mmap_mode)
+    data = np.memmap(filename, offset=offset, dtype=data_type, mode=mmap_mode)
 
     if record_by == "vector":  # spectral image
         size = (height, width, depth)
@@ -252,9 +246,11 @@ def read_raw(rpl_info, fp, mmap_mode="c"):
 
 
 def file_reader(
-    filename, rpl_info=None, encoding="latin-1", mmap_mode="c", *args, **kwds
+    filename, lazy=False, rpl_info=None, encoding="latin-1", mmap_mode=None
 ):
-    """Parses a Lispix (https://www.nist.gov/services-resources/software/lispix)
+    """
+    Read a ripple/raw file.
+    Parse a lispix (https://www.nist.gov/services-resources/software/lispix)
     ripple (.rpl) file and reads the data from the corresponding raw (.raw) file;
     or, read a raw file if the dictionary ``rpl_info`` is provided.
 
@@ -267,25 +263,17 @@ def file_reader(
         without corresponding ``.rpl`` file. If ``None``, the keywords are parsed
         automatically from the ``.rpl`` file.
     %s
-    mmap_mode : str, optional
-        Default is copy-on-write ``"c"``, but different modes can be set. However,
-        note that lazy loading does not support in-place writing (i.e lazy loading
-        and the ``"r+"`` mode are incompatible). The mode has no effect for pickled or
-        zipped files. A memory-mapped array is stored on disk, and not directly loaded
-        into memory.  However, it can be accessed and sliced like any
-        ndarray.  Memory mapping is especially useful for accessing
-        small fragments of large files without reading the entire file
-        into memory.
+    %s
 
     %s
     """
-
     if not rpl_info:
         if filename[-3:] in file_extensions:
             with codecs.open(filename, encoding=encoding, errors="replace") as f:
                 rpl_info = parse_ripple(f)
         else:
             raise IOError('File has wrong extension: "%s"' % filename[-3:])
+
     for ext in ["raw", "RAW"]:
         rawfname = filename[:-3] + ext
         if os.path.exists(rawfname):
@@ -293,12 +281,13 @@ def file_reader(
         else:
             rawfname = ""
     if not rawfname:
-        raise IOError('RAW file "%s" does not exists' % rawfname)
+        raise IOError(f'RAW file "{rawfname}" does not exists')
+
+    if lazy:
+        mmap_mode = "r"
     else:
-        lazy = kwds.pop("lazy", False)
-        if lazy:
-            mmap_mode = "r"
-        data = read_raw(rpl_info, rawfname, mmap_mode=mmap_mode)
+        mmap_mode = "c"
+    data = read_raw(rpl_info, rawfname, mmap_mode=mmap_mode)
 
     if rpl_info["record-by"] == "vector":
         _logger.info("Loading as Signal1D")
@@ -465,11 +454,13 @@ def file_reader(
     ]
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENCODING_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENCODING_DOC, MMAP_DOC, RETURNS_DOC)
 
 
-def file_writer(filename, signal, encoding="latin-1", *args, **kwds):
-    """Writes a Lispix (https://www.nist.gov/services-resources/software/lispix)
+def file_writer(filename, signal, encoding="latin-1"):
+    """
+    Write a ripple/raw file.
+    Write a Lispix (https://www.nist.gov/services-resources/software/lispix)
     ripple (.rpl) file and saves the data in a corresponding raw (.raw) file.
 
     Parameters
@@ -478,7 +469,6 @@ def file_writer(filename, signal, encoding="latin-1", *args, **kwds):
     %s
     %s
     """
-
     # Set the optional keys to None
     ev_per_chan = None
 
@@ -631,7 +621,6 @@ def write_raw(filename, signal, record_by, sig_axes, nav_axes):
         the filename, either with the extension or without it
     record_by : str
          'vector' or 'image'
-
     """
     filename = os.path.splitext(filename)[0] + ".raw"
     data = signal["data"]

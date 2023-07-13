@@ -45,7 +45,7 @@ from dateutil import tz
 import tifffile
 import xml.etree.ElementTree as ET
 
-from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC, LAZY_UNSUPPORTED_DOC
 
 
 def element_symbol(z):
@@ -950,7 +950,7 @@ class ElidReader:
         return [dict for dict in dictionaries if dict]
 
 
-def file_reader(filename, lazy=False, **kwds):
+def file_reader(filename, lazy=False):
     """
     Read a Phenom ``.elid`` file from the software Element Identification (>v3.8.0)
     used by the Thermo Fisher Scientific Phenom desktop SEMs.
@@ -962,8 +962,11 @@ def file_reader(filename, lazy=False, **kwds):
 
     %s
     """
+    if lazy is not False:
+        raise NotImplementedError("Lazy loading is not supported.")
+
     reader = ElidReader(filename)
     return reader.dictionaries
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC)

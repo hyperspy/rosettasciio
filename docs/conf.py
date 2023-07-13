@@ -14,6 +14,7 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+import numpydoc
 import pydata_sphinx_theme
 from packaging.version import Version
 
@@ -30,6 +31,10 @@ author = "HyperSpy Developers"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    # numpydoc is necessary to parse the docstring using sphinx
+    # otherwise the nitpicky option will raise many warnings
+    "numpydoc",
+    "sphinx_favicon",
     "sphinx.ext.autodoc",
     "sphinx.ext.githubpages",
     "sphinx.ext.intersphinx",
@@ -38,8 +43,15 @@ extensions = [
 ]
 
 intersphinx_mapping = {
+    "dask": ("https://docs.dask.org/en/latest", None),
     "hyperspy": ("https://hyperspy.org/hyperspy-doc/current/", None),
     "h5py": ("https://docs.h5py.org/en/stable/", None),
+    "matplotlib": ("https://matplotlib.org", None),
+    "mrcz": ("https://python-mrcz.readthedocs.io", None),
+    "numcodecs": ("https://numcodecs.readthedocs.io/en/stable", None),
+    "numpy": ("https://docs.scipy.org/doc/numpy", None),
+    "pooch": ("https://www.fatiando.org/pooch/latest", None),
+    "python": ("https://docs.python.org/3", None),
     "pyusid": ("https://pycroscopy.github.io/pyUSID/", None),
     "zarr": ("https://zarr.readthedocs.io/en/stable", None),
 }
@@ -78,14 +90,25 @@ html_theme_options = {
         "image_light": "_static/logo_rec_oct22.svg",
         "image_dark": "_static/logo_rec_dark_oct22.svg",
     },
-    "favicons": [
-        {
-            "rel": "icon",
-            "href": "logo_sq.svg",
-        },
-    ],
     "header_links_before_dropdown": 6,
 }
+
+# -- Options for sphinx_favicon extension -----------------------------------
+
+favicons = {"rel": "icon", "href": "logo_sq.svg", "type": "image/svg+xml"}
+
+# Check links to API when building documentation
+nitpicky = True
+# Remove when fixed in hyperspy
+nitpick_ignore_regex = [(r"py:.*", r"hyperspy.api.*")]
+
+# -- Options for numpydoc extension -----------------------------------
+
+numpydoc_xref_param_type = True
+numpydoc_xref_ignore = {"type", "optional", "default", "of"}
+
+if Version(numpydoc.__version__) >= Version("1.6.0rc0"):
+    numpydoc_validation_checks = {"all", "ES01", "EX01", "GL02", "GL03", "SA01", "SS06"}
 
 # -- Options for towncrier_draft extension -----------------------------------
 

@@ -26,11 +26,11 @@ import numpy as np
 
 from rsciio._docstrings import (
     FILENAME_DOC,
+    LAZY_UNSUPPORTED_DOC,
     ENCODING_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
 )
-from rsciio._version import __version__
 from rsciio.utils.tools import DTBox
 
 _logger = logging.getLogger(__name__)
@@ -162,22 +162,20 @@ keywords = {
 
 
 def parse_msa_string(string, filename=None):
-    """Parse an EMSA/MSA file content.
+    """
+    Parse an EMSA/MSA file content.
 
     Parameters
     ----------
-    string: string or file object
+    string : str
         It must complain with the EMSA/MSA standard.
-    filename: string or None
+    filename : str, None
         The filename.
 
     Returns
     -------
-    file_data_list: list
-        The list containts a dictionary that contains the parsed
-        information. It can be used to create a :py:class:`~.signal.BaseSignal`
-        using :py:func:`~.io.dict2signal`.
-
+    list
+        List of a single dictionary to be returned by ``file_reader``.
     """
     if not hasattr(string, "readlines"):
         string = string.splitlines()
@@ -344,7 +342,7 @@ def parse_msa_string(string, filename=None):
     return file_data_list
 
 
-def file_reader(filename, encoding="latin-1", **kwds):
+def file_reader(filename, lazy=False, encoding="latin-1"):
     """
     Read an MSA file.
 
@@ -352,17 +350,21 @@ def file_reader(filename, encoding="latin-1", **kwds):
     ----------
     %s
     %s
+    %s
 
     %s
     """
+    if lazy is not False:
+        raise NotImplementedError("Lazy loading is not supported.")
+
     with codecs.open(filename, encoding=encoding, errors="replace") as spectrum_file:
         return parse_msa_string(string=spectrum_file, filename=filename)
 
 
-file_reader.__doc__ %= (FILENAME_DOC, ENCODING_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_UNSUPPORTED_DOC, ENCODING_DOC, RETURNS_DOC)
 
 
-def file_writer(filename, signal, format=None, separator=", ", encoding="latin-1"):
+def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"):
     """
     Write signal to an MSA file.
 
@@ -370,11 +372,11 @@ def file_writer(filename, signal, format=None, separator=", ", encoding="latin-1
     ----------
     %s
     %s
-    format : str, Default="Y"
+    format : str, default="Y"
         Specify whether the X-axis (energy/wavelength) should also be saved with
         the data. The default, ``"Y"`` omits the X-axis in the file. The alternative,
         ``"XY"``, saves the calibrated signal axis as first column.
-    separator: str, Default=", "
+    separator : str, Default=", "
         Change the column separator. However, if a different separator is chosen
         the resulting file will not comply with the MSA/EMSA standard and
         RosettaSciIO and other software may not be able to read it.

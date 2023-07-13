@@ -22,7 +22,7 @@ import os
 import scipy
 from datetime import datetime
 
-from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC
+from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
 
 
 def _cnv_time(timestr):
@@ -39,15 +39,20 @@ def _bad_file(filename):
     raise AssertionError("Cannot interpret as DENS heater log: %s" % filename)
 
 
-def file_reader(filename, *args, **kwds):
-    """Read a DENSsolutions DigiHeater logfile.
+def file_reader(filename, lazy=False):
+    """
+    Read a DENSsolutions DigiHeater logfile.
 
     Parameters
     ----------
     %s
+    %s
 
     %s
     """
+    if lazy is not False:
+        raise NotImplementedError("Lazy loading is not supported.")
+
     with open(filename, "rt") as f:
         # Strip leading, empty lines
         line = str(f.readline())
@@ -130,4 +135,4 @@ def file_reader(filename, *args, **kwds):
     ]
 
 
-file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC)

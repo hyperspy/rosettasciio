@@ -21,28 +21,22 @@ import logging
 
 import numpy as np
 
-from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC
+from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
 
 _logger = logging.getLogger(__name__)
 
 
-no_netcdf = False
 try:
-    from netCDF4 import Dataset
+    from netCDF4 import Dataset as netcdf_file_reader
 
-    which_netcdf = "netCDF4"
+    netcdf_reader = "netCDF4"
 except Exception:
     try:
-        from netCDF3 import Dataset
+        from scipy.io import netcdf_file as netcdf_file_reader
 
-        which_netcdf = "netCDF3"
+        netcdf_reader = "scipy"
     except Exception:
-        try:
-            from Scientific.IO.NetCDF import NetCDFFile as Dataset
-
-            which_netcdf = "Scientific Python"
-        except Exception:
-            no_netcdf = True
+        netcdf_reader = None
 
 
 attrib2netcdf = {
@@ -82,31 +76,35 @@ treatments2netcdf = {
 }
 
 
-def file_reader(filename, *args, **kwds):
+def file_reader(filename, lazy=False):
     """
     Read netCDF ``.nc`` files saved using the HyperSpy predecessor EELSlab.
 
     Parameters
     ----------
     %s
+    %s
 
     %s
     """
-    if no_netcdf is True:
+    if netcdf_reader is None:
         raise ImportError(
             "No netCDF library installed. "
             "To read EELSLab netcdf files install "
             "one of the following packages:"
-            "netCDF4, netCDF3, netcdf, scientific"
+            "netCDF4 or scipy."
         )
 
-    ncfile = Dataset(filename, "r")
+    if lazy is not False:
+        raise NotImplementedError("Lazy loading is not supported.")
+
+    ncfile = netcdf_file_reader(filename, "r")
 
     if (
         hasattr(ncfile, "file_format_version")
         and ncfile.file_format_version == "EELSLab 0.1"
     ):
-        dictionary = nc_hyperspy_reader_0dot1(ncfile, filename, *args, **kwds)
+        dictionary = nc_hyperspy_reader_0dot1(ncfile, filename)
     else:
         ncfile.close()
         raise IOError("Unsupported netCDF file")
@@ -114,10 +112,10 @@ def file_reader(filename, *args, **kwds):
     return (dictionary,)
 
 
-file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC)
 
 
-def nc_hyperspy_reader_0dot1(ncfile, filename, *args, **kwds):
+def nc_hyperspy_reader_0dot1(ncfile, filename):
     calibration_dict, acquisition_dict, treatments_dict = {}, {}, {}
     dc = ncfile.variables["data_cube"]
     data = dc[:]

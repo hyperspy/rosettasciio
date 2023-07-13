@@ -1,10 +1,9 @@
 import numpy as np
 import os
-from datetime import datetime as dt
 import csv
 import logging
 
-from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC
+from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
 
 
 _logger = logging.getLogger(__name__)
@@ -23,20 +22,26 @@ invalid_filenaming_error = {
 }
 
 
-def file_reader(filename, *args, **kwds):
-    """Read a DENSsolutions Impulse logfile.
+def file_reader(filename, lazy=False):
+    """
+    Read a DENSsolutions Impulse logfile.
 
     Parameters
     ----------
     %s
+    %s
 
     %s
     """
+    if lazy is not False:
+        raise NotImplementedError("Lazy loading is not supported.")
+
     csv_file = ImpulseCSV(filename)
+
     return _impulseCSV_log_reader(csv_file)
 
 
-file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC)
 
 
 def _impulseCSV_log_reader(csv_file):

@@ -1248,8 +1248,10 @@ class ImageObject(object):
         return mapping
 
 
-def file_reader(filename, lazy=False, order=None, optimize=True, **kwargs):
-    """Reads a DM3/4 file and loads the data into the appropriate class.
+def file_reader(filename, lazy=False, order=None, optimize=True):
+    """
+    Read a DM3/4 file and loads the data into the appropriate class.
+
     If more than one dataset is contained in the ``.dm3/4`` file, a list of
     signals is returned.
 
@@ -1258,7 +1260,7 @@ def file_reader(filename, lazy=False, order=None, optimize=True, **kwargs):
     %s
     %s
     order : str
-        One of 'C' or 'F'
+        One of 'C' or 'F'. Define the ordering of the data.
     optimize : bool, Default=True
         If ``True``, the data is replaced by its
         :external+hyperspy:ref:`optimized copy <signal.transpose_optimize>` during

@@ -64,13 +64,12 @@ def make_registry(directory, output, recursive=True, exclude_pattern=None):
         If True, will recursively look for files in subdirectories of
         *directory*.
     exclude_pattern : list or None
-        List of pattern to exclude
+        List of pattern to exclude.
 
     Notes
     -----
     Adapted from https://github.com/fatiando/pooch/blob/main/pooch/hashes.py
     BSD-3-Clause
-
     """
     directory = Path(directory)
     if recursive:
@@ -102,25 +101,23 @@ def make_registry(directory, output, recursive=True, exclude_pattern=None):
             outfile.write("'{}' {}\n".format(fname.replace("\\", "/"), fhash))
 
 
-def download_all(pooch_object=None, ignore_hash=None, progressbar=True):
+def download_all(pooch_object=None, ignore_hash=None, show_progressbar=True):
     """
     Download all test data if they are not already locally available in
     ``rsciio.tests.data`` folder.
 
     Parameters
     ----------
-    pooch_object : pooch registry instance or None
+    pooch_object : pooch.Pooch or None, default=None
         The registry to be used. If None, a RosettaSciIO registry will
         be used.
-    ignore_hash : bool or None
+    ignore_hash : bool or None, default=None
         Don't compare the hash of the downloaded file with the corresponding
         hash in the registry. On windows, the hash comparison will fail for
         non-binary file, because of difference in line ending. If None, the
-        comparision will only be used on unix system. Default is None.
-    progressbar : bool
-        Display a progress bar for the download of all files. Requires the
-        `tqdm` library. Default is True
-
+        comparision will only be used on unix system.
+    show_progressbar : bool, default=True
+        Whether to show the progressbar or not.
     """
 
     from rsciio.tests.registry import TEST_DATA_REGISTRY
@@ -133,21 +130,21 @@ def download_all(pooch_object=None, ignore_hash=None, progressbar=True):
         for key in pooch_object.registry.keys():
             pooch_object.registry[key] = None
 
-    if progressbar:
+    if show_progressbar:
         try:
             from tqdm import tqdm
 
             pbar = tqdm(total=len(pooch_object.registry_files))
         except ImportError:
             print("Using progresbar requires the `tqdm` library.")
-            progressbar = False
+            show_progressbar = False
 
     for i, file in enumerate(pooch_object.registry_files):
         pooch_object.fetch(file, progressbar=False)
-        if progressbar:
+        if show_progressbar:
             pbar.update(i)
 
-    if progressbar:
+    if show_progressbar:
         pbar.close()
 
 

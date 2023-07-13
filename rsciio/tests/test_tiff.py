@@ -995,9 +995,8 @@ class TestReadHamamatsu:
         # Invalid hamamatsu_streak_axis_type argument should:
         # - raise warning
         # - Initialise uniform data axis
-        with pytest.warns(UserWarning):
+        with pytest.raises(ValueError):
             s = hs.load(fname, hamamatsu_streak_axis_type="xxx")
-            assert s.axes_manager.all_uniform
 
         # Explicitly calling hamamatsu_streak_axis_type='uniform'
         # should NOT raise a warning

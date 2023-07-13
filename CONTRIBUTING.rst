@@ -158,7 +158,7 @@ The *docstrings* are automatically added in the *user guide* using the following
 
 The *docstrings* follow `Numpy docstring style <https://numpydoc.readthedocs.io>`_. The
 links to RosettaSciIO API and other Sphinx documented API are checked when building the documentation
-and broken links will raise warnings. In order to identify potential broken links during pull
+and broken links will raise warnings. In order to identify potentially broken links during pull
 request review, the `Docs <https://github.com/hyperspy/rosettasciio/actions/workflows/docs.yml>`_
 GitHub CI workflow is set to fail when the doc build raises warnings.
 

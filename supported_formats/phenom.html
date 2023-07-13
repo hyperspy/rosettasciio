@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
+    <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
     <title>Phenom ELID format &#8212; RosettaSciIO  documentation</title>
   
   
@@ -30,7 +30,6 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
-    <link rel="icon" sizes="16x16" type="image/svg" href="../_static/logo_sq.svg" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
@@ -472,8 +471,40 @@ RosettaSciIO API.</p>
 <p>The current implementation supports <code class="docutils literal notranslate"><span class="pre">.elid</span></code> files created with Element Identification version
 3.8.0 and later. You can convert older <code class="docutils literal notranslate"><span class="pre">.elid</span></code> files by loading the file into a recent Element
 Identification release and then save the <code class="docutils literal notranslate"><span class="pre">.elid</span></code> file into the newer file format.</p>
-<section id="api-functions">
-<h2>API functions<a class="headerlink" href="#api-functions" title="Permalink to this heading">#</a></h2>
+<section id="module-rsciio.phenom">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.phenom" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.phenom.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.phenom.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.phenom.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Read a Phenom <code class="docutils literal notranslate"><span class="pre">.elid</span></code> file from the software Element Identification (&gt;v3.8.0)
+used by the Thermo Fisher Scientific Phenom desktop SEMs.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Lazy loading is not supported.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>‘metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>‘original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -524,7 +555,10 @@ Identification release and then save the <code class="docutils literal notransla
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#api-functions">API functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.phenom">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.phenom.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 

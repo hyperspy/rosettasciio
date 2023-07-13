@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
+    <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
     <title>MRCZ format &#8212; RosettaSciIO  documentation</title>
   
   
@@ -30,7 +30,6 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
-    <link rel="icon" sizes="16x16" type="image/svg" href="../_static/logo_sq.svg" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
@@ -495,8 +494,113 @@ a blocked, multi-threaded environment. The supported data types are <code class=
 <p>Support for this format is not enabled by default. In order to enable it,
 the <cite>mrcz</cite> library needs to be installed and optionally <cite>blosc</cite> to use
 compression.</p>
-<section id="api-functions">
-<h2>API functions<a class="headerlink" href="#api-functions" title="Permalink to this heading">#</a></h2>
+<section id="module-rsciio.mrcz">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.mrcz" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.mrcz.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.mrcz.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'c'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.mrcz.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>File reader for the MRCZ format for tomographic data.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not.</p>
+</dd>
+<dt><strong>mmap_mode</strong><span class="classifier">{<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, “r+”, “r”, “w+”, “c”}, default=None</span></dt><dd><p>Argument passed to <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html#numpy.memmap" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.memmap</span></code></a>. A memory-mapped array is
+stored on disk, and not directly loaded into memory.  However, it can be
+accessed and sliced like any ndarray.  Lazy loading does not support in-place writing (i.e lazy loading
+and the <code class="docutils literal notranslate"><span class="pre">&quot;r+&quot;</span></code> mode are incompatible). The MRCZ reader currently only supports C-ordering memory-maps.
+If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default), the value is <code class="docutils literal notranslate"><span class="pre">&quot;r&quot;</span></code> when <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code>, otherwise
+it is <code class="docutils literal notranslate"><span class="pre">&quot;c&quot;</span></code>.</p>
+</dd>
+<dt><strong>endianess</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=”&lt;”</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">&quot;&lt;&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;&gt;&quot;</span></code>, depending on how the bits are written to
+the file.</p>
+</dd>
+<dt><strong>**kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>The keyword arguments are passed to <a class="reference external" href="https://python-mrcz.readthedocs.io/api.html#mrcz.readMRC" title="(in mrcz v05)"><code class="xref py py-func docutils literal notranslate"><span class="pre">mrcz.readMRC()</span></code></a>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>‘metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>‘original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.mrcz</span> <span class="kn">import</span> <span class="n">file_reader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_signal</span> <span class="o">=</span> <span class="n">file_reader</span><span class="p">(</span><span class="s1">&#39;file.mrcz&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.mrcz.file_writer">
+<span class="sig-prename descclassname"><span class="pre">rsciio.mrcz.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_async</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compressor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clevel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.mrcz.file_writer" title="Permalink to this definition">#</a></dt>
+<dd><p>Write signal to MRCZ format.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>signal</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></span></dt><dd><p>Dictionary containing the signal object.
+Should contain the following fields:</p>
+<ul class="simple">
+<li><p>‘data’ – multidimensional numpy array</p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>‘metadata’ – dictionary containing the metadata tree</p></li>
+</ul>
+</dd>
+<dt><strong>endianess</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=”&lt;”</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">&quot;&lt;&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;&gt;&quot;</span></code>, depending on how the bits are written to
+the file.</p>
+</dd>
+<dt><strong>do_async</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, Default=False</span></dt><dd><p>Currently supported within RosettaSciIO for writing only, this will
+save the file in a background thread and return immediately.
+Warning: there is no method currently implemented within RosettaSciIO
+to tell if an asychronous write has finished.</p>
+</dd>
+<dt><strong>compressor</strong><span class="classifier">{<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, “zlib”, “zstd”, “lz4”}, Default=None</span></dt><dd><p>The compression codec.</p>
+</dd>
+<dt><strong>clevel</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, Default=1</span></dt><dd><p>The compression level, an <code class="docutils literal notranslate"><span class="pre">int</span></code> from 1 to 9.</p>
+</dd>
+<dt><strong>n_threads</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a></span></dt><dd><p>The number of threads to use for <code class="docutils literal notranslate"><span class="pre">blosc</span></code> compression. Defaults to
+the maximum number of virtual cores (including Intel Hyperthreading)
+on your system, which is recommended for best performance. If
+<code class="docutils literal notranslate"><span class="pre">do_async</span> <span class="pre">=</span> <span class="pre">True</span></code> you may wish to leave one thread free for the
+Python GIL.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The recommended compression codec is <code class="docutils literal notranslate"><span class="pre">zstd</span></code> (zStandard) with <code class="docutils literal notranslate"><span class="pre">clevel=1</span></code> for
+general use. If speed is critical, use <code class="docutils literal notranslate"><span class="pre">lz4</span></code> (LZ4) with <code class="docutils literal notranslate"><span class="pre">clevel=9</span></code>. Integer data
+compresses more redably than floating-point data, and in general the histogram
+of values in the data reflects how compressible it is.</p>
+<p>To save files that are compatible with other programs that can use MRC such as
+GMS, IMOD, Relion, MotionCorr, etc. save with <code class="docutils literal notranslate"><span class="pre">compressor=None</span></code>, extension <code class="docutils literal notranslate"><span class="pre">.mrc</span></code>.
+JSON metadata will not be recognized by other MRC-supporting software but should
+not cause crashes.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.mrcz</span> <span class="kn">import</span> <span class="n">file_writer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_writer</span><span class="p">(</span><span class="s1">&#39;file.mrcz&#39;</span><span class="p">,</span> <span class="n">signal</span><span class="p">,</span> <span class="n">do_async</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">compressor</span><span class="o">=</span><span class="s1">&#39;zstd&#39;</span><span class="p">,</span> <span class="n">clevel</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </section>
 </section>
 
@@ -547,7 +651,11 @@ compression.</p>
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#api-functions">API functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.mrcz">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.mrcz.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.mrcz.file_writer"><code class="docutils literal notranslate"><span class="pre">file_writer()</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 

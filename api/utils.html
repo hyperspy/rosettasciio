@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
+    <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
     <title>Utility functions &#8212; RosettaSciIO  documentation</title>
   
   
@@ -30,7 +30,6 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
-    <link rel="icon" sizes="16x16" type="image/svg" href="../_static/logo_sq.svg" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
@@ -450,78 +449,146 @@ hdf datasets of size &gt;=2 if they’re not already NXdata blocks
 and returns a list of the entries.
 This is a convenience method to inspect a file to list datasets
 present rather than loading all the datasets in the file as signals.</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
-<li><p><strong>dataset_key</strong> (<em>str</em><em>, </em><em>list</em><em> of </em><em>strings</em><em> or </em><em>None</em><em> , </em><em>default: None</em>) – If a str or list of strings is provided only return items whose
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>dataset_key</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a> , default=None</span></dt><dd><p>If a str or list of strings is provided only return items whose
 path contain the strings.
 For example, dataset_key = [“instrument”, “Fe”] will only return
-hdf entries with “instrument” or “Fe” somewhere in their hdf path.</p></li>
-<li><p><strong>hardlinks_only</strong> (<em>bool</em><em>, </em><em>default : False</em>) – If true any links (soft or External) will be ignored when loading.</p></li>
-<li><p><strong>verbose</strong> (<em>boolean</em><em>, </em><em>default : True</em>) – Prints the results to screen</p></li>
-</ul>
+hdf entries with “instrument” or “Fe” somewhere in their hdf path.</p>
+</dd>
+<dt><strong>hardlinks_only</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>If true any links (soft or External) will be ignored when loading.</p>
+</dd>
+<dt><strong>verbose</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Prints the results to screen.</p>
+</dd>
+</dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>List of paths to datasets.</p>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a></dt><dd><p>List of paths to datasets.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list</p>
+</dl>
 </dd>
 </dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<ul class="simple">
-<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">file_reader()</span></code></p></li>
-<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">file_writer()</span></code></p></li>
-<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">read_metadata_from_file()</span></code></p></li>
-</ul>
+<dl class="simple">
+<dt><a class="reference internal" href="#rsciio.utils.hdf5.read_metadata_from_file" title="rsciio.utils.hdf5.read_metadata_from_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5.read_metadata_from_file</span></code></a></dt><dd><p>Convenience function to read metadata present in a file.</p>
+</dd>
+</dl>
 </div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.utils.hdf5.read_metadata_from_file">
-<span class="sig-prename descclassname"><span class="pre">rsciio.utils.hdf5.</span></span><span class="sig-name descname"><span class="pre">read_metadata_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_array_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.hdf5.read_metadata_from_file" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.hdf5.</span></span><span class="sig-name descname"><span class="pre">read_metadata_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_array_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.hdf5.read_metadata_from_file" title="Permalink to this definition">#</a></dt>
 <dd><p>Read the metadata from a NeXus or <code class="docutils literal notranslate"><span class="pre">.hdf</span></code> file.</p>
 <p>This method iterates through the hdf5 file and returns a dictionary of
 the entries.
 This is a convenience method to inspect a file for a value
 rather than loading the file as a signal.</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
-<li><p><strong>metadata_key</strong> (<em>None</em><em>,</em><em>str</em><em> or </em><em>list_of_strings</em><em> , </em><em>default : None</em>) – None will return all datasets found including linked data.
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not.</p>
+</dd>
+<dt><strong>metadata_key</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=None</span></dt><dd><p>None will return all datasets found including linked data.
 Providing a string or list of strings will only return items
 which contain the string(s).
 For example, search_keys = [“instrument”,”Fe”] will return
-hdf entries with “instrument” or “Fe” in their hdf path.</p></li>
-<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>default : False</em>) – Pretty Print the results to screen</p></li>
-<li><p><strong>skip_array_metadata</strong> (<em>bool</em><em>, </em><em>default : False</em>) – Whether to skip loading array metadata. This is useful as a lot of
+hdf entries with “instrument” or “Fe” in their hdf path.</p>
+</dd>
+<dt><strong>verbose</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Pretty print the results to screen.</p>
+</dd>
+<dt><strong>skip_array_metadata</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to skip loading array metadata. This is useful as a lot of
 large array may be present in the metadata and it is redundant with
-dataset itself.</p></li>
-</ul>
+dataset itself.</p>
+</dd>
+</dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Metadata dictionary.</p>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>Metadata dictionary.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
+</dl>
 </dd>
 </dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<ul class="simple">
-<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">file_reader()</span></code></p></li>
-<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">file_writer()</span></code></p></li>
-<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">list_datasets_in_file()</span></code></p></li>
-</ul>
+<dl class="simple">
+<dt><a class="reference internal" href="#rsciio.utils.hdf5.list_datasets_in_file" title="rsciio.utils.hdf5.list_datasets_in_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5.list_datasets_in_file</span></code></a></dt><dd><p>Convenience function to list datasets present in a file.</p>
+</dd>
+</dl>
 </div>
 </dd></dl>
 
 </section>
-<section id="test-utility-functions">
-<h2>Test utility functions<a class="headerlink" href="#test-utility-functions" title="Permalink to this heading">#</a></h2>
+<section id="module-rsciio.tests.registry_utils">
+<span id="test-utility-functions"></span><h2>Test utility functions<a class="headerlink" href="#module-rsciio.tests.registry_utils" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.tests.registry_utils.download_all">
+<span class="sig-prename descclassname"><span class="pre">rsciio.tests.registry_utils.</span></span><span class="sig-name descname"><span class="pre">download_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pooch_object</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_hash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progressbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.tests.registry_utils.download_all" title="Permalink to this definition">#</a></dt>
+<dd><p>Download all test data if they are not already locally available in
+<code class="docutils literal notranslate"><span class="pre">rsciio.tests.data</span></code> folder.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>pooch_object</strong><span class="classifier"><a class="reference external" href="https://www.fatiando.org/pooch/latest/api/generated/pooch.Pooch.html#pooch.Pooch" title="(in Pooch vv1.7.0)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pooch.Pooch</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>The registry to be used. If None, a RosettaSciIO registry will
+be used.</p>
+</dd>
+<dt><strong>ignore_hash</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>Don’t compare the hash of the downloaded file with the corresponding
+hash in the registry. On windows, the hash comparison will fail for
+non-binary file, because of difference in line ending. If None, the
+comparision will only be used on unix system.</p>
+</dd>
+<dt><strong>show_progressbar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Whether to show the progressbar or not.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.tests.registry_utils.make_registry">
+<span class="sig-prename descclassname"><span class="pre">rsciio.tests.registry_utils.</span></span><span class="sig-name descname"><span class="pre">make_registry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.tests.registry_utils.make_registry" title="Permalink to this definition">#</a></dt>
+<dd><p>Make a registry of files and hashes for the given directory.</p>
+<p>This is helpful if you have many files in your test dataset as it keeps you
+from needing to manually update the registry.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>directory</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Directory of the test data to put in the registry. All file names in
+the registry will be relative to this directory.</p>
+</dd>
+<dt><strong>output</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Name of the output registry file.</p>
+</dd>
+<dt><strong>recursive</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a></span></dt><dd><p>If True, will recursively look for files in subdirectories of
+<em>directory</em>.</p>
+</dd>
+<dt><strong>exclude_pattern</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a></span></dt><dd><p>List of pattern to exclude.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Adapted from <a class="github reference external" href="https://github.com/fatiando/pooch/blob/main/pooch/hashes.py">fatiando/pooch</a>
+BSD-3-Clause</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.tests.registry_utils.update_registry">
+<span class="sig-prename descclassname"><span class="pre">rsciio.tests.registry_utils.</span></span><span class="sig-name descname"><span class="pre">update_registry</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.tests.registry_utils.update_registry" title="Permalink to this definition">#</a></dt>
+<dd><p>Update the <code class="docutils literal notranslate"><span class="pre">rsciio.tests.registry.txt</span></code> file, which is required after
+adding or updating test data files.</p>
+<p>Unix system only. This is not supported on windows, because the hash
+comparison will fail for non-binary file, because of difference in line
+ending.</p>
+</dd></dl>
+
 </section>
 </section>
 
@@ -577,7 +644,12 @@ dataset itself.</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.hdf5.read_metadata_from_file"><code class="docutils literal notranslate"><span class="pre">read_metadata_from_file()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#test-utility-functions">Test utility functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.tests.registry_utils">Test utility functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tests.registry_utils.download_all"><code class="docutils literal notranslate"><span class="pre">download_all()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tests.registry_utils.make_registry"><code class="docutils literal notranslate"><span class="pre">make_registry()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tests.registry_utils.update_registry"><code class="docutils literal notranslate"><span class="pre">update_registry()</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 

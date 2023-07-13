@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
+    <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
     <title>ZSpy - HyperSpy’s Zarr Specification &#8212; RosettaSciIO  documentation</title>
   
   
@@ -30,7 +30,6 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
-    <link rel="icon" sizes="16x16" type="image/svg" href="../_static/logo_sq.svg" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
@@ -477,15 +476,15 @@ issues with the hdf5 format and is therefore suitable for saving
 </pre></div>
 </div>
 <p>When saving to <a class="reference external" href="https://zarr.readthedocs.io/en/stable">zspy</a>, all supported objects in the signal’s
-<code class="xref py py-attr docutils literal notranslate"><span class="pre">metadata</span></code> is stored. This includes lists, tuples and signals.
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal.metadata</span></code> is stored. This includes lists, tuples and signals.
 Please note that in order to increase saving efficiency and speed, if possible,
 the inner-most structures are converted to numpy arrays when saved. This
 procedure homogenizes any types of the objects inside, most notably casting
 numbers as strings if any other strings are present:</p>
 <p>By default, a <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#zarr.storage.NestedDirectoryStore" title="(in zarr v2.15.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.NestedDirectoryStore</span></code></a> is used, but other
 zarr store can be used by providing a <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#module-zarr.storage" title="(in zarr v2.15.0)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">zarr.storage</span></code></a>
-instead as argument to the <code class="xref py py-meth docutils literal notranslate"><span class="pre">save()</span></code> or the
-<code class="xref py py-func docutils literal notranslate"><span class="pre">load()</span></code> function. If a <code class="docutils literal notranslate"><span class="pre">.zspy</span></code> file has been saved with a different
+instead as argument to the <code class="xref py py-meth docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal.save()</span></code> or the
+<code class="xref py py-func docutils literal notranslate"><span class="pre">hyperspy.api.load()</span></code> function. If a <code class="docutils literal notranslate"><span class="pre">.zspy</span></code> file has been saved with a different
 store, it would need to be loaded by passing a store of the same type:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">zarr</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;test.zspy&#39;</span>
@@ -500,8 +499,94 @@ store, it would need to be loaded by passing a store of the same type:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">store</span><span class="p">)</span> <span class="c1"># load from LMDB</span>
 </pre></div>
 </div>
-<section id="api-functions">
-<h2>API functions<a class="headerlink" href="#api-functions" title="Permalink to this heading">#</a></h2>
+<section id="module-rsciio.zspy">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.zspy" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.zspy.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.zspy.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.zspy.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Read data from zspy files saved with the HyperSpy zarr format
+specification.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not.</p>
+</dd>
+<dt><strong>**kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Pass keyword arguments to the <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/convenience.html#zarr.convenience.open" title="(in zarr v2.15.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">zarr.convenience.open()</span></code></a> function.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>‘metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>‘original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.zspy.file_writer">
+<span class="sig-prename descclassname"><span class="pre">rsciio.zspy.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compressor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">close_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.zspy.file_writer" title="Permalink to this definition">#</a></dt>
+<dd><p>Write data to HyperSpy’s zarr format.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>signal</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></span></dt><dd><p>Dictionary containing the signal object.
+Should contain the following fields:</p>
+<ul class="simple">
+<li><p>‘data’ – multidimensional numpy array</p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>‘metadata’ – dictionary containing the metadata tree</p></li>
+</ul>
+</dd>
+<dt><strong>chunks</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>Define the chunking used for saving the dataset. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, calculates
+chunks for the signal, with preferably at least one chunk per signal
+space.</p>
+</dd>
+<dt><strong>compressor</strong><span class="classifier"><a class="reference external" href="https://numcodecs.readthedocs.io/en/stable/abc.html#numcodecs.abc.Codec" title="(in numcodecs v0.11.0)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numcodecs.abc.Codec</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>A compressor can be passed to the save function to compress the data
+efficiently, see <a class="reference external" href="https://numcodecs.readthedocs.io/en/stable">Numcodecs codec</a>.
+If None, use a Blosc compressor.</p>
+</dd>
+<dt><strong>close_file</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Close the file after writing. Only relevant for some zarr storages
+(<a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#zarr.storage.ZipStore" title="(in zarr v2.15.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.ZipStore</span></code></a>, <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#zarr.storage.DBMStore" title="(in zarr v2.15.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.DBMStore</span></code></a>)
+requiring store to flush data to disk. If <code class="docutils literal notranslate"><span class="pre">False</span></code>, doesn’t close the
+file after writing. The file should not be closed if the data needs to be
+accessed lazily after saving.</p>
+</dd>
+<dt><strong>write_dataset</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">False</span></code>, doesn’t write the dataset when writing the file. This can
+be useful to overwrite signal attributes only (for example <code class="docutils literal notranslate"><span class="pre">axes_manager</span></code>)
+without having to write the whole dataset, which can take time.</p>
+</dd>
+<dt><strong>**kwds</strong></dt><dd><p>The keyword arguments are passed to the
+<a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/hierarchy.html#zarr.hierarchy.Group.require_dataset" title="(in zarr v2.15.0)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">zarr.hierarchy.Group.require_dataset()</span></code></a> function.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numcodecs</span> <span class="kn">import</span> <span class="n">Blosc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">compressor</span> <span class="o">=</span> <span class="n">Blosc</span><span class="p">(</span><span class="n">cname</span><span class="o">=</span><span class="s1">&#39;zstd&#39;</span><span class="p">,</span> <span class="n">clevel</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="n">Blosc</span><span class="o">.</span><span class="n">SHUFFLE</span><span class="p">)</span> <span class="c1"># Used by default</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_writer</span><span class="p">(</span><span class="s1">&#39;test.zspy&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">compressor</span> <span class="o">=</span> <span class="n">compressor</span><span class="p">)</span> <span class="c1"># will save with Blosc compression</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Lazy operations are often i-o bound. Reading and writing the data creates a bottle neck in processes
@@ -559,7 +644,11 @@ read/write with the trade off of slightly more computational work on the CPU.</p
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#api-functions">API functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.zspy">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.zspy.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.zspy.file_writer"><code class="docutils literal notranslate"><span class="pre">file_writer()</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 

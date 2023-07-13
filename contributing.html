@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
+    <link rel="icon" href="_static/logo_sq.svg" type="image/svg+xml">
     <title>Contributing &#8212; RosettaSciIO  documentation</title>
   
   
@@ -30,7 +30,6 @@
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/custom-styles.css" />
-    <link rel="icon" sizes="16x16" type="image/svg" href="_static/logo_sq.svg" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
@@ -464,7 +463,7 @@ keep the packages as small as possible in size. However, to be able to run the t
 of RosettaSciIO after installation or when packaging on conda-forge, pooch is used to
 download the data when necessary. It means that when adding and updating test files, it
 is necessary to update the registry <code class="docutils literal notranslate"><span class="pre">rsciio.tests.registry.txt</span></code>, which can be done by
-running <code class="xref py py-func docutils literal notranslate"><span class="pre">update_registry()</span></code> (Unix only):</p>
+running <a class="reference internal" href="api/utils.html#rsciio.tests.registry_utils.update_registry" title="rsciio.tests.registry_utils.update_registry"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_registry()</span></code></a> (Unix only):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rsciio.tests.registry_utils</span> <span class="kn">import</span> <span class="n">update_registry</span>
 
 <span class="n">update_registry</span><span class="p">()</span>
@@ -558,6 +557,11 @@ be used (see existing plugins).</p>
    <span class="nc">:members:</span>
 </pre></div>
 </div>
+<p>The <em>docstrings</em> follow <a class="reference external" href="https://numpydoc.readthedocs.io">Numpy docstring style</a>. The
+links to RosettaSciIO API and other Sphinx documented API are checked when building the documentation
+and broken links will raise warnings. In order to identify potentially broken links during pull
+request review, the <a class="reference external" href="https://github.com/hyperspy/rosettasciio/actions/workflows/docs.yml">Docs</a>
+GitHub CI workflow is set to fail when the doc build raises warnings.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>It is advisable to clone the files of an existing plugin when initiating a new

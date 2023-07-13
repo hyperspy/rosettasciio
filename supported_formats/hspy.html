@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
+    <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
     <title>HSpy - HyperSpy’s HDF5 Specification &#8212; RosettaSciIO  documentation</title>
   
   
@@ -30,7 +30,6 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
-    <link rel="icon" sizes="16x16" type="image/svg" href="../_static/logo_sq.svg" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
@@ -631,68 +630,76 @@ attribute takes precendence over <code class="docutils literal notranslate"><spa
 <span class="sig-prename descclassname"><span class="pre">rsciio.hspy.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.hspy.file_reader" title="Permalink to this definition">#</a></dt>
 <dd><p>Read data from hdf5-files saved with the HyperSpy hdf5-format
 specification (<code class="docutils literal notranslate"><span class="pre">.hspy</span></code>).</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
-<li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
-<li><p><strong>**kwds</strong> – </p></li>
-</ul>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not.</p>
+</dd>
+<dt><strong>**kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>The keyword arguments are passed to <a class="reference external" href="https://docs.h5py.org/en/stable/high/file.html#h5py.File" title="(in h5py v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">h5py.File</span></code></a>.</p>
+</dd>
+</dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
 <ul class="simple">
-<li><p>’data’ – multidimensional numpy array</p></li>
-<li><p>’axes’ – list of dictionaries describing the axes
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
 containing the fields ‘name’, ‘units’, ‘index_in_array’, and
 either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
 containing the full axes vector</p></li>
-<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
-<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+<li><p>‘metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>‘original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
 </ul>
-</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list of dicts</p>
+</dl>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.hspy.file_writer">
-<span class="sig-prename descclassname"><span class="pre">rsciio.hspy.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">close_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.hspy.file_writer" title="Permalink to this definition">#</a></dt>
-<dd><p>Writes data to HyperSpy’s hdf5-format (<code class="docutils literal notranslate"><span class="pre">.hspy</span></code>).</p>
-<dl class="field-list simple">
+<span class="sig-prename descclassname"><span class="pre">rsciio.hspy.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compression</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gzip'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">close_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.hspy.file_writer" title="Permalink to this definition">#</a></dt>
+<dd><p>Write data to HyperSpy’s hdf5-format (<code class="docutils literal notranslate"><span class="pre">.hspy</span></code>).</p>
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p></li>
-<li><p><strong>signal</strong> (<em>dict</em>) – <p>Dictionary containing the signal object.
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>signal</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></span></dt><dd><p>Dictionary containing the signal object.
 Should contain the following fields:</p>
-<ul>
-<li><p>’data’ – multidimensional numpy array</p></li>
-<li><p>’axes’ – list of dictionaries describing the axes
+<ul class="simple">
+<li><p>‘data’ – multidimensional numpy array</p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
 containing the fields ‘name’, ‘units’, ‘index_in_array’, and
 either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
 containing the full axes vector</p></li>
-<li><p>’metadata’ – dictionary containing the metadata tree</p></li>
+<li><p>‘metadata’ – dictionary containing the metadata tree</p></li>
 </ul>
-</p></li>
-<li><p><strong>compression</strong> (<em>None</em><em>, </em><em>'gzip'</em><em>, </em><em>'szip'</em><em>, </em><em>'lzf'</em><em>, </em><em>Default='gzip'.</em>) – Compression can significantly increase the saving speed. If file size is not
+</dd>
+<dt><strong>chunks</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>Define the chunking used for saving the dataset. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, calculates
+chunks for the signal, with preferably at least one chunk per signal
+space.</p>
+</dd>
+<dt><strong>compression</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, ‘gzip’, ‘szip’, ‘lzf’, default=’gzip’</span></dt><dd><p>Compression can significantly increase the saving speed. If file size is not
 an issue, it can be disabled by setting <code class="docutils literal notranslate"><span class="pre">compression=None</span></code>.
 RosettaSciIO uses h5py for reading and writing HDF5 files and, therefore,
 it supports all <a class="reference external" href="https://docs.h5py.org/en/stable/high/dataset.html#dataset-compression">compression filters supported by h5py</a>.
-The default is <code class="docutils literal notranslate"><span class="pre">'gzip'</span></code>. Also see notes below.</p></li>
-<li><p><strong>chunks</strong> (<em>tuple</em><em> of </em><em>integer</em><em> or </em><em>None</em><em>, </em><em>Default=None</em>) – Define the chunking used for saving the dataset. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, calculates
-chunks for the signal, with preferably at least one chunk per signal
-space.</p></li>
-<li><p><strong>close_file</strong> (<em>bool</em><em>, </em><em>Default=True</em>) – Close the file after writing.  The file should not be closed if the data
-needs to be accessed lazily after saving.</p></li>
-<li><p><strong>write_dataset</strong> (<em>bool</em><em>, </em><em>Default=True</em>) – If True, write the dataset, otherwise, don’t write it. Useful to
+The default is <code class="docutils literal notranslate"><span class="pre">'gzip'</span></code>. Also see notes below.</p>
+</dd>
+<dt><strong>close_file</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Close the file after writing.  The file should not be closed if the data
+needs to be accessed lazily after saving.</p>
+</dd>
+<dt><strong>write_dataset</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>If True, write the dataset, otherwise, don’t write it. Useful to
 overwrite attributes (for example <code class="docutils literal notranslate"><span class="pre">axes_manager</span></code>) only without having
-to write the whole dataset.</p></li>
-<li><p><strong>**kwds</strong> – The keyword argument are passed to the
-<a class="reference external" href="https://docs.h5py.org/en/stable/high/group.html#h5py.Group.require_dataset" title="(in h5py v3.9)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">h5py.Group.require_dataset()</span></code></a> function.</p></li>
-</ul>
+to write the whole dataset.</p>
+</dd>
+<dt><strong>**kwds</strong></dt><dd><p>The keyword argument are passed to the
+<a class="reference external" href="https://docs.h5py.org/en/stable/high/group.html#h5py.Group.require_dataset" title="(in h5py v3.9)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">h5py.Group.require_dataset()</span></code></a> function.</p>
+</dd>
+</dl>
 </dd>
 </dl>
 <p class="rubric">Notes</p>

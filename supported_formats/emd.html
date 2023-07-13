@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
+    <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
     <title>Electron Microscopy Dataset (EMD) &#8212; RosettaSciIO  documentation</title>
   
   
@@ -30,7 +30,6 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
-    <link rel="icon" sizes="16x16" type="image/svg" href="../_static/logo_sq.svg" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
@@ -555,93 +554,106 @@ add support for newer versions of the format.</p>
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.emd" title="Permalink to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.emd.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.emd.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.emd.file_reader" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.emd.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stack_group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_EDS_detectors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rebin_energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SI_dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_SI_image_stack</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.emd.file_reader" title="Permalink to this definition">#</a></dt>
 <dd><p>Read EMD file, which can be an NCEM or a Velox variant of the EMD format.
 Also reads Direct Electron’s DE5 format, which is read according to the
 NCEM specifications.</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
-<li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
-<li><p><strong>**kwds</strong> (<em>dict</em>) – Keyword arguments passed to the EMD NCEM or EMD Velox reader as specified
-in the following.</p></li>
-<li><p><strong>dataset_path</strong> (<em>None</em><em>, </em><em>str</em><em> or </em><em>list</em><em> of </em><em>str</em><em>, </em><em>default=None</em>) – NCEM only: Path of the dataset. If None, load all supported datasets,
-otherwise the specified dataset(s).</p></li>
-<li><p><strong>stack_group</strong> (<em>None</em><em>, </em><em>bool</em><em>, </em><em>default=None</em>) – NCEM only: Stack datasets of groups with common path. Relevant for emd file
-version &gt;= 0.5, where groups can be named <code class="docutils literal notranslate"><span class="pre">group0000</span></code>, <code class="docutils literal notranslate"><span class="pre">group0001</span></code>, etc.</p></li>
-<li><p><strong>select_type</strong> (<em>{None</em><em>, </em><em>'image'</em><em>, </em><em>'single_spectrum'</em><em>, </em><em>'spectrum_image'}</em>) – Velox only: specifies the type of data to load: if <code class="docutils literal notranslate"><span class="pre">'image'</span></code> is selected,
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not.</p>
+</dd>
+<dt><strong>dataset_path</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=None</span></dt><dd><p>NCEM only: Path of the dataset. If None, load all supported datasets,
+otherwise the specified dataset(s).</p>
+</dd>
+<dt><strong>stack_group</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=None</span></dt><dd><p>NCEM only: Stack datasets of groups with common path. Relevant for emd file
+version &gt;= 0.5, where groups can be named <code class="docutils literal notranslate"><span class="pre">group0000</span></code>, <code class="docutils literal notranslate"><span class="pre">group0001</span></code>, etc.</p>
+</dd>
+<dt><strong>select_type</strong><span class="classifier">{<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, ‘image’, ‘single_spectrum’, ‘spectrum_image’}</span></dt><dd><p>Velox only: specifies the type of data to load: if <code class="docutils literal notranslate"><span class="pre">'image'</span></code> is selected,
 only images (including EDS maps) are loaded, if <code class="docutils literal notranslate"><span class="pre">'single_spectrum'</span></code> is
 selected, only single spectra are loaded and if <code class="docutils literal notranslate"><span class="pre">'spectrum_image'</span></code> is
-selected, only the spectrum image will be loaded.</p></li>
-<li><p><strong>first_frame</strong> (<em>int</em><em>, </em><em>default=0</em>) – Velox only: Select the start for the frame range of the EDS spectrum image
-to load.</p></li>
-<li><p><strong>last_frame</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Velox only: Select the end for the frame range of the EDS spectrum image
-to load.</p></li>
-<li><p><strong>sum_frames</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Velox only: Load each individual EDS frame. The EDS spectrum image will
+selected, only the spectrum image will be loaded.</p>
+</dd>
+<dt><strong>first_frame</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, default=0</span></dt><dd><p>Velox only: Select the start for the frame range of the EDS spectrum image
+to load.</p>
+</dd>
+<dt><strong>last_frame</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>Velox only: Select the end for the frame range of the EDS spectrum image
+to load.</p>
+</dd>
+<dt><strong>sum_frames</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Velox only: Load each individual EDS frame. The EDS spectrum image will
 be loaded with an extra navigation dimension corresponding to the frame
-index (time axis).</p></li>
-<li><p><strong>sum_EDS_detectors</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Velox only: Load the EDS signal as a sum over the signals from all EDS
+index (time axis).</p>
+</dd>
+<dt><strong>sum_EDS_detectors</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Velox only: Load the EDS signal as a sum over the signals from all EDS
 detectors (default) or, alternatively, load the signal of each individual
 EDS detector. In the latter case, a corresponding number of distinct
-EDS signals is returned.</p></li>
-<li><p><strong>rebin_energy</strong> (<em>int</em><em>, </em><em>default=1</em>) – Velox only: Rebin the energy axis by given factor. Useful in combination
+EDS signals is returned.</p>
+</dd>
+<dt><strong>rebin_energy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, default=1</span></dt><dd><p>Velox only: Rebin the energy axis by given factor. Useful in combination
 with <code class="docutils literal notranslate"><span class="pre">sum_frames=False</span></code> to reduce the data size when reading the
-individual frames of the spectrum image.</p></li>
-<li><p><strong>SI_dtype</strong> (<em>numpy dtype</em><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Velox only: Change the datatype of a spectrum image. Useful in combination
+individual frames of the spectrum image.</p>
+</dd>
+<dt><strong>SI_dtype</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v1.25)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.dtype</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>Velox only: Change the datatype of a spectrum image. Useful in combination
 with <code class="docutils literal notranslate"><span class="pre">sum_frames=False</span></code> to reduce the data size when reading the individual
-frames of the spectrum image. If not specified, the dtype of the data in
-the emd file is used.</p></li>
-<li><p><strong>load_SI_image_stack</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Velox only: Allows loading the stack of STEM images acquired
+frames of the spectrum image. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, the dtype of the data in
+the emd file is used.</p>
+</dd>
+<dt><strong>load_SI_image_stack</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Velox only: Allows loading the stack of STEM images acquired
 simultaneously with the EDS spectrum image. This option can be useful to
 monitor any specimen changes during the acquisition or to correct the
-spatial drift in the spectrum image by using the STEM images.</p></li>
-</ul>
+spatial drift in the spectrum image by using the STEM images.</p>
+</dd>
+</dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
 <ul class="simple">
-<li><p>’data’ – multidimensional numpy array</p></li>
-<li><p>’axes’ – list of dictionaries describing the axes
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
 containing the fields ‘name’, ‘units’, ‘index_in_array’, and
 either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
 containing the full axes vector</p></li>
-<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
-<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+<li><p>‘metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>‘original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
 </ul>
-</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list of dicts</p>
+</dl>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.emd.file_writer">
-<span class="sig-prename descclassname"><span class="pre">rsciio.emd.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.emd.file_writer" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.emd.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.emd.file_writer" title="Permalink to this definition">#</a></dt>
 <dd><p>Write signal to EMD file. Only the specifications by the National Center
 for Electron Microscopy (NCEM) are supported.</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p></li>
-<li><p><strong>signal</strong> (<em>dict</em>) – <p>Dictionary containing the signal object.
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>signal</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></span></dt><dd><p>Dictionary containing the signal object.
 Should contain the following fields:</p>
-<ul>
-<li><p>’data’ – multidimensional numpy array</p></li>
-<li><p>’axes’ – list of dictionaries describing the axes
+<ul class="simple">
+<li><p>‘data’ – multidimensional numpy array</p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
 containing the fields ‘name’, ‘units’, ‘index_in_array’, and
 either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
 containing the full axes vector</p></li>
-<li><p>’metadata’ – dictionary containing the metadata tree</p></li>
+<li><p>‘metadata’ – dictionary containing the metadata tree</p></li>
 </ul>
-</p></li>
-<li><p><strong>chunks</strong> (<em>None</em><em>, </em><em>True</em><em> or </em><em>tuple</em><em>, </em><em>Default=None</em>) – Determine the chunking of the dataset to save. See the <a class="reference internal" href="hspy.html#hspy-chunks"><span class="std std-ref">chunks
-argument of the hspy-format</span></a> for more details.</p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – Dictionary containing metadata, which will be written as attribute
-of the root group.</p></li>
-</ul>
+</dd>
+<dt><strong>chunks</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>Define the chunking used for saving the dataset. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, calculates
+chunks for the signal, with preferably at least one chunk per signal
+space.</p>
+</dd>
+<dt><strong>**kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Dictionary containing metadata, which will be written as attribute
+of the root group.</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </dd></dl>

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
+    <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
     <title>Universal Spectroscopy and Imaging Data (h5USID) &#8212; RosettaSciIO  documentation</title>
   
   
@@ -30,7 +30,6 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
-    <link rel="icon" sizes="16x16" type="image/svg" href="../_static/logo_sq.svg" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
@@ -502,8 +501,79 @@ plugin or the <code class="docutils literal notranslate"><span class="pre">reade
 set explicitly. Otherwise, using the <code class="docutils literal notranslate"><span class="pre">.hdf5</span></code> extension will default to the
 <a class="reference internal" href="hspy.html#hspy-format"><span class="std std-ref">HyperSpy plugin</span></a>.</p>
 </section>
-<section id="api-functions">
-<h2>API functions<a class="headerlink" href="#api-functions" title="Permalink to this heading">#</a></h2>
+<section id="module-rsciio.usid">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.usid" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.usid.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.usid.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_non_uniform_dims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.usid.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Read a USID Main dataset present in an HDF5 file into a HyperSpy Signal.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not.</p>
+</dd>
+<dt><strong>dataset_path</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, optional</span></dt><dd><p>Absolute path of USID Main HDF5 dataset.
+Default is <code class="docutils literal notranslate"><span class="pre">None</span></code> - all Main Datasets will be read. Given that HDF5
+files can accommodate very large datasets, lazy reading is strongly
+recommended.
+If a string like <code class="docutils literal notranslate"><span class="pre">&quot;/Measurement_000/Channel_000/My_Dataset&quot;</span></code> is
+provided, the specific dataset will be loaded.</p>
+</dd>
+<dt><strong>ignore_non_uniform_dims</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, optional</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code> (default), parameters that were varied non-uniformly in the
+desired dataset will result in Exceptions.
+Else, all such non-uniformly varied parameters will be treated as
+uniformly varied parameters and a Signal object will be generated.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>‘metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>‘original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.usid.file_writer">
+<span class="sig-prename descclassname"><span class="pre">rsciio.usid.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.usid.file_writer" title="Permalink to this definition">#</a></dt>
+<dd><p>Write a HyperSpy Signal object to a HDF5 file formatted according to USID.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>signal</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></span></dt><dd><p>Dictionary containing the signal object.
+Should contain the following fields:</p>
+<ul class="simple">
+<li><p>‘data’ – multidimensional numpy array</p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>‘metadata’ – dictionary containing the metadata tree</p></li>
+</ul>
+</dd>
+<dt><strong>**kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>All other keyword arguments will be passed to
+<a class="reference external" href="https://pycroscopy.github.io/pyUSID/_autosummary/pyUSID.io.hdf_utils.model.write_main_dataset.html#pyUSID.io.hdf_utils.model.write_main_dataset" title="(in pyUSID v0.0.10r2)"><code class="xref py py-func docutils literal notranslate"><span class="pre">pyUSID.io.hdf_utils.model.write_main_dataset()</span></code></a>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="usage-examples">
 <h2>Usage examples<a class="headerlink" href="#usage-examples" title="Permalink to this heading">#</a></h2>
@@ -614,7 +684,11 @@ will default to a warning when it encounters a parameter that has been varied no
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#background">Background</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#requirements">Requirements</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#api-functions">API functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.usid">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.usid.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.usid.file_writer"><code class="docutils literal notranslate"><span class="pre">file_writer()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage-examples">Usage examples</a></li>
 </ul>
   </nav></div>

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
+    <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
     <title>EMSA/MSA format &#8212; RosettaSciIO  documentation</title>
   
   
@@ -30,7 +30,6 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
-    <link rel="icon" sizes="16x16" type="image/svg" href="../_static/logo_sq.svg" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
@@ -484,63 +483,70 @@ of America</a>.</p>
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.msa" title="Permalink to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.msa.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.msa.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'latin-1'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.msa.file_reader" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.msa.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'latin-1'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.msa.file_reader" title="Permalink to this definition">#</a></dt>
 <dd><p>Read an MSA file.</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
-<li><p><strong>encoding</strong> (<em>str</em><em>, </em><em>Default=&quot;latin-1&quot;</em>) – The encoding used to read the content of the file. Different file
-encodings, such as <code class="docutils literal notranslate"><span class="pre">&quot;utf8&quot;</span></code> can be set via this argument.</p></li>
-</ul>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Lazy loading is not supported.</p>
+</dd>
+<dt><strong>encoding</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=”latin-1”</span></dt><dd><p>The encoding used to read the content of the file. Different file
+encodings, such as <code class="docutils literal notranslate"><span class="pre">&quot;utf8&quot;</span></code> can be set via this argument.</p>
+</dd>
+</dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
 <ul class="simple">
-<li><p>’data’ – multidimensional numpy array</p></li>
-<li><p>’axes’ – list of dictionaries describing the axes
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
 containing the fields ‘name’, ‘units’, ‘index_in_array’, and
 either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
 containing the full axes vector</p></li>
-<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
-<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+<li><p>‘metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>‘original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
 </ul>
-</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list of dicts</p>
+</dl>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.msa.file_writer">
-<span class="sig-prename descclassname"><span class="pre">rsciio.msa.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">',</span> <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'latin-1'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.msa.file_writer" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.msa.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Y'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">',</span> <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'latin-1'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.msa.file_writer" title="Permalink to this definition">#</a></dt>
 <dd><p>Write signal to an MSA file.</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p></li>
-<li><p><strong>signal</strong> (<em>dict</em>) – <p>Dictionary containing the signal object.
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>signal</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></span></dt><dd><p>Dictionary containing the signal object.
 Should contain the following fields:</p>
-<ul>
-<li><p>’data’ – multidimensional numpy array</p></li>
-<li><p>’axes’ – list of dictionaries describing the axes
+<ul class="simple">
+<li><p>‘data’ – multidimensional numpy array</p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
 containing the fields ‘name’, ‘units’, ‘index_in_array’, and
 either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
 containing the full axes vector</p></li>
-<li><p>’metadata’ – dictionary containing the metadata tree</p></li>
+<li><p>‘metadata’ – dictionary containing the metadata tree</p></li>
 </ul>
-</p></li>
-<li><p><strong>format</strong> (<em>str</em><em>, </em><em>Default=&quot;Y&quot;</em>) – Specify whether the X-axis (energy/wavelength) should also be saved with
+</dd>
+<dt><strong>format</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=”Y”</span></dt><dd><p>Specify whether the X-axis (energy/wavelength) should also be saved with
 the data. The default, <code class="docutils literal notranslate"><span class="pre">&quot;Y&quot;</span></code> omits the X-axis in the file. The alternative,
-<code class="docutils literal notranslate"><span class="pre">&quot;XY&quot;</span></code>, saves the calibrated signal axis as first column.</p></li>
-<li><p><strong>separator</strong> (<em>str</em><em>, </em><em>Default=&quot;</em><em>, </em><em>&quot;</em>) – Change the column separator. However, if a different separator is chosen
+<code class="docutils literal notranslate"><span class="pre">&quot;XY&quot;</span></code>, saves the calibrated signal axis as first column.</p>
+</dd>
+<dt><strong>separator</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, Default=”, “</span></dt><dd><p>Change the column separator. However, if a different separator is chosen
 the resulting file will not comply with the MSA/EMSA standard and
-RosettaSciIO and other software may not be able to read it.</p></li>
-<li><p><strong>encoding</strong> (<em>str</em><em>, </em><em>Default=&quot;latin-1&quot;</em>) – The encoding used to write the content of the file. Different file
-encodings, such as <code class="docutils literal notranslate"><span class="pre">&quot;utf8&quot;</span></code> can be set via this argument.</p></li>
-</ul>
+RosettaSciIO and other software may not be able to read it.</p>
+</dd>
+<dt><strong>encoding</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=”latin-1”</span></dt><dd><p>The encoding used to write the content of the file. Different file
+encodings, such as <code class="docutils literal notranslate"><span class="pre">&quot;utf8&quot;</span></code> can be set via this argument.</p>
+</dd>
+</dl>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -554,20 +560,20 @@ encodings, such as <code class="docutils literal notranslate"><span class="pre">
 <dt class="sig sig-object py" id="rsciio.msa.parse_msa_string">
 <span class="sig-prename descclassname"><span class="pre">rsciio.msa.</span></span><span class="sig-name descname"><span class="pre">parse_msa_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.msa.parse_msa_string" title="Permalink to this definition">#</a></dt>
 <dd><p>Parse an EMSA/MSA file content.</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>string</strong> (<em>string</em><em> or </em><em>file object</em>) – It must complain with the EMSA/MSA standard.</p></li>
-<li><p><strong>filename</strong> (<em>string</em><em> or </em><em>None</em>) – The filename.</p></li>
-</ul>
+<dd class="field-odd"><dl>
+<dt><strong>string</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>It must complain with the EMSA/MSA standard.</p>
+</dd>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a></span></dt><dd><p>The filename.</p>
+</dd>
+</dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>file_data_list</strong> – The list containts a dictionary that contains the parsed
-information. It can be used to create a <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseSignal</span></code>
-using <code class="xref py py-func docutils literal notranslate"><span class="pre">dict2signal()</span></code>.</p>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a></dt><dd><p>List of a single dictionary to be returned by <code class="docutils literal notranslate"><span class="pre">file_reader</span></code>.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list</p>
+</dl>
 </dd>
 </dl>
 </dd></dl>

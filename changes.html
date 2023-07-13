@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
+    <link rel="icon" href="_static/logo_sq.svg" type="image/svg+xml">
     <title>Changelog &#8212; RosettaSciIO  documentation</title>
   
   
@@ -30,7 +30,6 @@
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/custom-styles.css" />
-    <link rel="icon" sizes="16x16" type="image/svg" href="_static/logo_sq.svg" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
@@ -424,6 +423,12 @@ document.write(`
 <a class="reference external" href="https://rosettasciio.readthedocs.io/en/latest/changes.html">https://rosettasciio.readthedocs.io/en/latest/changes.html</a></p>
 <section id="release-unreleased-2023-07-13">
 <h2> [UNRELEASED] (2023-07-13)<a class="headerlink" href="#release-unreleased-2023-07-13" title="Permalink to this heading">#</a></h2>
+<section id="improved-documentation">
+<h3>Improved Documentation<a class="headerlink" href="#improved-documentation" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Improve docstrings, check API links when building documentation and set GitHub CI to fail when link is broken (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/142">#142</a>)</p></li>
+</ul>
+</section>
 <section id="maintenance">
 <h3>Maintenance<a class="headerlink" href="#maintenance" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
@@ -431,8 +436,8 @@ document.write(`
 </ul>
 </section>
 </section>
-<section id="id2">
-<h2>0.1 (2023-06-06)<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h2>
+<section id="id3">
+<h2>0.1 (2023-06-06)<a class="headerlink" href="#id3" title="Permalink to this heading">#</a></h2>
 <section id="new-features">
 <h3>New features<a class="headerlink" href="#new-features" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
@@ -455,8 +460,8 @@ document.write(`
 <li><p>Fix bugs with reading non-FEI and Velox <code class="docutils literal notranslate"><span class="pre">mrc</span></code> files, improve documentation of <code class="docutils literal notranslate"><span class="pre">mrc</span></code> and <code class="docutils literal notranslate"><span class="pre">mrcz</span></code> file format. Closes <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/71">#71</a>, <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/91">#91</a>, <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/93">#93</a>, <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/96">#96</a>, <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/130">#130</a>. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/131">#131</a>)</p></li>
 </ul>
 </section>
-<section id="improved-documentation">
-<h3>Improved Documentation<a class="headerlink" href="#improved-documentation" title="Permalink to this heading">#</a></h3>
+<section id="id21">
+<h3>Improved Documentation<a class="headerlink" href="#id21" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Consolidate docstrings and documentation for all plugins (see also <a class="reference external" href="https://github.com/hyperspy/rosettasciio/pull/47">#47</a>, <a class="reference external" href="https://github.com/hyperspy/rosettasciio/pull/59">#59</a>, <a class="reference external" href="https://github.com/hyperspy/rosettasciio/pull/64">#64</a>, <a class="reference external" href="https://github.com/hyperspy/rosettasciio/pull/72">#72</a>) (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/76">#76</a>)</p></li>
 <li><p>Remove persistent search field in left sidebar since this makes finding the sidebar on narrow screens difficult.
@@ -484,8 +489,8 @@ Set maximal major version of Sphinx to 5. (<a class="reference external" href="h
 <code class="docutils literal notranslate"><span class="pre">utils.tools.XmlToDict</span></code> Xml to dict/list translator class with rich customization options as kwargs, and main method for translation <code class="docutils literal notranslate"><span class="pre">dictionarize</span></code> (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/111">#111</a>)</p></li>
 </ul>
 </section>
-<section id="id29">
-<h3>Maintenance<a class="headerlink" href="#id29" title="Permalink to this heading">#</a></h3>
+<section id="id31">
+<h3>Maintenance<a class="headerlink" href="#id31" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Initiate GitHub actions for tests and documentation. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/1">#1</a>)</p></li>
 <li><p>Initiate towncrier changelog and create templates for PRs and issues. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/3">#3</a>)</p></li>
@@ -571,17 +576,18 @@ new repository.</p></li>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#release-unreleased-2023-07-13"> [UNRELEASED] (2023-07-13)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#improved-documentation">Improved Documentation</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#maintenance">Maintenance</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">0.1 (2023-06-06)</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">0.1 (2023-06-06)</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#new-features">New features</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#bug-fixes">Bug Fixes</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#improved-documentation">Improved Documentation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">Improved Documentation</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deprecations">Deprecations</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#enhancements">Enhancements</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#api-changes">API changes</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id29">Maintenance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id31">Maintenance</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#initiation-2022-07-23">Initiation (2022-07-23)</a></li>

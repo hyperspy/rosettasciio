@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
+    <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
     <title>Ripple format &#8212; RosettaSciIO  documentation</title>
   
   
@@ -30,7 +30,6 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
-    <link rel="icon" sizes="16x16" type="image/svg" href="../_static/logo_sq.svg" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
@@ -488,72 +487,78 @@ If so, you should add that after loading the file.</p>
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.ripple" title="Permalink to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.ripple.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.ripple.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rpl_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'latin-1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'c'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.ripple.file_reader" title="Permalink to this definition">#</a></dt>
-<dd><p>Parses a Lispix (<a class="reference external" href="https://www.nist.gov/services-resources/software/lispix">https://www.nist.gov/services-resources/software/lispix</a>)
+<span class="sig-prename descclassname"><span class="pre">rsciio.ripple.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rpl_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'latin-1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.ripple.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Read a ripple/raw file.
+Parse a lispix (<a class="reference external" href="https://www.nist.gov/services-resources/software/lispix">https://www.nist.gov/services-resources/software/lispix</a>)
 ripple (.rpl) file and reads the data from the corresponding raw (.raw) file;
 or, read a raw file if the dictionary <code class="docutils literal notranslate"><span class="pre">rpl_info</span></code> is provided.</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
-<li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
-<li><p><strong>rpl_info</strong> (<em>dict</em><em>, </em><em>Default=None</em>) – A dictionary containing the keywords in order to read a <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not.</p>
+</dd>
+<dt><strong>rpl_info</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, Default=None</span></dt><dd><p>A dictionary containing the keywords in order to read a <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file
 without corresponding <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> file. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, the keywords are parsed
-automatically from the <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> file.</p></li>
-<li><p><strong>encoding</strong> (<em>str</em><em>, </em><em>Default=&quot;latin-1&quot;</em>) – The encoding used to read the content of the file. Different file
-encodings, such as <code class="docutils literal notranslate"><span class="pre">&quot;utf8&quot;</span></code> can be set via this argument.</p></li>
-<li><p><strong>mmap_mode</strong> (<em>str</em><em>, </em><em>optional</em>) – Default is copy-on-write <code class="docutils literal notranslate"><span class="pre">&quot;c&quot;</span></code>, but different modes can be set. However,
-note that lazy loading does not support in-place writing (i.e lazy loading
-and the <code class="docutils literal notranslate"><span class="pre">&quot;r+&quot;</span></code> mode are incompatible). The mode has no effect for pickled or
-zipped files. A memory-mapped array is stored on disk, and not directly loaded
-into memory.  However, it can be accessed and sliced like any
-ndarray.  Memory mapping is especially useful for accessing
-small fragments of large files without reading the entire file
-into memory.</p></li>
-</ul>
+automatically from the <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> file.</p>
+</dd>
+<dt><strong>encoding</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=”latin-1”</span></dt><dd><p>The encoding used to read the content of the file. Different file
+encodings, such as <code class="docutils literal notranslate"><span class="pre">&quot;utf8&quot;</span></code> can be set via this argument.</p>
+</dd>
+<dt><strong>mmap_mode</strong><span class="classifier">{<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, “r+”, “r”, “w+”, “c”}, default=None</span></dt><dd><p>Argument passed to <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html#numpy.memmap" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.memmap</span></code></a>. A memory-mapped array is
+stored on disk, and not directly loaded into memory.  However, it can be
+accessed and sliced like any ndarray.  Lazy loading does not support in-place writing (i.e lazy loading
+and the <code class="docutils literal notranslate"><span class="pre">&quot;r+&quot;</span></code> mode are incompatible).
+If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default), the value is <code class="docutils literal notranslate"><span class="pre">&quot;r&quot;</span></code> when <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code>, otherwise
+it is <code class="docutils literal notranslate"><span class="pre">&quot;c&quot;</span></code>.</p>
+</dd>
+</dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
 <ul class="simple">
-<li><p>’data’ – multidimensional numpy array</p></li>
-<li><p>’axes’ – list of dictionaries describing the axes
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
 containing the fields ‘name’, ‘units’, ‘index_in_array’, and
 either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
 containing the full axes vector</p></li>
-<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
-<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+<li><p>‘metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>‘original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
 </ul>
-</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list of dicts</p>
+</dl>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.ripple.file_writer">
-<span class="sig-prename descclassname"><span class="pre">rsciio.ripple.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'latin-1'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.ripple.file_writer" title="Permalink to this definition">#</a></dt>
-<dd><p>Writes a Lispix (<a class="reference external" href="https://www.nist.gov/services-resources/software/lispix">https://www.nist.gov/services-resources/software/lispix</a>)
+<span class="sig-prename descclassname"><span class="pre">rsciio.ripple.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'latin-1'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.ripple.file_writer" title="Permalink to this definition">#</a></dt>
+<dd><p>Write a ripple/raw file.
+Write a Lispix (<a class="reference external" href="https://www.nist.gov/services-resources/software/lispix">https://www.nist.gov/services-resources/software/lispix</a>)
 ripple (.rpl) file and saves the data in a corresponding raw (.raw) file.</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p></li>
-<li><p><strong>signal</strong> (<em>dict</em>) – <p>Dictionary containing the signal object.
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>signal</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></span></dt><dd><p>Dictionary containing the signal object.
 Should contain the following fields:</p>
-<ul>
-<li><p>’data’ – multidimensional numpy array</p></li>
-<li><p>’axes’ – list of dictionaries describing the axes
+<ul class="simple">
+<li><p>‘data’ – multidimensional numpy array</p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
 containing the fields ‘name’, ‘units’, ‘index_in_array’, and
 either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
 containing the full axes vector</p></li>
-<li><p>’metadata’ – dictionary containing the metadata tree</p></li>
+<li><p>‘metadata’ – dictionary containing the metadata tree</p></li>
 </ul>
-</p></li>
-<li><p><strong>encoding</strong> (<em>str</em><em>, </em><em>Default=&quot;latin-1&quot;</em>) – The encoding used to write the content of the file. Different file
-encodings, such as <code class="docutils literal notranslate"><span class="pre">&quot;utf8&quot;</span></code> can be set via this argument.</p></li>
-</ul>
+</dd>
+<dt><strong>encoding</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=”latin-1”</span></dt><dd><p>The encoding used to write the content of the file. Different file
+encodings, such as <code class="docutils literal notranslate"><span class="pre">&quot;utf8&quot;</span></code> can be set via this argument.</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </dd></dl>

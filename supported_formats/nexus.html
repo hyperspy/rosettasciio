@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
+    <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
     <title>NeXus data format &#8212; RosettaSciIO  documentation</title>
   
   
@@ -30,7 +30,6 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
-    <link rel="icon" sizes="16x16" type="image/svg" href="../_static/logo_sq.svg" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
@@ -584,115 +583,146 @@ using <code class="docutils literal notranslate"><span class="pre">attrs</span><
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.nexus" title="Permalink to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.nexus.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.nexus.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_array_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nxdata_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardlinks_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.nexus.file_reader" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.nexus.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_array_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nxdata_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardlinks_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.nexus.file_reader" title="Permalink to this definition">#</a></dt>
 <dd><p>Read NXdata class or hdf datasets from a file and return signal(s).</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
-<li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
-<li><p><strong>dataset_key</strong> (<em>None</em><em>, </em><em>str</em><em>, </em><em>list</em><em> of </em><em>strings</em><em>, </em><em>default : None</em>) – If None all datasets are returned.
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not.</p>
+</dd>
+<dt><strong>dataset_key</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=None</span></dt><dd><p>If None all datasets are returned.
 If a string or list of strings is provided only items
 whose path contain the string(s) are returned. For example
 dataset_key = [“instrument”, “Fe”] will return
-data entries with instrument or Fe in their hdf path.</p></li>
-<li><p><strong>dataset_path</strong> (<em>None</em><em>, </em><em>str</em><em>, </em><em>list</em><em> of </em><em>strings</em><em>, </em><em>default : None</em>) – If None, no absolute path is searched.
+data entries with instrument or Fe in their hdf path.</p>
+</dd>
+<dt><strong>dataset_path</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=None</span></dt><dd><p>If None, no absolute path is searched.
 If a string or list of strings is provided items with the absolute
 paths specified will be returned. For example, dataset_path =
 [‘/data/spectrum/Mn’], it returns the exact dataset with this path.
 It is not filtered by dataset_key, i.e. with dataset_key = [‘Fe’],
 it still returns the specific dataset at ‘/data/spectrum/Mn’. It is
-empty if no dataset matching the absolute path provided is present.</p></li>
-<li><p><strong>metadata_key</strong> (<em>: None</em><em>, </em><em>str</em><em>, </em><em>list</em><em> of </em><em>strings</em><em>, </em><em>default : None</em>) – Only return items from the original metadata whose path contain the
+empty if no dataset matching the absolute path provided is present.</p>
+</dd>
+<dt><strong>metadata_key</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=None</span></dt><dd><p>Only return items from the original metadata whose path contain the
 strings .e.g metadata_key = [“instrument”, “Fe”] will return
-all metadata entries with “instrument” or “Fe” in their hdf path.</p></li>
-<li><p><strong>skip_array_metadata</strong> (<em>bool</em><em>, </em><em>default : False</em>) – Whether to skip loading metadata with an array entry. This is useful
-as metadata may contain large array that is redundant with the data.</p></li>
-<li><p><strong>nxdata_only</strong> (<em>bool</em><em>, </em><em>default : False</em>) – If True only NXdata will be converted into a signal
-if False NXdata and any hdf datasets will be loaded as signals</p></li>
-<li><p><strong>hardlinks_only</strong> (<em>bool</em><em>, </em><em>default : False</em>) – If True any links (soft or External) will be ignored when loading.</p></li>
-<li><p><strong>use_default</strong> (<em>bool</em><em>, </em><em>default : False</em>) – If True and a default NXdata is defined in the file load this as a
+all metadata entries with “instrument” or “Fe” in their hdf path.</p>
+</dd>
+<dt><strong>skip_array_metadata</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to skip loading metadata with an array entry. This is useful
+as metadata may contain large array that is redundant with the data.</p>
+</dd>
+<dt><strong>nxdata_only</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>If True only NXdata will be converted into a signal
+if False NXdata and any hdf datasets will be loaded as signals.</p>
+</dd>
+<dt><strong>hardlinks_only</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>If True any links (soft or External) will be ignored when loading.</p>
+</dd>
+<dt><strong>use_default</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>If True and a default NXdata is defined in the file load this as a
 signal. This will ignore the other keyword options. If True and no
 default is defined the file will be loaded according to
-the keyword options.</p></li>
-</ul>
+the keyword options.</p>
+</dd>
+<dt><strong>mapping</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></span></dt><dd><p>Define the mapping from the original metadata to the returned
+metadata.</p>
+</dd>
+</dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
 <ul class="simple">
-<li><p>’data’ – multidimensional numpy array</p></li>
-<li><p>’axes’ – list of dictionaries describing the axes
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
 containing the fields ‘name’, ‘units’, ‘index_in_array’, and
 either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
 containing the full axes vector</p></li>
-<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
-<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+<li><p>‘metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>‘original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
 </ul>
-</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list of dicts</p>
 </dd>
 </dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="../api/utils.html#rsciio.utils.hdf5.list_datasets_in_file" title="rsciio.utils.hdf5.list_datasets_in_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5.list_datasets_in_file</span></code></a></dt><dd><p>Convenience function to list datasets present in a file.</p>
+</dd>
+<dt><a class="reference internal" href="../api/utils.html#rsciio.utils.hdf5.read_metadata_from_file" title="rsciio.utils.hdf5.read_metadata_from_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5.read_metadata_from_file</span></code></a></dt><dd><p>Convenience function to read metadata present in a file.</p>
+</dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
 <p>Loading all datasets can result in a large number of signals
 Please review your datasets and use the dataset_key to target
 the datasets of interest.
 “keys” is a special keywords and prepended with “fix” in the metadata
 structure to avoid any issues.</p>
 <p>Datasets are all arrays with size&gt;2 (arrays, lists)</p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<ul class="simple">
-<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">list_datasets_in_file()</span></code></p></li>
-<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">read_metadata_from_file()</span></code></p></li>
-</ul>
-</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.nexus.file_writer">
-<span class="sig-prename descclassname"><span class="pre">rsciio.nexus.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_original_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_metadata_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.nexus.file_writer" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.nexus.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_original_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_metadata_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compression</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gzip'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.nexus.file_writer" title="Permalink to this definition">#</a></dt>
 <dd><p>Write the signal and metadata as a NeXus file.</p>
 <p>This will save the signal in NXdata format in the file.
 As the form of the metadata can vary and is not validated it will
 be stored as an NXcollection (an unvalidated collection)</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p></li>
-<li><p><strong>signal</strong> (<em>dict</em>) – <p>Dictionary containing the signal object.
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>signal</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></span></dt><dd><p>Dictionary containing the signal object.
 Should contain the following fields:</p>
-<ul>
-<li><p>’data’ – multidimensional numpy array</p></li>
-<li><p>’axes’ – list of dictionaries describing the axes
+<ul class="simple">
+<li><p>‘data’ – multidimensional numpy array</p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
 containing the fields ‘name’, ‘units’, ‘index_in_array’, and
 either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
 containing the full axes vector</p></li>
-<li><p>’metadata’ – dictionary containing the metadata tree</p></li>
+<li><p>‘metadata’ – dictionary containing the metadata tree</p></li>
 </ul>
-</p></li>
-<li><p><strong>save_original_metadata</strong> (<em>bool</em><em> , </em><em>default : True</em>) – Option to save hyperspy.original_metadata with the signal.
+</dd>
+<dt><strong>save_original_metadata</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a> , default</span><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#True" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">True</span></code></a></span></dt><dd><p>Option to save hyperspy.original_metadata with the signal.
 A loaded NeXus file may have a large amount of data
-when loaded which you may wish to omit on saving.</p></li>
-<li><p><strong>skip_metadata_key</strong> (<em>str</em><em> or </em><em>list</em><em> of </em><em>str</em><em>, </em><em>default : None</em>) – The key(s) to skip when saving original metadata. This is useful
-when some metadata keys should be ignored.</p></li>
-<li><p><strong>use_default</strong> (<em>bool</em><em> , </em><em>default : False</em>) – Option to define the default dataset in the file.
+when loaded which you may wish to omit on saving.</p>
+</dd>
+<dt><strong>skip_metadata_key</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default</span><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a></span></dt><dd><p>The key(s) to skip when saving original metadata. This is useful
+when some metadata keys should be ignored.</p>
+</dd>
+<dt><strong>use_default</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a> , default</span><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#False" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">False</span></code></a></span></dt><dd><p>Option to define the default dataset in the file.
 If set to True the signal or first signal in the list of signals
-will be defined as the default (following NeXus v3 data rules).</p></li>
-</ul>
+will be defined as the default (following NeXus v3 data rules).</p>
+</dd>
+<dt><strong>compression</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, ‘gzip’, ‘szip’, ‘lzf’, default=’gzip’</span></dt><dd><p>Compression can significantly increase the saving speed. If file size is not
+an issue, it can be disabled by setting <code class="docutils literal notranslate"><span class="pre">compression=None</span></code>.
+RosettaSciIO uses h5py for reading and writing HDF5 files and, therefore,
+it supports all <a class="reference external" href="https://docs.h5py.org/en/stable/high/dataset.html#dataset-compression">compression filters supported by h5py</a>.
+The default is <code class="docutils literal notranslate"><span class="pre">'gzip'</span></code>. Also see notes below.</p>
+</dd>
+</dl>
 </dd>
 </dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<ul class="simple">
-<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">file_reader()</span></code></p></li>
-<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">list_datasets_in_file()</span></code></p></li>
-<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">read_metadata_from_file()</span></code></p></li>
-</ul>
+<dl class="simple">
+<dt><a class="reference internal" href="../api/utils.html#rsciio.utils.hdf5.list_datasets_in_file" title="rsciio.utils.hdf5.list_datasets_in_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5.list_datasets_in_file</span></code></a></dt><dd><p>Convenience function to list datasets present in a file.</p>
+</dd>
+<dt><a class="reference internal" href="../api/utils.html#rsciio.utils.hdf5.read_metadata_from_file" title="rsciio.utils.hdf5.read_metadata_from_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5.read_metadata_from_file</span></code></a></dt><dd><p>Convenience function to read metadata present in a file.</p>
+</dd>
+</dl>
 </div>
+<p class="rubric">Notes</p>
+<p>It is possible to enable other compression filters such as <code class="docutils literal notranslate"><span class="pre">blosc</span></code> by
+installing e.g. <a class="reference external" href="https://github.com/silx-kit/hdf5plugin">hdf5plugin</a>.
+Similarly, the availability of <code class="docutils literal notranslate"><span class="pre">'szip'</span></code> depends on the HDF5 installation.
+If not available an error will be raised. Be aware that loading those
+files will require installing the package providing the compression filter
+and it may thus not be possible to load it on some platforms.
+Only <code class="docutils literal notranslate"><span class="pre">compression=None</span></code> and <code class="docutils literal notranslate"><span class="pre">compression='gzip'</span></code> are available on all
+platforms. For more details, see the <a class="reference external" href="https://docs.h5py.org/en/stable/faq.html#what-compression-processing-filters-are-supported">h5py documentation</a>.</p>
 </dd></dl>
 
 </section>

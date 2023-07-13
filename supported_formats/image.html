@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
+    <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
     <title>Image formats &#8212; RosettaSciIO  documentation</title>
   
   
@@ -30,7 +30,6 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
-    <link rel="icon" sizes="16x16" type="image/svg" href="../_static/logo_sq.svg" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
@@ -477,37 +476,38 @@ the separate <code class="docutils literal notranslate"><span class="pre">tiffil
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.image" title="Permalink to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.image.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.image.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.image.file_reader" title="Permalink to this definition">#</a></dt>
-<dd><p>Read data from any format supported by imageio (PIL/pillow). The file
-format is defined by the file extension that is any one supported by imageio.
-For a list of formats see
-<a class="reference external" href="https://imageio.readthedocs.io/en/stable/formats/index.html">https://imageio.readthedocs.io/en/stable/formats/index.html</a></p>
-<dl class="field-list simple">
+<span class="sig-prename descclassname"><span class="pre">rsciio.image.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.image.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Read data from any format supported by imageio (PIL/pillow).</p>
+<p>The file format is defined by the file extension that is any one supported by
+imageio. For a list of formats see
+<a class="reference external" href="https://imageio.readthedocs.io/en/stable/formats/index.html">https://imageio.readthedocs.io/en/stable/formats/index.html</a>.</p>
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
-<li><p><strong>format</strong> (<em>str</em><em>, </em><em>optional</em>) – The format to use to read the file. By default imageio selects the
-appropriate format based on the filename and its contents.</p></li>
-<li><p><strong>**kwds</strong> (<em>keyword arguments</em>) – Allows to pass keyword arguments supported by the individual file
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not.</p>
+</dd>
+<dt><strong>**kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Allows to pass keyword arguments supported by the individual file
 readers as documented at
-<a class="reference external" href="https://imageio.readthedocs.io/en/stable/formats/index.html">https://imageio.readthedocs.io/en/stable/formats/index.html</a></p></li>
-</ul>
+<a class="reference external" href="https://imageio.readthedocs.io/en/stable/formats/index.html">https://imageio.readthedocs.io/en/stable/formats/index.html</a>.</p>
+</dd>
+</dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
 <ul class="simple">
-<li><p>’data’ – multidimensional numpy array</p></li>
-<li><p>’axes’ – list of dictionaries describing the axes
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
 containing the fields ‘name’, ‘units’, ‘index_in_array’, and
 either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
 containing the full axes vector</p></li>
-<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
-<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+<li><p>‘metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>‘original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
 </ul>
-</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list of dicts</p>
+</dl>
 </dd>
 </dl>
 </dd></dl>
@@ -515,52 +515,58 @@ containing the full axes vector</p></li>
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.image.file_writer">
 <span class="sig-prename descclassname"><span class="pre">rsciio.image.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scalebar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scalebar_kwds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imshow_kwds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.image.file_writer" title="Permalink to this definition">#</a></dt>
-<dd><p>Writes data to any format supported by pillow. The file format is defined by
-the file extension that is any one supported by imageio. When any of the
-parameters <code class="docutils literal notranslate"><span class="pre">output_size</span></code>, <code class="docutils literal notranslate"><span class="pre">scalebar</span></code> or <code class="docutils literal notranslate"><span class="pre">imshow_kwds</span></code> is given,
-<code class="xref py py-func docutils literal notranslate"><span class="pre">imshow()</span></code> is used to generate a figure.</p>
-<dl class="field-list simple">
+<dd><p>Write data to any format supported by pillow.</p>
+<p>The file format is defined by  the file extension that is any one
+supported by imageio. When any of the parameters <code class="docutils literal notranslate"><span class="pre">output_size</span></code>,
+<code class="docutils literal notranslate"><span class="pre">scalebar</span></code> or <code class="docutils literal notranslate"><span class="pre">imshow_kwds</span></code> is given,
+<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html#matplotlib.pyplot.imshow" title="(in Matplotlib v3.7.2)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imshow()</span></code></a> is used to generate a figure.</p>
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p></li>
-<li><p><strong>signal</strong> (<em>dict</em>) – <p>Dictionary containing the signal object.
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>signal</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></span></dt><dd><p>Dictionary containing the signal object.
 Should contain the following fields:</p>
-<ul>
-<li><p>’data’ – multidimensional numpy array</p></li>
-<li><p>’axes’ – list of dictionaries describing the axes
+<ul class="simple">
+<li><p>‘data’ – multidimensional numpy array</p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
 containing the fields ‘name’, ‘units’, ‘index_in_array’, and
 either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
 containing the full axes vector</p></li>
-<li><p>’metadata’ – dictionary containing the metadata tree</p></li>
+<li><p>‘metadata’ – dictionary containing the metadata tree</p></li>
 </ul>
-</p></li>
-<li><p><strong>scalebar</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Export the image with a scalebar.</p></li>
-<li><p><strong>scalebar_kwds</strong> (<em>dict</em><em>, </em><em>optional</em>) – Dictionary of keyword arguments for the scalebar. Useful to set
+</dd>
+<dt><strong>scalebar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, Default=False</span></dt><dd><p>Export the image with a scalebar.</p>
+</dd>
+<dt><strong>scalebar_kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Dictionary of keyword arguments for the scalebar. Useful to set
 formatting, location, etc. of the scalebar. See the documentation of
-the ‘matplotlib-scalebar’ library for more information.</p></li>
-<li><p><strong>output_size</strong> (<em>{tuple</em><em> of </em><em>length 2</em><em>, </em><em>int</em><em>, </em><em>None}</em><em>, </em><em>Default=None</em>) – <p>The output size of the image in pixels (width, height):</p>
+the ‘matplotlib-scalebar’ library for more information.</p>
+</dd>
+<dt><strong>output_size</strong><span class="classifier">{2-tuple, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>}, Default=None</span></dt><dd><p>The output size of the image in pixels (width, height):</p>
 <blockquote>
-<div><ul>
-<li><p>if <em>int</em>, defines the width of the image, the height is
+<div><ul class="simple">
+<li><p>if <code class="docutils literal notranslate"><span class="pre">int</span></code>, defines the width of the image, the height is
 determined from the aspec ratio of the image</p></li>
-<li><p>if <em>tuple of length 2</em>, defines the width and height of the
+<li><p>if <code class="docutils literal notranslate"><span class="pre">2-tuple</span></code>, defines the width and height of the
 image. Padding with white pixels is used to maintain the aspect
 ratio of the image.</p></li>
-<li><p>if <em>None</em>, the size of the data is used.</p></li>
+<li><p>if <code class="docutils literal notranslate"><span class="pre">None</span></code>, the size of the data is used.</p></li>
 </ul>
 </div></blockquote>
 <p>For output sizes larger than the data size, “nearest” interpolation is
 used by default and this behaviour can be changed through the
 <em>imshow_kwds</em> dictionary.</p>
-</p></li>
-<li><p><strong>imshow_kwds</strong> (<em>dict</em><em>, </em><em>optional</em>) – Keyword arguments dictionary for <code class="xref py py-func docutils literal notranslate"><span class="pre">imshow()</span></code>.</p></li>
-<li><p><strong>**kwds</strong> (<em>keyword arguments</em><em>, </em><em>optional</em>) – Allows to pass keyword arguments supported by the individual file
+</dd>
+<dt><strong>imshow_kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Keyword arguments dictionary for <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html#matplotlib.pyplot.imshow" title="(in Matplotlib v3.7.2)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imshow()</span></code></a>.</p>
+</dd>
+<dt><strong>**kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Allows to pass keyword arguments supported by the individual file
 writers as documented at
 <a class="reference external" href="https://imageio.readthedocs.io/en/stable/formats/index.html">https://imageio.readthedocs.io/en/stable/formats/index.html</a> when
 exporting an image without scalebar. When exporting with a scalebar,
 the keyword arguments are passed to the <cite>pil_kwargs</cite> dictionary of
-<code class="xref py py-func docutils literal notranslate"><span class="pre">savefig()</span></code></p></li>
-</ul>
+<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html#matplotlib.pyplot.savefig" title="(in Matplotlib v3.7.2)"><code class="xref py py-func docutils literal notranslate"><span class="pre">savefig()</span></code></a>.</p>
+</dd>
+</dl>
 </dd>
 </dl>
 </dd></dl>
@@ -577,7 +583,7 @@ arguments:</p>
 </pre></div>
 </div>
 <p>In the example above, the image is created using
-<code class="xref py py-func docutils literal notranslate"><span class="pre">imshow()</span></code>, and additional keyword arguments can be
+<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html#matplotlib.pyplot.imshow" title="(in Matplotlib v3.7.2)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imshow()</span></code></a>, and additional keyword arguments can be
 passed to this function using <code class="docutils literal notranslate"><span class="pre">imshow_kwds</span></code>. For example, this can be used
 to save an image displayed using the matplotlib colormap <code class="docutils literal notranslate"><span class="pre">viridis</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">file_writer</span><span class="p">(</span><span class="s1">&#39;file.jpg&#39;</span><span class="p">,</span> <span class="n">signal</span><span class="p">,</span> <span class="n">imshow_kwds</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">))</span>

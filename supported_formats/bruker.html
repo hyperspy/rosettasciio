@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
+    <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
     <title>Bruker &#8212; RosettaSciIO  documentation</title>
   
   
@@ -30,7 +30,6 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
-    <link rel="icon" sizes="16x16" type="image/svg" href="../_static/logo_sq.svg" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
@@ -484,27 +483,31 @@ which in <a class="reference external" href="https://hyperspy.org">HyperSpy</a> 
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.bruker" title="Permalink to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.bruker.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.bruker.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.bruker.file_reader" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.bruker.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_at_kV</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instrument</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.bruker.file_reader" title="Permalink to this definition">#</a></dt>
 <dd><p>Read a Bruker <code class="docutils literal notranslate"><span class="pre">.bcf</span></code> or <code class="docutils literal notranslate"><span class="pre">.spx</span></code> file.</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
-<li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
-<li><p><strong>select_type</strong> (<code class="docutils literal notranslate"><span class="pre">'spectrum_image'</span></code>, <code class="docutils literal notranslate"><span class="pre">'image'</span></code> or None) – If specified, only the corresponding type of data, either spectrum
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not.</p>
+</dd>
+<dt><strong>select_type</strong><span class="classifier"><code class="docutils literal notranslate"><span class="pre">'spectrum_image'</span></code>, <code class="docutils literal notranslate"><span class="pre">'image'</span></code> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>If specified, only the corresponding type of data, either spectrum
 image or image, is returned.
-By default (None), all data are loaded.</p></li>
-<li><p><strong>index</strong> (<em>int</em><em>, </em><em>None</em><em> or </em><em>str</em>) – Allow to select the index of the dataset in the <code class="docutils literal notranslate"><span class="pre">.bcf</span></code> file, which
+By default (None), all data are loaded.</p>
+</dd>
+<dt><strong>index</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=None</span></dt><dd><p>Allow to select the index of the dataset in the <code class="docutils literal notranslate"><span class="pre">.bcf</span></code> file, which
 can contain several datasets. The default value (<code class="docutils literal notranslate"><span class="pre">None</span></code>) results in
 loading the first dataset. When set to <code class="docutils literal notranslate"><span class="pre">'all'</span></code>, all available datasets
-will be loaded and returned as separate signals.</p></li>
-<li><p><strong>downsample</strong> (<em>int</em>) – The downsampling ratio of a hyperspectral array (height and width only),
-can be an integer &gt;=1, where value of 1 results in no downsampling .
-The default is 1.
+will be loaded and returned as separate signals.</p>
+</dd>
+<dt><strong>downsample</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, default=1</span></dt><dd><p>The downsampling ratio of a hyperspectral array (height and width only),
+can be an integer &gt;=1, where value of 1 results in no downsampling.
 The underlying method of downsampling is unchangeable: sum. Differently
 than :py:func:<code class="docutils literal notranslate"><span class="pre">skimage.measure.block_reduce</span></code>, it is memory efficient
-as it doesn’t create intermediate arrays</p></li>
-<li><p><strong>cutoff_at_kV</strong> (int, float, <code class="docutils literal notranslate"><span class="pre">'zealous'</span></code>, <code class="docutils literal notranslate"><span class="pre">'auto'</span></code> or None) – It can be used either to crop or enlarge the energy (or number of channels)
+as it doesn’t create intermediate arrays.</p>
+</dd>
+<dt><strong>cutoff_at_kV</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">float</span></code></a>, <code class="docutils literal notranslate"><span class="pre">'zealous'</span></code>, <code class="docutils literal notranslate"><span class="pre">'auto'</span></code> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>It can be used either to crop or enlarge the energy (or number of channels)
 range at max values. It can be used to conserve memory or enlarge
 the range if needed to mach the size of other file. The default value
 (<code class="docutils literal notranslate"><span class="pre">None</span></code>) does not influence the size. Numerical values should be in kV.
@@ -513,25 +516,26 @@ should not be used for stacks, as low beam current EDS can have a different
 last non zero channel per slice). <code class="docutils literal notranslate"><span class="pre">'auto'</span></code> truncates channels to SEM/TEM
 acceleration voltage or energy at last channel, depending which is smaller.
 In case the hv info is not there or hv is off (0 kV) then it falls back to
-the full channel range.</p></li>
-<li><p><strong>instrument</strong> (<em>str</em><em> or </em><em>None</em>) – Can be either <code class="docutils literal notranslate"><span class="pre">'TEM'</span></code> or <code class="docutils literal notranslate"><span class="pre">'SEM'</span></code>. Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-</ul>
+the full channel range.</p>
+</dd>
+<dt><strong>instrument</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>Can be either <code class="docutils literal notranslate"><span class="pre">'TEM'</span></code> or <code class="docutils literal notranslate"><span class="pre">'SEM'</span></code>.</p>
+</dd>
+</dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
 <ul class="simple">
-<li><p>’data’ – multidimensional numpy array</p></li>
-<li><p>’axes’ – list of dictionaries describing the axes
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
 containing the fields ‘name’, ‘units’, ‘index_in_array’, and
 either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
 containing the full axes vector</p></li>
-<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
-<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+<li><p>‘metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>‘original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
 </ul>
-</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list of dicts</p>
+</dl>
 </dd>
 </dl>
 <p class="rubric">Examples</p>

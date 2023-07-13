@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
+    <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
     <title>TriVista &#8212; RosettaSciIO  documentation</title>
   
   
@@ -30,7 +30,6 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
-    <link rel="icon" sizes="16x16" type="image/svg" href="../_static/logo_sq.svg" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
@@ -476,49 +475,53 @@ used as the <code class="docutils literal notranslate"><span class="pre">signal_
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.trivista.file_reader">
 <span class="sig-prename descclassname"><span class="pre">rsciio.trivista.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_uniform_signal_axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">glued_data_as_stack</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_original_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.trivista.file_reader" title="Permalink to this definition">#</a></dt>
-<dd><p>Reads TriVista’s <code class="docutils literal notranslate"><span class="pre">.tvf</span></code> file.</p>
-<dl class="field-list simple">
+<dd><p>Read TriVista’s <code class="docutils literal notranslate"><span class="pre">.tvf</span></code> file.</p>
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>pathlib.Path</em>) – Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p></li>
-<li><p><strong>lazy</strong> (<em>bool</em><em>, </em><em>Default=False</em>) – Whether to open the file lazily or not.</p></li>
-<li><p><strong>use_uniform_signal_axis</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Can be specified to choose between non-uniform or uniform signal axes.
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not.</p>
+</dd>
+<dt><strong>use_uniform_signal_axis</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Can be specified to choose between non-uniform or uniform signal axes.
 If <cite>True</cite>, the <code class="docutils literal notranslate"><span class="pre">scale</span></code> attribute is calculated from the average delta
 along the signal axis and a warning is raised in case the delta varies
-by more than 1%.</p></li>
-<li><p><strong>filter_original_metadata</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Decides whether to process the original_metadata.
-If <cite>True</cite>, then non-relevant metadata will be excluded.
-For example, the metadata usually contains information
-for multiple objectives, even though only one is used.
-In this case, only the metadata from the used objective
-will be added to original_metadata.
-This setting only affects the <code class="docutils literal notranslate"><span class="pre">original_metadata</span></code> attribute
-and not the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> attribute.</p></li>
-<li><p><strong>glued_data_as_stack</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Using the mode <cite>Step &amp; Glue</cite> results in measurements performed
+by more than 1%.</p>
+</dd>
+<dt><strong>glued_data_as_stack</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Using the mode <cite>Step &amp; Glue</cite> results in measurements performed
 at different wavelength ranges with some overlap between them.
 The file then contains the individual spectra as well as
 the “glued” spectrum. The latter is represented as one spectrum,
 which covers the complete wavelength range. Stitching the datasets
 together in the overlap region is already done by the setup.
 If this setting is set to <cite>True</cite>, then the individual datasets will be loaded
-as a stack. Otherwise, only the “glued” spectrum is loaded.</p></li>
-</ul>
+as a stack. Otherwise, only the “glued” spectrum is loaded.</p>
+</dd>
+<dt><strong>filter_original_metadata</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Decides whether to process the original_metadata.
+If <cite>True</cite>, then non-relevant metadata will be excluded.
+For example, the metadata usually contains information
+for multiple objectives, even though only one is used.
+In this case, only the metadata from the used objective
+will be added to original_metadata.
+This setting only affects the <code class="docutils literal notranslate"><span class="pre">original_metadata</span></code> attribute
+and not the <code class="docutils literal notranslate"><span class="pre">metadata</span></code> attribute.</p>
+</dd>
+</dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><p>List of dictionaries containing the following fields:</p>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
 <ul class="simple">
-<li><p>’data’ – multidimensional numpy array</p></li>
-<li><p>’axes’ – list of dictionaries describing the axes
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
 containing the fields ‘name’, ‘units’, ‘index_in_array’, and
 either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
 containing the full axes vector</p></li>
-<li><p>’metadata’ – dictionary containing the parsed metadata</p></li>
-<li><p>’original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+<li><p>‘metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>‘original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
 </ul>
-</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list of dicts</p>
+</dl>
 </dd>
 </dl>
 </dd></dl>

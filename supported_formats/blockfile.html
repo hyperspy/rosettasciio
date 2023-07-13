@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
+    <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
     <title>Blockfile &#8212; RosettaSciIO  documentation</title>
   
   
@@ -30,7 +30,6 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
-    <link rel="icon" sizes="16x16" type="image/svg" href="../_static/logo_sq.svg" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
@@ -484,8 +483,100 @@ For blockfiles <code class="docutils literal notranslate"><span class="pre">load
 loading the file using a different mode. However, note that lazy loading
 does not support in-place writing (i.e lazy loading and the “r+” mode
 are incompatible).</p>
-<section id="api-functions">
-<h2>API functions<a class="headerlink" href="#api-functions" title="Permalink to this heading">#</a></h2>
+<section id="module-rsciio.blockfile">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.blockfile" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.blockfile.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.blockfile.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.blockfile.file_reader" title="Permalink to this definition">#</a></dt>
+<dd><p>Read a blockfile.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not.</p>
+</dd>
+<dt><strong>mmap_mode</strong><span class="classifier">{<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, “r+”, “r”, “w+”, “c”}, default=None</span></dt><dd><p>Argument passed to <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html#numpy.memmap" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.memmap</span></code></a>. A memory-mapped array is
+stored on disk, and not directly loaded into memory.  However, it can be
+accessed and sliced like any ndarray.  Lazy loading does not support in-place writing (i.e lazy loading
+and the <code class="docutils literal notranslate"><span class="pre">&quot;r+&quot;</span></code> mode are incompatible).
+If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default), the value is <code class="docutils literal notranslate"><span class="pre">&quot;r&quot;</span></code> when <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code>, otherwise
+it is <code class="docutils literal notranslate"><span class="pre">&quot;c&quot;</span></code>.</p>
+</dd>
+<dt><strong>endianess</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=”&lt;”</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">&quot;&lt;&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;&gt;&quot;</span></code>, depending on how the bits are written to
+the file.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>‘metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>‘original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.blockfile.file_writer">
+<span class="sig-prename descclassname"><span class="pre">rsciio.blockfile.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity_scaling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">navigator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'navigator'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progressbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.blockfile.file_writer" title="Permalink to this definition">#</a></dt>
+<dd><p>Write signal to blockfile.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>signal</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></span></dt><dd><p>Dictionary containing the signal object.
+Should contain the following fields:</p>
+<ul class="simple">
+<li><p>‘data’ – multidimensional numpy array</p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>‘metadata’ – dictionary containing the metadata tree</p></li>
+</ul>
+</dd>
+<dt><strong>intensity_scaling</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, 2-tuple of <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">float</span></code></a>, 2-tuple of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a></span></dt><dd><p>If the signal datatype is not <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.ubyte" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ubyte</span></code></a>, casting to this
+datatype without intensity rescaling results in overflow errors (default behavior)
+This argument provides intensity scaling strategies and the options are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">'dtype'</span></code>: the limits of the datatype of the dataset, e.g. 0-65535 for
+<a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.ushort" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ushort</span></code></a>, are mapped onto 0-255, respectively. Does not work
+for <code class="docutils literal notranslate"><span class="pre">float</span></code> data types.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'minmax'</span></code>: the minimum and maximum in the dataset are mapped to 0-255.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'crop'</span></code>: everything below 0 and above 255 is set to 0 and 255, respectively</p></li>
+<li><p>2-tuple of <cite>floats</cite> or <cite>ints</cite>: the intensities between these values are
+scaled between 0-255, everything below is 0 and everything above is 255.</p></li>
+</ul>
+</dd>
+<dt><strong>navigator</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v1.25)"><span>array_like</span></a></span></dt><dd><p>A <code class="docutils literal notranslate"><span class="pre">.blo</span></code> file also saves a virtual bright field image for navigation.
+This option determines what kind of data is stored for this image.
+By default this is set to <code class="docutils literal notranslate"><span class="pre">'navigator'</span></code>, which results in using the
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal.navigator</span></code> attribute if used with HyperSpy.
+Otherwise, it is calculated during saving which can take  some time for large
+datasets. Alternatively, an array-like of the right shape may also be provided.
+If set to None, a zero array is stored in the file.</p>
+</dd>
+<dt><strong>show_progressbar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Whether to show the progressbar or not.</p>
+</dd>
+<dt><strong>endianess</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=”&lt;”</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">&quot;&lt;&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;&gt;&quot;</span></code>, depending on how the bits are written to
+the file.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -536,7 +627,11 @@ are incompatible).</p>
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#api-functions">API functions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.blockfile">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.blockfile.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.blockfile.file_writer"><code class="docutils literal notranslate"><span class="pre">file_writer()</span></code></a></li>
+</ul>
+</li>
 </ul>
   </nav></div>
 

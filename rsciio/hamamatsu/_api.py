@@ -23,8 +23,9 @@ from copy import deepcopy
 from enum import IntEnum, EnumMeta
 
 import numpy as np
+from numpy.polynomial.polynomial import polyfit
 
-from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 
 _logger = logging.getLogger(__name__)
 
@@ -109,10 +110,11 @@ class Scaling_Type(IntEnum, metaclass=DefaultEnumMeta):
 
 
 class IMGReader:
-    def __init__(self, file, filesize, filename):
+    def __init__(self, file, filesize, filename, use_uniform_signal_axes):
         self._file_obj = file
         self._filesize = filesize
         self._original_filename = filename
+        self._use_uniform_signal_axes = use_uniform_signal_axes
 
         self.original_metadata = {}
         self._h_lines = None
@@ -182,6 +184,7 @@ class IMGReader:
             dtype = "uint32"
         else:
             raise NotImplementedError(f"reading type: {file_type} not implemented")
+        # TODO: check if all previous read positions are correct
         self._file_obj.seek(64 + com_len)
         data = self.__read_numeric(dtype, size=w_px * self._h_lines)
         _logger.debug(f"file read until: {self._file_obj.tell()}")
@@ -219,7 +222,6 @@ class IMGReader:
             axis["name"] = "Vertical CCD Position"
         elif scale_type == 2:
             data = self._extract_calibration_data(cal_addr)
-            # TODO: convert to uniform axis?
             # in testfile wavelength is exactly uniform
             # time is close
             if name == "Wavelength":
@@ -228,8 +230,22 @@ class IMGReader:
                     data = np.ascontiguousarray(data[::-1])
                 else:
                     self._reverse_signal = False
-            axis["axis"] = data
+            if self._use_uniform_signal_axes:
+                offset, scale = polyfit(np.arange(data.size), data, deg=1)
+                axis["offset"] = offset
+                axis["scale"] = scale
+                axis["size"] = data.size
+                scale_compare = 100 * np.max(np.abs(np.diff(data) - scale) / scale)
+                if scale_compare > 1:
+                    _logger.warning(
+                        f"The relative variation of the signal-axis-scale ({scale_compare:.2f}%) exceeds 1%.\n"
+                        "                            "
+                        "Using a non-uniform-axis is recommended."
+                    )
+            else:
+                axis["axis"] = data
         else:
+            # TODO: better error msg
             raise ValueError
         return axis
 
@@ -481,7 +497,7 @@ class IMGReader:
         return metadata
 
 
-def file_reader(filename, lazy=False, **kwds):
+def file_reader(filename, lazy=False, use_uniform_signal_axes=False, **kwds):
     """Reads Hamamatsu's ``.img`` file.
 
     Parameters
@@ -499,6 +515,7 @@ def file_reader(filename, lazy=False, **kwds):
             f,
             filesize=filesize,
             filename=original_filename,
+            use_uniform_signal_axes=use_uniform_signal_axes,
         )
 
         result["data"] = img.data

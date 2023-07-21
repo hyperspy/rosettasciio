@@ -135,11 +135,11 @@ class IMGReader:
                 f"Supported formats: {list(TypeNames.keys())}"
             )
         data = np.fromfile(self._file_obj, dtype=TypeNames[type], count=size)
-        ## convert unsigned ints to ints
-        ## because int + uint = float -> problems with indexing
+        # convert unsigned ints to ints
+        # because int + uint = float -> problems with indexing
+        # this leads to problems with uin64, because there is no int128 in numpy
         if type in ["uint8", "uint16", "uint32", "uint64"] and convert:
-            dt = "<i8"
-            data = data.astype(np.dtype(dt))
+            data = data.astype(np.dtype("<i8"))
         if size == 1 and not ret_array:
             return data[0]
         else:
@@ -182,6 +182,7 @@ class IMGReader:
             dtype = "uint32"
         else:
             raise NotImplementedError(f"reading type: {file_type} not implemented")
+        self._file_obj.seek(64 + com_len)
         data = self.__read_numeric(dtype, size=w_px * self._h_lines)
         _logger.debug(f"file read until: {self._file_obj.tell()}")
         _logger.debug(f"total file_size: {self._filesize}")
@@ -221,6 +222,12 @@ class IMGReader:
             # TODO: convert to uniform axis?
             # in testfile wavelength is exactly uniform
             # time is close
+            if name == "Wavelength":
+                if data[0] > data[1]:
+                    self._reverse_signal = True
+                    data = np.ascontiguousarray(data[::-1])
+                else:
+                    self._reverse_signal = False
             axis["axis"] = data
         else:
             raise ValueError
@@ -233,18 +240,11 @@ class IMGReader:
         )
         x_unit, y_unit = self._get_scaling_entry(scaling_md, "Unit")
         x_type, y_type = map(int, self._get_scaling_entry(scaling_md, "Type"))
-        # x_scale, y_scale = map(float, self._get_scaling_entry(scaling_md, "Scale"))
         x_axis = self._set_axis("Wavelength", x_type, x_unit, x_cal_address)
         y_axis = self._set_axis("Time", y_type, y_unit, y_cal_address)
         _logger.debug(f"file read until: {self._file_obj.tell()}")
         y_axis["index_in_array"] = 0
         x_axis["index_in_array"] = 1
-        x_axis_data = x_axis["axis"]
-        if x_axis_data[0] > x_axis_data[1]:
-            self._reverse_signal = True
-            x_axis["axis"] = np.ascontiguousarray(x_axis_data[::-1])
-        else:
-            self._reverse_signal = False
         axes_list = sorted([x_axis, y_axis], key=lambda item: item["index_in_array"])
         return axes_list
 
@@ -495,16 +495,16 @@ def file_reader(filename, lazy=False, **kwds):
     original_filename = Path(filename).name
     result = {}
     with open(str(filename), "rb") as f:
-        wdf = IMGReader(
+        img = IMGReader(
             f,
             filesize=filesize,
             filename=original_filename,
         )
 
-        result["data"] = wdf.data
-        result["axes"] = wdf.axes
-        result["metadata"] = deepcopy(wdf.metadata)
-        result["original_metadata"] = deepcopy(wdf.original_metadata)
+        result["data"] = img.data
+        result["axes"] = img.axes
+        result["metadata"] = deepcopy(img.metadata)
+        result["original_metadata"] = deepcopy(img.original_metadata)
 
     return [
         result,

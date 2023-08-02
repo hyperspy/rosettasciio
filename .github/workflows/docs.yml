@@ -117,7 +117,7 @@ jobs:
 
       - name: Push changes
         if: ${{ env.HAS_CHANGES == 'true' }}
-        uses: ad-m/github-push-action@d9117be7cad08757e9e906a1bcd1716d6b192db5
+        uses: ad-m/github-push-action@9a2e3c14aaecf56d5816dc3a54514f82050820b2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: gh-pages

@@ -20,7 +20,6 @@ import gc
 import numpy as np
 import pytest
 from pathlib import Path
-from copy import deepcopy
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -69,8 +68,11 @@ class TestOperate:
         np.testing.assert_allclose(ax1.axis[:5], expected_data_start_Y)
 
     def test_original_metadata_no_comment(self):
-        original_metadata = deepcopy(self.s.original_metadata.as_dictionary())
-        del original_metadata["Comment"]
+        original_metadata_no_comment = {
+            k: v
+            for (k, v) in self.s.original_metadata.as_dictionary().items()
+            if k != "Comment"
+        }
         expected_metadata = {
             "character_im": "IM",
             "offset_x": 0,
@@ -86,7 +88,7 @@ class TestOperate:
             "image_height_lines": 512,
             "comment_length": 3311,
         }
-        assert expected_metadata == original_metadata
+        assert expected_metadata == original_metadata_no_comment
 
     def test_original_metadata_comment(self):
         original_metadata = self.s.original_metadata.Comment.as_dictionary()

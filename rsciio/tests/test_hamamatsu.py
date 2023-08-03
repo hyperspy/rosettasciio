@@ -44,9 +44,9 @@ class TestOperate:
 
     def test_data_deflection(self):
         expected_data_start = [
-            [0, 2, 3405774848],
-            [4127195136, 2701131777, 3674210304],
-            [1778384899, 2197815296, 2],
+            [0, 0, 715],
+            [246, 161, 475],
+            [106, 899, 0],
         ]
         np.testing.assert_allclose(expected_data_start, self.s.isig[:3, :3].data)
 
@@ -268,7 +268,7 @@ class TestOperate:
                 "ScalingYUnit": "us",
                 "ScalingYScalingFile": "#1382319,0512",
             },
-            "Comment": "UserComment",
+            "Comment": {"UserComment": ""},
         }
 
         assert expected_metadata == original_metadata
@@ -322,7 +322,7 @@ class TestFocus:
         gc.collect()
 
     def test_data_focus(self):
-        expected_data_end = [[0, 0, 603979776], [0, 0, 0], [352321536, 0, 0]]
+        expected_data_end = [[0, 0, 36], [0, 0, 0], [21, 0, 0]]
         np.testing.assert_allclose(expected_data_end, self.s_focus.isig[-3:, -3:].data)
 
     def test_axes_focus(self):
@@ -356,7 +356,7 @@ class TestPhotonCount:
         gc.collect()
 
     def test_data(self):
-        expected_data = [0, 34, 8765]
+        expected_data = [0, 0, 0]
         np.testing.assert_allclose(self.s.isig[-3:, 0].data, expected_data)
 
     def test_metadata(self):
@@ -386,3 +386,7 @@ class TestShading:
         np.testing.assert_allclose(
             self.s.metadata.Acquisition_instrument.Detector.time_range, 4
         )
+
+    def test_data(self):
+        expected_data = [9385, 8354, 7658]
+        np.testing.assert_allclose(self.s.isig[:3, 0].data, expected_data)

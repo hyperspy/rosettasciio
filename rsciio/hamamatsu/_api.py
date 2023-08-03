@@ -167,14 +167,16 @@ class IMGReader:
         header["offset_y"] = int(self.__read_numeric("int16"))
         file_type = FileType(int(self.__read_numeric("int16"))).name
         header["file_type"] = file_type
-        header["num_images_in_channel"] = int.from_bytes(
-            self._file_obj.read(3), "little"
-        )
+        header["num_images_in_channel"] = int(self.__read_numeric("int32"))
         header["num_additional_channels"] = int(self.__read_numeric("int16"))
         header["channel_number"] = int(self.__read_numeric("int16"))
         header["timestamp"] = self.__read_numeric("double")
-        header["marker"] = self.__read_utf8(3)
-        header["additional_info"] = self.__read_utf8(29)
+        header["marker"] = self.__read_utf8(4)
+        ## according to the manual, additional_info is one byte shorter
+        ## however, there is also an unexplained 1 byte gap between marker and additional info
+        ## so this extra byte is absorbed in additional_info
+        ## in the testfiles both marker and additional_info contain only zeros
+        header["additional_info"] = self.__read_utf8(30)
         comment = self.__read_utf8(com_len)
         if file_type == "bit8":
             dtype = "uint8"
@@ -183,13 +185,8 @@ class IMGReader:
         elif file_type == "bit32":
             dtype = "uint32"
         else:
-            raise NotImplementedError(f"reading type: {file_type} not implemented")
-        # TODO: check if all previous read positions are correct
-        self._file_obj.seek(64 + com_len)
+            raise RuntimeError(f"reading type: {file_type} not implemented")
         data = self.__read_numeric(dtype, size=w_px * self._h_lines)
-        _logger.debug(f"file read until: {self._file_obj.tell()}")
-        _logger.debug(f"total file_size: {self._filesize}")
-        ## missing bytes, because calibration data at the end
         self.original_metadata.update(header)
         return data, comment
 
@@ -207,8 +204,9 @@ class IMGReader:
             self._file_obj.seek(pos)
             return self.__read_numeric("float", size=size)
         else:
-            _logger.warning(f"Cannot read axis data (invalid start for address {cal})")
-            return None
+            raise RuntimeError(
+                f"Cannot read axis data (invalid start for address {cal})"
+            )
 
     def _set_axis(self, name, scale_type, unit, cal_addr):
         axis = {"units": unit, "name": name, "navigate": False}
@@ -245,8 +243,9 @@ class IMGReader:
             else:
                 axis["axis"] = data
         else:
-            # TODO: better error msg
-            raise ValueError
+            raise ValueError(
+                f"Cannot extract {name}-axis information (invalid scale-type)."
+            )
         return axis
 
     def _get_axes(self):
@@ -258,7 +257,6 @@ class IMGReader:
         x_type, y_type = map(int, self._get_scaling_entry(scaling_md, "Type"))
         x_axis = self._set_axis("Wavelength", x_type, x_unit, x_cal_address)
         y_axis = self._set_axis("Time", y_type, y_unit, y_cal_address)
-        _logger.debug(f"file read until: {self._file_obj.tell()}")
         y_axis["index_in_array"] = 0
         x_axis["index_in_array"] = 1
         axes_list = sorted([x_axis, y_axis], key=lambda item: item["index_in_array"])

@@ -24,7 +24,7 @@ from copy import deepcopy
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
-testfile_dir = (Path(__file__).parent / "hamamatsu_data").resolve()
+testfile_dir = (Path(__file__).parent / "data" / "hamamatsu").resolve()
 
 testfile_focus_mode_path = (testfile_dir / "focus_mode.img").resolve()
 testfile_operate_mode_path = (testfile_dir / "operate_mode.img").resolve()

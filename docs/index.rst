@@ -54,7 +54,7 @@ find it by clicking on the DOI badge:
 Credits
 =======
 
-RosettaSciIO is maintened by `an active community of developers
+RosettaSciIO is developed by `an active community of developers
 <https://github.com/hyperspy/rosettasciio/contributors>`_.
 
 

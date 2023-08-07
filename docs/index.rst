@@ -36,6 +36,28 @@ Similarly, it takes a dictionary as input for file writers.
       msa.file_reader("your_msa_file.msa")
 
 
+Citing RosettaSciIO
+===================
+
+If RosettaSciIO has been significant to a project that leads to an academic
+publication, please acknowledge that fact by citing it. The DOI in the
+badge below is the `Concept DOI <https://help.zenodo.org/faq/#versioning>`_ --
+it can be used to cite the project without referring to a specific
+version. If you are citing RosettaSciIO because you have used it to process data,
+please use the DOI of the specific version that you have employed. You can
+find it by clicking on the DOI badge:
+
+.. image:: https://zenodo.org/badge/doi/10.5281/zenodo.8011666.svg
+   :target: https://doi.org/10.5281/zenodo.8011666
+
+
+Credits
+=======
+
+RosettaSciIO is developed by `an active community of contributors
+<https://github.com/hyperspy/rosettasciio/contributors>`_.
+
+
 Table of contents
 =================
 

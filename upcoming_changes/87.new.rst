@@ -1,0 +1,1 @@
+Add support for reading the ``.img``-format from Hamamatsu.

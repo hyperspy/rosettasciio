@@ -1,0 +1,8 @@
+name: 'Hamamatsu'
+name_aliases: []
+description: "Read data from Hamamatsu's .img (ITEX) files."
+full_support: False
+file_extensions: ['img', 'IMG']
+default_extension: 0
+writes: False
+non_uniform_axis: True

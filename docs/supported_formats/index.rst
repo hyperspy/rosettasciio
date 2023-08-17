@@ -24,6 +24,7 @@ big datasets is supported.
    edax
    emd
    empad
+   hamamatsu
    hspy
    image
    jeol

@@ -502,6 +502,11 @@ def file_reader(filename, lazy=False, use_uniform_signal_axes=False, **kwds):
     ----------
     %s
     %s
+    use_uniform_signal_axis : bool, default=False
+        Can be specified to choose between non-uniform or uniform signal axis.
+        If ``True``, the ``scale`` attribute is calculated from the average delta
+        along the signal axis and a warning is raised in case the delta varies
+        by more than 1 percent.
 
     %s
     """

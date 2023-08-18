@@ -28,16 +28,16 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=362ab14a" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=ccbe24c1"></script>
+    <script src="../_static/documentation_options.js?v=8a448e45"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/jeol';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -383,6 +383,7 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="edax.html">EDAX TEAM/Genesis (SPC, SPD)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="emd.html">Electron Microscopy Dataset (EMD)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="empad.html">EMPAD format (XML &amp; RAW)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hamamatsu.html">Hamamatsu</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hspy.html">HSpy - HyperSpy’s HDF5 Specification</a></li>
 <li class="toctree-l1"><a class="reference internal" href="image.html">Image formats</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">JEOL Analyst Station (ASW, …)</a></li>
@@ -462,16 +463,16 @@ document.write(`
                 <article class="bd-article" role="main">
                   
   <section id="jeol-analyst-station-asw">
-<span id="jeol-format"></span><h1>JEOL Analyst Station (ASW, …)<a class="headerlink" href="#jeol-analyst-station-asw" title="Permalink to this heading">#</a></h1>
+<span id="jeol-format"></span><h1>JEOL Analyst Station (ASW, …)<a class="headerlink" href="#jeol-analyst-station-asw" title="Link to this heading">#</a></h1>
 <p>This is the file format used by the <cite>JEOL Analysist Station software</cite> for which
 RosettaSciIO can read the <code class="docutils literal notranslate"><span class="pre">.asw</span></code>, <code class="docutils literal notranslate"><span class="pre">.pts</span></code>, <code class="docutils literal notranslate"><span class="pre">.map</span></code> and <code class="docutils literal notranslate"><span class="pre">.eds</span></code> format. To read the
 calibration, it is required to load the <code class="docutils literal notranslate"><span class="pre">.asw</span></code> file, which will load all others
 files automatically.</p>
-<section id="module-rsciio.jeol">
-<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.jeol" title="Permalink to this heading">#</a></h2>
-<dl class="py function">
+<section id="api-functions">
+<h2>API functions<a class="headerlink" href="#api-functions" title="Link to this heading">#</a></h2>
+<span class="target" id="module-rsciio.jeol"></span><dl class="py function">
 <dt class="sig sig-object py" id="rsciio.jeol.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.jeol.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rebin_energy=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_frames=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SI_dtype=&lt;class</span> <span class="pre">'numpy.uint8'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_at_kV=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_valid_data=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_em_image=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_list=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_shifts=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_start_index=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.jeol.file_reader" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.jeol.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rebin_energy=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_frames=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SI_dtype=&lt;class</span> <span class="pre">'numpy.uint8'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_at_kV=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_valid_data=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_em_image=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_list=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_shifts=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_start_index=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.jeol.file_reader" title="Link to this definition">#</a></dt>
 <dd><p>File reader for JEOL Analysist Station software format.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -543,7 +544,7 @@ containing the full axes vector</p></li>
 
 </section>
 <section id="reading-examples">
-<h2>Reading examples<a class="headerlink" href="#reading-examples" title="Permalink to this heading">#</a></h2>
+<h2>Reading examples<a class="headerlink" href="#reading-examples" title="Link to this heading">#</a></h2>
 <p><a class="reference external" href="https://hyperspy.org">HyperSpy</a> example of loading data downsampled and with
 cropped energy range, where the original navigation dimension is 512 x 512 and
 the EDS range 40 keV over 4096 channels:</p>
@@ -613,7 +614,7 @@ the EDS range 40 keV over 4096 channels:</p>
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.jeol">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#api-functions">API functions</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.jeol.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
 </ul>
 </li>
@@ -661,7 +662,7 @@ the EDS range 40 keV over 4096 channels:</p>
       
         <div class="footer-item">
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.2.
     <br/>
   </p>
 </div>

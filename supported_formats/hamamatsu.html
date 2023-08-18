@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
-    <title>Supported formats &#8212; RosettaSciIO  documentation</title>
+    <title>Hamamatsu &#8212; RosettaSciIO  documentation</title>
   
   
   
@@ -38,11 +38,11 @@
     <script src="../_static/documentation_options.js?v=8a448e45"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/index';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/hamamatsu';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Blockfile" href="blockfile.html" />
-    <link rel="prev" title="RosettaSciIO documentation" href="../index.html" />
+    <link rel="next" title="HSpy - HyperSpy’s HDF5 Specification" href="hspy.html" />
+    <link rel="prev" title="EMPAD format (XML &amp; RAW)" href="empad.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -131,7 +131,7 @@
   <ul class="bd-navbar-elements navbar-nav">
     
                     <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="#">
+                      <a class="nav-link nav-internal" href="index.html">
                         Supported formats
                       </a>
                     </li>
@@ -277,7 +277,7 @@ document.write(`
   <ul class="bd-navbar-elements navbar-nav">
     
                     <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="#">
+                      <a class="nav-link nav-internal" href="index.html">
                         Supported formats
                       </a>
                     </li>
@@ -373,7 +373,7 @@ document.write(`
         <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="blockfile.html">Blockfile</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bruker.html">Bruker</a></li>
 <li class="toctree-l1"><a class="reference internal" href="de5.html">Direct Electron EMD (DE5)</a></li>
@@ -383,7 +383,7 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="edax.html">EDAX TEAM/Genesis (SPC, SPD)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="emd.html">Electron Microscopy Dataset (EMD)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="empad.html">EMPAD format (XML &amp; RAW)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hamamatsu.html">Hamamatsu</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Hamamatsu</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hspy.html">HSpy - HyperSpy’s HDF5 Specification</a></li>
 <li class="toctree-l1"><a class="reference internal" href="image.html">Image formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jeol.html">JEOL Analyst Station (ASW, …)</a></li>
@@ -442,7 +442,10 @@ document.write(`
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
-    <li class="breadcrumb-item active" aria-current="page">Supported formats</li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Supported formats</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Hamamatsu</li>
   </ul>
 </nav>
 </div>
@@ -459,233 +462,57 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article" role="main">
                   
-  <section id="supported-formats">
-<span id="id1"></span><h1>Supported formats<a class="headerlink" href="#supported-formats" title="Link to this heading">#</a></h1>
-<p>The different file formats currently supported by RosettaSciIO are
-summarized here, indicating whether only <strong>reading</strong> from or also <strong>writing</strong> to
-the respective formats is implemented. In particular, binary file formats will
-usually be read-only. The <strong>lazy</strong> column specifies whether
-<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/big_data.html#big-data-label" title="(in HyperSpy v1.7.5)"><span class="xref std std-ref">lazy loading</span></a> (and thus evaluation) of
-big datasets is supported.</p>
-<table class="table" id="id2">
-<caption><span class="caption-text">Supported file formats</span><a class="headerlink" href="#id2" title="Link to this table">#</a></caption>
-<thead>
-<tr class="row-odd"><th class="head"><p>Format</p></th>
-<th class="head"><p>Default extension(s)</p></th>
-<th class="head"><p>Read</p></th>
-<th class="head"><p>Write</p></th>
-<th class="head"><p>lazy</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><a class="reference internal" href="blockfile.html#blockfile-format"><span class="std std-ref">Blockfile</span></a></p></td>
-<td><p>blo</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="bruker.html#bruker-format"><span class="std std-ref">Bruker composite file</span></a></p></td>
-<td><p>bcf</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="bruker.html#bruker-format"><span class="std std-ref">Bruker single spectrum XML</span></a></p></td>
-<td><p>spx</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="de5.html#de5-format"><span class="std std-ref">Direct electron EMD</span></a></p></td>
-<td><p>de5</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="dens.html#dens-impulse-format"><span class="std std-ref">DENSsolutions Impulse logfile</span></a></p></td>
-<td><p>dens, csv &amp; log</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="dens.html#dens-heater-format"><span class="std std-ref">DENSsolutions Digiheater logfile</span></a></p></td>
-<td><p>dens</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="digitalmicrograph.html#digitalmicrograph-format"><span class="std std-ref">Gatan Digital Micrograph v3,4</span></a></p></td>
-<td><p>dm3, dm4</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="digitalsurf.html#digitalsurf-format"><span class="std std-ref">DigitalSurf surfaces</span></a></p></td>
-<td><p>sur &amp; pro</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="edax.html#edax-format"><span class="std std-ref">EDAX TEAM/Genesis</span></a></p></td>
-<td><p>spc, spd</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="emd.html#emd-ncem-format"><span class="std std-ref">Electron Microscopy Dataset (NCEM)</span></a></p></td>
-<td><p>emd</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="emd.html#emd-fei-format"><span class="std std-ref">Electron Microscopy Dataset (Velox)</span></a></p></td>
-<td><p>emd</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="empad.html#empad-format"><span class="std std-ref">EMPAD XML</span></a></p></td>
-<td><p>xml &amp; raw</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tia.html#tia-format"><span class="std std-ref">FEI TIA</span></a></p></td>
-<td><p>emi &amp; ser</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="hamamatsu.html#hamamatsu-format"><span class="std std-ref">Hamamatsu</span></a></p></td>
-<td><p>img</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="jobinyvon.html#jobinyvon-format"><span class="std std-ref">Horiba Jobin Yvon LabSpec</span></a></p></td>
-<td><p>xml</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="hspy.html#hspy-format"><span class="std std-ref">HSpy - HyperSpy hdf5</span></a></p></td>
-<td><p>hspy</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="image.html#image-format"><span class="std std-ref">Images (imageio)</span></a></p></td>
-<td><p>jpg, png, tif, …</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="jeol.html#jeol-format"><span class="std std-ref">JEOL</span></a></p></td>
-<td><p>asw, map, img, pts, eds</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="mrc.html#mrc-format"><span class="std std-ref">MRC</span></a></p></td>
-<td><p>mrc</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="mrcz.html#mrcz-format"><span class="std std-ref">MRCZ (compressed)</span></a></p></td>
-<td><p>mrcz</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="msa.html#msa-format"><span class="std std-ref">EMSA/MSA</span></a></p></td>
-<td><p>emsa/msa</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="netcdf.html#netcdf-format"><span class="std std-ref">NetCDF (EELSlab)</span></a></p></td>
-<td><p>nc</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="nexus.html#nexus-format"><span class="std std-ref">NeXus</span></a></p></td>
-<td><p>nxs</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pantarhei.html#pantarhei-format"><span class="std std-ref">CEOS Phanta Rhei</span></a></p></td>
-<td><p>prz</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="phenom.html#elid-format"><span class="std std-ref">Phenom ELID</span></a></p></td>
-<td><p>elid</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="protochips.html#protochips-format"><span class="std std-ref">Protochips logfile</span></a></p></td>
-<td><p>csv &amp; log</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="renishaw.html#renishaw-format"><span class="std std-ref">Renishaw</span></a></p></td>
-<td><p>wdf</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="ripple.html#ripple-format"><span class="std std-ref">Ripple</span></a></p></td>
-<td><p>rpl</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="semper.html#semper-format"><span class="std std-ref">SEMPER binary UNF</span></a></p></td>
-<td><p>unf</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tiff.html#tiff-format"><span class="std std-ref">TIFF (tiffile)</span></a></p></td>
-<td><p>tif, tiff</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="trivista.html#trivista-format"><span class="std std-ref">TriVista</span></a></p></td>
-<td><p>tvf</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tvips.html#tvips-format"><span class="std std-ref">TVIPS</span></a></p></td>
-<td><p>tvips</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="usid.html#usid-format"><span class="std std-ref">Universal Spectroscopy and Imaging Data (USID)</span></a></p></td>
-<td><p>h5, hdf5</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="zspy.html#zspy-format"><span class="std std-ref">ZSpy - HyperSpy ZARR</span></a></p></td>
-<td><p>zspy</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-</tr>
-</tbody>
-</table>
-<div class="toctree-wrapper compound">
+  <section id="hamamatsu">
+<span id="hamamatsu-format"></span><h1>Hamamatsu<a class="headerlink" href="#hamamatsu" title="Link to this heading">#</a></h1>
+<p>Reader for spectroscopy data saved in <code class="docutils literal notranslate"><span class="pre">.img</span></code> (ITEX) files from the HPD-TA
+(High Performance Digital Temporal Analyzer) or HiPic (High Performance image control)
+softwares from Hamamatsu, e.g. for streak cameras or high performance CCD cameras.</p>
+<p>If <a class="reference external" href="https://lumispy.org">LumiSpy</a> is installed, <code class="docutils literal notranslate"><span class="pre">Luminescence</span></code> will be
+used as the <code class="docutils literal notranslate"><span class="pre">signal_type</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Reading files containing multiple channels or multiple images per channel
+is not implemented.</p>
 </div>
+<section id="api-functions">
+<h2>API functions<a class="headerlink" href="#api-functions" title="Link to this heading">#</a></h2>
+<span class="target" id="module-rsciio.hamamatsu"></span><dl class="py function">
+<dt class="sig sig-object py" id="rsciio.hamamatsu.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.hamamatsu.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_uniform_signal_axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.hamamatsu.file_reader" title="Link to this definition">#</a></dt>
+<dd><p>Reads Hamamatsu’s <code class="docutils literal notranslate"><span class="pre">.img</span></code> file.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not.</p>
+</dd>
+<dt><strong>use_uniform_signal_axis</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Can be specified to choose between non-uniform or uniform signal axis.
+If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the <code class="docutils literal notranslate"><span class="pre">scale</span></code> attribute is calculated from the average delta
+along the signal axis and a warning is raised in case the delta varies
+by more than 1 percent.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>‘metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>‘original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -700,20 +527,20 @@ big datasets is supported.</p>
     <div class="footer-article-item"><!-- Previous / next buttons -->
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../index.html"
+       href="empad.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">RosettaSciIO documentation</p>
+        <p class="prev-next-title">EMPAD format (XML &amp; RAW)</p>
       </div>
     </a>
     <a class="right-next"
-       href="blockfile.html"
+       href="hspy.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Blockfile</p>
+        <p class="prev-next-title">HSpy - HyperSpy’s HDF5 Specification</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -730,8 +557,21 @@ big datasets is supported.</p>
                 <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
   <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#api-functions">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.hamamatsu.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
   <div class="tocsection sourcelink">
-    <a href="../_sources/supported_formats/index.rst.txt">
+    <a href="../_sources/supported_formats/hamamatsu.rst.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
   </div>

@@ -28,16 +28,16 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=362ab14a" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=ccbe24c1"></script>
+    <script src="../_static/documentation_options.js?v=8a448e45"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/usid';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -383,6 +383,7 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="edax.html">EDAX TEAM/Genesis (SPC, SPD)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="emd.html">Electron Microscopy Dataset (EMD)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="empad.html">EMPAD format (XML &amp; RAW)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hamamatsu.html">Hamamatsu</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hspy.html">HSpy - HyperSpy’s HDF5 Specification</a></li>
 <li class="toctree-l1"><a class="reference internal" href="image.html">Image formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jeol.html">JEOL Analyst Station (ASW, …)</a></li>
@@ -462,9 +463,9 @@ document.write(`
                 <article class="bd-article" role="main">
                   
   <section id="universal-spectroscopy-and-imaging-data-h5usid">
-<span id="usid-format"></span><h1>Universal Spectroscopy and Imaging Data (h5USID)<a class="headerlink" href="#universal-spectroscopy-and-imaging-data-h5usid" title="Permalink to this heading">#</a></h1>
+<span id="usid-format"></span><h1>Universal Spectroscopy and Imaging Data (h5USID)<a class="headerlink" href="#universal-spectroscopy-and-imaging-data-h5usid" title="Link to this heading">#</a></h1>
 <section id="background">
-<h2>Background<a class="headerlink" href="#background" title="Permalink to this heading">#</a></h2>
+<h2>Background<a class="headerlink" href="#background" title="Link to this heading">#</a></h2>
 <p><a class="reference external" href="https://pycroscopy.github.io/USID/about.html">Universal Spectroscopy and Imaging Data</a>
 (USID) is an open, community-driven, self-describing, and standardized schema for
 representing imaging and spectroscopy data of any size, dimensionality, precision,
@@ -492,7 +493,7 @@ implemented at a later stage.</p>
 </div>
 </section>
 <section id="requirements">
-<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this heading">#</a></h2>
+<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">#</a></h2>
 <p>Reading and writing h5USID files requires the
 <a class="reference external" href="https://pycroscopy.github.io/pyUSID/install.html">installation of pyUSID</a>.</p>
 <p>In <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, files must use the <code class="docutils literal notranslate"><span class="pre">.h5</span></code> file extension
@@ -501,11 +502,11 @@ plugin or the <code class="docutils literal notranslate"><span class="pre">reade
 set explicitly. Otherwise, using the <code class="docutils literal notranslate"><span class="pre">.hdf5</span></code> extension will default to the
 <a class="reference internal" href="hspy.html#hspy-format"><span class="std std-ref">HyperSpy plugin</span></a>.</p>
 </section>
-<section id="module-rsciio.usid">
-<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.usid" title="Permalink to this heading">#</a></h2>
-<dl class="py function">
+<section id="api-functions">
+<h2>API functions<a class="headerlink" href="#api-functions" title="Link to this heading">#</a></h2>
+<span class="target" id="module-rsciio.usid"></span><dl class="py function">
 <dt class="sig sig-object py" id="rsciio.usid.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.usid.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_non_uniform_dims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.usid.file_reader" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.usid.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_non_uniform_dims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.usid.file_reader" title="Link to this definition">#</a></dt>
 <dd><p>Read a USID Main dataset present in an HDF5 file into a HyperSpy Signal.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -548,7 +549,7 @@ containing the full axes vector</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.usid.file_writer">
-<span class="sig-prename descclassname"><span class="pre">rsciio.usid.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.usid.file_writer" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.usid.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.usid.file_writer" title="Link to this definition">#</a></dt>
 <dd><p>Write a HyperSpy Signal object to a HDF5 file formatted according to USID.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -576,7 +577,7 @@ containing the full axes vector</p></li>
 
 </section>
 <section id="usage-examples">
-<h2>Usage examples<a class="headerlink" href="#usage-examples" title="Permalink to this heading">#</a></h2>
+<h2>Usage examples<a class="headerlink" href="#usage-examples" title="Link to this heading">#</a></h2>
 <p>Reading the sole dataset within a h5USID file using <a class="reference external" href="https://hyperspy.org">HyperSpy</a>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">hyperspy.api</span> <span class="k">as</span> <span class="nn">hs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample.h5&quot;</span><span class="p">)</span>
@@ -684,7 +685,7 @@ will default to a warning when it encounters a parameter that has been varied no
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#background">Background</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#requirements">Requirements</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.usid">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#api-functions">API functions</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.usid.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.usid.file_writer"><code class="docutils literal notranslate"><span class="pre">file_writer()</span></code></a></li>
 </ul>
@@ -733,7 +734,7 @@ will default to a warning when it encounters a parameter that has been varied no
       
         <div class="footer-item">
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.2.
     <br/>
   </p>
 </div>

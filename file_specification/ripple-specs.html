@@ -28,16 +28,16 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=362ab14a" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=ccbe24c1"></script>
+    <script src="../_static/documentation_options.js?v=8a448e45"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'file_specification/ripple-specs';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -433,7 +433,7 @@ document.write(`
                 <article class="bd-article" role="main">
                   
   <section id="ripple-lispix-format-description">
-<span id="ripple-file-specification"></span><h1>Ripple (Lispix) format description<a class="headerlink" href="#ripple-lispix-format-description" title="Permalink to this heading">#</a></h1>
+<span id="ripple-file-specification"></span><h1>Ripple (Lispix) format description<a class="headerlink" href="#ripple-lispix-format-description" title="Link to this heading">#</a></h1>
 <p>This page summarizes the specifications for the <a class="reference internal" href="../supported_formats/ripple.html#ripple-format"><span class="std std-ref">ripple</span></a>
 (“raw parameter list”) file format developed at NIST as native format for <a class="reference external" href="https://www.nist.gov/services-resources/software/lispix">Lispix</a>.</p>
 <p>Images and spectral images or data cubes that are written in the
@@ -447,7 +447,7 @@ IEEE 8-byte real, 8-bit unsigned byte, etc.</p>
 the same name and <code class="docutils literal notranslate"><span class="pre">.rpl</span></code> extension. This “raw parameter list” file lists the
 characteristics of the <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file.</p>
 <section id="rpl-keywords">
-<h2>RPL keywords<a class="headerlink" href="#rpl-keywords" title="Permalink to this heading">#</a></h2>
+<h2>RPL keywords<a class="headerlink" href="#rpl-keywords" title="Link to this heading">#</a></h2>
 <p>Some of the following keys are specific to <a class="reference external" href="https://hyperspy.org">HyperSpy</a> and
 will be ignored by other software.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">========================</span>  <span class="o">=======</span>  <span class="o">=================================================</span>
@@ -494,7 +494,7 @@ will be ignored by other software.</p>
 </div>
 </section>
 <section id="notes">
-<h2>Notes<a class="headerlink" href="#notes" title="Permalink to this heading">#</a></h2>
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">#</a></h2>
 <p>When <code class="docutils literal notranslate"><span class="pre">'data-length'</span></code> is 1, the <code class="docutils literal notranslate"><span class="pre">'byte</span> <span class="pre">order'</span></code> is not relevant as there is only
 one byte per datum, and <code class="docutils literal notranslate"><span class="pre">'byte-order'</span></code> should be <code class="docutils literal notranslate"><span class="pre">'dont-care'</span></code>.</p>
 <p>When <code class="docutils literal notranslate"><span class="pre">'depth'</span></code> is 1, the file has one image, <code class="docutils literal notranslate"><span class="pre">'record-by'</span></code> is not relevant and
@@ -609,7 +609,7 @@ each row, and are ignored.</p>
       
         <div class="footer-item">
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.2.
     <br/>
   </p>
 </div>

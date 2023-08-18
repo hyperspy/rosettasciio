@@ -28,16 +28,16 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=362ab14a" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=ccbe24c1"></script>
+    <script src="../_static/documentation_options.js?v=8a448e45"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/emd';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -383,6 +383,7 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="edax.html">EDAX TEAM/Genesis (SPC, SPD)</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Electron Microscopy Dataset (EMD)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="empad.html">EMPAD format (XML &amp; RAW)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hamamatsu.html">Hamamatsu</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hspy.html">HSpy - HyperSpy’s HDF5 Specification</a></li>
 <li class="toctree-l1"><a class="reference internal" href="image.html">Image formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jeol.html">JEOL Analyst Station (ASW, …)</a></li>
@@ -462,18 +463,18 @@ document.write(`
                 <article class="bd-article" role="main">
                   
   <section id="electron-microscopy-dataset-emd">
-<span id="emd-format"></span><h1>Electron Microscopy Dataset (EMD)<a class="headerlink" href="#electron-microscopy-dataset-emd" title="Permalink to this heading">#</a></h1>
+<span id="emd-format"></span><h1>Electron Microscopy Dataset (EMD)<a class="headerlink" href="#electron-microscopy-dataset-emd" title="Link to this heading">#</a></h1>
 <p>EMD stands for “Electron Microscopy Dataset”. It is a subset of the open source
 HDF5 wrapper format. N-dimensional data arrays of any standard type can be
 stored in an HDF5 file, as well as tags and other metadata.</p>
 <section id="emd-ncem">
-<span id="emd-ncem-format"></span><h2>EMD (NCEM)<a class="headerlink" href="#emd-ncem" title="Permalink to this heading">#</a></h2>
+<span id="emd-ncem-format"></span><h2>EMD (NCEM)<a class="headerlink" href="#emd-ncem" title="Link to this heading">#</a></h2>
 <p>This <a class="reference external" href="https://emdatasets.com">EMD format</a> was developed by Colin Ophus at the
 National Center for Electron Microscopy (NCEM).
 This format is used by the <a class="reference external" href="https://prism-em.com/docs-outputs/">prismatic software</a>
 to save the simulation outputs.</p>
 <section id="usage-examples">
-<h3>Usage examples<a class="headerlink" href="#usage-examples" title="Permalink to this heading">#</a></h3>
+<h3>Usage examples<a class="headerlink" href="#usage-examples" title="Link to this heading">#</a></h3>
 <p>For files containing several datasets, the <cite>dataset_path</cite> argument can be
 used to select a specific one:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.emd</span> <span class="kn">import</span> <span class="n">file_reader</span>
@@ -490,7 +491,7 @@ used to select a specific one:</p>
 </section>
 </section>
 <section id="emd-velox">
-<span id="emd-fei-format"></span><h2>EMD (Velox)<a class="headerlink" href="#emd-velox" title="Permalink to this heading">#</a></h2>
+<span id="emd-fei-format"></span><h2>EMD (Velox)<a class="headerlink" href="#emd-velox" title="Link to this heading">#</a></h2>
 <p>This is a non-compliant variant of the standard EMD format developed by
 ThermoFisher (former FEI). RosettaSciIO supports importing images, EDS spectrum and EDS
 spectrum streams (spectrum images stored in a sparse format). For spectrum
@@ -529,7 +530,7 @@ a file, please report it  to the RosettaSciIO developers so that they can
 add support for newer versions of the format.</p>
 </div>
 <section id="id3">
-<h3>Usage examples<a class="headerlink" href="#id3" title="Permalink to this heading">#</a></h3>
+<h3>Usage examples<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.emd</span> <span class="kn">import</span> <span class="n">file_reader</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;sample.emd&quot;</span><span class="p">)</span>
 <span class="go">[&lt;Signal2D, title: HAADF, dimensions: (|179, 161)&gt;,</span>
@@ -550,11 +551,11 @@ add support for newer versions of the format.</p>
 </div>
 </section>
 </section>
-<section id="module-rsciio.emd">
-<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.emd" title="Permalink to this heading">#</a></h2>
-<dl class="py function">
+<section id="api-functions">
+<h2>API functions<a class="headerlink" href="#api-functions" title="Link to this heading">#</a></h2>
+<span class="target" id="module-rsciio.emd"></span><dl class="py function">
 <dt class="sig sig-object py" id="rsciio.emd.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.emd.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stack_group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_EDS_detectors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rebin_energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SI_dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_SI_image_stack</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.emd.file_reader" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.emd.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stack_group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_EDS_detectors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rebin_energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SI_dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_SI_image_stack</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.emd.file_reader" title="Link to this definition">#</a></dt>
 <dd><p>Read EMD file, which can be an NCEM or a Velox variant of the EMD format.
 Also reads Direct Electron’s DE5 format, which is read according to the
 NCEM specifications.</p>
@@ -627,7 +628,7 @@ containing the full axes vector</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.emd.file_writer">
-<span class="sig-prename descclassname"><span class="pre">rsciio.emd.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.emd.file_writer" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.emd.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.emd.file_writer" title="Link to this definition">#</a></dt>
 <dd><p>Write signal to EMD file. Only the specifications by the National Center
 for Electron Microscopy (NCEM) are supported.</p>
 <dl class="field-list">
@@ -716,7 +717,7 @@ of the root group.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">Usage examples</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.emd">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#api-functions">API functions</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.emd.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.emd.file_writer"><code class="docutils literal notranslate"><span class="pre">file_writer()</span></code></a></li>
 </ul>
@@ -764,7 +765,7 @@ of the root group.</p>
       
         <div class="footer-item">
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.2.
     <br/>
   </p>
 </div>

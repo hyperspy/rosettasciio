@@ -28,21 +28,21 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=362ab14a" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=ccbe24c1"></script>
+    <script src="../_static/documentation_options.js?v=8a448e45"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/hspy';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Image formats" href="image.html" />
-    <link rel="prev" title="EMPAD format (XML &amp; RAW)" href="empad.html" />
+    <link rel="prev" title="Hamamatsu" href="hamamatsu.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -383,6 +383,7 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="edax.html">EDAX TEAM/Genesis (SPC, SPD)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="emd.html">Electron Microscopy Dataset (EMD)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="empad.html">EMPAD format (XML &amp; RAW)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hamamatsu.html">Hamamatsu</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">HSpy - HyperSpy’s HDF5 Specification</a></li>
 <li class="toctree-l1"><a class="reference internal" href="image.html">Image formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jeol.html">JEOL Analyst Station (ASW, …)</a></li>
@@ -462,7 +463,7 @@ document.write(`
                 <article class="bd-article" role="main">
                   
   <section id="hspy-hyperspy-s-hdf5-specification">
-<span id="hspy-format"></span><h1>HSpy - HyperSpy’s HDF5 Specification<a class="headerlink" href="#hspy-hyperspy-s-hdf5-specification" title="Permalink to this heading">#</a></h1>
+<span id="hspy-format"></span><h1>HSpy - HyperSpy’s HDF5 Specification<a class="headerlink" href="#hspy-hyperspy-s-hdf5-specification" title="Link to this heading">#</a></h1>
 <p>This is <a class="reference external" href="https://hyperspy.org">HyperSpy’s</a> default format and for data processed
 in HyperSpy, it is the only format that guarantees that no
 information will be lost in the writing process and that supports saving data
@@ -521,7 +522,7 @@ as numbers are represented to full machine precision.</p>
 </pre></div>
 </div>
 <section id="chunking">
-<span id="hspy-chunks"></span><h2>Chunking<a class="headerlink" href="#chunking" title="Permalink to this heading">#</a></h2>
+<span id="hspy-chunks"></span><h2>Chunking<a class="headerlink" href="#chunking" title="Link to this heading">#</a></h2>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version HyperSpy_v1.3.1: </span><code class="docutils literal notranslate"><span class="pre">chunks</span></code> keyword argument</p>
 </div>
@@ -551,7 +552,7 @@ writing and performance of many HyperSpy algorithms. See the
 </div>
 </section>
 <section id="format-description">
-<h2>Format description<a class="headerlink" href="#format-description" title="Permalink to this heading">#</a></h2>
+<h2>Format description<a class="headerlink" href="#format-description" title="Link to this heading">#</a></h2>
 <p>The root of the file must contain a group called <code class="docutils literal notranslate"><span class="pre">Experiments</span></code>. The <code class="docutils literal notranslate"><span class="pre">Experiments</span></code>
 group can contain any number of subgroups and each subgroup is an experiment or
 signal. Each subgroup must contain at least one dataset called <code class="docutils literal notranslate"><span class="pre">data</span></code>. The
@@ -580,36 +581,36 @@ the experiments and that will be accessible as attributes of the
 <code class="docutils literal notranslate"><span class="pre">Experiments</span></code> instance.</p>
 </section>
 <section id="changelog">
-<h2>Changelog<a class="headerlink" href="#changelog" title="Permalink to this heading">#</a></h2>
+<h2>Changelog<a class="headerlink" href="#changelog" title="Link to this heading">#</a></h2>
 <section id="v3-2">
-<h3>v3.2<a class="headerlink" href="#v3-2" title="Permalink to this heading">#</a></h3>
+<h3>v3.2<a class="headerlink" href="#v3-2" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Deprecated <code class="docutils literal notranslate"><span class="pre">record_by</span></code> attribute is removed</p></li>
 </ul>
 </section>
 <section id="v3-1">
-<h3>v3.1<a class="headerlink" href="#v3-1" title="Permalink to this heading">#</a></h3>
+<h3>v3.1<a class="headerlink" href="#v3-1" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>add read support for non-uniform DataAxis defined by <code class="docutils literal notranslate"><span class="pre">'axis'</span></code> vector</p></li>
 <li><p>move <code class="docutils literal notranslate"><span class="pre">metadata.Signal.binned</span></code> attribute to <code class="docutils literal notranslate"><span class="pre">axes.is_binned</span></code> parameter</p></li>
 </ul>
 </section>
 <section id="v3-0">
-<h3>v3.0<a class="headerlink" href="#v3-0" title="Permalink to this heading">#</a></h3>
+<h3>v3.0<a class="headerlink" href="#v3-0" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>add <code class="docutils literal notranslate"><span class="pre">Camera</span></code> and <code class="docutils literal notranslate"><span class="pre">Stage</span></code> node</p></li>
 <li><p>move <code class="docutils literal notranslate"><span class="pre">tilt_stage</span></code> to <code class="docutils literal notranslate"><span class="pre">Stage.tilt_alpha</span></code></p></li>
 </ul>
 </section>
 <section id="v2-2">
-<h3>v2.2<a class="headerlink" href="#v2-2" title="Permalink to this heading">#</a></h3>
+<h3>v2.2<a class="headerlink" href="#v2-2" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>store more metadata as string: <code class="docutils literal notranslate"><span class="pre">date</span></code>, <code class="docutils literal notranslate"><span class="pre">time</span></code>, <code class="docutils literal notranslate"><span class="pre">notes</span></code>, <code class="docutils literal notranslate"><span class="pre">authors</span></code> and <code class="docutils literal notranslate"><span class="pre">doi</span></code></p></li>
 <li><p>store <code class="docutils literal notranslate"><span class="pre">quantity</span></code> for intensity axis</p></li>
 </ul>
 </section>
 <section id="v2-1">
-<h3>v2.1<a class="headerlink" href="#v2-1" title="Permalink to this heading">#</a></h3>
+<h3>v2.1<a class="headerlink" href="#v2-1" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Store the <code class="docutils literal notranslate"><span class="pre">navigate</span></code> attribute</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">record_by</span></code> is stored only for backward compatibility but the axes <code class="docutils literal notranslate"><span class="pre">navigate</span></code>
@@ -617,17 +618,17 @@ attribute takes precendence over <code class="docutils literal notranslate"><spa
 </ul>
 </section>
 <section id="v1-3">
-<h3>v1.3<a class="headerlink" href="#v1-3" title="Permalink to this heading">#</a></h3>
+<h3>v1.3<a class="headerlink" href="#v1-3" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Added support for lists, tuples and binary strings</p></li>
 </ul>
 </section>
 </section>
-<section id="module-rsciio.hspy">
-<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.hspy" title="Permalink to this heading">#</a></h2>
-<dl class="py function">
+<section id="api-functions">
+<h2>API functions<a class="headerlink" href="#api-functions" title="Link to this heading">#</a></h2>
+<span class="target" id="module-rsciio.hspy"></span><dl class="py function">
 <dt class="sig sig-object py" id="rsciio.hspy.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.hspy.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.hspy.file_reader" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.hspy.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.hspy.file_reader" title="Link to this definition">#</a></dt>
 <dd><p>Read data from hdf5-files saved with the HyperSpy hdf5-format
 specification (<code class="docutils literal notranslate"><span class="pre">.hspy</span></code>).</p>
 <dl class="field-list">
@@ -661,7 +662,7 @@ containing the full axes vector</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.hspy.file_writer">
-<span class="sig-prename descclassname"><span class="pre">rsciio.hspy.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compression</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gzip'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">close_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.hspy.file_writer" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.hspy.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compression</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gzip'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">close_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.hspy.file_writer" title="Link to this definition">#</a></dt>
 <dd><p>Write data to HyperSpy’s hdf5-format (<code class="docutils literal notranslate"><span class="pre">.hspy</span></code>).</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -728,12 +729,12 @@ platforms. For more details, see the <a class="reference external" href="https:/
     <div class="footer-article-item"><!-- Previous / next buttons -->
 <div class="prev-next-area">
     <a class="left-prev"
-       href="empad.html"
+       href="hamamatsu.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">EMPAD format (XML &amp; RAW)</p>
+        <p class="prev-next-title">Hamamatsu</p>
       </div>
     </a>
     <a class="right-next"
@@ -774,7 +775,7 @@ platforms. For more details, see the <a class="reference external" href="https:/
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#v1-3">v1.3</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.hspy">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#api-functions">API functions</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.hspy.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.hspy.file_writer"><code class="docutils literal notranslate"><span class="pre">file_writer()</span></code></a></li>
 </ul>
@@ -822,7 +823,7 @@ platforms. For more details, see the <a class="reference external" href="https:/
       
         <div class="footer-item">
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.2.
     <br/>
   </p>
 </div>

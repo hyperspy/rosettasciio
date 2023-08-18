@@ -28,16 +28,16 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=362ab14a" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="_static/custom-styles.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=ccbe24c1"></script>
+    <script src="_static/documentation_options.js?v=8a448e45"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
-    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'contributing';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -419,12 +419,12 @@ document.write(`
                 <article class="bd-article" role="main">
                   
   <section id="contributing">
-<h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this heading">#</a></h1>
+<h1>Contributing<a class="headerlink" href="#contributing" title="Link to this heading">#</a></h1>
 <p>RosettaSciIO is meant to be a community maintained project. We welcome contributions
 in the form of bug reports, documentation, code (in particular <a class="reference internal" href="#defining-plugins"><span class="std std-ref">new io plugins</span></a>), feature requests, and more. In the following we refer to some
 resources to help you make useful contributions.</p>
 <section id="issues">
-<h2>Issues<a class="headerlink" href="#issues" title="Permalink to this heading">#</a></h2>
+<h2>Issues<a class="headerlink" href="#issues" title="Link to this heading">#</a></h2>
 <p>The <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues">issue tracker</a> can be used to
 report bugs or propose new features. When reporting a bug, the following is
 useful:</p>
@@ -434,7 +434,7 @@ useful:</p>
 </ul>
 </section>
 <section id="pull-requests">
-<h2>Pull Requests<a class="headerlink" href="#pull-requests" title="Permalink to this heading">#</a></h2>
+<h2>Pull Requests<a class="headerlink" href="#pull-requests" title="Link to this heading">#</a></h2>
 <p>If you want to contribute to the RosettaSciIO source code, you can send us a
 <a class="reference external" href="https://github.com/hyperspy/rosettasciio/pulls">pull request</a> against the <code class="docutils literal notranslate"><span class="pre">main</span></code>
 branch. Small bug fixes are corrections to the user guide are typically a good
@@ -445,7 +445,7 @@ to common standards.</p>
 <a class="reference external" href="http://hyperspy.org/hyperspy-doc/current/dev_guide/intro.html">HyperSpy developer guide</a>
 in order to get started and for detailed contributing guidelines.</p>
 <section id="lint">
-<h3>Lint<a class="headerlink" href="#lint" title="Permalink to this heading">#</a></h3>
+<h3>Lint<a class="headerlink" href="#lint" title="Link to this heading">#</a></h3>
 <p>To keep the code style consistent (and more readable), <a class="reference external" href="https://black.readthedocs.io/">black</a>
 is used to check the code formatting. When the code doesn’t comply with the expected formatting,
 the <a class="reference external" href="https://github.com/hyperspy/rosettasciio/actions/workflows/black.yml">lint</a> will fail.
@@ -453,7 +453,7 @@ In practise, the code formatting can be fixed by installing <code class="docutil
 source code or by using <a class="reference internal" href="#pre-commit-hooks"><span class="std std-ref">pre-commit hooks</span></a>.</p>
 </section>
 <section id="adding-and-updating-test-data">
-<span id="id2"></span><h3>Adding and Updating Test Data<a class="headerlink" href="#adding-and-updating-test-data" title="Permalink to this heading">#</a></h3>
+<span id="id2"></span><h3>Adding and Updating Test Data<a class="headerlink" href="#adding-and-updating-test-data" title="Link to this heading">#</a></h3>
 <p>The test data are located in the corresponding subfolder of the <code class="docutils literal notranslate"><span class="pre">rsciio/tests/data</span></code> folder.
 To add or update test data:</p>
 <ol class="arabic">
@@ -475,13 +475,13 @@ the pull request to update the registry.</p>
 </ol>
 </section>
 <section id="review">
-<h3>Review<a class="headerlink" href="#review" title="Permalink to this heading">#</a></h3>
+<h3>Review<a class="headerlink" href="#review" title="Link to this heading">#</a></h3>
 <p>As quality assurance, to improve the code, and to ensure a generalized
 functionality, pull requests need to be thoroughly reviewed by at least one
 other member of the development team before being merged.</p>
 </section>
 <section id="pre-commit-hooks">
-<span id="id3"></span><h3>Pre-commit Hooks<a class="headerlink" href="#pre-commit-hooks" title="Permalink to this heading">#</a></h3>
+<span id="id3"></span><h3>Pre-commit Hooks<a class="headerlink" href="#pre-commit-hooks" title="Link to this heading">#</a></h3>
 <p>Two pre-commit hooks are set up:</p>
 <ul class="simple">
 <li><p>Linting: run <code class="docutils literal notranslate"><span class="pre">black</span></code></p></li>
@@ -493,7 +493,7 @@ using <a class="reference external" href="https://pre-commit.ci">pre-commit.ci</
 </section>
 </section>
 <section id="defining-new-rosettasciio-plugins">
-<span id="defining-plugins"></span><h2>Defining new RosettaSciIO plugins<a class="headerlink" href="#defining-new-rosettasciio-plugins" title="Permalink to this heading">#</a></h2>
+<span id="defining-plugins"></span><h2>Defining new RosettaSciIO plugins<a class="headerlink" href="#defining-new-rosettasciio-plugins" title="Link to this heading">#</a></h2>
 <p>Each read/write plugin resides in a separate directory, e.g. <code class="docutils literal notranslate"><span class="pre">spamandeggs</span></code> the
 name of which should be descriptive of the file type/manufacturer/software. This
 directory should contain the following files:</p>
@@ -569,7 +569,7 @@ plugin.</p>
 </div>
 </section>
 <section id="maintenance">
-<h2>Maintenance<a class="headerlink" href="#maintenance" title="Permalink to this heading">#</a></h2>
+<h2>Maintenance<a class="headerlink" href="#maintenance" title="Link to this heading">#</a></h2>
 <p>Please refer to the
 <a class="reference external" href="http://hyperspy.org/hyperspy-doc/current/dev_guide/intro.html">HyperSpy developer guide</a>
 for maintenance guidelines.</p>
@@ -676,7 +676,7 @@ for maintenance guidelines.</p>
       
         <div class="footer-item">
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.1.1.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.2.
     <br/>
   </p>
 </div>

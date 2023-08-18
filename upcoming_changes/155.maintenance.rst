@@ -1,0 +1,1 @@
+Add ``sidpy`` dependency and pin it to <0.12.1 as a workaround to fix pyusid import

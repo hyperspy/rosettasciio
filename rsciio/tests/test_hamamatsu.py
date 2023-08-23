@@ -287,7 +287,13 @@ class TestOperate:
         assert metadata.General.title == metadata.General.original_filename[:-4]
 
         assert metadata.Signal.quantity == "Intensity (Counts)"
-        assert metadata.Signal.signal_type == ""
+        try:
+            import lumispy
+
+            signal_type = "Luminescence"
+        except ImportError:
+            signal_type = ""
+        assert metadata.Signal.signal_type == signal_type
 
         assert isinstance(detector.binning, tuple)
         assert len(detector.binning) == 2

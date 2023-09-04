@@ -37,7 +37,7 @@ jobs:
         with:
           platforms: arm64
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Build wheels for CPython 3.11
         uses: pypa/cibuildwheel@v2.14.0
@@ -73,7 +73,7 @@ jobs:
     name: Make SDist
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Build SDist
       run: pipx run build --sdist
@@ -119,7 +119,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2007-2022 The HyperSpy developers
+# Copyright 2007-2023 The HyperSpy developers
 #
 # This file is part of RosettaSciIO.
 #
@@ -414,7 +414,7 @@ FEI_Helios_metadata = {
             "0": {
                 "operation": "load",
                 "hyperspy_version": hs.__version__,
-                "io_plugin": "rsciio.tiff.api",
+                "io_plugin": "rsciio.tiff",
             }
         },
     },
@@ -444,7 +444,7 @@ FEI_navcam_metadata = {
         "date": "2022-05-17",
         "time": "09:07:08",
         "authors": "user",
-        "FileIO": {"0": {"operation": "load", "io_plugin": "rsciio.tiff.api"}},
+        "FileIO": {"0": {"operation": "load", "io_plugin": "rsciio.tiff"}},
     },
     "Signal": {"signal_type": ""},
     "Acquisition_instrument": {
@@ -464,7 +464,6 @@ FEI_navcam_metadata = {
 
 
 class TestReadFEIHelios:
-
     path = Path(TMP_DIR.name)
 
     @classmethod
@@ -550,7 +549,6 @@ class TestReadFEIHelios:
 
 
 class TestReadZeissSEM:
-
     path = Path(TMP_DIR.name)
 
     @classmethod
@@ -589,7 +587,7 @@ class TestReadZeissSEM:
                     "0": {
                         "operation": "load",
                         "hyperspy_version": hs.__version__,
-                        "io_plugin": "rsciio.tiff.api",
+                        "io_plugin": "rsciio.tiff",
                     }
                 },
             },
@@ -643,7 +641,7 @@ class TestReadZeissSEM:
                     "0": {
                         "operation": "load",
                         "hyperspy_version": hs.__version__,
-                        "io_plugin": "rsciio.tiff.api",
+                        "io_plugin": "rsciio.tiff",
                     }
                 },
             },
@@ -685,7 +683,7 @@ def test_read_RGB_Zeiss_optical_scale_metadata():
     assert s.metadata.General.date == "2016-06-13"
     assert s.metadata.General.time == "15:59:52"
     assert s.metadata.General.FileIO.Number_0.hyperspy_version == hs.__version__
-    assert s.metadata.General.FileIO.Number_0.io_plugin == "rsciio.tiff.api"
+    assert s.metadata.General.FileIO.Number_0.io_plugin == "rsciio.tiff"
 
 
 def test_read_BW_Zeiss_optical_scale_metadata():
@@ -762,7 +760,7 @@ def test_read_TVIPS_metadata():
                 "0": {
                     "operation": "load",
                     "hyperspy_version": hs.__version__,
-                    "io_plugin": "rsciio.tiff.api",
+                    "io_plugin": "rsciio.tiff",
                 }
             },
         },
@@ -869,7 +867,6 @@ def test_JEOL_SightX():
     for file in files:
         fname = file[0]
         if fname[-3:] == ".gz":
-            import tempfile
             import gzip
 
             with tempfile.TemporaryDirectory() as tmp_dir:
@@ -889,7 +886,6 @@ def test_JEOL_SightX():
 
 
 class TestReadHamamatsu:
-
     path = Path(TMP_DIR.name)
 
     @classmethod
@@ -982,22 +978,22 @@ class TestReadHamamatsu:
 
         omd["Artist"] = "TAPTAP"
 
-        assert not rsciio.tiff.api._is_streak_hamamatsu(omd)
+        assert not rsciio.tiff._api._is_streak_hamamatsu(omd)
 
         _ = omd.pop("Artist")
 
-        assert not rsciio.tiff.api._is_streak_hamamatsu(omd)
+        assert not rsciio.tiff._api._is_streak_hamamatsu(omd)
 
         omd.update({"Artist": "Copyright Hamamatsu GmbH, 2018"})
 
         omd["Software"] = "TAPTAPTAP"
 
-        assert not rsciio.tiff.api._is_streak_hamamatsu(omd)
+        assert not rsciio.tiff._api._is_streak_hamamatsu(omd)
 
         _ = omd.pop("Software")
 
-        assert not rsciio.tiff.api._is_streak_hamamatsu(omd)
+        assert not rsciio.tiff._api._is_streak_hamamatsu(omd)
 
         omd.update({"Software": "HPD-TA 9.5 pf4"})
 
-        assert rsciio.tiff.api._is_streak_hamamatsu(omd)
+        assert rsciio.tiff._api._is_streak_hamamatsu(omd)

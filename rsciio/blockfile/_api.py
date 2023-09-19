@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2007-2022 The HyperSpy developers
+# Copyright 2007-2023 The HyperSpy developers
 #
 # This file is part of RosettaSciIO.
 #
@@ -30,6 +30,8 @@ from skimage import dtype_limits
 from rsciio.docstrings import (
     FILENAME_DOC,
     LAZY_DOC,
+    ENDIANESS_DOC,
+    MMAP_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
 )
@@ -211,11 +213,8 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<"):
     ----------
     %s
     %s
-    mmap_mode : str
-        Argument passed to :py:func:`numpy.memmap`. If None (default), the
-        value is ``'r'`` when not lazy, otherwise it is ``'c'``.
-    endianess : str
-        ``'<'`` (default) or ``'>'`` depending on how the bits are written to the file.
+    %s
+    %s
 
     %s
     """
@@ -246,7 +245,7 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<"):
     # It seems it uses "\x00" for padding, so we remove it
     try:
         header["Note"] = note.decode("latin1").strip("\x00")
-    except BaseException:
+    except Exception:
         # Not sure about the encoding so, if it fails, we carry on
         _logger.warning(
             "Reading the Note metadata of this file failed. "
@@ -339,7 +338,7 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<"):
     ]
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, MMAP_DOC, RETURNS_DOC)
 
 
 def file_writer(
@@ -381,8 +380,6 @@ def file_writer(
         Whether to show the progressbar or not.
     endianess : str
         ``'<'`` (default) or ``'>'`` determining how the bits are written to the file
-
-    %s
     """
     smetadata = DTBox(signal["metadata"], box_dots=True)
     if intensity_scaling is None:
@@ -488,8 +485,4 @@ def file_writer(
     file_memmap.flush()
 
 
-file_writer.__doc__ %= (
-    FILENAME_DOC.replace("read", "write to"),
-    SIGNAL_DOC,
-    RETURNS_DOC,
-)
+file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)

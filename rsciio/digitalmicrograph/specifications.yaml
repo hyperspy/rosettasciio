@@ -1,0 +1,9 @@
+name: DigitalMicrograph
+name_aliases: [Digital Micrograph dm3, Digital Micrograph, Gatan, DM3, DM4]
+description: Read data from Gatan Digital Micrograph (TM) files.
+full_support: False
+file_extensions: ['dm3', 'DM3', 'dm4', 'DM4']
+default_extension: 0
+writes: False
+non_uniform_axis: False
+

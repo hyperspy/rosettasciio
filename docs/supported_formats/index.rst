@@ -18,28 +18,30 @@ big datasets is supported.
    blockfile
    bruker
    de5
+   de
    dens
-   digital_micrograph
+   digitalmicrograph
    digitalsurf
    edax
    emd
-   emi_ser
    empad
    hspy
    image
    jeol
-   jobin_yvon
+   jobinyvon
    mrc
    mrcz
    msa
    netcdf
    nexus
-   panta_rhei
+   pantarhei
    phenom
    protochips
    ripple
    semper
+   tia
    tiff
+   trivista
    tvips
    usid
    zspy

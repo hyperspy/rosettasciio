@@ -159,7 +159,7 @@ install_requires = [
     "numba>=0.52",
     "numpy>=1.17.1",
     "pint>=0.8",
-    "python-box>=6.0",
+    "python-box>=6.0,<7.0",
     "pyyaml",
     "scipy>=1.1",
     "sparse",
@@ -181,6 +181,9 @@ extras_require = {
     "docs": [
         "pydata-sphinx-theme",
         "sphinxcontrib-towncrier",
+        # TODO: Remove explicit dependency on sphinx when pydata-sphinx-theme >= 0.13
+        #  is available, and 0.13 as minimial supported version of pydata-sphinx-theme
+        "sphinx~=5.3",
         # pin towncrier until https://github.com/sphinx-contrib/sphinxcontrib-towncrier/issues/60 is fixed
         "towncrier<22.8",
     ],  # for building the docs
@@ -193,7 +196,9 @@ runtime_extras_require = {
 }
 extras_require["all"] = list(itertools.chain(*list(runtime_extras_require.values())))
 
-extras_require["dev"] = list(itertools.chain(*list(extras_require.values())))
+extras_require["dev"] = [
+    "black",
+] + list(itertools.chain(*list(extras_require.values())))
 
 
 # Arguments marked as "Required" below must be included for upload to PyPI.

@@ -43,7 +43,7 @@ import dask.delayed as dd
 import dask.array as da
 import numpy as np
 
-from rsciio.docstrings import FILENAME_DOC, RETURNS_DOC
+from rsciio.docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 
 _logger = logging.getLogger(__name__)
 
@@ -1289,12 +1289,13 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
     return vfa
 
 
-def file_reader(filename, *args, **kwds):
+def file_reader(filename, lazy=False, *args, **kwds):
     """
     Read a Bruker ``.bcf`` or ``.spx`` file.
 
     Parameters
     ----------
+    %s
     %s
     select_type : ``'spectrum_image'``, ``'image'`` or None
         If specified, only the corresponding type of data, either spectrum
@@ -1352,22 +1353,22 @@ def file_reader(filename, *args, **kwds):
     """
     ext = splitext(filename)[1][1:]
     if ext == "bcf":
-        return bcf_reader(filename, *args, **kwds)
+        return bcf_reader(filename, lazy, *args, **kwds)
     elif ext == "spx":
-        return spx_reader(filename, *args, **kwds)
+        return spx_reader(filename, lazy, *args, **kwds)
 
 
-file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
 
 
 def bcf_reader(
     filename,
+    lazy=False,
     select_type=None,
     index=None,  # noqa
     downsample=1,
     cutoff_at_kV=None,
     instrument=None,
-    lazy=False,
 ):
     """
     Reads a bruker ``.bcf`` file and loads the data into the appropriate class,
@@ -1600,3 +1601,5 @@ def gen_iso_date_time(node):
         date = dt.date().isoformat()
         time = dt.time().isoformat()
         return date, time
+    else:
+        return None

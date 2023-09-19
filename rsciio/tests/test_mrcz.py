@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2007-2022 The HyperSpy developers
+# Copyright 2007-2023 The HyperSpy developers
 #
 # This file is part of RosettaSciIO.
 #
@@ -67,7 +67,6 @@ class TestPythonMrcz:
         do_async=False,
         **kwargs
     ):
-
         # This is the main function which reads and writes from disk.
         mrcName = os.path.join(tmpDir, "testMage_{}_lazy_{}.mrcz".format(dtype, lazy))
 
@@ -198,12 +197,12 @@ class TestPythonMrcz:
             import blosc
 
             blosc_installed = True
-        except BaseException:
+        except Exception:
             blosc_installed = False
 
         if not blosc_installed and compressor is not None:
             with pytest.raises(ImportError):
-                return self.compareSaveLoad(
+                self.compareSaveLoad(
                     [2, 64, 32],
                     dtype=dtype,
                     compressor=compressor,
@@ -211,18 +210,13 @@ class TestPythonMrcz:
                     lazy=lazy,
                 )
         else:
-            return self.compareSaveLoad(
+            self.compareSaveLoad(
                 [2, 64, 32],
                 dtype=dtype,
                 compressor=compressor,
                 clevel=clevel,
                 lazy=lazy,
             )
-        print(
-            "MRCZ test ({}, {}, {}, lazy:{}) finished in {} s".format(
-                dtype, compressor, clevel, lazy, perf_counter() - t_start
-            )
-        )
 
     @pytest.mark.parametrize("dtype", dtype_list)
     def test_Async(self, dtype):

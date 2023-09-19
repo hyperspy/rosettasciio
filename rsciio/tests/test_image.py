@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2007-2022 The HyperSpy developers
+# Copyright 2007-2023 The HyperSpy developers
 #
 # This file is part of RosettaSciIO.
 #
@@ -19,7 +19,7 @@
 import numpy as np
 import pytest
 
-from rsciio.image.api import file_writer
+from rsciio.image import file_writer
 
 
 @pytest.mark.parametrize(("dtype"), ["uint8", "uint32"])
@@ -225,7 +225,7 @@ def test_error_library_no_installed(tmp_path):
 
     try:
         import matplotlib
-    except:
+    except Exception:
         # When matplotlib is not installed, raises an error to inform user
         # that matplotlib is necessary
         with pytest.raises(ValueError):

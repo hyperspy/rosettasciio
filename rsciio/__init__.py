@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2007-2022 The HyperSpy developers
+# Copyright 2007-2023 The HyperSpy developers
 #
 # This file is part of RosettaSciIO.
 #
@@ -31,10 +31,7 @@ for sub, _, _ in os.walk(os.path.abspath(os.path.dirname(__file__))):
         with open(_specsf, "r") as stream:
             _specs = yaml.safe_load(stream)
             # for testing purposes
-            if _specs["name"] in ["Blockfile", "BrukerComposite"]:
-                _specs["api"] = "rsciio.%s" % os.path.split(sub)[1]
-            else:
-                _specs["api"] = "rsciio.%s.api" % os.path.split(sub)[1]
+            _specs["api"] = "rsciio.%s" % os.path.split(sub)[1]
             IO_PLUGINS.append(_specs)
 
 __all__ = [

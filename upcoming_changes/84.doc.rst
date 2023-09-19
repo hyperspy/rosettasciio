@@ -1,0 +1,2 @@
+Remove persistent search field in left sidebar since this makes finding the sidebar on narrow screens difficult.
+Set maximal major version of Sphinx to 5.

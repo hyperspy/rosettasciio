@@ -8,7 +8,7 @@ import pytest
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
-from rsciio.ripple import api as ripple
+from rsciio.ripple import _api as ripple
 
 # Tuple of tuples (data shape, signal_dimensions)
 SHAPES_SDIM = (
@@ -197,7 +197,7 @@ def test_data(pdict):
                     assert saxis.offset == taxis.offset
                     assert saxis.units == taxis.units
                     assert saxis.name == taxis.name
-        except BaseException:
+        except Exception:
             raise
         finally:
             # As of v0.8.5 the data in the ripple files are loaded as memmaps

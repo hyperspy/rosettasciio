@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2007-2022 The HyperSpy developers
+# Copyright 2007-2023 The HyperSpy developers
 #
 # This file is part of RosettaSciIO.
 #
@@ -203,12 +203,11 @@ class HierarchicalReader:
                         experiments.append(ds)
             # Parse the file
             for experiment in experiments:
-
                 exg = self.file["Experiments"][experiment]
                 exp = self.group2signaldict(exg, lazy)
                 # assign correct models, if found:
                 _tmp = {}
-                for (key, _dict) in reversed(models_with_signals):
+                for key, _dict in reversed(models_with_signals):
                     if key == exg.name:
                         _tmp.update(_dict)
                         models_with_signals.remove((key, _dict))
@@ -785,7 +784,7 @@ class HierarchicalWriter:
             else:
                 try:
                     group.attrs[key] = value
-                except BaseException:
+                except Exception:
                     _logger.exception(
                         "The writer could not write the following "
                         f"information in the file: {key} : {value}"

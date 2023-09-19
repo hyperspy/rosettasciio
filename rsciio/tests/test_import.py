@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2007-2022 The HyperSpy developers
+# Copyright 2007-2023 The HyperSpy developers
 #
 # This file is part of RosettaSciIO.
 #
@@ -39,28 +39,28 @@ def test_import_all():
     # Remove plugins which require not installed optional dependencies
     try:
         import skimage
-    except:
+    except Exception:
         plugin_name_to_remove.append("Blockfile")
 
     try:
         import mrcz
-    except:
+    except Exception:
         plugin_name_to_remove.append("MRCZ")
 
     try:
         import tifffile
-    except:
+    except Exception:
         plugin_name_to_remove.append("TIFF")
         plugin_name_to_remove.append("Phenom")
 
     try:
         import pyUSID
-    except:
+    except Exception:
         plugin_name_to_remove.append("USID")
 
     try:
         import zarr
-    except:
+    except Exception:
         plugin_name_to_remove.append("ZSPY")
 
     IO_PLUGINS = list(
@@ -98,13 +98,29 @@ def test_format_name_aliases():
 
 
 def test_dir_plugins():
+    from rsciio import IO_PLUGINS
 
-    from rsciio import bruker
-
-    assert dir(bruker) == ["file_reader"]
-
-    # skimage is optional dependencies
-    pytest.importorskip("skimage")
-    from rsciio import blockfile
-
-    assert dir(blockfile) == ["file_reader", "file_writer"]
+    for plugin in IO_PLUGINS:
+        plugin_string = "rsciio.%s" % plugin["name"].lower()
+        # skip for missing optional dependencies
+        if plugin["name"] == "Blockfile":
+            pytest.importorskip("skimage")
+        elif plugin["name"] == "MRCZ":
+            pytest.importorskip("mrcz")
+        elif plugin["name"] in ["TIFF", "Phenom"]:
+            pytest.importorskip("tifffile")
+        elif plugin["name"] == "USID":
+            pytest.importorskip("pyUSID")
+        elif plugin["name"] == "ZSPY":
+            pytest.importorskip("zarr")
+        plugin_module = importlib.import_module(plugin_string)
+        if plugin["writes"] is False:
+            assert dir(plugin_module) == ["file_reader"]
+        elif plugin["name"] == "MSA":
+            assert dir(plugin_module) == [
+                "file_reader",
+                "file_writer",
+                "parse_msa_string",
+            ]
+        else:
+            assert dir(plugin_module) == ["file_reader", "file_writer"]

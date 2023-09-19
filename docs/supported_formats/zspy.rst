@@ -8,11 +8,13 @@ information will be lost in the writing process and that supports saving data
 of arbitrary dimensions. It is based on the `Zarr project <https://zarr.readthedocs.io/en/stable>`_. Which exists as a drop in
 replacement for hdf5 with the intention to fix some of the speed and scaling
 issues with the hdf5 format and is therefore suitable for saving 
-:external+hyperspy:ref:`big data <big_data.saving>`.
+:external+hyperspy:ref:`big data <big_data.saving>`. Example using `HyperSpy
+<https://hyperspy.org>`_:
 
 
 .. code-block:: python
 
+    >>> import hyperspy.api as hs
     >>> s = hs.signals.BaseSignal([0])
     >>> s.save('test.zspy') # will save in nested directory
     >>> hs.load('test.zspy') # loads the directory
@@ -47,35 +49,15 @@ To load this file again
     >>> store = zarr.LMDBStore(filename)
     >>> s = hs.load(store) # load from LMDB
 
-Extra saving arguments
-^^^^^^^^^^^^^^^^^^^^^^
+API functions
+^^^^^^^^^^^^^
 
-- ``compressor``: `Numcodecs codec <https://numcodecs.readthedocs.io/en/stable>`_,
-  a compressor can be passed to the save function to compress the data efficiently. The default
-  is to call a Blosc compressor object.
+.. automodule:: rsciio.zspy
+   :members:
 
-    .. code-block:: python
+.. note::
 
-        >>> from numcodecs import Blosc
-        >>> compressor=Blosc(cname='zstd', clevel=1, shuffle=Blosc.SHUFFLE) # Used by default
-        >>> s.save('test.zspy', compressor = compressor) # will save with Blosc compression
-
-    .. note::
-
-        Lazy operations are often i-o bound, reading and writing the data creates a bottle neck in processes
-        due to the slow read write speed of many hard disks. In these cases, compressing your data is often
-        beneficial to the speed of some operations. Compression speeds up the process as there is less to
-        read/write with the trade off of slightly more computational work on the CPU.
-
-
-- ``chunks``: tuple of integer or None. Define the chunking used for saving
-  the dataset. If None, calculates chunks for the signal, with preferably at
-  least one chunk per signal space.
-- ``close_file``: only relevant for some zarr store (:py:class:`zarr.storage.ZipStore`, :py:class:`zarr.storage.DBMStore`)
-  requiring store to flush data to disk. If ``False``, doesn't close the file
-  after writing. The file should not be closed if the data need to be accessed
-  lazily after saving.
-  Default is ``True``.
-- ``write_dataset``: if ``False``, doesn't write the dataset when writing the file.
-  This can be useful to overwrite signal attributes only (for example ``axes_manager``)
-  without having to write the whole dataset, which can take time. Default is ``True``.
+    Lazy operations are often i-o bound. Reading and writing the data creates a bottle neck in processes
+    due to the slow read write speed of many hard disks. In these cases, compressing your data is often
+    beneficial to the speed of some operations. Compression speeds up the process as there is less to
+    read/write with the trade off of slightly more computational work on the CPU.

@@ -1,0 +1,8 @@
+name: TIA
+name_aliases: [FEI, FEI TIA, FEI-TIA, FEI_TIA]
+description: Read sets of .ser & .emi files from the FEI TIA software.
+full_support: False
+file_extensions: [ser, SER, emi, EMI]
+default_extension: 0
+writes: False
+non_uniform_axis: False

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2007-2022 The HyperSpy developers
+# Copyright 2007-2023 The HyperSpy developers
 #
 # This file is part of RosettaSciIO.
 #
@@ -23,7 +23,7 @@ import pytest
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
-from rsciio.protochips.api import ProtochipsCSV, invalid_file_error
+from rsciio.protochips._api import ProtochipsCSV, invalid_file_error
 
 testdirpath = os.path.dirname(__file__)
 dirpath = os.path.join(testdirpath, "protochips_data")

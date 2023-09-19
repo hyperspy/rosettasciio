@@ -22,6 +22,9 @@ The format contains an extensive list of details and parameters of EDS analyses
 which in `HyperSpy <https://hyperspy.org>`_ are mapped to the ``metadata`` and
 ``original_metadata`` dictionaries.
 
+
+API functions
+^^^^^^^^^^^^^
+
 .. automodule:: rsciio.bruker
    :members:
-

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2007-2022 The HyperSpy developers
+# Copyright 2007-2023 The HyperSpy developers
 #
 # This file is part of RosettaSciIO.
 #
@@ -26,7 +26,7 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 import traits.api as t
 
-from rsciio.empad.api import _parse_xml
+from rsciio.empad._api import _parse_xml
 
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "empad_data")
@@ -78,7 +78,6 @@ def test_read_stack(lazy):
     assert s.metadata.General.date == "2019-06-07"
     assert s.metadata.General.time == "13:17:22.590279"
     assert s.metadata.Signal.signal_type == "electron_diffraction"
-    del s
 
 
 @pytest.mark.parametrize("lazy", (False, True))

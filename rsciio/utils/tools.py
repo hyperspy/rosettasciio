@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2007-2022 The HyperSpy developers
+# Copyright 2007-2023 The HyperSpy developers
 #
 # This file is part of RosettaSciIO.
 #
@@ -44,10 +44,6 @@ def dummy_context_manager(*args, **kwargs):
 def seek_read(file, dtype, pos):
     file.seek(pos)
     data = np.squeeze(np.fromfile(file, dtype, count=1))[()]
-    if type(data) == np.uint32 or np.int32:
-        data = int(data)
-    if type(data) == np.bool_:
-        data = bool(data)
     return data
 
 
@@ -56,6 +52,8 @@ def read_binary_metadata(file, mapping_dict):
     The mapping dict is passed as dictionary with a "key":[data,location]"
     format.
     """
+    if file is None:
+        return None
     try:
         with open(file, mode="rb") as f:
             metadata = {
@@ -229,14 +227,14 @@ def get_chunk_index(
     """
     nav_shape = np.delete(np.array(shape), signal_axes)
     num_frames = np.prod(nav_shape)
-    indexes = da.arange(num_frames)
-    indexes = da.reshape(indexes, nav_shape)
+    indexes = np.arange(num_frames)
+    indexes = np.reshape(indexes, nav_shape)
     chunks = da.core.normalize_chunks(
         chunks=chunks, shape=shape, limit=block_size_limit, dtype=dtype
     )
 
     nav_chunks = tuple(np.delete(np.array(chunks, dtype=object), signal_axes))
-    indexes = da.rechunk(indexes, chunks=nav_chunks)
+    indexes = da.from_array(indexes, chunks=nav_chunks)
     return indexes
 
 
@@ -302,13 +300,13 @@ def ensure_directory(path):
         _logger.debug(f"Directory {p} already exists. Doing nothing.")
 
 
-def overwrite(fname):
-    """If file exists 'fname', ask for overwriting and return True or False,
+def overwrite(filename):
+    """If file 'filename' exists, ask for overwriting and return True or False,
     else return True.
 
     Parameters
     ----------
-    fname : str or pathlib.Path
+    filename : str or pathlib.Path
         File to check for overwriting.
 
     Returns
@@ -317,10 +315,10 @@ def overwrite(fname):
         Whether to overwrite file.
 
     """
-    if Path(fname).is_file() or (
-        Path(fname).is_dir() and os.path.splitext(fname)[1] == ".zspy"
+    if Path(filename).is_file() or (
+        Path(filename).is_dir() and os.path.splitext(filename)[1] == ".zspy"
     ):
-        message = f"Overwrite '{fname}' (y/n)?\n"
+        message = f"Overwrite '{filename}' (y/n)?\n"
         try:
             answer = input(message)
             answer = answer.lower()
@@ -331,7 +329,9 @@ def overwrite(fname):
                 return True
             elif answer.lower() == "n":
                 return False
-        except:
+            else:
+                return True
+        except Exception:
             # We are running in the IPython notebook that does not
             # support raw_input
             _logger.info(
@@ -471,7 +471,7 @@ def ensure_unicode(stuff, encoding="utf8", encoding2="latin-1"):
         string = stuff
     try:
         string = string.decode(encoding)
-    except BaseException:
+    except Exception:
         string = string.decode(encoding2, errors="ignore")
     return string
 
@@ -498,3 +498,4 @@ def get_file_handle(data, warn=True):
                     "the file is already closed or it is not "
                     "an hdf5 file."
                 )
+    return None

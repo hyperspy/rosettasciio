@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2007-2022 The HyperSpy developers
+# Copyright 2007-2023 The HyperSpy developers
 #
 # This file is part of RosettaSciIO.
 #
@@ -264,7 +264,7 @@ def test_file_reader_options():
         # Test object reader
         from rsciio import hspy
 
-        t = hs.load(Path(dirpath, "temp.hspy"), reader=hspy.api)
+        t = hs.load(Path(dirpath, "temp.hspy"), reader=hspy)
         assert len(t) == 1
         np.testing.assert_allclose(t.data, np.arange(10))
 
@@ -304,7 +304,7 @@ def test_load_save_filereader_metadata():
 
     my_path = os.path.dirname(__file__)
     s = hs.load(os.path.join(my_path, "msa_files", "example1.msa"))
-    assert s.metadata.General.FileIO.Number_0.io_plugin == "rsciio.msa.api"
+    assert s.metadata.General.FileIO.Number_0.io_plugin == "rsciio.msa"
     assert s.metadata.General.FileIO.Number_0.operation == "load"
     assert s.metadata.General.FileIO.Number_0.hyperspy_version == hs.__version__
 
@@ -313,17 +313,17 @@ def test_load_save_filereader_metadata():
         s.save(f)
         expected = {
             "0": {
-                "io_plugin": "rsciio.msa.api",
+                "io_plugin": "rsciio.msa",
                 "operation": "load",
                 "hyperspy_version": hs.__version__,
             },
             "1": {
-                "io_plugin": "rsciio.hspy.api",
+                "io_plugin": "rsciio.hspy",
                 "operation": "save",
                 "hyperspy_version": hs.__version__,
             },
             "2": {
-                "io_plugin": "rsciio.hspy.api",
+                "io_plugin": "rsciio.hspy",
                 "operation": "load",
                 "hyperspy_version": hs.__version__,
             },

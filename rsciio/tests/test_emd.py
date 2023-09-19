@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2007-2022 The HyperSpy developers
+# Copyright 2007-2023 The HyperSpy developers
 #
 # This file is part of RosettaSciIO.
 #
@@ -304,7 +304,6 @@ def _generate_parameters():
 
 
 class TestFeiEMD:
-
     fei_files_path = os.path.join(my_path, "emd_files", "fei_emd_files")
 
     @classmethod
@@ -322,7 +321,6 @@ class TestFeiEMD:
 
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_image(self, lazy):
-
         stage = {
             "tilt_alpha": 0.006,
             "tilt_beta": 0.000,
@@ -350,7 +348,7 @@ class TestFeiEMD:
                     "0": {
                         "operation": "load",
                         "hyperspy_version": hs.__version__,
-                        "io_plugin": "rsciio.emd.api",
+                        "io_plugin": "rsciio.emd",
                     }
                 },
             },

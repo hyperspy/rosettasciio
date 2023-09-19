@@ -21,42 +21,53 @@ If you have any questions regarding this module, please consider
 `contacting <https://pycroscopy.github.io/pyUSID/contact.html>`_
 the developers of pyUSID.
 
+Also see the :ref:`hdf5-utils` for inspecting HDF5 files.
+
+.. Note::
+
+    h5USID files can contain multiple USID datasets within the same file.
+    RosettaSciIO supports reading in one or more USID datasets.
+
+.. Note::
+
+    When writing files with this plugin, the model and other secondary data
+    artifacts linked to the signal are not written to the file but these can be
+    implemented at a later stage.
+
 Requirements
 ^^^^^^^^^^^^
 
-1. Reading and writing h5USID files require the
-   `installation of pyUSID <https://pycroscopy.github.io/pyUSID/install.html>`_.
-2. Files must use the ``.h5`` file extension in order to use this IO plugin.
-   Using the ``.hdf5`` extension will default to the :ref:`HyperSpy plugin <hspy-format>`.
+Reading and writing h5USID files requires the
+`installation of pyUSID <https://pycroscopy.github.io/pyUSID/install.html>`_.
 
-Reading
-^^^^^^^
+In `HyperSpy <https://hyperspy.org>`_, files must use the ``.h5`` file extension
+in order to use this IO
+plugin or the ``reader=usid_hdf5`` parameter of the ``load`` function needs to be
+set explicitly. Otherwise, using the ``.hdf5`` extension will default to the
+:ref:`HyperSpy plugin <hspy-format>`.
 
-h5USID files can contain multiple USID datasets within the same file.
-RosettaSciIO supports reading in one or more USID datasets.
+API functions
+^^^^^^^^^^^^^
 
-Extra loading arguments
-+++++++++++++++++++++++
+.. automodule:: rsciio.usid
+   :members:
 
-- ``dataset_path``: str. Absolute path of USID Main HDF5 dataset.
-  (default is ``None`` - all USID Main Datasets will be read)
-- ``ignore_non_linear_dims``: bool, default is True. If True, parameters that
-  were varied non-linearly in the desired dataset will result in Exceptions.
-  Else, all such non-linearly varied parameters will be treated as
-  linearly varied parameters and a Signal object will be generated.
+Usage examples
+^^^^^^^^^^^^^^
 
-
-Reading the sole dataset within a h5USID file:
+Reading the sole dataset within a h5USID file using `HyperSpy
+<https://hyperspy.org>`_:
 
 .. code-block:: python
 
+    >>> import hyperspy.api as hs
     >>> hs.load("sample.h5")
     <Signal2D, title: HAADF, dimensions: (|128, 128)>
 
-If multiple datasets are present within the h5USID file and you try the same command again,
-**all** available datasets will be loaded.
+If multiple datasets are present within the h5USID file, **all** available
+datasets will be loaded.
 
-.. note::
+.. Note::
 
     Given that HDF5 files can accommodate very large datasets, setting ``lazy=True``
     is strongly recommended if the contents of the HDF5 file are not known apriori.
@@ -71,8 +82,9 @@ If multiple datasets are present within the h5USID file and you try the same com
     [<Signal2D, title: HAADF, dimensions: (|128, 128)>,
     <Signal1D, title: EELS, dimensions: (|64, 64, 1024)>]
 
-We can load a specific dataset using the ``dataset_path`` keyword argument. Setting it to the
-absolute path of the desired dataset will cause the single dataset to be loaded.
+We can load a specific dataset using the ``dataset_path`` keyword argument.
+Setting it to the absolute path of the desired dataset will cause the single
+dataset to be loaded.
 
 .. code-block:: python
 
@@ -80,12 +92,12 @@ absolute path of the desired dataset will cause the single dataset to be loaded.
     >>> hs.load("sample.h5", dataset_path='/Measurement_004/Channel_003/Main_Data')
     <Signal2D, title: HAADF, dimensions: (|128, 128)>
 
-h5USID files support the storage of HDF5 dataset with
-`compound data types <https://pycroscopy.github.io/USID/usid_model.html#compound-datasets>`_.
-As an (*oversimplified*) example, one could store a color image using a compound data type that allows
-each color channel to be accessed by name rather than an index.
-Naturally, reading in such a compound dataset into HyperSpy will result in a separate
-signal for each named component in the dataset:
+h5USID files support the storage of HDF5 dataset with `compound data types
+<https://pycroscopy.github.io/USID/usid_model.html#compound-datasets>`_. As an
+(*oversimplified*) example, one could store a color image using a compound data
+type that allows each color channel to be accessed by name rather than an index.
+Naturally, reading in such a compound dataset into HyperSpy will result in a
+separate signal for each named component in the dataset:
 
 .. code-block:: python
 
@@ -113,16 +125,3 @@ In order to prevent accidental misinterpretation of information downstream, the 
     ValueError: Cannot load provided dataset. Parameter: Bias was varied non-uniformly.
     Supply keyword argument "ignore_non_uniform_dims=True" to ignore this error
 
-Writing
-^^^^^^^
-
-Signals can be written to new h5USID files using the standard :py:meth:`~.signal.BaseSignal.save` function.
-Setting the ``overwrite`` keyword argument to ``True`` will append to the specified
-HDF5 file. All other keyword arguments will be passed to :py:func:`pyUSID.io.hdf_utils.model.write_main_dataset`.
-
-.. code-block:: python
-
-    >>> sig.save("USID.h5")
-
-Note that the model and other secondary data artifacts linked to the signal are not
-written to the file but these can be implemented at a later stage.

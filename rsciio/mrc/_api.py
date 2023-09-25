@@ -24,6 +24,7 @@ import os
 import logging
 
 import numpy as np
+import dask.array as da
 
 from rsciio._docstrings import (
     ENDIANESS_DOC,
@@ -183,7 +184,7 @@ def file_reader(
     endianess="<",
     navigation_shape=None,
     distributed=False,
-    chunks=None,
+    chunks="auto",
     metadata_file=None,
 ):
     """
@@ -225,9 +226,9 @@ def file_reader(
         shape = shape[:2] + navigation_shape
     if distributed:
         data = memmap_distributed(
-            f,
+            filename,
             offset=f.tell(),
-            shape=shape,
+            shape=shape[::-1],
             dtype=get_data_type(std_header["MODE"]),
             chunks=chunks,
         )
@@ -245,6 +246,8 @@ def file_reader(
             .squeeze()
             .T
         )
+        if lazy:
+            data = da.from_array(data, chunks=chunks)
 
     original_metadata = {"std_header": sarray2dict(std_header)}
     # Convert bytes to unicode

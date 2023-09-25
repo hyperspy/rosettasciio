@@ -18,6 +18,7 @@
 
 from pathlib import Path
 import pytest
+import numpy as np
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -57,7 +58,7 @@ def test_4DSTEM_image_navigation_shape_16_16():
     assert s.axes_manager.navigation_shape == (16, 16)
 
 
-@pytest.parametrize("distributed", [True, False])
+@pytest.mark.parametrize("distributed", [True, False])
 def test_4DSTEM_image_navigation_shape_8_32(distributed):
     s = hs.load(
         TEST_DATA_DIR / "4DSTEMscan.mrc",
@@ -67,3 +68,40 @@ def test_4DSTEM_image_navigation_shape_8_32(distributed):
     assert s.data.shape == (32, 8, 256, 256)
     assert s.axes_manager.signal_shape == (256, 256)
     assert s.axes_manager.navigation_shape == (8, 32)
+
+
+def test_mrc_distributed_equal():
+    s = hs.load(
+        TEST_DATA_DIR / "4DSTEMscan.mrc",
+        navigation_shape=(8, 32),
+        distributed=False,
+    )
+    s2 = hs.load(
+        TEST_DATA_DIR / "4DSTEMscan.mrc",
+        navigation_shape=(8, 32),
+        distributed=True,
+    )
+    np.testing.assert_array_equal(s.data, s2.data)
+
+
+@pytest.mark.parametrize("distributed", [True, False])
+def test_mrc_distributed_equal(distributed):
+    s = hs.load(
+        TEST_DATA_DIR / "4DSTEMscan.mrc",
+        navigation_shape=(8, 32),
+        distributed=distributed,
+        chunks=(16, 4, 256, 256),
+        lazy=True,
+    )
+    assert s.data.chunks == (
+        (
+            16,
+            16,
+        ),
+        (
+            4,
+            4,
+        ),
+        (256,),
+        (256,),
+    )

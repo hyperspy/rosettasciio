@@ -158,23 +158,23 @@ def read_de_metadata_file(filename):
     shape : tuple
         The shape of the data in real space.
     """
-    all_lines = {}
+    origional_metadata = {}
     with open(filename) as metadata:
         for line in metadata.readlines():
             key, value = line.split("=")
             key = key.strip()
             value = value.strip()
-            all_lines[key] = value
+            origional_metadata[key] = value
 
-    r = int(all_lines["Scan - Repeats"])
-    x = int(all_lines["Scan - Size X"])
-    y = int(all_lines["Scan - Size Y"])
-    pr = int(all_lines["Scan - Point Repeat"])
+    r = int(origional_metadata["Scan - Repeats"])
+    x = int(origional_metadata["Scan - Size X"])
+    y = int(origional_metadata["Scan - Size Y"])
+    pr = int(origional_metadata["Scan - Point Repeat"])
 
     shape = np.array([pr, x, y, r])
     shape = shape[shape != 1]  # removing the 1s from the dataset
 
-    return all_lines, shape
+    return origional_metadata, shape
 
 
 def file_reader(
@@ -203,9 +203,12 @@ def file_reader(
     """
 
     if metadata_file is not None:
-        original_metadata, _navigation_shape = read_de_metadata_file(metadata_file)
+        de_metadata, _navigation_shape = read_de_metadata_file(metadata_file)
         if navigation_shape is None:
             navigation_shape = _navigation_shape
+        original_metadata = {"de_metadata": de_metadata}
+    else:
+        original_metadata = {}
     metadata = {}
     f = open(filename, "rb")
     std_header = np.fromfile(f, dtype=get_std_dtype_list(endianess), count=1)
@@ -249,7 +252,8 @@ def file_reader(
         if lazy:
             data = da.from_array(data, chunks=chunks)
 
-    original_metadata = {"std_header": sarray2dict(std_header)}
+    original_metadata["std_header"] = sarray2dict(std_header)
+
     # Convert bytes to unicode
     for key in ["CMAP", "STAMP", "LABELS"]:
         original_metadata["std_header"][key] = original_metadata["std_header"][

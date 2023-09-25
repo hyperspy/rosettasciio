@@ -33,7 +33,7 @@ from rsciio._docstrings import (
     NAVIGATION_SHAPE,
     RETURNS_DOC,
     CHUNKS_DOC,
-    DISTRIBUTED_DOC
+    DISTRIBUTED_DOC,
 )
 
 from rsciio.utils.tools import sarray2dict
@@ -165,25 +165,26 @@ def read_de_metadata_file(filename):
             value = value.strip()
             all_lines[key] = value
 
-    r = int(all_lines['Scan - Repeats'])
-    x = int(all_lines['Scan - Size X'])
-    y = int(all_lines['Scan - Size Y'])
+    r = int(all_lines["Scan - Repeats"])
+    x = int(all_lines["Scan - Size X"])
+    y = int(all_lines["Scan - Size Y"])
     pr = int(all_lines["Scan - Point Repeat"])
-
 
     shape = np.array([pr, x, y, r])
     shape = shape[shape != 1]  # removing the 1s from the dataset
 
     return all_lines, shape
 
-def file_reader(filename,
-                lazy=False,
-                mmap_mode=None,
-                endianess="<",
-                navigation_shape=None,
-                distributed=False,
-                chunks=None,
-                metadata_file=None,
+
+def file_reader(
+    filename,
+    lazy=False,
+    mmap_mode=None,
+    endianess="<",
+    navigation_shape=None,
+    distributed=False,
+    chunks=None,
+    metadata_file=None,
 ):
     """
     File reader for the MRC format for tomographic data.
@@ -223,11 +224,13 @@ def file_reader(filename,
     if navigation_shape is not None:
         shape = shape[:2] + navigation_shape
     if distributed:
-        data = memmap_distributed(f,
-                                  offset=f.tell(),
-                                  shape=shape,
-                                  dtype=get_data_type(std_header["MODE"]),
-                                  chunks=chunks)
+        data = memmap_distributed(
+            f,
+            offset=f.tell(),
+            shape=shape,
+            dtype=get_data_type(std_header["MODE"]),
+            chunks=chunks,
+        )
         if not lazy:
             data = data.compute()
     else:
@@ -242,7 +245,6 @@ def file_reader(filename,
             .squeeze()
             .T
         )
-
 
     original_metadata = {"std_header": sarray2dict(std_header)}
     # Convert bytes to unicode

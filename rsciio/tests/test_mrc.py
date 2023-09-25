@@ -57,10 +57,12 @@ def test_4DSTEM_image_navigation_shape_16_16():
     assert s.axes_manager.navigation_shape == (16, 16)
 
 
-def test_4DSTEM_image_navigation_shape_8_32():
+@pytest.parametrize("distributed", [True, False])
+def test_4DSTEM_image_navigation_shape_8_32(distributed):
     s = hs.load(
         TEST_DATA_DIR / "4DSTEMscan.mrc",
         navigation_shape=(8, 32),
+        distributed=distributed,
     )
     assert s.data.shape == (32, 8, 256, 256)
     assert s.axes_manager.signal_shape == (256, 256)

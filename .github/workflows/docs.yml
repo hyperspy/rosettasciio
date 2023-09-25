@@ -12,7 +12,7 @@ jobs:
       LATEX_DEPS: dvipng latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ericpre/sphinx-action@latest_sphinx
         with:
@@ -32,7 +32,7 @@ jobs:
     env:
       DOCS_PATH: ./docs/_build/html/
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -81,7 +81,7 @@ jobs:
       # needs write permission to push the docs to gh-pages
       contents: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: gh-pages

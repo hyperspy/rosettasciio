@@ -51,6 +51,18 @@ Alternatively, use :py:meth:`hyperspy.signal.BaseSignal.save`, which will pick t
     s = hs.signals.Signal2D(data)
     s.save("data.mrc")
 
+MRC Format (Direct Electron)
+----------------------------
+Loading from Direct Electron's ``.mrc`` as well as reading the metadata from the .txt file
+saved by the software is supported by passing the ``metadata_file`` argument to the
+``file_reader`` function. The ``metadata_file`` argument can be a string or a file-like
+object.
+
+This will automatically set the navigation shape based on the ``Scan - Size X`` and                                                   = 256
+``Scan - Size Y`` as well as the ``Scan - Repeats`` and ``Scan - Point Repeats``
+ parameters in the metadata file. The navigation shape can be overridden
+by passing the ``navigation_shape`` argument to the ``file_reader`` function.
+
 
 API functions
 ^^^^^^^^^^^^^

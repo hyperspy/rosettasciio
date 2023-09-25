@@ -131,6 +131,7 @@ def memmap_distributed(
         block_size_limit=block_size_limit,
         dtype=dtype,
     )
+    num_dim = len(shape)
     data = da.map_blocks(
         slice_memmap,
         chunked_slices,
@@ -142,6 +143,9 @@ def memmap_distributed(
         dtypes=dtype,
         offset=offset,
         chunks=data_chunks,
-        drop_axis=(-1, -2),
+        drop_axis=(
+            num_dim,
+            num_dim + 1,
+        ),  # Dask 2021.10.0 minimum to use negative indexing
     )
     return data

@@ -142,7 +142,6 @@ def memmap_distributed(
         dtypes=dtype,
         offset=offset,
         chunks=data_chunks,
-        key=key,
         drop_axis=(-1, -2),
     )
     return data

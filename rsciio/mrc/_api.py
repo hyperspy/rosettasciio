@@ -32,8 +32,12 @@ from rsciio._docstrings import (
     MMAP_DOC,
     NAVIGATION_SHAPE,
     RETURNS_DOC,
+    CHUNKS_DOC,
+    DISTRIBUTED_DOC
 )
+
 from rsciio.utils.tools import sarray2dict
+from rsciio.utils.distributed import memmap_distributed
 
 
 _logger = logging.getLogger(__name__)
@@ -136,8 +140,50 @@ def get_data_type(mode):
         raise ValueError(f"Unrecognised mode '{mode}'.")
 
 
-def file_reader(
-    filename, lazy=False, mmap_mode=None, endianess="<", navigation_shape=None
+def read_de_metadata_file(filename):
+    """This reads the metadata ".txt" file that is saved alongside a DE .mrc file.
+
+    This loads scan parameters such as
+
+    Parameters
+    ----------
+    filename : str
+        The filename of the metadata file.
+
+    Returns
+    -------
+    all_lines : dict
+        A dictionary containing all of the metadata.
+    shape : tuple
+        The shape of the data in real space.
+    """
+    all_lines = {}
+    with open(filename) as metadata:
+        for line in metadata.readlines():
+            key, value = line.split("=")
+            key = key.strip()
+            value = value.strip()
+            all_lines[key] = value
+
+    r = int(all_lines['Scan - Repeats'])
+    x = int(all_lines['Scan - Size X'])
+    y = int(all_lines['Scan - Size Y'])
+    pr = int(all_lines["Scan - Point Repeat"])
+
+
+    shape = np.array([pr, x, y, r])
+    shape = shape[shape != 1]  # removing the 1s from the dataset
+
+    return all_lines, shape
+
+def file_reader(filename,
+                lazy=False,
+                mmap_mode=None,
+                endianess="<",
+                navigation_shape=None,
+                distributed=False,
+                chunks=None,
+                metadata_file=None,
 ):
     """
     File reader for the MRC format for tomographic data.
@@ -149,10 +195,15 @@ def file_reader(
     %s
     %s
     %s
-
+    %s
+    %s
     %s
     """
 
+    if metadata_file is not None:
+        original_metadata, _navigation_shape = read_de_metadata_file(metadata_file)
+        if navigation_shape is None:
+            navigation_shape = _navigation_shape
     metadata = {}
     f = open(filename, "rb")
     std_header = np.fromfile(f, dtype=get_std_dtype_list(endianess), count=1)
@@ -171,17 +222,27 @@ def file_reader(
     shape = (NX[0], NY[0], NZ[0])
     if navigation_shape is not None:
         shape = shape[:2] + navigation_shape
-    data = (
-        np.memmap(
-            f,
-            mode=mmap_mode,
-            offset=f.tell(),
-            dtype=get_data_type(std_header["MODE"]),
+    if distributed:
+        data = memmap_distributed(f,
+                                  offset=f.tell(),
+                                  shape=shape,
+                                  dtype=get_data_type(std_header["MODE"]),
+                                  chunks=chunks)
+        if not lazy:
+            data = data.compute()
+    else:
+        data = (
+            np.memmap(
+                f,
+                mode=mmap_mode,
+                offset=f.tell(),
+                dtype=get_data_type(std_header["MODE"]),
+            )
+            .reshape(shape, order="F")
+            .squeeze()
+            .T
         )
-        .reshape(shape, order="F")
-        .squeeze()
-        .T
-    )
+
 
     original_metadata = {"std_header": sarray2dict(std_header)}
     # Convert bytes to unicode
@@ -295,4 +356,5 @@ file_reader.__doc__ %= (
     ENDIANESS_DOC,
     NAVIGATION_SHAPE,
     RETURNS_DOC,
+    CHUNKS_DOC
 )

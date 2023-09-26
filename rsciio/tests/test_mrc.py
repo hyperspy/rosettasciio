@@ -106,6 +106,7 @@ def test_mrc_chunks_equal(distributed):
         (256,),
     )
 
+
 @pytest.mark.parametrize("navigation_shape", [None, (8, 32)])
 def test_mrc_metadata(navigation_shape):
     s = hs.load(
@@ -119,5 +120,3 @@ def test_mrc_metadata(navigation_shape):
     assert s.metadata.Acquisition_instrument.TEM.detector == "CeleritasXS"
     assert s.metadata.Acquisition_instrument.TEM.magnificiation == "1000"
     assert s.metadata.Acquisition_instrument.TEM.frames_per_second == "40000"
-
-

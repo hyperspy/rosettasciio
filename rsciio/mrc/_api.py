@@ -171,25 +171,32 @@ def read_de_metadata_file(filename):
     y = int(original_metadata["Scan - Size Y"])
     pr = int(original_metadata["Scan - Point Repeat"])
 
-
-    shape = np.array([pr, x, y, r]) # reverse order to what they are read
+    shape = np.array([pr, x, y, r])  # reverse order to what they are read
     axes = []
-    axes_names = ["repeats", "x", "y", "repeats",][::-1]
+    axes_names = [
+        "repeats",
+        "x",
+        "y",
+        "repeats",
+    ][::-1]
     axes_units = ["times", "nm", "nm", "s"][::-1]
-    axes_scales = [1,
-                   original_metadata["Specimen Pixel Size X (nanometers)"],
-                   original_metadata["Specimen Pixel Size Y (nanometers)"],
-                   original_metadata["Scan - Time (seconds)"] +
-                   original_metadata["Scan - Repeat Delay (seconds)"]][::-1]
+    axes_scales = [
+        1,
+        original_metadata["Specimen Pixel Size X (nanometers)"],
+        original_metadata["Specimen Pixel Size Y (nanometers)"],
+        original_metadata["Scan - Time (seconds)"]
+        + original_metadata["Scan - Repeat Delay (seconds)"],
+    ][::-1]
     for i, s in enumerate(shape[::-1]):
         ind = 0
         if s != 1:
-            axes_dict = {"name": axes_names[i],
-                         "size": s,
-                         "units": axes_units[i],
-                         "navigate": True,
-                         "index_in_array": ind
-                         }
+            axes_dict = {
+                "name": axes_names[i],
+                "size": s,
+                "units": axes_units[i],
+                "navigate": True,
+                "index_in_array": ind,
+            }
             if axes_scales[i] != -1:  # -1 means that the scale is not defined
                 axes_dict["scale"] = axes_scales[i]
             else:
@@ -203,22 +210,20 @@ def read_de_metadata_file(filename):
     timestamp = original_metadata.get("Timestamp (seconds since Epoch)", None)
     fps = original_metadata.get("Frames Per Second", None)
 
-    metadata = {"Acquisition_instrument":
-                    {"TEM":
-                         {"magnificiation": magnification,
-                          "detector": camera_model,
-                          "frames_per_second": fps
-                          }
-                    },
-                "Signal":
-                    {"Noise_properties":
-                         {"gain_factor": 1/electron_gain},
-                     "quantity": "$e^-$",
-                     },
-                "General":
-                    {"timestamp": timestamp}
-
-                }
+    metadata = {
+        "Acquisition_instrument": {
+            "TEM": {
+                "magnificiation": magnification,
+                "detector": camera_model,
+                "frames_per_second": fps,
+            }
+        },
+        "Signal": {
+            "Noise_properties": {"gain_factor": 1 / electron_gain},
+            "quantity": "$e^-$",
+        },
+        "General": {"timestamp": timestamp},
+    }
 
     shape = shape[shape != 1]  # removing the 1s from the dataset
 
@@ -251,13 +256,18 @@ def file_reader(
     """
 
     if metadata_file is not None:
-        de_metadata, metadata, navigation_axes, _navigation_shape = read_de_metadata_file(metadata_file)
+        (
+            de_metadata,
+            metadata,
+            navigation_axes,
+            _navigation_shape,
+        ) = read_de_metadata_file(metadata_file)
         if navigation_shape is None:
             navigation_shape = _navigation_shape
         original_metadata = {"de_metadata": de_metadata}
     else:
         original_metadata = {}
-        metadata = {"General":{}, "Signal":{}}
+        metadata = {"General": {}, "Signal": {}}
         navigation_axes = None
     metadata["General"]["original_filename"] = os.path.split(filename)[1]
     metadata["Signal"]["signal_type"] = ""
@@ -351,7 +361,6 @@ def file_reader(
         ] * 3
 
     if navigation_axes is None:
-
         units = [None, "nm", "nm"]
         names = ["z", "y", "x"]
         navigate = [True, False, False]
@@ -381,15 +390,17 @@ def file_reader(
         ]
     else:
         axes = navigation_axes
-        if len(axes) != len(data.shape): # Add in final two axes
+        if len(axes) != len(data.shape):  # Add in final two axes
             names = ["$k_x$", "$k_y$"]
-            for i,s in enumerate(data.shape[-2:]):
-                ax = {"size": s,
-                      "name": names[i],
-                      "scale": 1,  # TODO: Add scale when reciporical space is added
-                      "offset": 0,
-                      "units": "nm$^-1$",
-                      "navigate": False}
+            for i, s in enumerate(data.shape[-2:]):
+                ax = {
+                    "size": s,
+                    "name": names[i],
+                    "scale": 1,  # TODO: Add scale when reciporical space is added
+                    "offset": 0,
+                    "units": "nm$^-1$",
+                    "navigate": False,
+                }
                 axes.append(ax)
 
     dictionary = {
@@ -426,5 +437,5 @@ file_reader.__doc__ %= (
     ENDIANESS_DOC,
     NAVIGATION_SHAPE,
     RETURNS_DOC,
-    CHUNKS_DOC
+    CHUNKS_DOC,
 )

@@ -85,7 +85,7 @@ def test_mrc_distributed_equal():
 
 
 @pytest.mark.parametrize("distributed", [True, False])
-def test_mrc_distributed_equal(distributed):
+def test_mrc_chunks_equal(distributed):
     s = hs.load(
         TEST_DATA_DIR / "4DSTEMscan.mrc",
         navigation_shape=(8, 32),
@@ -105,3 +105,19 @@ def test_mrc_distributed_equal(distributed):
         (256,),
         (256,),
     )
+
+@pytest.mark.parametrize("navigation_shape", [None, (8, 32)])
+def test_mrc_metadata(navigation_shape):
+    s = hs.load(
+        TEST_DATA_DIR / "4DSTEMscan.mrc",
+        metadata_file=TEST_DATA_DIR / "info.txt",
+        navigation_shape=navigation_shape,
+    )
+    assert s.data.shape == (32, 8, 256, 256)
+    assert s.axes_manager.signal_shape == (256, 256)
+    assert s.axes_manager.navigation_shape == (8, 32)
+    assert s.metadata.Acquisition_instrument.TEM.detector == "CeleritasXS"
+    assert s.metadata.Acquisition_instrument.TEM.magnificiation == "1000"
+    assert s.metadata.Acquisition_instrument.TEM.frames_per_second == "40000"
+
+

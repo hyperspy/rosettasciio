@@ -775,8 +775,8 @@ class Test_permanent_markers_io:
         # test_marker_bad_marker_type.hdf5 has 5 markers,
         # where one of them has an unknown marker type
         fname = TEST_DATA_PATH / "test_marker_bad_marker_type.hdf5"
-        s = hs.load(fname, reader="HSPY")
-        assert len(s.metadata.Markers) == 4
+        with pytest.raises(AttributeError):
+            _ = hs.load(fname, reader="HSPY")
 
     def test_load_missing_y2_value(self):
         # test_marker_point_y2_data_deleted.hdf5 has 5 markers,

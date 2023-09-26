@@ -1,0 +1,5 @@
+Added the :py:func:`~.utils.distributed.memmap_distributed` function for loading a memmap file
+from multiple processes.
+
+Added the arguments ``distributed`` and ``metadata_file`` to the .mrc file reader for loading metadata
+save from DirectElectron detectors.

@@ -514,21 +514,22 @@ class HierarchicalReader:
                 dictionary[key] = value
         if not isinstance(group, self.Dataset):
             for key in group.keys():
-                if key.startswith("_sig_"):
+                if key == "ragged_shapes":
+                    # array used to parse ragged array, need to skip it
+                    # otherwise, it will wrongly read kwargs when reading
+                    # variable length markers as they uses ragged arrays
+                    pass
+                elif key.startswith("_sig_"):
                     dictionary[key] = self.group2signaldict(group[key])
                 elif isinstance(group[key], self.Dataset):
                     dat = group[key]
                     kn = key
                     if key.startswith("_list_"):
-                        if h5py.check_string_dtype(dat.dtype) and hasattr(dat, "asstr"):
-                            # h5py 3.0 and newer
-                            # https://docs.h5py.org/en/3.0.0/strings.html
-                            dat = dat.asstr()[:]
-                        ans = np.array(dat)
+                        ans = self._parse_iterable(dat)
                         ans = ans.tolist()
                         kn = key[6:]
                     elif key.startswith("_tuple_"):
-                        ans = np.array(dat)
+                        ans = self._parse_iterable(dat)
                         ans = tuple(ans.tolist())
                         kn = key[7:]
                     elif dat.dtype.char == "S":
@@ -573,6 +574,14 @@ class HierarchicalReader:
                     self._group2dict(group[key], dictionary[key], lazy=lazy)
 
         return dictionary
+
+    @staticmethod
+    def _parse_iterable(data):
+        if h5py.check_string_dtype(data.dtype) and hasattr(data, "asstr"):
+            # h5py 3.0 and newer
+            # https://docs.h5py.org/en/3.0.0/strings.html
+            data = data.asstr()[:]
+        return np.array(data)
 
 
 class HierarchicalWriter:

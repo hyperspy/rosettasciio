@@ -87,7 +87,7 @@ class HyperspyWriter(HierarchicalWriter):
         if chunks is None:
             chunks = 1
         dset = group.require_dataset(
-            key, chunks, dtype=h5py.special_dtype(vlen=data[0].dtype), **kwds
+            key, chunks, dtype=h5py.special_dtype(vlen=data.flatten()[0].dtype), **kwds
         )
         return dset
 

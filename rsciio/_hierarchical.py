@@ -29,7 +29,7 @@ import numpy as np
 from rsciio.utils.tools import ensure_unicode
 
 
-version = "3.2"
+version = "3.3"
 
 default_version = Version(version)
 
@@ -225,6 +225,22 @@ class HierarchicalReader:
 
         return exp_dict_list
 
+    @staticmethod
+    def _read_array(group, dataset_key):
+        data = group[dataset_key]
+        key = f"_ragged_shapes_{dataset_key}"
+        if "ragged_shapes" in group:
+            # For file saved with rosettaSciIO <= 0.1
+            # rename from `ragged_shapes` to `_ragged_shapes_{key}` in v3.3
+            key = "ragged_shapes"
+        if key in group:
+            ragged_shape = group[key]
+            new_data = np.empty(shape=data.shape, dtype=object)
+            for i in np.ndindex(data.shape):
+                new_data[i] = np.reshape(data[i], ragged_shape[i])
+            data = new_data
+        return data
+
     def group2signaldict(self, group, lazy=False):
         """
         Reads a h5py/zarr group and returns a signal dictionary.
@@ -270,15 +286,7 @@ class HierarchicalReader:
             exp["package"] = ""
             exp["package_version"] = ""
 
-        data = group["data"]
-        try:
-            ragged_shape = group["ragged_shapes"]
-            new_data = np.empty(shape=data.shape, dtype=object)
-            for i in np.ndindex(data.shape):
-                new_data[i] = np.reshape(data[i], ragged_shape[i])
-            data = new_data
-        except KeyError:
-            pass
+        data = self._read_array(group, "data")
         if lazy:
             data = da.from_array(data, chunks=data.chunks)
             exp["attributes"]["_lazy"] = True
@@ -519,7 +527,7 @@ class HierarchicalReader:
                 dictionary[key] = value
         if not isinstance(group, self.Dataset):
             for key in group.keys():
-                if key == "ragged_shapes":
+                if key.startswith("_ragged_shapes_"):
                     # array used to parse ragged array, need to skip it
                     # otherwise, it will wrongly read kwargs when reading
                     # variable length markers as they uses ragged arrays
@@ -527,7 +535,7 @@ class HierarchicalReader:
                 elif key.startswith("_sig_"):
                     dictionary[key] = self.group2signaldict(group[key])
                 elif isinstance(group[key], self.Dataset):
-                    dat = group[key]
+                    dat = self._read_array(group, key)
                     kn = key
                     if key.startswith("_list_"):
                         ans = self._parse_iterable(dat)
@@ -701,10 +709,10 @@ class HierarchicalWriter:
                 new_data[i] = data[i].ravel()
                 shapes[i] = np.array(data[i].shape)
             shape_dset = cls._get_object_dset(
-                group, shapes, "ragged_shapes", shapes.shape, **kwds
+                group, shapes, f"_ragged_shapes_{key}", shapes.shape, **kwds
             )
             cls._store_data(
-                shapes, shape_dset, group, "ragged_shapes", chunks=shapes.shape
+                shapes, shape_dset, group, f"_ragged_shapes_{key}", chunks=shapes.shape
             )
             cls._store_data(new_data, dset, group, key, chunks)
         else:

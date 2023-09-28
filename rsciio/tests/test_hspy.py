@@ -854,19 +854,30 @@ def test_save_ragged_array(tmp_path, file):
 
 
 @zspy_marker
-def test_save_ragged_dim2(tmp_path, file):
-    x = np.empty(5, dtype=object)
-    for i in range(1, 6):
-        x[i - 1] = np.array([list(range(i)), list(range(i))])
+@pytest.mark.parametrize("nav_dim", [1, 2, 3])
+def test_save_ragged_dim(tmp_path, file, nav_dim):
+    file = f"nav{nav_dim}_" + file
+    rng = np.random.default_rng(0)
+    nav_shape = np.arange(10, 10 * (nav_dim + 1), step=10)
+    data = np.empty(nav_shape, dtype=object)
+    for ind in np.ndindex(data.shape):
+        num = rng.integers(3, 10)
+        data[ind] = rng.random((num, 2)) * 100
 
-    s = hs.signals.BaseSignal(x, ragged=True)
+    s = hs.signals.BaseSignal(data, ragged=True)
+    assert s.axes_manager.navigation_dimension == nav_dim
+    np.testing.assert_allclose(s.axes_manager.navigation_shape, nav_shape[::-1])
+    assert s.data.ndim == nav_dim
+    np.testing.assert_allclose(s.data.shape, nav_shape)
 
     filename = tmp_path / file
     s.save(filename)
     s2 = hs.load(filename)
+    assert s.axes_manager.navigation_shape == s2.axes_manager.navigation_shape
+    assert s.data.shape == s2.data.shape
 
-    for i, j in zip(s.data, s2.data):
-        np.testing.assert_array_equal(i, j)
+    for indices in np.ndindex(s.data.shape):
+        np.testing.assert_allclose(s.data[indices], s2.data[indices])
 
 
 def test_load_missing_extension(caplog):

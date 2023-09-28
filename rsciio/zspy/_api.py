@@ -82,7 +82,7 @@ class ZspyWriter(HierarchicalWriter):
         self.unicode_kwds = {"dtype": object, "object_codec": numcodecs.JSON()}
         self.ragged_kwds = {
             "dtype": object,
-            "object_codec": numcodecs.VLenArray(int),
+            "object_codec": numcodecs.VLenArray(signal["data"][0].dtype),
             "exact": True,
         }
 
@@ -92,7 +92,10 @@ class ZspyWriter(HierarchicalWriter):
         these_kwds = kwds.copy()
         these_kwds.update(dict(dtype=object, exact=True, chunks=chunks))
         dset = group.require_dataset(
-            key, data.shape, object_codec=numcodecs.VLenArray(int), **these_kwds
+            key,
+            data.shape,
+            object_codec=numcodecs.VLenArray(data.flatten()[0].dtype),
+            **these_kwds,
         )
         return dset
 

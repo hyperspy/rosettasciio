@@ -253,8 +253,12 @@ class HierarchicalReader:
         exp = {
             "metadata": self._group2dict(group[metadata], lazy=lazy),
             "original_metadata": self._group2dict(group[original_metadata], lazy=lazy),
-            "attributes": {},
         }
+        if "attributes" in group:
+            # RosettaSciIO version is > 0.1
+            exp["attributes"] = self._group2dict(group["attributes"], lazy=lazy)
+        else:
+            exp["attributes"] = {}
         if "package" in group.attrs:
             # HyperSpy version is >= 1.5
             exp["package"] = group.attrs["package"]
@@ -280,6 +284,7 @@ class HierarchicalReader:
             exp["attributes"]["_lazy"] = True
         else:
             data = np.asanyarray(data)
+            exp["attributes"]["_lazy"] = False
         exp["data"] = data
         axes = []
         for i in range(len(exp["data"].shape)):
@@ -747,6 +752,8 @@ class HierarchicalWriter:
         self.dict2group(signal["original_metadata"], original_par, **kwds)
         learning_results = group.require_group("learning_results")
         self.dict2group(signal["learning_results"], learning_results, **kwds)
+        attributes = group.require_group("attributes")
+        self.dict2group(signal["attributes"], attributes, **kwds)
 
         if signal["models"]:
             model_group = self.file.require_group("Analysis/models")

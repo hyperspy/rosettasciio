@@ -843,9 +843,11 @@ def test_save_ragged_array(tmp_path, file):
     a = np.array([0, 1])
     b = np.array([0, 1, 2])
     s = hs.signals.BaseSignal(np.array([a, b], dtype=object), ragged=True)
+    assert s.ragged
     fname = tmp_path / file
     s.save(fname)
     s1 = hs.load(fname)
+    assert s1.ragged
     for i in range(len(s.data)):
         np.testing.assert_allclose(s.data[i], s1.data[i])
     assert s.__class__ == s1.__class__

@@ -1,0 +1,1 @@
+Update :ref:`hspy<hspy-format>`/:ref:`zspy<zspy-format>` plugins to new markers API introduced in HyperSpy 2.0

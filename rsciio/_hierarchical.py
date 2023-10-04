@@ -227,6 +227,10 @@ class HierarchicalReader:
 
     @staticmethod
     def _read_array(group, dataset_key):
+        # This is a workaround for the lack of support for n-d ragged array
+        # in h5py and zarr. There is work in progress for implementation in zarr:
+        # https://github.com/zarr-developers/zarr-specs/issues/62 which may be
+        # relevant to implement here when available
         data = group[dataset_key]
         key = f"_ragged_shapes_{dataset_key}"
         if "ragged_shapes" in group:

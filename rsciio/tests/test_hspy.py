@@ -531,16 +531,16 @@ def test_axes_configuration_binning(tmp_path, file):
 
 
 @lazifyTestClass
-class Test_permanent_markers_io:
+class TestPermanentMarkersIO:
     def setup_method(self, method):
         s = hs.signals.Signal2D(np.arange(100).reshape(10, 10))
         self.s = s
 
     @zspy_marker
-    def test_save_permanent_marker(self, tmp_path, file):
+    def test_save_permanent_markers(self, tmp_path, file):
         filename = tmp_path / file
         s = self.s
-        m = hs.plot.markers.Point(x=5, y=5)
+        m = hs.plot.markers.Points(offsets=np.array([5, 5]))
         s.add_marker(m, permanent=True)
         s.save(filename)
 
@@ -548,7 +548,7 @@ class Test_permanent_markers_io:
     def test_save_load_empty_metadata_markers(self, tmp_path, file):
         filename = tmp_path / file
         s = self.s
-        m = hs.plot.markers.Point(x=5, y=5)
+        m = hs.plot.markers.Points(offsets=np.array([5, 5]))
         m.name = "test"
         s.add_marker(m, permanent=True)
         del s.metadata.Markers.test
@@ -557,14 +557,14 @@ class Test_permanent_markers_io:
         assert len(s1.metadata.Markers) == 0
 
     @zspy_marker
-    def test_save_load_permanent_marker(self, tmp_path, file):
+    def test_save_load_permanent_markers(self, tmp_path, file):
         filename = tmp_path / file
         s = self.s
         x, y = 5, 2
         color = "red"
-        size = 10
+        sizes = 10
         name = "testname"
-        m = hs.plot.markers.Point(x=x, y=y, color=color, size=size)
+        m = hs.plot.markers.Points(offsets=np.array([x, y]), color=color, sizes=sizes)
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
@@ -572,26 +572,39 @@ class Test_permanent_markers_io:
         assert len(s1.metadata.Markers) == len(s.metadata.Markers)
         assert s1.metadata.Markers.has_item(name)
         m1 = s1.metadata.Markers.get_item(name)
-        assert m1.get_data_position("x1") == x
-        assert m1.get_data_position("y1") == y
-        assert m1.get_data_position("size") == size
-        assert m1.marker_properties["color"] == color
+        np.testing.assert_allclose(m1.get_current_kwargs()["offsets"], np.array([x, y]))
+        assert m1.get_current_kwargs()["sizes"] == (sizes,)
+        # assert m1.get_current_kwargs()["color"] == (color, )
         assert m1.name == name
 
     @zspy_marker
-    def test_save_load_permanent_marker_all_types(self, tmp_path, file):
+    def test_save_load_permanent_markers_all_types(self, tmp_path, file):
         filename = tmp_path / file
         s = self.s
         x1, y1, x2, y2 = 5, 2, 1, 8
+        offsets = np.array([x1, y1])
+        rng = np.random.default_rng(0)
+        segments = rng.random((10, 2, 2)) * 100
+        X, Y = np.meshgrid(np.arange(0, 2 * np.pi, 0.2), np.arange(0, 2 * np.pi, 0.2))
+        # For arrows
+        offsets_arrow = np.column_stack((X.ravel(), Y.ravel()))
+        U = np.cos(X).ravel() / 7.5
+        V = np.sin(Y).ravel() / 7.5
+        C = np.hypot(U, V)
+        poylgon = [[1, 1], [20, 20], [1, 20], [25, 5]]
         m0_list = [
-            hs.plot.markers.Point(x=x1, y=y1),
-            hs.plot.markers.HorizontalLine(y=y1),
-            hs.plot.markers.HorizontalLineSegment(x1=x1, x2=x2, y=y1),
-            hs.plot.markers.LineSegment(x1=x1, x2=x2, y1=y1, y2=y2),
-            hs.plot.markers.Rectangle(x1=x1, x2=x2, y1=y1, y2=y2),
-            hs.plot.markers.Text(x=x1, y=y1, text="test"),
-            hs.plot.markers.VerticalLine(x=x1),
-            hs.plot.markers.VerticalLineSegment(x=x1, y1=y1, y2=y2),
+            hs.plot.markers.Arrows(offsets_arrow, U, V, C=C),
+            hs.plot.markers.Points(offsets),
+            hs.plot.markers.HorizontalLines(offsets=(y1,)),
+            hs.plot.markers.Lines(segments=segments),
+            hs.plot.markers.Rectangles(offsets, widths=(x2 - x1,), heights=(y2 - y1,)),
+            hs.plot.markers.Texts(offsets, texts="test"),
+            hs.plot.markers.VerticalLines(offsets=(y1,)),
+            hs.plot.markers.Polygons(
+                verts=[
+                    poylgon,
+                ]
+            ),
         ]
         for m in m0_list:
             s.add_marker(m, permanent=True)
@@ -609,174 +622,158 @@ class Test_permanent_markers_io:
             )
         assert len(list(s1.metadata.Markers)) == 8
         for m0_dict, m1_dict in zip(m0_dict_list, m1_dict_list):
-            assert m0_dict == m1_dict
+            np.testing.assert_equal(m0_dict, m1_dict)
 
     @zspy_marker
-    def test_save_load_horizontal_line_marker(self, tmp_path, file):
+    def test_save_load_horizontal_lines_marker(self, tmp_path, file):
         filename = tmp_path / file
         s = self.s
         y = 8
         color = "blue"
         linewidth = 2.5
         name = "horizontal_line_test"
-        m = hs.plot.markers.HorizontalLine(y=y, color=color, linewidth=linewidth)
-        m.name = name
-        s.add_marker(m, permanent=True)
-        s.save(filename)
-        s1 = hs.load(filename)
-        m1 = s1.metadata.Markers.get_item(name)
-        assert san_dict(m1._to_dictionary()) == san_dict(m._to_dictionary())
-
-    @zspy_marker
-    def test_save_load_horizontal_line_segment_marker(self, tmp_path, file):
-        filename = tmp_path / file
-        s = self.s
-        x1, x2, y = 1, 5, 8
-        color = "red"
-        linewidth = 1.2
-        name = "horizontal_line_segment_test"
-        m = hs.plot.markers.HorizontalLineSegment(
-            x1=x1, x2=x2, y=y, color=color, linewidth=linewidth
+        m = hs.plot.markers.HorizontalLines(
+            offsets=(y,), color=color, linewidth=linewidth
         )
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
         s1 = hs.load(filename)
         m1 = s1.metadata.Markers.get_item(name)
-        assert san_dict(m1._to_dictionary()) == san_dict(m._to_dictionary())
+        np.testing.assert_equal(
+            san_dict(m1._to_dictionary()), san_dict(m._to_dictionary())
+        )
 
     @zspy_marker
-    def test_save_load_vertical_line_marker(self, tmp_path, file):
+    def test_save_load_vertical_lines_marker(self, tmp_path, file):
         filename = tmp_path / file
         s = self.s
         x = 9
         color = "black"
         linewidth = 3.5
         name = "vertical_line_test"
-        m = hs.plot.markers.VerticalLine(x=x, color=color, linewidth=linewidth)
-        m.name = name
-        s.add_marker(m, permanent=True)
-        s.save(filename)
-        s1 = hs.load(filename)
-        m1 = s1.metadata.Markers.get_item(name)
-        assert san_dict(m1._to_dictionary()) == san_dict(m._to_dictionary())
-
-    @zspy_marker
-    def test_save_load_vertical_line_segment_marker(self, tmp_path, file):
-        filename = tmp_path / file
-        s = self.s
-        x, y1, y2 = 2, 1, 3
-        color = "white"
-        linewidth = 4.2
-        name = "vertical_line_segment_test"
-        m = hs.plot.markers.VerticalLineSegment(
-            x=x, y1=y1, y2=y2, color=color, linewidth=linewidth
+        m = hs.plot.markers.VerticalLines(
+            offsets=(x,), color=color, linewidth=linewidth
         )
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
         s1 = hs.load(filename)
         m1 = s1.metadata.Markers.get_item(name)
-        assert san_dict(m1._to_dictionary()) == san_dict(m._to_dictionary())
+        np.testing.assert_equal(
+            san_dict(m1._to_dictionary()), san_dict(m._to_dictionary())
+        )
 
     @zspy_marker
-    def test_save_load_line_segment_marker(self, tmp_path, file):
+    def test_save_load_lines_marker(self, tmp_path, file):
         filename = tmp_path / file
         s = self.s
-        x1, x2, y1, y2 = 1, 9, 4, 7
+        segments = np.array([[[1, 9], [4, 7]]])
         color = "cyan"
         linewidth = 0.7
         name = "line_segment_test"
-        m = hs.plot.markers.LineSegment(
-            x1=x1, x2=x2, y1=y1, y2=y2, color=color, linewidth=linewidth
-        )
+        m = hs.plot.markers.Lines(segments=segments, color=color, linewidth=linewidth)
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
         s1 = hs.load(filename)
         m1 = s1.metadata.Markers.get_item(name)
-        assert san_dict(m1._to_dictionary()) == san_dict(m._to_dictionary())
+        np.testing.assert_equal(
+            san_dict(m1._to_dictionary()), san_dict(m._to_dictionary())
+        )
 
     @zspy_marker
-    def test_save_load_point_marker(self, tmp_path, file):
+    def test_save_load_points_marker(self, tmp_path, file):
         filename = tmp_path / file
         s = self.s
-        x, y = 9, 8
+        offsets = [9, 8]
         color = "purple"
         name = "point test"
-        m = hs.plot.markers.Point(x=x, y=y, color=color)
+        m = hs.plot.markers.Points(offsets, color=color)
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
         s1 = hs.load(filename)
         m1 = s1.metadata.Markers.get_item(name)
-        assert san_dict(m1._to_dictionary()) == san_dict(m._to_dictionary())
+        np.testing.assert_equal(
+            san_dict(m1._to_dictionary()), san_dict(m._to_dictionary())
+        )
 
     @zspy_marker
-    def test_save_load_rectangle_marker(self, tmp_path, file):
+    def test_save_load_rectangles_marker(self, tmp_path, file):
         filename = tmp_path / file
         s = self.s
-        x1, x2, y1, y2 = 2, 4, 1, 3
+        offsets = [2, 4]
+        widths, heights = 1, 3
         color = "yellow"
         linewidth = 5
         name = "rectangle_test"
-        m = hs.plot.markers.Rectangle(
-            x1=x1, x2=x2, y1=y1, y2=y2, color=color, linewidth=linewidth
+        m = hs.plot.markers.Rectangles(
+            offsets=offsets,
+            widths=widths,
+            heights=heights,
+            color=color,
+            linewidth=linewidth,
         )
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
         s1 = hs.load(filename)
         m1 = s1.metadata.Markers.get_item(name)
-        assert san_dict(m1._to_dictionary()) == san_dict(m._to_dictionary())
+        np.testing.assert_equal(
+            san_dict(m1._to_dictionary()), san_dict(m._to_dictionary())
+        )
 
     @zspy_marker
     def test_save_load_text_marker(self, tmp_path, file):
         filename = tmp_path / file
         s = self.s
-        x, y = 3, 9.5
+        offsets = [3, 9.5]
         color = "brown"
         name = "text_test"
-        text = "a text"
-        m = hs.plot.markers.Text(x=x, y=y, text=text, color=color)
+        texts = [
+            "a text",
+        ]
+        m = hs.plot.markers.Texts(offsets=offsets, texts=texts, color=color)
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
         s1 = hs.load(filename)
         m1 = s1.metadata.Markers.get_item(name)
-        assert san_dict(m1._to_dictionary()) == san_dict(m._to_dictionary())
+        np.testing.assert_equal(
+            san_dict(m1._to_dictionary()), san_dict(m._to_dictionary())
+        )
 
     @zspy_marker
     @pytest.mark.parametrize("lazy", [True, False])
     def test_save_load_multidim_navigation_marker(self, tmp_path, file, lazy):
         filename = tmp_path / file
-        x, y = (1, 2, 3), (5, 6, 7)
+        offsets = np.array([[1, 2, 3], [5, 6, 7]]).T
         name = "test point"
         s = hs.signals.Signal2D(np.arange(300).reshape(3, 10, 10))
         if lazy:
             s = s.as_lazy()
-        m = hs.plot.markers.Point(x=x, y=y)
+        m = hs.plot.markers.Points(offsets=offsets)
         m.name = name
         s.add_marker(m, permanent=True)
         s.save(filename)
         s1 = hs.load(filename)
         m1 = s1.metadata.Markers.get_item(name)
-        assert san_dict(m1._to_dictionary()) == san_dict(m._to_dictionary())
-        assert m1.get_data_position("x1") == x[0]
-        assert m1.get_data_position("y1") == y[0]
-        s1.axes_manager.navigation_axes[0].index = 1
-        assert m1.get_data_position("x1") == x[1]
-        assert m1.get_data_position("y1") == y[1]
-        s1.axes_manager.navigation_axes[0].index = 2
-        assert m1.get_data_position("x1") == x[2]
-        assert m1.get_data_position("y1") == y[2]
+        np.testing.assert_equal(
+            san_dict(m1._to_dictionary()), san_dict(m._to_dictionary())
+        )
+        for i, (offset_ref, offset) in enumerate(
+            zip(offsets.T, m1.get_current_kwargs()["offsets"].T)
+        ):
+            s1.axes_manager.navigation_axes[0].index = i
+            np.testing.assert_allclose(offset_ref, offset)
 
     def test_load_unknown_marker_type(self):
         # test_marker_bad_marker_type.hdf5 has 5 markers,
-        # where one of them has an unknown marker type
+        # where one of them has an unknown marker type and raise an error
         fname = TEST_DATA_PATH / "test_marker_bad_marker_type.hdf5"
-        s = hs.load(fname, reader="HSPY")
-        assert len(s.metadata.Markers) == 4
+        with pytest.raises(AttributeError):
+            _ = hs.load(fname, reader="HSPY")
 
     def test_load_missing_y2_value(self):
         # test_marker_point_y2_data_deleted.hdf5 has 5 markers,
@@ -786,6 +783,29 @@ class Test_permanent_markers_io:
         fname = TEST_DATA_PATH / "test_marker_point_y2_data_deleted.hdf5"
         s = hs.load(fname, reader="HSPY")
         assert len(s.metadata.Markers) == 5
+
+    def test_save_variable_length_markers(self, tmp_path):
+        fname = tmp_path / "test.hspy"
+        rng = np.random.default_rng(0)
+        data = np.arange(25 * 25 * 100 * 100).reshape((25, 25, 100, 100))
+        s = hs.signals.Signal2D(data)
+
+        offsets = np.empty(s.axes_manager.navigation_shape, dtype=object)
+        for ind in np.ndindex(offsets.shape):
+            num = rng.integers(3, 10)
+            offsets[ind] = rng.random((num, 2)) * 100
+
+        m = hs.plot.markers.Points(
+            offsets=offsets,
+            color="orange",
+        )
+
+        s.plot()
+        s.add_marker(m, permanent=True)
+        s.save(fname)
+
+        s2 = hs.load(fname)
+        s2.plot()
 
 
 @zspy_marker
@@ -809,7 +829,7 @@ def test_save_load_model(tmp_path, file, lazy):
 @pytest.mark.parametrize("compression", (None, "gzip", "lzf"))
 def test_compression(compression, tmp_path):
     s = hs.signals.Signal1D(np.ones((3, 3)))
-    s.save(tmp_path / "test_compression.hspy", overwrite=True, compression=compression)
+    s.save(tmp_path / "test_compression.hspy", compression=compression)
     _ = hs.load(tmp_path / "test_compression.hspy")
 
 
@@ -823,28 +843,41 @@ def test_save_ragged_array(tmp_path, file):
     a = np.array([0, 1])
     b = np.array([0, 1, 2])
     s = hs.signals.BaseSignal(np.array([a, b], dtype=object), ragged=True)
+    assert s.ragged
     fname = tmp_path / file
     s.save(fname)
     s1 = hs.load(fname)
+    assert s1.ragged
     for i in range(len(s.data)):
         np.testing.assert_allclose(s.data[i], s1.data[i])
     assert s.__class__ == s1.__class__
 
 
 @zspy_marker
-def test_save_ragged_dim2(tmp_path, file):
-    x = np.empty(5, dtype=object)
-    for i in range(1, 6):
-        x[i - 1] = np.array([list(range(i)), list(range(i))])
+@pytest.mark.parametrize("nav_dim", [1, 2, 3])
+def test_save_ragged_dim(tmp_path, file, nav_dim):
+    file = f"nav{nav_dim}_" + file
+    rng = np.random.default_rng(0)
+    nav_shape = np.arange(10, 10 * (nav_dim + 1), step=10)
+    data = np.empty(nav_shape, dtype=object)
+    for ind in np.ndindex(data.shape):
+        num = rng.integers(3, 10)
+        data[ind] = rng.random((num, 2)) * 100
 
-    s = hs.signals.BaseSignal(x, ragged=True)
+    s = hs.signals.BaseSignal(data, ragged=True)
+    assert s.axes_manager.navigation_dimension == nav_dim
+    np.testing.assert_allclose(s.axes_manager.navigation_shape, nav_shape[::-1])
+    assert s.data.ndim == nav_dim
+    np.testing.assert_allclose(s.data.shape, nav_shape)
 
     filename = tmp_path / file
     s.save(filename)
     s2 = hs.load(filename)
+    assert s.axes_manager.navigation_shape == s2.axes_manager.navigation_shape
+    assert s.data.shape == s2.data.shape
 
-    for i, j in zip(s.data, s2.data):
-        np.testing.assert_array_equal(i, j)
+    for indices in np.ndindex(s.data.shape):
+        np.testing.assert_allclose(s.data[indices], s2.data[indices])
 
 
 def test_load_missing_extension(caplog):

@@ -29,7 +29,7 @@ import numpy as np
 from rsciio.utils.tools import ensure_unicode
 
 
-version = "3.2"
+version = "3.3"
 
 default_version = Version(version)
 
@@ -225,6 +225,26 @@ class HierarchicalReader:
 
         return exp_dict_list
 
+    @staticmethod
+    def _read_array(group, dataset_key):
+        # This is a workaround for the lack of support for n-d ragged array
+        # in h5py and zarr. There is work in progress for implementation in zarr:
+        # https://github.com/zarr-developers/zarr-specs/issues/62 which may be
+        # relevant to implement here when available
+        data = group[dataset_key]
+        key = f"_ragged_shapes_{dataset_key}"
+        if "ragged_shapes" in group:
+            # For file saved with rosettaSciIO <= 0.1
+            # rename from `ragged_shapes` to `_ragged_shapes_{key}` in v3.3
+            key = "ragged_shapes"
+        if key in group:
+            ragged_shape = group[key]
+            new_data = np.empty(shape=data.shape, dtype=object)
+            for i in np.ndindex(data.shape):
+                new_data[i] = np.reshape(data[i], ragged_shape[i])
+            data = new_data
+        return data
+
     def group2signaldict(self, group, lazy=False):
         """
         Reads a h5py/zarr group and returns a signal dictionary.
@@ -253,8 +273,12 @@ class HierarchicalReader:
         exp = {
             "metadata": self._group2dict(group[metadata], lazy=lazy),
             "original_metadata": self._group2dict(group[original_metadata], lazy=lazy),
-            "attributes": {},
         }
+        if "attributes" in group:
+            # RosettaSciIO version is > 0.1
+            exp["attributes"] = self._group2dict(group["attributes"], lazy=lazy)
+        else:
+            exp["attributes"] = {}
         if "package" in group.attrs:
             # HyperSpy version is >= 1.5
             exp["package"] = group.attrs["package"]
@@ -266,20 +290,13 @@ class HierarchicalReader:
             exp["package"] = ""
             exp["package_version"] = ""
 
-        data = group["data"]
-        try:
-            ragged_shape = group["ragged_shapes"]
-            new_data = np.empty(shape=data.shape, dtype=object)
-            for i in np.ndindex(data.shape):
-                new_data[i] = np.reshape(data[i], ragged_shape[i])
-            data = new_data
-        except KeyError:
-            pass
+        data = self._read_array(group, "data")
         if lazy:
             data = da.from_array(data, chunks=data.chunks)
             exp["attributes"]["_lazy"] = True
         else:
             data = np.asanyarray(data)
+            exp["attributes"]["_lazy"] = False
         exp["data"] = data
         axes = []
         for i in range(len(exp["data"].shape)):
@@ -514,21 +531,22 @@ class HierarchicalReader:
                 dictionary[key] = value
         if not isinstance(group, self.Dataset):
             for key in group.keys():
-                if key.startswith("_sig_"):
+                if key.startswith("_ragged_shapes_"):
+                    # array used to parse ragged array, need to skip it
+                    # otherwise, it will wrongly read kwargs when reading
+                    # variable length markers as they uses ragged arrays
+                    pass
+                elif key.startswith("_sig_"):
                     dictionary[key] = self.group2signaldict(group[key])
                 elif isinstance(group[key], self.Dataset):
-                    dat = group[key]
+                    dat = self._read_array(group, key)
                     kn = key
                     if key.startswith("_list_"):
-                        if h5py.check_string_dtype(dat.dtype) and hasattr(dat, "asstr"):
-                            # h5py 3.0 and newer
-                            # https://docs.h5py.org/en/3.0.0/strings.html
-                            dat = dat.asstr()[:]
-                        ans = np.array(dat)
+                        ans = self._parse_iterable(dat)
                         ans = ans.tolist()
                         kn = key[6:]
                     elif key.startswith("_tuple_"):
-                        ans = np.array(dat)
+                        ans = self._parse_iterable(dat)
                         ans = tuple(ans.tolist())
                         kn = key[7:]
                     elif dat.dtype.char == "S":
@@ -573,6 +591,14 @@ class HierarchicalReader:
                     self._group2dict(group[key], dictionary[key], lazy=lazy)
 
         return dictionary
+
+    @staticmethod
+    def _parse_iterable(data):
+        if h5py.check_string_dtype(data.dtype) and hasattr(data, "asstr"):
+            # h5py 3.0 and newer
+            # https://docs.h5py.org/en/3.0.0/strings.html
+            data = data.asstr()[:]
+        return np.array(data)
 
 
 class HierarchicalWriter:
@@ -687,10 +713,10 @@ class HierarchicalWriter:
                 new_data[i] = data[i].ravel()
                 shapes[i] = np.array(data[i].shape)
             shape_dset = cls._get_object_dset(
-                group, shapes, "ragged_shapes", shapes.shape, **kwds
+                group, shapes, f"_ragged_shapes_{key}", shapes.shape, **kwds
             )
             cls._store_data(
-                shapes, shape_dset, group, "ragged_shapes", chunks=shapes.shape
+                shapes, shape_dset, group, f"_ragged_shapes_{key}", chunks=shapes.shape
             )
             cls._store_data(new_data, dset, group, key, chunks)
         else:
@@ -738,6 +764,8 @@ class HierarchicalWriter:
         self.dict2group(signal["original_metadata"], original_par, **kwds)
         learning_results = group.require_group("learning_results")
         self.dict2group(signal["learning_results"], learning_results, **kwds)
+        attributes = group.require_group("attributes")
+        self.dict2group(signal["attributes"], attributes, **kwds)
 
         if signal["models"]:
             model_group = self.file.require_group("Analysis/models")

@@ -22,7 +22,6 @@ from collections.abc import MutableMapping
 import dask.array as da
 import numcodecs
 import zarr
-import numpy as np
 
 from rsciio._docstrings import (
     CHUNKS_DOC,
@@ -93,12 +92,11 @@ class ZspyWriter(HierarchicalWriter):
         """Creates a Zarr Array object for saving ragged data
 
         Forces the number of chunks span the array if not a dask array as
-        calculating the chunks for a ragged array is not supported.
+        calculating the chunks for a ragged array is not supported. See
+        https://github.com/hyperspy/rosettasciio/issues/168 for more details.
         """
-        if isinstance(data, da.Array):
-            chunks = chunks
-        else:
-            chunks = np.prod(data.shape)
+        if not isinstance(data, da.Array):
+            chunks = data.shape
         these_kwds = kwds.copy()
         these_kwds.update(dict(dtype=object, exact=True, chunks=chunks))
         dset = group.require_dataset(

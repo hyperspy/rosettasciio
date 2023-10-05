@@ -239,7 +239,9 @@ class HierarchicalReader:
             key = "ragged_shapes"
         if key in group:
             ragged_shape = group[key]
-            ragged_shape = np.array(ragged_shape)  # cast to numpy array to stop multiple reads
+            ragged_shape = np.array(
+                ragged_shape
+            )  # cast to numpy array to stop multiple reads
             new_data = np.empty(shape=data.shape, dtype=object)
             data = np.array(data)  # cast to numpy array to stop multiple reads
             for i in np.ndindex(data.shape):
@@ -675,10 +677,9 @@ class HierarchicalWriter:
             else:
                 # If signal_axes=None, use automatic h5py chunking, otherwise
                 # optimise the chunking to contain at least one signal per chunk
-                chunks = get_signal_chunks(data.shape,
-                                               data.dtype,
-                                               signal_axes,
-                                               cls.target_size)
+                chunks = get_signal_chunks(
+                    data.shape, data.dtype, signal_axes, cls.target_size
+                )
         if np.issubdtype(data.dtype, np.dtype("U")):
             # Saving numpy unicode type is not supported in h5py
             data = data.astype(np.dtype("S"))

@@ -500,11 +500,11 @@ all of them will be read and returned as a list.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
-<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
 </dd>
-<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not.</p>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.12)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not.</p>
 </dd>
-<dt><strong>only_valid_data</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.11)"><span class="xref std std-ref">bool</span></a>, Default=True</span></dt><dd><p>For cases, where acquisition of series or linescan data stopped before
+<dt><strong>only_valid_data</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.12)"><span class="xref std std-ref">bool</span></a>, Default=True</span></dt><dd><p>For cases, where acquisition of series or linescan data stopped before
 the end. If <cite>True</cite>, load only the acquired data. If <cite>False</cite>, the empty
 data are filled with zeros.</p>
 </dd>
@@ -512,7 +512,7 @@ data are filled with zeros.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
 <ul class="simple">
 <li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
 <li><p>‘axes’ – list of dictionaries describing the axes

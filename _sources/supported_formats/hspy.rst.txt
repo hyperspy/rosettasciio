@@ -141,6 +141,12 @@ the experiments and that will be accessible as attributes of the
 Changelog
 ^^^^^^^^^
 
+v3.3
+""""
+- Rename ``ragged_shapes`` dataset to ``_ragged_shapes_{key}`` where the ``key``
+  is the name of the corresponding ragged ``dataset``.
+
+
 v3.2
 """"
 - Deprecated ``record_by`` attribute is removed

@@ -75,6 +75,7 @@ class ZspyReader(HierarchicalReader):
 
 class ZspyWriter(HierarchicalWriter):
     target_size = 1e8
+    _file_type = "zspy"
 
     def __init__(self, file, signal, expg, **kwargs):
         super().__init__(file, signal, expg, **kwargs)
@@ -88,7 +89,14 @@ class ZspyWriter(HierarchicalWriter):
 
     @staticmethod
     def _get_object_dset(group, data, key, chunks, **kwds):
-        """Creates a Zarr Array object for saving ragged data"""
+        """Creates a Zarr Array object for saving ragged data
+
+        Forces the number of chunks span the array if not a dask array as
+        calculating the chunks for a ragged array is not supported. See
+        https://github.com/hyperspy/rosettasciio/issues/168 for more details.
+        """
+        if not isinstance(data, da.Array):
+            chunks = data.shape
         these_kwds = kwds.copy()
         these_kwds.update(dict(dtype=object, exact=True, chunks=chunks))
         dset = group.require_dataset(

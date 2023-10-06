@@ -239,7 +239,13 @@ class HierarchicalReader:
             key = "ragged_shapes"
         if key in group:
             ragged_shape = group[key]
+            # if the data is chunked saved array we must first
+            # cast to a numpy array to avoid multiple calls to
+            # _decode_chunk in zarr (or h5py)
+            ragged_shape = np.array(ragged_shape)
             new_data = np.empty(shape=data.shape, dtype=object)
+            # cast to numpy array to stop multiple calls to _decode_chunk in zarr
+            data = np.array(data)
             for i in np.ndindex(data.shape):
                 new_data[i] = np.reshape(data[i], ragged_shape[i])
             data = new_data

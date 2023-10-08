@@ -20,6 +20,7 @@ import logging
 from collections.abc import MutableMapping
 
 import dask.array as da
+from dask.diagnostics import ProgressBar
 import numcodecs
 import zarr
 
@@ -27,10 +28,12 @@ from rsciio._docstrings import (
     CHUNKS_DOC,
     FILENAME_DOC,
     LAZY_DOC,
+    SHOW_PROGRESSBAR_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
 )
 from rsciio._hierarchical import HierarchicalWriter, HierarchicalReader, version
+from rsciio.utils.tools import dummy_context_manager
 
 
 _logger = logging.getLogger(__name__)
@@ -108,13 +111,15 @@ class ZspyWriter(HierarchicalWriter):
         return dset
 
     @staticmethod
-    def _store_data(data, dset, group, key, chunks):
+    def _store_data(data, dset, group, key, chunks, show_progressbar=True):
         """Write data to zarr format."""
         if isinstance(data, da.Array):
             if data.chunks != dset.chunks:
                 data = data.rechunk(dset.chunks)
-            # lock=False is necessary with the distributed scheduler
-            data.store(dset, lock=False)
+            cm = ProgressBar if show_progressbar else dummy_context_manager
+            with cm():
+                # lock=False is necessary with the distributed scheduler
+                data.store(dset, lock=False)
         else:
             dset[:] = data
 
@@ -126,6 +131,7 @@ def file_writer(
     compressor=None,
     close_file=True,
     write_dataset=True,
+    show_progressbar=True,
     **kwds,
 ):
     """
@@ -150,6 +156,7 @@ def file_writer(
         If ``False``, doesn't write the dataset when writing the file. This can
         be useful to overwrite signal attributes only (for example ``axes_manager``)
         without having to write the whole dataset, which can take time.
+    %s
     **kwds
         The keyword arguments are passed to the
         :py:meth:`zarr.hierarchy.Group.require_dataset` function.
@@ -196,6 +203,7 @@ def file_writer(
         chunks=chunks,
         compressor=compressor,
         write_dataset=write_dataset,
+        show_progressbar=show_progressbar,
         **kwds,
     )
     writer.write()
@@ -211,6 +219,7 @@ file_writer.__doc__ %= (
     FILENAME_DOC.replace("read", "write to"),
     SIGNAL_DOC,
     CHUNKS_DOC,
+    SHOW_PROGRESSBAR_DOC,
 )
 
 

@@ -513,7 +513,7 @@ def file_writer(
     version=2,
     frame_header_extra_bytes=0,
     mode=None,
-    show_progressbar=None,
+    show_progressbar=True,
 ):
     """
     Write signal to TVIPS file.

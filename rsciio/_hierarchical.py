@@ -26,6 +26,7 @@ import dask.array as da
 import h5py
 import numpy as np
 
+from rsciio._docstrings import SHOW_PROGRESSBAR_DOC
 from rsciio.utils.tools import ensure_unicode
 
 
@@ -647,7 +648,16 @@ class HierarchicalWriter:
         raise NotImplementedError("This method must be implemented by subclasses.")
 
     @classmethod
-    def overwrite_dataset(cls, group, data, key, signal_axes=None, chunks=None, **kwds):
+    def overwrite_dataset(
+        cls,
+        group,
+        data,
+        key,
+        signal_axes=None,
+        chunks=None,
+        show_progressbar=True,
+        **kwds,
+    ):
         """
         Overwrites a dataset into a hierarchical structure following the h5py
         API.
@@ -667,11 +677,12 @@ class HierarchicalWriter:
             the chunks of the dask array will be used otherwise the chunks
             will be determined by the
             :py:func:`~.io_plugins._hierarchical.get_signal_chunks` function.
+        %s
         kwds : dict
             Any additional keywords for to be passed to the
             :py:meth:`h5py.Group.require_dataset` or
             :py:meth:`zarr.hierarchy.Group.require_dataset` method.
-        """
+        """ % SHOW_PROGRESSBAR_DOC
         if chunks is None:
             if isinstance(data, da.Array):
                 # For lazy dataset, by default, we use the current dask chunking
@@ -722,17 +733,37 @@ class HierarchicalWriter:
                 group, shapes, f"_ragged_shapes_{key}", shapes.shape, **kwds
             )
             cls._store_data(
-                shapes, shape_dset, group, f"_ragged_shapes_{key}", chunks=shapes.shape
+                shapes,
+                shape_dset,
+                group,
+                f"_ragged_shapes_{key}",
+                chunks=shapes.shape,
+                show_progressbar=show_progressbar,
             )
-            cls._store_data(new_data, dset, group, key, chunks)
+            cls._store_data(
+                new_data,
+                dset,
+                group,
+                key,
+                chunks,
+                show_progressbar,
+            )
         else:
-            cls._store_data(data, dset, group, key, chunks)
+            cls._store_data(data, dset, group, key, chunks, show_progressbar)
 
     def write(self):
         self.write_signal(self.signal, self.group, **self.kwds)
 
-    def write_signal(self, signal, group, write_dataset=True, chunks=None, **kwds):
-        "Writes a hyperspy signal to a hdf5 group"
+    def write_signal(
+        self,
+        signal,
+        group,
+        write_dataset=True,
+        chunks=None,
+        show_progressbar=True,
+        **kwds,
+    ):
+        """Writes a signal dict to a hdf5/zarr group"""
         group.attrs.update(signal["package_info"])
 
         for i, axis_dict in enumerate(signal["axes"]):
@@ -759,6 +790,7 @@ class HierarchicalWriter:
                     if not axis["navigate"]
                 ],
                 chunks=chunks,
+                show_progressbar=show_progressbar,
                 **kwds,
             )
 

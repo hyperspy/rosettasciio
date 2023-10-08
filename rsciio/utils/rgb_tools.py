@@ -18,8 +18,11 @@
 
 import numpy as np
 from dask.array import Array
+from dask.diagnostics import ProgressBar
 
+from rsciio._docstrings import SHOW_PROGRESSBAR_DOC
 from rsciio.utils.array import get_numpy_kwargs
+from rsciio.utils.tools import dummy_context_manager
 
 
 rgba8 = np.dtype({"names": ["R", "G", "B", "A"], "formats": ["u1", "u1", "u1", "u1"]})
@@ -51,7 +54,7 @@ def is_rgbx(array):
         return False
 
 
-def rgbx2regular_array(data, plot_friendly=False):
+def rgbx2regular_array(data, plot_friendly=False, show_progressbar=True):
     """Transforms a RGBx array into a standard one
 
     Parameters
@@ -60,14 +63,12 @@ def rgbx2regular_array(data, plot_friendly=False):
     plot_friendly : bool
         If True change the dtype to float when dtype is not uint8 and
         normalize the array so that it is ready to be plotted by matplotlib.
-
+    %s
     """
     # Make sure that the data is contiguous
     if isinstance(data, Array):
-        from dask.diagnostics import ProgressBar
-
-        # an expensive thing, but nothing to be done for now...
-        with ProgressBar():
+        cm = ProgressBar if show_progressbar else dummy_context_manager
+        with cm():
             data = data.compute()
     if data.flags["C_CONTIGUOUS"] is False:
         if np.ma.is_masked(data):
@@ -86,6 +87,9 @@ def rgbx2regular_array(data, plot_friendly=False):
         data = data.astype("float")
         data /= 2**16 - 1
     return data
+
+
+rgbx2regular_array.__doc__ %= (SHOW_PROGRESSBAR_DOC,)
 
 
 def regular_array2rgbx(data):

@@ -349,9 +349,13 @@ def _metadata_converter_in(meta_data, axes, filename):
         if "mm" in aperture:
             aperture = aperture.split("mm")[0]
             aperture = aperture.rstrip()
-        mapped.set_item(
-            "Acquisition_instrument.TEM.Detector.EELS.aperture_size", float(aperture)
-        )
+            mapped.set_item(
+                "Acquisition_instrument.TEM.Detector.EELS.aperture_size", float(aperture)
+            )
+        else:
+            mapped.set_item(
+            "Acquisition_instrument.TEM.Detector.EELS.aperture_size", aperture
+            )
 
     source_type = meta_data.get("source.type")
 

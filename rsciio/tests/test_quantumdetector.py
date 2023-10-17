@@ -23,6 +23,8 @@ import zipfile
 
 import pytest
 
+from rsciio.quantumdetector._api import MIBProperties
+
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 
@@ -108,6 +110,13 @@ def test_quad_chip(fname):
         assert axis.scale == 1
         assert axis.offset == 0
         assert axis.units == ""
+
+
+def test_mib_properties():
+    fname = TEST_DATA_DIR_UNZIPPED / "Single_9_Frame_CounterDepth_1_Rows_256.mib"
+    mib_prop = MIBProperties()
+    mib_prop.parse_file(fname)
+    print(mib_prop)
 
 
 def test_interrupted_acquisition():

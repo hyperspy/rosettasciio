@@ -26,10 +26,11 @@ import logging
 import numpy as np
 
 from rsciio._docstrings import (
+    ENDIANESS_DOC,
     FILENAME_DOC,
     LAZY_DOC,
-    ENDIANESS_DOC,
     MMAP_DOC,
+    NAVIGATION_SHAPE,
     RETURNS_DOC,
 )
 from rsciio.utils.tools import sarray2dict
@@ -147,8 +148,7 @@ def file_reader(
     %s
     %s
     %s
-    navigation_shape : tuple, None, default=None
-        Specify the shape of the navigation space.
+    %s
 
     %s
     """
@@ -288,4 +288,11 @@ mapping = {
 }
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, MMAP_DOC, ENDIANESS_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (
+    FILENAME_DOC,
+    LAZY_DOC,
+    MMAP_DOC,
+    ENDIANESS_DOC,
+    NAVIGATION_SHAPE,
+    RETURNS_DOC,
+)

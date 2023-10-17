@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import os
+import gc
 from pathlib import Path
 import shutil
 import zipfile
@@ -28,6 +28,7 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 TEST_DATA_DIR = Path(__file__).parent / "data" / "quantumdetector"
 ZIP_FILE = TEST_DATA_DIR / "Merlin_Single_Quad.zip"
+ZIP_FILE2 = TEST_DATA_DIR / "Merlin_navigation4x2_ROI.zip"
 TEST_DATA_DIR_UNZIPPED = TEST_DATA_DIR / "unzipped"
 
 
@@ -50,12 +51,19 @@ def filter_list(fname_list, string):
 
 
 def setup_module():
-    if ZIP_FILE.exists() and not TEST_DATA_DIR_UNZIPPED.exists():
-        with zipfile.ZipFile(ZIP_FILE, "r") as zipped:
-            zipped.extractall(TEST_DATA_DIR_UNZIPPED)
+    if not TEST_DATA_DIR_UNZIPPED.exists():
+        if ZIP_FILE.exists():
+            with zipfile.ZipFile(ZIP_FILE, "r") as zipped:
+                zipped.extractall(TEST_DATA_DIR_UNZIPPED)
+
+        if ZIP_FILE2.exists():
+            with zipfile.ZipFile(ZIP_FILE2, "r") as zipped:
+                zipped.extractall(TEST_DATA_DIR_UNZIPPED)
 
 
 def teardown_module():
+    # necessary on windows, to help closing the files...
+    gc.collect()
     shutil.rmtree(TEST_DATA_DIR_UNZIPPED)
 
 
@@ -100,3 +108,20 @@ def test_quad_chip(fname):
         assert axis.scale == 1
         assert axis.offset == 0
         assert axis.units == ""
+
+
+def test_interrupted_acquisition():
+    fname = TEST_DATA_DIR_UNZIPPED / "Single_9_Frame_CounterDepth_1_Rows_256.mib"
+    with pytest.raises(ValueError):
+        s = hs.load(fname, navigation_shape=(2, 5))
+
+    s = hs.load(TEST_DATA_DIR_UNZIPPED / fname, navigation_shape=(2, 4))
+    assert s.axes_manager.signal_shape == (256, 256)
+    assert s.axes_manager.navigation_shape == (2, 4)
+
+
+def test_non_square():
+    fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
+    s = hs.load(fname, navigation_shape=(4, 2))
+    assert s.axes_manager.signal_shape == (256, 256)
+    assert s.axes_manager.navigation_shape == (4, 2)

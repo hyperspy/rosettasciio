@@ -39,7 +39,8 @@ _logger = logging.getLogger(__name__)
 
 _PATH_DOCSTRING = """path : str or buffer
             The path to the ``mib`` file, otherwise the memory buffer
-            of the ``mib`` file.
+            of the ``mib`` file. Lazy loading is not supported with memory
+            buffer
         """
 
 
@@ -60,7 +61,7 @@ class MIBProperties:
         self.pixel_type = "uint16"
         self.head_size = 384
         self.offset = 0
-        self.navigation_shape = tuple()
+        self.navigation_shape = list()
         self.xy = 1
         self.number_of_frames_in_file = 1
         self.gap = 0
@@ -207,25 +208,26 @@ def load_mib_data(
 
     if navigation_shape is None:
         # Use number_of_frames_in_file
-        mib_prop.navigation_shape = (mib_prop.number_of_frames_in_file,)
-    elif isinstance(navigation_shape, tuple):
-        mib_prop.navigation_shape = navigation_shape
+        mib_prop.navigation_shape = [
+            mib_prop.number_of_frames_in_file,
+        ]
+    elif isinstance(navigation_shape, (list, tuple)):
+        mib_prop.navigation_shape = navigation_shape = list(navigation_shape)
     else:
         raise ValueError("`navigation_shape` must be `None` or a tuple.")
 
     mib_prop.xy = np.prod(mib_prop.navigation_shape)
 
+    if mib_prop.xy > mib_prop.number_of_frames_in_file:
+        raise ValueError(
+            f"Requested number of frames: {mib_prop.xy} with shape "
+            f"{tuple(navigation_shape)} is larger than the number of "
+            f"available frames {mib_prop.number_of_frames_in_file}."
+        )
+
     # correct for buffer/file logic
     if isinstance(path, str):
         mib_prop.buffer = False
-
-    if mib_prop.xy > mib_prop.number_of_frames_in_file:
-        # TODO: check if this related to interrupted acquision, if so,
-        # add support for reading these by appending suitable number of frames
-        raise RuntimeError(
-            f"Requested number of frames: {mib_prop.xy} is smaller than the "
-            f"number of available frames {mib_prop.number_of_frames_in_file}."
-        )
 
     if mib_prop.raw:
         raise NotImplementedError("RAW MIB data not supported.")
@@ -236,12 +238,23 @@ def load_mib_data(
     # if it is read from TCPIP interface it needs to drop first 15 bytes which
     # describe the stream size. Also watch for the coma in front of the stream.
     if isinstance(mib_prop.path, str):
+        if mib_prop.xy > mib_prop.number_of_frames_in_file:
+            # Case of interrupted acquisition, add move data
+            # Set the corrected number of lines
+            # To keep the implementation simple only read completed line
+            navigation_shape[0] = (
+                mib_prop.number_of_frames_in_file // mib_prop.navigation_shape[1]
+            )
+
         data = np.memmap(
             mib_prop.path,
             dtype=merlin_frame_dtype,
             offset=mib_prop.offset,
-            shape=mib_prop.navigation_shape,
+            # need to use np.prod(navigation_shape) to crop number line
+            shape=np.prod(navigation_shape),
+            mode=mmap_mode,
         )
+        # data = data.reshape(navigation_shape)
 
     elif isinstance(mib_prop.path, bytes):
         data = np.frombuffer(
@@ -250,12 +263,14 @@ def load_mib_data(
             count=mib_prop.xy,
             offset=mib_prop.offset,
         )
-        data = data.reshape(mib_prop.navigation_shape + mib_prop.merlin_size)
+        navigation_shape = mib_prop.navigation_shape + mib_prop.merlin_size
     else:
         raise ValueError("`path` must be a str or a buffer.")
 
-    # remove header data and return
-    return data["data"]
+    # remove header data and return data
+    # reverse navigation_shape to match hyperspy ordering
+
+    return data.reshape(navigation_shape[::-1])["data"]
 
 
 load_mib_data.__doc__ %= (_PATH_DOCSTRING, LAZY_DOC, MMAP_DOC, NAVIGATION_SHAPE)
@@ -287,6 +302,12 @@ def file_reader(filename, lazy=False, mmap_mode=None, navigation_shape=None):
     %s
 
     %s
+
+    Note
+    ----
+    In case of interrupted acquisition, only the completed line are read and
+    the incomplete line are discarded.
+
     """
     mib_prop = MIBProperties()
     mib_prop.parse_file(filename)
@@ -303,11 +324,11 @@ def file_reader(filename, lazy=False, mmap_mode=None, navigation_shape=None):
 
     if navigation_shape is None and hdr is not None:
         # (x, y)
-        navigation_shape = (
+        navigation_shape = [
             int(hdr["Frames per Trigger (Number)"]),
             int(hdr["Frames in Acquisition (Number)"])
             // int(hdr["Frames per Trigger (Number)"]),
-        )
+        ]
 
     data = load_mib_data(
         filename,

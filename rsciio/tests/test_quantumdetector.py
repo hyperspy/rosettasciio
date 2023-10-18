@@ -21,9 +21,15 @@ from pathlib import Path
 import shutil
 import zipfile
 
+import numpy as np
 import pytest
 
-from rsciio.quantumdetector._api import MIBProperties
+from rsciio.quantumdetector._api import (
+    MIBProperties,
+    load_mib_data,
+    parse_exposures,
+    parse_timestamps,
+)
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -112,17 +118,26 @@ def test_quad_chip(fname):
         assert axis.units == ""
 
 
-def test_mib_properties():
+def test_mib_properties_single__repr__():
     fname = TEST_DATA_DIR_UNZIPPED / "Single_9_Frame_CounterDepth_1_Rows_256.mib"
     mib_prop = MIBProperties()
-    mib_prop.parse_file(fname)
-    print(mib_prop)
+    mib_prop.parse_file(str(fname))
+    assert "\nPath: " == mib_prop.__repr__()[:7]
+
+
+def test_mib_properties_quad__repr__():
+    fname = TEST_DATA_DIR_UNZIPPED / "Quad_9_Frame_CounterDepth_1_Rows_256.mib"
+    mib_prop = MIBProperties()
+    mib_prop.parse_file(str(fname))
+    assert "\nPath: " == mib_prop.__repr__()[:7]
 
 
 def test_interrupted_acquisition():
     fname = TEST_DATA_DIR_UNZIPPED / "Single_9_Frame_CounterDepth_1_Rows_256.mib"
-    with pytest.raises(ValueError):
-        s = hs.load(fname, navigation_shape=(2, 5))
+    # There is only 9 frames, simulate interrupted acquisition using 10 lines
+    s = hs.load(fname, navigation_shape=(10, 2))
+    assert s.axes_manager.signal_shape == (256, 256)
+    assert s.axes_manager.navigation_shape == (4, 2)
 
     s = hs.load(TEST_DATA_DIR_UNZIPPED / fname, navigation_shape=(2, 4))
     assert s.axes_manager.signal_shape == (256, 256)
@@ -134,3 +149,69 @@ def test_non_square():
     s = hs.load(fname, navigation_shape=(4, 2))
     assert s.axes_manager.signal_shape == (256, 256)
     assert s.axes_manager.navigation_shape == (4, 2)
+
+
+def test_load_mib_data():
+    fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
+    data = load_mib_data(str(fname))
+    assert data.shape == (8, 256, 256)
+
+    data = load_mib_data(str(fname), navigation_shape=(4, 2))
+    assert data.shape == (2, 4, 256, 256)
+
+    data, header = load_mib_data(str(fname), return_header=True)
+    assert data.shape == (8, 256, 256)
+    assert header.shape == (8,)
+
+
+def test_test_load_mib_data_from_buffer():
+    fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
+
+    with open(fname, mode="rb") as f:
+        data = load_mib_data(f.read())
+
+    assert data.shape == (8, 256, 256)
+
+    with open(fname, mode="rb") as f:
+        data = load_mib_data(f.read(), navigation_shape=(4, 2))
+
+    assert data.shape == (2, 4, 256, 256)
+
+
+def test_parse_exposures():
+    fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
+
+    data, header = load_mib_data(str(fname), return_header=True)
+    exposures = parse_exposures(header[0])
+    assert exposures == [100.0]
+
+    exposures = parse_exposures(header)
+    assert exposures == [100.0] * header.shape[0]
+
+
+def test_parse_timestamps():
+    fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
+
+    data, header = load_mib_data(str(fname), return_header=True)
+    timestamps = parse_timestamps(header[0])
+    assert timestamps == ["2021-05-07T16:51:10.905800928Z"]
+
+    timestamps = parse_timestamps(header)
+    assert len(timestamps) == len(header)
+
+
+def test_metadata():
+    fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
+
+    s = hs.load(fname)
+    md_gen = s.metadata.General
+    assert md_gen.date == "2021-05-07"
+    assert md_gen.time == "16:51:10.905800928"
+    assert md_gen.time_zone == "UTC"
+    np.testing.assert_allclose(s.metadata.Acquisition_instrument.dwell_time, 1e-4)
+
+
+def test_print_info():
+    fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
+
+    _ = hs.load(fname, print_info=True)

@@ -479,7 +479,7 @@ def file_reader(
             "date": date,
             "time": time,
         },
-        "Signal": {"signal_type": ""},
+        "Signal": {"signal_type": "electron_diffraction"},
         "Acquisition_instrument": {
             "dwell_time": mib_prop.exposure * 1e-6,
         },

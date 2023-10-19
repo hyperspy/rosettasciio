@@ -58,7 +58,7 @@ class MIBProperties:
         self.raw = False
         self.dynamic_range = ""
         self.packed = None
-        self.pixel_type = ""
+        self.dtype = None
         self.head_size = None
         self.offset = 0
         self.navigation_shape = list()
@@ -87,12 +87,12 @@ class MIBProperties:
         str_ += "\nChip configuration is {}".format(self.assembly_size)
         if self.assembly_size == "quad":
             str_ += "\nDetector geometry: {}".format(self.detector_geometry)
-        str_ += "\nData pixel size {}".format(self.merlin_size)
+        str_ += "\nData size {}".format(self.merlin_size)
         if self.raw:  # pragma: no cover
             str_ += "\n\tData is RAW"
         else:
             str_ += "\nData is processed"
-        str_ += "\nPixel type: {}".format(np.dtype(self.pixel_type))
+        str_ += "\nData type: {}".format(self.dtype.name)
         str_ += "\nDynamic range: {}".format(self.dynamic_range)
         str_ += "\nHeader size: {} bytes".format(self.head_size)
         str_ += "\nNumber of frames in the file/buffer: {}".format(
@@ -161,13 +161,13 @@ class MIBProperties:
         # set bit-depths for processed data (binary is U08 as well)
         if not self.raw:
             if head[6] == "U08":
-                self.pixel_type = np.dtype("uint8").name
+                self.dtype = np.dtype(">u1")
                 self.dynamic_range = "1 or 6-bit"
             if head[6] == "U16":
-                self.pixel_type = np.dtype(">u2").name
+                self.dtype = np.dtype(">u2")
                 self.dynamic_range = "12-bit"
             if head[6] == "U32":
-                self.pixel_type = np.dtype(">u4").name
+                self.dtype = np.dtype(">u4")
                 self.dynamic_range = "24-bit"
 
         self.exposure = _parse_exposure_to_ms(head[-3])
@@ -213,7 +213,7 @@ def load_mib_data(
     merlin_frame_dtype = np.dtype(
         [
             ("header", np.string_, mib_prop.head_size),
-            ("data", mib_prop.pixel_type, mib_prop.merlin_size),
+            ("data", mib_prop.dtype, mib_prop.merlin_size),
         ]
     )
     mib_prop.number_of_frames_in_file = (
@@ -226,11 +226,12 @@ def load_mib_data(
             mib_prop.number_of_frames_in_file,
         ]
     elif isinstance(navigation_shape, (list, tuple)):
-        mib_prop.navigation_shape = navigation_shape = list(navigation_shape)
+        mib_prop.navigation_shape = list(navigation_shape)[::-1]
     else:  # pragma: no cover
         raise ValueError("`navigation_shape` must be `None` or a tuple.")
 
     mib_prop.xy = np.prod(mib_prop.navigation_shape)
+    navigation_shape = mib_prop.navigation_shape
 
     if print_info:
         print(mib_prop)
@@ -248,8 +249,8 @@ def load_mib_data(
             # Case of interrupted acquisition, add move data
             # Set the corrected number of lines
             # To keep the implementation simple only read completed line
-            navigation_shape[0] = (
-                mib_prop.number_of_frames_in_file // mib_prop.navigation_shape[1]
+            navigation_shape[1] = (
+                mib_prop.number_of_frames_in_file // mib_prop.navigation_shape[0]
             )
 
         data = np.memmap(
@@ -274,7 +275,7 @@ def load_mib_data(
     if navigation_shape is not None and len(navigation_shape) > 1:
         # Only reshape when necessary
         # reverse navigation_shape to match hyperspy ordering
-        data = data.reshape(navigation_shape[::-1])
+        data = data.reshape(navigation_shape)
 
     if return_header:
         return data["data"], data["header"]
@@ -420,17 +421,18 @@ def file_reader(
     mib_prop = MIBProperties()
     mib_prop.parse_file(filename)
     hdr_filename = str(filename).replace(".mib", ".hdr")
-    hdr = None
 
     original_metadata = {"mib_properties": vars(mib_prop)}
 
     if Path(hdr_filename).exists():
         hdr = parse_hdr_file(hdr_filename)
         original_metadata["hdr_file"] = hdr
-    else:  # pragma: no cover
+    else:
+        hdr = None
         _logger.warning("`hdr` file couldn't be found.")
 
     if navigation_shape is None and hdr is not None:
+        # Use the hdr file to find the number of frames
         # (x, y)
         navigation_shape = [
             int(hdr["Frames per Trigger (Number)"]),

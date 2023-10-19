@@ -164,6 +164,15 @@ def test_non_square():
     assert s.axes_manager.navigation_shape == (4, 2)
 
 
+def test_no_hdr():
+    fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
+    fname2 = str(fname).replace(".mib", "-copy.mib")
+    shutil.copyfile(fname, fname2)
+    s = hs.load(fname2)
+    assert s.axes_manager.signal_shape == (256, 256)
+    assert s.axes_manager.navigation_shape == (8,)
+
+
 def test_load_mib_data():
     fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
     data = load_mib_data(str(fname))

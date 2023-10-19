@@ -28,6 +28,8 @@ dependencies = [
   "python-dateutil",
   "h5py>=2.3",
   "imageio>=2.16",
+  # Remove when https://github.com/imageio/imageio/issues/1044 is fixed
+  "pillow<10.1.0",
   "numba>=0.52",
   "numpy>=1.20.0",
   "pint>=0.8",

@@ -1,0 +1,1 @@
+Pin pillow<10.1.0 until imageio supports newer pillow version - see https://github.com/imageio/imageio/issues/1044

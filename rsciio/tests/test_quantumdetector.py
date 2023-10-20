@@ -282,3 +282,16 @@ def test_navigation_shape_list_error():
 
     with pytest.raises(TypeError):
         _ = hs.load(fname, navigation_shape=[4, 2])
+
+
+def test_load_save_cycle(tmp_path):
+    fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
+    s = hs.load(fname, navigation_shape=(4, 2))
+    fname2 = tmp_path / "test.zspy"
+    s.save(fname2)
+    s2 = hs.load(fname2)
+
+    np.testing.assert_allclose(s.data, s2.data)
+    assert s.axes_manager.navigation_shape == s2.axes_manager.navigation_shape
+    assert s.axes_manager.signal_shape == s2.axes_manager.signal_shape
+    assert s.data.dtype == s2.data.dtype

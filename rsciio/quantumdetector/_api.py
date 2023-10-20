@@ -94,7 +94,7 @@ class MIBProperties:
             str_ += "\n\tData is RAW"
         else:
             str_ += "\nData is processed"
-        str_ += "\nData type: {}".format(self.dtype.name)
+        str_ += "\nData type: {}".format(self.dtype)
         str_ += "\nDynamic range: {}".format(self.dynamic_range)
         str_ += "\nHeader size: {} bytes".format(self.head_size)
         str_ += "\nNumber of frames in the file/buffer: {}".format(
@@ -162,14 +162,16 @@ class MIBProperties:
 
         # set bit-depths for processed data (binary is U08 as well)
         if not self.raw:
+            # We use the dtype name to be able to save it
+            # as metadata
             if head[6] == "U08":
-                self.dtype = np.dtype(">u1")
+                self.dtype = np.dtype(">u1").name
                 self.dynamic_range = "1 or 6-bit"
             if head[6] == "U16":
-                self.dtype = np.dtype(">u2")
+                self.dtype = np.dtype(">u2").name
                 self.dynamic_range = "12-bit"
             if head[6] == "U32":
-                self.dtype = np.dtype(">u4")
+                self.dtype = np.dtype(">u4").name
                 self.dynamic_range = "24-bit"
 
         self.exposure = _parse_exposure_to_ms(head[-3])
@@ -219,13 +221,16 @@ def load_mib_data(
     if lazy and isinstance(path, bytes):
         raise ValueError("Loading memory buffer lazily is not supported.")
 
-    # find the size of the data
+    # As we save the dtype name, we don't have the endianess and we
+    # need to specify it here
+    data_dtype = np.dtype(mib_prop.dtype).newbyteorder(">")
     merlin_frame_dtype = np.dtype(
         [
             ("header", np.string_, mib_prop.head_size),
-            ("data", mib_prop.dtype, mib_prop.merlin_size),
+            ("data", data_dtype, mib_prop.merlin_size),
         ]
     )
+    # find the number of frames in the file
     mib_prop.number_of_frames_in_file = (
         mib_prop.file_size // merlin_frame_dtype.itemsize
     )

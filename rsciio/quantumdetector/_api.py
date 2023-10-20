@@ -23,6 +23,7 @@ import logging
 import os
 from pathlib import Path
 
+import dask.array as da
 import numpy as np
 
 from rsciio._docstrings import (
@@ -61,7 +62,7 @@ class MIBProperties:
         self.dtype = None
         self.head_size = None
         self.offset = 0
-        self.navigation_shape = list()
+        self.navigation_shape = ()
         self.xy = None
         self.number_of_frames_in_file = None
         self.gap = None
@@ -106,14 +107,14 @@ class MIBProperties:
 
     def parse_file(self, path):
         """
-        Parse header of a MIB data and return object containing frame parameters
+        Parse headers of a MIB data and return object containing frame parameters
 
         Parameters
         ----------
         %s
         """
 
-        # read header from the start of the file or buffer
+        # read the first header from the start of the file or buffer
         if isinstance(path, str):
             try:
                 with open(path, "rb") as f:
@@ -132,7 +133,7 @@ class MIBProperties:
             except:  # pragma: no cover
                 raise RuntimeError("Buffer does not contain MIB header.")
         else:  # pragma: no cover
-            raise ValueError("`path` must be a str or a buffer.")
+            raise TypeError("`path` must be a str or a buffer.")
 
         # read detector size
         self.merlin_size = (int(head[4]), int(head[5]))
@@ -182,8 +183,9 @@ def load_mib_data(
     mmap_mode=None,
     navigation_shape=None,
     mib_prop=None,
-    return_header=False,
+    return_headers=False,
     print_info=False,
+    return_mmap=True,
 ):
     """
     Load Quantum Detectors MIB file from a path or a memory buffer.
@@ -194,11 +196,13 @@ def load_mib_data(
     %s
     %s
     %s
+    return_mmap : bool
+        If True, return the py:func:`numpy.memmap` object. Default is True.
 
     Returns
     -------
-    data : numpy.memmap
-        The data from the mib reshape according to the ``navigation_shape``
+    data : numpy.ndarray or dask.array.Array of numpy.memmap
+        The data from the mib reshaped according to the ``navigation_shape``
         argument.
 
     """
@@ -208,6 +212,9 @@ def load_mib_data(
     if mib_prop is None:
         mib_prop = MIBProperties()
         mib_prop.parse_file(path)
+
+    if lazy and isinstance(path, bytes):
+        raise ValueError("Loading memory buffer lazily is not supported.")
 
     # find the size of the data
     merlin_frame_dtype = np.dtype(
@@ -222,13 +229,11 @@ def load_mib_data(
 
     if navigation_shape is None:
         # Use number_of_frames_in_file
-        mib_prop.navigation_shape = [
-            mib_prop.number_of_frames_in_file,
-        ]
-    elif isinstance(navigation_shape, (list, tuple)):
-        mib_prop.navigation_shape = list(navigation_shape)[::-1]
-    else:  # pragma: no cover
-        raise ValueError("`navigation_shape` must be `None` or a tuple.")
+        mib_prop.navigation_shape = (mib_prop.number_of_frames_in_file,)
+    elif isinstance(navigation_shape, tuple):
+        mib_prop.navigation_shape = navigation_shape[::-1]
+    else:
+        raise TypeError("`navigation_shape` must be `None` or of tuple type.")
 
     mib_prop.xy = np.prod(mib_prop.navigation_shape)
     navigation_shape = mib_prop.navigation_shape
@@ -249,8 +254,9 @@ def load_mib_data(
             # Case of interrupted acquisition, add move data
             # Set the corrected number of lines
             # To keep the implementation simple only read completed line
-            navigation_shape[1] = (
-                mib_prop.number_of_frames_in_file // mib_prop.navigation_shape[0]
+            navigation_shape = (
+                navigation_shape[0],
+                mib_prop.number_of_frames_in_file // mib_prop.navigation_shape[0],
             )
 
         data = np.memmap(
@@ -269,18 +275,26 @@ def load_mib_data(
             count=mib_prop.xy,
             offset=mib_prop.offset,
         )
+
     else:  # pragma: no cover
-        raise ValueError("`path` must be a str or a buffer.")
+        raise TypeError("`path` must be a str or a buffer.")
 
-    if navigation_shape is not None and len(navigation_shape) > 1:
-        # Only reshape when necessary
-        # reverse navigation_shape to match hyperspy ordering
-        data = data.reshape(navigation_shape)
+    headers = data["header"]
+    data = data["data"]
+    if not return_mmap:
+        if lazy:
+            data = da.from_array(data)
+        else:
+            data = np.array(data)
 
-    if return_header:
-        return data["data"], data["header"]
+    # remove navigation_dimension with value 1 before reshaping
+    navigation_shape = tuple(i for i in navigation_shape if i > 1)
+    data = data.reshape(navigation_shape + mib_prop.merlin_size)
+
+    if return_headers:
+        return data, headers
     else:
-        return data["data"]
+        return data
 
 
 load_mib_data.__doc__ %= (_PATH_DOCSTRING, LAZY_DOC, MMAP_DOC, NAVIGATION_SHAPE)
@@ -305,8 +319,8 @@ def _parse_exposure_to_ms(str_):
     return float(str_[:-2]) / 1e6
 
 
-_HEADER_DOCSTRING = """header : bytes str or iterable of bytes str
-        The header as a bytes string.
+_HEADERS_DOCSTRING = """headers : bytes str or iterable of bytes str
+        The headers as a bytes string.
     """
 
 
@@ -317,7 +331,7 @@ _MAX_INDEX_DOCSTRING = """max_index : int
     """
 
 
-def parse_exposures(header, max_index=10000):
+def parse_exposures(headers, max_index=10000):
     """
     Parse the exposure time from the header of each frames.
 
@@ -333,28 +347,37 @@ def parse_exposures(header, max_index=10000):
 
     Examples
     --------
-    >>> from rsciio.quantumdetector import load_mib_data, parse_exposures
-    >>> data, header = load_mib_data(path, return_header=True)
-    >>> exposures = parse_exposures(header)
+    Use ``load_mib_data`` function to the headers and parse the exposures
+    from the headers. By default, reads only the first 10 000 frames.
 
+    >>> from rsciio.quantumdetector import load_mib_data, parse_exposures
+    >>> data, headers = load_mib_data(path, return_header=True, return_mmap=True)
+    >>> exposures = parse_exposures(headers)
+
+    All frames can be parsed by using ``max_index=-1``:
+
+    >>> data, headers = load_mib_data(path, return_headers=True)
+    >>> timestamps = parse_exposures(headers, max_index=-1)
+    >>> len(timestamps)
+    65536
     """
-    if isinstance(header, bytes):
-        header = [header]
+    if isinstance(headers, bytes):
+        headers = [headers]
 
     if max_index > 1:
-        max_index = min(max_index, len(header))
+        max_index = min(max_index, len(headers))
 
     # exposure time are in ns
     return [
-        _parse_exposure_to_ms(header_.decode().split(",")[-3])
-        for header_ in header[:max_index]
+        _parse_exposure_to_ms(header.decode().split(",")[-3])
+        for header in headers[:max_index]
     ]
 
 
-parse_exposures.__doc__ %= (_HEADER_DOCSTRING, _MAX_INDEX_DOCSTRING)
+parse_exposures.__doc__ %= (_HEADERS_DOCSTRING, _MAX_INDEX_DOCSTRING)
 
 
-def parse_timestamps(header, max_index=10000):
+def parse_timestamps(headers, max_index=10000):
     """
     Parse the timestamp time from the header of each frames.
 
@@ -370,31 +393,33 @@ def parse_timestamps(header, max_index=10000):
 
     Examples
     --------
+    Use ``load_mib_data`` function to get the headers and parse the timestamps
+    from the headers. By default, reads only the first 10 000 frames.
+
     >>> from rsciio.quantumdetector import load_mib_data, parse_exposures
-    >>> data, header = load_mib_data(path, return_header=True)
-    >>> timestamps = parse_timestamps(header)
+    >>> data, header = load_mib_data(path, return_headers=True)
+    >>> timestamps = parse_timestamps(headers)
     >>> len(timestamps)
     10000
 
-    By default, the timestamp of the first 10 000 frames are parsed. All frames
-    can be parsed by using ``max_index=-1``:
+    All frames can be parsed by using ``max_index=-1``:
 
-    >>> data, header = load_mib_data(path, return_header=True)
-    >>> timestamps = parse_timestamps(header, max_index=-1)
+    >>> data, headers = load_mib_data(path, return_headers=True)
+    >>> timestamps = parse_timestamps(headers, max_index=-1)
     >>> len(timestamps)
     65536
 
     """
-    if isinstance(header, bytes):
-        header = [header]
+    if isinstance(headers, bytes):
+        headers = [headers]
 
     if max_index > 1:
-        max_index = min(max_index, len(header))
+        max_index = min(max_index, len(headers))
 
-    return [header_.decode().split(",")[-4] for header_ in header[:max_index]]
+    return [header.decode().split(",")[-4] for header in headers[:max_index]]
 
 
-parse_timestamps.__doc__ %= (_HEADER_DOCSTRING, _MAX_INDEX_DOCSTRING)
+parse_timestamps.__doc__ %= (_HEADERS_DOCSTRING, _MAX_INDEX_DOCSTRING)
 
 
 def file_reader(
@@ -433,20 +458,21 @@ def file_reader(
 
     if navigation_shape is None and hdr is not None:
         # Use the hdr file to find the number of frames
-        # (x, y)
-        navigation_shape = [
+        navigation_shape = (
             int(hdr["Frames per Trigger (Number)"]),
             int(hdr["Frames in Acquisition (Number)"])
             // int(hdr["Frames per Trigger (Number)"]),
-        ]
+        )
 
     data = load_mib_data(
         filename,
+        lazy=lazy,
         mmap_mode=mmap_mode,
         navigation_shape=navigation_shape,
         mib_prop=mib_prop,
         print_info=print_info,
-    ).squeeze()
+        return_mmap=False,
+    )
     data = np.flip(data, axis=-2)
 
     # data has 3 dimension but we need to to take account the dimension of the

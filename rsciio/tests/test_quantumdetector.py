@@ -21,6 +21,7 @@ from pathlib import Path
 import shutil
 import zipfile
 
+import dask.array as da
 import numpy as np
 import pytest
 
@@ -173,17 +174,34 @@ def test_no_hdr():
     assert s.axes_manager.navigation_shape == (8,)
 
 
-def test_load_mib_data():
+@pytest.mark.parametrize("return_mmap", (True, False))
+@pytest.mark.parametrize("lazy", (True, False))
+def test_load_mib_data(lazy, return_mmap):
     fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
-    data = load_mib_data(str(fname))
+    data = load_mib_data(str(fname), lazy=lazy, return_mmap=return_mmap)
     assert data.shape == (8, 256, 256)
+    if return_mmap or not lazy:
+        # Even when lazy, it should still be an instance of
+        # np.ndarray because it should return the memmap
+        assert isinstance(data, np.ndarray)
+    else:
+        assert isinstance(data, da.Array)
 
     data = load_mib_data(str(fname), navigation_shape=(4, 2))
     assert data.shape == (2, 4, 256, 256)
 
-    data, header = load_mib_data(str(fname), return_header=True)
+    data, headers = load_mib_data(str(fname), return_headers=True)
     assert data.shape == (8, 256, 256)
-    assert header.shape == (8,)
+    assert headers.shape == (8,)
+
+
+@pytest.mark.parametrize("lazy", (True, False))
+def test_load_mib_data_return_mmap_default(lazy):
+    fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
+    data = load_mib_data(str(fname), lazy=lazy)
+    # Even if this lazy, it should still be an instance of np.ndarray
+    # because it should return the memmap
+    assert isinstance(data, np.ndarray)
 
 
 def test_test_load_mib_data_from_buffer():
@@ -199,27 +217,38 @@ def test_test_load_mib_data_from_buffer():
 
     assert data.shape == (2, 4, 256, 256)
 
+    with open(fname, mode="rb") as f:
+        with pytest.raises(ValueError):
+            # loading lazy memory buffer is not supported
+            data = load_mib_data(f.read(), lazy=True)
 
-def test_parse_exposures():
+
+@pytest.mark.parametrize("return_mmap", (True, False))
+def test_parse_exposures(return_mmap):
     fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
 
-    data, header = load_mib_data(str(fname), return_header=True)
-    exposures = parse_exposures(header[0])
+    data, headers = load_mib_data(
+        str(fname), return_headers=True, return_mmap=return_mmap
+    )
+    exposures = parse_exposures(headers[0])
     assert exposures == [100.0]
 
-    exposures = parse_exposures(header)
-    assert exposures == [100.0] * header.shape[0]
+    exposures = parse_exposures(headers)
+    assert exposures == [100.0] * headers.shape[0]
 
 
-def test_parse_timestamps():
+@pytest.mark.parametrize("return_mmap", (True, False))
+def test_parse_timestamps(return_mmap):
     fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
 
-    data, header = load_mib_data(str(fname), return_header=True)
-    timestamps = parse_timestamps(header[0])
+    data, headers = load_mib_data(
+        str(fname), return_headers=True, return_mmap=return_mmap
+    )
+    timestamps = parse_timestamps(headers[0])
     assert timestamps == ["2021-05-07T16:51:10.905800928Z"]
 
-    timestamps = parse_timestamps(header)
-    assert len(timestamps) == len(header)
+    timestamps = parse_timestamps(headers)
+    assert len(timestamps) == len(headers)
 
 
 def test_metadata():
@@ -237,3 +266,10 @@ def test_print_info():
     fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
 
     _ = hs.load(fname, print_info=True)
+
+
+def test_navigation_shape_list_error():
+    fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
+
+    with pytest.raises(TypeError):
+        _ = hs.load(fname, navigation_shape=[4, 2])

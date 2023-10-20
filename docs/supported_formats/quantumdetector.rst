@@ -16,8 +16,8 @@ shape can be specified as an argument:
 
 .. code-block:: python
 
-    >>> import hyperspy.api as hs
-    >>> sig = hs.load("file.mib", navigation_shape=(256, 256))
+    >>> from rsciio.quantumdetector import file_reader
+    >>> s_dict = file_reader("file.mib", navigation_shape=(256, 256))
 
 
 API functions

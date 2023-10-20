@@ -27,6 +27,7 @@ import dask.array as da
 import numpy as np
 
 from rsciio._docstrings import (
+    CHUNKS_READ_DOC,
     FILENAME_DOC,
     LAZY_DOC,
     MMAP_DOC,
@@ -180,6 +181,7 @@ class MIBProperties:
 def load_mib_data(
     path,
     lazy=False,
+    chunks="auto",
     mmap_mode=None,
     navigation_shape=None,
     mib_prop=None,
@@ -192,6 +194,7 @@ def load_mib_data(
 
     Parameters
     ----------
+    %s
     %s
     %s
     %s
@@ -283,7 +286,7 @@ def load_mib_data(
     data = data["data"]
     if not return_mmap:
         if lazy:
-            data = da.from_array(data)
+            data = da.from_array(data, chunks=chunks)
         else:
             data = np.array(data)
 
@@ -297,7 +300,13 @@ def load_mib_data(
         return data
 
 
-load_mib_data.__doc__ %= (_PATH_DOCSTRING, LAZY_DOC, MMAP_DOC, NAVIGATION_SHAPE)
+load_mib_data.__doc__ %= (
+    _PATH_DOCSTRING,
+    LAZY_DOC,
+    CHUNKS_READ_DOC,
+    MMAP_DOC,
+    NAVIGATION_SHAPE,
+)
 
 
 def parse_hdr_file(path):
@@ -423,13 +432,19 @@ parse_timestamps.__doc__ %= (_HEADERS_DOCSTRING, _MAX_INDEX_DOCSTRING)
 
 
 def file_reader(
-    filename, lazy=False, mmap_mode=None, navigation_shape=None, print_info=False
+    filename,
+    lazy=False,
+    chunks="auto",
+    mmap_mode=None,
+    navigation_shape=None,
+    print_info=False,
 ):
     """
     Read a Quantum Detectors ``mib`` file
 
     Parameters
     ----------
+    %s
     %s
     %s
     %s
@@ -467,6 +482,7 @@ def file_reader(
     data = load_mib_data(
         filename,
         lazy=lazy,
+        chunks=chunks,
         mmap_mode=mmap_mode,
         navigation_shape=navigation_shape,
         mib_prop=mib_prop,
@@ -526,4 +542,11 @@ def file_reader(
     ]
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, MMAP_DOC, NAVIGATION_SHAPE, RETURNS_DOC)
+file_reader.__doc__ %= (
+    FILENAME_DOC,
+    LAZY_DOC,
+    CHUNKS_READ_DOC,
+    MMAP_DOC,
+    NAVIGATION_SHAPE,
+    RETURNS_DOC,
+)

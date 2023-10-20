@@ -22,6 +22,7 @@ import shutil
 import zipfile
 
 import dask.array as da
+from dask.array.core import normalize_chunks
 import numpy as np
 import pytest
 
@@ -132,6 +133,14 @@ def test_quad_chip(fname):
         assert axis.units == ""
 
 
+@pytest.mark.parametrize("chunks", ("auto", (9, 128, 128), ("auto", 128, 128)))
+def test_chunks(chunks):
+    fname = TEST_DATA_DIR_UNZIPPED / "Quad_9_Frame_CounterDepth_24_Rows_256.mib"
+    s = hs.load(fname, lazy=True, chunks=chunks)
+    chunks = normalize_chunks(chunks, shape=s.data.shape, dtype=s.data.dtype)
+    assert s.data.chunks == chunks
+
+
 def test_mib_properties_single__repr__():
     fname = TEST_DATA_DIR_UNZIPPED / "Single_9_Frame_CounterDepth_1_Rows_256.mib"
     mib_prop = MIBProperties()
@@ -220,7 +229,7 @@ def test_test_load_mib_data_from_buffer():
     with open(fname, mode="rb") as f:
         with pytest.raises(ValueError):
             # loading lazy memory buffer is not supported
-            data = load_mib_data(f.read(), lazy=True)
+            _ = load_mib_data(f.read(), lazy=True)
 
 
 @pytest.mark.parametrize("return_mmap", (True, False))

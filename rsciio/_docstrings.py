@@ -50,6 +50,11 @@ CHUNKS_DOC = """chunks : tuple of int or None, default=None
         space.
     """
 
+CHUNKS_READ_DOC = """chunks : tuple of int or None, default="auto"
+        The chunks used when reading the data lazily. This argument is passed
+        to the ``chunks`` of the :py:func:`dask.array.from_array` function.
+    """
+
 
 SHOW_PROGRESSBAR_DOC = """show_progressbar : bool, default=True
         Whether to show the progressbar or not.

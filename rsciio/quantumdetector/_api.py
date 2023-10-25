@@ -45,6 +45,12 @@ _PATH_DOCSTRING = """path : str or bytes
             buffer
         """
 
+_FIRST_LAST_FRAME = """first_frame, last_frame : int or None, default=None
+            The first/last frame to load. It follows python indexing syntax,
+            i.e. negative integer means reverse indexing. If ``None``, it uses
+            first/last index.
+        """
+
 
 class MIBProperties:
     """Class covering Merlin MIB file properties."""
@@ -186,6 +192,8 @@ def load_mib_data(
     chunks="auto",
     mmap_mode=None,
     navigation_shape=None,
+    first_frame=None,
+    last_frame=None,
     mib_prop=None,
     return_headers=False,
     print_info=False,
@@ -196,6 +204,7 @@ def load_mib_data(
 
     Parameters
     ----------
+    %s
     %s
     %s
     %s
@@ -231,20 +240,48 @@ def load_mib_data(
         ]
     )
     # find the number of frames in the file
-    mib_prop.number_of_frames_in_file = (
-        mib_prop.file_size // merlin_frame_dtype.itemsize
+    frame_number_in_file = mib_prop.file_size // merlin_frame_dtype.itemsize
+
+    # Get the frame slice to load, taking into `None` and negative indexing
+    first_frame, last_frame, _ = slice(first_frame, last_frame).indices(
+        frame_number_in_file
     )
+    number_of_frames_to_load = int(last_frame - first_frame)
 
     if navigation_shape is None:
-        # Use number_of_frames_in_file
-        mib_prop.navigation_shape = (mib_prop.number_of_frames_in_file,)
+        # Use number_of_frames_to_load to support slicing range of frames
+        navigation_shape = (number_of_frames_to_load,)
     elif isinstance(navigation_shape, tuple):
-        mib_prop.navigation_shape = navigation_shape[::-1]
+        frame_number = np.prod(navigation_shape)
+        if frame_number > frame_number_in_file:
+            # Case of interrupted acquisition
+            # Set the corrected number of lines
+            # To keep the implementation simple only load completed line
+            # Reshape only when the slice from zeros
+            if first_frame == 0 and len(navigation_shape) > 1:
+                navigation_shape = (
+                    navigation_shape[1],
+                    frame_number_in_file // navigation_shape[1],
+                )
+            else:
+                navigation_shape = (number_of_frames_to_load,)
+        elif number_of_frames_to_load < frame_number:
+            # in case the given navigation is not None and the total number of frame
+            # to load is too small, we can't reshape and we fall back to stack of images
+            _logger.warning(
+                "The `navigation_shape` doesn't match the number of frames to load. "
+                "The `navigation_shape` is set to the number of read to read: "
+                f"({number_of_frames_to_load},)."
+            )
+            navigation_shape = (number_of_frames_to_load,)
+        else:
+            navigation_shape = navigation_shape[::-1]
     else:
         raise TypeError("`navigation_shape` must be `None` or of tuple type.")
 
+    mib_prop.navigation_shape = navigation_shape
     mib_prop.xy = np.prod(mib_prop.navigation_shape)
-    navigation_shape = mib_prop.navigation_shape
+    mib_prop.frame_number_in_file = frame_number_in_file
 
     if print_info:
         print(mib_prop)
@@ -258,24 +295,15 @@ def load_mib_data(
     # if it is read from TCPIP interface it needs to drop first 15 bytes which
     # describe the stream size. Also watch for the coma in front of the stream.
     if isinstance(mib_prop.path, str):
-        if mib_prop.xy > mib_prop.number_of_frames_in_file:
-            # Case of interrupted acquisition, add move data
-            # Set the corrected number of lines
-            # To keep the implementation simple only read completed line
-            navigation_shape = (
-                navigation_shape[0],
-                mib_prop.number_of_frames_in_file // mib_prop.navigation_shape[0],
-            )
-
         data = np.memmap(
             mib_prop.path,
             dtype=merlin_frame_dtype,
-            offset=mib_prop.offset,
+            # take into account first_frame
+            offset=mib_prop.offset + merlin_frame_dtype.itemsize * first_frame,
             # need to use np.prod(navigation_shape) to crop number line
             shape=np.prod(navigation_shape),
             mode=mmap_mode,
         )
-
     elif isinstance(path, bytes):
         data = np.frombuffer(
             path,
@@ -311,6 +339,7 @@ load_mib_data.__doc__ %= (
     CHUNKS_READ_DOC,
     MMAP_DOC,
     NAVIGATION_SHAPE,
+    _FIRST_LAST_FRAME,
 )
 
 
@@ -442,6 +471,8 @@ def file_reader(
     chunks="auto",
     mmap_mode=None,
     navigation_shape=None,
+    first_frame=None,
+    last_frame=None,
     print_info=False,
 ):
     """
@@ -454,12 +485,15 @@ def file_reader(
     %s
     %s
     %s
+    %s
+    print_info : bool
+        Display information about the mib file.
 
     %s
 
     Note
     ----
-    In case of interrupted acquisition, only the completed line are read and
+    In case of interrupted acquisition, only the completed lines are read and
     the incomplete line are discarded.
 
     """
@@ -490,6 +524,8 @@ def file_reader(
         chunks=chunks,
         mmap_mode=mmap_mode,
         navigation_shape=navigation_shape,
+        first_frame=first_frame,
+        last_frame=last_frame,
         mib_prop=mib_prop,
         print_info=print_info,
         return_mmap=False,
@@ -553,5 +589,6 @@ file_reader.__doc__ %= (
     CHUNKS_READ_DOC,
     MMAP_DOC,
     NAVIGATION_SHAPE,
+    _FIRST_LAST_FRAME,
     RETURNS_DOC,
 )

@@ -167,6 +167,18 @@ def test_interrupted_acquisition():
     assert s.axes_manager.navigation_shape == (2, 4)
 
 
+def test_interrupted_acquisition_first_frame():
+    fname = TEST_DATA_DIR_UNZIPPED / "Single_9_Frame_CounterDepth_1_Rows_256.mib"
+    # There is only 9 frames, simulate interrupted acquisition using 10 lines
+    s = hs.load(fname, navigation_shape=(10, 2), first_frame=1)
+    assert s.axes_manager.signal_shape == (256, 256)
+    assert s.axes_manager.navigation_shape == (8,)
+
+    s = hs.load(fname, navigation_shape=(10, 2), first_frame=2)
+    assert s.axes_manager.signal_shape == (256, 256)
+    assert s.axes_manager.navigation_shape == (7,)
+
+
 def test_non_square():
     fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
     s = hs.load(fname, navigation_shape=(4, 2))
@@ -181,6 +193,61 @@ def test_no_hdr():
     s = hs.load(fname2)
     assert s.axes_manager.signal_shape == (256, 256)
     assert s.axes_manager.navigation_shape == (8,)
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    (
+        {"first_frame": None, "last_frame": None},
+        {"first_frame": 0, "last_frame": 9},
+        {"first_frame": -9, "last_frame": 9},
+        {"first_frame": -9},
+        {"first_frame": 0},
+        {"last_frame": None},
+        {"last_frame": 9},
+    ),
+)
+def test_first_last_frame_all9(kwargs):
+    fname = TEST_DATA_DIR_UNZIPPED / "Single_9_Frame_CounterDepth_1_Rows_256.mib"
+    s = hs.load(fname, **kwargs)
+    assert s.axes_manager.signal_shape == (256, 256)
+    assert s.axes_manager.navigation_shape == (9,)
+    assert s.data.shape == (9, 256, 256)
+
+
+@pytest.mark.parametrize("navigation_shape", ((8,), (4, 2)))
+@pytest.mark.parametrize(
+    "kwargs",
+    (
+        {"first_frame": 0, "last_frame": -1},
+        {"first_frame": 0, "last_frame": 8},
+        {"first_frame": 1, "last_frame": 9},
+        {"first_frame": -8, "last_frame": 9},
+        {"first_frame": 1},
+        {"last_frame": -1},
+        {"last_frame": 8},
+    ),
+)
+def test_first_last_frame_8(kwargs, navigation_shape):
+    fname = TEST_DATA_DIR_UNZIPPED / "Single_9_Frame_CounterDepth_1_Rows_256.mib"
+    s = hs.load(fname, navigation_shape=navigation_shape, **kwargs)
+    assert s.axes_manager.signal_shape == (256, 256)
+    assert s.axes_manager.navigation_shape == navigation_shape
+    assert s.data.shape == navigation_shape[::-1] + (256, 256)
+
+
+def test_first_last_frame_8_nav_shape_None():
+    fname = TEST_DATA_DIR_UNZIPPED / "Single_9_Frame_CounterDepth_1_Rows_256.mib"
+    # the navigation_shape will be obtained from the hdf file
+    s = hs.load(fname, navigation_shape=None, first_frame=None, last_frame=-1)
+    assert s.axes_manager.signal_shape == (256, 256)
+    assert s.axes_manager.navigation_shape == (8,)
+    assert s.data.shape == (8, 256, 256)
+
+    s = hs.load(fname, navigation_shape=None, first_frame=1, last_frame=None)
+    assert s.axes_manager.signal_shape == (256, 256)
+    assert s.axes_manager.navigation_shape == (8,)
+    assert s.data.shape == (8, 256, 256)
 
 
 @pytest.mark.parametrize("return_mmap", (True, False))

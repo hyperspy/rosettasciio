@@ -34,6 +34,7 @@ from rsciio.quantumdetector._api import (
 )
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+zarr = pytest.importorskip("zarr", reason="zarr not installed")
 
 
 TEST_DATA_DIR = Path(__file__).parent / "data" / "quantumdetector"

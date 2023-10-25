@@ -91,6 +91,8 @@ html_theme_options = {
         "image_dark": "_static/logo_rec_dark_oct22.svg",
     },
     "header_links_before_dropdown": 6,
+    # See https://github.com/pydata/pydata-sphinx-theme/issues/1492
+    "navigation_with_keys": False,
 }
 
 # -- Options for sphinx_favicon extension -----------------------------------

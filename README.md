@@ -3,10 +3,11 @@
 [![Codecov Status](https://codecov.io/gh/hyperspy/rosettasciio/branch/main/graph/badge.svg?token=8ZFX8X4Z1I)](https://codecov.io/gh/hyperspy/rosettasciio)
 [![Documentation Status](https://readthedocs.org/projects/rosettasciio/badge/?version=latest)](https://rosettasciio.readthedocs.io/en/latest/?badge=latest)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-<!-- [![Python Version](https://img.shields.io/pypi/pyversions/rosettasciio.svg?style=flat)](https://pypi.python.org/pypi/rosettasciio) -->
-<!-- [![PyPi Version](https://img.shields.io/pypi/v/rosettasciio.svg?style=flat)](https://pypi.python.org/pypi/rosettasciio) -->
-<!-- [![Anaconda Version](https://anaconda.org/conda-forge/rosettasciio/badges/version.svg)](https://anaconda.org/conda-forge/rosettasciio) -->
-<!-- [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.xxxxxxx.svg)](https://doi.org/10.5281/zenodo.xxxxxxx) -->
+
+[![Python Version](https://img.shields.io/pypi/pyversions/rosettasciio.svg?style=flat)](https://pypi.python.org/pypi/rosettasciio)
+[![PyPi Version](https://img.shields.io/pypi/v/rosettasciio.svg?style=flat)](https://pypi.python.org/pypi/rosettasciio)
+[![Anaconda Version](https://anaconda.org/conda-forge/rosettasciio/badges/version.svg)](https://anaconda.org/conda-forge/rosettasciio)
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.8011666.svg)](https://doi.org/10.5281/zenodo.8011666)
 
 
 # RosettaSciIO

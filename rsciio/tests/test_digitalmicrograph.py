@@ -216,6 +216,7 @@ def test_read_SI_metadata():
 
 
 def test_read_EDS_metadata():
+    pytest.importorskip("exspy", reason="exspy not installed.")
     fname = DM_1D_PATH / "test-EDS_spectrum.dm3"
     s = hs.load(fname)
     md = s.metadata

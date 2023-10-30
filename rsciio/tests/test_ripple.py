@@ -6,6 +6,7 @@ import numpy.testing as npt
 import pytest
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+exspy = pytest.importorskip("exspy", reason="exspy not installed")
 
 from rsciio.ripple import _api as ripple
 
@@ -104,13 +105,13 @@ def _create_signal(shape, dim, dtype, metadata):
     data = np.arange(np.product(shape)).reshape(shape).astype(dtype)
     if dim == 1:
         if len(shape) > 2:
-            s = hs.signals.EELSSpectrum(data)
+            s = exspy.signals.EELSSpectrum(data)
             if metadata:
                 s.set_microscope_parameters(
                     beam_energy=100.0, convergence_angle=1.0, collection_angle=10.0
                 )
         else:
-            s = hs.signals.EDSTEMSpectrum(data)
+            s = exspy.signals.EDSTEMSpectrum(data)
             if metadata:
                 s.set_microscope_parameters(
                     beam_energy=100.0,

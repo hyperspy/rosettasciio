@@ -104,6 +104,7 @@ def test_load_8bit():
 
 
 def test_hyperspy_wrap():
+    pytest.importorskip("exspy", reason="exspy not installed.")
     filename = TEST_DATA_DIR / test_files[0]
     print("testing bcf wrap to hyperspy signal...")
 
@@ -232,22 +233,22 @@ def test_get_mode():
     filename = TEST_DATA_DIR / test_files[0]
     s = hs.load(filename, select_type="spectrum_image", instrument="SEM")
     assert s.metadata.Signal.signal_type == "EDS_SEM"
-    assert isinstance(s, hs.signals.EDSSEMSpectrum)
+    assert isinstance(s, hs.signals.Signal1D)
 
     filename = TEST_DATA_DIR / test_files[0]
     s = hs.load(filename, select_type="spectrum_image", instrument="TEM")
     assert s.metadata.Signal.signal_type == "EDS_TEM"
-    assert isinstance(s, hs.signals.EDSTEMSpectrum)
+    assert isinstance(s, hs.signals.Signal1D)
 
     filename = TEST_DATA_DIR / test_files[0]
     s = hs.load(filename, select_type="spectrum_image")
     assert s.metadata.Signal.signal_type == "EDS_SEM"
-    assert isinstance(s, hs.signals.EDSSEMSpectrum)
+    assert isinstance(s, hs.signals.Signal1D)
 
     filename = TEST_DATA_DIR / test_files[3]
     s = hs.load(filename, select_type="spectrum_image")
     assert s.metadata.Signal.signal_type == "EDS_TEM"
-    assert isinstance(s, hs.signals.EDSTEMSpectrum)
+    assert isinstance(s, hs.signals.Signal1D)
 
 
 def test_wrong_file():

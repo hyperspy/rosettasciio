@@ -27,6 +27,7 @@ import numpy as np
 import pytest
 
 from rsciio.edax import file_reader
+from rsciio.utils.tests import expected_is_binned
 
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
@@ -172,7 +173,7 @@ class TestSpcSpectrum_v061_xrf:
 
         # Testing HyperSpy parameters
         assert "EDS_SEM" == signal_dict["signal_type"]
-        assert isinstance(TestSpcSpectrum_v061_xrf.spc, hs.signals.EDSSEMSpectrum)
+        assert isinstance(TestSpcSpectrum_v061_xrf.spc, hs.signals.Signal1D)
 
     def test_axes(self):
         spc_ax_manager = {
@@ -180,7 +181,7 @@ class TestSpcSpectrum_v061_xrf:
                 "_type": "UniformDataAxis",
                 "name": "Energy",
                 "navigate": False,
-                "is_binned": True,
+                "is_binned": expected_is_binned(),
                 "offset": 0.0,
                 "scale": 0.01,
                 "size": 4000,
@@ -274,7 +275,7 @@ class TestSpcSpectrum_v070_eds:
 
         # Testing HyperSpy parameters
         assert "EDS_SEM" == signal_dict["signal_type"]
-        assert isinstance(TestSpcSpectrum_v070_eds.spc, hs.signals.EDSSEMSpectrum)
+        assert isinstance(TestSpcSpectrum_v070_eds.spc, hs.signals.Signal1D)
 
     def test_axes(self):
         spc_ax_manager = {
@@ -282,7 +283,7 @@ class TestSpcSpectrum_v070_eds:
                 "_type": "UniformDataAxis",
                 "name": "Energy",
                 "navigate": False,
-                "is_binned": True,
+                "is_binned": expected_is_binned(),
                 "offset": 0.0,
                 "scale": 0.01,
                 "size": 4096,
@@ -389,7 +390,7 @@ class TestSpdMap_070_eds:
 
         # Testing HyperSpy parameters
         assert "EDS_SEM" == signal_dict["signal_type"]
-        assert isinstance(TestSpdMap_070_eds.spd, hs.signals.EDSSEMSpectrum)
+        assert isinstance(TestSpdMap_070_eds.spd, hs.signals.Signal1D)
 
     def test_axes(self):
         spd_ax_manager = {
@@ -417,7 +418,7 @@ class TestSpdMap_070_eds:
                 "_type": "UniformDataAxis",
                 "name": "Energy",
                 "navigate": False,
-                "is_binned": True,
+                "is_binned": expected_is_binned(),
                 "offset": 0.0,
                 "scale": 0.0050000000000000001,
                 "size": 2500,
@@ -536,7 +537,7 @@ class TestSpdMap_061_xrf:
 
         # Testing HyperSpy parameters
         assert "EDS_SEM" == signal_dict["signal_type"]
-        assert isinstance(TestSpdMap_061_xrf.spd, hs.signals.EDSSEMSpectrum)
+        assert isinstance(TestSpdMap_061_xrf.spd, hs.signals.Signal1D)
 
     def test_axes(self):
         spd_ax_manager = {
@@ -564,7 +565,7 @@ class TestSpdMap_061_xrf:
                 "_type": "UniformDataAxis",
                 "name": "Energy",
                 "navigate": False,
-                "is_binned": True,
+                "is_binned": expected_is_binned(),
                 "offset": 0.0,
                 "scale": 0.01,
                 "size": 2000,

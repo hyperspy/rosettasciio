@@ -401,7 +401,8 @@ class TestFeiEMD:
         if lazy:
             assert signal._lazy
             signal.compute(close_file=True)
-        assert isinstance(signal, hs.signals.EDSTEMSpectrum)
+        assert signal.metadata.Signal.signal_type == "EDS_TEM"
+        assert isinstance(signal, hs.signals.Signal1D)
         assert signal.axes_manager[0].name == "x"
         assert signal.axes_manager[0].size == 10
         assert signal.axes_manager[0].units == "nm"
@@ -437,7 +438,8 @@ class TestFeiEMD:
         if lazy:
             assert signal._lazy
             signal.compute(close_file=True)
-        assert isinstance(signal, hs.signals.EDSTEMSpectrum)
+        assert signal.metadata.Signal.signal_type == "EDS_TEM"
+        assert isinstance(signal, hs.signals.Signal1D)
         assert signal.axes_manager[0].name == "x"
         assert signal.axes_manager[0].size == 10
         assert signal.axes_manager[0].units == "nm"
@@ -478,7 +480,8 @@ class TestFeiEMD:
         if lazy:
             assert signal._lazy
             signal.compute(close_file=True)
-        assert isinstance(signal, hs.signals.EDSTEMSpectrum)
+        assert signal.metadata.Signal.signal_type == "EDS_TEM"
+        assert isinstance(signal, hs.signals.Signal1D)
         assert signal.axes_manager.navigation_shape == (10, 50, 10)
         assert signal.axes_manager[0].name == "x"
         assert signal.axes_manager[0].size == 10
@@ -509,7 +512,8 @@ class TestFeiEMD:
         if lazy:
             assert signal._lazy
             signal.compute(close_file=True)
-        assert isinstance(signal, hs.signals.EDSTEMSpectrum)
+        assert signal.metadata.Signal.signal_type == "EDS_TEM"
+        assert isinstance(signal, hs.signals.Signal1D)
         assert signal.axes_manager.navigation_shape == (10, 50, 5)
         assert signal.axes_manager[0].name == "x"
         assert signal.axes_manager[0].size == 10
@@ -540,7 +544,8 @@ class TestFeiEMD:
         if lazy:
             assert signal._lazy
             signal.compute(close_file=True)
-        assert isinstance(signal, hs.signals.EDSTEMSpectrum)
+        assert signal.metadata.Signal.signal_type == "EDS_TEM"
+        assert isinstance(signal, hs.signals.Signal1D)
         assert signal.axes_manager.navigation_shape == (10, 50, 6)
         assert signal.axes_manager[0].name == "x"
         assert signal.axes_manager[0].size == 10
@@ -569,7 +574,8 @@ class TestFeiEMD:
         if lazy:
             assert signal._lazy
             signal.compute(close_file=True)
-        assert isinstance(signal, hs.signals.EDSTEMSpectrum)
+        assert signal.metadata.Signal.signal_type == "EDS_TEM"
+        assert isinstance(signal, hs.signals.Signal1D)
         assert signal.axes_manager[0].name == "x"
         assert signal.axes_manager[0].size == 10
         assert signal.axes_manager[0].units == "nm"
@@ -593,7 +599,8 @@ class TestFeiEMD:
         if lazy:
             assert signal._lazy
             signal.compute(close_file=True)
-        assert isinstance(signal, hs.signals.EDSTEMSpectrum)
+        assert signal.metadata.Signal.signal_type == "EDS_TEM"
+        assert isinstance(signal, hs.signals.Signal1D)
         assert signal.axes_manager[0].name == "x"
         assert signal.axes_manager[0].size == 10
         assert signal.axes_manager[0].units == "nm"

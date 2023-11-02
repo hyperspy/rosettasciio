@@ -120,13 +120,21 @@ def test_dir_plugins():
         elif plugin["name"] == "ZSPY":
             pytest.importorskip("zarr")
         plugin_module = importlib.import_module(plugin_string)
-        if plugin["writes"] is False:
-            assert dir(plugin_module) == ["file_reader"]
-        elif plugin["name"] == "MSA":
+
+        if plugin["name"] == "MSA":
             assert dir(plugin_module) == [
                 "file_reader",
                 "file_writer",
                 "parse_msa_string",
             ]
+        elif plugin["name"] == "QuantumDetector":
+            assert dir(plugin_module) == [
+                "file_reader",
+                "load_mib_data",
+                "parse_exposures",
+                "parse_timestamps",
+            ]
+        elif plugin["writes"] is False:
+            assert dir(plugin_module) == ["file_reader"]
         else:
             assert dir(plugin_module) == ["file_reader", "file_writer"]

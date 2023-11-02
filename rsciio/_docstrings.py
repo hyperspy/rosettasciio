@@ -50,6 +50,11 @@ CHUNKS_DOC = """chunks : tuple of int or None, default=None
         space.
     """
 
+CHUNKS_READ_DOC = """chunks : tuple of int or None, default="auto"
+        The chunks used when reading the data lazily. This argument is passed
+        to the ``chunks`` of the :py:func:`dask.array.from_array` function.
+    """
+
 
 SHOW_PROGRESSBAR_DOC = """show_progressbar : bool, default=True
         Whether to show the progressbar or not.
@@ -68,6 +73,13 @@ ENDIANESS_DOC = """endianess : str, default="<"
     """
 
 
+NAVIGATION_SHAPE = """navigation_shape : tuple or None, default=None
+        Specify the shape of the navigation space. If ``None``, the navigation
+        shape will be infer from metadata and if not possible, the data will be
+        loaded as a stack with a navigation dimension equal to one.
+    """
+
+
 MMAP_DOC = """mmap_mode : {None, "r+", "r", "w+", "c"}, default=None
         Argument passed to :py:class:`numpy.memmap`. A memory-mapped array is
         stored on disk, and not directly loaded into memory.  However, it can be
@@ -76,7 +88,6 @@ MMAP_DOC = """mmap_mode : {None, "r+", "r", "w+", "c"}, default=None
         If ``None`` (default), the value is ``"r"`` when ``lazy=True``, otherwise
         it is ``"c"``.
     """
-
 
 COMPRESSION_HDF5_DOC = """compression : None, 'gzip', 'szip', 'lzf', default='gzip'
         Compression can significantly increase the saving speed. If file size is not

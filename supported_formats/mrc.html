@@ -411,6 +411,7 @@ document.write(`
 <li class="toctree-l1"><a class="reference internal" href="pantarhei.html">CEOS Panta Rhei (PRZ)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="phenom.html">Phenom ELID format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="protochips.html">Protochips logfile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantumdetector.html">Quantum Detector</a></li>
 <li class="toctree-l1"><a class="reference internal" href="renishaw.html">Renishaw</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ripple.html">Ripple format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="semper.html">SEMPER binary format (UNF)</a></li>
@@ -545,7 +546,9 @@ it is <code class="docutils literal notranslate"><span class="pre">&quot;c&quot;
 <dt><strong>endianess</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=”&lt;”</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">&quot;&lt;&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;&gt;&quot;</span></code>, depending on how the bits are written to
 the file.</p>
 </dd>
-<dt><strong>navigation_shape</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>Specify the shape of the navigation space.</p>
+<dt><strong>navigation_shape</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>Specify the shape of the navigation space. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, the navigation
+shape will be infer from metadata and if not possible, the data will be
+loaded as a stack with a navigation dimension equal to one.</p>
 </dd>
 </dl>
 </dd>

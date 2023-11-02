@@ -28,7 +28,7 @@ jobs:
             PYTHON_VERSION: '3.9'
             LABEL: '-minimum'
           - os: ubuntu
-            PYTHON_VERSION: '3.9'
+            PYTHON_VERSION: '3.12'
             LABEL: '-minimum-wo-hyperspy'
           - os: ubuntu
             PYTHON_VERSION: '3.9'

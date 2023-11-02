@@ -24,17 +24,18 @@
 import os
 from pathlib import Path
 
+import pytest
+
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
 import dask.array as da
 from datetime import datetime
 from dateutil import tz
 import gc
 import h5py
 import numpy as np
-import pytest
 import tempfile
 import shutil
-
-hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 from hyperspy.misc.test_utils import assert_deep_almost_equal
 

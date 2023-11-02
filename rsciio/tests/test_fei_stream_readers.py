@@ -27,6 +27,8 @@ in order to mimic the usage in the FEI EMD reader.
 import numpy as np
 import pytest
 
+pytest.importorskip("h5py")
+
 from rsciio.utils.fei_stream_readers import (
     array_to_stream,
     stream_to_array,

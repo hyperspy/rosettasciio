@@ -26,17 +26,14 @@ classifiers = [
 dependencies = [
   "dask[array]>=2021.3.1",
   "python-dateutil",
-  "h5py>=2.3",
   "imageio>=2.16",
   # Remove when https://github.com/imageio/imageio/issues/1044 is fixed
   "pillow<10.1.0",
-  "numba>=0.52",
   "numpy>=1.20.0",
   "pint>=0.8",
   "python-box>=6,<7",
   "pyyaml",
   "scipy>=1.5.0",
-  "sparse",
 ]
 dynamic = ["version"]
 
@@ -50,6 +47,7 @@ file = "COPYING.txt"
 
 [project.optional-dependencies]
 blockfile = ["scikit-image>=0.18"]
+hdf5 = ["h5py>=2.3"]
 mrcz = ["blosc>=1.5", "mrcz>=0.3.6"]
 scalebar_export = ["matplotlib-scalebar", "matplotlib>=3.5"]
 tiff = ["tifffile>=2020.2.16", "imagecodecs>=2020.1.31"]
@@ -74,12 +72,15 @@ docs = [
   "towncrier"
 ]
 all = [
+  "numba>=0.52",
   "rosettasciio[blockfile]",
+  "rosettasciio[hdf5]",
   "rosettasciio[mrcz]",
   "rosettasciio[scalebar_export]",
   "rosettasciio[tiff]",
   "rosettasciio[usid]",
   "rosettasciio[zspy]",
+  "sparse",
 ]
 dev = [
   "black",

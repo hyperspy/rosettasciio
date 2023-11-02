@@ -22,10 +22,9 @@ from datetime import datetime, timedelta
 import logging
 
 import numpy as np
-import numba
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
-
+from rsciio.utils.tools import jit_ifnumba
 
 _logger = logging.getLogger(__name__)
 
@@ -984,7 +983,7 @@ def _readcube(
     )
 
 
-@numba.njit(cache=True)
+@jit_ifnumba(cache=True)
 def _readframe_dense(
     rawdata,
     countup,
@@ -1097,7 +1096,7 @@ def _readframe_dense(
     return count, 0, has_em_image, valid, previous_y // height_norm
 
 
-@numba.njit(cache=True)
+@jit_ifnumba(cache=True)
 def _readframe_lazy(
     rawdata,
     _1,
@@ -1198,7 +1197,7 @@ def _readframe_lazy(
     return count, data, has_em_image, valid, previous_y // height_norm
 
 
-@numba.njit(cache=True)
+@jit_ifnumba(cache=True)
 def _skip_frame(rawdata):  # pragma: no cover
     count = 0
     previous_y = 0

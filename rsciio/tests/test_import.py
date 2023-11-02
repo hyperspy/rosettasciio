@@ -32,6 +32,7 @@ def test_rsciio_dir():
 
 
 def test_rsciio_utils():
+    pytest.importorskip("h5py", reason="h5py not installed")
     from rsciio.utils import hdf5 as utils_hdf5
 
     assert dir(utils_hdf5) == ["list_datasets_in_file", "read_metadata_from_file"]
@@ -43,6 +44,11 @@ def test_import_all():
     plugin_name_to_remove = []
 
     # Remove plugins which require not installed optional dependencies
+    try:
+        import h5py
+    except Exception:
+        plugin_name_to_remove.extend(["EMD", "HSPY", "NeXus"])
+
     try:
         import skimage
     except Exception:

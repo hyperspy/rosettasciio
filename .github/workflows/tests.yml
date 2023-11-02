@@ -68,10 +68,15 @@ jobs:
           pip install ${{ matrix.DEPENDENCIES }}
 
       - name: Install (HyperSpy dev)
-        if: "!contains(matrix.LABEL, 'wo-hyperspy')"
+        if: ${{ ! contains(matrix.LABEL, 'wo-hyperspy') }}
         # Need to install hyperspy dev until hyperspy 2.0 is released
         run: |
-          pip install https://github.com/hyperspy/hyperspy/archive/refs/heads/RELEASE_next_major.zip
+          pip install https://github.com/hyperspy/hyperspy/archive/RELEASE_next_major.zip
+
+      - name: Install (exspy)
+        if: ${{ ! contains(matrix.LABEL, '-minimum') && ! contains(matrix.LABEL, 'wo-hyperspy') }}
+        run: |
+          pip install https://github.com/hyperspy/exspy/archive/main.zip
 
       - name: Install
         shell: bash

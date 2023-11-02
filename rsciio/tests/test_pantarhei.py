@@ -23,6 +23,7 @@ import numpy as np
 import pytest
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+exspy = pytest.importorskip("exspy", reason="exspy not installed")
 from hyperspy.misc.test_utils import assert_deep_almost_equal
 
 
@@ -129,7 +130,7 @@ def test_save_load_cycle_new_signal_2D(tmp_path):
 def test_save_load_cycle_new_signal_EELS(tmp_path):
     fname = tmp_path / "test_file_new_signal2D.prz"
     data = np.arange(100).reshape(2, 5, 10)
-    s = hs.signals.EELSSpectrum(data)
+    s = exspy.signals.EELSSpectrum(data)
     s.save(fname)
     assert fname.is_file()
 
@@ -141,7 +142,7 @@ def test_save_load_cycle_new_signal_EELS(tmp_path):
 def test_metadata_STEM(tmp_path):
     fname = tmp_path / "test_file_new_signal_metadata_STEM.prz"
     data = np.arange(20).reshape(2, 10)
-    s = hs.signals.EELSSpectrum(data)
+    s = exspy.signals.EELSSpectrum(data)
     # Set some metadata
     md = {
         "Acquisition_instrument": {
@@ -176,7 +177,7 @@ def test_metadata_STEM(tmp_path):
 def test_metadata_TEM(tmp_path):
     fname = tmp_path / "test_file_new_signal_metadata_TEM.prz"
     data = np.arange(20).reshape(2, 10)
-    s = hs.signals.EELSSpectrum(data)
+    s = exspy.signals.EELSSpectrum(data)
     # Set some metadata
     md = {
         "Acquisition_instrument": {

@@ -834,7 +834,8 @@ def test_compression(compression, tmp_path):
 
 
 def test_strings_from_py2():
-    s = hs.datasets.example_signals.EDS_TEM_Spectrum()
+    exspy = pytest.importorskip("exspy", reason="exspy not installed")
+    s = exspy.data.EDS_TEM_FePt_nanoparticles()
     assert isinstance(s.metadata.Sample.elements, list)
 
 

@@ -1,0 +1,1 @@
+Update the test suite and the CI workflows to work with and without exspy installed

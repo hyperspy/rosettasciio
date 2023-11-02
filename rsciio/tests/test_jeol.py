@@ -21,7 +21,6 @@ from pathlib import Path
 import zipfile
 
 import numpy as np
-
 import pytest
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
@@ -272,11 +271,13 @@ def test_load_datacube_frames():
 
 @pytest.mark.parametrize("filename_as_string", [True, False])
 def test_load_eds_file(filename_as_string):
+    pytest.importorskip("exspy", reason="exspy not installed.")
     filename = TESTS_FILE_PATH / "met03.EDS"
     if filename_as_string:
         filename = str(filename)
     s = hs.load(filename, reader="JEOL")
-    assert isinstance(s, hs.signals.EDSTEMSpectrum)
+    assert s.metadata.Signal.signal_type == "EDS_TEM"
+    assert isinstance(s, hs.signals.Signal1D)
     assert s.data.shape == (2048,)
     axis = s.axes_manager[0]
     assert axis.name == "Energy"
@@ -606,8 +607,9 @@ def test_seq_eds_files(tmp_path):
             viewdata["PositionMM2"], viewdata_asw[i]["PositionMM2"]
         )
         assert viewdata["Memo"] == memo[i]
-    assert isinstance(s[1], hs.signals.EDSTEMSpectrum)
-    assert isinstance(s[2], hs.signals.EDSTEMSpectrum)
+    for s_ in s[1:3]:
+        assert s_.metadata.Signal.signal_type == "EDS_TEM"
+        assert isinstance(s_, hs.signals.Signal1D)
 
     # test with broken asw file
     fname = tmp_path / "1" / "1.ASW"
@@ -661,7 +663,8 @@ def test_seq_eds_files(tmp_path):
     with open(sub_dir / ("x" + test_files[1]), "wb") as f:
         f.write(data)
     s = hs.load(sub_dir / ("x" + test_files[1]), reader="JEOL")
-    assert isinstance(s, hs.signals.EDSSEMSpectrum)
+    assert s.metadata.Signal.signal_type == "EDS_SEM"
+    assert isinstance(s, hs.signals.Signal1D)
     assert "SEM" in s.metadata["Acquisition_instrument"]
 
 

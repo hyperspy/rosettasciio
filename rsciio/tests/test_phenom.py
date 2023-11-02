@@ -21,6 +21,8 @@ from pathlib import Path
 
 import pytest
 
+from rsciio.utils.tests import expected_is_binned
+
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 imagecodecs = pytest.importorskip(
     "imagecodecs", reason="skipping test_phenom tests, requires imagecodecs"
@@ -120,7 +122,7 @@ def test_elid(pathname):
             "size": 2048,
             "units": "keV",
             "navigate": False,
-            "is_binned": True,
+            "is_binned": expected_is_binned(),
         }
     }
     assert s[1].data.tolist()[0:300] == [
@@ -457,7 +459,7 @@ def test_elid(pathname):
             "size": 2048,
             "units": "keV",
             "navigate": False,
-            "is_binned": True,
+            "is_binned": expected_is_binned(),
         }
     }
     assert (
@@ -500,7 +502,7 @@ def test_elid(pathname):
             "size": 2048,
             "units": "keV",
             "navigate": False,
-            "is_binned": True,
+            "is_binned": expected_is_binned(),
         },
     }
     assert (
@@ -533,7 +535,7 @@ def test_elid(pathname):
             "size": 2048,
             "units": "keV",
             "navigate": False,
-            "is_binned": True,
+            "is_binned": expected_is_binned(),
         },
     }
     assert (
@@ -576,7 +578,7 @@ def test_elid(pathname):
             "size": 2048,
             "units": "keV",
             "navigate": False,
-            "is_binned": True,
+            "is_binned": expected_is_binned(),
         },
     }
     assert (
@@ -599,7 +601,7 @@ def test_elid(pathname):
             "size": 2048,
             "units": "keV",
             "navigate": False,
-            "is_binned": True,
+            "is_binned": expected_is_binned(),
         }
     }
 
@@ -640,7 +642,7 @@ def test_elid(pathname):
             "size": 2048,
             "units": "keV",
             "navigate": False,
-            "is_binned": True,
+            "is_binned": expected_is_binned(),
         }
     }
     assert (
@@ -709,7 +711,7 @@ def test_elid(pathname):
             "size": 2048,
             "units": "keV",
             "navigate": False,
-            "is_binned": True,
+            "is_binned": expected_is_binned(),
         },
     }
     assert (

@@ -21,6 +21,7 @@ from packaging.version import Version
 from pathlib import Path
 
 import dask.array as da
+from dask.diagnostics import ProgressBar
 import h5py
 
 from rsciio._docstrings import (
@@ -29,11 +30,12 @@ from rsciio._docstrings import (
     COMPRESSION_HDF5_NOTES_DOC,
     FILENAME_DOC,
     LAZY_DOC,
+    SHOW_PROGRESSBAR_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
 )
 from rsciio._hierarchical import HierarchicalWriter, HierarchicalReader, version
-from rsciio.utils.tools import get_file_handle
+from rsciio.utils.tools import get_file_handle, dummy_context_manager
 
 
 _logger = logging.getLogger(__name__)
@@ -70,11 +72,13 @@ class HyperspyWriter(HierarchicalWriter):
         self.ragged_kwds = {"dtype": h5py.special_dtype(vlen=signal["data"][0].dtype)}
 
     @staticmethod
-    def _store_data(data, dset, group, key, chunks):
+    def _store_data(data, dset, group, key, chunks, show_progressbar=True):
         if isinstance(data, da.Array):
             if data.chunks != dset.chunks:
                 data = data.rechunk(dset.chunks)
-            da.store(data, dset)
+            cm = ProgressBar if show_progressbar else dummy_context_manager
+            with cm():
+                da.store(data, dset)
         elif data.flags.c_contiguous:
             dset.write_direct(data)
         else:
@@ -132,6 +136,7 @@ def file_writer(
     compression="gzip",
     close_file=True,
     write_dataset=True,
+    show_progressbar=True,
     **kwds,
 ):
     """
@@ -150,6 +155,7 @@ def file_writer(
         If True, write the dataset, otherwise, don't write it. Useful to
         overwrite attributes (for example ``axes_manager``) only without having
         to write the whole dataset.
+    %s
     **kwds
         The keyword argument are passed to the
         :external+h5py:meth:`h5py.Group.require_dataset` function.
@@ -219,6 +225,7 @@ file_writer.__doc__ %= (
     SIGNAL_DOC,
     CHUNKS_DOC,
     COMPRESSION_HDF5_DOC,
+    SHOW_PROGRESSBAR_DOC,
     COMPRESSION_HDF5_NOTES_DOC,
 )
 

@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-
+import dask.array as da
 import numpy as np
 
 import rsciio.utils.rgb_tools as rt
@@ -31,6 +31,11 @@ class TestRGBTools:
 
     def test_rgbx2regular_array_corder_from_c(self):
         d = rt.rgbx2regular_array(self.data_c)
+        assert d.flags["C_CONTIGUOUS"]
+
+    def test_rgbx2regular_array_corder_from_c_dask(self):
+        data = da.from_array(self.data_c)
+        d = rt.rgbx2regular_array(data)
         assert d.flags["C_CONTIGUOUS"]
 
     def test_rgbx2regular_array_corder_from_f(self):

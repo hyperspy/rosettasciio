@@ -930,6 +930,16 @@ def test_chunking_saving_lazy(tmp_path, file):
     assert tuple([c[0] for c in s3.data.chunks]) == chunks
 
 
+@pytest.mark.parametrize("show_progressbar", (True, False))
+@zspy_marker
+def test_saving_show_progressbar(tmp_path, file, show_progressbar):
+    s = hs.signals.Signal2D(da.zeros((50, 100, 100))).as_lazy()
+
+    filename = tmp_path / file
+
+    s.save(filename, show_progressbar=show_progressbar)
+
+
 def test_saving_close_file(tmp_path):
     # Setup that we will reopen
     s = hs.signals.Signal1D(da.zeros((10, 100))).as_lazy()

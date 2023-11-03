@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=49.0", "wheel", "cython"]
+requires = ["setuptools>=64", "setuptools_scm>=8", "wheel", "cython"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -61,7 +61,8 @@ tests = [
   "pytest>=3.6",
   "pytest-xdist",
   "pytest-rerunfailures",
-  "pytest-cov"
+  "pytest-cov",
+  "setuptools_scm",
 ]
 docs = [
   "numpydoc",
@@ -101,15 +102,15 @@ testpaths = [
   "rsciio/tests",
 ]
 
-[tool.setuptools.dynamic]
-version = {attr = "rsciio._version.__version__"}
-
 [tool.setuptools.packages.find]
 include = ["rsciio*"]
 exclude = ["rsciio.tests.data*"]
 
 [tool.setuptools.package-data]
 "*" = ["*test_compilers.c", "*.yaml", "*registry.txt"]
+
+[tool.setuptools_scm]
+# Presence enables setuptools_scm, the version will be determine at build time from git
 
 [tool.towncrier]
 package = "rsciio"

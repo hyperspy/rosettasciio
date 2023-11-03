@@ -103,11 +103,13 @@ testpaths = [
 ]
 
 [tool.setuptools.packages.find]
+where = ["."] # default
 include = ["rsciio*"]
-exclude = ["rsciio.tests.data*"]
+# Excluding rsciio.tests.data folder is done in MANIFEST.in
+# because setuptools doesn't support it in pyproject.toml
 
 [tool.setuptools.package-data]
-"*" = ["*test_compilers.c", "*.yaml", "*registry.txt"]
+"rsciio" = ["*test_compilers.c", "*.yaml", "*registry.txt"]
 
 [tool.setuptools_scm]
 # Presence enables setuptools_scm, the version will be determine at build time from git

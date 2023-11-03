@@ -1066,7 +1066,7 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
     array.
     Whole parsing is placed in one function to reduce overhead of
     python function calls. For cleaner parsing logic, please, see
-    fast cython implementation at hyperspy/io_plugins/unbcf_fast.pyx
+    fast cython implementation at rsciio/bruker/unbcf_fast.pyx
 
     The method is only meant to be used if for some
     reason c (generated with cython) version of the parser is not compiled.
@@ -1393,9 +1393,7 @@ def bcf_reader(
 
 
 def bcf_images(obj_bcf):
-    """return hyperspy required list of dict with sem
-    images and metadata.
-    """
+    """Returns list of dict with sem images and metadata."""
     images_list = []
     for img in obj_bcf.header.image.images:
         obj_bcf.add_filename_to_general(img)
@@ -1410,16 +1408,14 @@ def bcf_images(obj_bcf):
 def bcf_hyperspectra(
     obj_bcf, index=None, downsample=None, cutoff_at_kV=None, lazy=False  # noqa
 ):
-    """Return hyperspy required list of dict with eds
-    hyperspectra and metadata.
-    """
+    """Returns list of dict with eds hyperspectra and metadata."""
     global warn_once
     if (fast_unbcf == False) and warn_once:
         _logger.warning(
             """unbcf_fast library is not present...
 Parsing BCF with Python-only backend, which is slow... please wait.
-If parsing is uncomfortably slow, first install cython, then reinstall hyperspy.
-For more information, check the 'Installing HyperSpy' section in the documentation."""
+If parsing is uncomfortably slow, first install cython, then reinstall RosettaSciIO.
+For more information, check the 'Installing RosettaSciIO' section in the documentation."""
         )
         warn_once = False
     if index is None:

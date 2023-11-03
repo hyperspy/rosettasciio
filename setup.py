@@ -88,27 +88,32 @@ if len(raw_extensions) > count_c_extensions(raw_extensions):
 else:
     extensions = no_cythonize(raw_extensions)
 
-
-# to compile or not to compile... depends if compiler is present:
-compiler = distutils.ccompiler.new_compiler()
-assert isinstance(compiler, distutils.ccompiler.CCompiler)
-distutils.sysconfig.customize_compiler(compiler)
-try:
-    compiler.compile([os.path.join(setup_path, "rsciio", "tests", "test_compilers.c")])
-except (CompileError, DistutilsPlatformError):
-    warnings.warn(
-        """WARNING: C compiler can't be found.
-Only slow pure python alternative functions will be available.
-To use fast implementation of some functions writen in cython/c either:
-a) check that you have compiler (EXACTLY SAME as your python
-distribution was compiled with) installed,
-b) use binary distribution of hyperspy (i.e. wheels, egg, (only osx and win)).
-Installation will continue in 5 sec..."""
-    )
+if os.environ.get("DISABLE_C_EXTENTIONS"):
+    # Explicitly disable
     extensions = []
-    from time import sleep
+else:
+    # to compile or not to compile... depends if compiler is present:
+    compiler = distutils.ccompiler.new_compiler()
+    assert isinstance(compiler, distutils.ccompiler.CCompiler)
+    distutils.sysconfig.customize_compiler(compiler)
+    try:
+        compiler.compile(
+            [os.path.join(setup_path, "rsciio", "tests", "test_compilers.c")]
+        )
+    except (CompileError, DistutilsPlatformError):
+        warnings.warn(
+            """WARNING: C compiler can't be found.
+    Only slow pure python alternative functions will be available.
+    To use fast implementation of some functions writen in cython/c either:
+    a) check that you have compiler (EXACTLY SAME as your python
+    distribution was compiled with) installed,
+    b) use binary distribution of hyperspy (i.e. wheels, egg, (only osx and win)).
+    Installation will continue in 5 sec..."""
+        )
+        extensions = []
+        from time import sleep
 
-    sleep(5)  # wait 5 secs for user to notice the message
+        sleep(5)  # wait 5 secs for user to notice the message
 
 
 class Recythonize(Command):

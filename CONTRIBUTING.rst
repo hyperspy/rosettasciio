@@ -167,6 +167,29 @@ GitHub CI workflow is set to fail when the doc build raises warnings.
     plugin.
 
 
+RosettaSciIO version
+====================
+The version of RosettaSciIO is defined by `setuptools_scm <https://setuptools-scm.readthedocs.io/>`_
+and retrieve by ``importlib.metadata`` at runtime in case of user installation.
+
+- Version at build time: the version is defined from the tag or the "distance from the tag".
+- Version at runtime: use the version of the package (``sdist`` or ``wheel``), which would have been
+  defined at build time. At runtime, the version is obtained using importlib.metadata as follow:
+
+  .. code-block:: python
+  
+    from importlib.metadata import version
+    __version__ = version("rosettasciio")
+
+- Version at runtime for editable installation: the version is defined from the tag or"the distance from the tag".
+
+.. note::
+
+  To define the version in development installation or at build time, ``setuptools_scm`` uses
+  the git history with all commits, and shallow checkout will provide incorrect version.
+  For user installation in site-package, ``setuptools_scm`` is not used.
+
+
 Maintenance
 ===========
 

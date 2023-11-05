@@ -68,10 +68,11 @@ docs = [
   "numpydoc",
   "pooch",
   "pydata-sphinx-theme>=0.13",
+  "setuptools_scm",
   "sphinx",
   "sphinx-favicon",
   "sphinxcontrib-towncrier",
-  "towncrier"
+  "towncrier",
 ]
 all = [
   "numba>=0.52",

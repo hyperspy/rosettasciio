@@ -3,45 +3,30 @@ name: Docs
 on: [push, pull_request]
 
 jobs:
-  build_doc_PR:
-    # This build is to automatically add comments on PR
-    name: PR comments
-    runs-on: ubuntu-latest
-    env:
-      BUILD_DEPS: python3-dev build-essential graphviz
-      LATEX_DEPS: dvipng latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: ericpre/sphinx-action@latest_sphinx
-        with:
-          pre-build-command: "apt-get update -y && apt-get install -y ${{ env.BUILD_DEPS }} ${{ env.LATEX_DEPS }} && pip install .'[all, docs]'"
-          build-command: make html
-          docs-folder: docs/
-
-      - uses: actions/upload-artifact@v3
-        with:
-          path: ./docs/_build/html/
-          name: docs_build
-
   build_docs:
-    # This build is to check links and update table of supported formats
-    name: Check links and update table
+    # This build is to make PR comments for the sphinx warning and check if
+    # web links are not broken 
+    name: Check links and make PR comments
     runs-on: ubuntu-latest
     env:
       DOCS_PATH: ./docs/_build/html/
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+
+      - name: Fetch tags upstream
+        # Needs to fetch the tags from upstream to get the
+        # correct version with setuptools_scm
+        run: |
+          git remote add upstream https://github.com/hyperspy/rosettasciio.git
+          git fetch --prune --unshallow
+          git fetch upstream --tags
 
       - uses: actions/setup-python@v4
         name: Install Python
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
-      - name: Install build docs
+      - name: Install RosettaSciIO
         shell: bash -l {0}
         run: |
           pip install .'[all, docs]'
@@ -52,13 +37,10 @@ jobs:
           # python generate_supported_format_table.py
           echo "Table of Supported Format"
           echo "========================="
-          cat ./docs/supported_formats/supported_formats.rst
+          cat ./docs/user_guide/supported_formats/supported_formats.rst
 
-      - name: Check links
-        shell: bash -l {0}
-        run: |
-          cd docs
-          make linkcheck
+      # Add sphinx warnings as PR comments
+      - uses: sphinx-doc/sphinx-problem-matcher@master
 
       - name: Build docs
         shell: bash -l {0}
@@ -70,6 +52,12 @@ jobs:
         with:
           path: ${{ env.DOCS_PATH }}
           name: docs_html
+
+      - name: Check links
+        shell: bash -l {0}
+        run: |
+          cd docs
+          make linkcheck
 
   push_docs:
     # This build is to push changes to gh-pages branch (https://hyperspy.org/rosettasciio)

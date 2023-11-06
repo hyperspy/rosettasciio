@@ -181,7 +181,7 @@ and retrieve by ``importlib.metadata`` at runtime in case of user installation.
     from importlib.metadata import version
     __version__ = version("rosettasciio")
 
-- Version at runtime for editable installation: the version is defined from the tag or"the distance from the tag".
+- Version at runtime for editable installation: the version is defined from the tag or "the distance from the tag".
 
 .. note::
 

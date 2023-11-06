@@ -20,11 +20,11 @@ To install, run the following::
 
     pip install rosettasciio
 
-To update rosettasciio to the latest release::
+To update RosettaSciIO to the latest release::
 
     pip install --upgrade rosettasciio
 
-To install a specific version of kikuchipy (say version 0.1)::
+To install a specific version of RosettaSciIO (say version 0.1)::
 
     pip install rosettasciio==0.1
 

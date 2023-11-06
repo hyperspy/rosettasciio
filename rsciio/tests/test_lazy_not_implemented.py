@@ -43,6 +43,8 @@ def test_lazy_not_implemented(plugin):
         fname = "fname.spx"
     if plugin == "phenom":
         pytest.importorskip("tifffile")
+    if plugin == "netcdf":
+        pytest.importorskip("scipy")
 
     file_reader = importlib.import_module(f"rsciio.{plugin}").file_reader
 

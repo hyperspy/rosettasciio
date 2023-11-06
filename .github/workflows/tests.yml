@@ -21,7 +21,7 @@ jobs:
             PYTHON_VERSION: '3.8'
             # Set pillow and scikit-image version to be compatible with imageio and scipy
             # matplotlib needs 3.5 to support markers in hyperspy 2.0 (requires `collection.set_offset_transform`)
-            DEPENDENCIES: matplotlib==3.5 numpy==1.20.0 scipy==1.5 imagecodecs==2020.1.31 tifffile==2020.2.16 dask[array]==2021.3.1 numba==0.52 imageio==2.16 pillow==8.3.2 scikit-image==0.18.0
+            DEPENDENCIES: matplotlib==3.5 numpy==1.20.0 imagecodecs==2020.1.31 tifffile==2020.2.16 dask[array]==2021.3.1 numba==0.52 imageio==2.16 pillow==8.3.2 scikit-image==0.18.0
             LABEL: '-oldest'
           # test minimum requirement
           - os: ubuntu

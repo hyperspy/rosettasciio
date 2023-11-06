@@ -617,21 +617,13 @@ def _axes_jeol_sightx(tiff, op, shape, names):
     elif (eos == "eosTEM") and (imaging["ModeString"] == "DIFF"):
 
         def wave_len(ht):
-            import scipy.constants as constants
+            m_e = 9.1093837015e-31
+            e_c = 1.602176634e-19
+            c = 299792458.0
+            h = 6.62607015e-34
 
-            momentum = (
-                2
-                * constants.m_e
-                * constants.elementary_charge
-                * ht
-                * (
-                    1
-                    + constants.elementary_charge
-                    * ht
-                    / (2 * constants.m_e * constants.c**2)
-                )
-            )
-            return constants.h / np.sqrt(momentum)
+            momentum = 2 * m_e * e_c * ht * (1 + e_c * ht / (2 * m_e * c**2))
+            return h / np.sqrt(momentum)
 
         camera_len = float(imaging["SelectorValue"])
         ht = float(op["ImageDescription"]["ElectronGun"]["AccelerationVoltage"])

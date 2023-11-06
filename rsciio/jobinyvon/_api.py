@@ -27,7 +27,6 @@ from pathlib import Path
 from copy import deepcopy
 
 import numpy as np
-from numpy.polynomial.polynomial import polyfit
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
 
@@ -388,7 +387,7 @@ class JobinYvonXMLReader:
                     else:
                         self._reverse_signal = False
                     if self._use_uniform_signal_axis:
-                        offset, scale = polyfit(
+                        offset, scale = np.polynomial.polynomial.polyfit(
                             np.arange(signal_array.size), signal_array, deg=1
                         )
                         signal_dict["offset"] = offset

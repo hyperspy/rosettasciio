@@ -50,6 +50,16 @@ def test_import_all():
         plugin_name_to_remove.extend(["EMD", "HSPY", "NeXus"])
 
     try:
+        import imageio
+    except Exception:
+        plugin_name_to_remove.extend(["Image"])
+
+    try:
+        import sparse
+    except Exception:
+        plugin_name_to_remove.extend(["EMD", "JEOL"])
+
+    try:
         import skimage
     except Exception:
         plugin_name_to_remove.append("Blockfile")
@@ -77,7 +87,7 @@ def test_import_all():
 
     IO_PLUGINS = list(
         filter(
-            lambda plugin: plugin["name"] not in plugin_name_to_remove,
+            lambda plugin: plugin["name"] not in set(plugin_name_to_remove),
             IO_PLUGINS,
         )
     )
@@ -125,6 +135,8 @@ def test_dir_plugins():
             pytest.importorskip("pyUSID")
         elif plugin["name"] == "ZSPY":
             pytest.importorskip("zarr")
+        elif plugin["name"] in ["EMD", "JEOL"]:
+            pytest.importorskip("sparse")
         plugin_module = importlib.import_module(plugin_string)
 
         if plugin["name"] == "MSA":

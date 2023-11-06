@@ -27,9 +27,6 @@ classifiers = [
 dependencies = [
   "dask[array]>=2021.3.1",
   "python-dateutil",
-  "imageio>=2.16",
-  # Remove when https://github.com/imageio/imageio/issues/1044 is fixed
-  "pillow<10.1.0",
   "numpy>=1.20.0",
   "pint>=0.8",
   "python-box>=6,<7",
@@ -47,9 +44,13 @@ file = "COPYING.txt"
 
 [project.optional-dependencies]
 blockfile = ["scikit-image>=0.18"]
+eds-stream = ["sparse"]
 hdf5 = ["h5py>=2.3"]
+# Remove pillow pinning when https://github.com/imageio/imageio/issues/1044 is fixed
+image = ["imageio>=2.16", "pillow<10.1.0"]
 mrcz = ["blosc>=1.5", "mrcz>=0.3.6"]
 scalebar_export = ["matplotlib-scalebar", "matplotlib>=3.5"]
+speed = ["numba>=0.52"]
 tiff = ["tifffile>=2020.2.16", "imagecodecs>=2020.1.31"]
 # Add sidpy dependency and pinning as workaround to fix pyUSID import
 # Remove sidpy dependency once https://github.com/pycroscopy/pyUSID/issues/85 is fixed.
@@ -74,15 +75,15 @@ docs = [
   "towncrier",
 ]
 all = [
-  "numba>=0.52",
   "rosettasciio[blockfile]",
+  "rosettasciio[eds-stream]",
   "rosettasciio[hdf5]",
   "rosettasciio[mrcz]",
   "rosettasciio[scalebar_export]",
+  "rosettasciio[speed]",
   "rosettasciio[tiff]",
   "rosettasciio[usid]",
   "rosettasciio[zspy]",
-  "sparse",
 ]
 dev = [
   "black",

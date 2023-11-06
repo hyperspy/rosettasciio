@@ -190,6 +190,18 @@ and retrieve by ``importlib.metadata`` at runtime in case of user installation.
   For user installation in site-package, ``setuptools_scm`` is not used.
 
 
+Dependencies
+============
+``RosettaSciIO`` strive to be easy to install with a minimum of dependencies and make
+binaries (non-pure python) dependencies optional where possible for the following reasons:
+
+- provide maximum flexibility in usability and avoid forcing user to install library that they don't need:
+  for user-cases, where only a file reader are necessary, it should be possible to install ``RosettaSciIO``
+  without installing large or non-pure python dependencies, which are not always easy to install.
+- Some binaries dependencies are not supported for all python implementation (``pypy`` or ``pyodide``)
+  or for all platforms.
+
+
 Maintenance
 ===========
 

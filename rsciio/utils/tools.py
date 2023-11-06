@@ -526,6 +526,9 @@ def jit_ifnumba(*args, **kwargs):
             kwargs["nopython"] = True
         return numba.jit(*args, **kwargs)
     except ImportError:
+        _logger.warning(
+            "Falling back to slow pure python code, because `numba` is not installed."
+        )
 
         def wrap1(func):
             def wrap2(*args2, **kwargs2):

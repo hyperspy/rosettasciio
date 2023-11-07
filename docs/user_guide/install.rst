@@ -16,7 +16,11 @@ With pip
 
 RosettaSciIO is availabe from the Python Package Index (PyPI), and can therefore be
 installed with `pip <https://pip.pypa.io/en/stable>`__.
-To install, run the following::
+To install with all optional dependencies::
+
+    pip install rosettasciio[all]
+
+To install without optional dependencies::
 
     pip install rosettasciio
 
@@ -80,14 +84,18 @@ With conda
 To install with conda, we recommend you install it in a
 :doc:`conda environment <conda:user-guide/tasks/manage-environments>` with the
 `Miniforge distribution <https://github.com/conda-forge/miniforge>`_.
-To create an environment and activate it, run the following::
+To create an environment and activate it::
 
    conda create --name rsciio python=3.11
    conda activate rsciio
 
-To install::
+To install rosettasciio with all dependencies::
 
     conda install rosettasciio
+
+To install rosettasciio without any dependencies::
+
+    conda install rosettasciio-base
 
 To update RosettaSciIO to the latest release::
 
@@ -97,13 +105,20 @@ To install a specific version of RosettaSciIO (say version 0.1)::
 
     conda install rosettasciio=0.1
 
+.. Note::
+
+    Conda used to be slow to install dependencies in large enviroment and mamba could be
+    used as a fast drop-in replacement. However, since conda release 23.10, mamba and conda
+    use the same "solver" and therefore takes similar time to "solve environment".
+    See the `conda blog <https://github.com/conda-forge/miniforge>`_ for more information.
+
 .. _install-with-hyperspy-bundle:
 
 With the HyperSpy Bundle
 ------------------------
 
-RosettaSciIO is available in the HyperSpy Bundle. See :ref:`hyperspy:hyperspy-bundle` for
-instructions.
+The HyperSpy Bundle comes with RosettaSciIO and all its extras pre-installed.
+See :ref:`hyperspy:hyperspy-bundle` for instructions.
 
 .. _install-from-source:
 

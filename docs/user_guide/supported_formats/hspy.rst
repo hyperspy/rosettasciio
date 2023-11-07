@@ -35,6 +35,9 @@ filename e.g.:
     >>> s = hs.signals.BaseSignal([0])
     >>> s.save('test.hdf5')
 
+.. note::
+   To read this format, the optional dependency ``h5py`` is required.
+
 
 When saving to ``.hspy``, all supported objects in the signal's
 :external+hyperspy:attr:`hyperspy.signal.BaseSignal.metadata` are stored. This includes lists, tuples

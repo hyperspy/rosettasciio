@@ -3,6 +3,9 @@
 NeXus data format
 -----------------
 
+.. note::
+   To read this format, the optional dependency ``h5py`` is required.
+
 Background
 ^^^^^^^^^^
 

@@ -105,7 +105,7 @@ To install a specific version of RosettaSciIO (say version 0.1)::
 
     conda install rosettasciio=0.1
 
-.. Note::
+.. note::
 
     Conda used to be slow to install dependencies in large enviroment and mamba could be
     used as a fast drop-in replacement. However, since conda release 23.10, mamba and conda

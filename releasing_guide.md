@@ -18,8 +18,6 @@ Create a PR to the `main` branch and go through the following steps:
   - creation of a zenodo record and the mining of a DOI (triggered by a new release)
 
 **Post-release action**
-- Increment the version and set it back to dev: `vx.y.z.dev0`
-- Update version in other branches when necessary
 - Merge the PR
 
 Follow-up

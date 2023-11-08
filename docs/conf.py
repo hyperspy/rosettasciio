@@ -43,6 +43,7 @@ extensions = [
 ]
 
 intersphinx_mapping = {
+    "conda": ("https://conda.io/projects/conda/en/latest", None),
     "dask": ("https://docs.dask.org/en/latest", None),
     "hyperspy": ("https://hyperspy.org/hyperspy-doc/current/", None),
     "h5py": ("https://docs.h5py.org/en/stable/", None),

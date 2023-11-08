@@ -21,18 +21,18 @@ jobs:
             PYTHON_VERSION: '3.8'
             # Set pillow and scikit-image version to be compatible with imageio and scipy
             # matplotlib needs 3.5 to support markers in hyperspy 2.0 (requires `collection.set_offset_transform`)
-            DEPENDENCIES: matplotlib==3.5 numpy==1.20.0 scipy==1.5 imagecodecs==2020.1.31 tifffile==2020.2.16 dask[array]==2021.3.1 numba==0.52 imageio==2.16 pillow==8.3.2 scikit-image==0.18.0
+            DEPENDENCIES: matplotlib==3.5 numpy==1.20.0 imagecodecs==2020.1.31 tifffile==2020.2.16 dask[array]==2021.3.1 numba==0.52 imageio==2.16 pillow==8.3.2 scikit-image==0.18.0
             LABEL: '-oldest'
           # test minimum requirement
           - os: ubuntu
             PYTHON_VERSION: '3.9'
             LABEL: '-minimum'
           - os: ubuntu
-            PYTHON_VERSION: '3.9'
-            LABEL: '-minimum-wo-hyperspy'
+            PYTHON_VERSION: '3.12'
+            LABEL: '-minimum-without-hyperspy'
           - os: ubuntu
             PYTHON_VERSION: '3.9'
-            LABEL: '-wo-hyperspy'
+            LABEL: '-without-hyperspy'
           - os: ubuntu
             PYTHON_VERSION: '3.8'
           - os: ubuntu
@@ -40,6 +40,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Fetch tags upstream
+        # Needs to fetch the tags from upstream to get the
+        # correct version with setuptools_scm
+        run: |
+          git remote add upstream https://github.com/hyperspy/rosettasciio.git
+          git fetch --prune --unshallow
+          git fetch upstream --tags
 
       - uses: actions/setup-python@v4
         name: Install Python
@@ -68,13 +76,13 @@ jobs:
           pip install ${{ matrix.DEPENDENCIES }}
 
       - name: Install (HyperSpy dev)
-        if: ${{ ! contains(matrix.LABEL, 'wo-hyperspy') }}
+        if: ${{ ! contains(matrix.LABEL, 'without-hyperspy') }}
         # Need to install hyperspy dev until hyperspy 2.0 is released
         run: |
           pip install https://github.com/hyperspy/hyperspy/archive/RELEASE_next_major.zip
 
       - name: Install (exspy)
-        if: ${{ ! contains(matrix.LABEL, '-minimum') && ! contains(matrix.LABEL, 'wo-hyperspy') }}
+        if: ${{ ! contains(matrix.LABEL, '-minimum') && ! contains(matrix.LABEL, 'without-hyperspy') }}
         run: |
           pip install https://github.com/hyperspy/exspy/archive/main.zip
 

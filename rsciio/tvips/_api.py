@@ -28,7 +28,6 @@ import dask.array as da
 import dask
 from dask.diagnostics import ProgressBar
 import pint
-from numba import njit
 
 from rsciio._docstrings import (
     FILENAME_DOC,
@@ -37,9 +36,13 @@ from rsciio._docstrings import (
     SIGNAL_DOC,
     SHOW_PROGRESSBAR_DOC,
 )
-from rsciio.utils.tools import DTBox, sarray2dict
-from rsciio.utils.tools import dummy_context_manager
-from rsciio.utils.tools import _UREG
+from rsciio.utils.tools import (
+    _UREG,
+    dummy_context_manager,
+    DTBox,
+    jit_ifnumba,
+    sarray2dict,
+)
 
 
 _logger = logging.getLogger(__name__)
@@ -198,7 +201,7 @@ def _find_auto_scan_start_stop(rotidxs):
         return startx, indx[-1] + 1
 
 
-@njit
+@jit_ifnumba
 def _guess_scan_index_grid(rotidx, start, stop):
     indxs = np.zeros(rotidx[stop], dtype=np.int64)
     rotidx = rotidx[start : stop + 1]

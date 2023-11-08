@@ -7,6 +7,9 @@ EMD stands for “Electron Microscopy Dataset”. It is a subset of the open sou
 HDF5 wrapper format. N-dimensional data arrays of any standard type can be
 stored in an HDF5 file, as well as tags and other metadata.
 
+.. note::
+   To read this format, the optional dependency ``h5py`` is required.
+
 .. _emd_ncem-format:
 
 EMD (NCEM)
@@ -73,6 +76,9 @@ to decrease the data size in memory.
     Currently, only lazy uncompression rather than lazy loading is implemented.
     This means that it is not currently possible to read EDS SI Velox EMD files
     with size bigger than the available memory.
+
+.. note::
+   To load EDS data, the optional dependency ``sparse`` is required.
 
 .. warning::
 

@@ -14,6 +14,8 @@ It is therefore highly discouraged to use any general image format to store data
 for analysis purposes (with the exception of the :ref:`tiff-format`, which uses
 the separate ``tiffile`` library).
 
+.. note::
+   To read this format, the optional dependency ``imageio`` is required.
 
 API functions
 ^^^^^^^^^^^^^
@@ -33,6 +35,10 @@ arguments:
     >>> from rsciio.image import file_writer
     >>> file_writer('file.jpg', signal, scalebar=True)
     >>> file_writer('file.jpg', signal, scalebar=True, scalebar_kwds={'location':'lower right'})
+
+.. note::
+   To add ``scalebar``, the optional dependency ``matplotlib-scalebar`` is
+   required.
 
 In the example above, the image is created using
 :py:func:`~.matplotlib.pyplot.imshow`, and additional keyword arguments can be

@@ -18,9 +18,10 @@
 
 from packaging.version import Version
 
-import imageio
 import numpy as np
 import pytest
+
+imageio = pytest.importorskip("imageio")
 
 from rsciio.image import file_writer
 

@@ -167,6 +167,41 @@ GitHub CI workflow is set to fail when the doc build raises warnings.
     plugin.
 
 
+RosettaSciIO version
+====================
+The version of RosettaSciIO is defined by `setuptools_scm <https://setuptools-scm.readthedocs.io/>`_
+and retrieve by ``importlib.metadata`` at runtime in case of user installation.
+
+- Version at build time: the version is defined from the tag or the "distance from the tag".
+- Version at runtime: use the version of the package (``sdist`` or ``wheel``), which would have been
+  defined at build time. At runtime, the version is obtained using importlib.metadata as follow:
+
+  .. code-block:: python
+  
+    from importlib.metadata import version
+    __version__ = version("rosettasciio")
+
+- Version at runtime for editable installation: the version is defined from the tag or "the distance from the tag".
+
+.. note::
+
+  To define the version in development installation or at build time, ``setuptools_scm`` uses
+  the git history with all commits, and shallow checkout will provide incorrect version.
+  For user installation in site-package, ``setuptools_scm`` is not used.
+
+
+Dependencies
+============
+``RosettaSciIO`` strive to be easy to install with a minimum of dependencies and depends solely on
+standard library modules, numpy and dask. Non-pure python (binaries) dependencies are optional for
+the following reasons:
+
+- provide maximum flexibility in usability and avoid forcing user to install library that they don't need:
+  for user-cases, where only a file reader are necessary, it should be possible to install ``RosettaSciIO``
+  without installing large or non-pure python dependencies, which are not always easy to install.
+- Some binaries dependencies are not supported for all python implementation (``pypy`` or ``pyodide``)
+  or for all platforms.
+
 Maintenance
 ===========
 

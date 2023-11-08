@@ -42,7 +42,7 @@ _logger = logging.getLogger(__name__)
 _PATH_DOCSTRING = """path : str or bytes
             The path to the ``mib`` file, otherwise the memory buffer
             of the ``mib`` file. Lazy loading is not supported with memory
-            buffer
+            buffer.
         """
 
 _FIRST_LAST_FRAME = """first_frame, last_frame : int or None, default=None
@@ -210,12 +210,19 @@ def load_mib_data(
     %s
     %s
     %s
+    mib_prop : ``MIBProperties``, default=None
+        The ``MIBProperties`` instance of the file. If None, it will be
+        parsed from the file.
+    return_headers : bool, default=False
+        If True, also return headers.
+    print_info : bool, default=False
+        If True, display information when loading the file.
     return_mmap : bool
         If True, return the py:func:`numpy.memmap` object. Default is True.
 
     Returns
     -------
-    data : numpy.ndarray or dask.array.Array of numpy.memmap
+    numpy.ndarray or dask.array.Array or numpy.memmap
         The data from the mib reshaped according to the ``navigation_shape``
         argument.
 
@@ -385,7 +392,7 @@ def parse_exposures(headers, max_index=10000):
 
     Returns
     -------
-    exposures : list
+    list
         The exposure in ms of each frame.
 
     Examples
@@ -431,7 +438,7 @@ def parse_timestamps(headers, max_index=10000):
 
     Returns
     -------
-    timestamps : list
+    list
         The timestamp of each frame.
 
     Examples
@@ -476,7 +483,7 @@ def file_reader(
     print_info=False,
 ):
     """
-    Read a Quantum Detectors ``mib`` file
+    Read a Quantum Detectors ``mib`` file.
 
     Parameters
     ----------
@@ -491,8 +498,8 @@ def file_reader(
 
     %s
 
-    Note
-    ----
+    Notes
+    -----
     In case of interrupted acquisition, only the completed lines are read and
     the incomplete line are discarded.
 

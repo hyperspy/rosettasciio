@@ -9,7 +9,24 @@ jobs:
     env:
       PYTHON_VERSION: '3.10'
     steps:
+      - name: Checkout tags upstream
+        uses: actions/checkout@v4
+        with:
+          # Needs to fetch the tags from upstream to get the
+          # correct version with setuptools_scm
+          repository: hyperspy/rosettasciio
+          fetch-depth: 1
+          fetch-tags: true
+
       - uses: actions/checkout@v4
+
+      - name: Fetch tags upstream
+        # Needs to fetch the tags from upstream to get the
+        # correct version with setuptools_scm
+        run: |
+          git remote add upstream https://github.com/hyperspy/rosettasciio.git
+          git fetch --prune --unshallow
+          git fetch upstream --tags
 
       - uses: actions/setup-python@v4
         name: Install Python
@@ -67,6 +84,10 @@ jobs:
           # release otherwise hyperspy install a version and this dist is ignored
           pip uninstall --yes rosettasciio
           pip install --pre --find-links dist rosettasciio[all,tests]
+
+      - name: Pip list
+        run: |
+          pip list
 
       - name: Test distribution
         run: |

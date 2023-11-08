@@ -21,12 +21,13 @@ from pathlib import Path
 import sys
 import time
 
-import dask.array as da
-import h5py
-import numpy as np
 import pytest
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
+import dask.array as da
+import h5py
+import numpy as np
 
 from hyperspy.axes import DataAxis, UniformDataAxis, FunctionalDataAxis, AxesManager
 from hyperspy.decorators import lazifyTestClass

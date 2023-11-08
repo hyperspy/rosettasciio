@@ -1,13 +1,15 @@
 name: Release
 
 # This workflow builds the wheels "on tag".
-# If run from the hyperspy/hyperspy repository, the wheels will be uploaded to pypi ;
+# If run from the hyperspy/rosettasciio repository, the wheels will be uploaded to pypi ;
 # otherwise, the wheels will be available as a github artifact.
+# Can also run on "workflow dispatch" to test building wheels
 on:
   push:
     # Sequence of patterns matched against refs/tags
     tags:
     - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+  workflow_dispatch:
 
 jobs:
   build_wheels:
@@ -82,6 +84,20 @@ jobs:
       with:
         path: dist/*.tar.gz
 
+  pure_python_wheel:
+    # Build pure python without C extention to be used by pyodide
+    name: Make pure python wheel
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build pure python wheel
+      run: DISABLE_C_EXTENTIONS=1 pipx run build --wheel
+
+    - uses: actions/upload-artifact@v3
+      with:
+        path: dist/*.whl
+
   upload_to_pypi:
     needs: [build_wheels, make_sdist]
     runs-on: ubuntu-latest
@@ -106,7 +122,7 @@ jobs:
       working-directory: dist
 
     - uses: pypa/gh-action-pypi-publish@release/v1
-      if: github.repository_owner == 'hyperspy'
+      if: ${{ startsWith(github.ref, 'refs/tags/') && github.repository_owner == 'hyperspy' }}
       # See https://docs.pypi.org/trusted-publishers/using-a-publisher/
 
   create_release:

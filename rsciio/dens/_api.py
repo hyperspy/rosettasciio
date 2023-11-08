@@ -19,7 +19,6 @@
 
 import numpy as np
 import os
-import scipy
 from datetime import datetime
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
@@ -94,13 +93,9 @@ def file_reader(filename, lazy=False):
     for rollover in 1 + np.where(np.diff(times) < 0)[0]:
         times[rollover:] += 60 * 60 * 24
     # Raw data is not necessarily grid aligned. Interpolate onto grid.
-    dt = np.diff(times).mean()
-    temp = rawdata[1]
-    interp = scipy.interpolate.interp1d(
-        times, temp, copy=False, assume_sorted=True, bounds_error=False
+    offset, scale = np.polynomial.polynomial.polyfit(
+        np.arange(times.size), times, deg=1
     )
-    interp_axis = times[0] + dt * np.array(range(len(times)))
-    temp_interp = interp(interp_axis)
 
     metadata = {
         "General": {
@@ -113,18 +108,18 @@ def file_reader(filename, lazy=False):
 
     axes = [
         {
-            "size": len(temp_interp),
+            "size": times.size,
             "index_in_array": 0,
             "name": "Time",
-            "scale": dt,
-            "offset": times[0],
+            "scale": scale,
+            "offset": offset,
             "units": "s",
             "navigate": False,
         }
     ]
 
     dictionary = {
-        "data": temp_interp,
+        "data": rawdata[1],
         "axes": axes,
         "metadata": metadata,
         "original_metadata": {"DENS_header": original_metadata},

@@ -5,7 +5,6 @@ Cut a Release
 Create a PR to the `main` branch and go through the following steps:
 
 **Preparation**
-- Bump version in `rsciio/_version.py`
 - Update and check changelog in `CHANGES.rst`: run `towncrier build` (to preview, run `towncrier build --draft`)
 - (optional) check conda-forge and wheels build. Pushing a tag to a fork will run the release workflow. It will not upload to pypi, because it is only enabled from the `hyperspy` organisation
 - Let that PR collect comments for a day to ensure that other maintainers are comfortable with releasing
@@ -31,6 +30,7 @@ Follow-up
 
 Additional information
 ======================
+- There is no need to update the version because it is defined at build time using `setuptools_scm`.
 - In case a release workflow fails, it is possible to force push a tag (after fixing the workflow is necessary).
 - It is best practise to avoid deleting/adding packages to pypi and use this workflow instead. On pypi, packages can be deleted but can't be updated - when a package is deleted, it will not be possible to upload one with the same name.
 - Zenodo entry can't be removed. As the Zenodo entry is created on the GitHub release creating, it is best to create the release as the last step, to avoid creating uncessary Zenodo entry when for example, the release workflow fails.

@@ -3,6 +3,10 @@
 Tagged image file format (TIFF)
 -------------------------------
 
+
+.. note::
+   To read this format, the optional dependency ``tifffile`` is required.
+
 RosettaSciIO can read and write 2D and 3D ``.tiff`` files using using
 Christoph Gohlke's `tifffile <https://pypi.org/project/tifffile/>`__ library.
 In particular, it supports reading and

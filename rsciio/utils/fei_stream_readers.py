@@ -20,7 +20,7 @@ import numpy as np
 import dask.array as da
 import sparse
 
-from numba import njit
+from rsciio.utils.tools import jit_ifnumba
 
 
 class DenseSliceCOO(sparse.COO):
@@ -35,7 +35,7 @@ class DenseSliceCOO(sparse.COO):
             return obj
 
 
-@njit(cache=True)
+@jit_ifnumba(cache=True)
 def _stream_to_sparse_COO_array_sum_frames(
     stream_data, last_frame, shape, channels, rebin_energy=1, first_frame=0
 ):  # pragma: no cover
@@ -123,7 +123,7 @@ def _stream_to_sparse_COO_array_sum_frames(
     return coords, data, final_shape
 
 
-@njit(cache=True)
+@jit_ifnumba(cache=True)
 def _stream_to_sparse_COO_array(
     stream_data, last_frame, shape, channels, rebin_energy=1, first_frame=0
 ):  # pragma: no cover
@@ -261,7 +261,7 @@ def stream_to_sparse_COO_array(
     return dask_sparse
 
 
-@njit(cache=True)
+@jit_ifnumba(cache=True)
 def _fill_array_with_stream_sum_frames(
     spectrum_image, stream, first_frame, last_frame, rebin_energy=1
 ):  # pragma: no cover
@@ -289,7 +289,7 @@ def _fill_array_with_stream_sum_frames(
             navigation_index += 1
 
 
-@njit(cache=True)
+@jit_ifnumba(cache=True)
 def _fill_array_with_stream(
     spectrum_image, stream, first_frame, last_frame, rebin_energy=1
 ):  # pragma: no cover
@@ -386,7 +386,7 @@ def stream_to_array(
     return spectrum_image
 
 
-@njit(cache=True)
+@jit_ifnumba(cache=True)
 def array_to_stream(array):  # pragma: no cover
     """Convert an array to a FEI stream
 

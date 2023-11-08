@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=49.0", "wheel", "cython"]
+requires = ["setuptools>=64", "setuptools_scm>=8", "wheel", "cython"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -18,6 +18,7 @@ classifiers = [
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Operating System :: Microsoft :: Windows",
   "Operating System :: POSIX",
   "Operating System :: Unix",
@@ -26,17 +27,10 @@ classifiers = [
 dependencies = [
   "dask[array]>=2021.3.1",
   "python-dateutil",
-  "h5py>=2.3",
-  "imageio>=2.16",
-  # Remove when https://github.com/imageio/imageio/issues/1044 is fixed
-  "pillow<10.1.0",
-  "numba>=0.52",
   "numpy>=1.20.0",
   "pint>=0.8",
   "python-box>=6,<7",
   "pyyaml",
-  "scipy>=1.5.0",
-  "sparse",
 ]
 dynamic = ["version"]
 
@@ -50,8 +44,13 @@ file = "COPYING.txt"
 
 [project.optional-dependencies]
 blockfile = ["scikit-image>=0.18"]
+eds-stream = ["sparse"]
+hdf5 = ["h5py>=2.3"]
+# Remove pillow pinning when https://github.com/imageio/imageio/issues/1044 is fixed
+image = ["imageio>=2.16", "pillow<10.1.0"]
 mrcz = ["blosc>=1.5", "mrcz>=0.3.6"]
 scalebar_export = ["matplotlib-scalebar", "matplotlib>=3.5"]
+speed = ["numba>=0.52"]
 tiff = ["tifffile>=2020.2.16", "imagecodecs>=2020.1.31"]
 # Add sidpy dependency and pinning as workaround to fix pyUSID import
 # Remove sidpy dependency once https://github.com/pycroscopy/pyUSID/issues/85 is fixed.
@@ -62,21 +61,26 @@ tests = [
   "pytest>=3.6",
   "pytest-xdist",
   "pytest-rerunfailures",
-  "pytest-cov"
+  "pytest-cov",
+  "setuptools_scm",
 ]
 docs = [
   "numpydoc",
   "pooch",
   "pydata-sphinx-theme>=0.13",
+  "setuptools_scm",
   "sphinx",
   "sphinx-favicon",
   "sphinxcontrib-towncrier",
-  "towncrier"
+  "towncrier",
 ]
 all = [
   "rosettasciio[blockfile]",
+  "rosettasciio[eds-stream]",
+  "rosettasciio[hdf5]",
   "rosettasciio[mrcz]",
   "rosettasciio[scalebar_export]",
+  "rosettasciio[speed]",
   "rosettasciio[tiff]",
   "rosettasciio[usid]",
   "rosettasciio[zspy]",
@@ -99,15 +103,17 @@ testpaths = [
   "rsciio/tests",
 ]
 
-[tool.setuptools.dynamic]
-version = {attr = "rsciio._version.__version__"}
-
 [tool.setuptools.packages.find]
+where = ["."] # default
 include = ["rsciio*"]
-exclude = ["rsciio.tests.data*"]
+# Excluding rsciio.tests.data folder is done in MANIFEST.in
+# because setuptools doesn't support it in pyproject.toml
 
 [tool.setuptools.package-data]
-"*" = ["*test_compilers.c", "*.yaml", "*registry.txt"]
+"rsciio" = ["*test_compilers.c", "*.yaml", "*registry.txt"]
+
+[tool.setuptools_scm]
+# Presence enables setuptools_scm, the version will be determine at build time from git
 
 [tool.towncrier]
 package = "rsciio"

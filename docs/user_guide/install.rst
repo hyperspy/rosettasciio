@@ -110,7 +110,7 @@ To install a specific version of RosettaSciIO (say version 0.1)::
     Conda used to be slow to install dependencies in large enviroment and mamba could be
     used as a fast drop-in replacement. However, since conda release 23.10, mamba and conda
     use the same "solver" and therefore takes similar time to "solve environment".
-    See the `conda blog <https://github.com/conda-forge/miniforge>`_ for more information.
+    See the `conda blog <https://conda.org/blog/2023-11-06-conda-23-10-0-release>`_ for more information.
 
 .. _install-with-hyperspy-bundle:
 

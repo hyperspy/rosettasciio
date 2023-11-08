@@ -13,57 +13,44 @@ on:
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Build wheels on ${{ matrix.os }} ${{ matrix.CIBW_ARCHS }}
+    runs-on: ${{ matrix.os }}-latest
     env:
       CIBW_TEST_COMMAND: "pytest --pyargs rsciio"
       CIBW_TEST_EXTRAS: "tests"
-      CIBW_SKIP: "*-musllinux*"
+      # No need to build wheels for pypy because the pure python wheels can be used
+      # PyPy documentation recommends no to build the C extension
+      CIBW_SKIP: "{pp*,*-musllinux*,*win32,*-manylinux_i686}"
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: "ubuntu-latest"
-            cibw_archs: "x86_64"
-          - os: "ubuntu-latest"
-            cibw_archs: "aarch64"
-          - os: "windows-latest"
-            cibw_archs: "AMD64"
-          - os: "macos-latest"
-            cibw_archs: "x86_64 universal2 arm64"
+          - os: "ubuntu"
+            CIBW_ARCHS: "x86_64"
+          - os: "ubuntu"
+            CIBW_ARCHS: "aarch64"
+          - os: "windows"
+            CIBW_ARCHS: "AMD64"
+          - os: "macos"
+            CIBW_ARCHS: "x86_64 universal2 arm64"
 
     steps:
       - name: Set up QEMU
-        if: contains(matrix.cibw_archs, 'aarch64')
+        if: contains(matrix.CIBW_ARCHS, 'aarch64')
         uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
 
       - uses: actions/checkout@v4
 
-      - name: Build wheels for CPython 3.11
+      - name: Build wheels for CPython
         uses: pypa/cibuildwheel@v2.16.2
         env:
-          CIBW_BUILD: "cp311-*"
-          CIBW_ARCHS: ${{ matrix.cibw_archs }}
+          CIBW_ARCHS: ${{ matrix.CIBW_ARCHS }}
 
-      - name: Build wheels for CPython 3.10
-        uses: pypa/cibuildwheel@v2.16.2
-        env:
-          CIBW_BUILD: "cp310-*"
-          CIBW_ARCHS: ${{ matrix.cibw_archs }}
-
-      - name: Build wheels for CPython 3.9
-        uses: pypa/cibuildwheel@v2.16.2
-        env:
-          CIBW_BUILD: "cp39-*"
-          CIBW_ARCHS: ${{ matrix.cibw_archs }}
-
-      - name: Build wheels for CPython 3.8
-        uses: pypa/cibuildwheel@v2.16.2
-        env:
-          CIBW_BUILD: "cp38-*"
-          CIBW_ARCHS: ${{ matrix.cibw_archs }}
+      - name: List wheels
+        run: |
+          ls ./wheelhouse
 
       - uses: actions/upload-artifact@v3
         with:

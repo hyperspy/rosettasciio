@@ -1,0 +1,626 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
+    <title>Interoperability &#8212; RosettaSciIO  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=365ca57ee442770a23c6" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=365ca57ee442770a23c6" />
+  <script src="../_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=365ca57ee442770a23c6"></script>
+
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/interoperability';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File Specifications" href="../file_specification/index.html" />
+    <link rel="prev" title="ZSpy - HyperSpy’s Zarr Specification" href="supported_formats/zspy.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo_rec_oct22.svg" class="logo__image only-light" alt="RosettaSciIO  documentation - Home"/>
+    <script>document.write(`<img src="../_static/logo_rec_dark_oct22.svg" class="logo__image only-dark" alt="RosettaSciIO  documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="index.html">
+                        User Guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../file_specification/index.html">
+                        File Specifications
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../api/index.html">
+                        API
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../contributing.html">
+                        Contributing
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../changes.html">
+                        Release Notes
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/hyperspy/rosettasciio" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://gitter.im/hyperspy/hyperspy" title="Gitter" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-gitter fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Gitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <label class="sidebar-toggle secondary-toggle" for="__secondary" tabindex="0">
+      <span class="fa-solid fa-outdent"></span>
+    </label>
+  
+</div>
+
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="index.html">
+                        User Guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../file_specification/index.html">
+                        File Specifications
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../api/index.html">
+                        API
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../contributing.html">
+                        Contributing
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../changes.html">
+                        Release Notes
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/hyperspy/rosettasciio" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://gitter.im/hyperspy/hyperspy" title="Gitter" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-gitter fa-lg" aria-hidden="true"></i></span>
+            <span class="sr-only">Gitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="supported_formats/index.html">Supported formats</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/blockfile.html">Blockfile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/bruker.html">Bruker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/de5.html">Direct Electron EMD (DE5)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/dens.html">DENSsolutions formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/digitalmicrograph.html">Gatan Digital Micrograph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/digitalsurf.html">DigitalSurf format (SUR &amp; PRO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/edax.html">EDAX TEAM/Genesis (SPC, SPD)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/emd.html">Electron Microscopy Dataset (EMD)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/empad.html">EMPAD format (XML &amp; RAW)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/hamamatsu.html">Hamamatsu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/hspy.html">HSpy - HyperSpy’s HDF5 Specification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/image.html">Image formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/jeol.html">JEOL Analyst Station (ASW, …)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/jobinyvon.html">Horiba Jobin Yvon LabSpec</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/mrc.html">MRC format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/mrcz.html">MRCZ format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/msa.html">EMSA/MSA format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/netcdf.html">NetCDF (EELSlab) format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/nexus.html">NeXus data format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/pantarhei.html">CEOS Panta Rhei (PRZ)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/phenom.html">Phenom ELID format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/protochips.html">Protochips logfile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/quantumdetector.html">Quantum Detector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/renishaw.html">Renishaw</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/ripple.html">Ripple format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/semper.html">SEMPER binary format (UNF)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/tia.html">FEI TIA (SER &amp; EMI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/tiff.html">Tagged image file format (TIFF)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/trivista.html">TriVista</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/tvips.html">TVIPS format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/usid.html">Universal Spectroscopy and Imaging Data (h5USID)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="supported_formats/zspy.html">ZSpy - HyperSpy’s Zarr Specification</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Interoperability</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Interoperability</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <section id="interoperability">
+<h1>Interoperability<a class="headerlink" href="#interoperability" title="Link to this heading">#</a></h1>
+<section id="reading-data-saved-by-rosettasciio-using-other-software-packages">
+<h2>Reading data saved by RosettaSciIO using other software packages<a class="headerlink" href="#reading-data-saved-by-rosettasciio-using-other-software-packages" title="Link to this heading">#</a></h2>
+<p>The following scripts may help reading data saved using RosettaSciIO using
+other software packages, in particular when using the <a class="reference internal" href="supported_formats/hspy.html#hspy-format"><span class="std std-ref">HyperSpy HDF5 format</span></a>.</p>
+<section id="importrpl-digital-micrograph-plugin">
+<span id="import-rpl"></span><h3>ImportRPL Digital Micrograph plugin<a class="headerlink" href="#importrpl-digital-micrograph-plugin" title="Link to this heading">#</a></h3>
+<p>This Digital Micrograph plugin is designed to import Ripple files into Digital Micrograph.
+It is used to ease data transit between DigitalMicrograph and e.g. HyperSpy without losing
+the calibration using the extra keywords that HyperSpy adds to the standard format.</p>
+<p>When executed, it will ask for 2 files:</p>
+<ol class="arabic simple">
+<li><p>The ripple file with the data format and calibrations.</p></li>
+<li><p>The data itself in <code class="docutils literal notranslate"><span class="pre">.raw</span></code> format.</p></li>
+</ol>
+<p>If a file with the same name and path as the ripple file exists, which has a
+<code class="docutils literal notranslate"><span class="pre">.raw</span></code> or <code class="docutils literal notranslate"><span class="pre">.bin</span></code> extension, it is opened directly without prompting.
+ImportRPL was written by Luiz Fernando Zagonel.</p>
+<p>Download <code class="docutils literal notranslate"><span class="pre">ImportRPL</span></code> from the <a class="reference external" href="https://github.com/hyperspy/ImportRPL">ImportRPL GitHub repository</a></p>
+</section>
+<section id="hdf5-reader-plugin-for-digital-micrograph">
+<span id="dm-import-hdf5"></span><h3>HDF5 reader plugin for Digital Micrograph<a class="headerlink" href="#hdf5-reader-plugin-for-digital-micrograph" title="Link to this heading">#</a></h3>
+<p>This Digital Micrograph plugin is designed to import HDF5 files and like the
+<cite>ImportRPL</cite> script above, it can be used to easily transfer data saved using
+RosettaSciIO to Digital Micrograph by using the HDF5 files following the
+<a class="reference internal" href="supported_formats/hspy.html#hspy-format"><span class="std std-ref">HyperSpy format specification</span></a> (<code class="docutils literal notranslate"><span class="pre">.hspy</span></code> extension).</p>
+<p>Download <code class="docutils literal notranslate"><span class="pre">gms_plugin_hdf5</span></code> from the <a class="reference external" href="https://github.com/niermann/gms_plugin_hdf5">gms_plugin_hdf5 GitHub repository</a>.</p>
+</section>
+<section id="readhyperspyh5-matlab-plugin">
+<span id="hyperspy-matlab"></span><h3>readHyperSpyH5 MATLAB Plugin<a class="headerlink" href="#readhyperspyh5-matlab-plugin" title="Link to this heading">#</a></h3>
+<p>This MATLAB script is designed to import HDF5 files saved using the <a class="reference internal" href="supported_formats/hspy.html#hspy-format"><span class="std std-ref">HyperSpy
+format specification</span></a> (<code class="docutils literal notranslate"><span class="pre">.hspy</span></code> extension).
+Like the Digital Micrograph script above, it is used to easily transfer data
+saved using RosettaSciIO to MATLAB, while e.g. retaining spatial calibration
+information from HyperSpy.</p>
+<p>Download <code class="docutils literal notranslate"><span class="pre">readHyperSpyH5</span></code> from the <a class="reference external" href="https://github.com/jat255/readHyperSpyH5">readHyperSpyH5 GitHub repository</a>.</p>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer">
+                  <!-- Previous / next buttons -->
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="supported_formats/zspy.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">ZSpy - HyperSpy’s Zarr Specification</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../file_specification/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">File Specifications</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-data-saved-by-rosettasciio-using-other-software-packages">Reading data saved by RosettaSciIO using other software packages</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#importrpl-digital-micrograph-plugin">ImportRPL Digital Micrograph plugin</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hdf5-reader-plugin-for-digital-micrograph">HDF5 reader plugin for Digital Micrograph</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#readhyperspyh5-matlab-plugin">readHyperSpyH5 MATLAB Plugin</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div class="tocsection sourcelink">
+    <a href="../_sources/user_guide/interoperability.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=365ca57ee442770a23c6"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=365ca57ee442770a23c6"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+  <p class="copyright">
+    
+      © Copyright 2022, HyperSpy Developers.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.14.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

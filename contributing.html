@@ -42,8 +42,8 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'contributing';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Changelog" href="changes.html" />
-    <link rel="prev" title="Ripple (Lispix) format description" href="file_specification/ripple-specs.html" />
+    <link rel="next" title="Release Notes" href="changes.html" />
+    <link rel="prev" title="Utility functions" href="api/utils.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -142,22 +142,8 @@
   <ul class="bd-navbar-elements navbar-nav">
     
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="supported_formats/index.html">
-                        Supported formats
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="api/index.html">
-                        API
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="interoperability.html">
-                        Interoperability
+                      <a class="nav-link nav-internal" href="user_guide/index.html">
+                        User Guide
                       </a>
                     </li>
                 
@@ -165,6 +151,13 @@
                     <li class="nav-item">
                       <a class="nav-link nav-internal" href="file_specification/index.html">
                         File Specifications
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="api/index.html">
+                        API
                       </a>
                     </li>
                 
@@ -178,7 +171,7 @@
 
                     <li class="nav-item">
                       <a class="nav-link nav-internal" href="changes.html">
-                        Changelog
+                        Release Notes
                       </a>
                     </li>
                 
@@ -292,22 +285,8 @@ document.write(`
   <ul class="bd-navbar-elements navbar-nav">
     
                     <li class="nav-item">
-                      <a class="nav-link nav-internal" href="supported_formats/index.html">
-                        Supported formats
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="api/index.html">
-                        API
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="interoperability.html">
-                        Interoperability
+                      <a class="nav-link nav-internal" href="user_guide/index.html">
+                        User Guide
                       </a>
                     </li>
                 
@@ -315,6 +294,13 @@ document.write(`
                     <li class="nav-item">
                       <a class="nav-link nav-internal" href="file_specification/index.html">
                         File Specifications
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="api/index.html">
+                        API
                       </a>
                     </li>
                 
@@ -328,7 +314,7 @@ document.write(`
 
                     <li class="nav-item">
                       <a class="nav-link nav-internal" href="changes.html">
-                        Changelog
+                        Release Notes
                       </a>
                     </li>
                 
@@ -583,6 +569,41 @@ GitHub CI workflow is set to fail when the doc build raises warnings.</p>
 plugin.</p>
 </div>
 </section>
+<section id="rosettasciio-version">
+<h2>RosettaSciIO version<a class="headerlink" href="#rosettasciio-version" title="Link to this heading">#</a></h2>
+<p>The version of RosettaSciIO is defined by <a class="reference external" href="https://setuptools-scm.readthedocs.io/">setuptools_scm</a>
+and retrieve by <code class="docutils literal notranslate"><span class="pre">importlib.metadata</span></code> at runtime in case of user installation.</p>
+<ul>
+<li><p>Version at build time: the version is defined from the tag or the “distance from the tag”.</p></li>
+<li><p>Version at runtime: use the version of the package (<code class="docutils literal notranslate"><span class="pre">sdist</span></code> or <code class="docutils literal notranslate"><span class="pre">wheel</span></code>), which would have been
+defined at build time. At runtime, the version is obtained using importlib.metadata as follow:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">importlib.metadata</span> <span class="kn">import</span> <span class="n">version</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="n">version</span><span class="p">(</span><span class="s2">&quot;rosettasciio&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>Version at runtime for editable installation: the version is defined from the tag or “the distance from the tag”.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To define the version in development installation or at build time, <code class="docutils literal notranslate"><span class="pre">setuptools_scm</span></code> uses
+the git history with all commits, and shallow checkout will provide incorrect version.
+For user installation in site-package, <code class="docutils literal notranslate"><span class="pre">setuptools_scm</span></code> is not used.</p>
+</div>
+</section>
+<section id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">RosettaSciIO</span></code> strive to be easy to install with a minimum of dependencies and depends solely on
+standard library modules, numpy and dask. Non-pure python (binaries) dependencies are optional for
+the following reasons:</p>
+<ul class="simple">
+<li><p>provide maximum flexibility in usability and avoid forcing user to install library that they don’t need:
+for user-cases, where only a file reader are necessary, it should be possible to install <code class="docutils literal notranslate"><span class="pre">RosettaSciIO</span></code>
+without installing large or non-pure python dependencies, which are not always easy to install.</p></li>
+<li><p>Some binaries dependencies are not supported for all python implementation (<code class="docutils literal notranslate"><span class="pre">pypy</span></code> or <code class="docutils literal notranslate"><span class="pre">pyodide</span></code>)
+or for all platforms.</p></li>
+</ul>
+</section>
 <section id="maintenance">
 <h2>Maintenance<a class="headerlink" href="#maintenance" title="Link to this heading">#</a></h2>
 <p>Please refer to the
@@ -602,12 +623,12 @@ for maintenance guidelines.</p>
                   <!-- Previous / next buttons -->
 <div class="prev-next-area">
     <a class="left-prev"
-       href="file_specification/ripple-specs.html"
+       href="api/utils.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Ripple (Lispix) format description</p>
+        <p class="prev-next-title">Utility functions</p>
       </div>
     </a>
     <a class="right-next"
@@ -615,7 +636,7 @@ for maintenance guidelines.</p>
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Changelog</p>
+        <p class="prev-next-title">Release Notes</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -643,6 +664,8 @@ for maintenance guidelines.</p>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#defining-new-rosettasciio-plugins">Defining new RosettaSciIO plugins</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rosettasciio-version">RosettaSciIO version</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dependencies">Dependencies</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#maintenance">Maintenance</a></li>
 </ul>
   </nav></div>

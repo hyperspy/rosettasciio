@@ -64,9 +64,8 @@ Table of contents
 .. toctree::
    :maxdepth: 2
 
-   supported_formats/index
-   api/index
-   interoperability
+   user_guide/index
    file_specification/index
+   api/index
    contributing
    changes

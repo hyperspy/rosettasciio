@@ -1,1 +1,0 @@
-Improve docstrings, check API links when building documentation and set GitHub CI to fail when link is broken

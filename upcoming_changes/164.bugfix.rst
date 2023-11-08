@@ -1,1 +1,0 @@
-Fix saving/reading ragged arrays with :ref:`hspy<hspy-format>`/:ref:`zspy<zspy-format>` plugins

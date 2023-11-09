@@ -9,18 +9,9 @@ jobs:
     env:
       PYTHON_VERSION: '3.10'
     steps:
-      - name: Checkout tags upstream
-        uses: actions/checkout@v4
-        with:
-          # Needs to fetch the tags from upstream to get the
-          # correct version with setuptools_scm
-          repository: hyperspy/rosettasciio
-          fetch-depth: 1
-          fetch-tags: true
-
       - uses: actions/checkout@v4
 
-      - name: Fetch tags upstream
+      - name: Checkout
         # Needs to fetch the tags from upstream to get the
         # correct version with setuptools_scm
         run: |

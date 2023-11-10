@@ -1,1 +1,0 @@
-Add option to show progress bar when saving lazy signals to :ref:`hspy<hspy-format>`/:ref:`zspy<zspy-format>` files

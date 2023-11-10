@@ -1,1 +1,0 @@
-Make ``numba`` and ``h5py`` optional dependencies

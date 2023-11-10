@@ -1,1 +1,0 @@
-Fixes slow loading of ragged :ref:`zspy<zspy-format>` arrays (#168)

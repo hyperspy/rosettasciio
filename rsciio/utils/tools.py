@@ -518,22 +518,21 @@ def get_file_handle(data, warn=True):
     return None
 
 
-def jit_ifnumba(*args, **kwargs):
+def jit_ifnumba(*decorator_args, **decorator_kwargs):
     try:
         import numba
 
-        if "nopython" not in kwargs:
-            kwargs["nopython"] = True
-        return numba.jit(*args, **kwargs)
+        decorator_kwargs.setdefault("nopython", True)
+        return numba.jit(*decorator_args, **decorator_kwargs)
     except ImportError:
         _logger.warning(
             "Falling back to slow pure python code, because `numba` is not installed."
         )
 
-        def wrap1(func):
-            def wrap2(*args2, **kwargs2):
-                return func(*args2, **kwargs2)
+        def wrap(func):
+            def wrapper_func(*args, **kwargs):
+                return func(*args, **kwargs)
 
-            return wrap2
+            return wrapper_func
 
-        return wrap1
+        return wrap

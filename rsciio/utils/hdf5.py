@@ -19,6 +19,7 @@
 #
 
 import h5py
+import json
 import pprint
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC
@@ -149,6 +150,21 @@ def list_datasets_in_file(
 
 
 list_datasets_in_file.__doc__ %= FILENAME_DOC
+
+
+def _get_keys_from_group(group):
+    # Return a list of ids of items contains in the group
+    return list(group.keys())
+
+
+def _parse_sub_data_group_metadata(sub_data_group):
+    metadata_array = sub_data_group["Metadata"][:, 0].T
+    mdata_string = metadata_array.tobytes().decode("utf-8")
+    return json.loads(mdata_string.rstrip("\x00"))
+
+
+def _parse_metadata(data_group, sub_group_key):
+    return _parse_sub_data_group_metadata(data_group[sub_group_key])
 
 
 __all__ = [

@@ -8,6 +8,8 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 
 .. towncrier release notes start
 
+.. _changes_0.2:
+
 0.2 (2023-11-09)
 ================
 
@@ -50,6 +52,7 @@ Maintenance
 - Update the test suite and the CI workflows to work with and without exspy installed (`#176 <https://github.com/hyperspy/rosettasciio/issues/176>`_)
 - Add badges that became available after first release (`#177 <https://github.com/hyperspy/rosettasciio/issues/177>`_)
 
+.. _changes_0.1:
 
 0.1 (2023-06-06)
 ================

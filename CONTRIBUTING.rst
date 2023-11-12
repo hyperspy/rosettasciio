@@ -140,8 +140,8 @@ information.
 
 **Documentation** should be added both as **docstring**, as well as to the **user guide**,
 for which a corresponding ``spamandeggs.rst`` file should be created in the directory
-``docs/supported_formats/`` and the format added to the lists in
-``docs/supported_formats/index.rst`` and ``docs/supported_formats/supported_formats.rst``.
+``docs/user_guide/supported_formats/`` and the format added to the lists in
+``docs/user_guide/supported_formats/index.rst`` and ``docs/user_guide/supported_formats/supported_formats.rst``.
 
 A few standard *docstring* components are provided by ``rsciio._docstrings.py`` and should
 be used (see existing plugins).
@@ -159,7 +159,7 @@ The *docstrings* are automatically added in the *user guide* using the following
 The *docstrings* follow `Numpy docstring style <https://numpydoc.readthedocs.io>`_. The
 links to RosettaSciIO API and other Sphinx documented API are checked when building the documentation
 and broken links will raise warnings. In order to identify potentially broken links during pull
-request review, the `Docs <https://github.com/hyperspy/rosettasciio/actions/workflows/docs.yml>`_
+request review, the `Documentation <https://github.com/hyperspy/rosettasciio/actions/workflows/Documentation.yml>`_
 GitHub CI workflow is set to fail when the doc build raises warnings.
 
 .. Note ::

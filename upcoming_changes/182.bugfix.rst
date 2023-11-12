@@ -1,0 +1,5 @@
+Improvement for installation without ``numba``:
+
+- Fix :ref:`tvips <tvips-format>` reader
+- Allow reading and writing :ref:`EMD NCEM <emd_ncem-format>` file
+- Fix running test suite without optional dependencies

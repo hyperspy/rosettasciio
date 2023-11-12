@@ -20,11 +20,13 @@ import os
 from collections.abc import Iterable
 from datetime import datetime, timedelta
 import logging
+import importlib
 
 import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 from rsciio.utils.tools import jit_ifnumba
+
 
 _logger = logging.getLogger(__name__)
 
@@ -329,6 +331,11 @@ def _read_pts(
         The dictionary used to create the signals, list of dictionaries of
         spectrum image and SEM/STEM image if read_em_image == True
     """
+    # Needs numba to read pts file
+    # We check at this stage to allow reading other JEOL file without numba
+    # it could be possible to read pts without numba (non-lazy data only)
+    # but there are limited benefit and it keep "things more simple"
+    importlib.import_module("numba")
 
     def _check_divisor(factor, number, string):
         if factor > 1 and number % factor != 0:

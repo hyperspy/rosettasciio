@@ -79,6 +79,7 @@ TEST_FILES2 = [
 
 
 def test_load_project():
+    pytest.importorskip("numba")
     # test load all elements of the project rawdata.ASW
     filename = TESTS_FILE_PATH / TEST_FILES[0]
     s = hs.load(filename, reader="JEOL")
@@ -144,6 +145,7 @@ def test_load_image():
 
 @pytest.mark.parametrize("SI_dtype", [np.int8, np.uint8])
 def test_load_datacube(SI_dtype):
+    pytest.importorskip("numba")
     # test load eds datacube
     filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[7]
     s = hs.load(filename, SI_dtype=SI_dtype, cutoff_at_kV=5, reader="JEOL")
@@ -164,6 +166,7 @@ def test_load_datacube(SI_dtype):
 
 
 def test_load_datacube_rebin_energy():
+    pytest.importorskip("numba")
     filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[7]
     s = hs.load(filename, cutoff_at_kV=0.1, reader="JEOL")
     s_sum = s.sum()
@@ -182,6 +185,7 @@ def test_load_datacube_rebin_energy():
 
 
 def test_load_datacube_cutoff_at_kV():
+    pytest.importorskip("numba")
     gc.collect()
     cutoff_at_kV = 10.0
     filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[7]
@@ -196,6 +200,7 @@ def test_load_datacube_cutoff_at_kV():
 
 
 def test_load_datacube_downsample():
+    pytest.importorskip("numba")
     downsample = 8
     filename = TESTS_FILE_PATH / TEST_FILES[0]
     s = hs.load(filename, downsample=1, reader="JEOL")[-1]
@@ -237,6 +242,7 @@ def test_load_datacube_downsample():
 
 
 def test_load_datacube_frames():
+    pytest.importorskip("numba")
     rebin_energy = 2048
     filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[7]
     s = hs.load(filename, sum_frames=True, rebin_energy=rebin_energy, reader="JEOL")
@@ -271,6 +277,7 @@ def test_load_datacube_frames():
 
 @pytest.mark.parametrize("filename_as_string", [True, False])
 def test_load_eds_file(filename_as_string):
+    pytest.importorskip("numba")
     pytest.importorskip("exspy", reason="exspy not installed.")
     filename = TESTS_FILE_PATH / "met03.EDS"
     if filename_as_string:
@@ -332,6 +339,7 @@ def test_shift_jis_encoding():
 
 
 def test_number_of_frames():
+    pytest.importorskip("numba")
     dir1 = TESTS_FILE_PATH / "Sample" / "00_View000"
     dir2 = TESTS_FILE_PATH / "InvalidFrame" / "Sample" / "00_Dummy-Data"
 
@@ -372,6 +380,7 @@ def test_number_of_frames():
 
 
 def test_em_image_in_pts():
+    pytest.importorskip("numba")
     dir1 = TESTS_FILE_PATH
     dir2 = TESTS_FILE_PATH / "InvalidFrame"
     dir2p = dir2 / "Sample" / "00_Dummy-Data"
@@ -454,6 +463,7 @@ def test_em_image_in_pts():
 
 
 def test_pts_lazy():
+    pytest.importorskip("sparse")
     dir2 = TESTS_FILE_PATH / "InvalidFrame"
     dir2p = dir2 / "Sample" / "00_Dummy-Data"
     s = hs.load(
@@ -478,6 +488,7 @@ def test_pts_lazy():
 
 
 def test_pts_frame_shift():
+    pytest.importorskip("sparse")
     file = TESTS_FILE_PATH2 / "Sample" / "00_Dummy-Data" / TEST_FILES2[16]
 
     # without frame shift
@@ -563,6 +574,7 @@ def test_pts_frame_shift():
 
 
 def test_broken_files(tmp_path):
+    pytest.importorskip("numba")
     TEST_BROKEN_FILES = ["test.asw", "test.pts", "test.img"]
     for _file in TEST_BROKEN_FILES:
         file = tmp_path / _file
@@ -669,6 +681,7 @@ def test_seq_eds_files(tmp_path):
 
 
 def test_frame_start_index(tmp_path):
+    pytest.importorskip("numba")
     file = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[7]
     frame_start_index_ref = [
         0,

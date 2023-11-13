@@ -269,9 +269,6 @@ def file_reader(
     metadata_file : str
         The filename of the metadata file.
 
-    Returns
-    -------
-    %s
     """
 
     if metadata_file is not None:
@@ -457,5 +454,4 @@ file_reader.__doc__ %= (
     NAVIGATION_SHAPE,
     DISTRIBUTED_DOC,
     CHUNKS_DOC,
-    RETURNS_DOC,
 )

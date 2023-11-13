@@ -60,7 +60,7 @@ object.
 
 This will automatically set the navigation shape based on the ``Scan - Size X`` and                                                   = 256
 ``Scan - Size Y`` as well as the ``Scan - Repeats`` and ``Scan - Point Repeats``
- parameters in the metadata file. The navigation shape can be overridden
+parameters in the metadata file. The navigation shape can be overridden
 by passing the ``navigation_shape`` argument to the ``file_reader`` function.
 
 

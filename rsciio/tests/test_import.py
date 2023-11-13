@@ -32,7 +32,7 @@ def test_rsciio_dir():
 
 
 def test_rsciio_utils():
-    pytest.importorskip("h5py", reason="h5py not installed")
+    pytest.importorskip("h5py")
     from rsciio.utils import hdf5 as utils_hdf5
 
     assert dir(utils_hdf5) == ["list_datasets_in_file", "read_metadata_from_file"]

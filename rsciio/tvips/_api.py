@@ -201,7 +201,7 @@ def _find_auto_scan_start_stop(rotidxs):
         return startx, indx[-1] + 1
 
 
-@jit_ifnumba
+@jit_ifnumba()
 def _guess_scan_index_grid(rotidx, start, stop):
     indxs = np.zeros(rotidx[stop], dtype=np.int64)
     rotidx = rotidx[start : stop + 1]

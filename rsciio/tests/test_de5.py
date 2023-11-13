@@ -24,7 +24,8 @@
 import numpy as np
 import pytest
 
-hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+hs = pytest.importorskip("hyperspy.api")
+pytest.importorskip("h5py")
 
 
 def test_de5_write_load_cycle(tmp_path):

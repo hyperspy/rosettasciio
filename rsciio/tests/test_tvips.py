@@ -319,10 +319,6 @@ def test_auto_scan_start_stop(rotators, expected):
 def test_guess_scan_index_grid(rotators, startstop, expected):
     if startstop is None:
         startstop = _find_auto_scan_start_stop(rotators)
-    # non jit
-    indices = _guess_scan_index_grid.py_func(rotators, startstop[0], startstop[1])
-    assert np.all(indices == expected)
-    # jit compiled
     indices = _guess_scan_index_grid(rotators, startstop[0], startstop[1])
     assert np.all(indices == expected)
 

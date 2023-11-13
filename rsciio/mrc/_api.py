@@ -141,7 +141,7 @@ def get_data_type(mode):
         raise ValueError(f"Unrecognised mode '{mode}'.")
 
 
-def read_de_metadata_file(filename):
+def read_de_metadata_file(filename, navigation_shape=None):
     """This reads the metadata ".txt" file that is saved alongside a DE .mrc file.
 
     This loads scan parameters such as
@@ -150,6 +150,8 @@ def read_de_metadata_file(filename):
     ----------
     filename : str
         The filename of the metadata file.
+    navigation_shape : tuple
+        The shape of the navigation axes.
 
     Returns
     -------
@@ -171,38 +173,53 @@ def read_de_metadata_file(filename):
     y = int(original_metadata["Scan - Size Y"])
     pr = int(original_metadata["Scan - Point Repeat"])
 
-    shape = np.array([pr, x, y, r])  # reverse order to what they are read
-    axes = []
-    axes_names = [
-        "repeats",
-        "x",
-        "y",
-        "repeats",
-    ][::-1]
-    axes_units = ["times", "nm", "nm", "s"][::-1]
-    axes_scales = [
-        1,
-        original_metadata["Specimen Pixel Size X (nanometers)"],
-        original_metadata["Specimen Pixel Size Y (nanometers)"],
-        original_metadata["Scan - Time (seconds)"]
-        + original_metadata["Scan - Repeat Delay (seconds)"],
-    ][::-1]
-    for i, s in enumerate(shape[::-1]):
-        ind = 0
-        if s != 1:
+    if navigation_shape is not None:
+        shape = navigation_shape[::-1]
+        axes = []
+        for i, s in enumerate(shape):
             axes_dict = {
-                "name": axes_names[i],
+                "name": "",
                 "size": s,
-                "units": axes_units[i],
+                "units": "",
                 "navigate": True,
-                "index_in_array": ind,
+                "index_in_array": i,
             }
-            if axes_scales[i] != -1:  # -1 means that the scale is not defined
-                axes_dict["scale"] = axes_scales[i]
-            else:
-                axes_dict["scale"] = 1
             axes.append(axes_dict)
-            ind += 1
+
+    else:
+        shape = np.array([pr, x, y, r])  # reverse order to what they are read
+        axes = []
+        axes_names = [
+            "repeats",
+            "x",
+            "y",
+            "repeats",
+        ][::-1]
+        axes_units = ["times", "nm", "nm", "s"][::-1]
+        axes_scales = [
+            1,
+            original_metadata["Specimen Pixel Size X (nanometers)"],
+            original_metadata["Specimen Pixel Size Y (nanometers)"],
+            original_metadata["Scan - Time (seconds)"]
+            + original_metadata["Scan - Repeat Delay (seconds)"],
+        ][::-1]
+        for i, s in enumerate(shape[::-1]):
+            ind = 0
+            if s != 1:
+                axes_dict = {
+                    "name": axes_names[i],
+                    "size": s,
+                    "units": axes_units[i],
+                    "navigate": True,
+                    "index_in_array": ind,
+                }
+                if axes_scales[i] != -1:  # -1 means that the scale is not defined
+                    axes_dict["scale"] = axes_scales[i]
+                else:
+                    axes_dict["scale"] = 1
+                axes.append(axes_dict)
+                ind += 1
+        shape = shape[shape != 1]  # removing the 1s from the dataset
 
     electron_gain = float(original_metadata.get("ADUs Per Electron Bin1x", 1))
     magnification = original_metadata.get("Instrument Project Magnification", None)
@@ -224,9 +241,6 @@ def read_de_metadata_file(filename):
         },
         "General": {"timestamp": timestamp},
     }
-
-    shape = shape[shape != 1]  # removing the 1s from the dataset
-
     return original_metadata, metadata, axes, tuple(shape)
 
 
@@ -252,6 +266,11 @@ def file_reader(
     %s
     %s
     %s
+    metadata_file : str
+        The filename of the metadata file.
+
+    Returns
+    -------
     %s
     """
 
@@ -261,7 +280,7 @@ def file_reader(
             metadata,
             navigation_axes,
             _navigation_shape,
-        ) = read_de_metadata_file(metadata_file)
+        ) = read_de_metadata_file(metadata_file, navigation_shape)
         if navigation_shape is None:
             navigation_shape = _navigation_shape
         original_metadata = {"de_metadata": de_metadata}
@@ -436,6 +455,7 @@ file_reader.__doc__ %= (
     MMAP_DOC,
     ENDIANESS_DOC,
     NAVIGATION_SHAPE,
-    RETURNS_DOC,
+    DISTRIBUTED_DOC,
     CHUNKS_DOC,
+    RETURNS_DOC,
 )

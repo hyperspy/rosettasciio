@@ -1,4 +1,4 @@
-Added the :py:func:`~rsciio.utils.distributed.memmap_distributed` function for loading a memmap file
+Added the :func:`~rsciio.utils.distributed.memmap_distributed` function for loading a memmap file
 from multiple processes.
 
 Added the arguments ``distributed`` and ``metadata_file`` to the .mrc file reader for loading metadata

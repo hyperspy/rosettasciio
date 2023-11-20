@@ -21,8 +21,8 @@ import os
 from pathlib import Path
 import yaml
 
-
-if Path(__file__).parent.parent.name == "site-packages":  # pragma: no cover
+folder_names = ["site-packages", "dist-packages"]
+if Path(__file__).parent.parent.name in folder_names:  # pragma: no cover
     # Tested in the "build" workflow on GitHub CI
     from importlib.metadata import version
 

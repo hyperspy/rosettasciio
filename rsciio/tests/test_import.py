@@ -20,14 +20,14 @@ import importlib
 
 import pytest
 
+import rsciio
+
 
 def test_import_version():
     from rsciio import __version__
 
 
 def test_rsciio_dir():
-    import rsciio
-
     assert dir(rsciio) == ["IO_PLUGINS", "__version__"]
 
 
@@ -39,8 +39,6 @@ def test_rsciio_utils():
 
 
 def test_import_all():
-    from rsciio import IO_PLUGINS
-
     plugin_name_to_remove = []
 
     # Remove plugins which require not installed optional dependencies
@@ -85,21 +83,19 @@ def test_import_all():
     except Exception:
         plugin_name_to_remove.append("ZSPY")
 
-    IO_PLUGINS = list(
+    IO_PLUGINS_ = list(
         filter(
             lambda plugin: plugin["name"] not in set(plugin_name_to_remove),
-            IO_PLUGINS,
+            rsciio.IO_PLUGINS,
         )
     )
 
-    for plugin in IO_PLUGINS:
+    for plugin in IO_PLUGINS_:
         importlib.import_module(plugin["api"])
 
 
 def test_format_name_aliases():
-    from rsciio import IO_PLUGINS
-
-    for reader in IO_PLUGINS:
+    for reader in rsciio.IO_PLUGINS:
         assert isinstance(reader["name"], str)
         assert isinstance(reader["name_aliases"], list)
         if reader["name_aliases"]:
@@ -119,40 +115,40 @@ def test_format_name_aliases():
         assert isinstance(reader["non_uniform_axis"], bool)
 
 
-def test_dir_plugins():
-    from rsciio import IO_PLUGINS
+@pytest.mark.parametrize("plugin", rsciio.IO_PLUGINS)
+def test_dir_plugins(plugin):
+    plugin_string = "rsciio.%s" % plugin["name"].lower()
+    # skip for missing optional dependencies
+    if plugin["name"] == "Blockfile":
+        pytest.importorskip("skimage")
+    elif plugin["name"] == "Image":
+        pytest.importorskip("imageio")
+    elif plugin["name"] == "MRCZ":
+        pytest.importorskip("mrcz")
+    elif plugin["name"] in ["TIFF", "Phenom"]:
+        pytest.importorskip("tifffile")
+    elif plugin["name"] == "USID":
+        pytest.importorskip("pyUSID")
+    elif plugin["name"] == "ZSPY":
+        pytest.importorskip("zarr")
+    elif plugin["name"] in ["EMD", "HSPY", "NeXus"]:
+        pytest.importorskip("h5py")
+    plugin_module = importlib.import_module(plugin_string)
 
-    for plugin in IO_PLUGINS:
-        plugin_string = "rsciio.%s" % plugin["name"].lower()
-        # skip for missing optional dependencies
-        if plugin["name"] == "Blockfile":
-            pytest.importorskip("skimage")
-        elif plugin["name"] == "MRCZ":
-            pytest.importorskip("mrcz")
-        elif plugin["name"] in ["TIFF", "Phenom"]:
-            pytest.importorskip("tifffile")
-        elif plugin["name"] == "USID":
-            pytest.importorskip("pyUSID")
-        elif plugin["name"] == "ZSPY":
-            pytest.importorskip("zarr")
-        elif plugin["name"] in ["EMD", "JEOL"]:
-            pytest.importorskip("sparse")
-        plugin_module = importlib.import_module(plugin_string)
-
-        if plugin["name"] == "MSA":
-            assert dir(plugin_module) == [
-                "file_reader",
-                "file_writer",
-                "parse_msa_string",
-            ]
-        elif plugin["name"] == "QuantumDetector":
-            assert dir(plugin_module) == [
-                "file_reader",
-                "load_mib_data",
-                "parse_exposures",
-                "parse_timestamps",
-            ]
-        elif plugin["writes"] is False:
-            assert dir(plugin_module) == ["file_reader"]
-        else:
-            assert dir(plugin_module) == ["file_reader", "file_writer"]
+    if plugin["name"] == "MSA":
+        assert dir(plugin_module) == [
+            "file_reader",
+            "file_writer",
+            "parse_msa_string",
+        ]
+    elif plugin["name"] == "QuantumDetector":
+        assert dir(plugin_module) == [
+            "file_reader",
+            "load_mib_data",
+            "parse_exposures",
+            "parse_timestamps",
+        ]
+    elif plugin["writes"] is False:
+        assert dir(plugin_module) == ["file_reader"]
+    else:
+        assert dir(plugin_module) == ["file_reader", "file_writer"]

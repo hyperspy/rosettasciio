@@ -114,6 +114,7 @@ include = ["rsciio*"]
 
 [tool.setuptools_scm]
 # Presence enables setuptools_scm, the version will be determine at build time from git
+fallback_version = "0.0+UNKNOWN"
 
 [tool.towncrier]
 package = "rsciio"

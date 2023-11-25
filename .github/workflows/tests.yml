@@ -79,12 +79,12 @@ jobs:
         if: ${{ ! contains(matrix.LABEL, 'without-hyperspy') }}
         # Need to install hyperspy dev until hyperspy 2.0 is released
         run: |
-          pip install https://github.com/hyperspy/hyperspy/archive/RELEASE_next_major.zip
+          pip install git+https://github.com/hyperspy/hyperspy.git@RELEASE_next_major
 
       - name: Install (exspy)
         if: ${{ ! contains(matrix.LABEL, '-minimum') && ! contains(matrix.LABEL, 'without-hyperspy') }}
         run: |
-          pip install https://github.com/hyperspy/exspy/archive/main.zip
+          pip install git+https://github.com/hyperspy/exspy.git
 
       - name: Install
         shell: bash

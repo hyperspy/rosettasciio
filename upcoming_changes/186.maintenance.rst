@@ -1,0 +1,1 @@
+Fix installing exspy/hyperspy on GitHub CI and test failing without optional dependencies

@@ -66,8 +66,8 @@ jobs:
 
       - name: Install HyperSpy (dev)
         run: |
-          pip install https://github.com/hyperspy/hyperspy/archive/RELEASE_next_major.zip
-          pip install https://github.com/hyperspy/exspy/archive/main.zip
+          pip install git+https://github.com/hyperspy/hyperspy.git@RELEASE_next_major
+          pip install git+https://github.com/hyperspy/exspy.git
 
       - name: Install distribution
         run: |

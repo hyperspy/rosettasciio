@@ -5,7 +5,10 @@ Cut a Release
 Create a PR to the `main` branch and go through the following steps:
 
 **Preparation**
-- Update and check changelog in `CHANGES.rst`: run `towncrier build` (to preview, run `towncrier build --draft`)
+- Prepare the release by running the `prepare_release.py` python script (e.g. `python prepare_release.py 0.2`) , which will do the following:
+  - update the release notes in `CHANGES.rst` by running `towncrier`,
+  - update the `setuptools_scm` fallback version in `pyproject.toml` (for a patch release, this will stay the same).
+- Check release notes
 - (optional) check conda-forge and wheels build. Pushing a tag to a fork will run the release workflow. It will not upload to pypi, because it is only enabled from the `hyperspy` organisation
 - Let that PR collect comments for a day to ensure that other maintainers are comfortable with releasing
 

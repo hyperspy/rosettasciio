@@ -17,22 +17,19 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 from importlib.metadata import version
-import logging
 import os
 from pathlib import Path
 import yaml
 
 
-_logger = logging.getLogger(__name__)
 IO_PLUGINS = []
 
 __version__ = version("rosettasciio")
 
-# For development version, `setuptools_scm` will be used at
-# build time to get the dev version:
-# - in case of missing vcs information, it will fallback to the
-#   version defined in pyproject.toml will be used
-# - in case of shallow checkout (pip install git+https://...)
+# For development version, `setuptools_scm` will be used at build time
+# to get the dev version, in case of missing vcs information (git archive,
+# shallow repository), the fallback version defined in pyproject.toml will
+# be used
 
 # if we have a editable install from a git repository try to use
 # `setuptools_scm` to find a more accurate version:

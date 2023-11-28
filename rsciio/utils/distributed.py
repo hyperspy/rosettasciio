@@ -27,7 +27,12 @@ def get_chunk_slice(
     block_size_limit=None,
     dtype=None,
 ):
-    """Get chunk slices for the slice_memmap function.
+    """
+    Get chunk slices for the :func:`rsciio.utils.distributed.slice_memmap` function.
+
+    Takes a shape and chunks and returns a dask array of the slices to be used with the
+    :func:`rsciio.utils.distributed.slice_memmap` function. This is useful for loading data from a memmaped file in a
+    distributed manner.
 
     Parameters
     ----------
@@ -39,6 +44,11 @@ def get_chunk_slice(
         Maximum size of a block in bytes. The default is None.
     dtype : numpy.dtype, optional
         Data type. The default is None.
+
+    Returns
+    -------
+    dask.array.Array
+        Dask array of the slices.
     """
 
     chunks = da.core.normalize_chunks(
@@ -62,7 +72,11 @@ def get_chunk_slice(
 
 
 def slice_memmap(sl, file, dtypes, shape, **kwargs):
-    """Slice a memmaped file using a tuple of slices.
+    """
+    Slice a memmaped file using a tuple of slices.
+
+    This is useful for loading data from a memmaped file in a distributed manner. This takes
+    a slice of the dimensions of the data and returns the data from the memmaped file sliced.
 
     Parameters
     ----------
@@ -73,11 +87,16 @@ def slice_memmap(sl, file, dtypes, shape, **kwargs):
     file : str
         Path to the file.
     dtypes : numpy.dtype
-        Data type of the data for memmap functino
+        Data type of the data for memmap function.
     shape : tuple
-        Shape of the data to be read
+        Shape of the data to be read.
     **kwargs : dict
         Additional keyword arguments to pass to the memmap function.
+
+    Returns
+    -------
+    numpy.ndarray
+        Array of the data from the memmaped file sliced using the provided slice.
     """
     sl = np.squeeze(sl)[()]
     data = np.memmap(file, dtypes, shape=shape, **kwargs)
@@ -94,12 +113,11 @@ def memmap_distributed(
     chunks="auto",
     block_size_limit=None,
 ):
-    """Drop in replacement for `np.memmap` allowing for distributed loading of data.
+    """
+    Drop in replacement for py:func:`numpy.memmap` allowing for distributed loading of data.
 
     This always loads the data using dask which can be beneficial in many cases, but
-    may not be ideal in others.
-
-    The chunks and block_size_limit are for describing an ideal chunk shape and size
+    may not be ideal in others. The chunks and block_size_limit are for describing an ideal chunk shape and size
     as defined using the `da.core.normalize_chunks` function.
 
     Parameters
@@ -107,13 +125,13 @@ def memmap_distributed(
     file : str
         Path to the file.
     dtype : numpy.dtype
-        Data type of the data for memmap functino
+        Data type of the data for memmap function.
     offset : int, optional
         Offset in bytes. The default is 0.
     shape : tuple, optional
         Shape of the data to be read. The default is None.
     order : str, optional
-        Order of the data. The default is "C" see `np.memmap` for more details.
+        Order of the data. The default is "C" see py:func:`numpy.memmap` for more details.
     chunks : tuple, optional
         Chunk shape. The default is "auto".
     block_size_limit : int, optional
@@ -121,7 +139,7 @@ def memmap_distributed(
 
     Returns
     -------
-    data : dask.array.Array
+    dask.array.Array
         Dask array of the data from the memmaped file and with the specified chunks.
     """
     # Separates slices into appropriately sized chunks.

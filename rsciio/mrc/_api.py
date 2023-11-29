@@ -317,17 +317,13 @@ def file_reader(
         if not lazy:
             data = data.compute()
     else:
-        data = (
-            np.memmap(
-                f,
-                mode=mmap_mode,
-                offset=f.tell(),
-                dtype=get_data_type(std_header["MODE"]),
-            )
-            .reshape(shape, order="F")
-            .squeeze()
-            .T
-        )
+        data = np.memmap(
+            f,
+            mode=mmap_mode,
+            shape=shape[::-1],
+            offset=f.tell(),
+            dtype=get_data_type(std_header["MODE"]),
+        ).squeeze()
         if lazy:
             data = da.from_array(data, chunks=chunks)
 

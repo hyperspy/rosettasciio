@@ -215,7 +215,7 @@ def read_de_metadata_file(filename, navigation_shape=None):
                 }
                 if axes_scales[i] != -1:  # -1 means that the scale is not defined
                     axes_dict["scale"] = axes_scales[i]
-                else:
+                else:  # pragma: no cover
                     axes_dict["scale"] = 1
                 axes.append(axes_dict)
                 ind += 1

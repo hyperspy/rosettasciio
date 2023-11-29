@@ -41,14 +41,18 @@ def get_chunk_slice(
     chunks : tuple, optional
         Chunk shape. The default is "auto".
     block_size_limit : int, optional
-        Maximum size of a block in bytes. The default is None.
+        Maximum size of a block in bytes. The default is None. This is passed
+        to the :py:func:`dask.array.core.normalize_chunks` function when chunks == "auto".
     dtype : numpy.dtype, optional
-        Data type. The default is None.
+        Data type. The default is None. This is passed to the
+        :py:func:`dask.array.core.normalize_chunks` function when chunks == "auto".
 
     Returns
     -------
     dask.array.Array
         Dask array of the slices.
+    tuple
+        Tuple of the chunks.
     """
 
     chunks = da.core.normalize_chunks(
@@ -71,34 +75,36 @@ def get_chunk_slice(
     return da.from_array(slices, chunks=(1,) * len(shape) + slices.shape[-2:]), chunks
 
 
-def slice_memmap(sl, file, dtypes, shape, **kwargs):
+def slice_memmap(slices, file, dtypes, shape, **kwargs):
     """
-    Slice a memmaped file using a tuple of slices.
+    Slice a memory mapped file using a tuple of slices.
 
-    This is useful for loading data from a memmaped file in a distributed manner. This takes
-    a slice of the dimensions of the data and returns the data from the memmaped file sliced.
+    This is useful for loading data from a memory mapped file in a distributed manner. The function
+    first creates a memory mapped array of the entire dataset and then uses the ``slices`` to slice the
+    memory mapped array.  The slices can be used to build a ``dask`` array as each slice translates to one
+    chunk for the ``dask`` array.
 
     Parameters
     ----------
-    sl : array-like
+    slices : array-like of int
         An array of the slices to use. The dimensions of the array should be
         (n,2) where n is the number of dimensions of the data. The first column
         is the start of the slice and the second column is the stop of the slice.
     file : str
         Path to the file.
     dtypes : numpy.dtype
-        Data type of the data for memmap function.
+        Data type of the data for :class:`numpy.memmap` function.
     shape : tuple
-        Shape of the data to be read.
+        Shape of the entire dataset. Passed to the :class:`numpy.memmap` function.
     **kwargs : dict
-        Additional keyword arguments to pass to the memmap function.
+        Additional keyword arguments to pass to the :class:`numpy.memmap` function.
 
     Returns
     -------
     numpy.ndarray
-        Array of the data from the memmaped file sliced using the provided slice.
+        Array of the data from the memory mapped file sliced using the provided slice.
     """
-    sl = np.squeeze(sl)[()]
+    sl = np.squeeze(slices)[()]
     data = np.memmap(file, dtypes, shape=shape, **kwargs)
     slics = tuple([slice(s[0], s[1]) for s in sl])
     return data[slics]
@@ -117,8 +123,8 @@ def memmap_distributed(
     Drop in replacement for py:func:`numpy.memmap` allowing for distributed loading of data.
 
     This always loads the data using dask which can be beneficial in many cases, but
-    may not be ideal in others. The chunks and block_size_limit are for describing an ideal chunk shape and size
-    as defined using the `da.core.normalize_chunks` function.
+    may not be ideal in others. The ``chunks`` and ``block_size_limit`` are for describing an ideal chunk shape and size
+    as defined using the :py:func:`dask.array.core.normalize_chunks` function.
 
     Parameters
     ----------
@@ -131,7 +137,7 @@ def memmap_distributed(
     shape : tuple, optional
         Shape of the data to be read. The default is None.
     order : str, optional
-        Order of the data. The default is "C" see py:func:`numpy.memmap` for more details.
+        Order of the data. The default is "C" see :class:`numpy.memmap` for more details.
     chunks : tuple, optional
         Chunk shape. The default is "auto".
     block_size_limit : int, optional

@@ -139,6 +139,20 @@ def test_save_load_cycle_new_signal_EELS(tmp_path):
     assert isinstance(s2, s.__class__)
 
 
+def test_save_load_cycle_new_signal_EELS_aperture_out(tmp_path):
+    fname = tmp_path / "test_file_new_signal2D_aperture_out.prz"
+    data = np.arange(100).reshape(2, 5, 10)
+    s = exspy.signals.EELSSpectrum(data)
+    s.metadata.set_item("Acquisition_instrument.TEM.Detector.EELS.aperture", "Out")
+    s.save(fname)
+    assert fname.is_file()
+
+    s2 = hs.load(fname)
+    np.testing.assert_allclose(s2.data, s.data)
+    assert isinstance(s2, s.__class__)
+    assert s2.metadata.Acquisition_instrument.TEM.Detector.EELS.aperture == "Out"
+
+
 def test_metadata_STEM(tmp_path):
     fname = tmp_path / "test_file_new_signal_metadata_STEM.prz"
     data = np.arange(20).reshape(2, 10)
@@ -153,7 +167,7 @@ def test_metadata_STEM(tmp_path):
                 "camera_length": 200,
                 "convergence_angle": 20,
                 "Detector": {
-                    "EELS": {"collection_angle": 60, "aperture_size": 5},
+                    "EELS": {"collection_angle": 60, "aperture": 5},
                 },
             },
         },
@@ -187,7 +201,7 @@ def test_metadata_TEM(tmp_path):
                 "magnification": 500000,
                 "camera_length": 200,
                 "Detector": {
-                    "EELS": {"collection_angle": 60, "aperture_size": 5},
+                    "EELS": {"collection_angle": 60, "aperture": 5},
                 },
             },
         },

@@ -349,9 +349,13 @@ def _metadata_converter_in(meta_data, axes, filename):
         if "mm" in aperture:
             aperture = aperture.split("mm")[0]
             aperture = aperture.rstrip()
-        mapped.set_item(
-            "Acquisition_instrument.TEM.Detector.EELS.aperture_size", float(aperture)
-        )
+            mapped.set_item(
+                "Acquisition_instrument.TEM.Detector.EELS.aperture", float(aperture)
+            )
+        else:
+            mapped.set_item(
+                "Acquisition_instrument.TEM.Detector.EELS.aperture", aperture
+            )
 
     source_type = meta_data.get("source.type")
 
@@ -419,13 +423,13 @@ def _metadata_converter_out(metadata, original_metadata=None):
             beam_energy = md_TEM.get("beam_energy")
             convergence_angle = md_TEM.get("convergence_angle")
             collection_angle = md_TEM.get("Detector.EELS.collection_angle")
-            aperture = md_TEM.get("Detector.EELS.aperture_size")
+            aperture = md_TEM.get("Detector.EELS.aperture")
             acquisition_mode = md_TEM.get("acquisition_mode")
             magnification = md_TEM.get("magnification")
             camera_length = md_TEM.get("camera_length")
 
             if aperture is not None:
-                if type(aperture) in (float, int):
+                if isinstance(aperture, (float, int)):
                     aperture = str(aperture) + " mm"
                 meta_data["filter.aperture"] = aperture
             if beam_energy is not None:

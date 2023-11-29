@@ -20,3 +20,11 @@ Test utility functions
 
 .. automodule:: rsciio.tests.registry_utils
    :members:
+
+Distributed utility functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: rsciio.utils.distributed
+   :members:
+
+"""

@@ -400,7 +400,6 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="jeol.html">JEOL Analyst Station (ASW, …)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="jobinyvon.html">Horiba Jobin Yvon LabSpec</a></li>
 <li class="toctree-l2 current active"><a class="current reference internal" href="#">MRC format</a></li>
-
 <li class="toctree-l2"><a class="reference internal" href="mrcz.html">MRCZ format</a></li>
 <li class="toctree-l2"><a class="reference internal" href="msa.html">EMSA/MSA format</a></li>
 <li class="toctree-l2"><a class="reference internal" href="netcdf.html">NetCDF (EELSlab) format</a></li>
@@ -526,22 +525,11 @@ not be passed (Default is <code class="docutils literal notranslate"><span class
 <span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;data.mrc&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-</section>
-<section id="mrc-format-direct-electron">
-<h1>MRC Format (Direct Electron)<a class="headerlink" href="#mrc-format-direct-electron" title="Link to this heading">#</a></h1>
-<p>Loading from Direct Electron’s <code class="docutils literal notranslate"><span class="pre">.mrc</span></code> as well as reading the metadata from the .txt file
-saved by the software is supported by passing the <code class="docutils literal notranslate"><span class="pre">metadata_file</span></code> argument to the
-<code class="docutils literal notranslate"><span class="pre">file_reader</span></code> function. The <code class="docutils literal notranslate"><span class="pre">metadata_file</span></code> argument can be a string or a file-like
-object.</p>
-<p>This will automatically set the navigation shape based on the <code class="docutils literal notranslate"><span class="pre">Scan</span> <span class="pre">-</span> <span class="pre">Size</span> <span class="pre">X</span></code> and                                                   = 256
-<code class="docutils literal notranslate"><span class="pre">Scan</span> <span class="pre">-</span> <span class="pre">Size</span> <span class="pre">Y</span></code> as well as the <code class="docutils literal notranslate"><span class="pre">Scan</span> <span class="pre">-</span> <span class="pre">Repeats</span></code> and <code class="docutils literal notranslate"><span class="pre">Scan</span> <span class="pre">-</span> <span class="pre">Point</span> <span class="pre">Repeats</span></code>
-parameters in the metadata file. The navigation shape can be overridden
-by passing the <code class="docutils literal notranslate"><span class="pre">navigation_shape</span></code> argument to the <code class="docutils literal notranslate"><span class="pre">file_reader</span></code> function.</p>
 <section id="module-rsciio.mrc">
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.mrc" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.mrc.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.mrc.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">navigation_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distributed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.mrc.file_reader" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.mrc.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">navigation_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.mrc.file_reader" title="Link to this definition">#</a></dt>
 <dd><p>File reader for the MRC format for tomographic data.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -563,17 +551,6 @@ the file.</p>
 <dt><strong>navigation_shape</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>Specify the shape of the navigation space. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, the navigation
 shape will be infer from metadata and if not possible, the data will be
 loaded as a stack with a navigation dimension equal to one.</p>
-</dd>
-<dt><strong>distributed</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.12)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to load the data using memory-mapping in a way that is
-compatible with dask-distributed.  This can sometimes improve
-performance when reading large files. And splitting the data
-loading/processing over multiple workers.</p>
-</dd>
-<dt><strong>chunks</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>Define the chunking used for saving the dataset. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, calculates
-chunks for the signal, with preferably at least one chunk per signal
-space.</p>
-</dd>
-<dt><strong>metadata_file</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>The filename of the metadata file.</p>
 </dd>
 </dl>
 </dd>
@@ -642,16 +619,11 @@ containing the full axes vector</p></li>
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">MRC format</a></li>
-<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#mrc-format-direct-electron">MRC Format (Direct Electron)</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.mrc">API functions</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.mrc.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
 </ul>
 </li>
 </ul>
-</li>
-</ul>
-
   </nav></div>
 
   <div class="sidebar-secondary-item">

@@ -86,8 +86,8 @@ To install with conda, we recommend you install it in a
 `Miniforge distribution <https://github.com/conda-forge/miniforge>`_.
 To create an environment and activate it::
 
-   conda create --name rsciio python=3.11
-   conda activate rsciio
+    conda create --name rsciio python=3.11
+    conda activate rsciio
 
 To install rosettasciio with all dependencies::
 
@@ -132,3 +132,14 @@ To install RosettaSciIO from source, clone the repository from `GitHub
     cd rosettasciio
     pip install --editable .
 
+.. note::
+
+    If `setuptools_scm <https://setuptools-scm.readthedocs.io>`_ is
+    installed, the version will be determined from the git repository
+    at runtime, otherwise, the version will be the one at build time.
+
+To install a development version on CI, it is advised to use
+`pip with vcs support <https://pip.pypa.io/en/stable/topics/vcs-support/>`_
+in order to get the correct development version, e.g. ``0.3.dev14+g706deac``::
+
+    pip install git+https://github.com/hyperspy/rosettasciio.git

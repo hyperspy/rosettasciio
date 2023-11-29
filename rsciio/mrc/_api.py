@@ -24,6 +24,7 @@ import os
 import logging
 
 import numpy as np
+import dask.array as da
 
 from rsciio._docstrings import (
     ENDIANESS_DOC,
@@ -32,8 +33,12 @@ from rsciio._docstrings import (
     MMAP_DOC,
     NAVIGATION_SHAPE,
     RETURNS_DOC,
+    CHUNKS_DOC,
+    DISTRIBUTED_DOC,
 )
+
 from rsciio.utils.tools import sarray2dict
+from rsciio.utils.distributed import memmap_distributed
 
 
 _logger = logging.getLogger(__name__)
@@ -136,8 +141,118 @@ def get_data_type(mode):
         raise ValueError(f"Unrecognised mode '{mode}'.")
 
 
+def read_de_metadata_file(filename, navigation_shape=None):
+    """This reads the metadata ".txt" file that is saved alongside a DE .mrc file.
+
+    This loads scan parameters such as
+
+    Parameters
+    ----------
+    filename : str
+        The filename of the metadata file.
+    navigation_shape : tuple
+        The shape of the navigation axes.
+
+    Returns
+    -------
+    all_lines : dict
+        A dictionary containing all the metadata.
+    shape : tuple
+        The shape of the data in real space.
+    """
+    original_metadata = {}
+    with open(filename) as metadata:
+        for line in metadata.readlines():
+            key, value = line.split("=")
+            key = key.strip()
+            value = value.strip()
+            original_metadata[key] = value
+
+    r = int(original_metadata["Scan - Repeats"])
+    x = int(original_metadata["Scan - Size X"])
+    y = int(original_metadata["Scan - Size Y"])
+    pr = int(original_metadata["Scan - Point Repeat"])
+
+    if navigation_shape is not None:
+        shape = navigation_shape[::-1]
+        axes = []
+        for i, s in enumerate(shape):
+            axes_dict = {
+                "name": "",
+                "size": s,
+                "units": "",
+                "navigate": True,
+                "index_in_array": i,
+            }
+            axes.append(axes_dict)
+
+    else:
+        shape = np.array([pr, x, y, r])  # reverse order to what they are read
+        axes = []
+        axes_names = [
+            "repeats",
+            "x",
+            "y",
+            "repeats",
+        ][::-1]
+        axes_units = ["times", "nm", "nm", "s"][::-1]
+        axes_scales = [
+            1,
+            original_metadata["Specimen Pixel Size X (nanometers)"],
+            original_metadata["Specimen Pixel Size Y (nanometers)"],
+            original_metadata["Scan - Time (seconds)"]
+            + original_metadata["Scan - Repeat Delay (seconds)"],
+        ][::-1]
+        for i, s in enumerate(shape[::-1]):
+            ind = 0
+            if s != 1:
+                axes_dict = {
+                    "name": axes_names[i],
+                    "size": s,
+                    "units": axes_units[i],
+                    "navigate": True,
+                    "index_in_array": ind,
+                }
+                if axes_scales[i] != -1:  # -1 means that the scale is not defined
+                    axes_dict["scale"] = axes_scales[i]
+                else:  # pragma: no cover
+                    axes_dict["scale"] = 1
+                axes.append(axes_dict)
+                ind += 1
+        shape = shape[shape != 1]  # removing the 1s from the dataset
+
+    electron_gain = float(original_metadata.get("ADUs Per Electron Bin1x", 1))
+    magnification = original_metadata.get("Instrument Project Magnification", None)
+    camera_model = original_metadata.get("Camera Model", None)
+    timestamp = original_metadata.get("Timestamp (seconds since Epoch)", None)
+    fps = original_metadata.get("Frames Per Second", None)
+
+    metadata = {
+        "Acquisition_instrument": {
+            "TEM": {
+                "magnificiation": magnification,
+                "detector": camera_model,
+                "frames_per_second": fps,
+            }
+        },
+        "Signal": {
+            "Noise_properties": {"gain_factor": 1 / electron_gain},
+            "quantity": "$e^-$",
+        },
+        "General": {"timestamp": timestamp},
+    }
+    return original_metadata, metadata, axes, tuple(shape)
+
+
 def file_reader(
-    filename, lazy=False, mmap_mode=None, endianess="<", navigation_shape=None
+    filename,
+    lazy=False,
+    mmap_mode=None,
+    endianess="<",
+    navigation_shape=None,
+    distributed=False,
+    chunks="auto",
+    metadata_file=None,
 ):
     """
     File reader for the MRC format for tomographic data.
@@ -149,11 +264,31 @@ def file_reader(
     %s
     %s
     %s
+    %s
+    %s
+    metadata_file : str
+        The filename of the metadata file.
 
     %s
     """
 
-    metadata = {}
+    if metadata_file is not None:
+        (
+            de_metadata,
+            metadata,
+            navigation_axes,
+            _navigation_shape,
+        ) = read_de_metadata_file(metadata_file, navigation_shape)
+        if navigation_shape is None:
+            navigation_shape = _navigation_shape
+        original_metadata = {"de_metadata": de_metadata}
+    else:
+        original_metadata = {}
+        metadata = {"General": {}, "Signal": {}}
+        navigation_axes = None
+    metadata["General"]["original_filename"] = os.path.split(filename)[1]
+    metadata["Signal"]["signal_type"] = ""
+
     f = open(filename, "rb")
     std_header = np.fromfile(f, dtype=get_std_dtype_list(endianess), count=1)
     fei_header = None
@@ -171,19 +306,29 @@ def file_reader(
     shape = (NX[0], NY[0], NZ[0])
     if navigation_shape is not None:
         shape = shape[:2] + navigation_shape
-    data = (
-        np.memmap(
+    if distributed:
+        data = memmap_distributed(
+            filename,
+            offset=f.tell(),
+            shape=shape[::-1],
+            dtype=get_data_type(std_header["MODE"]),
+            chunks=chunks,
+        )
+        if not lazy:
+            data = data.compute()
+    else:
+        data = np.memmap(
             f,
             mode=mmap_mode,
+            shape=shape[::-1],
             offset=f.tell(),
             dtype=get_data_type(std_header["MODE"]),
-        )
-        .reshape(shape, order="F")
-        .squeeze()
-        .T
-    )
+        ).squeeze()
+        if lazy:
+            data = da.from_array(data, chunks=chunks)
 
-    original_metadata = {"std_header": sarray2dict(std_header)}
+    original_metadata["std_header"] = sarray2dict(std_header)
+
     # Convert bytes to unicode
     for key in ["CMAP", "STAMP", "LABELS"]:
         original_metadata["std_header"][key] = original_metadata["std_header"][
@@ -228,38 +373,48 @@ def file_reader(
             0,
         ] * 3
 
-    units = [None, "nm", "nm"]
-    names = ["z", "y", "x"]
-    navigate = [True, False, False]
-    nav_axis_to_add = 0
-    if navigation_shape is not None:
-        nav_axis_to_add = len(navigation_shape) - 1
-        for i in range(nav_axis_to_add):
-            print(i)
-            units.insert(0, None)
-            names.insert(0, "")
-            navigate.insert(0, True)
-            scales.insert(0, 1)
-            offsets.insert(0, 0)
+    if navigation_axes is None:
+        units = [None, "nm", "nm"]
+        names = ["z", "y", "x"]
+        navigate = [True, False, False]
+        nav_axis_to_add = 0
+        if navigation_shape is not None:
+            nav_axis_to_add = len(navigation_shape) - 1
+            for i in range(nav_axis_to_add):
+                units.insert(0, None)
+                names.insert(0, "")
+                navigate.insert(0, True)
+                scales.insert(0, 1)
+                offsets.insert(0, 0)
 
-    metadata = {
-        "General": {"original_filename": os.path.split(filename)[1]},
-        "Signal": {"signal_type": ""},
-    }
-    # create the axis objects for each axis
-    dim = len(data.shape)
-    axes = [
-        {
-            "size": data.shape[i],
-            "index_in_array": i,
-            "name": names[i + nav_axis_to_add + 3 - dim],
-            "scale": scales[i + nav_axis_to_add + 3 - dim],
-            "offset": offsets[i + nav_axis_to_add + 3 - dim],
-            "units": units[i + nav_axis_to_add + 3 - dim],
-            "navigate": navigate[i + nav_axis_to_add + 3 - dim],
-        }
-        for i in range(dim)
-    ]
+        # create the axis objects for each axis
+        dim = len(data.shape)
+        axes = [
+            {
+                "size": data.shape[i],
+                "index_in_array": i,
+                "name": names[i + nav_axis_to_add + 3 - dim],
+                "scale": scales[i + nav_axis_to_add + 3 - dim],
+                "offset": offsets[i + nav_axis_to_add + 3 - dim],
+                "units": units[i + nav_axis_to_add + 3 - dim],
+                "navigate": navigate[i + nav_axis_to_add + 3 - dim],
+            }
+            for i in range(dim)
+        ]
+    else:
+        axes = navigation_axes
+        if len(axes) != len(data.shape):  # Add in final two axes
+            names = ["$k_x$", "$k_y$"]
+            for i, s in enumerate(data.shape[-2:]):
+                ax = {
+                    "size": s,
+                    "name": names[i],
+                    "scale": 1,  # TODO: Add scale when reciporical space is added
+                    "offset": 0,
+                    "units": "nm$^-1$",
+                    "navigate": False,
+                }
+                axes.append(ax)
 
     dictionary = {
         "data": data,
@@ -294,5 +449,7 @@ file_reader.__doc__ %= (
     MMAP_DOC,
     ENDIANESS_DOC,
     NAVIGATION_SHAPE,
+    DISTRIBUTED_DOC,
+    CHUNKS_DOC,
     RETURNS_DOC,
 )

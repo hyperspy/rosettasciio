@@ -1,0 +1,1 @@
+Unpin pillow now that imageio supports pillow>=10.1.0

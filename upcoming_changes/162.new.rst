@@ -3,3 +3,6 @@ from multiple processes.
 
 Added the arguments ``distributed`` and ``metadata_file`` to the .mrc file reader for loading metadata
 save from DirectElectron detectors.
+
+Speed up to the .mrc file reader for large .mrc files by removing the need to reshape
+and transpose the data.

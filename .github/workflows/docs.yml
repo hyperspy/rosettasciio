@@ -7,8 +7,8 @@ jobs:
     # Use the "reusable workflow" from the hyperspy organisation
     uses: hyperspy/.github/.github/workflows/doc.yml@main
     with:
-      doc_path: ./docs
-      doc_build_path: ./docs/_build/html/
+      doc_path: ./doc
+      doc_build_path: ./doc/_build/html/
       pip_extra_doc: all,doc
 
   Push:

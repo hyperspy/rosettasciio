@@ -599,6 +599,112 @@ ending.</p>
 </dd></dl>
 
 </section>
+<section id="module-rsciio.utils.distributed">
+<span id="distributed-utility-functions"></span><h2>Distributed utility functions<a class="headerlink" href="#module-rsciio.utils.distributed" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.distributed.get_chunk_slice">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.distributed.</span></span><span class="sig-name descname"><span class="pre">get_chunk_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.distributed.get_chunk_slice" title="Link to this definition">#</a></dt>
+<dd><p>Get chunk slices for the <a class="reference internal" href="#rsciio.utils.distributed.slice_memmap" title="rsciio.utils.distributed.slice_memmap"><code class="xref py py-func docutils literal notranslate"><span class="pre">rsciio.utils.distributed.slice_memmap()</span></code></a> function.</p>
+<p>Takes a shape and chunks and returns a dask array of the slices to be used with the
+<a class="reference internal" href="#rsciio.utils.distributed.slice_memmap" title="rsciio.utils.distributed.slice_memmap"><code class="xref py py-func docutils literal notranslate"><span class="pre">rsciio.utils.distributed.slice_memmap()</span></code></a> function. This is useful for loading data from a memmaped file in a
+distributed manner.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>shape</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a></span></dt><dd><p>Shape of the data.</p>
+</dd>
+<dt><strong>chunks</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a>, optional</span></dt><dd><p>Chunk shape. The default is “auto”.</p>
+</dd>
+<dt><strong>block_size_limit</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, optional</span></dt><dd><p>Maximum size of a block in bytes. The default is None. This is passed
+to the <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.core.normalize_chunks.html#dask.array.core.normalize_chunks" title="(in Dask)"><code class="xref py py-func docutils literal notranslate"><span class="pre">dask.array.core.normalize_chunks()</span></code></a> function when chunks == “auto”.</p>
+</dd>
+<dt><strong>dtype</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v1.26)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.dtype</span></code></a>, optional</span></dt><dd><p>Data type. The default is None. This is passed to the
+<a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.core.normalize_chunks.html#dask.array.core.normalize_chunks" title="(in Dask)"><code class="xref py py-func docutils literal notranslate"><span class="pre">dask.array.core.normalize_chunks()</span></code></a> function when chunks == “auto”.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></dt><dd><p>Dask array of the slices.</p>
+</dd>
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a></dt><dd><p>Tuple of the chunks.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.distributed.memmap_distributed">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.distributed.</span></span><span class="sig-name descname"><span class="pre">memmap_distributed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'C'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.distributed.memmap_distributed" title="Link to this definition">#</a></dt>
+<dd><p>Drop in replacement for py:func:<cite>numpy.memmap</cite> allowing for distributed loading of data.</p>
+<p>This always loads the data using dask which can be beneficial in many cases, but
+may not be ideal in others. The <code class="docutils literal notranslate"><span class="pre">chunks</span></code> and <code class="docutils literal notranslate"><span class="pre">block_size_limit</span></code> are for describing an ideal chunk shape and size
+as defined using the <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.core.normalize_chunks.html#dask.array.core.normalize_chunks" title="(in Dask)"><code class="xref py py-func docutils literal notranslate"><span class="pre">dask.array.core.normalize_chunks()</span></code></a> function.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>file</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Path to the file.</p>
+</dd>
+<dt><strong>dtype</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v1.26)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.dtype</span></code></a></span></dt><dd><p>Data type of the data for memmap function.</p>
+</dd>
+<dt><strong>offset</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, optional</span></dt><dd><p>Offset in bytes. The default is 0.</p>
+</dd>
+<dt><strong>shape</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a>, optional</span></dt><dd><p>Shape of the data to be read. The default is None.</p>
+</dd>
+<dt><strong>order</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, optional</span></dt><dd><p>Order of the data. The default is “C” see <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html#numpy.memmap" title="(in NumPy v1.26)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.memmap</span></code></a> for more details.</p>
+</dd>
+<dt><strong>chunks</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a>, optional</span></dt><dd><p>Chunk shape. The default is “auto”.</p>
+</dd>
+<dt><strong>block_size_limit</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, optional</span></dt><dd><p>Maximum size of a block in bytes. The default is None.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></dt><dd><p>Dask array of the data from the memmaped file and with the specified chunks.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.distributed.slice_memmap">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.distributed.</span></span><span class="sig-name descname"><span class="pre">slice_memmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtypes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.distributed.slice_memmap" title="Link to this definition">#</a></dt>
+<dd><p>Slice a memory mapped file using a tuple of slices.</p>
+<p>This is useful for loading data from a memory mapped file in a distributed manner. The function
+first creates a memory mapped array of the entire dataset and then uses the <code class="docutils literal notranslate"><span class="pre">slices</span></code> to slice the
+memory mapped array.  The slices can be used to build a <code class="docutils literal notranslate"><span class="pre">dask</span></code> array as each slice translates to one
+chunk for the <code class="docutils literal notranslate"><span class="pre">dask</span></code> array.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>slices</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v1.26)"><span>array_like</span></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a></span></dt><dd><p>An array of the slices to use. The dimensions of the array should be
+(n,2) where n is the number of dimensions of the data. The first column
+is the start of the slice and the second column is the stop of the slice.</p>
+</dd>
+<dt><strong>file</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Path to the file.</p>
+</dd>
+<dt><strong>dtypes</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v1.26)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.dtype</span></code></a></span></dt><dd><p>Data type of the data for <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html#numpy.memmap" title="(in NumPy v1.26)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.memmap</span></code></a> function.</p>
+</dd>
+<dt><strong>shape</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a></span></dt><dd><p>Shape of the entire dataset. Passed to the <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html#numpy.memmap" title="(in NumPy v1.26)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.memmap</span></code></a> function.</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></span></dt><dd><p>Additional keyword arguments to pass to the <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html#numpy.memmap" title="(in NumPy v1.26)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.memmap</span></code></a> function.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a></dt><dd><p>Array of the data from the memory mapped file sliced using the provided slice.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<p>“””</p>
+</section>
 </section>
 
 
@@ -654,6 +760,12 @@ ending.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tests.registry_utils.download_all"><code class="docutils literal notranslate"><span class="pre">download_all()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tests.registry_utils.make_registry"><code class="docutils literal notranslate"><span class="pre">make_registry()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tests.registry_utils.update_registry"><code class="docutils literal notranslate"><span class="pre">update_registry()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.utils.distributed">Distributed utility functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.distributed.get_chunk_slice"><code class="docutils literal notranslate"><span class="pre">get_chunk_slice()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.distributed.memmap_distributed"><code class="docutils literal notranslate"><span class="pre">memmap_distributed()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.distributed.slice_memmap"><code class="docutils literal notranslate"><span class="pre">slice_memmap()</span></code></a></li>
 </ul>
 </li>
 </ul>

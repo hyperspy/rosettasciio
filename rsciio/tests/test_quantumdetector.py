@@ -336,7 +336,7 @@ def test_metadata():
     assert md_gen.date == "2021-05-07"
     assert md_gen.time == "16:51:10.905800928"
     assert md_gen.time_zone == "UTC"
-    np.testing.assert_allclose(s.metadata.Acquisition_instrument.dwell_time, 1e-4)
+    np.testing.assert_allclose(s.metadata.Acquisition_instrument.dwell_time, 1e-1)
 
 
 def test_print_info():

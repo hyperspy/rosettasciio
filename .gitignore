@@ -3,7 +3,7 @@
 /dist/*
 /RosettaSciIO.egg-info/*
 *__pycache__*
-*test_compilers.o
+*test_compilers.o*
 *pyd
 .spyproject/*
 .idea

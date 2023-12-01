@@ -113,6 +113,8 @@ include = ["rsciio*"]
 
 [tool.setuptools_scm]
 # Presence enables setuptools_scm, the version will be determine at build time from git
+# The version will be updated by the `prepare_release.py` script
+fallback_version = "0.3.dev0"
 
 [tool.towncrier]
 package = "rsciio"
@@ -160,6 +162,7 @@ issue_format = "`#{issue} <https://github.com/hyperspy/rosettasciio/issues/{issu
 branch = true
 source = ["rsciio"]
 omit = [
+  "prepare_release.py",
   "rsciio/tests/*",
   "setup.py",
   "update_registry.py"

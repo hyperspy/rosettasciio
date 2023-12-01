@@ -571,7 +571,7 @@ def file_reader(
         },
         "Signal": {"signal_type": "electron_diffraction"},
         "Acquisition_instrument": {
-            "dwell_time": mib_prop.exposure * 1e-3, # ms to s
+            "dwell_time": mib_prop.exposure * 1e-3,  # ms to s
         },
     }
     if time_zone:

@@ -140,8 +140,8 @@ information.
 
 **Documentation** should be added both as **docstring**, as well as to the **user guide**,
 for which a corresponding ``spamandeggs.rst`` file should be created in the directory
-``docs/user_guide/supported_formats/`` and the format added to the lists in
-``docs/user_guide/supported_formats/index.rst`` and ``docs/user_guide/supported_formats/supported_formats.rst``.
+``doc/user_guide/supported_formats/`` and the format added to the lists in
+``doc/user_guide/supported_formats/index.rst`` and ``doc/user_guide/supported_formats/supported_formats.rst``.
 
 A few standard *docstring* components are provided by ``rsciio._docstrings.py`` and should
 be used (see existing plugins).

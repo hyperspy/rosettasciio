@@ -73,7 +73,7 @@ The list of *extras*:
 And for development, the following *extras* are available (see ``pyproject.toml`` for more information):
 
 - tests
-- docs
+- doc
 - dev
 
 .. _install-with-conda:

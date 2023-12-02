@@ -10,11 +10,6 @@ from setuptools import setup, Extension, Command
 import os
 import warnings
 
-# stuff to check presence of compiler:
-import distutils.sysconfig
-import distutils.ccompiler
-from distutils.errors import CompileError, DistutilsPlatformError
-
 setup_path = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -53,17 +48,22 @@ def cythonize_extensions(extensions):
     try:
         from Cython.Build import cythonize
 
-        return cythonize(extensions, language_level="3")
-    except ImportError:
+        cythonize(extensions, language_level="3")
+    except Exception:
         warnings.warn(
-            """WARNING: cython required to generate fast c code is not found on this system.
-Only slow pure python alternative functions will be available.
-To use fast implementation of some functions writen in cython either:
-a) install cython and re-run the installation,
-b) try alternative source distribution containing cythonized C versions of fast code,
-c) use binary distribution (i.e. wheels, egg)."""
+            """WARNING: The compilation of the C-extension failed.
+            Only slow pure python alternative functions will be available.
+            To use fast implementation of some functions writen in cython/c either:
+            a) check that you have compatible compiler installed,
+            b) cython is installed.
+            b) use binary distribution of hyperspy (i.e. wheels, conda packages).
+            Installation will continue in 5 sec..."""
         )
-        return []
+        from time import sleep
+
+        sleep(5)
+
+    return []
 
 
 def no_cythonize(extensions):
@@ -83,37 +83,13 @@ def no_cythonize(extensions):
 
 
 # to cythonize, or not to cythonize... :
-if len(raw_extensions) > count_c_extensions(raw_extensions):
-    extensions = cythonize_extensions(raw_extensions)
-else:
-    extensions = no_cythonize(raw_extensions)
-
 if os.environ.get("DISABLE_C_EXTENTIONS"):
     # Explicitly disable
     extensions = []
+elif len(raw_extensions) > count_c_extensions(raw_extensions):
+    extensions = cythonize_extensions(raw_extensions)
 else:
-    # to compile or not to compile... depends if compiler is present:
-    compiler = distutils.ccompiler.new_compiler()
-    assert isinstance(compiler, distutils.ccompiler.CCompiler)
-    distutils.sysconfig.customize_compiler(compiler)
-    try:
-        compiler.compile(
-            [os.path.join(setup_path, "rsciio", "tests", "test_compilers.c")]
-        )
-    except (CompileError, DistutilsPlatformError):
-        warnings.warn(
-            """WARNING: C compiler can't be found.
-    Only slow pure python alternative functions will be available.
-    To use fast implementation of some functions writen in cython/c either:
-    a) check that you have compiler (EXACTLY SAME as your python
-    distribution was compiled with) installed,
-    b) use binary distribution of hyperspy (i.e. wheels, egg, (only osx and win)).
-    Installation will continue in 5 sec..."""
-        )
-        extensions = []
-        from time import sleep
-
-        sleep(5)  # wait 5 secs for user to notice the message
+    extensions = no_cythonize(raw_extensions)
 
 
 class Recythonize(Command):
@@ -133,12 +109,8 @@ class Recythonize(Command):
         pass
 
     def run(self):
-        # if there is no cython it is supposed to fail:
-        from Cython.Build import cythonize
-
-        global raw_extensions
         global extensions
-        cythonize(extensions, language_level="3")
+        cythonize_extensions(extensions)
 
 
 setup(

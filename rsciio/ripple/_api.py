@@ -36,7 +36,7 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
-from rsciio._version import __version__
+from rsciio import __version__
 from rsciio.utils.tools import DTBox
 
 _logger = logging.getLogger(__name__)

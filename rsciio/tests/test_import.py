@@ -28,7 +28,7 @@ def test_import_version():
 
 
 def test_rsciio_dir():
-    assert dir(rsciio) == ["IO_PLUGINS", "__version__"]
+    assert dir(rsciio) == ["IO_PLUGINS", "__version__", "set_log_level"]
 
 
 def test_rsciio_utils():

@@ -1,111 +1,21 @@
-name: Docs
+name: Documentation
 
 on: [push, pull_request]
 
 jobs:
-  build_docs:
-    # This build is to make PR comments for the sphinx warning and check if
-    # web links are not broken 
-    name: Check links and make PR comments
-    runs-on: ubuntu-latest
-    env:
-      DOCS_PATH: ./docs/_build/html/
-    steps:
-      - uses: actions/checkout@v4
+  Build:
+    # Use the "reusable workflow" from the hyperspy organisation
+    uses: hyperspy/.github/.github/workflows/doc.yml@main
+    with:
+      doc_path: ./doc
+      doc_build_path: ./doc/_build/html/
+      pip_extra_doc: all,doc
 
-      - name: Fetch tags upstream
-        # Needs to fetch the tags from upstream to get the
-        # correct version with setuptools_scm
-        run: |
-          git remote add upstream https://github.com/hyperspy/rosettasciio.git
-          git fetch --prune --unshallow
-          git fetch upstream --tags
-
-      - uses: actions/setup-python@v4
-        name: Install Python
-        with:
-          python-version: '3.11'
-
-      - name: Install RosettaSciIO
-        shell: bash -l {0}
-        run: |
-          pip install .'[all, docs]'
-
-      - name: Update packages list
-        shell: bash -l {0}
-        run: |
-          # python generate_supported_format_table.py
-          echo "Table of Supported Format"
-          echo "========================="
-          cat ./docs/user_guide/supported_formats/supported_formats.rst
-
-      # Add sphinx warnings as PR comments
-      - uses: sphinx-doc/sphinx-problem-matcher@master
-
-      - name: Build docs
-        shell: bash -l {0}
-        run: |
-          cd docs
-          make SPHINXOPTS="-W --keep-going" html
-
-      - uses: actions/upload-artifact@v3
-        with:
-          path: ${{ env.DOCS_PATH }}
-          name: docs_html
-
-      - name: Check links
-        shell: bash -l {0}
-        run: |
-          cd docs
-          make linkcheck
-
-  push_docs:
-    # This build is to push changes to gh-pages branch (https://hyperspy.org/rosettasciio)
-    needs: build_docs
-    name: Push to gh-pages
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' && github.repository == 'hyperspy/rosettasciio' }}
+  Push:
+    needs: Build
+    if: ${{ github.event_name != 'pull_request' && github.repository_owner == 'hyperspy' }}
     permissions:
       # needs write permission to push the docs to gh-pages
       contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: gh-pages
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: docs_html
-          path: .
-
-      - name: list files
-        run: |
-          ls
-
-      - name: Git status
-        run: |
-          git status
-          git status -s
-          if [[ $(git status -s) ]]; then
-            HAS_CHANGES='true'
-          else
-            HAS_CHANGES='false'
-          fi
-          echo "HAS_CHANGES=${HAS_CHANGES}" >> $GITHUB_ENV
-
-      - name: Commit files
-        # Skip when there is nothing to commit
-        if: ${{ env.HAS_CHANGES == 'true' }}
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add -A
-          git commit -m "Update docs build" -a
-
-      - name: Push changes
-        if: ${{ env.HAS_CHANGES == 'true' }}
-        uses: ad-m/github-push-action@d91a481090679876dfc4178fef17f286781251df
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: gh-pages
+    # Use the "reusable workflow" from the hyperspy organisation
+    uses: hyperspy/.github/.github/workflows/push_doc.yml@main

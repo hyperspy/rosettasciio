@@ -1,4 +1,4 @@
-/docs/_build/*
+/doc/_build/*
 /build/*
 /dist/*
 /RosettaSciIO.egg-info/*

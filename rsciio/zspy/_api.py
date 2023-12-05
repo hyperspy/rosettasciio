@@ -102,10 +102,17 @@ class ZspyWriter(HierarchicalWriter):
             chunks = data.shape
         these_kwds = kwds.copy()
         these_kwds.update(dict(dtype=object, exact=True, chunks=chunks))
+        test_ind = data.ndim * (0,)
+        # Need to know the underlying dtype for the codec
+        # Note this can't be an object array
+        if isinstance(data, da.Array):
+            dtype = data[test_ind].compute().dtype
+        else:
+            dtype = data[test_ind].dtype
         dset = group.require_dataset(
             key,
             data.shape,
-            object_codec=numcodecs.VLenArray(data.flatten()[0].dtype),
+            object_codec=numcodecs.VLenArray(dtype),
             **these_kwds,
         )
         return dset
@@ -113,13 +120,27 @@ class ZspyWriter(HierarchicalWriter):
     @staticmethod
     def _store_data(data, dset, group, key, chunks, show_progressbar=True):
         """Write data to zarr format."""
-        if isinstance(data, da.Array):
+        # Tuple of dask arrays can also be passed
+        if isinstance(data, tuple) and all(isinstance(d, da.Array) for d in data):
+            data = list(data)
+            for i, (d, ds) in enumerate(zip(data, dset)):
+                if d.chunks != ds.chunks:
+                    d = d.rechunk(ds.chunks)
+                    data[i] = d
+            cm = ProgressBar if show_progressbar else dummy_context_manager
+            with cm():
+                # lock=False is necessary with the distributed scheduler
+                da.store(data, dset, lock=False)
+        elif isinstance(data, tuple):
+            for d, ds in zip(data, dset):
+                ds[:] = d
+        elif isinstance(data, da.Array):
             if data.chunks != dset.chunks:
                 data = data.rechunk(dset.chunks)
             cm = ProgressBar if show_progressbar else dummy_context_manager
             with cm():
                 # lock=False is necessary with the distributed scheduler
-                data.store(dset, lock=False)
+                da.store(data, dset, lock=False)
         else:
             dset[:] = data
 

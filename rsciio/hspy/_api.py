@@ -73,7 +73,24 @@ class HyperspyWriter(HierarchicalWriter):
 
     @staticmethod
     def _store_data(data, dset, group, key, chunks, show_progressbar=True):
-        if isinstance(data, da.Array):
+        # Tuple of dask arrays can also be passed
+        if isinstance(data, tuple) and all(isinstance(d, da.Array) for d in data):
+            data = list(data)
+            for i, (d, ds) in enumerate(zip(data, dset)):
+                if d.chunks != ds.chunks:
+                    d = d.rechunk(ds.chunks)
+                    data[i] = d
+            cm = ProgressBar if show_progressbar else dummy_context_manager
+            with cm():
+                da.store(data, dset)
+        elif isinstance(data, tuple):
+            # Tuple of numpy arrays
+            for d, ds in zip(data, dset):
+                if d.flags.c_contiguous:
+                    ds.write_direct(d)
+                else:
+                    ds[:] = d
+        elif isinstance(data, da.Array):
             if data.chunks != dset.chunks:
                 data = data.rechunk(dset.chunks)
             cm = ProgressBar if show_progressbar else dummy_context_manager
@@ -90,8 +107,13 @@ class HyperspyWriter(HierarchicalWriter):
         # For saving ragged array
         if chunks is None:
             chunks = 1
+        test_ind = data.ndim * (0,)
+        if isinstance(data, da.Array):
+            dtype = data[test_ind].compute().dtype
+        else:
+            dtype = data[test_ind].dtype
         dset = group.require_dataset(
-            key, chunks, dtype=h5py.special_dtype(vlen=data.flatten()[0].dtype), **kwds
+            key, data.shape, dtype=h5py.special_dtype(vlen=dtype), chunks=chunks, **kwds
         )
         return dset
 

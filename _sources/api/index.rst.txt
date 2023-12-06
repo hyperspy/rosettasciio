@@ -69,4 +69,8 @@ for reading/writing of data files:
   * `Kikuchipy <https://kikuchipy.org>`_: Processing, simulating and analyzing
     electron backscatter diffraction (EBSD) patterns in Python 
   * `PyXem <https://pyxem.readthedocs.io>`_: An open-source Python library for
-    multi-dimensional diffraction microscopy. 
+    multi-dimensional diffraction microscopy.
+  * `exSpy <https://hyperspy.org/exspy/>`_: Analysis of X-ray Energy Dispersive
+    Spectroscopy (EDS) and Electron Energy Loss Spectroscopy (EELS).
+  * `holospy <https://hyperspy.org/holospy/>`_: Analysis of (off-axis) electron
+    holography data.

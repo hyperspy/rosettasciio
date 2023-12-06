@@ -703,7 +703,46 @@ is the start of the slice and the second column is the stop of the slice.</p>
 </dl>
 </dd></dl>
 
-<p>“””</p>
+</section>
+<section id="module-rsciio">
+<span id="logging"></span><h2>Logging<a class="headerlink" href="#module-rsciio" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.set_log_level">
+<span class="sig-prename descclassname"><span class="pre">rsciio.</span></span><span class="sig-name descname"><span class="pre">set_log_level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.set_log_level" title="Link to this definition">#</a></dt>
+<dd><p>Convenience function to set the log level of all rsciio modules.</p>
+<p>Note: The log level of all other modules are left untouched.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>level</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>The log level to set. Any values that <cite>logging.Logger.setLevel()</cite>
+accepts are valid. The default options are:</p>
+<ul class="simple">
+<li><p>‘CRITICAL’</p></li>
+<li><p>‘ERROR’</p></li>
+<li><p>‘WARNING’</p></li>
+<li><p>‘INFO’</p></li>
+<li><p>‘DEBUG’</p></li>
+<li><p>‘NOTSET’</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>For normal logging of rsciio functions, you can set the log level like
+this:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">rsciio</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rsciio</span><span class="o">.</span><span class="n">set_log_level</span><span class="p">(</span><span class="s1">&#39;INFO&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.digitalmicrograph</span> <span class="kn">import</span> <span class="n">file_reader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_reader</span><span class="p">(</span><span class="s1">&#39;my_file.dm3&#39;</span><span class="p">)</span>
+<span class="go">INFO:rsciio.digital_micrograph:DM version: 3</span>
+<span class="go">INFO:rsciio.digital_micrograph:size 4796607 B</span>
+<span class="go">INFO:rsciio.digital_micrograph:Is file Little endian? True</span>
+<span class="go">INFO:rsciio.digital_micrograph:Total tags in root group: 15</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </section>
 </section>
 
@@ -766,6 +805,10 @@ is the start of the slice and the second column is the stop of the slice.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.distributed.get_chunk_slice"><code class="docutils literal notranslate"><span class="pre">get_chunk_slice()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.distributed.memmap_distributed"><code class="docutils literal notranslate"><span class="pre">memmap_distributed()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.distributed.slice_memmap"><code class="docutils literal notranslate"><span class="pre">slice_memmap()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio">Logging</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.set_log_level"><code class="docutils literal notranslate"><span class="pre">set_log_level()</span></code></a></li>
 </ul>
 </li>
 </ul>

@@ -252,14 +252,17 @@ class HierarchicalReader:
             # if the data is chunked saved array we must first
             # cast to a numpy array to avoid multiple calls to
             # _decode_chunk in zarr (or h5py)
-            new_data = np.empty(shape=data.shape, dtype=object)
-            # cast to numpy array to stop multiple calls to _decode_chunk in zarr
-            data = np.array(data)
-            ragged_shape = np.array(ragged_shape)
+            data = da.from_array(data, chunks=data.chunks)
+            shape = da.from_array(ragged_shape, chunks=ragged_shape.chunks)
+            shape = shape.rechunk(data.chunks)
 
-            for i in np.ndindex(data.shape):
-                new_data[i] = np.reshape(data[i], ragged_shape[i])
-            data = new_data
+            def recreate_shape(data, shape):
+                new_data = np.empty(shape=data.shape, dtype=object)
+                for i in np.ndindex(new_data.shape):
+                    new_data[i] = np.reshape(data[i], shape[i])
+                return new_data
+
+            data = da.apply_gufunc(recreate_shape, "(),()->()", data, shape)
         return data
 
     def group2signaldict(self, group, lazy=False):
@@ -309,7 +312,10 @@ class HierarchicalReader:
 
         data = self._read_array(group, "data")
         if lazy:
-            data = da.from_array(data, chunks=data.chunks)
+            if isinstance(data, da.Array):
+                data = data
+            else:
+                data = da.from_array(data, chunks=data.chunks)
             exp["attributes"]["_lazy"] = True
         else:
             data = np.asanyarray(data)

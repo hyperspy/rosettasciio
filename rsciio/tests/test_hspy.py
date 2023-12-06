@@ -903,7 +903,8 @@ def test_save_ragged_dim_lazy(tmp_path, file, nav_dim):
 
     filename = tmp_path / file
     s.save(filename)
-    s2 = hs.load(filename)
+    s2 = hs.load(filename, lazy=True)
+    assert isinstance(s2.data, da.Array)
     assert s.axes_manager.navigation_shape == s2.axes_manager.navigation_shape
     assert s.data.shape == s2.data.shape
 

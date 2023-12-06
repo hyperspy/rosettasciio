@@ -27,4 +27,8 @@ Distributed utility functions
 .. automodule:: rsciio.utils.distributed
    :members:
 
-"""
+Logging
+^^^^^^^
+
+.. automodule:: rsciio
+   :members: set_log_level

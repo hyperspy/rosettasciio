@@ -21,6 +21,11 @@ import os
 from pathlib import Path
 import yaml
 
+from ._logger import set_log_level
+
+
+# Default to warning
+set_log_level("WARNING")
 
 IO_PLUGINS = []
 
@@ -59,10 +64,7 @@ for sub, _, _ in os.walk(os.path.abspath(os.path.dirname(__file__))):
             IO_PLUGINS.append(_specs)
 
 
-__all__ = [
-    "__version__",
-    "IO_PLUGINS",
-]
+__all__ = ["__version__", "IO_PLUGINS", "set_log_level"]
 
 
 def __dir__():

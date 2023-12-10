@@ -212,6 +212,7 @@ def file_writer(
         chunks=chunks,
         compression=compression,
         write_dataset=write_dataset,
+        show_progressbar=show_progressbar,
         **kwds,
     )
     writer.write()

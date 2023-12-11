@@ -166,7 +166,6 @@ filename = "CHANGES.rst"
 issue_format = "`#{issue} <https://github.com/hyperspy/rosettasciio/issues/{issue}>`_"
 package = "rsciio"
 type = [
-  directory = "new"
     { directory = "api", name = "API changes", showcontent = true },
     { directory = "bugfix", name = "Bug Fixes", showcontent = true },
     { directory = "deprecation", name = "Deprecations", showcontent = true },

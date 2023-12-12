@@ -119,30 +119,34 @@ class ZspyWriter(HierarchicalWriter):
 
     @staticmethod
     def _store_data(data, dset, group, key, chunks, show_progressbar=True):
-        """Write data to zarr format."""
-        # Tuple of dask arrays can also be passed
-        if isinstance(data, tuple) and all(isinstance(d, da.Array) for d in data):
+        # Tuple of dask arrays can also be passed, in which case the task graphs
+        # are merged and the data is written in a single `da.store` call.
+        # This is useful when saving a ragged array, where we need to write
+        # the data and the shape at the same time as the ragged array must have
+        # only one dimension.
+        if isinstance(data, tuple):
             data = list(data)
-            for i, (d, ds) in enumerate(zip(data, dset)):
-                if d.chunks != ds.chunks:
-                    d = d.rechunk(ds.chunks)
-                    data[i] = d
+        elif not isinstance(data, list):
+            data = [
+                data,
+            ]
+            dset = [
+                dset,
+            ]
+        for i, (data_, dset_) in enumerate(zip(data, dset)):
+            if isinstance(data_, da.Array):
+                if data_.chunks != dset_.chunks:
+                    data[i] = data_.rechunk(dset_.chunks)
+                # for performance reason, we write the data later, with all data
+                # at the same time in a single `da.store` call
+            else:
+                dset_[:] = data_
+        if isinstance(data[0], da.Array):
             cm = ProgressBar if show_progressbar else dummy_context_manager
             with cm():
                 # lock=False is necessary with the distributed scheduler
+                # da.store of tuple helps to merge task graphs and avoid computing twice
                 da.store(data, dset, lock=False)
-        elif isinstance(data, tuple):
-            for d, ds in zip(data, dset):
-                ds[:] = d
-        elif isinstance(data, da.Array):
-            if data.chunks != dset.chunks:
-                data = data.rechunk(dset.chunks)
-            cm = ProgressBar if show_progressbar else dummy_context_manager
-            with cm():
-                # lock=False is necessary with the distributed scheduler
-                da.store(data, dset, lock=False)
-        else:
-            dset[:] = data
 
 
 def file_writer(

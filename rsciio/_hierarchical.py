@@ -38,14 +38,27 @@ not_valid_format = "The file is not a valid HyperSpy hdf5 file"
 
 _logger = logging.getLogger(__name__)
 
+# Functions to flatten and unflatten the data to allow for storing
+# ragged arrays in hdf5 with dimensionality higher than 1
 
-def ravel_data(x):
+
+def flatten_data(x):
     new_data = np.empty(shape=x.shape, dtype=object)
     shapes = np.empty(shape=x.shape, dtype=object)
     for i in np.ndindex(x.shape):
         new_data[i] = x[i].ravel()
         shapes[i] = np.array(x[i].shape)
     return new_data, shapes
+
+
+def unflatten_data(data, shape):
+    new_data = np.empty(shape=data.shape, dtype=object)
+    for i in np.ndindex(new_data.shape):
+        new_data[i] = np.reshape(data[i], shape[i])
+    return new_data
+
+
+# ---------------------------------
 
 
 def get_signal_chunks(shape, dtype, signal_axes=None, target_size=1e6):
@@ -255,14 +268,7 @@ class HierarchicalReader:
             data = da.from_array(data, chunks=data.chunks)
             shape = da.from_array(ragged_shape, chunks=ragged_shape.chunks)
             shape = shape.rechunk(data.chunks)
-
-            def recreate_shape(data, shape):
-                new_data = np.empty(shape=data.shape, dtype=object)
-                for i in np.ndindex(new_data.shape):
-                    new_data[i] = np.reshape(data[i], shape[i])
-                return new_data
-
-            data = da.apply_gufunc(recreate_shape, "(),()->()", data, shape)
+            data = da.apply_gufunc(unflatten_data, "(),()->()", data, shape)
         return data
 
     def group2signaldict(self, group, lazy=False):
@@ -312,12 +318,12 @@ class HierarchicalReader:
 
         data = self._read_array(group, "data")
         if lazy:
-            if isinstance(data, da.Array):
-                data = data
-            else:
+            if not isinstance(data, da.Array):
                 data = da.from_array(data, chunks=data.chunks)
             exp["attributes"]["_lazy"] = True
         else:
+            if isinstance(data, da.Array):
+                data = data.compute()
             data = np.asanyarray(data)
             exp["attributes"]["_lazy"] = False
         exp["data"] = data
@@ -742,7 +748,7 @@ class HierarchicalWriter:
         if data.dtype == np.dtype("O"):
             if isinstance(data, da.Array):
                 new_data, shapes = da.apply_gufunc(
-                    ravel_data,
+                    flatten_data,
                     "()->(),()",
                     data,
                     dtype=object,
@@ -755,9 +761,11 @@ class HierarchicalWriter:
                 for i in np.ndindex(data.shape):
                     new_data[i] = data[i].ravel()
                     shapes[i] = np.array(data[i].shape)
+
             shape_dset = cls._get_object_dset(
                 group, shapes, f"_ragged_shapes_{key}", shapes.shape, **kwds
             )
+
             cls._store_data(
                 (new_data, shapes),
                 (dset, shape_dset),

@@ -73,33 +73,41 @@ class HyperspyWriter(HierarchicalWriter):
 
     @staticmethod
     def _store_data(data, dset, group, key, chunks, show_progressbar=True):
-        # Tuple of dask arrays can also be passed
-        if isinstance(data, tuple) and all(isinstance(d, da.Array) for d in data):
+        # Tuple of dask arrays can also be passed, in which case the task graphs
+        # are merged and the data is written in a single `da.store` call.
+        # This is useful when saving a ragged array, where we need to write
+        # the data and the shape at the same time as the ragged array must have
+        # only one dimension.
+        if isinstance(data, tuple):
             data = list(data)
-            for i, (d, ds) in enumerate(zip(data, dset)):
-                if d.chunks != ds.chunks:
-                    d = d.rechunk(ds.chunks)
-                    data[i] = d
+        elif not isinstance(data, list):
+            data = [
+                data,
+            ]
+            dset = [
+                dset,
+            ]
+        for i, (data_, dset_) in enumerate(zip(data, dset)):
+            if isinstance(data_, da.Array):
+                if data_.chunks != dset_.chunks:
+                    data[i] = data_.rechunk(dset_.chunks)
+                if data_.ndim == 1:
+                    raise ValueError(
+                        "Saving a 1-D ragged dask array to hspy is not supported"
+                        " yet. Please open an issue on GitHub if you need this feature."
+                        "Please use the .zspy extension."
+                    )
+                # for performance reason, we write the data later, with all data
+                # at the same time in a single `da.store` call
+            elif data_.flags.c_contiguous:
+                dset_.write_direct(data_)
+            else:
+                dset_[:] = data_
+        if isinstance(data[0], da.Array):
             cm = ProgressBar if show_progressbar else dummy_context_manager
             with cm():
+                # da.store of tuple helps to merge task graphs and avoid computing twice
                 da.store(data, dset)
-        elif isinstance(data, tuple):
-            # Tuple of numpy arrays
-            for d, ds in zip(data, dset):
-                if d.flags.c_contiguous:
-                    ds.write_direct(d)
-                else:
-                    ds[:] = d
-        elif isinstance(data, da.Array):
-            if data.chunks != dset.chunks:
-                data = data.rechunk(dset.chunks)
-            cm = ProgressBar if show_progressbar else dummy_context_manager
-            with cm():
-                da.store(data, dset)
-        elif data.flags.c_contiguous:
-            dset.write_direct(data)
-        else:
-            dset[:] = data
 
     @staticmethod
     def _get_object_dset(group, data, key, chunks, **kwds):

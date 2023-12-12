@@ -431,6 +431,19 @@ document.write(`
 <a class="reference external" href="https://rosettasciio.readthedocs.io/en/latest/changes.html">https://rosettasciio.readthedocs.io/en/latest/changes.html</a></p>
 <section id="release-unreleased-2023-12-12">
 <h2> [UNRELEASED] (2023-12-12)<a class="headerlink" href="#release-unreleased-2023-12-12" title="Link to this heading">#</a></h2>
+<section id="new-features">
+<h3>New features<a class="headerlink" href="#new-features" title="Link to this heading">#</a></h3>
+<ul>
+<li><p>Add <a class="reference internal" href="api/utils.html#rsciio.set_log_level" title="rsciio.set_log_level"><code class="xref py py-func docutils literal notranslate"><span class="pre">rsciio.set_log_level()</span></code></a> to set the logging level of <code class="docutils literal notranslate"><span class="pre">RosettaSciIO</span></code> (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/69">#69</a>)</p></li>
+<li><p>Added the <a class="reference internal" href="api/utils.html#rsciio.utils.distributed.memmap_distributed" title="rsciio.utils.distributed.memmap_distributed"><code class="xref py py-func docutils literal notranslate"><span class="pre">memmap_distributed()</span></code></a> function for loading a memmap file
+from multiple processes.</p>
+<p>Added the arguments <code class="docutils literal notranslate"><span class="pre">distributed</span></code> and <code class="docutils literal notranslate"><span class="pre">metadata_file</span></code> to the .mrc file reader for loading metadata
+save from DirectElectron detectors.</p>
+<p>Speed up to the .mrc file reader for large .mrc files by removing the need to reshape
+and transpose the data. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/162">#162</a>)</p>
+</li>
+</ul>
+</section>
 <section id="bug-fixes">
 <h3>Bug Fixes<a class="headerlink" href="#bug-fixes" title="Link to this heading">#</a></h3>
 <ul class="simple">
@@ -455,19 +468,6 @@ assumed. (<a class="reference external" href="https://github.com/hyperspy/rosett
 <li><p>Fix installing exspy/hyperspy on GitHub CI and test failing without optional dependencies (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/186">#186</a>)</p></li>
 <li><p>Unpin pillow now that imageio supports pillow&gt;=10.1.0 (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/188">#188</a>)</p></li>
 <li><p>Simplify GitHub CI workflows by using reusable workflow (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/190">#190</a>)</p></li>
-</ul>
-</section>
-<section id="new-features">
-<h3>New features<a class="headerlink" href="#new-features" title="Link to this heading">#</a></h3>
-<ul>
-<li><p>Add <a class="reference internal" href="api/utils.html#rsciio.set_log_level" title="rsciio.set_log_level"><code class="xref py py-func docutils literal notranslate"><span class="pre">rsciio.set_log_level()</span></code></a> to set the logging level of <code class="docutils literal notranslate"><span class="pre">RosettaSciIO</span></code> (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/69">#69</a>)</p></li>
-<li><p>Added the <a class="reference internal" href="api/utils.html#rsciio.utils.distributed.memmap_distributed" title="rsciio.utils.distributed.memmap_distributed"><code class="xref py py-func docutils literal notranslate"><span class="pre">memmap_distributed()</span></code></a> function for loading a memmap file
-from multiple processes.</p>
-<p>Added the arguments <code class="docutils literal notranslate"><span class="pre">distributed</span></code> and <code class="docutils literal notranslate"><span class="pre">metadata_file</span></code> to the .mrc file reader for loading metadata
-save from DirectElectron detectors.</p>
-<p>Speed up to the .mrc file reader for large .mrc files by removing the need to reshape
-and transpose the data. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/162">#162</a>)</p>
-</li>
 </ul>
 </section>
 </section>
@@ -652,9 +652,9 @@ new repository.</p></li>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#release-unreleased-2023-12-12"> [UNRELEASED] (2023-12-12)</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#new-features">New features</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#bug-fixes">Bug Fixes</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#maintenance">Maintenance</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#new-features">New features</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#changes-0-2">0.2 (2023-11-09)</a><ul class="nav section-nav flex-column">

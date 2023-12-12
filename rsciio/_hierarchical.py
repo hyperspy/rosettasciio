@@ -38,6 +38,28 @@ not_valid_format = "The file is not a valid HyperSpy hdf5 file"
 
 _logger = logging.getLogger(__name__)
 
+# Functions to flatten and unflatten the data to allow for storing
+# ragged arrays in hdf5 with dimensionality higher than 1
+
+
+def flatten_data(x):
+    new_data = np.empty(shape=x.shape, dtype=object)
+    shapes = np.empty(shape=x.shape, dtype=object)
+    for i in np.ndindex(x.shape):
+        new_data[i] = x[i].ravel()
+        shapes[i] = np.array(x[i].shape)
+    return new_data, shapes
+
+
+def unflatten_data(data, shape):
+    new_data = np.empty(shape=data.shape, dtype=object)
+    for i in np.ndindex(new_data.shape):
+        new_data[i] = np.reshape(data[i], shape[i])
+    return new_data
+
+
+# ---------------------------------
+
 
 def get_signal_chunks(shape, dtype, signal_axes=None, target_size=1e6):
     """
@@ -243,13 +265,10 @@ class HierarchicalReader:
             # if the data is chunked saved array we must first
             # cast to a numpy array to avoid multiple calls to
             # _decode_chunk in zarr (or h5py)
-            ragged_shape = np.array(ragged_shape)
-            new_data = np.empty(shape=data.shape, dtype=object)
-            # cast to numpy array to stop multiple calls to _decode_chunk in zarr
-            data = np.array(data)
-            for i in np.ndindex(data.shape):
-                new_data[i] = np.reshape(data[i], ragged_shape[i])
-            data = new_data
+            data = da.from_array(data, chunks=data.chunks)
+            shape = da.from_array(ragged_shape, chunks=ragged_shape.chunks)
+            shape = shape.rechunk(data.chunks)
+            data = da.apply_gufunc(unflatten_data, "(),()->()", data, shape)
         return data
 
     def group2signaldict(self, group, lazy=False):
@@ -299,9 +318,12 @@ class HierarchicalReader:
 
         data = self._read_array(group, "data")
         if lazy:
-            data = da.from_array(data, chunks=data.chunks)
+            if not isinstance(data, da.Array):
+                data = da.from_array(data, chunks=data.chunks)
             exp["attributes"]["_lazy"] = True
         else:
+            if isinstance(data, da.Array):
+                data = data.compute()
             data = np.asanyarray(data)
             exp["attributes"]["_lazy"] = False
         exp["data"] = data
@@ -724,28 +746,32 @@ class HierarchicalWriter:
 
         _logger.info(f"Chunks used for saving: {chunks}")
         if data.dtype == np.dtype("O"):
-            new_data = np.empty(shape=data.shape, dtype=object)
-            shapes = np.empty(shape=data.shape, dtype=object)
-            for i in np.ndindex(data.shape):
-                new_data[i] = data[i].ravel()
-                shapes[i] = np.array(data[i].shape)
+            if isinstance(data, da.Array):
+                new_data, shapes = da.apply_gufunc(
+                    flatten_data,
+                    "()->(),()",
+                    data,
+                    dtype=object,
+                    output_dtypes=[object, object],
+                    allow_rechunk=False,
+                )
+            else:
+                new_data = np.empty(shape=data.shape, dtype=object)
+                shapes = np.empty(shape=data.shape, dtype=object)
+                for i in np.ndindex(data.shape):
+                    new_data[i] = data[i].ravel()
+                    shapes[i] = np.array(data[i].shape)
+
             shape_dset = cls._get_object_dset(
                 group, shapes, f"_ragged_shapes_{key}", shapes.shape, **kwds
             )
+
             cls._store_data(
-                shapes,
-                shape_dset,
+                (new_data, shapes),
+                (dset, shape_dset),
                 group,
-                f"_ragged_shapes_{key}",
-                chunks=shapes.shape,
-                show_progressbar=show_progressbar,
-            )
-            cls._store_data(
-                new_data,
-                dset,
-                group,
-                key,
-                chunks,
+                (key, f"_ragged_shapes_{key}"),
+                (chunks, shapes.shape),
                 show_progressbar,
             )
         else:

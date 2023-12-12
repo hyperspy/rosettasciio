@@ -73,16 +73,40 @@ class HyperspyWriter(HierarchicalWriter):
 
     @staticmethod
     def _store_data(data, dset, group, key, chunks, show_progressbar=True):
-        if isinstance(data, da.Array):
-            if data.chunks != dset.chunks:
-                data = data.rechunk(dset.chunks)
+        # Tuple of dask arrays can also be passed, in which case the task graphs
+        # are merged and the data is written in a single `da.store` call.
+        # This is useful when saving a ragged array, where we need to write
+        # the data and the shape at the same time as the ragged array must have
+        # only one dimension.
+        if isinstance(data, tuple):
+            data = list(data)
+        elif not isinstance(data, list):
+            data = [
+                data,
+            ]
+            dset = [
+                dset,
+            ]
+        for i, (data_, dset_) in enumerate(zip(data, dset)):
+            if isinstance(data_, da.Array):
+                if data_.chunks != dset_.chunks:
+                    data[i] = data_.rechunk(dset_.chunks)
+                if data_.ndim == 1 and data_.dtype == object:
+                    raise ValueError(
+                        "Saving a 1-D ragged dask array to hspy is not supported yet. "
+                        "Please use the .zspy extension."
+                    )
+                # for performance reason, we write the data later, with all data
+                # at the same time in a single `da.store` call
+            elif data_.flags.c_contiguous:
+                dset_.write_direct(data_)
+            else:
+                dset_[:] = data_
+        if isinstance(data[0], da.Array):
             cm = ProgressBar if show_progressbar else dummy_context_manager
             with cm():
+                # da.store of tuple helps to merge task graphs and avoid computing twice
                 da.store(data, dset)
-        elif data.flags.c_contiguous:
-            dset.write_direct(data)
-        else:
-            dset[:] = data
 
     @staticmethod
     def _get_object_dset(group, data, key, chunks, **kwds):
@@ -90,8 +114,13 @@ class HyperspyWriter(HierarchicalWriter):
         # For saving ragged array
         if chunks is None:
             chunks = 1
+        test_ind = data.ndim * (0,)
+        if isinstance(data, da.Array):
+            dtype = data[test_ind].compute().dtype
+        else:
+            dtype = data[test_ind].dtype
         dset = group.require_dataset(
-            key, chunks, dtype=h5py.special_dtype(vlen=data.flatten()[0].dtype), **kwds
+            key, data.shape, dtype=h5py.special_dtype(vlen=dtype), chunks=chunks, **kwds
         )
         return dset
 

@@ -9,3 +9,5 @@ jobs:
     uses: hyperspy/.github/.github/workflows/package_and_test.yml@main
     with:
       module_name: rsciio
+      # github.head_ref is for pull request event while github.ref_name is for push event
+      POOCH_BASE_URL: https://github.com/${{ github.repository }}/raw/${{ github.head_ref || github.ref_name }}/rsciio/tests/data/

@@ -16,6 +16,7 @@ jobs:
     name: Build wheels on ${{ matrix.os }} ${{ matrix.CIBW_ARCHS }}
     runs-on: ${{ matrix.os }}-latest
     env:
+      CIBW_ENVIRONMENT: POOCH_BASE_URL=https://github.com/${{ github.repository }}/raw/${{ github.ref_name }}/rsciio/tests/data/
       CIBW_TEST_COMMAND: "pytest --pyargs rsciio"
       CIBW_TEST_EXTRAS: "tests"
       # No need to build wheels for pypy because the pure python wheels can be used

@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import os
 from packaging.version import Version
 from pathlib import Path
 
@@ -36,9 +37,20 @@ else:
 TESTS_PATH = Path(__file__).parent
 
 
+# This environment variable can be used to specify a base url other than the one
+# from the hyperspy/rosettasciio repository.
+# This is used in workflow when the test suite is run from the packages (test files
+# not included), such as the "package and test" and "release" workflow on GitHub,
+# other workflows use local files (available from the git repository)
+BASE_URL = os.environ.get(
+    "POOCH_BASE_URL",
+    f"https://github.com/hyperspy/rosettasciio/raw/{version}/rsciio/tests/data/",
+)
+
+
 TEST_DATA_REGISTRY = pooch.create(
     path=TESTS_PATH / "data",
-    base_url=f"https://github.com/hyperspy/rosettasciio/raw/{version}/rsciio/tests/data/",
+    base_url=BASE_URL,
     # We don't use the version functionality of pooch because we want to use the
     # local test folder (rsciio.tests.data)
     version=None,

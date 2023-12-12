@@ -1,1 +1,0 @@
-Fix getting version on debian/ubuntu in system-wide install. Add support for installing from git archive and improve getting development version using setuptools `fallback_version <https://setuptools-scm.readthedocs.io/en/latest/config>`_

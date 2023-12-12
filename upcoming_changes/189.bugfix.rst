@@ -1,3 +1,0 @@
-Fix ``dwell_time`` reading in :ref:`QuantumDetectors <quantumdetector-format>` reader (``.mib`` file). The
-``dwell_time`` is stored in milliseconds, not microseconds as the previous code
-assumed.

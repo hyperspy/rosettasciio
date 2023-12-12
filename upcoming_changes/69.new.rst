@@ -1,1 +1,0 @@
-Add :func:`rsciio.set_log_level` to set the logging level of ``RosettaSciIO``

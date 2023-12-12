@@ -1,1 +1,0 @@
-Simplify GitHub CI workflows by using reusable workflow

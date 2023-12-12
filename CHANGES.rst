@@ -8,6 +8,47 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 
 .. towncrier release notes start
 
+0.3 (2023-12-12)
+================
+
+New features
+------------
+
+- Add :func:`rsciio.set_log_level` to set the logging level of ``RosettaSciIO`` (`#69 <https://github.com/hyperspy/rosettasciio/issues/69>`_)
+- Added the :func:`~rsciio.utils.distributed.memmap_distributed` function for loading a memmap file
+  from multiple processes.
+
+  - Added the arguments ``distributed`` and ``metadata_file`` to the .mrc file reader for loading metadata
+    save from DirectElectron detectors.
+  - Speed up to the .mrc file reader for large .mrc files by removing the need to reshape
+    and transpose the data. (`#162 <https://github.com/hyperspy/rosettasciio/issues/162>`_)
+- Add support for saving lazy ragged signals to the :ref:`zspy format<zspy-format>`. (`#193 <https://github.com/hyperspy/rosettasciio/pull/193>`_)
+
+
+Bug Fixes
+---------
+
+- Fix error when reading :ref:`pantarhei-format` file with aperture ``"Out"`` (`#173 <https://github.com/hyperspy/rosettasciio/issues/173>`_)
+- Improvement for installation without ``numba``:
+
+  - Fix :ref:`tvips <tvips-format>` reader
+  - Allow reading and writing :ref:`EMD NCEM <emd_ncem-format>` file
+  - Fix running test suite without optional dependencies (`#182 <https://github.com/hyperspy/rosettasciio/issues/182>`_)
+- Fix getting version on debian/ubuntu in system-wide install. Add support for installing from git archive and improve getting development version using setuptools `fallback_version <https://setuptools-scm.readthedocs.io/en/latest/config>`_ (`#187 <https://github.com/hyperspy/rosettasciio/issues/187>`_)
+- Fix ``dwell_time`` reading in :ref:`QuantumDetectors <quantumdetector-format>` reader (``.mib`` file). The
+  ``dwell_time`` is stored in milliseconds, not microseconds as the previous code
+  assumed. (`#189 <https://github.com/hyperspy/rosettasciio/issues/189>`_)
+
+
+Maintenance
+-----------
+
+- Remove usage of deprecated ``distutils`` (`#152 <https://github.com/hyperspy/rosettasciio/issues/152>`_)
+- Fix installing exspy/hyperspy on GitHub CI and test failing without optional dependencies (`#186 <https://github.com/hyperspy/rosettasciio/issues/186>`_)
+- Unpin pillow now that imageio supports pillow>=10.1.0 (`#188 <https://github.com/hyperspy/rosettasciio/issues/188>`_)
+- Simplify GitHub CI workflows by using reusable workflow (`#190 <https://github.com/hyperspy/rosettasciio/issues/190>`_)
+
+
 .. _changes_0.2:
 
 0.2 (2023-11-09)

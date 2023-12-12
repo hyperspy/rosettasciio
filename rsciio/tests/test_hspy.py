@@ -892,41 +892,6 @@ def test_save_ragged_dim(tmp_path, file, nav_dim, lazy):
             np.testing.assert_allclose(s.data[indices], s2.data[indices])
 
 
-@zspy_marker
-@pytest.mark.parametrize("nav_dim", [1, 2, 3])
-def test_save_ragged_dim_lazy(tmp_path, file, nav_dim):
-    file = f"nav{nav_dim}_" + file
-    rng = np.random.default_rng(0)
-    nav_shape = np.arange(10, 10 * (nav_dim + 1), step=10)
-    data = np.empty(nav_shape, dtype=object)
-    for ind in np.ndindex(data.shape):
-        num = rng.integers(3, 10)
-        data[ind] = rng.random((num, 2)) * 100
-    data = da.from_array(data, chunks=2)
-
-    s = hs.signals.BaseSignal(data, ragged=True)
-    s.as_lazy()
-    assert s.axes_manager.navigation_dimension == nav_dim
-    np.testing.assert_allclose(s.axes_manager.navigation_shape, nav_shape[::-1])
-    assert s.data.ndim == nav_dim
-    np.testing.assert_allclose(s.data.shape, nav_shape)
-
-    filename = tmp_path / file
-    if ".hspy" in file and nav_dim == 1:
-        with pytest.raises(ValueError):
-            s.save(filename)
-
-    else:
-        s.save(filename)
-        s2 = hs.load(filename, lazy=True)
-        assert isinstance(s2.data, da.Array)
-        assert s.axes_manager.navigation_shape == s2.axes_manager.navigation_shape
-        assert s.data.shape == s2.data.shape
-
-        for indices in np.ndindex(s.data.shape):
-            np.testing.assert_allclose(s.data[indices], s2.data[indices])
-
-
 def test_load_missing_extension(caplog):
     path = TEST_DATA_PATH / "hspy_ext_missing.hspy"
     with pytest.warns(UserWarning):

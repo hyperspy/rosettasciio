@@ -93,8 +93,7 @@ class HyperspyWriter(HierarchicalWriter):
                     data[i] = data_.rechunk(dset_.chunks)
                 if data_.ndim == 1 and data_.dtype == object:
                     raise ValueError(
-                        "Saving a 1-D ragged dask array to hspy is not supported"
-                        " yet. Please open an issue on GitHub if you need this feature."
+                        "Saving a 1-D ragged dask array to hspy is not supported yet. "
                         "Please use the .zspy extension."
                     )
                 # for performance reason, we write the data later, with all data

@@ -168,10 +168,10 @@ title_format = "{version} ({project_date})"
 package = "rsciio"
 type = [
     { directory = "new", name = "New features", showcontent = true },
+    { directory = "enhancements", name = "Enhancements", showcontent = true },
     { directory = "bugfix", name = "Bug Fixes", showcontent = true },
     { directory = "api", name = "API changes", showcontent = true },
     { directory = "deprecation", name = "Deprecations", showcontent = true },
-    { directory = "enhancements", name = "Enhancements", showcontent = true },
     { directory = "doc", name = "Improved Documentation", showcontent = true },
     { directory = "maintenance", name = "Maintenance", showcontent = true },
 ]

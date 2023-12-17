@@ -44,15 +44,16 @@ source code or by using :ref:`pre-commit hooks <pre-commit-hooks>`.
 Adding and Updating Test Data
 -----------------------------
 The test data are located in the corresponding subfolder of the ``rsciio/tests/data`` folder.
+The test data are not packaged in the distribution files (wheel, sdist) to keep the packages
+as small as possible in size. When running the test suite, the test data will be downloaded
+from GitHub using pooch. When adding or updating test data, it is necessary to update the test
+data registry.
+
 To add or update test data:
 
 #. use git as usual to add files to the repository.
-#. Update ``rsciio.tests.registry.txt``.  The test data are not packaged in RosettaSciIO to
-   keep the packages as small as possible in size. However, to be able to run the test suite
-   of RosettaSciIO after installation or when packaging on conda-forge, pooch is used to
-   download the data when necessary. It means that when adding and updating test files, it
-   is necessary to update the registry ``rsciio.tests.registry.txt``, which can be done by
-   running :py:func:`~.tests.registry_utils.update_registry` (Unix only):
+#. Update ``rsciio.tests.registry.txt`` by running
+   :py:func:`~.tests.registry_utils.update_registry` (Unix only):
 
    .. code-block:: python
 
@@ -62,6 +63,12 @@ To add or update test data:
 
    On windows, you can use :ref:`pre-commit.ci <pre-commit-hooks>` by adding a message to
    the pull request to update the registry.
+
+.. note::
+
+  The url used by pooch to download the test data can be set by the environment variable
+  ``POOCH_BASE_URL``, otherwise, the default is to download the data from the
+  `hyperspy/rosettasciio <https://github.com/hyperspy/rosettasciio>`_ GitHub repository.
 
 Review
 ------

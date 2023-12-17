@@ -57,7 +57,8 @@ pool:
 
 steps:
 - checkout: self
-  fetchDepth: 1 # Fetch only one commit
+  fetchDepth: 0 # Fetch all commits for setuptools_scm 
+  fetchTags: true #  tags necessary for setuptools_scm
 - template: azure_pipelines/clone_ci-scripts_repo.yml@templates
 - template: azure_pipelines/install_mambaforge.yml@templates
 - template: azure_pipelines/activate_conda.yml@templates
@@ -65,17 +66,10 @@ steps:
 
 - bash: |
     source activate $ENV_NAME
+    pip install "hyperspy>=2.0rc0"
     pip install --no-deps -e .
     conda list
   displayName: Install package
-
-# Need to install hyperspy dev until hyperspy 2.0 is released
-- bash: |
-    source activate $ENV_NAME
-    pip install https://github.com/hyperspy/hyperspy/archive/refs/heads/RELEASE_next_major.zip
-    conda list
-  displayName: Install (HyperSpy dev)
-
 
 # Note we must use `-n 2` argument for pytest-xdist due to
 # https://github.com/pytest-dev/pytest-xdist/issues/9.

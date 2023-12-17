@@ -3,6 +3,7 @@ channels:
 - conda-forge
 dependencies:
 - cython
+- pooch
 - pytest
 - pytest-xdist
 - pytest-rerunfailures

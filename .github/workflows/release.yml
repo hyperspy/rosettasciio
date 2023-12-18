@@ -53,7 +53,7 @@ jobs:
         run: |
           ls ./wheelhouse
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: wheels
           path: ./wheelhouse/*.whl
@@ -68,7 +68,7 @@ jobs:
     - name: Build SDist
       run: pipx run build --sdist
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         path: dist/*.tar.gz
 
@@ -82,7 +82,7 @@ jobs:
     - name: Build pure python wheel
       run: DISABLE_C_EXTENTIONS=1 pipx run build --wheel
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         path: dist/*.whl
 

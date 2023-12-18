@@ -148,9 +148,14 @@ def file_reader(filename, lazy=False, **kwds):
     f = h5py.File(filename, mode=mode, **kwds)
 
     reader = HyperspyReader(f)
-    exp_dict_list = reader.read(lazy=lazy)
-    if not lazy:
-        f.close()
+    # Use try, except, finally to close file when an error is raised
+    try:
+        exp_dict_list = reader.read(lazy=lazy)
+    except BaseException as err:
+        raise err
+    finally:
+        if not lazy:
+            f.close()
 
     return exp_dict_list
 
@@ -244,10 +249,14 @@ def file_writer(
         show_progressbar=show_progressbar,
         **kwds,
     )
-    writer.write()
-
-    if close_file:
-        f.close()
+    # Use try, except, finally to close file when an error is raised
+    try:
+        writer.write()
+    except BaseException as err:
+        raise err
+    finally:
+        if close_file:
+            f.close()
 
 
 file_writer.__doc__ %= (

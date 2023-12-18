@@ -841,6 +841,7 @@ class HierarchicalWriter:
         "Recursive writer of dicts and signals"
 
         for key, value in dictionary.items():
+            _logger.debug("Saving item: {}".format(key))
             if isinstance(value, dict):
                 self.dict2group(value, group.require_group(key), **kwds)
             elif isinstance(value, (np.ndarray, self.Dataset, da.Array)):

@@ -69,7 +69,10 @@ class HyperspyWriter(HierarchicalWriter):
         self.Dataset = h5py.Dataset
         self.Group = h5py.Group
         self.unicode_kwds = {"dtype": h5py.special_dtype(vlen=str)}
-        self.ragged_kwds = {"dtype": h5py.special_dtype(vlen=signal["data"][0].dtype)}
+        if len(signal["data"]) > 0:
+            self.ragged_kwds = {
+                "dtype": h5py.special_dtype(vlen=signal["data"][0].dtype)
+            }
 
     @staticmethod
     def _store_data(data, dset, group, key, chunks, show_progressbar=True):
@@ -98,7 +101,8 @@ class HyperspyWriter(HierarchicalWriter):
                     )
                 # for performance reason, we write the data later, with all data
                 # at the same time in a single `da.store` call
-            elif data_.flags.c_contiguous:
+            # "write_direct" doesn't play well with empty array
+            elif data_.flags.c_contiguous and data_.shape != (0,):
                 dset_.write_direct(data_)
             else:
                 dset_[:] = data_

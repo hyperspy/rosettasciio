@@ -69,7 +69,10 @@ class HyperspyWriter(HierarchicalWriter):
         self.Dataset = h5py.Dataset
         self.Group = h5py.Group
         self.unicode_kwds = {"dtype": h5py.special_dtype(vlen=str)}
-        self.ragged_kwds = {"dtype": h5py.special_dtype(vlen=signal["data"][0].dtype)}
+        if len(signal["data"]) > 0:
+            self.ragged_kwds = {
+                "dtype": h5py.special_dtype(vlen=signal["data"][0].dtype)
+            }
 
     @staticmethod
     def _store_data(data, dset, group, key, chunks, show_progressbar=True):
@@ -98,7 +101,8 @@ class HyperspyWriter(HierarchicalWriter):
                     )
                 # for performance reason, we write the data later, with all data
                 # at the same time in a single `da.store` call
-            elif data_.flags.c_contiguous:
+            # "write_direct" doesn't play well with empty array
+            elif data_.flags.c_contiguous and data_.shape != (0,):
                 dset_.write_direct(data_)
             else:
                 dset_[:] = data_
@@ -148,9 +152,14 @@ def file_reader(filename, lazy=False, **kwds):
     f = h5py.File(filename, mode=mode, **kwds)
 
     reader = HyperspyReader(f)
-    exp_dict_list = reader.read(lazy=lazy)
-    if not lazy:
-        f.close()
+    # Use try, except, finally to close file when an error is raised
+    try:
+        exp_dict_list = reader.read(lazy=lazy)
+    except BaseException as err:
+        raise err
+    finally:
+        if not lazy:
+            f.close()
 
     return exp_dict_list
 
@@ -244,10 +253,14 @@ def file_writer(
         show_progressbar=show_progressbar,
         **kwds,
     )
-    writer.write()
-
-    if close_file:
-        f.close()
+    # Use try, except, finally to close file when an error is raised
+    try:
+        writer.write()
+    except BaseException as err:
+        raise err
+    finally:
+        if close_file:
+            f.close()
 
 
 file_writer.__doc__ %= (

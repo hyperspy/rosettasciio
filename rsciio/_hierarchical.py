@@ -79,8 +79,9 @@ def get_signal_chunks(shape, dtype, signal_axes=None, target_size=1e6):
         The target number of bytes for one chunk
     """
     typesize = np.dtype(dtype).itemsize
-    if signal_axes is None:
-        return h5py._hl.filters.guess_chunk(shape, None, typesize)
+    if shape == (0,) or signal_axes is None:
+        # enable autochunking from h5py
+        return True
 
     # largely based on the guess_chunk in h5py
     bytes_per_signal = np.prod([shape[i] for i in signal_axes]) * typesize
@@ -839,8 +840,8 @@ class HierarchicalWriter:
 
     def dict2group(self, dictionary, group, **kwds):
         "Recursive writer of dicts and signals"
-
         for key, value in dictionary.items():
+            _logger.debug("Saving item: {}".format(key))
             if isinstance(value, dict):
                 self.dict2group(value, group.require_group(key), **kwds)
             elif isinstance(value, (np.ndarray, self.Dataset, da.Array)):

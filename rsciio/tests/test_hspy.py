@@ -1069,3 +1069,31 @@ def test_more_recent_version_warning(tmp_path):
     with pytest.warns(UserWarning):
         s2 = hs.load(filename)
     np.testing.assert_allclose(s.data, s2.data)
+
+
+@zspy_marker
+def test_save_metadata_empty_array(tmp_path, file):
+    filename = tmp_path / "test.hspy"
+
+    s = hs.signals.Signal1D(np.arange(100 * 1024).reshape(100, 1024))
+    s.metadata.set_item("Sample.xray_lines", np.array([]))
+
+    s.save(filename)
+    s2 = hs.load(filename)
+
+    np.testing.assert_allclose(
+        s.metadata.Sample.xray_lines, s2.metadata.Sample.xray_lines
+    )
+    np.testing.assert_allclose(s.data, s2.data)
+
+
+@zspy_marker
+def test_save_empty_signal(tmp_path, file):
+    filename = tmp_path / "test.hspy"
+
+    s = hs.signals.Signal1D([])
+
+    s.save(filename)
+    s2 = hs.load(filename)
+
+    np.testing.assert_allclose(s.data, s2.data)

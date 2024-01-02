@@ -359,7 +359,7 @@ class IMGReader:
             )
             signal["signal_type"] = ""
         else:
-            signal["signal_type"] = "Luminescence"  # pragma: no cover
+            signal["signal_type"] = "TransientSpec"  # pragma: no cover
 
         try:
             quantity = self.original_metadata["Comment"]["Acquisition"]["ZAxisLabel"]

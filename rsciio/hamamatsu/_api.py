@@ -497,7 +497,9 @@ class IMGReader:
 
 def file_reader(filename, lazy=False, use_uniform_signal_axes=False, **kwds):
     """
-    Read Hamamatsu's ``.img`` file.
+    Read Hamamatsu's ``.img`` file, e.g. for streak camera images. In case
+    LumiSpy is installed, the signal type is automatically set to
+    ``TransientSpec``.
 
     Parameters
     ----------

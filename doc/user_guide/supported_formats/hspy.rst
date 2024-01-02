@@ -40,7 +40,7 @@ filename e.g.:
 
 
 When saving to ``.hspy``, all supported objects in the signal's
-:external+hyperspy:attr:`hyperspy.signal.BaseSignal.metadata` are stored. This includes lists, tuples
+:external+hyperspy:attr:`hyperspy.api.signals.BaseSignal.metadata` are stored. This includes lists, tuples
 and signals. Please note that in order to increase saving efficiency and speed,
 if possible, the inner-most structures are converted to numpy arrays when saved.
 This procedure homogenizes any types of the objects inside, most notably casting
@@ -58,7 +58,7 @@ The change of type is done using numpy "safe" rules, so no information is lost,
 as numbers are represented to full machine precision.
 
 This feature is particularly useful when using
-:external+hyperspy:meth:`hyperspy._signals.eds.EDSSpectrum.get_lines_intensity`:
+:external+exspy:meth:`exspy.signals.EDSSpectrum.get_lines_intensity`:
 
 .. code-block:: python
 

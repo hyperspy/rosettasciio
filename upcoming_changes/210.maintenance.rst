@@ -1,0 +1,1 @@
+Fix documentation links following release of hyperspy 2.0.

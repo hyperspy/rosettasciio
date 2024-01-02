@@ -39,7 +39,7 @@ not be passed (Default is ``None``):
 
     mrcz.file_writer('test.mrc', s_dict)
 
-Alternatively, use :py:meth:`hyperspy.signal.BaseSignal.save`, which will pick the
+Alternatively, use :py:meth:`hyperspy.api.signals.BaseSignal.save`, which will pick the
 ``mrcz`` plugin automatically:
 
 .. code-block:: python

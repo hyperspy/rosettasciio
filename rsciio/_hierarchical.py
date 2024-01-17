@@ -267,8 +267,9 @@ class HierarchicalReader:
             # cast to a numpy array to avoid multiple calls to
             # _decode_chunk in zarr (or h5py)
             data = da.from_array(data, chunks=data.chunks)
-            shape = da.from_array(ragged_shape, chunks=ragged_shape.chunks)
-            shape = shape.rechunk(data.chunks)
+            shape = da.from_array(
+                ragged_shape, chunks=data.chunks
+            )  # same chunks as data
             data = da.apply_gufunc(unflatten_data, "(),()->()", data, shape)
         return data
 

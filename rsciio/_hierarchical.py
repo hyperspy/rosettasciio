@@ -764,7 +764,7 @@ class HierarchicalWriter:
                     shapes[i] = np.array(data[i].shape)
 
             shape_dset = cls._get_object_dset(
-                group, shapes, f"_ragged_shapes_{key}", shapes.shape, **kwds
+                group, shapes, f"_ragged_shapes_{key}", chunks, **kwds
             )
 
             cls._store_data(
@@ -772,7 +772,7 @@ class HierarchicalWriter:
                 (dset, shape_dset),
                 group,
                 (key, f"_ragged_shapes_{key}"),
-                (chunks, shapes.shape),
+                (chunks, chunks),
                 show_progressbar,
             )
         else:

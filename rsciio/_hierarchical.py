@@ -670,6 +670,11 @@ class HierarchicalWriter:
     def _store_data(*arg):  # pragma: no cover
         raise NotImplementedError("This method must be implemented by subclasses.")
 
+    @staticmethod
+    def _convert_ragged_string_array(data):
+        # If not implemented by subclass, return input
+        return data
+
     @classmethod
     def overwrite_dataset(
         cls,
@@ -720,9 +725,7 @@ class HierarchicalWriter:
             # Saving numpy unicode type is not supported in h5py
             data = data.astype(np.dtype("S"))
 
-        if data.dtype == np.dtype("O"):
-            dset = cls._get_object_dset(group, data, key, chunks, **kwds)
-        else:
+        if data.dtype != np.dtype("O"):
             got_data = False
             while not got_data:
                 try:
@@ -760,9 +763,15 @@ class HierarchicalWriter:
                 new_data = np.empty(shape=data.shape, dtype=object)
                 shapes = np.empty(shape=data.shape, dtype=object)
                 for i in np.ndindex(data.shape):
-                    new_data[i] = data[i].ravel()
-                    shapes[i] = np.array(data[i].shape)
+                    data_ = data[i]
+                    if np.issubdtype(data_.dtype, np.dtype("U")):
+                        # h5py doesn't support numpy array with unicode dtype
+                        new_data[i] = cls._convert_ragged_array_string(data_.ravel())
+                    else:
+                        new_data[i] = data_.ravel()
+                    shapes[i] = np.array(data_.shape)
 
+            dset = cls._get_object_dset(group, new_data, key, chunks, **kwds)
             shape_dset = cls._get_object_dset(
                 group, shapes, f"_ragged_shapes_{key}", shapes.shape, **kwds
             )

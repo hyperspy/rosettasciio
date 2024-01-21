@@ -808,6 +808,56 @@ class TestPermanentMarkersIO:
         s2 = hs.load(fname)
         s2.plot()
 
+    def test_texts_markers(self, tmp_path):
+        # h5py doesn't support numpy unicode dtype and when saving ragged
+        # array with
+        fname = tmp_path / "test.hspy"
+
+        # Create a Signal2D with 1 navigation dimension
+        rng = np.random.default_rng(0)
+        data = np.ones((10, 100, 100))
+        s = hs.signals.Signal2D(data)
+
+        # Create an navigation dependent (ragged) Texts marker
+        offsets = np.empty(s.axes_manager.navigation_shape, dtype=object)
+        texts = np.empty(s.axes_manager.navigation_shape, dtype=object)
+
+        for index in np.ndindex(offsets.shape):
+            i = index[0]
+            offsets[index] = rng.random((10, 2))[: i + 2] * 100
+            texts[index] = np.array(
+                ["a" * (i + 1), "b", "c", "d", "e", "f", "g", "f", "h", "i"][: i + 2]
+            )
+
+        m = hs.plot.markers.Texts(
+            offsets=offsets,
+            texts=texts,
+            sizes=3,
+            facecolor="black",
+        )
+
+        s.add_marker(m, permanent=True)
+        s.plot()
+        s.save(fname)
+
+        s2 = hs.load(fname)
+
+
+def test_saving_ragged_array_string(tmp_path):
+    # h5py doesn't support numpy unicode dtype and when saving ragged
+    # array, we need to change the array dtype
+    fname = tmp_path / "test.hspy"
+
+    string_data = np.empty((5,), dtype=object)
+    for index in np.ndindex(string_data.shape):
+        i = index[0]
+        string_data[index] = np.array(["a" * (i + 1), "b", "c", "d", "e"][: i + 2])
+
+    s = hs.signals.BaseSignal(string_data, ragged=True)
+    s.save(fname)
+
+    s2 = hs.load(fname)
+
 
 @zspy_marker
 @pytest.mark.parametrize("lazy", [True, False])

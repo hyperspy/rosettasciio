@@ -23,6 +23,7 @@ from pathlib import Path
 import dask.array as da
 from dask.diagnostics import ProgressBar
 import h5py
+import numpy as np
 
 from rsciio._docstrings import (
     CHUNKS_DOC,
@@ -44,6 +45,7 @@ not_valid_format = "The file is not a valid HyperSpy hdf5 file"
 
 current_file_version = None  # Format version of the file being read
 default_version = Version(version)
+VLEN_STR_DTYPE = h5py.special_dtype(vlen=str)
 
 
 class HyperspyReader(HierarchicalReader):
@@ -123,10 +125,20 @@ class HyperspyWriter(HierarchicalWriter):
             dtype = data[test_ind].compute().dtype
         else:
             dtype = data[test_ind].dtype
+        # h5py doesn't support numpy array with unicode string dtype
+        if np.issubdtype(dtype, str):
+            dtype = str
+
         dset = group.require_dataset(
-            key, data.shape, dtype=h5py.special_dtype(vlen=dtype), chunks=chunks, **kwds
+            key, data.shape, dtype=h5py.vlen_dtype(dtype), chunks=chunks, **kwds
         )
         return dset
+
+    @staticmethod
+    def _convert_ragged_array_string(data):
+        # h5py doesn't support numpy unicode dtype and we need to change the
+        # array dtype to h5py variable length str
+        return data.astype(VLEN_STR_DTYPE)
 
 
 def file_reader(filename, lazy=False, **kwds):

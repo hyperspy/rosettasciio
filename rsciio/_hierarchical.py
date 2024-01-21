@@ -147,8 +147,6 @@ class HierarchicalReader:
         self.version = self.get_format_version()
         self.Dataset = None
         self.Group = None
-        self.unicode_kwds = None
-        self.ragged_kwds = None
 
         if self.version > Version(version):
             warnings.warn(
@@ -266,7 +264,9 @@ class HierarchicalReader:
             # if the data is chunked saved array we must first
             # cast to a numpy array to avoid multiple calls to
             # _decode_chunk in zarr (or h5py)
+            print("dtype0", data[0].dtype)
             data = da.from_array(data, chunks=data.chunks)
+            print("dtype1", data[0].dtype)
             shape = da.from_array(ragged_shape, chunks=ragged_shape.chunks)
             shape = shape.rechunk(data.chunks)
             data = da.apply_gufunc(unflatten_data, "(),()->()", data, shape)
@@ -659,7 +659,6 @@ class HierarchicalWriter:
         self.Dataset = None
         self.Group = None
         self.unicode_kwds = None
-        self.ragged_kwds = None
         self.kwds = kwds
 
     @staticmethod
@@ -904,13 +903,13 @@ class HierarchicalWriter:
         except ValueError:
             tmp = np.array([[0]])
 
-        if tmp.dtype == np.dtype("O") or tmp.ndim != 1:
+        if np.issubdtype(tmp.dtype, object) or tmp.ndim != 1:
             self.dict2group(
                 dict(zip([str(i) for i in range(len(value))], value)),
                 group.require_group(_type + str(len(value)) + "_" + key),
                 **kwds,
             )
-        elif tmp.dtype.type is np.unicode_:
+        elif np.issubdtype(tmp.dtype, np.dtype("U")):
             if _type + key in group:
                 del group[_type + key]
             group.create_dataset(

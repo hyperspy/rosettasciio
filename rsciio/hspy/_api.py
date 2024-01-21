@@ -45,7 +45,7 @@ not_valid_format = "The file is not a valid HyperSpy hdf5 file"
 
 current_file_version = None  # Format version of the file being read
 default_version = Version(version)
-VLEN_STR_DTYPE = h5py.special_dtype(vlen=str)
+VLEN_STR_DTYPE = h5py.string_dtype()
 
 
 class HyperspyReader(HierarchicalReader):
@@ -55,7 +55,6 @@ class HyperspyReader(HierarchicalReader):
         super().__init__(file)
         self.Dataset = h5py.Dataset
         self.Group = h5py.Group
-        self.unicode_kwds = {"dtype": h5py.special_dtype(vlen=str)}
 
 
 class HyperspyWriter(HierarchicalWriter):
@@ -70,11 +69,7 @@ class HyperspyWriter(HierarchicalWriter):
         super().__init__(file, signal, expg, **kwds)
         self.Dataset = h5py.Dataset
         self.Group = h5py.Group
-        self.unicode_kwds = {"dtype": h5py.special_dtype(vlen=str)}
-        if len(signal["data"]) > 0:
-            self.ragged_kwds = {
-                "dtype": h5py.special_dtype(vlen=signal["data"][0].dtype)
-            }
+        self.unicode_kwds = {"dtype": h5py.string_dtype()}
 
     @staticmethod
     def _store_data(data, dset, group, key, chunks, show_progressbar=True):

@@ -84,11 +84,6 @@ class ZspyWriter(HierarchicalWriter):
         super().__init__(file, signal, expg, **kwargs)
         self.Dataset = zarr.Array
         self.unicode_kwds = {"dtype": object, "object_codec": numcodecs.JSON()}
-        self.ragged_kwds = {
-            "dtype": object,
-            "object_codec": numcodecs.VLenArray(signal["data"][0].dtype),
-            "exact": True,
-        }
 
     @staticmethod
     def _get_object_dset(group, data, key, chunks, **kwds):

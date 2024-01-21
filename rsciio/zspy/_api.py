@@ -22,6 +22,7 @@ from collections.abc import MutableMapping
 import dask.array as da
 from dask.diagnostics import ProgressBar
 import numcodecs
+import numpy as np
 import zarr
 
 from rsciio._docstrings import (
@@ -104,6 +105,12 @@ class ZspyWriter(HierarchicalWriter):
             dtype = data[test_ind].compute().dtype
         else:
             dtype = data[test_ind].dtype
+        if np.issubdtype(dtype, str):
+            size_of_char = np.dtype("U1").itemsize
+            # Go through the whole array to find the largest string type
+            for index in np.ndindex(data.shape):
+                if data[index].dtype.itemsize // size_of_char > dtype.itemsize:
+                    dtype = data[index].dtype
         dset = group.require_dataset(
             key,
             data.shape,

@@ -808,14 +808,16 @@ class TestPermanentMarkersIO:
         s2 = hs.load(fname)
         s2.plot()
 
-    def test_texts_markers(self, tmp_path):
+    @zspy_marker
+    @pytest.mark.parametrize("lazy", [True, False])
+    def test_texts_markers(self, tmp_path, file, lazy):
         # h5py doesn't support numpy unicode dtype and when saving ragged
         # array with
         fname = tmp_path / "test.hspy"
 
         # Create a Signal2D with 1 navigation dimension
         rng = np.random.default_rng(0)
-        data = np.ones((10, 100, 100))
+        data = np.ones((5, 100, 100))
         s = hs.signals.Signal2D(data)
 
         # Create an navigation dependent (ragged) Texts marker
@@ -824,10 +826,8 @@ class TestPermanentMarkersIO:
 
         for index in np.ndindex(offsets.shape):
             i = index[0]
-            offsets[index] = rng.random((10, 2))[: i + 2] * 100
-            texts[index] = np.array(
-                ["a" * (i + 1), "b", "c", "d", "e", "f", "g", "f", "h", "i"][: i + 2]
-            )
+            offsets[index] = rng.random((5, 2))[: i + 2] * 100
+            texts[index] = np.array(["a" * (i + 1), "b", "c", "d", "e"][: i + 2])
 
         m = hs.plot.markers.Texts(
             offsets=offsets,
@@ -842,8 +842,16 @@ class TestPermanentMarkersIO:
 
         s2 = hs.load(fname)
 
+        m_texts = m.kwargs["texts"]
+        m2_texts = s2.metadata.Markers.Texts.kwargs["texts"]
 
-def test_saving_ragged_array_string(tmp_path):
+        for index in np.ndindex(m_texts.shape):
+            np.testing.assert_equal(m_texts[index], m2_texts[index])
+
+
+@zspy_marker
+@pytest.mark.parametrize("lazy", [True, False])
+def test_saving_ragged_array_string(tmp_path, file, lazy):
     # h5py doesn't support numpy unicode dtype and when saving ragged
     # array, we need to change the array dtype
     fname = tmp_path / "test.hspy"
@@ -857,6 +865,8 @@ def test_saving_ragged_array_string(tmp_path):
     s.save(fname)
 
     s2 = hs.load(fname)
+    for index in np.ndindex(s.data.shape):
+        np.testing.assert_equal(s.data[index], s2.data[index])
 
 
 @zspy_marker

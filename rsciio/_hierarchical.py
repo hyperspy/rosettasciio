@@ -52,9 +52,20 @@ def flatten_data(x):
 
 
 def unflatten_data(data, shape):
+    try:
+        # Since h5py doesn't support numpy unicode dtype, we need to save
+        # data with h5py variable length str dtype and when reading the
+        # ragged data, we need to convert it back to numpy unicode dtype
+        if data.dtype.metadata["vlen"].metadata["vlen"] == str:
+            convert_to_unicode = True
+        else:
+            convert_to_unicode = False
+    except Exception:
+        convert_to_unicode = False
     new_data = np.empty(shape=data.shape, dtype=object)
     for i in np.ndindex(new_data.shape):
-        new_data[i] = np.reshape(data[i], shape[i])
+        data_ = data[i].astype("U") if convert_to_unicode else data[i]
+        new_data[i] = np.reshape(data_, shape[i])
     return new_data
 
 
@@ -264,12 +275,12 @@ class HierarchicalReader:
             # if the data is chunked saved array we must first
             # cast to a numpy array to avoid multiple calls to
             # _decode_chunk in zarr (or h5py)
-            print("dtype0", data[0].dtype)
             data = da.from_array(data, chunks=data.chunks)
-            print("dtype1", data[0].dtype)
             shape = da.from_array(ragged_shape, chunks=ragged_shape.chunks)
             shape = shape.rechunk(data.chunks)
-            data = da.apply_gufunc(unflatten_data, "(),()->()", data, shape)
+            data = da.apply_gufunc(
+                unflatten_data, "(),()->()", data, shape, output_dtypes=np.dtype("O")
+            )
         return data
 
     def group2signaldict(self, group, lazy=False):
@@ -670,7 +681,7 @@ class HierarchicalWriter:
         raise NotImplementedError("This method must be implemented by subclasses.")
 
     @staticmethod
-    def _convert_ragged_string_array(data):
+    def _convert_ragged_array_string(data):
         # If not implemented by subclass, return input
         return data
 

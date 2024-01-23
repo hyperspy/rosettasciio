@@ -1,0 +1,1 @@
+Fix saving ragged arrays of vectors from/to a chunked ``hspy`` and ``zspy`` store.  Greatly increases the speed of saving and loading ragged arrays from chunked datasets.

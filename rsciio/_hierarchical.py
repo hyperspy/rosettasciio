@@ -263,13 +263,12 @@ class HierarchicalReader:
             key = "ragged_shapes"
         if key in group:
             ragged_shape = group[key]
-            # if the data is chunked saved array we must first
-            # cast to a numpy array to avoid multiple calls to
-            # _decode_chunk in zarr (or h5py)
+            # Use same chunks as data so that apply_gufunc doesn't rechunk
+            # Reduces the transfer of data between workers which
+            # significantly improves performance for distributed loading
             data = da.from_array(data, chunks=data.chunks)
-            shape = da.from_array(
-                ragged_shape, chunks=data.chunks
-            )  # same chunks as data
+            shape = da.from_array(ragged_shape, chunks=data.chunks)
+
             data = da.apply_gufunc(unflatten_data, "(),()->()", data, shape)
         return data
 

@@ -53,7 +53,6 @@ class HyperspyReader(HierarchicalReader):
         super().__init__(file)
         self.Dataset = h5py.Dataset
         self.Group = h5py.Group
-        self.unicode_kwds = {"dtype": h5py.special_dtype(vlen=str)}
 
 
 class HyperspyWriter(HierarchicalWriter):
@@ -63,16 +62,12 @@ class HyperspyWriter(HierarchicalWriter):
     """
 
     target_size = 1e6
+    _unicode_kwds = {"dtype": h5py.string_dtype()}
 
     def __init__(self, file, signal, expg, **kwds):
         super().__init__(file, signal, expg, **kwds)
         self.Dataset = h5py.Dataset
         self.Group = h5py.Group
-        self.unicode_kwds = {"dtype": h5py.special_dtype(vlen=str)}
-        if len(signal["data"]) > 0:
-            self.ragged_kwds = {
-                "dtype": h5py.special_dtype(vlen=signal["data"][0].dtype)
-            }
 
     @staticmethod
     def _store_data(data, dset, group, key, chunks, show_progressbar=True):

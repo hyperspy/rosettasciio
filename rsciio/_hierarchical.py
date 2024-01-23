@@ -133,6 +133,8 @@ def get_signal_chunks(shape, dtype, signal_axes=None, target_size=1e6):
 class HierarchicalReader:
     """A generic Reader class for reading data from hierarchical file types."""
 
+    _file_type = ""
+
     def __init__(self, file):
         """
         Initializes a general reader for hierarchical signals.
@@ -147,8 +149,6 @@ class HierarchicalReader:
         self.version = self.get_format_version()
         self.Dataset = None
         self.Group = None
-        self.unicode_kwds = None
-        self.ragged_kwds = None
 
         if self.version > Version(version):
             warnings.warn(
@@ -638,6 +638,7 @@ class HierarchicalWriter:
     """
 
     target_size = 1e6
+    _unicode_kwds = None
 
     def __init__(self, file, signal, group, **kwds):
         """Initialize a generic file writer for hierachical data storage types.
@@ -658,8 +659,6 @@ class HierarchicalWriter:
         self.group = group
         self.Dataset = None
         self.Group = None
-        self.unicode_kwds = None
-        self.ragged_kwds = None
         self.kwds = kwds
 
     @staticmethod
@@ -895,17 +894,17 @@ class HierarchicalWriter:
         except ValueError:
             tmp = np.array([[0]])
 
-        if tmp.dtype == np.dtype("O") or tmp.ndim != 1:
+        if np.issubdtype(tmp.dtype, object) or tmp.ndim != 1:
             self.dict2group(
                 dict(zip([str(i) for i in range(len(value))], value)),
                 group.require_group(_type + str(len(value)) + "_" + key),
                 **kwds,
             )
-        elif tmp.dtype.type is np.unicode_:
+        elif np.issubdtype(tmp.dtype, np.dtype("U")):
             if _type + key in group:
                 del group[_type + key]
             group.create_dataset(
-                _type + key, shape=tmp.shape, **self.unicode_kwds, **kwds
+                _type + key, shape=tmp.shape, **self._unicode_kwds, **kwds
             )
             group[_type + key][:] = tmp[:]
         else:

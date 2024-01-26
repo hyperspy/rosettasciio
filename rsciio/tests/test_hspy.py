@@ -808,6 +808,45 @@ class TestPermanentMarkersIO:
         s2 = hs.load(fname)
         s2.plot()
 
+    @zspy_marker
+    def test_texts_markers(self, tmp_path, file):
+        # h5py doesn't support numpy unicode dtype and when saving ragged
+        # array with
+        fname = tmp_path / file
+
+        # Create a Signal2D with 1 navigation dimension
+        rng = np.random.default_rng(0)
+        data = np.ones((5, 100, 100))
+        s = hs.signals.Signal2D(data)
+
+        # Create an navigation dependent (ragged) Texts marker
+        offsets = np.empty(s.axes_manager.navigation_shape, dtype=object)
+        texts = np.empty(s.axes_manager.navigation_shape, dtype=object)
+
+        for index in np.ndindex(offsets.shape):
+            i = index[0]
+            offsets[index] = rng.random((5, 2))[: i + 2] * 100
+            texts[index] = np.array(["a" * (i + 1), "b", "c", "d", "e"][: i + 2])
+
+        m = hs.plot.markers.Texts(
+            offsets=offsets,
+            texts=texts,
+            sizes=3,
+            facecolor="black",
+        )
+
+        s.add_marker(m, permanent=True)
+        s.plot()
+        s.save(fname)
+
+        s2 = hs.load(fname)
+
+        m_texts = m.kwargs["texts"]
+        m2_texts = s2.metadata.Markers.Texts.kwargs["texts"]
+
+        for index in np.ndindex(m_texts.shape):
+            np.testing.assert_equal(m_texts[index], m2_texts[index])
+
 
 @zspy_marker
 def test_saving_ragged_array_string(tmp_path, file):
@@ -822,6 +861,23 @@ def test_saving_ragged_array_string(tmp_path, file):
 
     s = hs.signals.BaseSignal(string_data, ragged=True)
     s.save(fname)
+
+    s2 = hs.load(fname)
+    for index in np.ndindex(s.data.shape):
+        np.testing.assert_equal(s.data[index], s2.data[index])
+
+
+@zspy_marker
+def test_saving_ragged_array_single_string(tmp_path, file):
+    fname = tmp_path / file
+
+    string_data = np.empty((2, 5), dtype=object)
+    for i, index in enumerate(np.ndindex(string_data.shape)):
+        string_data[index] = "a" * (i + 1)
+
+    s = hs.signals.BaseSignal(string_data, ragged=True)
+
+    s.save(fname, overwrite=True)
 
     s2 = hs.load(fname)
     for index in np.ndindex(s.data.shape):

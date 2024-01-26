@@ -810,6 +810,25 @@ class TestPermanentMarkersIO:
 
 
 @zspy_marker
+def test_saving_ragged_array_string(tmp_path, file):
+    # h5py doesn't support numpy unicode dtype and when saving ragged
+    # array, we need to change the array dtype
+    fname = tmp_path / file
+
+    string_data = np.empty((5,), dtype=object)
+    for index in np.ndindex(string_data.shape):
+        i = index[0]
+        string_data[index] = np.array(["a" * (i + 1), "b", "c", "d", "e"][: i + 2])
+
+    s = hs.signals.BaseSignal(string_data, ragged=True)
+    s.save(fname)
+
+    s2 = hs.load(fname)
+    for index in np.ndindex(s.data.shape):
+        np.testing.assert_equal(s.data[index], s2.data[index])
+
+
+@zspy_marker
 @pytest.mark.parametrize("lazy", [True, False])
 def test_save_load_model(tmp_path, file, lazy):
     from hyperspy._components.gaussian import Gaussian

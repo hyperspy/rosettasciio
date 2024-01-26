@@ -46,15 +46,16 @@ def flatten_data(x):
     new_data = np.empty(shape=x.shape, dtype=object)
     shapes = np.empty(shape=x.shape, dtype=object)
     for i in np.ndindex(x.shape):
-        new_data[i] = x[i].ravel()
-        shapes[i] = np.array(x[i].shape)
+        # Convert to list to save ragged array of array with string dtype
+        new_data[i] = x[i].ravel().tolist()
+        shapes[i] = x[i].shape
     return new_data, shapes
 
 
 def unflatten_data(data, shape):
     new_data = np.empty(shape=data.shape, dtype=object)
     for i in np.ndindex(new_data.shape):
-        new_data[i] = np.reshape(data[i], shape[i])
+        new_data[i] = np.reshape(np.array(data[i]), shape[i])
     return new_data
 
 
@@ -267,9 +268,15 @@ class HierarchicalReader:
             # Reduces the transfer of data between workers which
             # significantly improves performance for distributed loading
             data = da.from_array(data, chunks=data.chunks)
-            shape = da.from_array(ragged_shape, chunks=data.chunks)
+            shapes = da.from_array(ragged_shape, chunks=data.chunks)
 
-            data = da.apply_gufunc(unflatten_data, "(),()->()", data, shape)
+            data = da.apply_gufunc(
+                unflatten_data,
+                "(),()->()",
+                data,
+                shapes,
+                output_dtypes=object,
+            )
         return data
 
     def group2signaldict(self, group, lazy=False):
@@ -756,11 +763,7 @@ class HierarchicalWriter:
                     allow_rechunk=False,
                 )
             else:
-                new_data = np.empty(shape=data.shape, dtype=object)
-                shapes = np.empty(shape=data.shape, dtype=object)
-                for i in np.ndindex(data.shape):
-                    new_data[i] = data[i].ravel()
-                    shapes[i] = np.array(data[i].shape)
+                new_data, shapes = flatten_data(data)
 
             shape_dset = cls._get_object_dset(
                 group, shapes, f"_ragged_shapes_{key}", chunks, **kwds

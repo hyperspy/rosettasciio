@@ -18,23 +18,23 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=5b4479735964841361fd" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=5b4479735964841361fd" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=5b4479735964841361fd" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
 
   
-  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=5b4479735964841361fd" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+  <link href="_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="_static/custom-styles.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=5b4479735964841361fd" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=5b4479735964841361fd" />
-  <script src="_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=5b4479735964841361fd"></script>
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
+  <script src="_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
@@ -52,10 +52,9 @@
 
   
   
-  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
   
   <div id="pst-scroll-pixel-helper"></div>
-
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>
@@ -96,7 +95,7 @@
 </form></div>
   </div>
   
-    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+    <header class="bd-header navbar navbar-expand-lg bd-navbar">
 <div class="bd-header__inner bd-page-width">
   <label class="sidebar-toggle primary-toggle" for="__primary">
     <span class="fa-solid fa-bars"></span>
@@ -134,12 +133,6 @@
       
         <div class="navbar-item">
 <nav class="navbar-nav">
-  <p class="sidebar-header-items__title"
-     role="heading"
-     aria-level="1"
-     aria-label="Site Navigation">
-    Site Navigation
-  </p>
   <ul class="bd-navbar-elements navbar-nav">
     
                     <li class="nav-item">
@@ -265,12 +258,15 @@ document.write(`
   
 </div>
 
-    </nav>
+    </header>
   
+
   <div class="bd-container">
     <div class="bd-container__inner bd-page-width">
       
-      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -281,12 +277,6 @@ document.write(`
         
           <div class="navbar-item">
 <nav class="navbar-nav">
-  <p class="sidebar-header-items__title"
-     role="heading"
-     aria-level="1"
-     aria-label="Site Navigation">
-    Site Navigation
-  </p>
   <ul class="bd-navbar-elements navbar-nav">
     
                     <li class="nav-item">
@@ -376,6 +366,15 @@ document.write(`
     
   </div>
   
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"></div>
+</nav></div>
+    </div>
+  
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
   </div>
@@ -423,18 +422,19 @@ document.write(`
               
                 
 <div id="searchbox"></div>
-                <article class="bd-article" role="main">
+                <article class="bd-article">
                   
   <section id="release-notes">
 <h1>Release Notes<a class="headerlink" href="#release-notes" title="Link to this heading">#</a></h1>
 <p>Changelog entries for the development version are available at
 <a class="reference external" href="https://rosettasciio.readthedocs.io/en/latest/changes.html">https://rosettasciio.readthedocs.io/en/latest/changes.html</a></p>
-<section id="release-unreleased-2024-01-02">
-<h2> [UNRELEASED] (2024-01-02)<a class="headerlink" href="#release-unreleased-2024-01-02" title="Link to this heading">#</a></h2>
+<section id="release-unreleased-2024-01-27">
+<h2> [UNRELEASED] (2024-01-27)<a class="headerlink" href="#release-unreleased-2024-01-27" title="Link to this heading">#</a></h2>
 <section id="bug-fixes">
 <h3>Bug Fixes<a class="headerlink" href="#bug-fixes" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Fix saving <code class="docutils literal notranslate"><span class="pre">hspy</span></code> file with empty array (signal or metadata) and fix closing <code class="docutils literal notranslate"><span class="pre">hspy</span></code> file when a error occurs during reading or writing. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/206">#206</a>)</p></li>
+<li><p>Fix saving ragged arrays of vectors from/to a chunked <code class="docutils literal notranslate"><span class="pre">hspy</span></code> and <code class="docutils literal notranslate"><span class="pre">zspy</span></code> store.  Greatly increases the speed of saving and loading ragged arrays from chunked datasets. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/211">#211</a>)</p></li>
 </ul>
 </section>
 <section id="maintenance">
@@ -445,8 +445,8 @@ document.write(`
 </ul>
 </section>
 </section>
-<section id="id4">
-<h2>0.3 (2023-12-12)<a class="headerlink" href="#id4" title="Link to this heading">#</a></h2>
+<section id="id5">
+<h2>0.3 (2023-12-12)<a class="headerlink" href="#id5" title="Link to this heading">#</a></h2>
 <section id="new-features">
 <h3>New features<a class="headerlink" href="#new-features" title="Link to this heading">#</a></h3>
 <ul class="simple">
@@ -463,8 +463,8 @@ and transpose the data. (<a class="reference external" href="https://github.com/
 <li><p>Add support for saving lazy ragged signals to the <a class="reference internal" href="user_guide/supported_formats/zspy.html#zspy-format"><span class="std std-ref">zspy format</span></a>. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/pull/193">#193</a>)</p></li>
 </ul>
 </section>
-<section id="id8">
-<h3>Bug Fixes<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<section id="id9">
+<h3>Bug Fixes<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Fix error when reading <a class="reference internal" href="user_guide/supported_formats/pantarhei.html#pantarhei-format"><span class="std std-ref">CEOS Panta Rhei (PRZ)</span></a> file with aperture <code class="docutils literal notranslate"><span class="pre">&quot;Out&quot;</span></code> (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/173">#173</a>)</p></li>
 <li><p>Improvement for installation without <code class="docutils literal notranslate"><span class="pre">numba</span></code>:</p>
@@ -480,8 +480,8 @@ and transpose the data. (<a class="reference external" href="https://github.com/
 assumed. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/189">#189</a>)</p></li>
 </ul>
 </section>
-<section id="id13">
-<h3>Maintenance<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<section id="id14">
+<h3>Maintenance<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Remove usage of deprecated <code class="docutils literal notranslate"><span class="pre">distutils</span></code> (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/152">#152</a>)</p></li>
 <li><p>Fix installing exspy/hyperspy on GitHub CI and test failing without optional dependencies (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/186">#186</a>)</p></li>
@@ -491,16 +491,16 @@ assumed. (<a class="reference external" href="https://github.com/hyperspy/rosett
 </section>
 </section>
 <section id="changes-0-2">
-<span id="id18"></span><h2>0.2 (2023-11-09)<a class="headerlink" href="#changes-0-2" title="Link to this heading">#</a></h2>
-<section id="id19">
-<h3>New features<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
+<span id="id19"></span><h2>0.2 (2023-11-09)<a class="headerlink" href="#changes-0-2" title="Link to this heading">#</a></h2>
+<section id="id20">
+<h3>New features<a class="headerlink" href="#id20" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Add support for reading the <code class="docutils literal notranslate"><span class="pre">.img</span></code>-format from <a class="reference internal" href="user_guide/supported_formats/hamamatsu.html#hamamatsu-format"><span class="std std-ref">Hamamatsu</span></a>. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/87">#87</a>)</p></li>
 <li><p>Add support for reading the <code class="docutils literal notranslate"><span class="pre">.mib</span></code>-format from <a class="reference internal" href="user_guide/supported_formats/quantumdetector.html#quantumdetector-format"><span class="std std-ref">Quantum Detector Merlin</span></a> camera. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/174">#174</a>)</p></li>
 </ul>
 </section>
-<section id="id22">
-<h3>Bug Fixes<a class="headerlink" href="#id22" title="Link to this heading">#</a></h3>
+<section id="id23">
+<h3>Bug Fixes<a class="headerlink" href="#id23" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Fix saving/reading ragged arrays with <a class="reference internal" href="user_guide/supported_formats/hspy.html#hspy-format"><span class="std std-ref">hspy</span></a>/<a class="reference internal" href="user_guide/supported_formats/zspy.html#zspy-format"><span class="std std-ref">zspy</span></a> plugins (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/164">#164</a>)</p></li>
 <li><p>Fixes slow loading of ragged <a class="reference internal" href="user_guide/supported_formats/zspy.html#zspy-format"><span class="std std-ref">zspy</span></a> arrays (#168) (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/169">#169</a>)</p></li>
@@ -521,8 +521,8 @@ assumed. (<a class="reference external" href="https://github.com/hyperspy/rosett
 <li><p>Make <code class="docutils literal notranslate"><span class="pre">numba</span></code> and <code class="docutils literal notranslate"><span class="pre">h5py</span></code> optional dependencies to support RosettaSciIO on <a class="reference external" href="https://pyodide.org/">pyodide</a> and <a class="reference external" href="https://www.pypy.org/">PyPy</a> (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/180">#180</a>)</p></li>
 </ul>
 </section>
-<section id="id30">
-<h3>Maintenance<a class="headerlink" href="#id30" title="Link to this heading">#</a></h3>
+<section id="id31">
+<h3>Maintenance<a class="headerlink" href="#id31" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Remove deprecated <code class="docutils literal notranslate"><span class="pre">record_by</span></code> attribute in <a class="reference internal" href="user_guide/supported_formats/hspy.html#hspy-format"><span class="std std-ref">hspy</span></a>/<a class="reference internal" href="user_guide/supported_formats/zspy.html#zspy-format"><span class="std std-ref">zspy</span></a>, (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/143">#143</a>)</p></li>
 <li><p>Add <code class="docutils literal notranslate"><span class="pre">sidpy</span></code> dependency and pin it to &lt;0.12.1 as a workaround to fix <code class="docutils literal notranslate"><span class="pre">pyusid</span></code> import (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/155">#155</a>)</p></li>
@@ -534,9 +534,9 @@ assumed. (<a class="reference external" href="https://github.com/hyperspy/rosett
 </section>
 </section>
 <section id="changes-0-1">
-<span id="id37"></span><h2>0.1 (2023-06-06)<a class="headerlink" href="#changes-0-1" title="Link to this heading">#</a></h2>
-<section id="id38">
-<h3>New features<a class="headerlink" href="#id38" title="Link to this heading">#</a></h3>
+<span id="id38"></span><h2>0.1 (2023-06-06)<a class="headerlink" href="#changes-0-1" title="Link to this heading">#</a></h2>
+<section id="id39">
+<h3>New features<a class="headerlink" href="#id39" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Add support for reading the <code class="docutils literal notranslate"><span class="pre">.xml</span></code>-format from Horiba <a class="reference internal" href="user_guide/supported_formats/jobinyvon.html#jobinyvon-format"><span class="std std-ref">Jobin Yvon</span></a>’s LabSpec software. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/25">#25</a>)</p></li>
 <li><p>Add support for reading the <code class="docutils literal notranslate"><span class="pre">.tvf</span></code>-format from <a class="reference internal" href="user_guide/supported_formats/trivista.html#trivista-format"><span class="std std-ref">TriVista</span></a>. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/27">#27</a>)</p></li>
@@ -546,8 +546,8 @@ assumed. (<a class="reference external" href="https://github.com/hyperspy/rosett
 <li><p>Add file reader and writer for PRZ files generated by <a class="reference internal" href="user_guide/supported_formats/pantarhei.html#pantarhei-format"><span class="std std-ref">CEOS PantaRhei</span></a> (<a class="reference external" href="https://github.com/hyperspy/hyperspy/issues/2896">HyperSpy #2896</a>)</p></li>
 </ul>
 </section>
-<section id="id44">
-<h3>Bug Fixes<a class="headerlink" href="#id44" title="Link to this heading">#</a></h3>
+<section id="id45">
+<h3>Bug Fixes<a class="headerlink" href="#id45" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Ensure that the <code class="docutils literal notranslate"><span class="pre">.msa</span></code> plugin handles <code class="docutils literal notranslate"><span class="pre">SIGNALTYPE</span></code> values according to the official format specification. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/39">#39</a>)</p></li>
 <li><p>Fix error when reading Velox file containing FFT with an odd number of pixels (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/49">#49</a>)</p></li>
@@ -558,8 +558,8 @@ assumed. (<a class="reference external" href="https://github.com/hyperspy/rosett
 <li><p>Fix bugs with reading non-FEI and Velox <code class="docutils literal notranslate"><span class="pre">mrc</span></code> files, improve documentation of <code class="docutils literal notranslate"><span class="pre">mrc</span></code> and <code class="docutils literal notranslate"><span class="pre">mrcz</span></code> file format. Closes <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/71">#71</a>, <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/91">#91</a>, <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/93">#93</a>, <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/96">#96</a>, <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/130">#130</a>. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/131">#131</a>)</p></li>
 </ul>
 </section>
-<section id="id57">
-<h3>Improved Documentation<a class="headerlink" href="#id57" title="Link to this heading">#</a></h3>
+<section id="id58">
+<h3>Improved Documentation<a class="headerlink" href="#id58" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Consolidate docstrings and documentation for all plugins (see also <a class="reference external" href="https://github.com/hyperspy/rosettasciio/pull/47">#47</a>, <a class="reference external" href="https://github.com/hyperspy/rosettasciio/pull/59">#59</a>, <a class="reference external" href="https://github.com/hyperspy/rosettasciio/pull/64">#64</a>, <a class="reference external" href="https://github.com/hyperspy/rosettasciio/pull/72">#72</a>) (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/76">#76</a>)</p></li>
 <li><p>Remove persistent search field in left sidebar since this makes finding the sidebar on narrow screens difficult.
@@ -572,8 +572,8 @@ Set maximal major version of Sphinx to 5. (<a class="reference external" href="h
 <li><p>Remove deprecated <code class="docutils literal notranslate"><span class="pre">record_by</span></code> attribute from file readers where remaining (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/102">#102</a>)</p></li>
 </ul>
 </section>
-<section id="id65">
-<h3>Enhancements<a class="headerlink" href="#id65" title="Link to this heading">#</a></h3>
+<section id="id66">
+<h3>Enhancements<a class="headerlink" href="#id66" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Recognise both byte and string object for <code class="docutils literal notranslate"><span class="pre">NXdata</span></code> tag in NeXus reader (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/112">#112</a>)</p></li>
 </ul>
@@ -587,8 +587,8 @@ Set maximal major version of Sphinx to 5. (<a class="reference external" href="h
 <code class="docutils literal notranslate"><span class="pre">utils.tools.XmlToDict</span></code> Xml to dict/list translator class with rich customization options as kwargs, and main method for translation <code class="docutils literal notranslate"><span class="pre">dictionarize</span></code> (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/111">#111</a>)</p></li>
 </ul>
 </section>
-<section id="id68">
-<h3>Maintenance<a class="headerlink" href="#id68" title="Link to this heading">#</a></h3>
+<section id="id69">
+<h3>Maintenance<a class="headerlink" href="#id69" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Initiate GitHub actions for tests and documentation. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/1">#1</a>)</p></li>
 <li><p>Initiate towncrier changelog and create templates for PRs and issues. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/3">#3</a>)</p></li>
@@ -663,40 +663,42 @@ new repository.</p></li>
               
                 <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
-  <div class="sidebar-secondary-item">
 
-  <div class="page-toc tocsection onthispage">
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
     <i class="fa-solid fa-list"></i> On this page
   </div>
-  <nav class="bd-toc-nav page-toc">
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#release-unreleased-2024-01-02"> [UNRELEASED] (2024-01-02)</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#release-unreleased-2024-01-27"> [UNRELEASED] (2024-01-27)</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#bug-fixes">Bug Fixes</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#maintenance">Maintenance</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">0.3 (2023-12-12)</a><ul class="nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">0.3 (2023-12-12)</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#new-features">New features</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">Bug Fixes</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">Maintenance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">Bug Fixes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">Maintenance</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#changes-0-2">0.2 (2023-11-09)</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">New features</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">Bug Fixes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">New features</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">Bug Fixes</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#improved-documentation">Improved Documentation</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#enhancements">Enhancements</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id30">Maintenance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id31">Maintenance</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#changes-0-1">0.1 (2023-06-06)</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id38">New features</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id44">Bug Fixes</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id57">Improved Documentation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id39">New features</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id45">Bug Fixes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id58">Improved Documentation</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deprecations">Deprecations</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id65">Enhancements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id66">Enhancements</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#api-changes">API changes</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id68">Maintenance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id69">Maintenance</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#initiation-2022-07-23">Initiation (2022-07-23)</a></li>
@@ -725,8 +727,8 @@ new repository.</p></li>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=5b4479735964841361fd"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=5b4479735964841361fd"></script>
+  <script src="_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -759,7 +761,7 @@ new repository.</p></li>
       
         <div class="footer-item">
 <p class="theme-version">
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.14.4.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.2.
 </p></div>
       
     </div>

@@ -32,11 +32,16 @@ in order to get started and for detailed contributing guidelines.
 
 Lint
 ----
+
+.. _pre-commit.ci: https://pre-commit.ci
+
 To keep the code style consistent (and more readable), `black <https://black.readthedocs.io/>`_
 is used to check the code formatting. When the code doesn't comply with the expected formatting,
-the `lint <https://github.com/hyperspy/rosettasciio/actions/workflows/black.yml>`_ will fail.
-In practise, the code formatting can be fixed by installing ``black`` and running it on the
+the `pre-commit.ci build <https://results.pre-commit.ci/latest/github/hyperspy/rosettasciio/main>`_
+will fail. In practise, the code formatting can be fixed by installing ``black`` and running it on the
 source code or by using :ref:`pre-commit hooks <pre-commit-hooks>`.
+Alternatively, adding the message ``pre-commit.ci autofix`` in a pull request will push a commit with 
+the fixes using `pre-commit.ci`_.
 
 
 .. _adding-and-updating-test-data:
@@ -88,7 +93,7 @@ Two pre-commit hooks are set up:
 
 These can be run locally by using `pre-commit <https://pre-commit.com>`__.
 Alternatively, the comment ``pre-commit.ci autofix`` can be added to a PR to fix the formatting
-using `pre-commit.ci <https://pre-commit.ci>`_.
+using `pre-commit.ci`_.
 
 .. _defining-plugins:
 

@@ -46,8 +46,8 @@ def flatten_data(x, is_hdf5=False):
     new_data = np.empty(shape=x.shape, dtype=object)
     shapes = np.empty(shape=x.shape, dtype=object)
     for i in np.ndindex(x.shape):
-        data_ = x[i].ravel()
-        if np.issubdtype(x[i].dtype, np.dtype("U")):
+        data_ = np.array(x[i]).ravel()
+        if np.issubdtype(data_.dtype, np.dtype("U")):
             if is_hdf5:
                 # h5py doesn't support numpy unicode dtype, convert to
                 # compatible dtype
@@ -57,7 +57,7 @@ def flatten_data(x, is_hdf5=False):
                 new_data[i] = data_.tolist()
         else:
             new_data[i] = data_
-        shapes[i] = np.array(x[i].shape)
+        shapes[i] = np.array(np.array(x[i]).shape)
     return new_data, shapes
 
 

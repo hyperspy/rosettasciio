@@ -849,7 +849,8 @@ class TestPermanentMarkersIO:
 
 
 @zspy_marker
-def test_saving_ragged_array_string(tmp_path, file):
+@pytest.mark.parametrize("use_list", [True, False])
+def test_saving_ragged_array_string(tmp_path, file, use_list):
     # h5py doesn't support numpy unicode dtype and when saving ragged
     # array, we need to change the array dtype
     fname = tmp_path / file
@@ -857,7 +858,10 @@ def test_saving_ragged_array_string(tmp_path, file):
     string_data = np.empty((5,), dtype=object)
     for index in np.ndindex(string_data.shape):
         i = index[0]
-        string_data[index] = np.array(["a" * (i + 1), "b", "c", "d", "e"][: i + 2])
+        data = np.array(["a" * (i + 1), "b", "c", "d", "e"][: i + 2])
+        if use_list:
+            data = data.tolist()
+        string_data[index] = data
 
     s = hs.signals.BaseSignal(string_data, ragged=True)
     s.save(fname)

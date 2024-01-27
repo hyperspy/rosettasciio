@@ -1,0 +1,1 @@
+Fix saving ragged array of strings in ``hspy`` and ``zspy`` format.

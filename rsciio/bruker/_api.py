@@ -869,7 +869,6 @@ class HyperHeader(object):
 
 
 class BCF_reader(SFS_reader):
-
     """Class to read bcf (Bruker hypermapping) file.
 
     Inherits SFS_reader and all its attributes and methods.

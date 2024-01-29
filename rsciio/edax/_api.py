@@ -888,9 +888,9 @@ def spd_reader(
         "size": data.shape[2],
         "index_in_array": 2,
         "name": "Energy",
-        "scale": original_metadata["spc_header"]["evPerChan"] / 1000.0
-        if read_spc
-        else 1,
+        "scale": (
+            original_metadata["spc_header"]["evPerChan"] / 1000.0 if read_spc else 1
+        ),
         "offset": original_metadata["spc_header"]["startEnergy"] if read_spc else 1,
         "units": "keV" if read_spc else None,
         "navigate": False,

@@ -1,4 +1,5 @@
 """NeXus file reading and writing."""
+
 # -*- coding: utf-8 -*-
 # Copyright 2007-2023 The HyperSpy developers
 #
@@ -588,10 +589,11 @@ def file_reader(
                                     "original_metadata"
                                 ]
                             else:
-                                dictionary[
-                                    "original_metadata"
-                                ] = _find_search_keys_in_dict(
-                                    (oma["original_metadata"]), search_keys=metadata_key
+                                dictionary["original_metadata"] = (
+                                    _find_search_keys_in_dict(
+                                        (oma["original_metadata"]),
+                                        search_keys=metadata_key,
+                                    )
                                 )
                             # reconstruct the axes_list for axes_manager
                             for k, v in oma["original_metadata"].items():

@@ -344,15 +344,21 @@ def file_reader(
     if fei_header is None:
         # The scale is in Angstroms, we convert it to nm
         scales = [
-            float(std_header["Zlen"] / std_header["MZ"]) / 10
-            if float(std_header["Zlen"]) != 0 and float(std_header["MZ"]) != 0
-            else 1,
-            float(std_header["Ylen"] / std_header["MY"]) / 10
-            if float(std_header["MY"]) != 0
-            else 1,
-            float(std_header["Xlen"] / std_header["MX"]) / 10
-            if float(std_header["MX"]) != 0
-            else 1,
+            (
+                float(std_header["Zlen"] / std_header["MZ"]) / 10
+                if float(std_header["Zlen"]) != 0 and float(std_header["MZ"]) != 0
+                else 1
+            ),
+            (
+                float(std_header["Ylen"] / std_header["MY"]) / 10
+                if float(std_header["MY"]) != 0
+                else 1
+            ),
+            (
+                float(std_header["Xlen"] / std_header["MX"]) / 10
+                if float(std_header["MX"]) != 0
+                else 1
+            ),
         ]
         offsets = [
             float(std_header["ZORIGIN"]) / 10,

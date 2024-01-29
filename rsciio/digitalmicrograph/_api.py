@@ -38,7 +38,6 @@ _logger = logging.getLogger(__name__)
 
 
 class DigitalMicrographReader(object):
-
     """Class to read Gatan Digital Micrograph (TM) files.
 
     Currently it supports versions 3 and 4.
@@ -1153,9 +1152,9 @@ class ImageObject(object):
                     ): ("Acquisition_instrument.Detector.processing", None),
                     "{}.Acquisition.Device.CCD.Pixel_Size_um".format(tags_path): (
                         "Acquisition_instrument.Detector.pixel_size",
-                        lambda x: x[0]
-                        if (isinstance(x, tuple) and x[0] == x[1])
-                        else x,
+                        lambda x: (
+                            x[0] if (isinstance(x, tuple) and x[0] == x[1]) else x
+                        ),
                     ),
                     # Serial Spectrum
                     "{}.CL.Acquisition.Acquisition_begin".format(tags_path): (

@@ -584,9 +584,9 @@ def file_writer(filename, signal, encoding="latin-1"):
         if "Detector.EDS.live_time" in mp:
             keys_dictionary["live-time"] = mp.Detector.EDS.live_time
         if "Detector.EDS.energy_resolution_MnKa" in mp:
-            keys_dictionary[
-                "detector-peak-width-ev"
-            ] = mp.Detector.EDS.energy_resolution_MnKa
+            keys_dictionary["detector-peak-width-ev"] = (
+                mp.Detector.EDS.energy_resolution_MnKa
+            )
 
     write_rpl(filename, keys_dictionary, encoding)
     write_raw(filename, signal, record_by, sig_axes, nav_axes)

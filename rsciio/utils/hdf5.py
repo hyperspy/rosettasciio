@@ -1,4 +1,5 @@
 """HDF5 file inspection."""
+
 # -*- coding: utf-8 -*-
 # Copyright 2007-2023 The HyperSpy developers
 #

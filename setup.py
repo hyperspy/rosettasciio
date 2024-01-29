@@ -93,7 +93,6 @@ else:
 
 
 class Recythonize(Command):
-
     """cythonize all extensions"""
 
     description = "(re-)cythonize all changed cython extensions"

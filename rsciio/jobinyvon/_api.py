@@ -223,9 +223,9 @@ class JobinYvonXMLReader:
         ## use second extracted value
         for key in change_to_second_value:
             try:
-                self.original_metadata["experimental_setup"][
-                    key
-                ] = self.original_metadata["experimental_setup"][key]["2"]
+                self.original_metadata["experimental_setup"][key] = (
+                    self.original_metadata["experimental_setup"][key]["2"]
+                )
             except KeyError:
                 pass
 
@@ -234,9 +234,9 @@ class JobinYvonXMLReader:
             if isinstance(value, dict):
                 # only if there is an entry/value
                 if bool(value):
-                    self.original_metadata["experimental_setup"][
-                        key
-                    ] = self.original_metadata["experimental_setup"][key]["1"]
+                    self.original_metadata["experimental_setup"][key] = (
+                        self.original_metadata["experimental_setup"][key]["1"]
+                    )
 
         for key, value in self.original_metadata["date"].items():
             if isinstance(value, dict):
@@ -248,9 +248,9 @@ class JobinYvonXMLReader:
         for key, value in self.original_metadata["file_information"].items():
             if isinstance(value, dict):
                 if bool(value):
-                    self.original_metadata["file_information"][
-                        key
-                    ] = self.original_metadata["file_information"][key]["1"]
+                    self.original_metadata["file_information"][key] = (
+                        self.original_metadata["file_information"][key]["1"]
+                    )
 
         ## convert strings to float
         for key in convert_to_numeric:
@@ -263,17 +263,17 @@ class JobinYvonXMLReader:
 
         ## move the unit from grating to the key name
         try:
-            self.original_metadata["experimental_setup"][
-                "Grating (gr/mm)"
-            ] = self.original_metadata["experimental_setup"].pop("Grating")
+            self.original_metadata["experimental_setup"]["Grating (gr/mm)"] = (
+                self.original_metadata["experimental_setup"].pop("Grating")
+            )
         except KeyError:  # pragma: no cover
             pass  # pragma: no cover
 
         ## add percentage for filter key name
         try:
-            self.original_metadata["experimental_setup"][
-                "ND Filter (%)"
-            ] = self.original_metadata["experimental_setup"].pop("ND Filter")
+            self.original_metadata["experimental_setup"]["ND Filter (%)"] = (
+                self.original_metadata["experimental_setup"].pop("ND Filter")
+            )
         except KeyError:  # pragma: no cover
             pass  # pragma: no cover
 

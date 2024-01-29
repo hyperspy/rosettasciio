@@ -181,9 +181,11 @@ def import_pr(data, meta_data, filename=None):
     default_labels = reversed(["X", "Y", "Z"][: content_type_np_order.count(None)])
 
     data_labels = [
-        content_type_np_order[i]
-        if content_type_np_order[i] is not None
-        else next(default_labels)
+        (
+            content_type_np_order[i]
+            if content_type_np_order[i] is not None
+            else next(default_labels)
+        )
         for i in new_order
     ]
     calibration_ordered = [calibrations_np_order[i] for i in new_order]

@@ -94,7 +94,6 @@ _logger = logging.getLogger(__name__)
 
 
 class SemperFormat(object):
-
     """Class for importing and exporting SEMPER `.unf`-files.
 
     The :class:`~.SemperFormat` class represents a SEMPER binary file format
@@ -220,9 +219,7 @@ class SemperFormat(object):
         assert label["SEMPER"] == "Semper"
         # Process dimensions:
         for key in ["NCOL", "NROW", "NLAY", "ICCOLN", "ICROWN", "ICLAYN"]:
-            value = (
-                256**2 * label.pop(key + "H") + 256 * label[key][0] + label[key][1]
-            )
+            value = 256**2 * label.pop(key + "H") + 256 * label[key][0] + label[key][1]
             label[key] = value
         # Process date:
         date = "{}-{}-{} {}:{}:{}".format(label["DATE"][0] + 1900, *label["DATE"][1:])

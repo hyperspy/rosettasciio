@@ -42,19 +42,47 @@ _logger = logging.getLogger(__name__)
 # ragged arrays in hdf5 with dimensionality higher than 1
 
 
-def flatten_data(x):
+def flatten_data(x, is_hdf5=False):
     new_data = np.empty(shape=x.shape, dtype=object)
     shapes = np.empty(shape=x.shape, dtype=object)
     for i in np.ndindex(x.shape):
-        new_data[i] = x[i].ravel()
-        shapes[i] = np.array(x[i].shape)
+        data_ = np.array(x[i]).ravel()
+        if np.issubdtype(data_.dtype, np.dtype("U")):
+            if is_hdf5:
+                # h5py doesn't support numpy unicode dtype, convert to
+                # compatible dtype
+                new_data[i] = data_.astype(h5py.string_dtype())
+            else:
+                # Convert to list to save ragged array of array with string dtype
+                new_data[i] = data_.tolist()
+        else:
+            new_data[i] = data_
+        shapes[i] = np.array(np.array(x[i]).shape)
     return new_data, shapes
 
 
-def unflatten_data(data, shape):
+def unflatten_data(data, shape, is_hdf5=False):
     new_data = np.empty(shape=data.shape, dtype=object)
     for i in np.ndindex(new_data.shape):
-        new_data[i] = np.reshape(data[i], shape[i])
+        try:
+            # For hspy file, ragged array of string are saving with
+            # "h5py.string_dtype()" type and we need to convert it back
+            # to numpy unicode type. The only to know when this needs to be
+            # done is look at the numpy metadata
+            # This numpy feature is "not well supported in numpy"
+            # https://numpy.org/doc/stable/reference/generated/numpy.dtype.metadata.html
+            convert_to_unicode = (
+                is_hdf5
+                and data.dtype is not None
+                and data.dtype.metadata.get("vlen") is not None
+                and data.dtype.metadata["vlen"].metadata.get("vlen") == str
+            )
+        except (AttributeError, KeyError):
+            # AttributeError in case `dtype.metadata`` is None (most of the time)
+            # KeyError in case "vlen" is not a key
+            convert_to_unicode = False
+        data_ = data[i].astype("U") if convert_to_unicode else data[i]
+        new_data[i] = np.reshape(np.array(data_), shape[i])
     return new_data
 
 
@@ -133,6 +161,9 @@ def get_signal_chunks(shape, dtype, signal_axes=None, target_size=1e6):
 class HierarchicalReader:
     """A generic Reader class for reading data from hierarchical file types."""
 
+    _file_type = ""
+    _is_hdf5 = False
+
     def __init__(self, file):
         """
         Initializes a general reader for hierarchical signals.
@@ -147,8 +178,6 @@ class HierarchicalReader:
         self.version = self.get_format_version()
         self.Dataset = None
         self.Group = None
-        self.unicode_kwds = None
-        self.ragged_kwds = None
 
         if self.version > Version(version):
             warnings.warn(
@@ -249,8 +278,7 @@ class HierarchicalReader:
 
         return exp_dict_list
 
-    @staticmethod
-    def _read_array(group, dataset_key):
+    def _read_array(self, group, dataset_key):
         # This is a workaround for the lack of support for n-d ragged array
         # in h5py and zarr. There is work in progress for implementation in zarr:
         # https://github.com/zarr-developers/zarr-specs/issues/62 which may be
@@ -267,9 +295,16 @@ class HierarchicalReader:
             # Reduces the transfer of data between workers which
             # significantly improves performance for distributed loading
             data = da.from_array(data, chunks=data.chunks)
-            shape = da.from_array(ragged_shape, chunks=data.chunks)
+            shapes = da.from_array(ragged_shape, chunks=data.chunks)
 
-            data = da.apply_gufunc(unflatten_data, "(),()->()", data, shape)
+            data = da.apply_gufunc(
+                unflatten_data,
+                "(),()->()",
+                data,
+                shapes,
+                is_hdf5=self._is_hdf5,
+                output_dtypes=object,
+            )
         return data
 
     def group2signaldict(self, group, lazy=False):
@@ -638,6 +673,8 @@ class HierarchicalWriter:
     """
 
     target_size = 1e6
+    _unicode_kwds = None
+    _is_hdf5 = False
 
     def __init__(self, file, signal, group, **kwds):
         """Initialize a generic file writer for hierachical data storage types.
@@ -658,8 +695,6 @@ class HierarchicalWriter:
         self.group = group
         self.Dataset = None
         self.Group = None
-        self.unicode_kwds = None
-        self.ragged_kwds = None
         self.kwds = kwds
 
     @staticmethod
@@ -720,9 +755,7 @@ class HierarchicalWriter:
             # Saving numpy unicode type is not supported in h5py
             data = data.astype(np.dtype("S"))
 
-        if data.dtype == np.dtype("O"):
-            dset = cls._get_object_dset(group, data, key, chunks, **kwds)
-        else:
+        if data.dtype != np.dtype("O"):
             got_data = False
             while not got_data:
                 try:
@@ -752,19 +785,16 @@ class HierarchicalWriter:
                     flatten_data,
                     "()->(),()",
                     data,
-                    dtype=object,
+                    is_hdf5=cls._is_hdf5,
                     output_dtypes=[object, object],
                     allow_rechunk=False,
                 )
             else:
-                new_data = np.empty(shape=data.shape, dtype=object)
-                shapes = np.empty(shape=data.shape, dtype=object)
-                for i in np.ndindex(data.shape):
-                    new_data[i] = data[i].ravel()
-                    shapes[i] = np.array(data[i].shape)
+                new_data, shapes = flatten_data(data, is_hdf5=cls._is_hdf5)
 
+            dset = cls._get_object_dset(group, new_data, key, chunks, **kwds)
             shape_dset = cls._get_object_dset(
-                group, shapes, f"_ragged_shapes_{key}", chunks, **kwds
+                group, shapes, f"_ragged_shapes_{key}", chunks, dtype=int, **kwds
             )
 
             cls._store_data(
@@ -895,17 +925,17 @@ class HierarchicalWriter:
         except ValueError:
             tmp = np.array([[0]])
 
-        if tmp.dtype == np.dtype("O") or tmp.ndim != 1:
+        if np.issubdtype(tmp.dtype, object) or tmp.ndim != 1:
             self.dict2group(
                 dict(zip([str(i) for i in range(len(value))], value)),
                 group.require_group(_type + str(len(value)) + "_" + key),
                 **kwds,
             )
-        elif tmp.dtype.type is np.unicode_:
+        elif np.issubdtype(tmp.dtype, np.dtype("U")):
             if _type + key in group:
                 del group[_type + key]
             group.create_dataset(
-                _type + key, shape=tmp.shape, **self.unicode_kwds, **kwds
+                _type + key, shape=tmp.shape, **self._unicode_kwds, **kwds
             )
             group[_type + key][:] = tmp[:]
         else:

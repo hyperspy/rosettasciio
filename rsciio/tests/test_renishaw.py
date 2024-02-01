@@ -891,7 +891,7 @@ class TestLinescan:
             testfile_linescan,
             reader="Renishaw",
             use_uniform_signal_axis=True,
-        )
+        )[0]
 
     @classmethod
     def teardown_class(cls):
@@ -971,7 +971,7 @@ class TestMap:
             testfile_map,
             reader="Renishaw",
             use_uniform_signal_axis=True,
-        )
+        )[0]
 
     @classmethod
     def teardown_class(cls):
@@ -1180,7 +1180,7 @@ class TestStreamline:
             testfile_streamline,
             reader="Renishaw",
             use_uniform_signal_axis=True,
-        )
+        )[0]
 
     @classmethod
     def teardown_class(cls):
@@ -1196,7 +1196,12 @@ class TestStreamline:
             self.s.inav[44, 48].isig[-3:].data, [587.48083, 570.73505, 583.5814]
         )
 
-    def test_original_metadata_WHTL(self):
+    def test_WHTL(self):
+        s = hs.load(
+            testfile_streamline,
+            reader="Renishaw",
+            use_uniform_signal_axis=True,
+        )[1]
         expected_WTHL = {
             "FocalPlaneResolutionUnit": "µm",
             "FocalPlaneXResolution": 445.75,
@@ -1208,8 +1213,16 @@ class TestStreamline:
             "FieldOfViewXY": (8915.0, 5417.0),
         }
 
-        metadata_WHTL = deepcopy(self.s.original_metadata.WHTL_0.as_dictionary())
-        metadata_WHTL.pop("image", None)
+        for i, (axis, scale) in enumerate(
+            zip(s.axes_manager._axes, (22.570833, 23.710106))
+        ):
+            assert axis.units == expected_WTHL["FocalPlaneResolutionUnit"]
+            np.testing.assert_allclose(axis.scale, scale)
+            np.testing.assert_allclose(
+                axis.offset, expected_WTHL["FocalPlaneXYOrigins"][::-1][i]
+            )
+
+        metadata_WHTL = s.original_metadata.as_dictionary()
         assert metadata_WHTL == expected_WTHL
 
     def test_original_metadata_WMAP(self):
@@ -1263,7 +1276,7 @@ class TestMapBlock:
             testfile_map_block,
             reader="Renishaw",
             use_uniform_signal_axis=True,
-        )
+        )[0]
 
     @classmethod
     def teardown_class(cls):

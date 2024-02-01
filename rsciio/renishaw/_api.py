@@ -66,11 +66,14 @@ from copy import deepcopy
 from enum import IntEnum, Enum, EnumMeta
 from io import BytesIO
 from pathlib import Path
+import os
 
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio.utils import rgb_tools
+
 
 _logger = logging.getLogger(__name__)
 
@@ -469,7 +472,6 @@ class WDFReader(object):
         self._parse_MAP("MAP_0")
         self._parse_MAP("MAP_1")
         self._parse_TEXT()
-        self._parse_WHTL()
 
         ## parse blocks with axes information
         signal_dict = self._parse_XLST()
@@ -1144,7 +1146,7 @@ class WDFReader(object):
     def _map_general_md(self):
         general = {}
         general["title"] = self.original_metadata.get("WDF1_1", {}).get("title")
-        general["original_filename"] = self._filename
+        general["original_filename"] = os.path.split(self._filename)[1]
         try:
             date, time = self.original_metadata["WDF1_1"]["time_start"].split("#")
         except KeyError:
@@ -1245,7 +1247,7 @@ class WDFReader(object):
         text = self.__read_utf8(block_size - 16)
         self.original_metadata.update({"TEXT_0": text})
 
-    def _parse_WHTL(self):
+    def _get_WHTL(self):
         if not self._check_block_exists("WHTL_0"):
             return
         pos, size = self._block_info["WHTL_0"]
@@ -1253,11 +1255,12 @@ class WDFReader(object):
         self._file_obj.seek(pos)
         img_bytes = self._file_obj.read(size - jpeg_header)
         img = BytesIO(img_bytes)
-        whtl_metadata = {"image": img}
+        whtl_metadata = {}
 
         ## extract EXIF tags and store them in metadata
         if PIL_installed:
             pil_img = Image.open(img)
+            data = rgb_tools.regular_array2rgbx(np.array(pil_img))
             ## missing header keys when Pillow >= 8.2.0 -> does not flatten IFD anymore
             ## see https://pillow.readthedocs.io/en/stable/releasenotes/8.2.0.html#image-getexif-exif-and-gps-ifd
             ## Use fall-back _getexif method instead
@@ -1281,7 +1284,25 @@ class WDFReader(object):
             whtl_metadata["Unknown"] = exif_header.get(ExifTags.Unknown)
             whtl_metadata["FieldOfViewXY"] = exif_header.get(ExifTags.FieldOfViewXY)
 
-        self.original_metadata.update({"WHTL_0": whtl_metadata})
+	        return {
+	            "axes": [
+	                {
+	                    "name": name,
+	                    "units": whtl_metadata["FocalPlaneResolutionUnit"],
+	                    "size": size,
+	                    "scale": whtl_metadata["FieldOfViewXY"][i] / size,
+	                    "offset": whtl_metadata["FocalPlaneXYOrigins"][i],
+	                    "index_in_array": i,
+	                }
+	                for i, name, size in zip([1, 0], ["y", "x"], data.shape)
+	            ],
+	            "data": data,
+	            "metadata": {
+	                "General": {"original_filename": os.path.split(self._filename)[1]},
+	                "Signal": {"signal_type": ""},
+	            },
+	            "original_metadata": whtl_metadata,
+	        }
 
 
 def file_reader(
@@ -1332,9 +1353,13 @@ def file_reader(
         dictionary["metadata"] = deepcopy(wdf.metadata)
         dictionary["original_metadata"] = deepcopy(wdf.original_metadata)
 
-    return [
-        dictionary,
-    ]
+        image_dict = wdf._get_WHTL()
+
+    dict_list = [dictionary]
+    if image_dict is not None:
+        dict_list.append(image_dict)
+
+    return dict_list
 
 
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)

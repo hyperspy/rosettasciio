@@ -1200,7 +1200,6 @@ class TestStreamline:
         s = hs.load(
             testfile_streamline,
             reader="Renishaw",
-            use_uniform_signal_axis=True,
         )[1]
         expected_WTHL = {
             "FocalPlaneResolutionUnit": "µm",
@@ -1224,6 +1223,14 @@ class TestStreamline:
 
         metadata_WHTL = s.original_metadata.as_dictionary()
         assert metadata_WHTL == expected_WTHL
+
+        md = s.metadata.Markers.as_dictionary()
+        np.testing.assert_allclose(
+            md["Map"]["kwargs"]["offsets"],
+            [-8041.7998, -1137.6001],
+        )
+        np.testing.assert_allclose(md["Map"]["kwargs"]["widths"], 116.99999)
+        np.testing.assert_allclose(md["Map"]["kwargs"]["heights"], 127.39999)
 
     def test_original_metadata_WMAP(self):
         expected_WMAP = {

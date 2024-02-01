@@ -1227,6 +1227,8 @@ class WDFReader(object):
         laser = self._map_laser_md()
         spectrometer = self._map_spectrometer_md()
 
+        # TODO: find laser power?
+
         metadata = {
             "General": general,
             "Signal": signal,
@@ -1284,25 +1286,50 @@ class WDFReader(object):
             whtl_metadata["Unknown"] = exif_header.get(ExifTags.Unknown)
             whtl_metadata["FieldOfViewXY"] = exif_header.get(ExifTags.FieldOfViewXY)
 
-	        return {
-	            "axes": [
-	                {
-	                    "name": name,
-	                    "units": whtl_metadata["FocalPlaneResolutionUnit"],
-	                    "size": size,
-	                    "scale": whtl_metadata["FieldOfViewXY"][i] / size,
-	                    "offset": whtl_metadata["FocalPlaneXYOrigins"][i],
-	                    "index_in_array": i,
-	                }
-	                for i, name, size in zip([1, 0], ["y", "x"], data.shape)
-	            ],
-	            "data": data,
-	            "metadata": {
-	                "General": {"original_filename": os.path.split(self._filename)[1]},
-	                "Signal": {"signal_type": ""},
-	            },
-	            "original_metadata": whtl_metadata,
-	        }
+            metadata = {
+                "General": {"original_filename": os.path.split(self._filename)[1]},
+                "Signal": {"signal_type": ""},
+            }
+
+            map_md = self.original_metadata.get("WMAP_0")
+            if map_md is not None:
+                width = map_md["scale_xyz"][0] * map_md["size_xyz"][0]
+                length = map_md["scale_xyz"][1] * map_md["size_xyz"][1]
+                offset = (
+                    np.array(map_md["offset_xyz"][:2]) + np.array([width, length]) / 2
+                )
+
+                marker_dict = {
+                    "class": "Rectangles",
+                    "name": "Map",
+                    "plot_on_signal": True,
+                    "kwargs": {
+                        "offsets": offset,
+                        "widths": width,
+                        "heights": length,
+                        "color": ("red",),
+                        "facecolor": "none",
+                    },
+                }
+
+                metadata["Markers"] = {"Map": marker_dict}
+
+            return {
+                "axes": [
+                    {
+                        "name": name,
+                        "units": whtl_metadata["FocalPlaneResolutionUnit"],
+                        "size": size,
+                        "scale": whtl_metadata["FieldOfViewXY"][i] / size,
+                        "offset": whtl_metadata["FocalPlaneXYOrigins"][i],
+                        "index_in_array": i,
+                    }
+                    for i, name, size in zip([1, 0], ["y", "x"], data.shape)
+                ],
+                "data": data,
+                "metadata": metadata,
+                "original_metadata": whtl_metadata,
+            }
 
 
 def file_reader(
@@ -1312,7 +1339,8 @@ def file_reader(
     load_unmatched_metadata=False,
 ):
     """
-    Read Renishaw's ``.wdf`` file.
+    Read Renishaw's ``.wdf`` file. In case of mapping data, the image area will
+    be returned with a marker showing the mapped area.
 
     Parameters
     ----------

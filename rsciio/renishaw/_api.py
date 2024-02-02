@@ -1064,13 +1064,32 @@ class WDFReader(object):
             )
         for axis in orgn_data.keys():
             del nav_dict[axis]["annotation"]
+            data = nav_dict[axis].pop("data")
             nav_dict[axis]["navigate"] = True
-            data = np.unique(nav_dict[axis].pop("data"))
             nav_dict[axis]["size"] = data.size
-            nav_dict[axis]["offset"] = data[0]
-            ## time axis in test data is not perfectly uniform, but X,Y,Z are
-            nav_dict[axis]["scale"] = np.mean(np.diff(data))
             nav_dict[axis]["name"] = axis
+            scale_mean = np.mean(np.diff(data))
+            if axis == "FocusTrack_Z" or scale_mean == 0:
+                # FocusTrack_Z is not uniform and not necessarily ordered
+                # Fix me when hyperspy supports non-ordered non-uniform axis
+                # For now, remove units and fall back on default axis
+                # nav_dict[axis]["axis"] = data
+                if scale_mean == 0:
+                    # case "scale_mean == 0" is for series where the axis is invariant.
+                    # In principle, this should happen but the WiRE software allows it
+                    reason = f"Axis {axis} is invariant"
+                else:
+                    reason = "Non-ordered axis is not supported"
+                _logger.warning(
+                    f"{reason}, a default axis with scale 1 "
+                    "and offset 0 will be used."
+                )
+                del nav_dict[axis]["units"]
+            else:
+                # time axis in test data is not perfectly uniform, but X,Y,Z are
+                nav_dict[axis]["offset"] = data[0]
+                nav_dict[axis]["scale"] = scale_mean
+
         return nav_dict
 
     def _compare_measurement_type_to_ORGN_WMAP(self, orgn_data, wmap_data):
@@ -1330,6 +1349,9 @@ class WDFReader(object):
                 "metadata": metadata,
                 "original_metadata": whtl_metadata,
             }
+        else:  # pragma: no cover
+            # Explicit return for readibility
+            return None
 
 
 def file_reader(

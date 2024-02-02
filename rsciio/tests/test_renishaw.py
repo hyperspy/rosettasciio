@@ -39,6 +39,9 @@ testfile_streamline = (testfile_dir / "renishaw_test_streamline.wdf").resolve()
 testfile_map_block = (testfile_dir / "renishaw_test_map2.wdf").resolve()
 testfile_timeseries = (testfile_dir / "renishaw_test_timeseries.wdf").resolve()
 testfile_focustrack = (testfile_dir / "renishaw_test_focustrack.wdf").resolve()
+testfile_focustrack_invariant = (
+    testfile_dir / "renishaw_test_focustrack_invariant.wdf"
+).resolve()
 testfile_acc1_exptime1 = (testfile_dir / "renishaw_test_exptime1_acc1.wdf").resolve()
 testfile_acc1_exptime10 = (testfile_dir / "renishaw_test_exptime10_acc1.wdf").resolve()
 testfile_acc2_exptime1 = (testfile_dir / "renishaw_test_exptime1_acc2.wdf").resolve()
@@ -1367,8 +1370,9 @@ class TestFocusTrack:
         assert len(axes_manager) == 2
         z_axis = axes_manager.pop("axis-0")
 
-        np.testing.assert_allclose(z_axis["scale"], 2.9, atol=0.1)
-        np.testing.assert_allclose(z_axis["offset"], 26, atol=0.5)
+        # As hyperspy doesn't support non-ordered axis, default axis are used
+        np.testing.assert_allclose(z_axis["scale"], 1, atol=0.1)
+        np.testing.assert_allclose(z_axis["offset"], 0, atol=0.5)
 
     def test_data(self):
         np.testing.assert_allclose(
@@ -1378,6 +1382,15 @@ class TestFocusTrack:
         np.testing.assert_allclose(
             self.s.inav[-1].isig[-3:].data, [4.8724666, 5.8486896, 3.8991265]
         )
+
+
+def test_focus_track_invariant():
+    s = hs.load(testfile_focustrack_invariant)
+    assert s.data.shape == (10, 1010)
+    z_axis = s.axes_manager[0]
+    assert z_axis.scale == 1
+    assert z_axis.offset == 0
+    assert str(z_axis.units) == "<undefined>"
 
 
 class TestPSETMetadata:

@@ -1357,7 +1357,7 @@ class WDFReader(object):
 def file_reader(
     filename,
     lazy=False,
-    use_uniform_signal_axis=True,
+    use_uniform_signal_axis=False,
     load_unmatched_metadata=False,
 ):
     """

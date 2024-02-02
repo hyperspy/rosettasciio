@@ -36,6 +36,10 @@ jobs:
             LABEL: '-minimum-without-hyperspy'
           - os: ubuntu
             os_version: latest
+            PYTHON_VERSION: '3.11'
+            LABEL: '-hyperspy-dev'
+          - os: ubuntu
+            os_version: latest
             PYTHON_VERSION: '3.9'
             LABEL: '-without-hyperspy'
           - os: ubuntu
@@ -103,15 +107,15 @@ jobs:
         run: |
           pip install ${{ matrix.DEPENDENCIES }}
 
-      - name: Install (HyperSpy dev)
+      - name: Install hyperspy and exspy
         if: ${{ ! contains(matrix.LABEL, 'without-hyperspy') }}
-        # Need to install hyperspy dev until hyperspy 2.0 is released
         run: |
-          pip install git+https://github.com/hyperspy/hyperspy.git@RELEASE_next_major
+          pip install hyperspy exspy
 
-      - name: Install (exspy)
-        if: ${{ ! contains(matrix.LABEL, '-minimum') && ! contains(matrix.LABEL, 'without-hyperspy') }}
+      - name: Install hyperspy and exspy (dev)
+        if: ${{ contains(matrix.LABEL, 'hyperspy-dev') }}
         run: |
+          pip install git+https://github.com/hyperspy/hyperspy.git
           pip install git+https://github.com/hyperspy/exspy.git
 
       - name: Install

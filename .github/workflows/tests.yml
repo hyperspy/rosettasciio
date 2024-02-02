@@ -69,7 +69,19 @@ jobs:
         name: Install Python
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
-
+        
+      - name: Get the number of CPUs
+        id: cpus
+        run: |
+          import os, platform
+          num_cpus = os.cpu_count()
+          print(f"Number of CPU: {num_cpus}")
+          print(f"Architecture: {platform.machine()}")
+          output_file = os.environ["GITHUB_OUTPUT"]
+          with open(output_file, "a", encoding="utf-8") as output_stream:
+              output_stream.write(f"count={num_cpus}\n")
+        shell: python
+          
       - name: Set Environment Variable
         shell: bash
         # Set PIP_SELECTOR environment variable according to matrix.LABEL
@@ -113,7 +125,7 @@ jobs:
 
       - name: Run test suite
         run: |
-          pytest --pyargs rsciio --reruns 3 -n 2 --cov=. --cov-report=xml
+          pytest --pyargs rsciio --reruns 3 -n ${{ steps.cpus.outputs.count }} --cov=. --cov-report=xml
 
       - name: Upload coverage to Codecov
         if: ${{ always() }}

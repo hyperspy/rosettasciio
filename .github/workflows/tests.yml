@@ -4,8 +4,8 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs:
   run_test_site:
-    name: ${{ matrix.os }}-py${{ matrix.PYTHON_VERSION }}${{ matrix.LABEL }}
-    runs-on: ${{ matrix.os }}-latest
+    name: ${{ matrix.os }}-${{ matrix.os_version }}-py${{ matrix.PYTHON_VERSION }}${{ matrix.LABEL }}
+    runs-on: ${{ matrix.os }}-${{ matrix.os_version }}
     timeout-minutes: 30
     env:
       MPLBACKEND: agg
@@ -13,11 +13,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, windows, macos]
+        os_version: [latest]
         PYTHON_VERSION: ['3.9', '3.10']
         LABEL: ['']
         include:
           # test oldest supported version of main dependencies on python 3.8
           - os: ubuntu
+            os_version: latest
             PYTHON_VERSION: '3.8'
             # Set pillow and scikit-image version to be compatible with imageio and scipy
             # matplotlib needs 3.5 to support markers in hyperspy 2.0 (requires `collection.set_offset_transform`)
@@ -25,17 +27,25 @@ jobs:
             LABEL: '-oldest'
           # test minimum requirement
           - os: ubuntu
+            os_version: latest
             PYTHON_VERSION: '3.9'
             LABEL: '-minimum'
           - os: ubuntu
+            os_version: latest
             PYTHON_VERSION: '3.12'
             LABEL: '-minimum-without-hyperspy'
           - os: ubuntu
+            os_version: latest
             PYTHON_VERSION: '3.9'
             LABEL: '-without-hyperspy'
           - os: ubuntu
+            os_version: latest
             PYTHON_VERSION: '3.8'
           - os: ubuntu
+            os_version: latest
+            PYTHON_VERSION: '3.11'
+          - os: macos
+            os_version: '14'
             PYTHON_VERSION: '3.11'
 
     steps:

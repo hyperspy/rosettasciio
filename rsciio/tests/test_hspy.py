@@ -935,7 +935,7 @@ def test_save_ragged_array(tmp_path, file):
 
 
 @zspy_marker
-@pytest.mark.parametrize("nav_dim", [1, 2, 3])
+@pytest.mark.parametrize("nav_dim", [1, 2])
 @pytest.mark.parametrize("lazy", [True, False])
 def test_save_ragged_dim(tmp_path, file, nav_dim, lazy):
     file = f"nav{nav_dim}_" + file

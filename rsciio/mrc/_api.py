@@ -134,7 +134,7 @@ def get_data_type(mode):
         12: np.float16,
     }
 
-    mode = int(mode)
+    mode = int(mode[0])
     if mode in mode_to_dtype:
         return np.dtype(mode_to_dtype[mode])
     else:
@@ -345,25 +345,25 @@ def file_reader(
         # The scale is in Angstroms, we convert it to nm
         scales = [
             (
-                float(std_header["Zlen"] / std_header["MZ"]) / 10
-                if float(std_header["Zlen"]) != 0 and float(std_header["MZ"]) != 0
+                float((std_header["Zlen"] / std_header["MZ"])[0]) / 10
+                if float(std_header["Zlen"][0]) != 0 and float(std_header["MZ"][0]) != 0
                 else 1
             ),
             (
-                float(std_header["Ylen"] / std_header["MY"]) / 10
-                if float(std_header["MY"]) != 0
+                float((std_header["Ylen"] / std_header["MY"])[0]) / 10
+                if float(std_header["MY"][0]) != 0
                 else 1
             ),
             (
-                float(std_header["Xlen"] / std_header["MX"]) / 10
-                if float(std_header["MX"]) != 0
+                float((std_header["Xlen"] / std_header["MX"])[0]) / 10
+                if float(std_header["MX"][0]) != 0
                 else 1
             ),
         ]
         offsets = [
-            float(std_header["ZORIGIN"]) / 10,
-            float(std_header["YORIGIN"]) / 10,
-            float(std_header["XORIGIN"]) / 10,
+            float(std_header["ZORIGIN"][0]) / 10,
+            float(std_header["YORIGIN"][0]) / 10,
+            float(std_header["XORIGIN"][0]) / 10,
         ]
 
     else:

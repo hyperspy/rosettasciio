@@ -227,7 +227,11 @@ def _get_nav_list(data, dataentry):
             if ax != ".":
                 index_name = ax + "_indices"
                 if index_name in dataentry.attrs:
-                    ind_in_array = int(dataentry.attrs[index_name])
+                    ind_in_array = dataentry.attrs[index_name]
+                    if len(ind_in_array.shape) > 0:
+                        ind_in_array = int(ind_in_array[0])
+                    else:
+                        ind_in_array = int(ind_in_array)
                 else:
                     ind_in_array = i
                 axis_index_list.append(ind_in_array)

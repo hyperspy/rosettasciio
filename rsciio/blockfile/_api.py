@@ -179,6 +179,10 @@ def get_header_from_signal(signal, endianess="<"):
         SY = SX
     elif len(nav_axes) == 0:
         NX = NY = SX = SY = 1
+    else:
+        raise ValueError(
+            "Number of navigation axes has to be 0, 1 or 2"
+        )  # pragma: no cover
 
     DP_SZ = [axis["size"] for axis in sig_axes][::-1]
     if DP_SZ[0] != DP_SZ[1]:
@@ -186,7 +190,7 @@ def get_header_from_signal(signal, endianess="<"):
     DP_SZ = DP_SZ[0]
     SDP = 100.0 / sig_axes[1]["scale"]
 
-    offset2 = NX * NY + header["Data_offset_1"]
+    offset2 = NX * NY + header["Data_offset_1"][0]
     # Based on inspected files, the DPs are stored at 16-bit boundary...
     # Normally, you'd expect word alignment (32-bits) ¯\_(°_o)_/¯
     offset2 += offset2 % 16
@@ -409,11 +413,11 @@ def file_writer(
         # Write header
         header.tofile(f)
         # Write header note field:
-        if len(note) > int(header["Data_offset_1"]) - f.tell():
-            note = note[: int(header["Data_offset_1"]) - f.tell() - len(note)]
+        if len(note) > int(header["Data_offset_1"][0]) - f.tell():
+            note = note[: int(header["Data_offset_1"][0]) - f.tell() - len(note)]
         f.write(note.encode())
         # Zero pad until next data block
-        zero_pad = int(header["Data_offset_1"]) - f.tell()
+        zero_pad = int(header["Data_offset_1"][0]) - f.tell()
         np.zeros((zero_pad,), np.byte).tofile(f)
         # Write virtual bright field
         if navigator is None:
@@ -440,11 +444,11 @@ def file_writer(
         navigator = navigator.astype(endianess + "u1")
         np.asanyarray(navigator).tofile(f)
         # Zero pad until next data block
-        if f.tell() > int(header["Data_offset_2"]):
+        if f.tell() > int(header["Data_offset_2"][0]):
             raise ValueError(
                 "Signal navigation size does not match " "data dimensions."
             )
-        zero_pad = int(header["Data_offset_2"]) - f.tell()
+        zero_pad = int(header["Data_offset_2"][0]) - f.tell()
         np.zeros((zero_pad,), np.byte).tofile(f)
         file_location = f.tell()
 

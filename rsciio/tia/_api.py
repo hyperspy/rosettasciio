@@ -510,7 +510,7 @@ def ser_reader(filename, objects=None, lazy=False, only_valid_data=True):
     """
     header, data = load_ser_file(filename)
     record_by = guess_record_by(header["DataTypeID"])
-    ndim = int(header["NumberDimensions"])
+    ndim = int(header["NumberDimensions"][0])
     date, time = None, None
     if objects is not None:
         objects_dict = convert_xml_to_dict(objects[0])
@@ -712,7 +712,7 @@ def load_only_data(
     # dimensions we must fill the rest with zeros or (better) nans if the
     # dtype is float
     if np.prod(array_shape) != np.prod(data["Array"].shape):
-        if int(header["NumberDimensions"]) == 1 and only_valid_data:
+        if int(header["NumberDimensions"][0]) == 1 and only_valid_data:
             # No need to fill with zeros if `TotalNumberElements !=
             # ValidNumberElements` for series data.
             # The valid data is always `0:ValidNumberElements`

@@ -619,6 +619,10 @@ class HyperHeader(object):
             det = gen_detector_node(eds_metadata)
             det["EDS"]["real_time"] = self.calc_real_time()
             acq_inst["Detector"] = det
+            # In case of XRF, the primary energy is only defined in
+            # the spectrum metadata
+            acq_inst["beam_energy"] = eds_metadata.hv
+
         return acq_inst
 
     def _parse_image(self, xml_node, overview=False):
@@ -1409,7 +1413,7 @@ def bcf_hyperspectra(
 ):
     """Returns list of dict with eds hyperspectra and metadata."""
     global warn_once
-    if (fast_unbcf == False) and warn_once:
+    if (fast_unbcf is False) and warn_once:
         _logger.warning(
             """unbcf_fast library is not present...
 Parsing BCF with Python-only backend, which is slow... please wait.

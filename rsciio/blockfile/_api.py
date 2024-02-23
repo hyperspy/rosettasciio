@@ -180,7 +180,7 @@ def get_header_from_signal(signal, endianess="<"):
     elif len(nav_axes) == 0:
         NX = NY = SX = SY = 1
     else:
-        raise ValueError("Number of navigation axes has to be 0, 1 or 2")
+        raise ValueError("Number of navigation axes has to be 0, 1 or 2")  # pragma: no cover
 
     DP_SZ = [axis["size"] for axis in sig_axes][::-1]
     if DP_SZ[0] != DP_SZ[1]:

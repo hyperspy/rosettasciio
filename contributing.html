@@ -440,6 +440,30 @@ useful:</p>
 <li><p>copy and paste the error traceback.</p></li>
 </ul>
 </section>
+<section id="making-test-data-files">
+<span id="making-test-files"></span><h2>Making test data files<a class="headerlink" href="#making-test-data-files" title="Link to this heading">#</a></h2>
+<p>Test data files are typically generated using third party software, for example using a proprietary
+software on a scientific instrument. These files are added to the <a class="reference external" href="https://en.wikipedia.org/wiki/Test_suite">test suite</a>
+of RosettaSciIO to make sure that future code development will not introduce bugs or feature
+regressions. It is important that the test data files area as small as possible to avoid working
+with a repository that contains GBs of test data. Indeed, the test suite is made of severals hundreds of
+test data files and this number of files will keep growing as new features and formats are added
+to RosettaSciIO.</p>
+<p>Users can contribute by generating these files on softwares they have access to and by making these
+files available openly; then a RosettaSciIO developer will help with adding these data to the test suite.</p>
+<p>What characterizes good test data files:</p>
+<ul class="simple">
+<li><p>Relevant features: the test data files do not need to contain any meaningful data, but they need to
+cover as much as possible of the format functionalities.</p></li>
+<li><p>Small size:</p>
+<ul>
+<li><p>Acquire minimum number of pixels or channels. In case of maps or spectrum images acquire a non-square grid
+(e.g. “x” and “y” have different lengths).</p></li>
+<li><p>If possible, generate data that contains no signal (e.g. zeros) as files containing only very few values will compress very well.</p></li>
+</ul>
+</li>
+</ul>
+</section>
 <section id="pull-requests">
 <h2>Pull Requests<a class="headerlink" href="#pull-requests" title="Link to this heading">#</a></h2>
 <p>If you want to contribute to the RosettaSciIO source code, you can send us a
@@ -673,6 +697,7 @@ for maintenance guidelines.</p>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#issues">Issues</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#making-test-data-files">Making test data files</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pull-requests">Pull Requests</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#lint">Lint</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-and-updating-test-data">Adding and Updating Test Data</a></li>

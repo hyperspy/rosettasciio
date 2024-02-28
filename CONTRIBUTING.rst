@@ -21,7 +21,7 @@ useful:
 Making test data files
 ======================
 
-Test data fales are typically generated using third party software, for example using a proprietary
+Test data files are typically generated using third party software, for example using a proprietary
 software on a scientific instrument. These files are added to the `test suite <https://en.wikipedia.org/wiki/Test_suite>`_
 of RosettaSciIO to make sure that future code development will not introduce bug or feature 
 regression. It is important that the test data files area as small as possible to avoid to work

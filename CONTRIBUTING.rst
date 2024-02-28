@@ -16,6 +16,33 @@ useful:
 - give a minimal example demonstrating the bug,
 - copy and paste the error traceback.
 
+.. _making_test_files:
+
+Making test data files
+======================
+
+Test data fales are typically generated using third party software, for example using a proprietary
+software on a scientific instrument. These files are added to the `test suite <https://en.wikipedia.org/wiki/Test_suite>`_
+of RosettaSciIO to make sure that future code development will not introduce bug or feature 
+regression. It is important that the test data files area as small as possible to avoid to work
+with GBs large repository of test data. Indeed, the test suite is made of severals hundreds of
+test data files and this number of files will keep growing as new features and formats are added
+to RosettaSciIO.
+
+User can contribute by generating these files on softwares they have access to and by making these
+files available openly; then a RosettaSciIO developer will help with adding these data to the test suite.
+
+What makes good test data files:
+
+- Relevant features: the test data files doesn't need to contains any meaningfull data but they need to
+  cover as much as possible of the format functionalities.
+- Small in size:
+
+  - Acquire minimum number of pixels or channels; in case of images or spectrum images acquire non-square
+    (e.g. "x" and "y" have different length).
+  - Generate containing no signal (e.g. zeros) as files containing only very few values will compress very well.
+
+
 Pull Requests
 =============
 

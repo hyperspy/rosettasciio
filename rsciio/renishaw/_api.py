@@ -77,13 +77,12 @@ from rsciio.utils import rgb_tools
 
 _logger = logging.getLogger(__name__)
 
-## PIL alternative: imageio.v3.immeta extracts exif as binary
-## but then this binary string needs to be parsed
+
 try:
     from PIL import Image
 except ImportError:
     PIL_installed = False
-    _logger.warning("Pillow not installed. Cannot load whitelight image into metadata")
+    _logger.warning("Pillow not installed. Cannot load whitelight image.")
 else:
     PIL_installed = True
 
@@ -324,21 +323,6 @@ class DataType(IntEnum, metaclass=DefaultEnumMeta):
     ExposureTime = (
         27  # different from gwyddion, see PR#39 streamhr rapide mode (py-wdf-reader)
     )
-
-
-# for wthl image
-class ExifTags(IntEnum, metaclass=DefaultEnumMeta):
-    # Standard EXIF TAGS
-    ImageDescription = 0x10E  # 270
-    Make = 0x10F  # 271
-    ExifOffset = 0x8769  # 34665
-    FocalPlaneXResolution = 0xA20E  # 41486
-    FocalPlaneYResolution = 0xA20F  # 41487
-    FocalPlaneResolutionUnit = 0xA210  # 41488
-    # Customized EXIF TAGS from Renishaw
-    FocalPlaneXYOrigins = 0xFEA0  # 65184
-    FieldOfViewXY = 0xFEA1  # 65185
-    Unknown = 0xFEA2  # 65186
 
 
 class WDFReader(object):
@@ -1270,41 +1254,22 @@ class WDFReader(object):
 
     def _get_WHTL(self):
         if not self._check_block_exists("WHTL_0"):
-            return
+            return None
         pos, size = self._block_info["WHTL_0"]
         jpeg_header = 0x10
         self._file_obj.seek(pos)
         img_bytes = self._file_obj.read(size - jpeg_header)
         img = BytesIO(img_bytes)
-        whtl_metadata = {}
 
-        ## extract EXIF tags and store them in metadata
+        ## extract and parse EXIF tags
         if PIL_installed:
-            pil_img = Image.open(img)
-            data = rgb_tools.regular_array2rgbx(np.array(pil_img))
-            ## missing header keys when Pillow >= 8.2.0 -> does not flatten IFD anymore
-            ## see https://pillow.readthedocs.io/en/stable/releasenotes/8.2.0.html#image-getexif-exif-and-gps-ifd
-            ## Use fall-back _getexif method instead
-            exif_header = dict(pil_img._getexif())
-            whtl_metadata["FocalPlaneResolutionUnit"] = str(
-                UnitType(exif_header.get(ExifTags.FocalPlaneResolutionUnit))
-            )
-            whtl_metadata["FocalPlaneXResolution"] = exif_header.get(
-                ExifTags.FocalPlaneXResolution
-            )
-            whtl_metadata["FocalPlaneYResolution"] = exif_header.get(
-                ExifTags.FocalPlaneYResolution
-            )
-            whtl_metadata["FocalPlaneXYOrigins"] = exif_header.get(
-                ExifTags.FocalPlaneXYOrigins
-            )
-            whtl_metadata["ImageDescription"] = exif_header.get(
-                ExifTags.ImageDescription
-            )
-            whtl_metadata["Make"] = exif_header.get(ExifTags.Make)
-            whtl_metadata["Unknown"] = exif_header.get(ExifTags.Unknown)
-            whtl_metadata["FieldOfViewXY"] = exif_header.get(ExifTags.FieldOfViewXY)
+            from rsciio.utils.image import _parse_axes_from_metadata, _parse_exif_tags
 
+            pil_img = Image.open(img)
+            original_metadata = {}
+            data = rgb_tools.regular_array2rgbx(np.array(pil_img))
+            original_metadata["exif_tags"] = _parse_exif_tags(pil_img)
+            axes = _parse_axes_from_metadata(original_metadata["exif_tags"], data.shape)
             metadata = {
                 "General": {"original_filename": os.path.split(self._filename)[1]},
                 "Signal": {"signal_type": ""},
@@ -1334,20 +1299,10 @@ class WDFReader(object):
                 metadata["Markers"] = {"Map": marker_dict}
 
             return {
-                "axes": [
-                    {
-                        "name": name,
-                        "units": whtl_metadata["FocalPlaneResolutionUnit"],
-                        "size": size,
-                        "scale": whtl_metadata["FieldOfViewXY"][i] / size,
-                        "offset": whtl_metadata["FocalPlaneXYOrigins"][i],
-                        "index_in_array": i,
-                    }
-                    for i, name, size in zip([1, 0], ["y", "x"], data.shape)
-                ],
+                "axes": axes,
                 "data": data,
                 "metadata": metadata,
-                "original_metadata": whtl_metadata,
+                "original_metadata": original_metadata,
             }
         else:  # pragma: no cover
             # Explicit return for readibility

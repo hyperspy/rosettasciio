@@ -1205,10 +1205,11 @@ class TestStreamline:
             reader="Renishaw",
         )[1]
         expected_WTHL = {
-            "FocalPlaneResolutionUnit": "µm",
+            "FocalPlaneResolutionUnit": 5,
             "FocalPlaneXResolution": 445.75,
             "FocalPlaneYResolution": 270.85,
             "FocalPlaneXYOrigins": (-8325.176, -1334.639),
+            "ExifOffset": 114,
             "ImageDescription": "white-light image",
             "Make": "Renishaw",
             "Unknown": 20.0,
@@ -1218,13 +1219,13 @@ class TestStreamline:
         for i, (axis, scale) in enumerate(
             zip(s.axes_manager._axes, (22.570833, 23.710106))
         ):
-            assert axis.units == expected_WTHL["FocalPlaneResolutionUnit"]
+            assert axis.units == "µm"
             np.testing.assert_allclose(axis.scale, scale)
             np.testing.assert_allclose(
                 axis.offset, expected_WTHL["FocalPlaneXYOrigins"][::-1][i]
             )
 
-        metadata_WHTL = s.original_metadata.as_dictionary()
+        metadata_WHTL = s.original_metadata.as_dictionary()["exif_tags"]
         assert metadata_WHTL == expected_WTHL
 
         md = s.metadata.Markers.as_dictionary()

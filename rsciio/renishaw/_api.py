@@ -1011,7 +1011,7 @@ class WDFReader(object):
         if flag == MapType.xyline.name:
             result = self._set_wmap_nav_linexy(result["X"], result["Y"])
         elif flag == DefaultEnum.Unknown.name:
-            _logger.warning(f"Unknown flag ({wmap_dict['flag']}) for WMAP mapping.")
+            _logger.info(f"Unknown flag ({wmap_dict['flag']}) for WMAP mapping.")
         return result
 
     def _set_wmap_nav_linexy(self, x_axis, y_axis):
@@ -1163,7 +1163,7 @@ class WDFReader(object):
         signal = {}
         if importlib.util.find_spec("lumispy") is None:
             _logger.warning(
-                "Cannot find package lumispy, using BaseSignal as signal_type."
+                "Cannot find package lumispy, using generic signal class BaseSignal."
             )
             signal["signal_type"] = ""
         else:

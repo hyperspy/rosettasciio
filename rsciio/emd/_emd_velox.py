@@ -59,6 +59,16 @@ def _get_detector_metadata_dict(om, detector_name):
     return None
 
 
+PRUNE_WARNING = (
+    "No spectrum stream is present in the file. It "
+    "is possible that the file has been pruned: use "
+    "Velox to read the spectrum image (proprietary "
+    "format). If you want to open Velox emd file with "
+    "HyperSpy don't prune the file when saving it in "
+    "Velox."
+)
+
+
 class FeiEMDReader(object):
     """
     Class for reading FEI electron microscopy datasets.
@@ -549,14 +559,7 @@ class FeiEMDReader(object):
 
         spectrum_stream_group = self.d_grp.get("SpectrumStream")
         if spectrum_stream_group is None:
-            _logger.warning(
-                "No spectrum stream is present in the file. It "
-                "is possible that the file has been pruned: use "
-                "Velox to read the spectrum image (proprietary "
-                "format). If you want to open FEI emd file with "
-                "HyperSpy don't prune the file when saving it in "
-                "Velox."
-            )
+            _logger.warning(PRUNE_WARNING)
             return
 
         def _read_stream(key):
@@ -564,6 +567,10 @@ class FeiEMDReader(object):
             return stream
 
         subgroup_keys = _get_keys_from_group(spectrum_stream_group)
+        if len(subgroup_keys) == 0:
+            _logger.warning(PRUNE_WARNING)
+            return
+
         if self.sum_EDS_detectors:
             if len(subgroup_keys) == 1:
                 _logger.warning("The file contains only one spectrum stream")

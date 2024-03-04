@@ -132,4 +132,6 @@ RETURNS_DOC = """Returns
           containing the full axes vector
         - 'metadata' – dictionary containing the parsed metadata
         - 'original_metadata' – dictionary containing the full metadata tree from the input file
+
+        When the file contains several datasets, each dataset will be loaded as separate dictionaries.
     """

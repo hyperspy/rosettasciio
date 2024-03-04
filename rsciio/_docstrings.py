@@ -133,5 +133,5 @@ RETURNS_DOC = """Returns
         - 'metadata' – dictionary containing the parsed metadata
         - 'original_metadata' – dictionary containing the full metadata tree from the input file
 
-        When the file contains several datasets, each dataset will be loaded as separate dictionaries.
+        When the file contains several datasets, each dataset will be loaded as separate dictionary.
     """

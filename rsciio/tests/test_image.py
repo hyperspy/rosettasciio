@@ -17,11 +17,14 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 from packaging.version import Version
+from pathlib import Path
 
 import numpy as np
 import pytest
 
 imageio = pytest.importorskip("imageio")
+
+testfile_dir = (Path(__file__).parent / "data" / "image").resolve()
 
 from rsciio.image import file_writer
 
@@ -264,3 +267,19 @@ def test_error_library_no_installed(tmp_path):
             file_writer(
                 tmp_path / "test_image_error.jpg", signal_dict, imshow_kwds={"a": "b"}
             )
+
+
+def test_renishaw_wire():
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+    s = hs.load(testfile_dir / "renishaw_wire.jpg")
+    assert s.data.shape == (480, 752)
+    for axis, scale, offset, name in zip(
+        s.axes_manager.signal_axes,
+        [2.42207446, 2.503827],
+        [19105.5, -6814.538],
+        ["y", "x"],
+    ):
+        np.testing.assert_allclose(axis.scale, scale)
+        np.testing.assert_allclose(axis.offset, offset)
+        axis.name == name
+        axis.units == "µm"

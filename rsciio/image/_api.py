@@ -20,6 +20,7 @@ import os
 import logging
 
 import imageio.v3 as iio
+from PIL import Image
 import numpy as np
 
 from rsciio._docstrings import (
@@ -28,6 +29,7 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
+from rsciio.utils.image import _parse_axes_from_metadata, _parse_exif_tags
 from rsciio.utils.tools import _UREG
 
 
@@ -230,13 +232,22 @@ def file_reader(filename, lazy=False, **kwds):
         dc = from_delayed(val, shape=dc.shape, dtype=dc.dtype)
     else:
         dc = _read_data(filename, **kwds)
+
+    om = {}
+
+    im = Image.open(filename)
+    om["exif_tags"] = _parse_exif_tags(im)
+    axes = _parse_axes_from_metadata(om["exif_tags"], dc.shape)
+
     return [
         {
             "data": dc,
+            "axes": axes,
             "metadata": {
                 "General": {"original_filename": os.path.split(filename)[1]},
                 "Signal": {"signal_type": ""},
             },
+            "original_metadata": om,
         }
     ]
 

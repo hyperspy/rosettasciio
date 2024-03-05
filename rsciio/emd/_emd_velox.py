@@ -60,12 +60,14 @@ def _get_detector_metadata_dict(om, detector_name):
 
 
 PRUNE_WARNING = (
-    "No spectrum stream is present in the file. It "
-    "is possible that the file has been pruned: use "
-    "Velox to read the spectrum image (proprietary "
-    "format). If you want to open Velox emd file with "
-    "HyperSpy don't prune the file when saving it in "
-    "Velox."
+    "No spectrum stream is present in the file and the "
+    "spectrum images are saved in a proprietary format, "
+    "which is not supported by RosettaSciIO. This is "
+    "because it has been 'pruned' or saved a different "
+    "software than Velox, e.g. bcf to emd converter. "
+    "If you want to open this data don't prune the "
+    "file or read bcf file directly (in case the bcf "
+    "to emd converter was used)."
 )
 
 
@@ -558,18 +560,22 @@ class FeiEMDReader(object):
             )
 
         spectrum_stream_group = self.d_grp.get("SpectrumStream")
-        if spectrum_stream_group is None:
+        if spectrum_stream_group is None:  # pragma: no cover
+            # "Pruned" file, EDS SI data are in the
+            # "SpectrumImage" group
+            _logger.warning(PRUNE_WARNING)
+            return
+
+        subgroup_keys = _get_keys_from_group(spectrum_stream_group)
+        if len(subgroup_keys) == 0:
+            # "Pruned" file: in Velox emd v11, the "SpectrumStream"
+            # group exists but it is empty
             _logger.warning(PRUNE_WARNING)
             return
 
         def _read_stream(key):
             stream = FeiSpectrumStream(spectrum_stream_group[key], self)
             return stream
-
-        subgroup_keys = _get_keys_from_group(spectrum_stream_group)
-        if len(subgroup_keys) == 0:
-            _logger.warning(PRUNE_WARNING)
-            return
 
         if self.sum_EDS_detectors:
             if len(subgroup_keys) == 1:

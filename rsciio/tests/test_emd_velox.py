@@ -23,6 +23,7 @@
 
 import os
 from pathlib import Path
+import logging
 
 import pytest
 
@@ -499,8 +500,6 @@ def test_fei_dpc_loading():
 
 @pytest.mark.parametrize("fname", ["FFTComplexEven.emd", "FFTComplexOdd.emd"])
 def test_velox_fft_odd_number(fname):
-    print("0", fname)
-    print(TEST_DATA_PATH / fname)
     s = hs.load(TEST_DATA_PATH / fname)
     assert len(s) == 2
 
@@ -510,3 +509,35 @@ def test_velox_fft_odd_number(fname):
 
     assert s[1].axes_manager.signal_shape == (128, 128)
     assert np.issubdtype(s[1].data.dtype, float)
+
+
+class TestVeloxEMDv11:
+    fei_files_path = TEST_DATA_PATH / "velox_emd_version11"
+
+    @classmethod
+    def setup_class(cls):
+        import zipfile
+
+        zipf = TEST_DATA_PATH / "velox_emd_version11.zip"
+        with zipfile.ZipFile(zipf, "r") as zipped:
+            zipped.extractall(cls.fei_files_path)
+
+    @classmethod
+    def teardown_class(cls):
+        gc.collect()
+        shutil.rmtree(cls.fei_files_path)
+
+    @pytest.mark.parametrize("lazy", (True, False))
+    def test_spectrum_images(self, lazy):
+        s = hs.load(self.fei_files_path / "Test SI 16x16 215 kx.emd", lazy=lazy)
+        assert len(s) == 10
+        for i, v in enumerate(["C", "Ca", "O", "Cu", "HAADF", "EDS"]):
+            assert s[i + 4].metadata.General.title == v
+
+        assert s[-1].data.shape == (16, 16, 4096)
+
+    def test_prune_data(self, caplog):
+        with caplog.at_level(logging.WARNING):
+            _ = hs.load(self.fei_files_path / "Test SI 16x16 ReducedData 215 kx.emd")
+
+        assert "No spectrum stream is present" in caplog.text

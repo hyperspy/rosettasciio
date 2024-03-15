@@ -46,6 +46,10 @@ from rsciio.utils.elements import atomic_number2name
 _logger = logging.getLogger(__name__)
 
 
+def _parse_json(v, encoding="utf-8"):
+    return json.loads(v.decode(encoding))
+
+
 def _get_detector_metadata_dict(om, detector_name):
     detectors_dict = om["Detectors"]
     # find detector dict from the detector_name
@@ -53,6 +57,18 @@ def _get_detector_metadata_dict(om, detector_name):
         if detectors_dict[key]["DetectorName"] == detector_name:
             return detectors_dict[key]
     return None
+
+
+PRUNE_WARNING = (
+    "No spectrum stream is present in the file and the "
+    "spectrum images are saved in a proprietary format, "
+    "which is not supported by RosettaSciIO. This is "
+    "because it has been 'pruned' or saved a different "
+    "software than Velox, e.g. bcf to emd converter. "
+    "If you want to open this data don't prune the "
+    "file or read bcf file directly (in case the bcf "
+    "to emd converter was used)."
+)
 
 
 class FeiEMDReader(object):
@@ -100,15 +116,23 @@ class FeiEMDReader(object):
         self.lazy = lazy
         self.detector_name = None
         self.original_metadata = {}
+        # UUID: label mapping
+        self._map_label_dict = {}
 
     def read_file(self, f):
         self.filename = f.filename
+        self.version = _parse_json(f["Version"][0])["version"]
         self.d_grp = f.get("Data")
         self._check_im_type()
-        self._parse_metadata_group(f.get("Operations"), "Operations")
+        for key in ["Displays", "Operations", "SharedProperties", "Features"]:
+            # In Velox emd v11, the "Operation" group is removed:
+            # 'operation settings' are moved to \SharedProperties
+            # \Features link to \SharedProperties\DataReference
+            # in version <11 \Features linked to \Operations
+            if key in f.keys():
+                self._parse_metadata_group(f.get(key), key)
         if self.im_type == "SpectrumStream":
-            self.p_grp = f.get("Presentation")
-            self._parse_image_display()
+            self._parse_image_display(f)
         self._read_data(self.select_type)
 
     def _read_data(self, select_type):
@@ -241,7 +265,12 @@ class FeiEMDReader(object):
 
         # Can be used in more recent version of velox emd files
         self.detector_information = self._get_detector_information(original_metadata)
-        self.detector_name = self._get_detector_name(image_sub_group_key)
+        try:
+            self.detector_name = self._get_detector_name(image_sub_group_key)
+        except KeyError:
+            # File version >= 11 doesn't have the "Operations" group anymore
+            if self.detector_information is not None:
+                self.detector_name = self.detector_information["DetectorName"]
 
         read_stack = self.load_SI_image_stack or self.im_type == "Image"
         h5data = image_sub_group["Data"]
@@ -366,9 +395,8 @@ class FeiEMDReader(object):
             original_metadata["DetectorMetadata"] = _get_detector_metadata_dict(
                 original_metadata, self.detector_name
             )
-        if hasattr(self, "map_label_dict"):
-            if image_sub_group_key in self.map_label_dict:
-                md["General"]["title"] = self.map_label_dict[image_sub_group_key]
+        if image_sub_group_key in self._map_label_dict:
+            md["General"]["title"] = self._map_label_dict[image_sub_group_key]
 
         return {
             "data": data,
@@ -463,17 +491,31 @@ class FeiEMDReader(object):
         frame_time, time_unit = self._convert_scale_units(frame_time, time_unit, factor)
         return frame_time, time_unit
 
-    def _parse_image_display(self):
-        try:
-            image_display_group = self.p_grp.get("Displays/ImageDisplay")
+    def _parse_image_display(self, f):
+        if int(self.version) >= 11:
+            # - /Displays/ImageDisplay contains the list of all the image displays.
+            #   A EDS Map is just an image display.
+            # - These entries contain a json encoded dictionary that contains
+            #   'data', 'id', 'settings' and 'title'.
+            # - The 'id' is the name of the element. 'data' is pointing to the
+            #   data reference in SharedProperties/ImageSeriesDataReference/<UUID>
+            #   which in turn is pointing to the /Data/Image/<UUID> where the image
+            #   data is located.
+            om_image_display = self.original_metadata["Displays"]["ImageDisplay"]
+            self._map_label_dict = {}
+            for v in om_image_display.values():
+                if "data" in v.keys():
+                    data_key = _parse_json(f.get(v["data"])[0])["dataPath"]
+                    self._map_label_dict[data_key.split("/")[-1]] = v["id"]
+
+        else:
+            image_display_group = f.get("Presentation/Displays/ImageDisplay")
             key_list = _get_keys_from_group(image_display_group)
-            self.map_label_dict = {}
+
             for key in key_list:
-                v = json.loads(image_display_group[key][0].decode("utf-8"))
+                v = _parse_json(image_display_group[key][0])
                 data_key = v["dataPath"].split("/")[-1]  # key in data group
-                self.map_label_dict[data_key] = v["display"]["label"]
-        except KeyError:
-            _logger.warning("The image label can't be read from the metadata.")
+                self._map_label_dict[data_key] = v["display"]["label"]
 
     def _parse_metadata_group(self, group, group_name):
         d = {}
@@ -483,10 +525,10 @@ class FeiEMDReader(object):
                 if hasattr(subgroup, "keys"):
                     sub_dict = {}
                     for subgroup_key in _get_keys_from_group(subgroup):
-                        v = json.loads(subgroup[subgroup_key][0].decode("utf-8"))
+                        v = _parse_json(subgroup[subgroup_key][0])
                         sub_dict[subgroup_key] = v
                 else:
-                    sub_dict = json.loads(subgroup[0].decode("utf-8"))
+                    sub_dict = _parse_json(subgroup[0])
                 d[group_key] = sub_dict
         except IndexError:
             _logger.warning("Some metadata can't be read.")
@@ -500,9 +542,9 @@ class FeiEMDReader(object):
         try:
             sig = self.d_grp["SpectrumImage"]
             self.number_of_frames = int(
-                json.loads(
-                    sig[next(iter(sig))]["SpectrumImageSettings"][0].decode("utf8")
-                )["endFramePosition"]
+                _parse_json(sig[next(iter(sig))]["SpectrumImageSettings"][0])[
+                    "endFramePosition"
+                ]
             )
         except Exception:
             _logger.exception(
@@ -518,22 +560,23 @@ class FeiEMDReader(object):
             )
 
         spectrum_stream_group = self.d_grp.get("SpectrumStream")
-        if spectrum_stream_group is None:
-            _logger.warning(
-                "No spectrum stream is present in the file. It "
-                "is possible that the file has been pruned: use "
-                "Velox to read the spectrum image (proprietary "
-                "format). If you want to open FEI emd file with "
-                "HyperSpy don't prune the file when saving it in "
-                "Velox."
-            )
+        if spectrum_stream_group is None:  # pragma: no cover
+            # "Pruned" file, EDS SI data are in the
+            # "SpectrumImage" group
+            _logger.warning(PRUNE_WARNING)
+            return
+
+        subgroup_keys = _get_keys_from_group(spectrum_stream_group)
+        if len(subgroup_keys) == 0:
+            # "Pruned" file: in Velox emd v11, the "SpectrumStream"
+            # group exists but it is empty
+            _logger.warning(PRUNE_WARNING)
             return
 
         def _read_stream(key):
             stream = FeiSpectrumStream(spectrum_stream_group[key], self)
             return stream
 
-        subgroup_keys = _get_keys_from_group(spectrum_stream_group)
         if self.sum_EDS_detectors:
             if len(subgroup_keys) == 1:
                 _logger.warning("The file contains only one spectrum stream")
@@ -851,7 +894,7 @@ class FeiSpectrumStream(object):
         self.stream_group = stream_group
         # Parse acquisition settings to get bin_count and dtype
         acquisition_settings_group = stream_group["AcquisitionSettings"]
-        acquisition_settings = json.loads(acquisition_settings_group[0].decode("utf-8"))
+        acquisition_settings = _parse_json(acquisition_settings_group[0])
         self.bin_count = int(acquisition_settings["bincount"])
         if self.bin_count % self.reader.rebin_energy != 0:
             raise ValueError(

@@ -139,7 +139,9 @@ def test_quad_chip(fname):
         assert axis.units == ""
 
 
-@pytest.mark.parametrize("chunks", ("auto", (9, 128, 128), ("auto", 128, 128)))
+@pytest.mark.parametrize(
+    "chunks", ("auto", (3, 3, 128, 128), ("auto", "auto", 128, 128))
+)
 def test_chunks(chunks):
     fname = TEST_DATA_DIR_UNZIPPED / "Quad_9_Frame_CounterDepth_24_Rows_256.mib"
     s = hs.load(fname, lazy=True, chunks=chunks)
@@ -201,7 +203,7 @@ def test_no_hdr():
     shutil.copyfile(fname, fname2)
     s = hs.load(fname2)
     assert s.axes_manager.signal_shape == (256, 256)
-    assert s.axes_manager.navigation_shape == (8,)
+    assert s.axes_manager.navigation_shape == (4, 2)
 
 
 @pytest.mark.parametrize(

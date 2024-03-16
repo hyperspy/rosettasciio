@@ -327,13 +327,22 @@ def load_mib_data(
     data = data["data"]
     if not return_mmap:
         if lazy:
-            data = da.from_array(data, chunks=chunks)
+            if isinstance(chunks, tuple) and len(chunks) > 2:
+                # Since the data is reshaped later on, we set only the
+                # signal dimension chunks here
+                _chunks = ("auto",) + chunks[-2:]
+            else:
+                _chunks = chunks
+            data = da.from_array(data, chunks=_chunks)
         else:
             data = np.array(data)
 
     # remove navigation_dimension with value 1 before reshaping
     navigation_shape = tuple(i for i in navigation_shape if i > 1)
     data = data.reshape(navigation_shape + mib_prop.merlin_size)
+    if lazy and isinstance(chunks, tuple) and len(chunks) > 2:
+        # rechunk navigation space when chunking is specified as a tuple
+        data = data.rechunk(chunks)
 
     if return_headers:
         return data, headers

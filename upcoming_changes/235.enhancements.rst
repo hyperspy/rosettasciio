@@ -1,0 +1,1 @@
+:ref:`Quantum Detector <quantumdetector-format>` reader: use timestamps to get navigation shape when the navigation shape is not available - for example, acquisition with pixel trigger or scan shape not in metadata.

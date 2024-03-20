@@ -471,7 +471,7 @@ def file_writer(
         ("IMG", endianess + "u1", pixels),
     ]
     magics = np.full(records, 0x55AA, dtype=endianess + "u2")
-    ids = np.arange(np.product(records), dtype=endianess + "u4").reshape(records)
+    ids = np.arange(np.prod(records), dtype=endianess + "u4").reshape(records)
     file_memmap = np.memmap(
         filename, dtype=record_dtype, mode="r+", offset=file_location, shape=records
     )

@@ -482,7 +482,7 @@ def get_object_package_info(obj):
 
 
 def ensure_unicode(stuff, encoding="utf8", encoding2="latin-1"):
-    if not isinstance(stuff, (bytes, np.string_)):
+    if not isinstance(stuff, (bytes, np.bytes_)):
         return stuff
     else:
         string = stuff

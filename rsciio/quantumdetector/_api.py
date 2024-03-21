@@ -242,7 +242,7 @@ def load_mib_data(
     data_dtype = np.dtype(mib_prop.dtype).newbyteorder(">")
     merlin_frame_dtype = np.dtype(
         [
-            ("header", np.string_, mib_prop.head_size),
+            ("header", np.bytes_, mib_prop.head_size),
             ("data", data_dtype, mib_prop.merlin_size),
         ]
     )

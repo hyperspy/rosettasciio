@@ -102,7 +102,7 @@ def _get_filename(s, metadata):
 
 
 def _create_signal(shape, dim, dtype, metadata):
-    data = np.arange(np.product(shape)).reshape(shape).astype(dtype)
+    data = np.arange(np.prod(shape)).reshape(shape).astype(dtype)
     if dim == 1:
         if len(shape) > 2:
             s = exspy.signals.EELSSpectrum(data)

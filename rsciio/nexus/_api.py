@@ -132,7 +132,7 @@ def _parse_to_file(value):
         toreturn = totest
     if isinstance(totest, str):
         toreturn = totest.encode("utf-8")
-        toreturn = np.string_(toreturn)
+        toreturn = np.bytes_(toreturn)
     return toreturn
 
 

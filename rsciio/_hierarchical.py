@@ -561,7 +561,7 @@ class HierarchicalReader:
         for key, value in group.attrs.items():
             if isinstance(value, bytes):
                 value = value.decode()
-            if isinstance(value, (np.string_, str)):
+            if isinstance(value, (np.bytes_, str)):
                 if value == "_None_":
                     value = None
             elif isinstance(value, np.bool_):

@@ -860,7 +860,7 @@ def spd_reader(
             # see https://github.com/hyperspy/hyperspy/pull/2007 and
             #     https://github.com/h5py/h5py/issues/289 for context
             original_metadata["ipr_header"]["charText"] = [
-                np.string_(i) for i in original_metadata["ipr_header"]["charText"]
+                np.bytes_(i) for i in original_metadata["ipr_header"]["charText"]
             ]
     else:
         _logger.warning(

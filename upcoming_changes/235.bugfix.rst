@@ -1,0 +1,1 @@
+:ref:`Quantum Detector <quantumdetector-format>` reader: fix setting chunks.

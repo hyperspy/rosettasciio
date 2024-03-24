@@ -17,9 +17,12 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import os
+import json
 from packaging.version import Version
 
-from rsciio.tests.registry_utils import download_all
+from filelock import FileLock
+import pytest
+
 
 try:
     import hyperspy
@@ -33,13 +36,30 @@ except ImportError:
     pass
 
 
-def pytest_configure(config):
-    # Run in pytest_configure hook to avoid capturing stdout by pytest and
-    # inform user that the test data are being downloaded
+def _download_test_data():
+    from rsciio.tests.registry_utils import download_all
 
-    # Workaround to avoid running it for each worker
-    worker_id = os.environ.get("PYTEST_XDIST_WORKER")
-    if worker_id is None:
-        print("Checking if test data need downloading...")
-        download_all()
-        print("All test data available.")
+    print("Checking if test data need downloading...")
+    download_all()
+    print("All test data available.")
+
+
+# From https://pytest-xdist.readthedocs.io/en/latest/how-to.html#making-session-scoped-fixtures-execute-only-once
+@pytest.fixture(scope="session", autouse=True)
+def session_data(tmp_path_factory, worker_id):
+    if worker_id == "master":
+        # not executing in with multiple workers, just produce the data and let
+        # pytest's fixture caching do its job
+        return _download_test_data()
+
+    # get the temp directory shared by all workers
+    root_tmp_dir = tmp_path_factory.getbasetemp().parent
+
+    fn = root_tmp_dir / "data.json"
+    with FileLock(str(fn) + ".lock"):
+        if fn.is_file():
+            data = json.loads(fn.read_text())
+        else:
+            data = _download_test_data()
+            fn.write_text(json.dumps(data))
+    return data

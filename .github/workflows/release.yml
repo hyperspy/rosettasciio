@@ -8,7 +8,7 @@ on:
   push:
     # Sequence of patterns matched against refs/tags
     tags:
-    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
   workflow_dispatch:
 
 jobs:
@@ -63,36 +63,36 @@ jobs:
     name: Make SDist
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Build SDist
-      run: pipx run build --sdist
+      - name: Build SDist
+        run: pipx run build --sdist
 
-    - name: List SDist
-      run: |
-        ls ./dist
+      - name: List SDist
+        run: |
+          ls ./dist
 
-    - uses: actions/upload-artifact@v4
-      with:
-        path: dist/*.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          path: dist/*.tar.gz
 
   pure_python_wheel:
     # Build pure python without C extention to be used by pyodide
     name: Make pure python wheel
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Build pure python wheel
-      run: DISABLE_C_EXTENTIONS=1 pipx run build --wheel
+      - name: Build pure python wheel
+        run: DISABLE_C_EXTENTIONS=1 pipx run build --wheel
 
-    - name: List SDist
-      run: |
-        ls ./dist
+      - name: List SDist
+        run: |
+          ls ./dist
 
-    - uses: actions/upload-artifact@v4
-      with:
-        path: dist/*.whl
+      - uses: actions/upload-artifact@v4
+        with:
+          path: dist/*.whl
 
   upload_to_pypi:
     needs: [build_wheels, make_sdist]
@@ -101,25 +101,25 @@ jobs:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
     steps:
-    - name: Download dist
-      uses: actions/download-artifact@v4
-      with:
-        name: artifact
-        path: dist
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: artifact
+          path: dist
 
-    - name: Download wheels
-      uses: actions/download-artifact@v4
-      with:
-        name: wheels
-        path: dist
+      - name: Download wheels
+        uses: actions/download-artifact@v4
+        with:
+          name: wheels
+          path: dist
 
-    - name: Display structure of downloaded files
-      run: ls -R
-      working-directory: dist
+      - name: Display structure of downloaded files
+        run: ls -R
+        working-directory: dist
 
-    - uses: pypa/gh-action-pypi-publish@release/v1
-      if: ${{ startsWith(github.ref, 'refs/tags/') && github.repository_owner == 'hyperspy' }}
-      # See https://docs.pypi.org/trusted-publishers/using-a-publisher/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        if: ${{ startsWith(github.ref, 'refs/tags/') && github.repository_owner == 'hyperspy' }}
+        # See https://docs.pypi.org/trusted-publishers/using-a-publisher/
 
   create_release:
     # TODO: once we are happy with the workflow

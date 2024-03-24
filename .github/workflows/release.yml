@@ -14,7 +14,7 @@ on:
 jobs:
   build_wheels:
     name: Build wheels on ${{ matrix.os }} ${{ matrix.CIBW_ARCHS }}
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.os }}
     env:
       CIBW_ENVIRONMENT: POOCH_BASE_URL=https://github.com/${{ github.repository }}/raw/${{ github.ref_name }}/rsciio/tests/data/
       CIBW_TEST_COMMAND: "pytest --pyargs rsciio"
@@ -26,14 +26,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: "ubuntu"
+          - os: "ubuntu-latest"
             CIBW_ARCHS: "x86_64"
-          - os: "ubuntu"
+          - os: "ubuntu-latest"
             CIBW_ARCHS: "aarch64"
-          - os: "windows"
+          - os: "windows-latest"
             CIBW_ARCHS: "AMD64"
-          - os: "macos"
-            CIBW_ARCHS: "x86_64 universal2 arm64"
+          - os: "macos-13"
+            CIBW_ARCHS: "x86_64"
+          - os: "macos-14"
+            CIBW_ARCHS: "arm64"
 
     steps:
       - name: Set up QEMU
@@ -55,7 +57,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: artifacts-${{ matrix.os }}-${{ matrix.CIBW_ARCHS }}
           path: ./wheelhouse/*.whl
           if-no-files-found: error
 
@@ -74,6 +76,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          name: artifacts-${{ matrix.os }}-sdist
           path: dist/*.tar.gz
 
   pure_python_wheel:
@@ -92,25 +95,31 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          name: artifacts-${{ matrix.os }}-pure_python
           path: dist/*.whl
 
+  # Merge all disttribution files into the same directory
+  merge_artifacts:
+    runs-on: ubuntu-latest
+    needs: [ build_wheels, make_sdist, pure_python_wheel ]
+    steps:
+      - name: Merge Artifacts
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: artifacts
+          pattern:  artifacts-*
+
   upload_to_pypi:
-    needs: [build_wheels, make_sdist]
+    needs: merge_artifacts
     runs-on: ubuntu-latest
     permissions:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
     steps:
-      - name: Download dist
-        uses: actions/download-artifact@v4
-        with:
-          name: artifact
-          path: dist
-
       - name: Download wheels
         uses: actions/download-artifact@v4
         with:
-          name: wheels
+          name: artifacts
           path: dist
 
       - name: Display structure of downloaded files

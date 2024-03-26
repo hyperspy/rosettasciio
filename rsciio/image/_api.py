@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+from collections.abc import Iterable
 import os
 import logging
 
@@ -144,6 +145,9 @@ def file_writer(
         elif isinstance(output_size, (int, float)):
             aspect_ratio *= data.shape[0] / data.shape[1]
             output_size = [output_size, output_size * aspect_ratio]
+        elif isinstance(output_size, Iterable) and len(output_size) != 2:
+            # Catch error here, because matplotlib error is not obvious
+            raise ValueError("If `output_size` is an iterable, it must be of length 2.")
         fig = Figure(figsize=[size / dpi for size in output_size], dpi=dpi)
 
         # List of format supported by matplotlib

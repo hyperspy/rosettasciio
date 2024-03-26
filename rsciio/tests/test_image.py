@@ -288,3 +288,13 @@ def test_renishaw_wire():
         np.testing.assert_allclose(axis.offset, offset)
         axis.name == name
         axis.units == "µm"
+
+
+def test_export_output_size_iterable_length_1(tmp_path):
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+    pixels = (256, 256)
+    s = hs.signals.Signal2D(np.arange(np.multiply(*pixels)).reshape(pixels))
+
+    fname = tmp_path / "test_export_output_size_iterable_length_1.jpg"
+    with pytest.raises(ValueError):
+        s.save(fname, output_size=(256,))

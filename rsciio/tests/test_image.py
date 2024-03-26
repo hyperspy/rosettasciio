@@ -197,16 +197,21 @@ def test_export_output_size(output_size, tmp_path):
     assert s_reload.data.shape == (512, 512)
 
 
-@pytest.mark.parametrize("output_size", (512, (512, 512)))
-def test_export_output_size_non_square(output_size, tmp_path):
+@pytest.mark.parametrize("scalebar", [True, False])
+@pytest.mark.parametrize("output_size", (None, 512, (512, 512)))
+def test_export_output_size_non_square(output_size, tmp_path, scalebar):
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     pixels = (8, 16)
-    s = hs.signals.Signal2D(np.arange(np.multiply(*pixels)).reshape(pixels))
+    s = hs.signals.Signal2D(
+        np.arange(np.multiply(*pixels), dtype=np.uint8).reshape(pixels)
+    )
 
     fname = tmp_path / "test_export_size_non_square.jpg"
-    s.save(fname, output_size=output_size)
+    s.save(fname, output_size=output_size, scalebar=scalebar)
     s_reload = hs.load(fname)
 
+    if output_size is None:
+        output_size = (8, 16)
     if isinstance(output_size, int):
         output_size = (output_size * np.divide(*pixels), output_size)
 

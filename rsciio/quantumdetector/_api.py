@@ -574,7 +574,13 @@ def file_reader(
                 if len(indices) > 0 and len(indices[0]) > 0:
                     frame_per_trigger = indices[0][0] + 1
 
-        navigation_shape = (frame_per_trigger, frames_number // frame_per_trigger)
+        if frames_number == 0:
+            # Some hdf files have the "Frames per Trigger (Number)": 0
+            # in this case, we don't reshape
+            # Possibly for "continuous and indefinite" acquisition
+            navigation_shape = None
+        else:
+            navigation_shape = (frame_per_trigger, frames_number // frame_per_trigger)
 
     data = load_mib_data(
         filename,

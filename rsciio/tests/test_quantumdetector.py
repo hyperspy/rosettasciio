@@ -30,6 +30,7 @@ from rsciio.quantumdetector._api import (
     MIBProperties,
     load_mib_data,
     parse_exposures,
+    parse_hdr_file,
     parse_timestamps,
 )
 
@@ -373,3 +374,23 @@ def test_load_save_cycle(tmp_path):
     assert s.axes_manager.navigation_shape == s2.axes_manager.navigation_shape
     assert s.axes_manager.signal_shape == s2.axes_manager.signal_shape
     assert s.data.dtype == s2.data.dtype
+
+
+def test_frames_in_acquisition_zero():
+    # Some hdr file have entry "Frames per Trigger (Number): 0"
+    # Possibly for "continuous and indefinite" acquisition
+    # Copy and edit a file with corresponding changes
+    base_fname = TEST_DATA_DIR_UNZIPPED / "Single_1_Frame_CounterDepth_6_Rows_256"
+    fname = f"{base_fname}_zero_frames_in_acquisition"
+    # Create test file using existing test file
+    shutil.copyfile(f"{base_fname}.mib", f"{fname}.mib")
+    hdf_dict = parse_hdr_file(f"{base_fname}.hdr")
+    hdf_dict["Frames in Acquisition (Number)"] = 0
+    with open(f"{fname}.hdr", "w") as f:
+        f.write("HDR\n")
+        for k, v in hdf_dict.items():
+            f.write(f"{k}:\t{v}\n")
+        f.write("End\t")
+
+    s = hs.load(f"{fname}.mib")
+    assert s.axes_manager.navigation_shape == ()

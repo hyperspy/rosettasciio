@@ -558,19 +558,17 @@ formatting, location, etc. of the scalebar. See the documentation of
 the ‘matplotlib-scalebar’ library for more information.</p>
 </dd>
 <dt><strong>output_size</strong><span class="classifier">{2-tuple, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>}, Default=None</span></dt><dd><p>The output size of the image in pixels (width, height):</p>
-<blockquote>
-<div><ul class="simple">
+<ul class="simple">
 <li><p>if <code class="docutils literal notranslate"><span class="pre">int</span></code>, defines the width of the image, the height is
-determined from the aspec ratio of the image</p></li>
+determined from the aspect ratio of the image</p></li>
 <li><p>if <code class="docutils literal notranslate"><span class="pre">2-tuple</span></code>, defines the width and height of the
 image. Padding with white pixels is used to maintain the aspect
 ratio of the image.</p></li>
 <li><p>if <code class="docutils literal notranslate"><span class="pre">None</span></code>, the size of the data is used.</p></li>
 </ul>
-</div></blockquote>
 <p>For output sizes larger than the data size, “nearest” interpolation is
 used by default and this behaviour can be changed through the
-<em>imshow_kwds</em> dictionary.</p>
+<code class="docutils literal notranslate"><span class="pre">imshow_kwds</span></code> dictionary.</p>
 </dd>
 <dt><strong>imshow_kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Keyword arguments dictionary for <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html#matplotlib.pyplot.imshow" title="(in Matplotlib v3.8.3)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imshow()</span></code></a>.</p>
 </dd>

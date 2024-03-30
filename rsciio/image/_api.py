@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+from collections.abc import Iterable
 import os
 import logging
 
@@ -66,16 +67,16 @@ def file_writer(
     output_size : {2-tuple, int, None}, Default=None
         The output size of the image in pixels (width, height):
 
-            * if ``int``, defines the width of the image, the height is
-              determined from the aspec ratio of the image
-            * if ``2-tuple``, defines the width and height of the
-              image. Padding with white pixels is used to maintain the aspect
-              ratio of the image.
-            * if ``None``, the size of the data is used.
+        * if ``int``, defines the width of the image, the height is
+          determined from the aspect ratio of the image
+        * if ``2-tuple``, defines the width and height of the
+          image. Padding with white pixels is used to maintain the aspect
+          ratio of the image.
+        * if ``None``, the size of the data is used.
 
         For output sizes larger than the data size, "nearest" interpolation is
         used by default and this behaviour can be changed through the
-        *imshow_kwds* dictionary.
+        ``imshow_kwds`` dictionary.
 
     imshow_kwds : dict, optional
         Keyword arguments dictionary for :py:func:`~.matplotlib.pyplot.imshow`.
@@ -136,17 +137,17 @@ def file_writer(
         else:
             raise RuntimeError("This dimensionality is not supported.")
 
-        aspect_ratio = imshow_kwds.get("aspect", None)
-        if not isinstance(aspect_ratio, (int, float)):
-            aspect_ratio = data.shape[0] / data.shape[1]
-
+        aspect_ratio = imshow_kwds.get("aspect", 1)
         if output_size is None:
-            # fall back to image size taking into account aspect_ratio
+            # fall back to image size taking into account aspect
             ratio = (1, aspect_ratio)
-            output_size = [axis["size"] * r for axis, r in zip(axes, ratio)]
+            output_size = [axis["size"] * r for axis, r in zip(axes[::-1], ratio)]
         elif isinstance(output_size, (int, float)):
+            aspect_ratio *= data.shape[0] / data.shape[1]
             output_size = [output_size, output_size * aspect_ratio]
-
+        elif isinstance(output_size, Iterable) and len(output_size) != 2:
+            # Catch error here, because matplotlib error is not obvious
+            raise ValueError("If `output_size` is an iterable, it must be of length 2.")
         fig = Figure(figsize=[size / dpi for size in output_size], dpi=dpi)
 
         # List of format supported by matplotlib

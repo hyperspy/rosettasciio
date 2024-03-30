@@ -68,7 +68,7 @@ def file_writer(
         The output size of the image in pixels (width, height):
 
         * if ``int``, defines the width of the image, the height is
-          determined from the aspec ratio of the image
+          determined from the aspect ratio of the image
         * if ``2-tuple``, defines the width and height of the
           image. Padding with white pixels is used to maintain the aspect
           ratio of the image.

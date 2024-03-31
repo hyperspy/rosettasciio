@@ -100,6 +100,7 @@ tiff = ["tifffile>=2020.2.16", "imagecodecs>=2020.1.31"]
 usid = ["pyUSID", "sidpy<=0.12.0"]
 zspy = ["zarr", "msgpack"]
 tests = [
+  "filelock",
   "pooch",
   "pytest>=3.6",
   "pytest-xdist",

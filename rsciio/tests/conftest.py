@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import os
 import json
 from packaging.version import Version
 
@@ -36,17 +35,21 @@ except ImportError:
     pass
 
 
-def _download_test_data():
-    from rsciio.tests.registry_utils import download_all
-
-    print("Checking if test data need downloading...")
-    download_all()
-    print("All test data available.")
-
-
 # From https://pytest-xdist.readthedocs.io/en/latest/how-to.html#making-session-scoped-fixtures-execute-only-once
 @pytest.fixture(scope="session", autouse=True)
-def session_data(tmp_path_factory, worker_id):
+def session_data(request, tmp_path_factory, worker_id):
+    capmanager = request.config.pluginmanager.getplugin("capturemanager")
+
+    def _download_test_data():
+        from rsciio.tests.registry_utils import download_all
+
+        with capmanager.global_and_fixture_disabled():
+            print("Checking if test data need downloading...")
+            download_all()
+            print("All test data available.")
+
+        return "Test data available"
+
     if worker_id == "master":
         # not executing in with multiple workers, just produce the data and let
         # pytest's fixture caching do its job

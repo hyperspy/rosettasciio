@@ -167,7 +167,7 @@ def test_mib_properties_quad__repr__():
 def test_interrupted_acquisition():
     fname = TEST_DATA_DIR_UNZIPPED / "Single_9_Frame_CounterDepth_1_Rows_256.mib"
     # There is only 9 frames, simulate interrupted acquisition using 10 lines
-    s = hs.load(fname, navigation_shape=(10, 2))
+    s = hs.load(fname, navigation_shape=(4, 3))
     assert s.axes_manager.signal_shape == (256, 256)
     assert s.axes_manager.navigation_shape == (4, 2)
 

@@ -268,9 +268,9 @@ def load_mib_data(
             # Reshape only when the slice from zeros
             if first_frame == 0 and len(navigation_shape) > 1:
                 navigation_shape = (
-                    navigation_shape[1],
-                    frame_number_in_file // navigation_shape[1],
-                )
+                    navigation_shape[0],
+                    frame_number_in_file // navigation_shape[0],
+                )[::-1]
             else:
                 navigation_shape = (number_of_frames_to_load,)
         elif number_of_frames_to_load < frame_number:

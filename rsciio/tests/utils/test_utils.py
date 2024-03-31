@@ -13,15 +13,15 @@ import rsciio.utils.date_time_tools as dtt
 dt = [("x", np.uint8), ("y", np.uint16), ("text", (bytes, 6))]
 
 
-MY_PATH = Path(__file__).parent
-TEST_XML_PATH = MY_PATH / ".." / "data" / "ToastedBreakFastSDD.xml"
+@pytest.fixture
+def XML_TEST_NODE():
+    MY_PATH = Path(__file__).parent
+    TEST_XML_PATH = MY_PATH / ".." / "data" / "ToastedBreakFastSDD.xml"
 
+    with open(TEST_XML_PATH, "r") as fn:
+        weird_but_valid_xml_str = fn.read()
 
-with open(TEST_XML_PATH, "r") as fn:
-    weird_but_valid_xml_str = fn.read()
-
-
-XML_TEST_NODE = ET.fromstring(weird_but_valid_xml_str)
+    yield ET.fromstring(weird_but_valid_xml_str)
 
 
 # fmt: off
@@ -42,7 +42,7 @@ def test_msxml_sanitization():
     assert et[3].text == "0,2,3"  # is not float
 
 
-def test_default_x2d():
+def test_default_x2d(XML_TEST_NODE):
     """test of default XmlToDict translation with attributes prefixed with @,
     interchild_text_parsing set to 'first',
     no flattening tags set, and dub_text_str set to '#value'
@@ -59,7 +59,7 @@ def test_default_x2d():
     assert pynode["TestXML"]["Main"]["ClassInstance"]["Sample"]["#value"] == t
 
 
-def test_skip_interchild_text_flatten():
+def test_skip_interchild_text_flatten(XML_TEST_NODE):
     """test of XmlToDict translation with interchild_text_parsing set to 'skip',
     three string containing list set to flattening tags. Other kwrds - default.
     """
@@ -72,7 +72,7 @@ def test_skip_interchild_text_flatten():
     assert pynode["Main"]["Sample"].get("#value") is None
 
 
-def test_concat_interchild_text_val_flatten():
+def test_concat_interchild_text_val_flatten(XML_TEST_NODE):
     """test of XmlToDict translator with interchild_text_parsing set to
     'cat' (concatenation), four flattening tags set, and dub_text_str set
     to '#text'
@@ -91,7 +91,7 @@ def test_concat_interchild_text_val_flatten():
     assert pynode["Sample"]["#interchild_text"] == t
 
 
-def test_list_interchild_text_val_flatten():
+def test_list_interchild_text_val_flatten(XML_TEST_NODE):
     """test of XmlToDict translator interchild_text_parsing set to 'list'
     """
     x2d = XmlToDict(
@@ -107,7 +107,7 @@ def test_list_interchild_text_val_flatten():
     ]
 
 
-def x2d_subclass_for_custom_bool():
+def x2d_subclass_for_custom_bool(XML_TEST_NODE):
     """test subclass of XmlToDict with updated eval function"""
 
     class CustomXmlToDict(XmlToDict):
@@ -389,6 +389,7 @@ def test_get_chunk_slice(shape):
     chunk_arr, chunk = get_chunk_slice(shape=shape, chunks=-1)  # 1 chunk
     assert chunk_arr.shape == (1,)*len(shape)+(len(shape), 2)
     assert chunk == tuple([(i,)for i in shape])
+
 
 @pytest.mark.parametrize("shape", ((10, 20, 30, 512, 512),(20, 30, 512, 512), (10, 512, 512), (512, 512)))
 def test_get_chunk_slice(shape):

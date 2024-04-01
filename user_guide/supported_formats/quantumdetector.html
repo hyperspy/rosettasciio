@@ -478,20 +478,14 @@ acquired with the Quantum Detector Merlin camera. It is typically used to
 store a series of diffraction patterns from scanning transmission electron
 diffraction measurements. It supports reading data from camera with one or
 four quadrants.</p>
-<p>If a <code class="docutils literal notranslate"><span class="pre">hdr</span></code> file with the same file name was saved along the <code class="docutils literal notranslate"><span class="pre">mib</span></code> file,
-it will be used to infer the navigation shape of the providing that the option
-“line trigger” was used for the acquisition. Alternatively, the navigation
-shape can be specified as an argument:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.quantumdetector</span> <span class="kn">import</span> <span class="n">file_reader</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s_dict</span> <span class="o">=</span> <span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;file.mib&quot;</span><span class="p">,</span> <span class="n">navigation_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">))</span>
-</pre></div>
-</div>
 <section id="module-rsciio.quantumdetector">
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.quantumdetector" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.quantumdetector.file_reader">
 <span class="sig-prename descclassname"><span class="pre">rsciio.quantumdetector.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">navigation_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_frame</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.quantumdetector.file_reader" title="Link to this definition">#</a></dt>
 <dd><p>Read a Quantum Detectors <code class="docutils literal notranslate"><span class="pre">mib</span></code> file.</p>
+<p>If a <code class="docutils literal notranslate"><span class="pre">hdr</span></code> file with the same file name was saved along the <code class="docutils literal notranslate"><span class="pre">mib</span></code> file,
+it will be used to read the metadata.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
@@ -541,6 +535,16 @@ containing the full axes vector</p></li>
 <p class="rubric">Notes</p>
 <p>In case of interrupted acquisition, only the completed lines are read and
 the incomplete line are discarded.</p>
+<p>When the scanning shape (i. e. navigation shape) is not available from the
+metadata (for example with acquisition using pixel trigger), the timestamps
+will be used to guess the navigation shape.</p>
+<p class="rubric">Examples</p>
+<p>In case, the navigation shape can’t read from the data itself (for example,
+type of acquisition unsupported), the <code class="docutils literal notranslate"><span class="pre">navigation_shape</span></code> can be specified:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.quantumdetector</span> <span class="kn">import</span> <span class="n">file_reader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s_dict</span> <span class="o">=</span> <span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;file.mib&quot;</span><span class="p">,</span> <span class="n">navigation_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">))</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -581,7 +585,7 @@ parsed from the file.</p>
 </dd>
 <dt><strong>print_info</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.12)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>If True, display information when loading the file.</p>
 </dd>
-<dt><strong>return_mmap</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.12)"><span class="xref std std-ref">bool</span></a></span></dt><dd><p>If True, return the py:func:<cite>numpy.memmap</cite> object. Default is True.</p>
+<dt><strong>return_mmap</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.12)"><span class="xref std std-ref">bool</span></a></span></dt><dd><p>If True, return the <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html#numpy.memmap" title="(in NumPy v1.26)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.memmap</span></code></a> object. Default is True.</p>
 </dd>
 </dl>
 </dd>
@@ -621,7 +625,7 @@ be read.</p>
 <p>Use <code class="docutils literal notranslate"><span class="pre">load_mib_data</span></code> function to the headers and parse the exposures
 from the headers. By default, reads only the first 10 000 frames.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.quantumdetector</span> <span class="kn">import</span> <span class="n">load_mib_data</span><span class="p">,</span> <span class="n">parse_exposures</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="p">,</span> <span class="n">headers</span> <span class="o">=</span> <span class="n">load_mib_data</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">return_header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_mmap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="p">,</span> <span class="n">headers</span> <span class="o">=</span> <span class="n">load_mib_data</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">return_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_mmap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">exposures</span> <span class="o">=</span> <span class="n">parse_exposures</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span>
 </pre></div>
 </div>

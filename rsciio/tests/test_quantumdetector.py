@@ -30,6 +30,7 @@ from rsciio.quantumdetector._api import (
     MIBProperties,
     load_mib_data,
     parse_exposures,
+    parse_hdr_file,
     parse_timestamps,
 )
 
@@ -120,7 +121,12 @@ def test_single_chip(fname, reshape):
 def test_quad_chip(fname):
     s = hs.load(TEST_DATA_DIR_UNZIPPED / fname)
     if "9_Frame" in fname:
-        navigation_shape = (9,)
+        if "24_Rows_256" in fname:
+            # Unknow why the timestamps of this file are not consistent
+            # with others
+            navigation_shape = (3, 3)
+        else:
+            navigation_shape = (9,)
     else:
         navigation_shape = ()
     assert s.data.shape == navigation_shape + (512, 512)
@@ -134,7 +140,9 @@ def test_quad_chip(fname):
         assert axis.units == ""
 
 
-@pytest.mark.parametrize("chunks", ("auto", (9, 128, 128), ("auto", 128, 128)))
+@pytest.mark.parametrize(
+    "chunks", ("auto", (3, 3, 128, 128), ("auto", "auto", 128, 128))
+)
 def test_chunks(chunks):
     fname = TEST_DATA_DIR_UNZIPPED / "Quad_9_Frame_CounterDepth_24_Rows_256.mib"
     s = hs.load(fname, lazy=True, chunks=chunks)
@@ -159,7 +167,7 @@ def test_mib_properties_quad__repr__():
 def test_interrupted_acquisition():
     fname = TEST_DATA_DIR_UNZIPPED / "Single_9_Frame_CounterDepth_1_Rows_256.mib"
     # There is only 9 frames, simulate interrupted acquisition using 10 lines
-    s = hs.load(fname, navigation_shape=(10, 2))
+    s = hs.load(fname, navigation_shape=(4, 3))
     assert s.axes_manager.signal_shape == (256, 256)
     assert s.axes_manager.navigation_shape == (4, 2)
 
@@ -180,11 +188,14 @@ def test_interrupted_acquisition_first_frame():
     assert s.axes_manager.navigation_shape == (7,)
 
 
-def test_non_square():
+@pytest.mark.parametrize("navigation_shape", (None, (8,), (4, 2)))
+def test_non_square(navigation_shape):
     fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
-    s = hs.load(fname, navigation_shape=(4, 2))
+    s = hs.load(fname, navigation_shape=navigation_shape)
     assert s.axes_manager.signal_shape == (256, 256)
-    assert s.axes_manager.navigation_shape == (4, 2)
+    if navigation_shape is None:
+        navigation_shape = (4, 2)
+    assert s.axes_manager.navigation_shape == navigation_shape
 
 
 def test_no_hdr():
@@ -193,7 +204,7 @@ def test_no_hdr():
     shutil.copyfile(fname, fname2)
     s = hs.load(fname2)
     assert s.axes_manager.signal_shape == (256, 256)
-    assert s.axes_manager.navigation_shape == (8,)
+    assert s.axes_manager.navigation_shape == (4, 2)
 
 
 @pytest.mark.parametrize(
@@ -363,3 +374,23 @@ def test_load_save_cycle(tmp_path):
     assert s.axes_manager.navigation_shape == s2.axes_manager.navigation_shape
     assert s.axes_manager.signal_shape == s2.axes_manager.signal_shape
     assert s.data.dtype == s2.data.dtype
+
+
+def test_frames_in_acquisition_zero():
+    # Some hdr file have entry "Frames per Trigger (Number): 0"
+    # Possibly for "continuous and indefinite" acquisition
+    # Copy and edit a file with corresponding changes
+    base_fname = TEST_DATA_DIR_UNZIPPED / "Single_1_Frame_CounterDepth_6_Rows_256"
+    fname = f"{base_fname}_zero_frames_in_acquisition"
+    # Create test file using existing test file
+    shutil.copyfile(f"{base_fname}.mib", f"{fname}.mib")
+    hdf_dict = parse_hdr_file(f"{base_fname}.hdr")
+    hdf_dict["Frames in Acquisition (Number)"] = 0
+    with open(f"{fname}.hdr", "w") as f:
+        f.write("HDR\n")
+        for k, v in hdf_dict.items():
+            f.write(f"{k}:\t{v}\n")
+        f.write("End\t")
+
+    s = hs.load(f"{fname}.mib")
+    assert s.axes_manager.navigation_shape == ()

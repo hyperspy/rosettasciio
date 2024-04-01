@@ -1,1 +1,0 @@
-Fix saving ``hspy`` file with empty array (signal or metadata) and fix closing ``hspy`` file when a error occurs during reading or writing.

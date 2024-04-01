@@ -1,1 +1,0 @@
-Add support for reading :ref:`emd <emd_fei-format>` Velox version 11.

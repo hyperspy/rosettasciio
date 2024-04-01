@@ -1,1 +1,0 @@
-Fix numpy 2.0 removal (``np.product`` and ``np.string_``).

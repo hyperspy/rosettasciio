@@ -1,1 +1,0 @@
-Improve setting output size for an image.

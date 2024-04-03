@@ -1,5 +1,0 @@
-:ref:`Renishaw wdf <renishaw-format>`:
-
-- return survey image instead of saving it to the metadata and add marker of the mapping area on the survey image.
-- Add support for reading data with invariant axis, for example when the values of the Z axis doesn't change.
-- Parse calibration of ``jpg`` images saved with Renishaw Wire software.

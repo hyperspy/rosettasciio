@@ -1,1 +1,0 @@
-Fix deprecation warnings introduced with numpy 1.25 ("Conversion of an array with ndim > 0 to a scalar is deprecated, ...").

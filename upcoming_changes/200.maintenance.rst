@@ -1,1 +1,0 @@
-Add `POOCH_BASE_URL` to specify the base url used by pooch to download test data. This fixes the failure of the ``package_and_test.yml`` workflow in pull requests where test data are added or updated.

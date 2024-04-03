@@ -1,1 +1,0 @@
-Add :ref:`making test data files <making_test_files>` section to contributing guide, explain characteristics of "good" test data files.

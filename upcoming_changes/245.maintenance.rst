@@ -1,1 +1,0 @@
-Fix download test data when using ``pytest --pyargs rsciio -n``.

@@ -358,14 +358,14 @@ class FeiEMDReader(object):
         scale_x = self._convert_scale_units(
             pix_scale["width"], original_units, data.shape[i + 1]
         )
-        scale_y = self._convert_scale_units(
-            pix_scale["height"], original_units, data.shape[i]
+        scale_y = self._convert_scale_units_to(
+            pix_scale["height"], original_units, scale_x[1]
         )
-        offset_x = self._convert_scale_units(
-            offsets["x"], original_units, data.shape[i + 1]
+        offset_x = self._convert_scale_units_to(
+            offsets["x"], original_units, scale_x[1]
         )
-        offset_y = self._convert_scale_units(
-            offsets["y"], original_units, data.shape[i]
+        offset_y = self._convert_scale_units_to(
+            offsets["y"], original_units, scale_x[1]
         )
         axes.extend(
             [
@@ -616,14 +616,14 @@ class FeiEMDReader(object):
         scale_x = self._convert_scale_units(
             pixel_size["width"], original_units, spectrum_image_shape[1]
         )
-        scale_y = self._convert_scale_units(
-            pixel_size["height"], original_units, spectrum_image_shape[0]
+        scale_y = self._convert_scale_units_to(
+            pixel_size["height"], original_units, scale_x[1]
         )
-        offset_x = self._convert_scale_units(
-            offsets["x"], original_units, spectrum_image_shape[1]
+        offset_x = self._convert_scale_units_to(
+            offsets["x"], original_units, scale_x[1]
         )
-        offset_y = self._convert_scale_units(
-            offsets["y"], original_units, spectrum_image_shape[0]
+        offset_y = self._convert_scale_units_to(
+            offsets["y"], original_units, scale_x[1]
         )
 
         i = 0
@@ -719,6 +719,15 @@ class FeiEMDReader(object):
         v = float(value) * _UREG(units)
         converted_v = (factor * v).to_compact()
         converted_value = float(converted_v.magnitude / factor)
+        converted_units = "{:~}".format(converted_v.units)
+        return converted_value, converted_units
+
+    def _convert_scale_units_to(self, value, units, to_units):
+        if units is None:
+            return value, units
+        converted_v = float(value) * _UREG(units)
+        converted_v = converted_v.to(_UREG(to_units))
+        converted_value = float(converted_v.magnitude)
         converted_units = "{:~}".format(converted_v.units)
         return converted_value, converted_units
 

@@ -25,11 +25,11 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-import traits.api as t
 from packaging.version import Version
 
 tifffile = pytest.importorskip("tifffile", reason="tifffile not installed")
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+t = pytest.importorskip("traits.api", reason="traits not installed")
 
 import rsciio.tiff  # noqa: E402
 from rsciio.utils.tests import assert_deep_almost_equal  # noqa: E402

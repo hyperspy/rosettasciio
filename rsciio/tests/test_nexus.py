@@ -22,9 +22,9 @@ import numpy as np
 import pytest
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+h5py = pytest.importorskip("h5py", reason="h5py not installed")
+t = pytest.importorskip("traits.api", reason="traits not installed")
 
-import h5py  # noqa: E402
-import traits.api as t  # noqa: E402
 from hyperspy.exceptions import VisibleDeprecationWarning  # noqa: E402
 from hyperspy.signals import BaseSignal  # noqa: E402
 

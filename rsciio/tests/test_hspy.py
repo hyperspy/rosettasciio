@@ -23,15 +23,14 @@ import time
 from pathlib import Path
 
 import dask.array as da
-import h5py
 import numpy as np
 import pytest
 
-from rsciio._hierarchical import get_signal_chunks
 from rsciio.utils.tests import assert_deep_almost_equal
 from rsciio.utils.tools import get_file_handle
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+h5py = pytest.importorskip("h5py", reason="h5py not installed")
 
 from hyperspy.axes import (  # noqa: E402
     AxesManager,
@@ -41,6 +40,8 @@ from hyperspy.axes import (  # noqa: E402
 )
 from hyperspy.decorators import lazifyTestClass  # noqa: E402
 from hyperspy.misc.test_utils import sanitize_dict as san_dict  # noqa: E402
+
+from rsciio._hierarchical import get_signal_chunks  # noqa: E402
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "hspy"
 TEST_NPZ_DATA_PATH = Path(__file__).parent / "data" / "npz"

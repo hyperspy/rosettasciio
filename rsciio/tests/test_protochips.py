@@ -21,10 +21,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
-
 from rsciio.protochips._api import ProtochipsCSV, invalid_file_error
 
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "protochips"
 

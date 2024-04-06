@@ -21,12 +21,12 @@
 # and https://ami.scripps.edu/software/mrctools/mrc_specification.php
 
 import gc
-import pytest
 import importlib.util
-from pathlib import Path
 from copy import deepcopy
+from pathlib import Path
 
 import numpy as np
+import pytest
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -1013,4 +1013,4 @@ class TestGlue:
         np.testing.assert_allclose(
             metadata["Acquisition_instrument"]["Detector"]["glued_spectrum_windows"], 4
         )
-        assert metadata["Acquisition_instrument"]["Detector"]["glued_spectrum"] == True
+        assert metadata["Acquisition_instrument"]["Detector"]["glued_spectrum"] is True

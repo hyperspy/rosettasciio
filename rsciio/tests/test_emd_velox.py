@@ -21,25 +21,19 @@
 # National Lab (see https://emdatasets.com/ for more information).
 # NOT to be confused with the FEI EMD format which was developed later.
 
-import os
-from pathlib import Path
+import gc
 import logging
+import shutil
+from datetime import datetime
+from pathlib import Path
 
+import numpy as np
 import pytest
+from dateutil import tz
+
+from rsciio.utils.tests import assert_deep_almost_equal
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
-
-import dask.array as da
-from datetime import datetime
-from dateutil import tz
-import gc
-import h5py
-import numpy as np
-import tempfile
-import shutil
-
-from hyperspy.misc.test_utils import assert_deep_almost_equal
-
 pytest.importorskip("sparse")
 
 
@@ -130,11 +124,11 @@ class TestFeiEMD:
         fei_image = np.load(self.fei_files_path / "fei_emd_image.npy")
         assert signal.axes_manager[0].name == "x"
         assert signal.axes_manager[0].units == "µm"
-        assert signal.axes_manager[0].is_binned == False
+        assert signal.axes_manager[0].is_binned is False
         np.testing.assert_allclose(signal.axes_manager[0].scale, 0.00530241, rtol=1e-5)
         assert signal.axes_manager[1].name == "y"
         assert signal.axes_manager[1].units == "µm"
-        assert signal.axes_manager[1].is_binned == False
+        assert signal.axes_manager[1].is_binned is False
         np.testing.assert_allclose(signal.axes_manager[1].scale, 0.00530241, rtol=1e-5)
         np.testing.assert_allclose(signal.data, fei_image)
         assert_deep_almost_equal(signal.metadata.as_dictionary(), md)

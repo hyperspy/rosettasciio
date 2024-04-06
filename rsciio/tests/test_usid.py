@@ -18,16 +18,15 @@
 
 import tempfile
 
+import dask.array as da
+import numpy as np
 import pytest
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 usid = pytest.importorskip("pyUSID", reason="pyUSID not installed")
 sidpy = pytest.importorskip("sidpy", reason="sidpy not installed")
 
-import dask.array as da
-import h5py
-import numpy as np
-
+import h5py  # noqa: E402
 
 # ##################### HELPER FUNCTIONS ######################################
 

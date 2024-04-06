@@ -16,17 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import gc
 from pathlib import Path
 
 import numpy as np
 import pytest
-import gc
-
-hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
-
 import traits.api as t
 
 from rsciio.empad._api import _parse_xml
+
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 
 DATA_DIR = Path(__file__).parent / "data" / "empad"

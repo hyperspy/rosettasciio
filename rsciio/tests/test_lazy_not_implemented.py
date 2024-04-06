@@ -17,8 +17,8 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import importlib
-import pytest
 
+import pytest
 
 PLUGIN_LAZY_NOT_IMPLEMENTED = [
     # "bruker", # SPX only

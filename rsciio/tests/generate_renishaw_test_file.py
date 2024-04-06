@@ -20,12 +20,13 @@
 """
 
 import numpy as np
+
 from rsciio.renishaw._api import (
-    WDFReader,
+    MetadataFlags,
     MetadataTypeMulti,
     MetadataTypeSingle,
-    MetadataFlags,
     TypeNames,
+    WDFReader,
 )
 
 # logging.basicConfig(level=10)

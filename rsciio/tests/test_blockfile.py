@@ -18,26 +18,23 @@
 
 
 import gc
-import os
-from pathlib import Path
-import tempfile
 import warnings
+from pathlib import Path
 
 import numpy as np
 import pytest
 
-hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
-
-from hyperspy.misc.test_utils import assert_deep_almost_equal
-
 from rsciio.blockfile._api import get_default_header
-from rsciio.utils.tools import sarray2dict
 from rsciio.utils.date_time_tools import serial_date_to_ISO_format
+from rsciio.utils.tests import assert_deep_almost_equal
+from rsciio.utils.tools import sarray2dict
 
 try:
     WindowsError
 except NameError:
     WindowsError = None
+
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 
 TEST_DATA_DIR = Path(__file__).parent / "data" / "blockfile"

@@ -629,7 +629,7 @@ def test_elid(pathname):
             "is_binned": False,
         },
     }
-    assert not "acquisition" in s[7].original_metadata
+    assert "acquisition" not in s[7].original_metadata
 
     assert s[8].metadata["General"]["title"] == "385test - spectrum, MSA 1"
     assert s[8].data.shape == (2048,)
@@ -678,7 +678,7 @@ def test_elid(pathname):
             "is_binned": False,
         },
     }
-    assert not "EDS" in s[9].original_metadata["acquisition"]["scan"]["detectors"]
+    assert "EDS" not in s[9].original_metadata["acquisition"]["scan"]["detectors"]
 
     assert s[10].metadata["General"]["title"] == "Image 1, Map 1"
     assert s[10].data.shape == (16, 16, 2048)

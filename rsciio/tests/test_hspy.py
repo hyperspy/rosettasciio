@@ -16,39 +16,40 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import importlib
 import logging
-from pathlib import Path
 import sys
 import time
-
-import pytest
-
-hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+from pathlib import Path
 
 import dask.array as da
 import h5py
 import numpy as np
-
-from hyperspy.axes import DataAxis, UniformDataAxis, FunctionalDataAxis, AxesManager
-from hyperspy.decorators import lazifyTestClass
-from hyperspy.misc.test_utils import assert_deep_almost_equal
-from hyperspy.misc.test_utils import sanitize_dict as san_dict
+import pytest
 
 from rsciio._hierarchical import get_signal_chunks
+from rsciio.utils.tests import assert_deep_almost_equal
 from rsciio.utils.tools import get_file_handle
 
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
+from hyperspy.axes import (  # noqa: E402
+    AxesManager,
+    DataAxis,
+    FunctionalDataAxis,
+    UniformDataAxis,
+)
+from hyperspy.decorators import lazifyTestClass  # noqa: E402
+from hyperspy.misc.test_utils import sanitize_dict as san_dict  # noqa: E402
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "hspy"
 TEST_NPZ_DATA_PATH = Path(__file__).parent / "data" / "npz"
 
 
-try:
-    # zarr (because of numcodecs) is only supported on x86_64 machines
-    import zarr
-
-    zspy_marker = pytest.mark.parametrize("file", ["test.hspy", "test.zspy"])
-except ImportError:
+if importlib.util.find_spec("zarr") is None:
     zspy_marker = pytest.mark.parametrize("file", ["test.hspy"])
+else:
+    zspy_marker = pytest.mark.parametrize("file", ["test.hspy", "test.zspy"])
 
 
 data = np.array(
@@ -204,11 +205,11 @@ class TestSavingMetadataContainers:
         s.metadata.set_item("test", ["a", "b", "\u6f22\u5b57"])
         fname = tmp_path / file
         s.save(fname)
-        l = hs.load(fname)
-        assert isinstance(l.metadata.test[0], str)
-        assert isinstance(l.metadata.test[1], str)
-        assert isinstance(l.metadata.test[2], str)
-        assert l.metadata.test[2] == "\u6f22\u5b57"
+        s2 = hs.load(fname)
+        assert isinstance(s2.metadata.test[0], str)
+        assert isinstance(s2.metadata.test[1], str)
+        assert isinstance(s2.metadata.test[2], str)
+        assert s2.metadata.test[2] == "\u6f22\u5b57"
 
     @pytest.mark.xfail(reason="osx is slow occasionally")
     @zspy_marker
@@ -228,10 +229,10 @@ class TestSavingMetadataContainers:
         s.metadata.set_item("test", [[1.0, 2], ("3", 4)])
         fname = tmp_path / file
         s.save(fname)
-        l = hs.load(fname)
-        assert isinstance(l.metadata.test, list)
-        assert isinstance(l.metadata.test[0], list)
-        assert isinstance(l.metadata.test[1], tuple)
+        s2 = hs.load(fname)
+        assert isinstance(s2.metadata.test, list)
+        assert isinstance(s2.metadata.test[0], list)
+        assert isinstance(s2.metadata.test[1], tuple)
 
     @pytest.mark.xfail(sys.platform == "win32", reason="randomly fails in win32")
     @zspy_marker
@@ -240,8 +241,8 @@ class TestSavingMetadataContainers:
         s.metadata.set_item("test", np.array([[1.0, 2], ["3", 4]]))
         fname = tmp_path / file
         s.save(fname)
-        l = hs.load(fname)
-        np.testing.assert_array_equal(l.metadata.test, s.metadata.test)
+        s2 = hs.load(fname)
+        np.testing.assert_array_equal(s2.metadata.test, s.metadata.test)
 
     @pytest.mark.xfail(sys.platform == "win32", reason="randomly fails in win32")
     @zspy_marker
@@ -250,11 +251,11 @@ class TestSavingMetadataContainers:
         s.metadata.set_item("test", [[1.0, 2], ["3", 4]])
         fname = tmp_path / file
         s.save(fname)
-        l = hs.load(fname)
-        assert isinstance(l.metadata.test[0][0], float)
-        assert isinstance(l.metadata.test[0][1], float)
-        assert isinstance(l.metadata.test[1][0], str)
-        assert isinstance(l.metadata.test[1][1], str)
+        s2 = hs.load(fname)
+        assert isinstance(s2.metadata.test[0][0], float)
+        assert isinstance(s2.metadata.test[0][1], float)
+        assert isinstance(s2.metadata.test[1][0], str)
+        assert isinstance(s2.metadata.test[1][1], str)
 
     @pytest.mark.xfail(sys.platform == "win32", reason="randomly fails in win32")
     @zspy_marker
@@ -263,11 +264,11 @@ class TestSavingMetadataContainers:
         s.metadata.set_item("test", (hs.signals.BaseSignal([1]), 0.1, "test_string"))
         fname = tmp_path / file
         s.save(fname)
-        l = hs.load(fname)
-        assert isinstance(l.metadata.test, tuple)
-        assert isinstance(l.metadata.test[0], hs.signals.Signal1D)
-        assert isinstance(l.metadata.test[1], float)
-        assert isinstance(l.metadata.test[2], str)
+        s2 = hs.load(fname)
+        assert isinstance(s2.metadata.test, tuple)
+        assert isinstance(s2.metadata.test[0], hs.signals.Signal1D)
+        assert isinstance(s2.metadata.test[1], float)
+        assert isinstance(s2.metadata.test[2], str)
 
     @zspy_marker
     def test_unsupported_type(self, tmp_path, file):
@@ -275,8 +276,8 @@ class TestSavingMetadataContainers:
         s.metadata.set_item("test", hs.roi.Point2DROI(1, 2))
         fname = tmp_path / file
         s.save(fname)
-        l = hs.load(fname)
-        assert "test" not in l.metadata
+        s2 = hs.load(fname)
+        assert "test" not in s2.metadata
 
     @zspy_marker
     def test_date_time(self, tmp_path, file):
@@ -286,9 +287,9 @@ class TestSavingMetadataContainers:
         s.metadata.General.time = time
         fname = tmp_path / file
         s.save(fname)
-        l = hs.load(fname)
-        assert l.metadata.General.date == date
-        assert l.metadata.General.time == time
+        s2 = hs.load(fname)
+        assert s2.metadata.General.date == date
+        assert s2.metadata.General.time == time
 
     @zspy_marker
     def test_general_metadata(self, tmp_path, file):
@@ -301,10 +302,10 @@ class TestSavingMetadataContainers:
         s.metadata.General.doi = doi
         fname = tmp_path / file
         s.save(fname)
-        l = hs.load(fname)
-        assert l.metadata.General.notes == notes
-        assert l.metadata.General.authors == authors
-        assert l.metadata.General.doi == doi
+        s2 = hs.load(fname)
+        assert s2.metadata.General.notes == notes
+        assert s2.metadata.General.authors == authors
+        assert s2.metadata.General.doi == doi
 
     @zspy_marker
     def test_quantity(self, tmp_path, file):
@@ -313,8 +314,8 @@ class TestSavingMetadataContainers:
         s.metadata.Signal.quantity = quantity
         fname = tmp_path / file
         s.save(fname)
-        l = hs.load(fname)
-        assert l.metadata.Signal.quantity == quantity
+        s2 = hs.load(fname)
+        assert s2.metadata.Signal.quantity == quantity
 
     @zspy_marker
     def test_save_axes_manager(self, tmp_path, file):
@@ -322,9 +323,9 @@ class TestSavingMetadataContainers:
         s.metadata.set_item("test", s.axes_manager)
         fname = tmp_path / file
         s.save(fname)
-        l = hs.load(fname)
+        s2 = hs.load(fname)
         # strange becuase you need the encoding...
-        assert isinstance(l.metadata.test, AxesManager)
+        assert isinstance(s2.metadata.test, AxesManager)
 
     @zspy_marker
     def test_title(self, tmp_path, file):
@@ -332,8 +333,8 @@ class TestSavingMetadataContainers:
         fname = tmp_path / file
         s.metadata.General.title = "__unnamed__"
         s.save(fname)
-        l = hs.load(fname)
-        assert l.metadata.General.title == ""
+        s2 = hs.load(fname)
+        assert s2.metadata.General.title == ""
 
     @zspy_marker
     def test_save_empty_tuple(self, tmp_path, file):
@@ -341,9 +342,9 @@ class TestSavingMetadataContainers:
         s.metadata.set_item("test", ())
         fname = tmp_path / file
         s.save(fname)
-        l = hs.load(fname)
+        s2 = hs.load(fname)
         # strange becuase you need the encoding...
-        assert l.metadata.test == s.metadata.test
+        assert s2.metadata.test == s.metadata.test
 
     @zspy_marker
     def test_save_bytes(self, tmp_path, file):
@@ -352,14 +353,14 @@ class TestSavingMetadataContainers:
         s.metadata.set_item("test", byte_message)
         fname = tmp_path / file
         s.save(fname)
-        l = hs.load(fname)
-        assert l.metadata.test == s.metadata.test.decode()
+        s2 = hs.load(fname)
+        assert s2.metadata.test == s.metadata.test.decode()
 
     def test_metadata_binned_deprecate(self):
         with pytest.warns(UserWarning, match="Loading old file"):
             s = hs.load(TEST_DATA_PATH / "example2_v2.2.hspy")
-        assert s.metadata.has_item("Signal.binned") == False
-        assert s.axes_manager[-1].is_binned == False
+        assert s.metadata.has_item("Signal.binned") is False
+        assert s.axes_manager[-1].is_binned is False
 
     def test_metadata_update_to_v3_1(self):
         md = {
@@ -448,8 +449,8 @@ def test_nonuniformaxis(tmp_path, file, lazy):
     np.testing.assert_array_almost_equal(
         s.axes_manager[0].axis, s2.axes_manager[0].axis
     )
-    assert s2.axes_manager[0].is_uniform == False
-    assert s2.axes_manager[0].navigate == False
+    assert s2.axes_manager[0].is_uniform is False
+    assert s2.axes_manager[0].navigate is False
     assert s2.axes_manager[0].size == data.size
 
 
@@ -469,8 +470,8 @@ def test_nonuniformFDA(tmp_path, file, lazy):
     np.testing.assert_array_almost_equal(
         s.axes_manager[0].axis, s2.axes_manager[0].axis
     )
-    assert s2.axes_manager[0].is_uniform == False
-    assert s2.axes_manager[0].navigate == False
+    assert s2.axes_manager[0].is_uniform is False
+    assert s2.axes_manager[0].navigate is False
     assert s2.axes_manager[0].size == data.size
 
 

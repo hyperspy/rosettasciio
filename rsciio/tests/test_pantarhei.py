@@ -22,9 +22,10 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from rsciio.utils.tests import assert_deep_almost_equal
+
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 exspy = pytest.importorskip("exspy", reason="exspy not installed")
-from hyperspy.misc.test_utils import assert_deep_almost_equal
 
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "pantarhei"

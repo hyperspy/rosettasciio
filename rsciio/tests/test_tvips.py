@@ -18,33 +18,32 @@
 
 
 import gc
-from packaging.version import Version
 from pathlib import Path
 
+import dask
 import numpy as np
 import pytest
-import dask
+import traits.api as t
+from packaging.version import Version
+
+from rsciio.utils.tools import dummy_context_manager
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
-import traits.api as t
+from hyperspy.misc.utils import DictionaryTreeBrowser  # noqa: E402
 
-from hyperspy.misc.utils import DictionaryTreeBrowser
-
-from rsciio.tvips._api import (
-    _guess_image_mode,
-    _get_main_header_from_signal,
-    _get_frame_record_dtype_from_signal,
-    _is_valid_first_tvips_file,
-    _find_auto_scan_start_stop,
-    _guess_scan_index_grid,
-    TVIPS_RECORDER_GENERAL_HEADER,
+from rsciio.tvips._api import (  # noqa: E402
     TVIPS_RECORDER_FRAME_HEADER,
-    file_writer,
+    TVIPS_RECORDER_GENERAL_HEADER,
+    _find_auto_scan_start_stop,
+    _get_frame_record_dtype_from_signal,
+    _get_main_header_from_signal,
+    _guess_image_mode,
+    _guess_scan_index_grid,
+    _is_valid_first_tvips_file,
     file_reader,
+    file_writer,
 )
-from rsciio.utils.tools import dummy_context_manager
-
 
 try:
     WindowsError
@@ -324,7 +323,8 @@ def test_guess_scan_index_grid(rotators, startstop, expected):
 
 
 def _dask_supports_assignment():
-    # direct assignment as follows is possible in newer versions (>2021.04.1) of dask, for backward compatibility we use workaround
+    # direct assignment as follows is possible in newer versions (>2021.04.1) of dask,
+    # for backward compatibility we use workaround
     return Version(dask.__version__) >= Version("2021.04.1")
 
 

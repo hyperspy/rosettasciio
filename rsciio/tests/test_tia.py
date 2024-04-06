@@ -25,8 +25,7 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 import traits.api as t
 
-from rsciio.tia._api import load_ser_file, file_reader
-
+from rsciio.tia._api import file_reader, load_ser_file
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "tia"
 TEST_DATA_PATH_NEW = TEST_DATA_PATH / "new"

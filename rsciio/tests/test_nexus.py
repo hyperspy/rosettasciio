@@ -23,27 +23,28 @@ import pytest
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
-import traits.api as t
-import h5py
+import h5py  # noqa: E402
+import traits.api as t  # noqa: E402
+from hyperspy.exceptions import VisibleDeprecationWarning  # noqa: E402
+from hyperspy.signals import BaseSignal  # noqa: E402
 
-from hyperspy.exceptions import VisibleDeprecationWarning
-
-from rsciio.nexus import file_writer
-from rsciio.utils.hdf5 import list_datasets_in_file, read_metadata_from_file
-from rsciio.nexus._api import (
+from rsciio.nexus import file_writer  # noqa: E402
+from rsciio.nexus._api import (  # noqa: E402
     _byte_to_string,
+    _check_search_keys,
+    _find_data,
     _fix_exclusion_keys,
-    _is_int,
-    _is_numeric_data,
     _get_nav_list,
     _getlink,
-    _check_search_keys,
-    _parse_from_file,
+    _is_int,
+    _is_numeric_data,
     _nexus_dataset_to_signal,
-    _find_data,
+    _parse_from_file,
 )
-from hyperspy.signals import BaseSignal
-
+from rsciio.utils.hdf5 import (  # noqa: E402
+    list_datasets_in_file,
+    read_metadata_from_file,
+)
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "nexus"
 
@@ -541,7 +542,7 @@ class TestCheckSearchKeys:
         assert _check_search_keys(None) is None
 
     def test_check_search_keys_input_str(self):
-        assert type(_check_search_keys("[1234]")) is list
+        assert isinstance(_check_search_keys("[1234]"), list)
 
     def test_check_search_keys_input_list_all_str(self):
         assert _check_search_keys(["[1234]", "[5678]"])[0] == "[1234]"

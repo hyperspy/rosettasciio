@@ -18,24 +18,22 @@
 
 
 import os
-from packaging.version import Version
-from pathlib import Path
 import tempfile
 import warnings
 import zipfile
+from pathlib import Path
 
 import numpy as np
 import pytest
+from packaging.version import Version
 
 tifffile = pytest.importorskip("tifffile", reason="tifffile not installed")
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 import traits.api as t
-
 from hyperspy.misc.test_utils import assert_deep_almost_equal
 
 import rsciio.tiff
-
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "tiff"
 TEST_NPZ_DATA_PATH = Path(__file__).parent / "data" / "npz"
@@ -886,20 +884,20 @@ def test_axes_metadata():
         s2 = hs.load(fname)
         assert s2.axes_manager.navigation_axes[0].name == "image series"
         assert s2.axes_manager.navigation_axes[0].units == nav_unit
-        assert s2.axes_manager.navigation_axes[0].is_binned == False
+        assert s2.axes_manager.navigation_axes[0].is_binned is False
 
         fname2 = os.path.join(tmpdir, "axes_metadata_IYX.tif")
         s.save(fname2, metadata={"axes": "IYX"})
         s3 = hs.load(fname2)
         assert s3.axes_manager.navigation_axes[0].name == "image series"
         assert s3.axes_manager.navigation_axes[0].units == nav_unit
-        assert s3.axes_manager.navigation_axes[0].is_binned == False
+        assert s3.axes_manager.navigation_axes[0].is_binned is False
 
         fname2 = os.path.join(tmpdir, "axes_metadata_ZYX.tif")
         s.save(fname2, metadata={"axes": "ZYX"})
         s3 = hs.load(fname2)
         assert s3.axes_manager.navigation_axes[0].units == nav_unit
-        assert s3.axes_manager.navigation_axes[0].is_binned == False
+        assert s3.axes_manager.navigation_axes[0].is_binned is False
 
 
 def test_olympus_SIS():

@@ -17,13 +17,12 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import os
-from packaging.version import Version
 from pathlib import Path
 
 import pooch
+from packaging.version import Version
 
 import rsciio
-
 
 version = rsciio.__version__
 

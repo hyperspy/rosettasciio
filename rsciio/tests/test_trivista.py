@@ -17,11 +17,12 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import gc
+import importlib.util
+from copy import deepcopy
+from pathlib import Path
+
 import numpy as np
 import pytest
-import importlib.util
-from pathlib import Path
-from copy import deepcopy
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -148,7 +149,7 @@ class TestSpec:
         else:
             assert metadata["Signal"]["signal_type"] == ""
 
-        assert metadata["Acquisition_instrument"]["Detector"]["glued_spectrum"] == False
+        assert metadata["Acquisition_instrument"]["Detector"]["glued_spectrum"] is False
         assert (
             metadata["Acquisition_instrument"]["Detector"]["processing"]["calc_average"]
             == "True"
@@ -2397,7 +2398,7 @@ class TestStepAndGlue:
         assert original_metadata_glued["Skipped Pixel Left"] == "0"
         assert original_metadata_glued["Skipped Pixel Right"] == "0"
 
-        assert metadata_detector.glued_spectrum == True
+        assert metadata_detector.glued_spectrum is True
         assert np.isclose(metadata_detector.glued_spectrum_overlap, 15)
         assert np.isclose(metadata_detector.glued_spectrum_windows, 19)
 

@@ -17,8 +17,9 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 from pathlib import Path
-import pytest
+
 import numpy as np
+import pytest
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 

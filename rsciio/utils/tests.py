@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import importlib
+
 import numpy as np
 
 
@@ -25,12 +27,10 @@ def expected_is_binned():
     some signal will be assigned to EDS or EELS class instead of
     Signal1D class and the binned attribute will change accordingly.
     """
-    try:
-        import exspy
-
-        binned = True
-    except ImportError:
+    if importlib.util.find_spec("exspy") is None:
         binned = False
+    else:
+        binned = True
 
     return binned
 

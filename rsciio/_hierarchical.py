@@ -19,16 +19,15 @@
 import ast
 import datetime
 import logging
-from packaging.version import Version
 import warnings
 
 import dask.array as da
 import h5py
 import numpy as np
+from packaging.version import Version
 
 from rsciio._docstrings import SHOW_PROGRESSBAR_DOC
 from rsciio.utils.tools import ensure_unicode
-
 
 version = "3.3"
 

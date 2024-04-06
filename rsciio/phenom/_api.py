@@ -34,18 +34,19 @@
 # file format.
 
 import bz2
-import math
-import numpy as np
 import copy
+import io
+import math
 import os
 import struct
-import io
-from datetime import datetime
-from dateutil import tz
-import tifffile
 import xml.etree.ElementTree as ET
+from datetime import datetime
 
-from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC, LAZY_UNSUPPORTED_DOC
+import numpy as np
+import tifffile
+from dateutil import tz
+
+from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
 
 
 def element_symbol(z):
@@ -788,16 +789,19 @@ class ElidReader:
 
     def _read_MapAnalysis(self, label, am):
         (om, sum_spectrum) = self._read_CommonAnalysis(am)
-        left = self._read_float64()
-        top = self._read_float64()
-        right = self._read_float64()
-        bottom = self._read_float64()
-        color_intensities = self._read_float64s()
+        # These metadata are currently not used but we still need to
+        # read these to advance the position in the file
+        # use placeholder for readability
+        _ = self._read_float64()  # left
+        _ = self._read_float64()  # top
+        _ = self._read_float64()  # right
+        _ = self._read_float64()  # bottom
+        _ = self._read_float64s()  # color_intensities
         width = self._read_uint32()
         height = self._read_uint32()
         bins = self._read_uint32()
-        offset = self._read_float64()
-        dispersion = self._read_float64()
+        _ = self._read_float64()  # offset
+        _ = self._read_float64()  # dispersion
         original_metadata = copy.deepcopy(am)
         eds_metadata = self._read_eds_metadata(am)
         eds_metadata["live_time"] = om["acquisition"]["scan"]["detectors"]["EDS"][
@@ -897,8 +901,11 @@ class ElidReader:
 
     def _read_ConstructiveAnalysis(self, label, am):
         self._read_CommonAnalysis(am)
-        description = self._read_string()
-        sources = self._read_ConstructiveAnalysisSources()
+        # These metadata are currently not used but we still need to
+        # read these to advance the position in the file
+        # use placeholder for readability
+        _ = self._read_string()  # description
+        _ = self._read_ConstructiveAnalysisSources()  # sources
 
     def _read_ConstructiveAnalyses(self):
         return self._read_Analyses("", {})

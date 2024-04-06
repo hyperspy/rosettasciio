@@ -18,7 +18,6 @@
 
 from PIL.ExifTags import TAGS
 
-
 CustomTAGS = {
     **TAGS,
     # Customized EXIF TAGS from Renishaw

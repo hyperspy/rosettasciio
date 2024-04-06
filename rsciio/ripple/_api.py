@@ -22,21 +22,21 @@
 #  https://www.nist.gov/services-resources/software/lispixdoc/image-file-formats/raw-file-format.htm
 
 import codecs
+import logging
 import os.path
 from io import StringIO
-import logging
 
 import numpy as np
 
+from rsciio import __version__
 from rsciio._docstrings import (
+    ENCODING_DOC,
     FILENAME_DOC,
     LAZY_DOC,
-    ENCODING_DOC,
     MMAP_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
 )
-from rsciio import __version__
 from rsciio.utils.tools import DTBox
 
 _logger = logging.getLogger(__name__)

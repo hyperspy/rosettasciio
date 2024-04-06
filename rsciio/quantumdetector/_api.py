@@ -21,8 +21,8 @@
 
 import logging
 import os
-from pathlib import Path
 import warnings
+from pathlib import Path
 
 import dask.array as da
 import numpy as np
@@ -35,7 +35,6 @@ from rsciio._docstrings import (
     NAVIGATION_SHAPE,
     RETURNS_DOC,
 )
-
 
 _logger = logging.getLogger(__name__)
 

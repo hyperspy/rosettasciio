@@ -17,15 +17,15 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 
+import importlib
 import logging
-import xml.etree.ElementTree as ET
-from pathlib import Path
 import os
+import re
+import xml.etree.ElementTree as ET
 from ast import literal_eval
 from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
-import importlib
-import re
+from pathlib import Path
 
 import numpy as np
 from box import Box

@@ -20,19 +20,19 @@
 # https://www.biochem.mpg.de/doc_tom/TOM_Release_2008/IOfun/tom_mrcread.html
 # and https://ami.scripps.edu/software/mrctools/mrc_specification.php
 
-import os
 import logging
+import os
+
 import numpy as np
 
 from rsciio._docstrings import (
+    ENDIANESS_DOC,
     FILENAME_DOC,
     LAZY_DOC,
-    ENDIANESS_DOC,
     RETURNS_DOC,
 )
-from rsciio.utils.tools import sarray2dict
 from rsciio.utils.elements import atomic_number2name
-
+from rsciio.utils.tools import sarray2dict
 
 _logger = logging.getLogger(__name__)
 

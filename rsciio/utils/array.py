@@ -16,9 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-from packaging.version import Version
-
 import numpy as np
+from packaging.version import Version
 
 
 def get_numpy_kwargs(array):

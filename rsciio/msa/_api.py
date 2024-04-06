@@ -16,18 +16,18 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-from datetime import datetime as dt
 import codecs
-import os
 import logging
+import os
 import warnings
+from datetime import datetime as dt
 
 import numpy as np
 
 from rsciio._docstrings import (
+    ENCODING_DOC,
     FILENAME_DOC,
     LAZY_UNSUPPORTED_DOC,
-    ENCODING_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
 )
@@ -447,7 +447,7 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
         #        'YLABEL' : '',
         "XUNITS": signal["axes"][0]["units"],
         #        'YUNITS' : '',
-        f"COMMENT": "File created by RosettaSciIO version {__version__}",
+        "COMMENT": "File created by RosettaSciIO version {__version__}",
         # Microscope
         #        'BEAMKV' : ,
         #        'EMISSION' : ,

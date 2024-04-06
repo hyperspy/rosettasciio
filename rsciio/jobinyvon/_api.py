@@ -20,16 +20,15 @@
 # https://www.biochem.mpg.de/doc_tom/TOM_Release_2008/IOfun/tom_mrcread.html
 # and https://ami.scripps.edu/software/mrctools/mrc_specification.php
 
-import logging
 import importlib.util
+import logging
 import xml.etree.ElementTree as ET
-from pathlib import Path
 from copy import deepcopy
+from pathlib import Path
 
 import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
-
 
 _logger = logging.getLogger(__name__)
 

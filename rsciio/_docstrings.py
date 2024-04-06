@@ -112,7 +112,7 @@ COMPRESSION_HDF5_NOTES_DOC = """It is possible to enable other compression filte
 
 
 DISTRIBUTED_DOC = """distributed : bool, default=False
-        Whether to load the data using memory-mapping in a way that is 
+        Whether to load the data using memory-mapping in a way that is
         compatible with dask-distributed.  This can sometimes improve
         performance when reading large files. And splitting the data
         loading/processing over multiple workers.

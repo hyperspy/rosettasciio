@@ -15,7 +15,6 @@
 # sys.path.insert(0, os.path.abspath('.'))
 
 import numpydoc
-import pydata_sphinx_theme
 from packaging.version import Version
 
 # -- Project information -----------------------------------------------------

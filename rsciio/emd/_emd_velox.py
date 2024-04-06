@@ -25,24 +25,22 @@
 
 
 import json
-import os
-from datetime import datetime
-import time
 import logging
+import os
+import time
+from datetime import datetime
 
-import numpy as np
 import dask.array as da
+import numpy as np
 from dateutil import tz
 
+from rsciio.utils.elements import atomic_number2name
 from rsciio.utils.hdf5 import (
     _get_keys_from_group,
     _parse_metadata,
     _parse_sub_data_group_metadata,
 )
-from rsciio.utils.tools import _UREG
-from rsciio.utils.tools import convert_units
-from rsciio.utils.elements import atomic_number2name
-
+from rsciio.utils.tools import _UREG, convert_units
 
 _logger = logging.getLogger(__name__)
 

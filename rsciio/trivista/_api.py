@@ -16,12 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import xml.etree.ElementTree as ET
-import logging
 import importlib.util
-from pathlib import Path
-from copy import deepcopy
+import logging
+import xml.etree.ElementTree as ET
 from collections import defaultdict
+from copy import deepcopy
+from pathlib import Path
 
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
@@ -420,7 +420,7 @@ class TrivistaTVFReader:
                 "Objective"
             ]["Magnification"]
         )
-        if not laser_wavelength is None:
+        if laser_wavelength is not None:
             laser["wavelength"] = laser_wavelength
         return laser
 

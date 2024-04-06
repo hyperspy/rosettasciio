@@ -16,11 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import os
 import logging
-from warnings import warn
-from functools import partial
+import os
 from collections.abc import MutableMapping
+from functools import partial
+from warnings import warn
+
 import h5py
 import numpy as np
 import pyUSID as usid
@@ -32,7 +33,6 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
-
 
 _logger = logging.getLogger(__name__)
 

@@ -4,7 +4,6 @@ from ._api import (
     parse_msa_string,
 )
 
-
 __all__ = [
     "file_reader",
     "file_writer",

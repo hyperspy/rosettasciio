@@ -17,9 +17,10 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 
-import numpy as np
 import os
 from datetime import datetime
+
+import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
 

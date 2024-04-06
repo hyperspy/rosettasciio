@@ -35,8 +35,8 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
-from ._emd_ncem import read_emd_version
 
+from ._emd_ncem import read_emd_version
 
 _logger = logging.getLogger(__name__)
 

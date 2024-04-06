@@ -130,7 +130,7 @@ all = [
   "rosettasciio[zspy]",
 ]
 dev = [
-  "black",
+  "ruff",
   "rosettasciio[doc]",
   "rosettasciio[all]",
   "rosettasciio[tests]"
@@ -203,3 +203,7 @@ select = [
 exclude = [
     "examples",
     ]
+# Rely on the formatter to define line-length
+# and avoid conflicting lint rules
+# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+extend-ignore = ["E501"]

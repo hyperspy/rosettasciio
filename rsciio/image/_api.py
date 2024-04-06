@@ -16,13 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-from collections.abc import Iterable
-import os
 import logging
+import os
+from collections.abc import Iterable
 
 import imageio.v3 as iio
-from PIL import Image
 import numpy as np
+from PIL import Image
 
 from rsciio._docstrings import (
     FILENAME_DOC,
@@ -32,7 +32,6 @@ from rsciio._docstrings import (
 )
 from rsciio.utils.image import _parse_axes_from_metadata, _parse_exif_tags
 from rsciio.utils.tools import _UREG
-
 
 _logger = logging.getLogger(__name__)
 
@@ -226,11 +225,11 @@ def file_reader(filename, lazy=False, **kwds):
     if lazy:
         # load the image fully to check the dtype and shape, should be cheap.
         # Then store this info for later re-loading when required
-        from dask.array import from_delayed
         from dask import delayed
+        from dask.array import from_delayed
 
         val = delayed(_read_data, pure=True)(filename, **kwds)
-        dc = from_delayed(val, shape=dc.shape, dtype=dc.dtype)
+        dc = from_delayed(val, shape=val.shape, dtype=val.dtype)
     else:
         dc = _read_data(filename, **kwds)
 

@@ -24,32 +24,27 @@
 # original_metadata or other
 
 import logging
-
-# Dateutil allows to parse date but I don't think it's useful here
-# import dateutil.parser
-
-import numpy as np
+import os
+import struct
+import sys
+import warnings
+import zlib
 
 # Commented for now because I don't know what purpose it serves
 # import traits.api as t
-
 from copy import deepcopy
-import struct
-import sys
-import zlib
-import os
-import warnings
+
+# Dateutil allows to parse date but I don't think it's useful here
+# import dateutil.parser
+import numpy as np
 
 # Maybe later we can implement reading the class with the io utils tools instead
 # of re-defining read functions in the class
 # import rsciio.utils.readfile as iou
-
 # This module will prove useful when we write the export function
 # import rsciio.utils.tools
-
 # DictionaryTreeBrowser class handles the fancy metadata dictionnaries
 # from hyperspy.misc.utils import DictionaryTreeBrowser
-
 from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
 from rsciio.utils.exceptions import MountainsMapFileError
 

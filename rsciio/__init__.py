@@ -16,13 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-from importlib.metadata import version
 import os
+from importlib.metadata import version
 from pathlib import Path
+
 import yaml
 
 from ._logger import set_log_level
-
 
 # Default to warning
 set_log_level("WARNING")

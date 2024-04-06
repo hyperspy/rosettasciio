@@ -16,21 +16,19 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import logging
+import os
 import struct
 import warnings
-from glob import glob
-import os
-from dateutil import parser
-import logging
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
+from glob import glob
 
 import numpy as np
+from dateutil import parser
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
-from rsciio.utils.tools import sarray2dict
-from rsciio.utils.tools import DTBox
-
+from rsciio.utils.tools import DTBox, sarray2dict
 
 _logger = logging.getLogger(__name__)
 

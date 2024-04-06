@@ -267,8 +267,9 @@ def _usidataset_to_signal_dict(h5_main, ignore_non_uniform_dims=True, lazy=False
     num_spec_dims = len(spec_dict)
     num_pos_dims = len(pos_dict)
     _logger.info(
-        "Dimensions: Positions: {}, Spectroscopic: {}"
-        ".".format(num_pos_dims, num_spec_dims)
+        "Dimensions: Positions: {}, Spectroscopic: {}" ".".format(
+            num_pos_dims, num_spec_dims
+        )
     )
 
     ret_vals = usid.hdf_utils.reshape_to_n_dims(h5_main, get_labels=True, lazy=lazy)

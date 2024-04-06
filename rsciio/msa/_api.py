@@ -490,12 +490,12 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
             if key in loc_kwds:
                 del loc_kwds[key]
 
-        f.write("#%-12s: %s\u000D\u000A" % ("FORMAT", loc_kwds.pop("FORMAT")))
-        f.write("#%-12s: %s\u000D\u000A" % ("VERSION", loc_kwds.pop("VERSION")))
+        f.write("#%-12s: %s\u000d\u000a" % ("FORMAT", loc_kwds.pop("FORMAT")))
+        f.write("#%-12s: %s\u000d\u000a" % ("VERSION", loc_kwds.pop("VERSION")))
         for keyword, value in loc_kwds.items():
-            f.write("#%-12s: %s\u000D\u000A" % (keyword, value))
+            f.write("#%-12s: %s\u000d\u000a" % (keyword, value))
 
-        f.write("#%-12s: Spectral Data Starts Here\u000D\u000A" % "SPECTRUM")
+        f.write("#%-12s: Spectral Data Starts Here\u000d\u000a" % "SPECTRUM")
 
         if format == "XY":
             axis_dict = signal["axes"][0]
@@ -504,11 +504,11 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
             )
             for x, y in zip(axis, signal["data"]):
                 f.write("%g%s%g" % (x, separator, y))
-                f.write("\u000D\u000A")
+                f.write("\u000d\u000a")
         elif format == "Y":
             for y in signal["data"]:
                 f.write("%f%s" % (y, separator))
-                f.write("\u000D\u000A")
+                f.write("\u000d\u000a")
         else:
             raise ValueError("format must be one of: None, 'XY' or 'Y'")
 

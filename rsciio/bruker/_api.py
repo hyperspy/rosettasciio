@@ -1410,7 +1410,11 @@ def bcf_images(obj_bcf):
 
 
 def bcf_hyperspectra(
-    obj_bcf, index=None, downsample=None, cutoff_at_kV=None, lazy=False  # noqa
+    obj_bcf,
+    index=None,
+    downsample=None,
+    cutoff_at_kV=None,
+    lazy=False,  # noqa
 ):
     """Returns list of dict with eds hyperspectra and metadata."""
     global warn_once

@@ -1366,9 +1366,7 @@ class DigitalSurfHandler(object):
             "_23_Z_Spacing"
         ) * self._get_work_dict_key_value(
             "_35_Z_Unit_Ratio"
-        ) + self._get_work_dict_key_value(
-            "_55_Z_Offset"
-        )
+        ) + self._get_work_dict_key_value("_55_Z_Offset")
 
         _points[nm] = np.nan
         # Return the points, rescaled

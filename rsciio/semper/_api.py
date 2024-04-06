@@ -250,12 +250,20 @@ class SemperFormat(object):
         label["DATAV6"] = data_v6
         label["DATAV7"] = data_v7
         # Process title:
-        title = "".join([str(chr(label_)) for label_ in label["TITLE"][: label["NTITLE"]]])
+        title = "".join(
+            [str(chr(label_)) for label_ in label["TITLE"][: label["NTITLE"]]]
+        )
         label["TITLE"] = title
         # Process units:
-        label["XUNIT"] = "".join([chr(label_) for label_ in label["XUNIT"]]).replace("\x00", "")
-        label["YUNIT"] = "".join([chr(label_) for label_ in label["YUNIT"]]).replace("\x00", "")
-        label["ZUNIT"] = "".join([chr(label_) for label_ in label["ZUNIT"]]).replace("\x00", "")
+        label["XUNIT"] = "".join([chr(label_) for label_ in label["XUNIT"]]).replace(
+            "\x00", ""
+        )
+        label["YUNIT"] = "".join([chr(label_) for label_ in label["YUNIT"]]).replace(
+            "\x00", ""
+        )
+        label["ZUNIT"] = "".join([chr(label_) for label_ in label["ZUNIT"]]).replace(
+            "\x00", ""
+        )
         # Sanity check:
         assert np.fromfile(unf_file, dtype="<i4", count=1)[0] == rec_length
         # Return label:

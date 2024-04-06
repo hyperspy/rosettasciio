@@ -294,9 +294,9 @@ class JobinYvonXMLReader:
         self._get_metadata_values(metadata, "experimental_setup")
         self._get_metadata_values(file_specs, "file_information")
         try:
-            self.original_metadata["experimental_setup"][
-                "measurement_type"
-            ] = self._measurement_type
+            self.original_metadata["experimental_setup"]["measurement_type"] = (
+                self._measurement_type
+            )
         except AttributeError:  # pragma: no cover
             pass  # pragma: no cover
         try:
@@ -304,9 +304,9 @@ class JobinYvonXMLReader:
         except AttributeError:  # pragma: no cover
             pass  # pragma: no cover
         try:
-            self.original_metadata["experimental_setup"][
-                "rotation angle (rad)"
-            ] = self._angle
+            self.original_metadata["experimental_setup"]["rotation angle (rad)"] = (
+                self._angle
+            )
         except AttributeError:
             pass
         self._clean_up_metadata()
@@ -327,9 +327,9 @@ class JobinYvonXMLReader:
             if id == "0x6D707974":
                 self.original_metadata["experimental_setup"]["signal type"] = child.text
             if id == "0x7C696E75":
-                self.original_metadata["experimental_setup"][
-                    "signal units"
-                ] = child.text
+                self.original_metadata["experimental_setup"]["signal units"] = (
+                    child.text
+                )
 
     def _set_nav_axis(self, xml_element, tag):
         """Helper method for setting navigation axes.

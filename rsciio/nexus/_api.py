@@ -969,7 +969,9 @@ def _find_search_keys_in_dict(tree, search_keys=None):
                 rootkey = rootname + "/" + key
             else:
                 rootkey = key
-            if isinstance(search_keys, list) and any([s1 in rootkey for s1 in search_keys]):
+            if isinstance(search_keys, list) and any(
+                [s1 in rootkey for s1 in search_keys]
+            ):
                 mod_keys = _text_split(rootkey, (".", "/"))
                 # create the key, values in the dict
                 p = metadata_dict

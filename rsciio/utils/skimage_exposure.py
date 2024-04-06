@@ -1,5 +1,4 @@
-"""skimage's `rescale_intensity` that takes and returns dask arrays.
-"""
+"""skimage's `rescale_intensity` that takes and returns dask arrays."""
 
 import warnings
 

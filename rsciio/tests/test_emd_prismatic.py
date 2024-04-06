@@ -20,10 +20,9 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-import traits.api as t
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
-
+t = pytest.importorskip("traits.api", reason="traits not installed")
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "emd"
 

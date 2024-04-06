@@ -2386,9 +2386,8 @@ class TestStepAndGlue:
         )
 
     def test_metadata(self):
-        original_metadata_glued = (
-            self.glued.original_metadata.Document.InfoSerialized.Experiment.as_dictionary()
-        )
+        original_metadata_glued = self.glued.original_metadata.Document.InfoSerialized.Experiment.as_dictionary()  # noqa: E501
+
         metadata_detector = self.glued.metadata.Acquisition_instrument.Detector
 
         assert original_metadata_glued["From"] == "900.000 nm"

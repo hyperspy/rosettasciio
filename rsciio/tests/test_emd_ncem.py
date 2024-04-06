@@ -26,10 +26,10 @@ import tempfile
 from pathlib import Path
 
 import dask.array as da
-import h5py
 import numpy as np
 import pytest
 
+h5py = pytest.importorskip("h5py", reason="h5py not installed")
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "emd"

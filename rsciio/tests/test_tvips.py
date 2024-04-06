@@ -23,12 +23,12 @@ from pathlib import Path
 import dask
 import numpy as np
 import pytest
-import traits.api as t
 from packaging.version import Version
 
 from rsciio.utils.tools import dummy_context_manager
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+t = pytest.importorskip("traits.api", reason="traits not installed")
 
 from hyperspy.misc.utils import DictionaryTreeBrowser  # noqa: E402
 

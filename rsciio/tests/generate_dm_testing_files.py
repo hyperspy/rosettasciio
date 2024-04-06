@@ -16,8 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-"""Creates Digital Micrograph scripts to generate the dm3 testing files
-"""
+"""Creates Digital Micrograph scripts to generate the dm3 testing files"""
 
 import numpy as np
 

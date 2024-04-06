@@ -21,11 +21,11 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-import traits.api as t
 
 from rsciio.empad._api import _parse_xml
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+t = pytest.importorskip("traits.api", reason="traits not installed")
 
 
 DATA_DIR = Path(__file__).parent / "data" / "empad"

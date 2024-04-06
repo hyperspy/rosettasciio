@@ -24,7 +24,6 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from rsciio.blockfile._api import get_default_header
 from rsciio.utils.date_time_tools import serial_date_to_ISO_format
 from rsciio.utils.tests import assert_deep_almost_equal
 from rsciio.utils.tools import sarray2dict
@@ -34,8 +33,10 @@ try:
 except NameError:
     WindowsError = None
 
+pytest.importorskip("skimage", reason="scikit-image not installed")
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
+from rsciio.blockfile._api import get_default_header  # noqa: E402
 
 TEST_DATA_DIR = Path(__file__).parent / "data" / "blockfile"
 FILE1 = TEST_DATA_DIR / "test1.blo"

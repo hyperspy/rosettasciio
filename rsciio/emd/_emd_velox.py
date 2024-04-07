@@ -40,6 +40,7 @@ from rsciio.utils.hdf5 import (
     _parse_sub_data_group_metadata,
 )
 from rsciio.utils.tools import _UREG
+from rsciio.utils.tools import convert_units
 from rsciio.utils.elements import atomic_number2name
 
 
@@ -358,21 +359,31 @@ class FeiEMDReader(object):
         scale_x = self._convert_scale_units(
             pix_scale["width"], original_units, data.shape[i + 1]
         )
-        scale_y = self._convert_scale_units_to(
-            pix_scale["height"], original_units, scale_x[1]
+        # to avoid mismatching units between x and y axis, use the same unit as x
+        # x is chosen as reference, because scalebar used (usually) the horizonal axis
+        # and the units conversion is tuned to get decent scale bar
+        scale_y = [
+            convert_units(
+                float(pix_scale["height"]), original_units, scale_x[1]
+            ),
+            scale_x[1]
+        ]
+        # Because "axes" only allows one common unit for offset and scale,
+        # offset_x is converted to the same unit as scale_x
+        offset_x = convert_units(
+                float(offsets["x"]), original_units, scale_x[1]
         )
-        offset_x = self._convert_scale_units_to(
-            offsets["x"], original_units, scale_x[1]
-        )
-        offset_y = self._convert_scale_units_to(
-            offsets["y"], original_units, scale_x[1]
+        # Because "axes" only allows one common unit for offset and scale,
+        # offset_y is converted to the same unit as scale_y
+        offset_y = convert_units(
+                float(offsets["y"]), original_units, scale_y[1]
         )
         axes.extend(
             [
                 {
                     "index_in_array": i,
                     "name": "y",
-                    "offset": offset_y[0],
+                    "offset": offset_y,
                     "scale": scale_y[0],
                     "size": data.shape[i],
                     "units": scale_y[1],
@@ -381,7 +392,7 @@ class FeiEMDReader(object):
                 {
                     "index_in_array": i + 1,
                     "name": "x",
-                    "offset": offset_x[0],
+                    "offset": offset_x,
                     "scale": scale_x[0],
                     "size": data.shape[i + 1],
                     "units": scale_x[1],
@@ -616,14 +627,24 @@ class FeiEMDReader(object):
         scale_x = self._convert_scale_units(
             pixel_size["width"], original_units, spectrum_image_shape[1]
         )
-        scale_y = self._convert_scale_units_to(
-            pixel_size["height"], original_units, scale_x[1]
+        # to avoid mismatching units between x and y axis, use the same unit as x
+        # x is chosen as reference, because scalebar used (usually) the horizonal axis
+        # and the units conversion is tuned to get decent scale bar
+        scale_y = [
+            convert_units(
+                float(pixel_size["height"]), original_units, scale_x[1]
+            ),
+            scale_x[1]
+        ]
+        # Because "axes" only allows one common unit for offset and scale,
+        # offset_x is converted to the same unit as scale_x
+        offset_x = convert_units(
+                float(offsets["x"]), original_units, scale_x[1]
         )
-        offset_x = self._convert_scale_units_to(
-            offsets["x"], original_units, scale_x[1]
-        )
-        offset_y = self._convert_scale_units_to(
-            offsets["y"], original_units, scale_x[1]
+        # Because "axes" only allows one common unit for offset and scale,
+        # offset_y is converted to the same unit as scale_y
+        offset_y =  convert_units(
+                float(offsets["y"]), original_units, scale_y[1]
         )
 
         i = 0
@@ -650,7 +671,7 @@ class FeiEMDReader(object):
                 {
                     "index_in_array": i,
                     "name": "y",
-                    "offset": offset_y[0],
+                    "offset": offset_y,
                     "scale": scale_y[0],
                     "size": spectrum_image_shape[i],
                     "units": scale_y[1],
@@ -659,7 +680,7 @@ class FeiEMDReader(object):
                 {
                     "index_in_array": i + 1,
                     "name": "x",
-                    "offset": offset_x[0],
+                    "offset": offset_x,
                     "scale": scale_x[0],
                     "size": spectrum_image_shape[i + 1],
                     "units": scale_x[1],
@@ -719,15 +740,6 @@ class FeiEMDReader(object):
         v = float(value) * _UREG(units)
         converted_v = (factor * v).to_compact()
         converted_value = float(converted_v.magnitude / factor)
-        converted_units = "{:~}".format(converted_v.units)
-        return converted_value, converted_units
-
-    def _convert_scale_units_to(self, value, units, to_units):
-        if units is None:
-            return value, units
-        converted_v = float(value) * _UREG(units)
-        converted_v = converted_v.to(_UREG(to_units))
-        converted_value = float(converted_v.magnitude)
         converted_units = "{:~}".format(converted_v.units)
         return converted_value, converted_units
 

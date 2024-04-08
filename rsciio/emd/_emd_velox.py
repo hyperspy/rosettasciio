@@ -356,46 +356,36 @@ class FeiEMDReader(object):
                 }
             )
             i = 1
-        scale_x = self._convert_scale_units(
+        scale_x, x_unit = self._convert_scale_units(
             pix_scale["width"], original_units, data.shape[i + 1]
         )
         # to avoid mismatching units between x and y axis, use the same unit as x
         # x is chosen as reference, because scalebar used (usually) the horizonal axis
         # and the units conversion is tuned to get decent scale bar
-        scale_y = [
-            convert_units(
-                float(pix_scale["height"]), original_units, scale_x[1]
-            ),
-            scale_x[1]
-        ]
+        scale_y = convert_units(float(pix_scale["height"]), original_units, x_unit)
         # Because "axes" only allows one common unit for offset and scale,
-        # offset_x is converted to the same unit as scale_x
-        offset_x = convert_units(
-                float(offsets["x"]), original_units, scale_x[1]
-        )
-        # Because "axes" only allows one common unit for offset and scale,
-        # offset_y is converted to the same unit as scale_y
-        offset_y = convert_units(
-                float(offsets["y"]), original_units, scale_y[1]
-        )
+        # offset_x, offset_y is converted to the same unit as x_unit
+        offset_x = convert_units(float(offsets["x"]), original_units, x_unit)
+        offset_y = convert_units(float(offsets["y"]), original_units, x_unit)
+
         axes.extend(
             [
                 {
                     "index_in_array": i,
                     "name": "y",
                     "offset": offset_y,
-                    "scale": scale_y[0],
+                    "scale": scale_y,
                     "size": data.shape[i],
-                    "units": scale_y[1],
+                    "units": x_unit,
                     "navigate": False,
                 },
                 {
                     "index_in_array": i + 1,
                     "name": "x",
                     "offset": offset_x,
-                    "scale": scale_x[0],
+                    "scale": scale_x,
                     "size": data.shape[i + 1],
-                    "units": scale_x[1],
+                    "units": x_unit,
                     "navigate": False,
                 },
             ]
@@ -624,28 +614,17 @@ class FeiEMDReader(object):
         pixel_size, offsets, original_units = streams[0].get_pixelsize_offset_unit()
         dispersion, offset, unit = self._get_dispersion_offset(original_metadata)
 
-        scale_x = self._convert_scale_units(
+        scale_x, x_unit = self._convert_scale_units(
             pixel_size["width"], original_units, spectrum_image_shape[1]
         )
         # to avoid mismatching units between x and y axis, use the same unit as x
         # x is chosen as reference, because scalebar used (usually) the horizonal axis
         # and the units conversion is tuned to get decent scale bar
-        scale_y = [
-            convert_units(
-                float(pixel_size["height"]), original_units, scale_x[1]
-            ),
-            scale_x[1]
-        ]
+        scale_y = convert_units(float(pixel_size["height"]), original_units, x_unit)
         # Because "axes" only allows one common unit for offset and scale,
-        # offset_x is converted to the same unit as scale_x
-        offset_x = convert_units(
-                float(offsets["x"]), original_units, scale_x[1]
-        )
-        # Because "axes" only allows one common unit for offset and scale,
-        # offset_y is converted to the same unit as scale_y
-        offset_y =  convert_units(
-                float(offsets["y"]), original_units, scale_y[1]
-        )
+        # offset_x, offset_y is converted to the same unit as x_unit
+        offset_x = convert_units(float(offsets["x"]), original_units, x_unit)
+        offset_y = convert_units(float(offsets["y"]), original_units, x_unit)
 
         i = 0
         axes = []
@@ -672,18 +651,18 @@ class FeiEMDReader(object):
                     "index_in_array": i,
                     "name": "y",
                     "offset": offset_y,
-                    "scale": scale_y[0],
+                    "scale": scale_y,
                     "size": spectrum_image_shape[i],
-                    "units": scale_y[1],
+                    "units": x_unit,
                     "navigate": True,
                 },
                 {
                     "index_in_array": i + 1,
                     "name": "x",
                     "offset": offset_x,
-                    "scale": scale_x[0],
+                    "scale": scale_x,
                     "size": spectrum_image_shape[i + 1],
-                    "units": scale_x[1],
+                    "units": x_unit,
                     "navigate": True,
                 },
                 {

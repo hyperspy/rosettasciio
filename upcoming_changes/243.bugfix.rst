@@ -1,0 +1,1 @@
+:ref:`emd_fei-format`: Fix conversion of offset units which can sometimes mismatch the scale units.

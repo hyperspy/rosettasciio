@@ -1,0 +1,1 @@
+:ref:`emd_fei-format`: Enforce setting identical units for the ``x`` and ``y`` axes, as convenience to use the scalebar in HyperSpy.

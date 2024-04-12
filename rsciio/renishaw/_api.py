@@ -62,18 +62,17 @@
 import datetime
 import importlib.util
 import logging
+import os
 from copy import deepcopy
-from enum import IntEnum, Enum, EnumMeta
+from enum import Enum, EnumMeta, IntEnum
 from io import BytesIO
 from pathlib import Path
-import os
 
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 from rsciio.utils import rgb_tools
-
 
 _logger = logging.getLogger(__name__)
 
@@ -774,7 +773,7 @@ class WDFReader(object):
         header["uuid"] = f"{self.__read_numeric('uint32', convert=False)}"
         for _ in range(3):
             header["uuid"] += f"-{self.__read_numeric('uint32', convert=False)}"
-        unused1 = self.__read_numeric("uint32", size=3)
+        _ = self.__read_numeric("uint32", size=3)
         header["ntracks"] = self.__read_numeric("uint32")
         header["file_status_error_code"] = self.__read_numeric("uint32")
         result["points_per_spectrum"] = self.__read_numeric("uint32")
@@ -802,7 +801,7 @@ class WDFReader(object):
         header["time_end"] = convert_windowstime_to_datetime(time_end_wt)
         header["quantity_unit"] = UnitType(self.__read_numeric("uint32")).name
         header["laser_wavenumber"] = self.__read_numeric("float")
-        unused2 = self.__read_numeric("uint64", size=6)
+        _ = self.__read_numeric("uint64", size=6)
         header["username"] = self.__read_utf8(32)
         header["title"] = self.__read_utf8(160)
 
@@ -977,7 +976,7 @@ class WDFReader(object):
         )
 
         flag = MapType(self.__read_numeric("uint32")).name
-        unused = self.__read_numeric("uint32")
+        _ = self.__read_numeric("uint32")
         offset_xyz = [self.__read_numeric("float") for _ in range(3)]
         scale_xyz = [self.__read_numeric("float") for _ in range(3)]
         size_xyz = [self.__read_numeric("uint32") for _ in range(3)]

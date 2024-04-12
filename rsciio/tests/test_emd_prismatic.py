@@ -22,9 +22,7 @@ import numpy as np
 import pytest
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
-
-import traits.api as t
-
+t = pytest.importorskip("traits.api", reason="traits not installed")
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "emd"
 

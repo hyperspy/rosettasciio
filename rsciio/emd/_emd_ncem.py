@@ -24,18 +24,17 @@
 # Writing file is only supported for EMD Berkeley file.
 
 
-import re
-import os
-import math
 import logging
+import math
+import os
+import re
 
+import dask.array as da
 import h5py
 import numpy as np
-import dask.array as da
 
-from rsciio.utils.tools import _UREG, DTBox
 from rsciio._hierarchical import get_signal_chunks
-
+from rsciio.utils.tools import _UREG, DTBox
 
 EMD_VERSION = "0.2"
 
@@ -170,9 +169,8 @@ class EMD_NCEM:
                     if cls._get_emd_group_type(grp):
                         dataset_path.append(item_name)
 
-        f = lambda item_name, item: print_dataset_only(
-            item_name, item, supported_dataset
-        )
+        def f(item_name, item):
+            return print_dataset_only(item_name, item, supported_dataset)
 
         dataset_path = []
         file.visititems(f)

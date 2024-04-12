@@ -37,7 +37,6 @@ from rsciio._hierarchical import get_signal_chunks
 from rsciio.hspy._api import overwrite_dataset
 from rsciio.utils.tools import DTBox
 
-
 _logger = logging.getLogger(__name__)
 
 
@@ -696,9 +695,9 @@ def _is_int(s):
 
 
 def _check_search_keys(search_keys):
-    if type(search_keys) is str:
+    if isinstance(search_keys, str):
         return [search_keys]
-    elif type(search_keys) is list:
+    elif isinstance(search_keys, list):
         if all(isinstance(key, str) for key in search_keys):
             return search_keys
         else:
@@ -792,7 +791,7 @@ def _find_data(group, search_keys=None, hardlinks_only=False, absolute_path=None
         else:
             return all_nx_datasets, all_hdf_datasets
 
-    elif type(search_keys) is list or type(absolute_path) is list:
+    elif isinstance(search_keys, list) or isinstance(absolute_path, list):
         if hardlinks_only:
             # return only the stored data, no linked data
             nx_datasets = unique_nx_datasets
@@ -865,7 +864,7 @@ def _load_metadata(group, lazy=False, skip_array_metadata=False):
             else:
                 rootkey = "/" + key
             new_key = _fix_exclusion_keys(key)
-            if type(item) is h5py.Dataset:
+            if isinstance(item, h5py.Dataset):
                 if item.attrs:
                     if new_key not in tree.keys():
                         tree[new_key] = {}
@@ -889,7 +888,7 @@ def _load_metadata(group, lazy=False, skip_array_metadata=False):
                     else:
                         tree[new_key] = _parse_from_file(item, lazy=lazy)
 
-            elif type(item) is h5py.Group:
+            elif isinstance(item, h5py.Group):
                 if "NX_class" in item.attrs:
                     if item.attrs["NX_class"] not in [b"NXdata", "NXdata"]:
                         tree[new_key] = find_meta_in_tree(
@@ -970,7 +969,9 @@ def _find_search_keys_in_dict(tree, search_keys=None):
                 rootkey = rootname + "/" + key
             else:
                 rootkey = key
-            if type(search_keys) is list and any([s1 in rootkey for s1 in search_keys]):
+            if isinstance(search_keys, list) and any(
+                [s1 in rootkey for s1 in search_keys]
+            ):
                 mod_keys = _text_split(rootkey, (".", "/"))
                 # create the key, values in the dict
                 p = metadata_dict

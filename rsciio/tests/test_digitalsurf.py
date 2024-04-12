@@ -183,7 +183,7 @@ def test_load_profile():
     assert s.axes_manager[0].name == "Width"
     assert s.axes_manager[0].units == "mm"
     assert s.axes_manager[0].size == 128
-    assert s.axes_manager[0].navigate == False
+    assert s.axes_manager[0].navigate is False
 
     # Metadata verification
     md = s.metadata
@@ -212,9 +212,9 @@ def test_load_RGB():
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "mm"
     assert s.axes_manager[0].size == 200
-    assert s.axes_manager[0].navigate == False
+    assert s.axes_manager[0].navigate is False
     assert s.axes_manager[1].size == 200
-    assert s.axes_manager[1].navigate == False
+    assert s.axes_manager[1].navigate is False
 
     md = s.metadata
     assert md.Signal.quantity == "Z"
@@ -247,9 +247,9 @@ def test_load_spectra():
     assert s.axes_manager[1].name == "Wavelength"
     assert s.axes_manager[1].units == "mm"
     assert s.axes_manager[0].size == 65
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate is True
     assert s.axes_manager[1].size == 512
-    assert s.axes_manager[1].navigate == False
+    assert s.axes_manager[1].navigate is False
 
     omd = s.original_metadata
     assert list(omd.as_dictionary().keys()) == [
@@ -281,11 +281,11 @@ def test_load_spectral_map_compressed():
     assert s.axes_manager[2].name == "Wavelength"
     assert s.axes_manager[2].units == "mm"
     assert s.axes_manager[0].size == 10
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate is True
     assert s.axes_manager[1].size == 12
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate is True
     assert s.axes_manager[2].size == 281
-    assert s.axes_manager[2].navigate == False
+    assert s.axes_manager[2].navigate is False
 
     omd = s.original_metadata
     assert list(omd.as_dictionary().keys()) == [
@@ -329,11 +329,11 @@ def test_load_spectral_map():
     assert s.axes_manager[2].name == "Wavelength"
     assert s.axes_manager[2].units == "mm"
     assert s.axes_manager[0].size == 10
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate is True
     assert s.axes_manager[1].size == 12
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate is True
     assert s.axes_manager[2].size == 310
-    assert s.axes_manager[2].navigate == False
+    assert s.axes_manager[2].navigate is False
 
     omd = s.original_metadata
     assert list(omd.as_dictionary().keys()) == [
@@ -373,7 +373,7 @@ def test_load_spectrum_compressed():
     # assert s.axes_manager[0].size == 1
     # assert s.axes_manager[0].navigate == True
     assert s.axes_manager[0].size == 512
-    assert s.axes_manager[0].navigate == False
+    assert s.axes_manager[0].navigate is False
 
     omd = s.original_metadata
     assert list(omd.as_dictionary().keys()) == ["Object_0_Channel_0"]
@@ -400,7 +400,7 @@ def test_load_spectrum():
     # assert s.axes_manager[0].size == 1
     # assert s.axes_manager[0].navigate == True
     assert s.axes_manager[0].size == 512
-    assert s.axes_manager[0].navigate == False
+    assert s.axes_manager[0].navigate is False
 
     omd = s.original_metadata
     assert list(omd.as_dictionary().keys()) == ["Object_0_Channel_0"]
@@ -424,9 +424,9 @@ def test_load_surface():
     assert s.axes_manager[1].name == "Height"
     assert s.axes_manager[1].units == "mm"
     assert s.axes_manager[0].size == 128
-    assert s.axes_manager[0].navigate == False
+    assert s.axes_manager[0].navigate is False
     assert s.axes_manager[1].size == 128
-    assert s.axes_manager[1].navigate == False
+    assert s.axes_manager[1].navigate is False
 
     omd = s.original_metadata
     assert list(omd.as_dictionary().keys()) == ["Object_0_Channel_0"]

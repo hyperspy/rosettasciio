@@ -4,11 +4,10 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
-
-from hyperspy.misc.test_utils import assert_deep_almost_equal
-
 from rsciio.bruker import file_reader
+from rsciio.utils.tests import assert_deep_almost_equal
+
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 
 test_files = [
@@ -115,7 +114,7 @@ def test_hyperspy_wrap():
     np.testing.assert_allclose(hype.axes_manager[2].scale, 0.009999)
     np.testing.assert_allclose(hype.axes_manager[2].offset, -0.47225277)
     assert hype.axes_manager[2].units == "keV"
-    assert hype.axes_manager[2].is_binned == True
+    assert hype.axes_manager[2].is_binned is True
 
     md_ref = {
         "Acquisition_instrument": {

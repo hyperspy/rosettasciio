@@ -17,11 +17,10 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import json
-from packaging.version import Version
 
-from filelock import FileLock
 import pytest
-
+from filelock import FileLock
+from packaging.version import Version
 
 try:
     import hyperspy

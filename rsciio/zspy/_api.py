@@ -20,22 +20,21 @@ import logging
 from collections.abc import MutableMapping
 
 import dask.array as da
-from dask.diagnostics import ProgressBar
 import numcodecs
 import numpy as np
 import zarr
+from dask.diagnostics import ProgressBar
 
 from rsciio._docstrings import (
     CHUNKS_DOC,
     FILENAME_DOC,
     LAZY_DOC,
-    SHOW_PROGRESSBAR_DOC,
     RETURNS_DOC,
+    SHOW_PROGRESSBAR_DOC,
     SIGNAL_DOC,
 )
-from rsciio._hierarchical import HierarchicalWriter, HierarchicalReader, version
+from rsciio._hierarchical import HierarchicalReader, HierarchicalWriter, version
 from rsciio.utils.tools import dummy_context_manager
-
 
 _logger = logging.getLogger(__name__)
 

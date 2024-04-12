@@ -16,33 +16,38 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import os
-import logging
-import warnings
 import datetime
-import dateutil
+import logging
+import os
+import warnings
 
-import numpy as np
 import dask
+import dateutil
+import numpy as np
 from dask.diagnostics import ProgressBar
 from skimage import dtype_limits
 
 from rsciio._docstrings import (
+    ENDIANESS_DOC,
     FILENAME_DOC,
     LAZY_DOC,
-    ENDIANESS_DOC,
     MMAP_DOC,
     RETURNS_DOC,
-    SIGNAL_DOC,
     SHOW_PROGRESSBAR_DOC,
+    SIGNAL_DOC,
+)
+from rsciio.utils.date_time_tools import (
+    datetime_to_serial_date,
+    serial_date_to_ISO_format,
 )
 from rsciio.utils.skimage_exposure import rescale_intensity
-from rsciio.utils.tools import DTBox, sarray2dict, dict2sarray
-from rsciio.utils.date_time_tools import (
-    serial_date_to_ISO_format,
-    datetime_to_serial_date,
+from rsciio.utils.tools import (
+    DTBox,
+    convert_units,
+    dict2sarray,
+    dummy_context_manager,
+    sarray2dict,
 )
-from rsciio.utils.tools import dummy_context_manager, convert_units
 
 _logger = logging.getLogger(__name__)
 

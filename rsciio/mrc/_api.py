@@ -20,26 +20,24 @@
 # https://www.biochem.mpg.de/doc_tom/TOM_Release_2008/IOfun/tom_mrcread.html
 # and https://ami.scripps.edu/software/mrctools/mrc_specification.php
 
-import os
 import logging
+import os
 
-import numpy as np
 import dask.array as da
+import numpy as np
 
 from rsciio._docstrings import (
+    CHUNKS_DOC,
+    DISTRIBUTED_DOC,
     ENDIANESS_DOC,
     FILENAME_DOC,
     LAZY_DOC,
     MMAP_DOC,
     NAVIGATION_SHAPE,
     RETURNS_DOC,
-    CHUNKS_DOC,
-    DISTRIBUTED_DOC,
 )
-
-from rsciio.utils.tools import sarray2dict
 from rsciio.utils.distributed import memmap_distributed
-
+from rsciio.utils.tools import sarray2dict
 
 _logger = logging.getLogger(__name__)
 

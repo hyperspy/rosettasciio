@@ -21,8 +21,8 @@
 
 # general functions for reading data from files
 
-import struct
 import logging
+import struct
 
 from rsciio.utils.exceptions import ByteOrderError
 

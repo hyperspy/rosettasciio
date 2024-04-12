@@ -5,10 +5,11 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
+from rsciio.ripple import _api as ripple
+
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 exspy = pytest.importorskip("exspy", reason="exspy not installed")
 
-from rsciio.ripple import _api as ripple
 
 # Tuple of tuples (data shape, signal_dimensions)
 SHAPES_SDIM = (

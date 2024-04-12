@@ -17,12 +17,12 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import logging
-from packaging.version import Version
 from pathlib import Path
 
 import dask.array as da
-from dask.diagnostics import ProgressBar
 import h5py
+from dask.diagnostics import ProgressBar
+from packaging.version import Version
 
 from rsciio._docstrings import (
     CHUNKS_DOC,
@@ -30,13 +30,12 @@ from rsciio._docstrings import (
     COMPRESSION_HDF5_NOTES_DOC,
     FILENAME_DOC,
     LAZY_DOC,
-    SHOW_PROGRESSBAR_DOC,
     RETURNS_DOC,
+    SHOW_PROGRESSBAR_DOC,
     SIGNAL_DOC,
 )
-from rsciio._hierarchical import HierarchicalWriter, HierarchicalReader, version
-from rsciio.utils.tools import get_file_handle, dummy_context_manager
-
+from rsciio._hierarchical import HierarchicalReader, HierarchicalWriter, version
+from rsciio.utils.tools import dummy_context_manager, get_file_handle
 
 _logger = logging.getLogger(__name__)
 
@@ -145,7 +144,8 @@ def file_reader(filename, lazy=False, **kwds):
     """
     try:
         # in case blosc compression is used
-        import hdf5plugin
+        # module needs to be imported to register plugin
+        import hdf5plugin  # noqa: F401
     except ImportError:
         pass
     mode = kwds.pop("mode", "r")

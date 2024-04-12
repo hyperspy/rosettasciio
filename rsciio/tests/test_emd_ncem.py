@@ -22,18 +22,15 @@
 # NOT to be confused with the FEI EMD format which was developed later.
 
 import os
+import tempfile
 from pathlib import Path
 
+import dask.array as da
+import numpy as np
 import pytest
 
+h5py = pytest.importorskip("h5py", reason="h5py not installed")
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
-
-import dask.array as da
-from datetime import datetime
-import h5py
-import numpy as np
-import tempfile
-
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "emd"
 

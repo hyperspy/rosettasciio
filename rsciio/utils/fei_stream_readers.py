@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import numpy as np
 import dask.array as da
+import numpy as np
 import sparse
 
 from rsciio.utils.tools import jit_ifnumba

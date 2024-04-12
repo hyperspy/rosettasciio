@@ -24,7 +24,7 @@ import rsciio
 
 
 def test_import_version():
-    from rsciio import __version__
+    from rsciio import __version__  # noqa
 
 
 def test_rsciio_dir():
@@ -42,45 +42,37 @@ def test_import_all():
     plugin_name_to_remove = []
 
     # Remove plugins which require not installed optional dependencies
-    try:
-        import h5py
-    except Exception:
+    h5py = importlib.util.find_spec("h5py")
+    if h5py is None:
         plugin_name_to_remove.extend(["EMD", "HSPY", "NeXus"])
 
-    try:
-        import imageio
-    except Exception:
+    imageio = importlib.util.find_spec("imageio")
+    if imageio is None:
         plugin_name_to_remove.extend(["Image"])
 
-    try:
-        import sparse
-    except Exception:
+    sparse = importlib.util.find_spec("sparse")
+    if sparse is None:
         plugin_name_to_remove.extend(["EMD", "JEOL"])
 
-    try:
-        import skimage
-    except Exception:
+    skimage = importlib.util.find_spec("skimage")
+    if skimage is None:
         plugin_name_to_remove.append("Blockfile")
 
-    try:
-        import mrcz
-    except Exception:
+    mrcz = importlib.util.find_spec("mrcz")
+    if mrcz is None:
         plugin_name_to_remove.append("MRCZ")
 
-    try:
-        import tifffile
-    except Exception:
+    tifffile = importlib.util.find_spec("tifffile")
+    if tifffile is None:
         plugin_name_to_remove.append("TIFF")
         plugin_name_to_remove.append("Phenom")
 
-    try:
-        import pyUSID
-    except Exception:
+    pyUSID = importlib.util.find_spec("pyUSID")
+    if pyUSID is None:
         plugin_name_to_remove.append("USID")
 
-    try:
-        import zarr
-    except Exception:
+    zarr = importlib.util.find_spec("zarr")
+    if zarr is None:
         plugin_name_to_remove.append("ZSPY")
 
     IO_PLUGINS_ = list(

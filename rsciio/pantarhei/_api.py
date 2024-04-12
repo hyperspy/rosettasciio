@@ -18,17 +18,17 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/>.
 
 
-from datetime import datetime as dt
 import logging
 import os
+from datetime import datetime as dt
 
 import numpy as np
 
 from rsciio._docstrings import (
     FILENAME_DOC,
+    LAZY_UNSUPPORTED_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
-    LAZY_UNSUPPORTED_DOC,
 )
 from rsciio.utils.tools import DTBox
 
@@ -301,7 +301,7 @@ def _metadata_converter_in(meta_data, axes, filename):
 
     signal_dimensions = 0
     for ax in axes:
-        if ax["navigate"] == False:
+        if ax["navigate"] is False:
             signal_dimensions += 1
 
     microscope_base_voltage = meta_data.get("electron_gun.voltage")

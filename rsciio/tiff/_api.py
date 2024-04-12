@@ -17,17 +17,15 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import csv
-from datetime import datetime, timedelta
-from dateutil import parser
 import logging
 import os
-from packaging.version import Version
 import re
 import warnings
+from datetime import datetime, timedelta
 
 import numpy as np
-from tifffile import imwrite, TiffFile, TiffPage, TIFF
-from tifffile import __version__ as tiffversion
+from dateutil import parser
+from tifffile import TIFF, TiffFile, TiffPage, imwrite
 
 from rsciio._docstrings import (
     FILENAME_DOC,
@@ -35,9 +33,8 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
-from rsciio.utils.tools import DTBox, _UREG
 from rsciio.utils.date_time_tools import get_date_time_from_metadata
-
+from rsciio.utils.tools import _UREG, DTBox
 
 _logger = logging.getLogger(__name__)
 
@@ -574,8 +571,10 @@ def _is_jeol_sightx(op) -> bool:
 def _axes_jeol_sightx(tiff, op, shape, names):
     # convert xml text to dictionary of tiff op['ImageDescription']
     import xml.etree.ElementTree as ET
-    from rsciio.utils.tools import XmlToDict
+
     from box import Box
+
+    from rsciio.utils.tools import XmlToDict
 
     scales, offsets, units = _axes_defaults()
     jeol_xml = "".join(

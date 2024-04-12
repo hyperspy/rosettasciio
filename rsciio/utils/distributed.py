@@ -17,8 +17,8 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 
-import numpy as np
 import dask.array as da
+import numpy as np
 
 
 def get_chunk_slice(

@@ -1,10 +1,10 @@
-import numpy as np
-import os
 import csv
 import logging
+import os
+
+import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
-
 
 _logger = logging.getLogger(__name__)
 

@@ -19,16 +19,17 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 #
 
-import h5py
 import json
 import pprint
+
+import h5py
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC
 from rsciio.nexus._api import (
     _check_search_keys,
-    _load_metadata,
-    _find_search_keys_in_dict,
     _find_data,
+    _find_search_keys_in_dict,
+    _load_metadata,
 )
 
 

@@ -1,14 +1,12 @@
-from dateutil import parser, tz
 from pathlib import Path
 
 import numpy as np
 import pytest
+from dateutil import parser, tz
 
-from rsciio.utils.tools import DTBox, dict2sarray, XmlToDict, ET
-from rsciio.utils.tools import sanitize_msxml_float
-from rsciio.utils.distributed import get_chunk_slice
 import rsciio.utils.date_time_tools as dtt
-
+from rsciio.utils.distributed import get_chunk_slice
+from rsciio.utils.tools import ET, DTBox, XmlToDict, dict2sarray, sanitize_msxml_float
 
 dt = [("x", np.uint8), ("y", np.uint16), ("text", (bytes, 6))]
 
@@ -384,16 +382,19 @@ def test_get_date_time_from_metadata():
     )
 
 
-@pytest.mark.parametrize("shape", ((10, 20, 30, 512, 512),(20, 30, 512, 512), (10, 512, 512), (512, 512)))
+@pytest.mark.parametrize(
+        "shape",
+        ((10, 20, 30, 512, 512),(20, 30, 512, 512), (10, 512, 512), (512, 512))
+)
 def test_get_chunk_slice(shape):
     chunk_arr, chunk = get_chunk_slice(shape=shape, chunks=-1)  # 1 chunk
     assert chunk_arr.shape == (1,)*len(shape)+(len(shape), 2)
     assert chunk == tuple([(i,)for i in shape])
 
-
-@pytest.mark.parametrize("shape", ((10, 20, 30, 512, 512),(20, 30, 512, 512), (10, 512, 512), (512, 512)))
-def test_get_chunk_slice(shape):
-    chunks =(1,)*(len(shape)-2) +(-1,-1)
-    chunk_arr, chunk = get_chunk_slice(shape=shape, chunks=chunks)  # Eveythin is 1 chunk
+    chunks = (1,)*(len(shape)-2) +(-1,-1)
+    # Eveything is 1 chunk
+    chunk_arr, chunk = get_chunk_slice(shape=shape, chunks=chunks)
     assert chunk_arr.shape == shape[:-2]+(1, 1) + (len(shape), 2)
-    assert chunk == tuple([(1,)*i for i in shape[:-2]])+tuple([(i,) for i in shape[-2:]])
+    assert chunk == (
+        tuple([(1,)*i for i in shape[:-2]])+tuple([(i,) for i in shape[-2:]])
+    )

@@ -17,14 +17,14 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import gc
-from pathlib import Path
 import shutil
 import zipfile
+from pathlib import Path
 
 import dask.array as da
-from dask.array.core import normalize_chunks
 import numpy as np
 import pytest
+from dask.array.core import normalize_chunks
 
 from rsciio.quantumdetector._api import (
     MIBProperties,

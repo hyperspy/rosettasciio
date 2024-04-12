@@ -24,13 +24,14 @@ particular case of stream to sparse array, we use dask to compute the array
 in order to mimic the usage in the FEI EMD reader.
 
 """
+
 import numpy as np
 import pytest
 
 pytest.importorskip("h5py")
 pytest.importorskip("sparse")
 
-from rsciio.utils.fei_stream_readers import (
+from rsciio.utils.fei_stream_readers import (  # noqa: E402
     array_to_stream,
     stream_to_array,
     stream_to_sparse_COO_array,

@@ -16,17 +16,18 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-from packaging.version import Version
+import importlib
 from pathlib import Path
 
 import numpy as np
 import pytest
+from packaging.version import Version
 
 imageio = pytest.importorskip("imageio")
 
-testfile_dir = (Path(__file__).parent / "data" / "image").resolve()
+from rsciio.image import file_writer  # noqa: E402
 
-from rsciio.image import file_writer
+testfile_dir = (Path(__file__).parent / "data" / "image").resolve()
 
 
 @pytest.mark.skipif(
@@ -260,9 +261,8 @@ def test_error_library_no_installed(tmp_path):
     }
     signal_dict = {"data": np.arange(128 * 128).reshape(128, 128), "axes": [axis, axis]}
 
-    try:
-        import matplotlib
-    except Exception:
+    matplotlib = importlib.util.find_spec("matplotlib")
+    if matplotlib is None:
         # When matplotlib is not installed, raises an error to inform user
         # that matplotlib is necessary
         with pytest.raises(ValueError):

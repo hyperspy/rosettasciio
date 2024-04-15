@@ -477,8 +477,10 @@ def file_writer(filename, signal, encoding="latin-1"):
     md = DTBox(signal["metadata"], box_dots=True)
     dtype_name = dc.dtype.name
     if dtype_name not in dtype2keys.keys():
+        supported_dtype = ", ".join(dtype2keys.keys())
         raise IOError(
-            "The ripple format does not support writting data of {dtype_name} type"
+            f"The ripple format does not support writting data of {dtype_name} type. "
+            f"Supported data type are: {supported_dtype}."
         )
     # Check if the dimensions are supported
     dimension = len(dc.shape)

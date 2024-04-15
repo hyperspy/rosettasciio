@@ -479,8 +479,8 @@ def file_writer(filename, signal, encoding="latin-1"):
     if dtype_name not in dtype2keys.keys():
         supported_dtype = ", ".join(dtype2keys.keys())
         raise IOError(
-            f"The ripple format does not support writting data of {dtype_name} type. "
-            f"Supported data type are: {supported_dtype}."
+            f"The ripple format does not support writing data of {dtype_name} type. "
+            f"Supported data types are: {supported_dtype}."
         )
     # Check if the dimensions are supported
     dimension = len(dc.shape)

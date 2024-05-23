@@ -1,0 +1,1 @@
+:ref:`ripple-format`: Fix typo and improve error message for unsupported ``dtype`` in writer.

@@ -24,8 +24,9 @@ import warnings
 from datetime import datetime, timedelta
 
 import numpy as np
+import tifffile
 from dateutil import parser
-from tifffile import TIFF, TiffFile, TiffPage, imwrite
+from tifffile import TiffFile, TiffPage, imwrite
 
 from rsciio._docstrings import (
     FILENAME_DOC,
@@ -284,7 +285,7 @@ def _read_tiff(
     shape = handle.shape
     dtype = handle.dtype
 
-    is_rgb = page.photometric == TIFF.PHOTOMETRIC.RGB and RGB_as_structured_array
+    is_rgb = page.photometric == tifffile.PHOTOMETRIC.RGB and RGB_as_structured_array
     _logger.debug("Is RGB: %s" % is_rgb)
     if is_rgb:
         axes = axes[:-1]
@@ -420,15 +421,15 @@ def _is_force_readable(op, force_read_resolution) -> bool:
 def _axes_force_read(op, shape, names):
     scales, offsets, units = _axes_defaults()
     res_unit_tag = op["ResolutionUnit"]
-    if res_unit_tag != TIFF.RESUNIT.NONE:
+    if res_unit_tag != tifffile.RESUNIT.NONE:
         _logger.debug("Resolution unit: %s" % res_unit_tag)
         scales["x"], scales["y"] = _get_scales_from_x_y_resolution(op)
         # conversion to µm:
-        if res_unit_tag == TIFF.RESUNIT.INCH:
+        if res_unit_tag == tifffile.RESUNIT.INCH:
             for key in ["x", "y"]:
                 units[key] = "µm"
                 scales[key] = scales[key] * 25400
-        elif res_unit_tag == TIFF.RESUNIT.CENTIMETER:
+        elif res_unit_tag == tifffile.RESUNIT.CENTIMETER:
             for key in ["x", "y"]:
                 units[key] = "µm"
                 scales[key] = scales[key] * 10000
@@ -601,7 +602,7 @@ def _axes_jeol_sightx(tiff, op, shape, names):
     op["SightX_Notes"] = ", ".join(mode_strs)
 
     res_unit_tag = op["ResolutionUnit"]
-    if res_unit_tag == TIFF.RESUNIT.INCH:
+    if res_unit_tag == tifffile.RESUNIT.INCH:
         scale = 0.0254  # inch/m
     else:
         scale = 0.01  # tiff scaling, cm/m

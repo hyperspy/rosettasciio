@@ -374,6 +374,15 @@ def xml2dtb(et, dictree):
 
 
 class DTBox(Box):
+    """
+    Subclass of Box to help migration from hyperspy `DictionaryTreeBrowser`
+    to `Box` when splitting IO code from hyperspy to rosettasciio.
+
+    When using `box_dots=True`, by default, period will be removed from keys.
+    To support period containing keys, use `box_dots=False, default_box=True`.
+    https://github.com/cdgriffith/Box/wiki/Types-of-Boxes#default-box
+    """
+
     def add_node(self, path):
         keys = path.split(".")
         for key in keys:

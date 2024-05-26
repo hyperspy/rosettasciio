@@ -90,6 +90,7 @@ def test_save_load_cycle(tmp_path):
 
     s2 = hs.load(fname)
     np.testing.assert_allclose(s2.data, s.data)
+    assert s2.metadata.Signal.signal_type == s.metadata.Signal.signal_type
 
 
 def test_save_load_cycle_new_signal_1D_nav1(tmp_path):

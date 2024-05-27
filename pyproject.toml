@@ -94,7 +94,7 @@ image = ["imageio>=2.16"]
 mrcz = ["blosc>=1.5", "mrcz>=0.3.6"]
 scalebar_export = ["matplotlib-scalebar", "matplotlib>=3.5"]
 speed = ["numba>=0.52"]
-tiff = ["tifffile>=2020.2.16", "imagecodecs>=2020.1.31"]
+tiff = ["tifffile>=2022.7.28", "imagecodecs"]
 # Add sidpy dependency and pinning as workaround to fix pyUSID import
 # Remove sidpy dependency once https://github.com/pycroscopy/pyUSID/issues/85 is fixed.
 usid = ["pyUSID", "sidpy<=0.12.0"]

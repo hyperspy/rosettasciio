@@ -57,8 +57,13 @@ pool:
 
 steps:
 - checkout: self
-  fetchDepth: 0 # Fetch all commits for setuptools_scm 
-  fetchTags: true #  tags necessary for setuptools_scm
+  fetchDepth: '0' # Fetch all commits for setuptools_scm 
+  fetchTags: 'true' #  tags necessary for setuptools_scm
+- bash: |
+    git remote add upstream https://github.com/hyperspy/rosettasciio.git
+    git fetch upstream --tags
+  condition: ne(variables['Build.Repository.Name'], 'hyperspy/rosettasciio')
+  displayName: Fetch tags from hyperspy/rosettasciio
 - template: azure_pipelines/clone_ci-scripts_repo.yml@templates
 - template: azure_pipelines/install_mambaforge.yml@templates
 - template: azure_pipelines/activate_conda.yml@templates
@@ -66,7 +71,6 @@ steps:
 
 - bash: |
     source activate $ENV_NAME
-    pip install "hyperspy>=2.0rc0"
     pip install --no-deps -e .
     conda list
   displayName: Install package

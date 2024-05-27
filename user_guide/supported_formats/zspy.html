@@ -495,8 +495,8 @@ Please note that in order to increase saving efficiency and speed, if possible,
 the inner-most structures are converted to numpy arrays when saved. This
 procedure homogenizes any types of the objects inside, most notably casting
 numbers as strings if any other strings are present:</p>
-<p>By default, a <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#zarr.storage.NestedDirectoryStore" title="(in zarr v2.18.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.NestedDirectoryStore</span></code></a> is used, but other
-zarr store can be used by providing a <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#module-zarr.storage" title="(in zarr v2.18.1)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">zarr.storage</span></code></a>
+<p>By default, a <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#zarr.storage.NestedDirectoryStore" title="(in zarr v0.1.dev50)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.NestedDirectoryStore</span></code></a> is used, but other
+zarr store can be used by providing a <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#module-zarr.storage" title="(in zarr v0.1.dev50)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">zarr.storage</span></code></a>
 instead as argument to the <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.signals/BaseSignal.html#hyperspy.api.signals.BaseSignal.save" title="(in HyperSpy v2.1)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal.save()</span></code></a> or the
 <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.html#hyperspy.api.load" title="(in HyperSpy v2.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">hyperspy.api.load()</span></code></a> function. If a <code class="docutils literal notranslate"><span class="pre">.zspy</span></code> file has been saved with a different
 store, it would need to be loaded by passing a store of the same type:</p>
@@ -527,7 +527,7 @@ specification.</p>
 </dd>
 <dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.12)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not.</p>
 </dd>
-<dt><strong>**kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Pass keyword arguments to the <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/convenience.html#zarr.convenience.open" title="(in zarr v2.18.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">zarr.convenience.open()</span></code></a> function.</p>
+<dt><strong>**kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Pass keyword arguments to the <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/convenience.html#zarr.convenience.open" title="(in zarr v0.1.dev50)"><code class="xref py py-func docutils literal notranslate"><span class="pre">zarr.convenience.open()</span></code></a> function.</p>
 </dd>
 </dl>
 </dd>
@@ -579,7 +579,7 @@ efficiently, see <a class="reference external" href="https://numcodecs.readthedo
 If None, use a Blosc compressor.</p>
 </dd>
 <dt><strong>close_file</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.12)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Close the file after writing. Only relevant for some zarr storages
-(<a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#zarr.storage.ZipStore" title="(in zarr v2.18.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.ZipStore</span></code></a>, <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#zarr.storage.DBMStore" title="(in zarr v2.18.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.DBMStore</span></code></a>)
+(<a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#zarr.storage.ZipStore" title="(in zarr v0.1.dev50)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.ZipStore</span></code></a>, <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#zarr.storage.DBMStore" title="(in zarr v0.1.dev50)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.DBMStore</span></code></a>)
 requiring store to flush data to disk. If <code class="docutils literal notranslate"><span class="pre">False</span></code>, doesn’t close the
 file after writing. The file should not be closed if the data needs to be
 accessed lazily after saving.</p>
@@ -591,7 +591,7 @@ without having to write the whole dataset, which can take time.</p>
 <dt><strong>show_progressbar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.12)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Whether to show the progressbar or not.</p>
 </dd>
 <dt><strong>**kwds</strong></dt><dd><p>The keyword arguments are passed to the
-<a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/hierarchy.html#zarr.hierarchy.Group.require_dataset" title="(in zarr v2.18.1)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">zarr.hierarchy.Group.require_dataset()</span></code></a> function.</p>
+<a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/hierarchy.html#zarr.hierarchy.Group.require_dataset" title="(in zarr v0.1.dev50)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">zarr.hierarchy.Group.require_dataset()</span></code></a> function.</p>
 </dd>
 </dl>
 </dd>

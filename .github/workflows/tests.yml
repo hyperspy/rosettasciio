@@ -23,7 +23,7 @@ jobs:
             PYTHON_VERSION: '3.8'
             # Set pillow and scikit-image version to be compatible with imageio and scipy
             # matplotlib needs 3.5 to support markers in hyperspy 2.0 (requires `collection.set_offset_transform`)
-            DEPENDENCIES: matplotlib==3.5 numpy==1.20.0 tifffile==2022.7.28 dask[array]==2021.3.1 numba==0.52 imageio==2.16 pillow==8.3.2 scikit-image==0.18.0
+            DEPENDENCIES: matplotlib==3.5 numpy==1.20.0 tifffile==2022.7.28 dask[array]==2021.3.1 numba==0.52 imageio==2.16 pillow==8.3.2 scikit-image==0.18.0 python-box==6.0.0
             LABEL: '-oldest'
           # test minimum requirement
           - os: ubuntu
@@ -117,6 +117,13 @@ jobs:
         run: |
           pip install git+https://github.com/hyperspy/hyperspy.git
           pip install git+https://github.com/hyperspy/exspy.git
+
+      - name: Install latest python-box
+        # When installing hyperspy, python-box 6 is installed (rosettasciio pinning)
+        # Remove when rosettasciio >0.4.0 is released
+        if: ${{ ! contains(matrix.LABEL, 'oldest') }}
+        run: |
+          pip install --upgrade python-box
 
       - name: Install
         shell: bash

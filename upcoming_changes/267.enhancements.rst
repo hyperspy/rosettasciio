@@ -1,0 +1,1 @@
+:ref:`quantumdetector-format`: Add support for dask distributed scheduler.

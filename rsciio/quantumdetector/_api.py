@@ -29,12 +29,14 @@ import numpy as np
 
 from rsciio._docstrings import (
     CHUNKS_READ_DOC,
+    DISTRIBUTED_DOC,
     FILENAME_DOC,
     LAZY_DOC,
     MMAP_DOC,
     NAVIGATION_SHAPE,
     RETURNS_DOC,
 )
+from rsciio.utils.distributed import memmap_distributed
 
 _logger = logging.getLogger(__name__)
 
@@ -194,6 +196,7 @@ def load_mib_data(
     navigation_shape=None,
     first_frame=None,
     last_frame=None,
+    distributed=False,
     mib_prop=None,
     return_headers=False,
     print_info=False,
@@ -204,6 +207,7 @@ def load_mib_data(
 
     Parameters
     ----------
+    %s
     %s
     %s
     %s
@@ -302,15 +306,21 @@ def load_mib_data(
     # if it is read from TCPIP interface it needs to drop first 15 bytes which
     # describe the stream size. Also watch for the coma in front of the stream.
     if isinstance(mib_prop.path, str):
-        data = np.memmap(
-            mib_prop.path,
-            dtype=merlin_frame_dtype,
+        memmap_kwargs = dict(
+            filename=mib_prop.path,
             # take into account first_frame
             offset=mib_prop.offset + merlin_frame_dtype.itemsize * first_frame,
             # need to use np.prod(navigation_shape) to crop number line
             shape=np.prod(navigation_shape),
-            mode=mmap_mode,
+            dtype=merlin_frame_dtype,
         )
+        if distributed:
+            data = memmap_distributed(chunks=chunks, key="data", **memmap_kwargs)
+            if not lazy:
+                data = data.compute()
+                # get_file_handle(data).close()
+        else:
+            data = np.memmap(mode=mmap_mode, **memmap_kwargs)
     elif isinstance(path, bytes):
         data = np.frombuffer(
             path,
@@ -322,10 +332,11 @@ def load_mib_data(
     else:  # pragma: no cover
         raise TypeError("`path` must be a str or a buffer.")
 
-    headers = data["header"]
-    data = data["data"]
+    if not distributed:
+        headers = data["header"]
+        data = data["data"]
     if not return_mmap:
-        if lazy:
+        if not distributed and lazy:
             if isinstance(chunks, tuple) and len(chunks) > 2:
                 # Since the data is reshaped later on, we set only the
                 # signal dimension chunks here
@@ -344,6 +355,10 @@ def load_mib_data(
         data = data.rechunk(chunks)
 
     if return_headers:
+        if distributed:
+            raise ValueError(
+                "Retuning headers is not supported with `distributed=True`."
+            )
         return data, headers
     else:
         return data
@@ -356,6 +371,7 @@ load_mib_data.__doc__ %= (
     MMAP_DOC,
     NAVIGATION_SHAPE,
     _FIRST_LAST_FRAME,
+    DISTRIBUTED_DOC,
 )
 
 
@@ -489,6 +505,7 @@ def file_reader(
     navigation_shape=None,
     first_frame=None,
     last_frame=None,
+    distributed=False,
     print_info=False,
 ):
     """
@@ -499,6 +516,7 @@ def file_reader(
 
     Parameters
     ----------
+    %s
     %s
     %s
     %s
@@ -589,6 +607,7 @@ def file_reader(
         navigation_shape=navigation_shape,
         first_frame=first_frame,
         last_frame=last_frame,
+        distributed=distributed,
         mib_prop=mib_prop,
         print_info=print_info,
         return_mmap=False,
@@ -653,5 +672,6 @@ file_reader.__doc__ %= (
     MMAP_DOC,
     NAVIGATION_SHAPE,
     _FIRST_LAST_FRAME,
+    DISTRIBUTED_DOC,
     RETURNS_DOC,
 )

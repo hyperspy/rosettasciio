@@ -384,7 +384,7 @@ def test_get_date_time_from_metadata():
 
 @pytest.mark.parametrize(
         "shape",
-        ((10, 20, 30, 512, 512),(20, 30, 512, 512), (10, 512, 512), (512, 512))
+        ((10, 20, 30, 512, 512), (20, 30, 512, 512), (10, 512, 512), (512, 512))
 )
 def test_get_chunk_slice(shape):
     chunk_arr, chunk = get_chunk_slice(shape=shape, chunks=-1)  # 1 chunk

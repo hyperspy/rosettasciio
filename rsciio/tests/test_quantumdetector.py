@@ -394,3 +394,21 @@ def test_frames_in_acquisition_zero():
 
     s = hs.load(f"{fname}.mib")
     assert s.axes_manager.navigation_shape == ()
+
+
+@pytest.mark.parametrize("lazy", (True, False))
+def test_distributed(lazy):
+    s = hs.load(
+        TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib",
+        distributed=False,
+        lazy=lazy,
+    )
+    s2 = hs.load(
+        TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib",
+        distributed=True,
+        lazy=lazy,
+    )
+    if lazy:
+        s.compute()
+        s2.compute()
+    np.testing.assert_array_equal(s.data, s2.data)

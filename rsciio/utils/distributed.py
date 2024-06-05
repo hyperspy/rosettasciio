@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import os
 
 import dask.array as da
 import numpy as np
@@ -60,11 +61,7 @@ def get_chunk_slice(
     )
     chunks_shape = tuple([len(c) for c in chunks])
     slices = np.empty(
-        shape=chunks_shape
-        + (
-            len(chunks_shape),
-            2,
-        ),
+        shape=chunks_shape + (len(chunks_shape), 2),
         dtype=int,
     )
     for ind in np.ndindex(chunks_shape):
@@ -72,10 +69,11 @@ def get_chunk_slice(
         starts = [int(np.sum(chunk[:i])) for i, chunk in zip(ind, chunks)]
         stops = [s + c for s, c in zip(starts, current_chunk)]
         slices[ind] = [[start, stop] for start, stop in zip(starts, stops)]
+
     return da.from_array(slices, chunks=(1,) * len(shape) + slices.shape[-2:]), chunks
 
 
-def slice_memmap(slices, file, dtypes, shape, **kwargs):
+def slice_memmap(slices, file, dtypes, shape, key=None, **kwargs):
     """
     Slice a memory mapped file using a tuple of slices.
 
@@ -96,6 +94,8 @@ def slice_memmap(slices, file, dtypes, shape, **kwargs):
         Data type of the data for :class:`numpy.memmap` function.
     shape : tuple
         Shape of the entire dataset. Passed to the :class:`numpy.memmap` function.
+    key : None, str
+        For structured dtype only. Specify the key of the structured dtype to use.
     **kwargs : dict
         Additional keyword arguments to pass to the :class:`numpy.memmap` function.
 
@@ -104,31 +104,36 @@ def slice_memmap(slices, file, dtypes, shape, **kwargs):
     numpy.ndarray
         Array of the data from the memory mapped file sliced using the provided slice.
     """
-    sl = np.squeeze(slices)[()]
+    slices_ = np.squeeze(slices)[()]
     data = np.memmap(file, dtypes, shape=shape, **kwargs)
-    slics = tuple([slice(s[0], s[1]) for s in sl])
-    return data[slics]
+    if key is not None:
+        data = data[key]
+    slices_ = tuple([slice(s[0], s[1]) for s in slices_])
+    return data[slices_]
 
 
 def memmap_distributed(
-    file,
+    filename,
     dtype,
     offset=0,
     shape=None,
     order="C",
     chunks="auto",
     block_size_limit=None,
+    key=None,
 ):
     """
-    Drop in replacement for py:func:`numpy.memmap` allowing for distributed loading of data.
+    Drop in replacement for py:func:`numpy.memmap` allowing for distributed
+    loading of data.
 
-    This always loads the data using dask which can be beneficial in many cases, but
-    may not be ideal in others. The ``chunks`` and ``block_size_limit`` are for describing an ideal chunk shape and size
-    as defined using the :py:func:`dask.array.core.normalize_chunks` function.
+    This always loads the data using dask which can be beneficial in many
+    cases, but may not be ideal in others. The ``chunks`` and ``block_size_limit``
+    are for describing an ideal chunk shape and size as defined using the
+    :func:`dask.array.core.normalize_chunks` function.
 
     Parameters
     ----------
-    file : str
+    filename : str
         Path to the file.
     dtype : numpy.dtype
         Data type of the data for memmap function.
@@ -142,25 +147,50 @@ def memmap_distributed(
         Chunk shape. The default is "auto".
     block_size_limit : int, optional
         Maximum size of a block in bytes. The default is None.
+    key : None, str
+        For structured dtype only. Specify the key of the structured dtype to use.
 
     Returns
     -------
     dask.array.Array
         Dask array of the data from the memmaped file and with the specified chunks.
+
+    Notes
+    -----
+    Currently :func:`dask.array.map_blocks` does not allow for multiple outputs.
+    As a result, in case of structured dtype, the key of the structured dtype need
+    to be specified.
+    For example: with dtype = (("data", int, (128, 128)), ("sec", "<u4", 512)),
+    "data" or "sec" will need to be specified.
     """
+
+    if dtype.names is not None:
+        # Structured dtype
+        array_dtype = dtype[key].base
+        sub_array_shape = dtype[key].shape
+    else:
+        array_dtype = dtype.base
+        sub_array_shape = dtype.shape
+
+    if shape is None:
+        unit_size = np.dtype(dtype).itemsize
+        shape = int(os.path.getsize(filename) / unit_size)
+    if not isinstance(shape, tuple):
+        shape = (shape,)
+
     # Separates slices into appropriately sized chunks.
     chunked_slices, data_chunks = get_chunk_slice(
-        shape=shape,
+        shape=shape + sub_array_shape,
         chunks=chunks,
         block_size_limit=block_size_limit,
-        dtype=dtype,
+        dtype=array_dtype,
     )
     num_dim = len(shape)
     data = da.map_blocks(
         slice_memmap,
         chunked_slices,
-        file=file,
-        dtype=dtype,
+        file=filename,
+        dtype=array_dtype,
         shape=shape,
         order=order,
         mode="r",
@@ -171,5 +201,6 @@ def memmap_distributed(
             num_dim,
             num_dim + 1,
         ),  # Dask 2021.10.0 minimum to use negative indexing
+        key=key,
     )
     return data

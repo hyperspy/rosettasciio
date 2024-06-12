@@ -121,6 +121,7 @@ class FeiEMDReader(object):
     def read_file(self, f):
         self.filename = f.filename
         self.version = _parse_json(f["Version"][0])["version"]
+        _logger.info(f"EMD file version: {self.version}")
         self.d_grp = f.get("Data")
         self._check_im_type()
         for key in ["Displays", "Operations", "SharedProperties", "Features"]:
@@ -841,14 +842,11 @@ class FeiEMDReader(object):
 
         # Add selected element
         if map_selected_element:
-            mapping.update(
-                {
-                    "Operations.ImageQuantificationOperation": (
-                        "Sample.elements",
-                        self._convert_element_list,
-                    ),
-                }
-            )
+            if int(self.version) >= 11:
+                key = "SharedProperties.EDSSpectrumQuantificationSettings"
+            else:
+                key = "Operations.ImageQuantificationOperation"
+            mapping[key] = ("Sample.elements", self._convert_element_list)
 
         return mapping
 

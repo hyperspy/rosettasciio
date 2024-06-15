@@ -524,6 +524,7 @@ class TestVeloxEMDv11:
     @pytest.mark.parametrize("lazy", (True, False))
     def test_spectrum_images(self, lazy):
         s = hs.load(self.fei_files_path / "Test SI 16x16 215 kx.emd", lazy=lazy)
+        assert s[-1].metadata.Sample.elements == ["C", "O", "Ca", "Cu"]
         assert len(s) == 10
         for i, v in enumerate(["C", "Ca", "O", "Cu", "HAADF", "EDS"]):
             assert s[i + 4].metadata.General.title == v

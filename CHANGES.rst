@@ -8,6 +8,32 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 
 .. towncrier release notes start
 
+0.5 (2024-06-15)
+================
+
+Enhancements
+------------
+
+- :ref:`emd_fei-format`: Enforce setting identical units for the ``x`` and ``y`` axes, as convenience to use the scalebar in HyperSpy. (`#243 <https://github.com/hyperspy/rosettasciio/issues/243>`_)
+- :ref:`quantumdetector-format`: Add support for dask distributed scheduler. (`#267 <https://github.com/hyperspy/rosettasciio/issues/267>`_)
+
+
+Bug Fixes
+---------
+
+- :ref:`emd_fei-format`: Fix conversion of offset units which can sometimes mismatch the scale units. (`#243 <https://github.com/hyperspy/rosettasciio/issues/243>`_)
+- :ref:`ripple-format`: Fix typo and improve error message for unsupported ``dtype`` in writer. (`#251 <https://github.com/hyperspy/rosettasciio/issues/251>`_)
+- :ref:`emd_fei-format`: Fix parsing elements from EDS data from velox emd file v11. (`#274 <https://github.com/hyperspy/rosettasciio/issues/274>`_)
+
+
+Maintenance
+-----------
+
+- Use ``ruff`` for code formating and linting. (`#250 <https://github.com/hyperspy/rosettasciio/issues/250>`_)
+- Fix ``tifffile`` deprecation. (`#262 <https://github.com/hyperspy/rosettasciio/issues/262>`_)
+- Add support for ``python-box`` 7. (`#263 <https://github.com/hyperspy/rosettasciio/issues/263>`_)
+
+
 0.4 (2024-04-02)
 ================
 

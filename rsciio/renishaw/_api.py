@@ -922,9 +922,7 @@ class WDFReader(object):
         for _ in range(origin_count):
             ax_tmp_dict = {}
             ## ignore first bit of dtype read (sometimes 0, sometimes 1 in testfiles)
-            dtype = DataType(
-                self.__read_numeric("uint32", convert=False) & ~(0b1 << 31)
-            ).name
+            dtype = DataType(self.__read_numeric("uint32") & ~(0b1 << 31)).name
             ax_tmp_dict["units"] = str(UnitType(self.__read_numeric("uint32")))
             ax_tmp_dict["annotation"] = self.__read_utf8(0x10)
             ax_tmp_dict["data"] = self._set_data_for_ORGN(dtype)

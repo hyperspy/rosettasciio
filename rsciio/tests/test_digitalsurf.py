@@ -496,3 +496,156 @@ def test_metadata_mapping():
         ]
         == 7000
     )
+
+
+def test_get_n_obj_chn():
+
+    omd = {"Object_0_Channel_0":{},
+           "Object_1_Channel_0":{},
+           "Object_2_Channel_0":{},
+           "Object_2_Channel_1":{},
+           "Object_2_Channel_2":{},
+           "Object_3_Channel_0":{},}
+
+    assert DigitalSurfHandler._get_nobjects(omd)==3
+
+
+def test_compressdata():
+
+    testdat = np.arange(120, dtype=np.int32)
+
+    #Refuse too many / neg streams
+    with pytest.raises(MountainsMapFileError):
+        DigitalSurfHandler._compress_data(testdat,nstreams=9)
+    with pytest.raises(MountainsMapFileError):
+        DigitalSurfHandler._compress_data(testdat,nstreams=-1)
+    
+    # Accept 1 (dft) or several streams
+    bcomp = DigitalSurfHandler._compress_data(testdat)
+    assert bcomp.startswith(b'\x01\x00\x00\x00\xe0\x01\x00\x00')
+    bcomp = DigitalSurfHandler._compress_data(testdat,nstreams=2)
+    assert bcomp.startswith(b'\x02\x00\x00\x00\xf0\x00\x00\x00_\x00\x00\x00')
+
+    # Accept 16-bits int as well as 32
+    testdat = np.arange(120, dtype=np.int16)
+    bcomp = DigitalSurfHandler._compress_data(testdat)
+    assert bcomp.startswith(b'\x01\x00\x00\x00\xf0\x00\x00\x00')
+
+
+    # Also streams non-perfectly divided data
+    testdat = np.arange(120, dtype=np.int16)
+    bcomp = DigitalSurfHandler._compress_data(testdat)
+    assert bcomp.startswith(b'\x01\x00\x00\x00\xf0\x00\x00\x00')
+
+    testdat = np.arange(127, dtype=np.int16)
+    bcomp = DigitalSurfHandler._compress_data(testdat,nstreams=3)
+    assert bcomp.startswith(b'\x03\x00\x00\x00V\x00\x00\x00C\x00\x00\x00'+
+                            b'V\x00\x00\x00F\x00\x00\x00'+
+                            b'R\x00\x00\x00B\x00\x00\x00')
+
+
+def test_get_comment_dict():
+    tdh = DigitalSurfHandler()
+    tdh.signal_dict={'original_metadata':{
+        'Object_0_Channel_0':{
+            'Parsed':{
+                'key_1': 1,
+                'key_2':'2'
+            }
+        }
+    }}
+
+    assert tdh._get_comment_dict('auto')=={'key_1': 1,'key_2':'2'}
+    assert tdh._get_comment_dict('off')=={}
+    assert tdh._get_comment_dict('raw')=={'Object_0_Channel_0':{'Parsed':{'key_1': 1,'key_2':'2'}}}
+    assert tdh._get_comment_dict('custom',custom={'a':0}) == {'a':0}
+
+    #Goes to second dict if only this one's valid
+    tdh.signal_dict={'original_metadata':{
+        'Object_0_Channel_0':{'Header':{}},
+        'Object_0_Channel_1':{'Header':'ObjHead','Parsed':{'key_1': '0'}},
+    }}
+    assert tdh._get_comment_dict('auto') == {'key_1': '0'}
+
+    #Return empty if none valid
+    tdh.signal_dict={'original_metadata':{
+        'Object_0_Channel_0':{'Header':{}},
+        'Object_0_Channel_1':{'Header':'ObjHead'},
+    }}
+    assert tdh._get_comment_dict('auto') == {}
+
+    #Return dict-cast if a single field is named 'Parsed' (weird case)
+    tdh.signal_dict={'original_metadata':{
+        'Object_0_Channel_0':{'Header':{}},
+        'Object_0_Channel_1':{'Header':'ObjHead','Parsed':'SomeContent'},
+    }}
+    assert tdh._get_comment_dict('auto') == {'Parsed':'SomeContent'}
+
+@pytest.mark.parametrize("test_object", ["test_profile.pro", "test_spectra.pro", "test_spectral_map.sur", "test_spectral_map_compressed.sur", "test_spectrum.pro", "test_spectrum_compressed.pro", "test_surface.sur"])
+def test_writetestobjects(tmp_path,test_object):
+    """Test data integrity of load/save functions. Starting from externally-generated data (i.e. not from hyperspy)"""
+
+    df = TEST_DATA_PATH.joinpath(test_object)
+
+    d = hs.load(df)
+    fn = tmp_path.joinpath(test_object)
+    d.save(fn,is_special=False)
+    d2 = hs.load(fn)
+    d2.save(fn,is_special=False)
+    d3 = hs.load(fn)
+
+    assert np.allclose(d2.data,d.data)
+    assert np.allclose(d2.data,d3.data)
+    
+    a = d.axes_manager.navigation_axes
+    b = d2.axes_manager.navigation_axes
+    c = d3.axes_manager.navigation_axes
+
+    for ax,ax2,ax3 in zip(a,b,c):
+        assert np.allclose(ax.axis,ax2.axis)
+        assert np.allclose(ax.axis,ax3.axis)
+
+    a = d.axes_manager.signal_axes
+    b = d2.axes_manager.signal_axes
+    c = d3.axes_manager.signal_axes
+
+    for ax,ax2,ax3 in zip(a,b,c):
+        assert np.allclose(ax.axis,ax2.axis)
+        assert np.allclose(ax.axis,ax3.axis)
+
+def test_writeRGB(tmp_path):
+    
+    df = TEST_DATA_PATH.joinpath("test_RGB.sur")
+    d = hs.load(df)
+    fn = tmp_path.joinpath("test_RGB.sur")
+    d.save(fn,is_special=False)
+    d2 = hs.load(fn)
+    d2.save(fn,is_special=False)
+    d3 = hs.load(fn)
+
+    for k in ['R','G','B']:
+        assert np.allclose(d2.data[k],d.data[k])
+        assert np.allclose(d3.data[k],d.data[k])
+
+    a = d.axes_manager.navigation_axes
+    b = d2.axes_manager.navigation_axes
+    c = d3.axes_manager.navigation_axes
+
+    for ax,ax2,ax3 in zip(a,b,c):
+        assert np.allclose(ax.axis,ax2.axis)
+        assert np.allclose(ax.axis,ax3.axis)
+
+    a = d.axes_manager.signal_axes
+    b = d2.axes_manager.signal_axes
+    c = d3.axes_manager.signal_axes
+
+    for ax,ax2,ax3 in zip(a,b,c):
+        assert np.allclose(ax.axis,ax2.axis)
+        assert np.allclose(ax.axis,ax3.axis)
+
+@pytest.mark.parametrize("dtype", [np.int16, np.int32, np.float64, np.uint8, np.uint16])
+def test_writegeneric_validtypes(tmp_path,dtype):
+
+    gen = hs.signals.Signal1D(np.arange(24,dtype=dtype))+25
+    fgen = tmp_path.joinpath('test.pro')
+    gen.save(fgen,overwrite=True)

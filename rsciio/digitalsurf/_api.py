@@ -47,7 +47,7 @@ import numpy as np
 # import rsciio.utils.tools
 # DictionaryTreeBrowser class handles the fancy metadata dictionnaries
 # from hyperspy.misc.utils import DictionaryTreeBrowser
-from rsciio._docstrings import FILENAME_DOC, SIGNAL_DOC
+from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC, SIGNAL_DOC
 from rsciio.utils.exceptions import MountainsMapFileError
 from rsciio.utils.rgb_tools import is_rgb, is_rgba
 from rsciio.utils.date_time_tools import get_date_time_from_metadata
@@ -125,14 +125,14 @@ class DigitalSurfHandler(object):
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 12),
             },
             "_02_Format": {
-                "value": 1,
+                "value": 0,
                 "b_unpack_fn": self._get_int16,
                 "b_pack_fn": self._set_int16,
             },
             "_03_Number_of_Objects": {
                 "value": 1,
-                "b_unpack_fn": self._get_int16,
-                "b_pack_fn": self._set_int16,
+                "b_unpack_fn": self._get_uint16,
+                "b_pack_fn": self._set_uint16,
             },
             "_04_Version": {
                 "value": 1,
@@ -146,12 +146,12 @@ class DigitalSurfHandler(object):
             },
             "_06_Object_Name": {
                 "value": "",
-                "b_unpack_fn": lambda f: self._get_str(f, 30, "DOSONLY"),
+                "b_unpack_fn": lambda f: self._get_str(f, 30, ''),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 30),
             },
             "_07_Operator_Name": {
                 "value": "ROSETTA",
-                "b_unpack_fn": lambda f: self._get_str(f, 30, ""),
+                "b_unpack_fn": lambda f: self._get_str(f, 30, ''),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 30),
             },
             "_08_P_Size": {
@@ -186,8 +186,8 @@ class DigitalSurfHandler(object):
             },
             "_14_W_Size": {
                 "value": 0,
-                "b_unpack_fn": self._get_int32,
-                "b_pack_fn": self._set_int32,
+                "b_unpack_fn": self._get_uint32,
+                "b_pack_fn": self._set_uint32,
             },
             "_15_Size_of_Points": {
                 "value": 16,
@@ -310,7 +310,7 @@ class DigitalSurfHandler(object):
                 "b_pack_fn": self._set_int16,
             },
             "_39_Obsolete": {
-                "value": b'0',
+                "value": b'',
                 "b_unpack_fn": lambda f: self._get_bytes(f, 12),
                 "b_pack_fn": lambda f, v: self._set_bytes(f, v, 12),
             },
@@ -360,7 +360,7 @@ class DigitalSurfHandler(object):
                 "b_pack_fn": self._set_uint32,
             },
             "_49_Obsolete": {
-                "value": b'0',
+                "value": b'',
                 "b_unpack_fn": lambda f: self._get_bytes(f, 6),
                 "b_pack_fn": lambda f, v: self._set_bytes(f, v, 6),
             },
@@ -375,7 +375,7 @@ class DigitalSurfHandler(object):
                 "b_pack_fn": self._set_int16,
             },
             "_52_Client_zone": {
-                "value": b'0',
+                "value": b'',
                 "b_unpack_fn": lambda f: self._get_bytes(f, 128),
                 "b_pack_fn": lambda f, v: self._set_bytes(f, v, 128),
             },
@@ -420,7 +420,7 @@ class DigitalSurfHandler(object):
                 "b_pack_fn": self._pack_comment,
             },
             "_61_Private_zone": {
-                "value": 0,
+                "value": b'',
                 "b_unpack_fn": self._unpack_private,
                 "b_pack_fn": self._pack_private,
             },
@@ -444,7 +444,7 @@ class DigitalSurfHandler(object):
         self._Object_type = "_UNKNOWN"
 
         # Number of data objects in the file.
-        self._N_data_object = 1
+        self._N_data_objects = 1
         self._N_data_channels = 1
 
         # Attributes useful for save and export
@@ -462,54 +462,13 @@ class DigitalSurfHandler(object):
         # These must be set in the split functions
         self.data_split = []
         self.objtype_split = []
-    # Packaging methods for writing files
-
-    def _build_sur_file_contents(self,
-                                 set_comments:str='auto',
-                                 is_special:bool=False,
-                                 compressed:bool=True,
-                                 comments: dict = {},
-                                 operator_name: str = '',
-                                 private_zone: bytes = b'',
-                                 client_zone: bytes = b''
-                                 ):
-        
-        self._list_sur_file_content = []
-
-        #Compute number of navigation / signal axes
-        self._n_ax_nav, self._n_ax_sig = DigitalSurfHandler._get_n_axes(self.signal_dict)
-
-        # Choose object type based on number of navigation and signal axes
-        # Populate self.Xaxis, self.Yaxis, self.Taxis (if not empty)
-        # Populate self.data_split and self.objtype_split (always)
-        self._split_signal_dict()
-
-        # This initialize the Comment string saved with the studiable.
-        comment_dict = self._get_comment_dict(self.signal_dict['original_metadata'],
-                                              method=set_comments,
-                                              custom=comments)
-        comment_str = self._stringify_dict(comment_dict) 
-
-        #Now we build a workdict for every data object
-        for data,objtype in zip(self.data_split,self.objtype_split):
-            self._build_workdict(data,
-                                 objtype,
-                                 self.signal_dict['metadata'],
-                                 comment=comment_str,
-                                 is_special=is_special,
-                                 compressed=compressed,
-                                 operator_name=operator_name,
-                                 private_zone=private_zone,
-                                 client_zone=client_zone)
-            # if more than one object, we erase comment after first object.
-            if comment_str:
-                comment_str = ''
-
-            # Finally we push it all to the content list.
-            self._append_work_dict_to_content()
+   
+    # File Writer Inner methods
 
     def _write_sur_file(self):
-        """Write self._list_sur_file_content to a  """
+        """Write self._list_sur_file_content to a file. This method is 
+        start-and-forget. The brainwork is performed in the construction
+        of sur_file_content list of dictionaries."""
 
         with open(self.filename, "wb") as f:
             for dic in self._list_sur_file_content:
@@ -520,13 +479,106 @@ class DigitalSurfHandler(object):
                 # Then inner consistency is trivial
                 for key in self._work_dict:
                     self._work_dict[key]['b_pack_fn'](f,self._work_dict[key]['value']) 
-          
+
+    def _validate_filename(self):
+
+        sur_only = ['_SURFACE',
+                    '_BINARYIMAGE',
+                    '_SURFACESERIE',
+                    '_MULTILAYERSURFACE',
+                    '_INTENSITYIMAGE',
+                    '_INTENSITYSURFACE',
+                    '_RGBIMAGE',
+                    '_RGBSURFACE',
+                    '_RGBINTENSITYSURFACE',
+                    '_SERIESOFRGBIMAGES',
+                    '_HYPCARD']
+
+        pro_only = ['_PROFILE',
+                    '_PROFILESERIE',
+                    '_MULTILAYERPROFILE',
+                    '_FORCECURVE',
+                    '_SERIEOFFORCECURVE',
+                    '_CONTOURPROFILE',
+                    '_SPECTRUM',
+                    ]
+
+        if self._Object_type in sur_only and not self.filename.lower().endswith('sur'):
+            raise MountainsMapFileError(f"Attempting save of DigitalSurf {self._Object_type} with\
+                                        .{self.filename.split('.')[-1]} extension, which only supports .sur")
+
+        if self._Object_type in pro_only and not self.filename.lower().endswith('pro'):
+            raise MountainsMapFileError(f"Attempting save of DigitalSurf {self._Object_type} with\
+                                        .{self.filename.split('.')[-1]} extension, which only supports .pro")
+
+    def _build_sur_file_contents(self,
+                                 set_comments:str='auto',
+                                 is_special:bool=False,
+                                 compressed:bool=True,
+                                 comments: dict = {},
+                                 object_name: str = '',
+                                 operator_name: str = '',
+                                 absolute: int = 0,
+                                 private_zone: bytes = b'',
+                                 client_zone: bytes = b''
+                                 ):
+        """Build the _sur_file_content list necessary to write a signal dictionary to 
+        a ``.sur`` or ``.pro`` file. The signal dictionary's inner consistency is the 
+        responsibility of hyperspy, and the this function's responsibility is to make
+        a consistent list of _sur_file_content."""
+
+        self._list_sur_file_content = []
+
+        #Compute number of navigation / signal axes
+        self._n_ax_nav, self._n_ax_sig = DigitalSurfHandler._get_n_axes(self.signal_dict)
+
+        # Choose object type based on number of navigation and signal axes
+        # Populate self._Object_type
+        # Populate self.Xaxis, self.Yaxis, self.Taxis (if not empty)
+        # Populate self.data_split and self.objtype_split (always)
+        self._split_signal_dict()
+
+        #Raise error if wrong extension
+        # self._validate_filename()
+
+        #Get a dictionary to be saved in the comment fielt of exported file
+        comment_dict = self._get_comment_dict(self.signal_dict['original_metadata'],
+                                              method=set_comments,
+                                              custom=comments)
+        #Convert the dictionary to a string of suitable format.
+        comment_str = self._stringify_dict(comment_dict) 
+
+        # A _work_dict is created for each of the data arrays and object
+        # that have splitted from the main object. In most cases, only a
+        # single object is present in the split.
+        for data,objtype in zip(self.data_split,self.objtype_split):
+            self._build_workdict(data,
+                                 objtype,
+                                 self.signal_dict['metadata'],
+                                 comment=comment_str,
+                                 is_special=is_special,
+                                 compressed=compressed,
+                                 object_name=object_name,
+                                 operator_name=operator_name,
+                                 absolute=absolute,
+                                 private_zone=private_zone,
+                                 client_zone=client_zone)
+            # if the objects are multiple, comment is erased after the first 
+            # object. This is not mandatory, but makes marginally smaller files.
+            if comment_str:
+                comment_str = ''
+
+            # Finally we push it all to the content list.
+            self._append_work_dict_to_content()
+   
+    #Signal dictionary analysis methods
     @staticmethod
     def _get_n_axes(sig_dict: dict) -> tuple[int,int]:
         """Return number of navigation and signal axes in the signal dict (in that order).
+        Could be moved away from the .sur api as other functions probably use this as well
 
         Args:
-            sig_dict (dict): signal dictionary. Contains keys 'data', 'axes', 'metadata', 'original_metadata' 
+            sig_dict (dict): signal dict, has to contain keys: 'data', 'axes', 'metadata'
 
         Returns:
             Tuple[int,int]: nax_nav,nax_sig. Number of navigation and signal axes
@@ -540,18 +592,11 @@ class DigitalSurfHandler(object):
                 nax_sig += 1
         return nax_nav, nax_sig
     
-    @staticmethod
-    def _get_nobjects(omd: dict) -> int:
-        maxobj = 0
-        for k in omd:
-            objnum = k.split('_')[1]
-            objnum = int(objnum)
-            if objnum > maxobj:
-                maxobj = objnum
-        return maxobj
-
     def _is_spectrum(self) -> bool:
-        """Determine if a signal is a spectrum based on axes naming"""
+        """Determine if a signal is a spectrum type based on axes naming
+        for export of sur_files. Could be cross-checked with other criteria
+        such as hyperspy subclass etc... For now we keep it simple. If it has
+        an ax named like a spectral axis, then probably its a spectrum. """
 
         spectrumlike_axnames = ['Wavelength', 'Energy', 'Energy Loss', 'E']
         is_spec = False
@@ -564,7 +609,7 @@ class DigitalSurfHandler(object):
 
     def _is_surface(self) -> bool:
         """Determine if a 2d-data-like signal_dict should be of surface type, ie the dataset 
-        is a 2d surface of the 3d plane. """
+        is a 2d surface of the 3d space. """
         is_surface = False
         surfacelike_quantnames = ['Height', 'Altitude', 'Elevation', 'Depth', 'Z']
         quant: str = self.signal_dict['metadata']['Signal']['quantity']
@@ -577,280 +622,7 @@ class DigitalSurfHandler(object):
     def _is_binary(self) -> bool:
         return self.signal_dict['data'].dtype == bool
 
-    def _get_num_chans(self) -> int:
-        """Get number of channels (aka point size)
-
-        Args:
-            obj_type (int): Object type numeric code
-
-        Returns:
-            int: Number of channels (point size).
-        """
-        obj_type = self._get_object_type()
-
-        if obj_type == 11:
-            return 2 #Intensity + surface (deprecated type)
-        elif obj_type in [12,18]:
-            return 3 #RGB types
-        elif obj_type == 13:
-            return 4 #RGB surface
-        elif obj_type in [14, 15, 35, 36]:
-            return 2 #Force curves
-        elif obj_type in [16]: 
-            return 5 #Surface, Intensity, R, G, B (but hardly applicable to hyperspy)
-        else:
-            return 1
-
-    def _get_wsize(self, nax_sig: int) -> int:
-            if nax_sig != 1:
-                raise MountainsMapFileError(f"Attempted parsing W-axis size from signal with navigation dimension {nax_sig}!= 1.")
-            for ax in self.signal_dict['axes']:
-                if not ax['navigate']:
-                    return ax['size']
-
-    def _get_num_objs(self,) -> int:
-        """Get number of objects based on object type and number of navigation axes in the signal.
-
-        Raises:
-            ValueError: Several digital surf save formats will need a navigation dimension of 1
-
-        Returns:
-            int: _description_
-        """
-        obj_type = self._get_object_type()
-        nax_nav, _ = self._get_n_axes()
-
-        if obj_type in [1,2,3,6,9,10,11,12,13,14,15,16,17,20,21,35,36,37]:
-            return 1
-        elif obj_type in [4,5,7,8,18]:  
-            if nax_nav != 1:
-                raise MountainsMapFileError(f"Attempted to save signal with number type {obj_type} and navigation dimension {nax_nav}.")
-            for ax in enumerate(self.signal_dict['axes']):
-                if ax['navigate']:
-                    return ax['size']
- 
-    def _get_object_type(self) -> int:
-        """Select the suitable _mountains_object_types """
-        
-        nax_nav, nax_sig = self._get_n_axes(self.signal_dict)
-
-        obj_type = None
-        if nax_nav == 0:
-            if nax_sig == 0:
-                raise MountainsMapFileError(msg=f"Object with empty navigation and signal axes not supported for .sur export")
-            elif nax_sig == 1:
-                if self._is_spectrum():
-                    obj_type = 20 # '_SPECTRUM'
-                else:
-                    obj_type = 1  # '_PROFILE'
-            elif nax_sig == 2:
-                if self._is_binary():
-                    obj_type = 3 # "_BINARYIMAGE"
-                elif is_rgb(self.signal_dict['data']):
-                    obj_type = 12 #"_RGBIMAGE"
-                elif is_rgba(self.signal_dict['data']):
-                    warnings.warn(f"Alpha channel discarded upon saving RGBA signal in .sur format")
-                    obj_type = 12 #"_RGBIMAGE"
-                elif self._is_surface():
-                    obj_type = 2  #'_SURFACE'
-                else:
-                    obj_type = 10 #_INTENSITYSURFACE
-            else:
-                raise MountainsMapFileError(msg=f"Object with signal dimension {nax_sig} > 2 not supported for .sur export")
-        elif nax_nav == 1:
-            if nax_sig == 0:
-                warnings.warn(f"Exporting surface signal dimension {nax_sig} and navigation dimension {nax_nav} falls back on surface type but is not good practice.")
-                obj_type = 1  # '_PROFILE'
-            elif nax_sig == 1:
-                if self._is_spectrum():
-                    obj_type = 20 # '_SPECTRUM'
-                else:
-                    obj_type = 1  # '_PROFILE'
-            elif nax_sig ==2:
-                #Also warn
-                if is_rgb(self.signal_dict['data']):
-                    obj_type = 18 #"_SERIESOFRGBIMAGE"
-                elif is_rgba(self.signal_dict['data']):
-                    warnings.warn(f"Alpha channel discarded upon saving RGBA signal in .sur format")
-                    obj_type = 18 #"_SERIESOFRGBIMAGE"
-                else:
-                    obj_type =  5 #"_SURFACESERIE"
-            else: 
-                raise MountainsMapFileError(msg=f"Object with signal dimension {nax_sig} > 2 not supported for .sur export")
-        elif nax_nav == 2:
-            if nax_sig == 0:
-                warnings.warn(f"Signal dimension {nax_sig} and navigation dimension {nax_nav} exported as surface type. Consider transposing signal object before exporting if this is intentional.")
-                if self._is_surface():
-                    obj_type = 2 #'_SURFACE'
-                else:
-                    obj_type = 10 #_INTENSITYSURFACE
-            elif nax_sig == 1:
-                obj_type = 21 #'_HYPCARD'
-            else:
-                raise MountainsMapFileError(msg=f"Object with signal dimension {nax_sig} and navigation dimension {nax_nav} not supported for .sur export")
-        else:
-            #Also raise
-            raise MountainsMapFileError(msg=f"Object with navigation dimension {nax_nav} > 2 not supported for .sur export")
-        
-        return obj_type
-
-    def _split_spectrum(self,):
-        """Must set axes except Z, data_split & objtype_split attributes"""
-        #When splitting spectrum, remember that instead of the series axis (T/W),
-        #X axis is the spectral dimension and Y the series dimension (if series).
-        # Xaxis = {}
-        # Yaxis = {}
-        nax_nav = self._n_ax_nav
-        nax_sig = self._n_ax_sig
-
-        if (nax_nav,nax_sig)==(0,1) or (nax_nav,nax_sig)==(1,0):
-            self.Xaxis = self.signal_dict['axes'][0]
-        elif (nax_nav,nax_sig)==(1,1):
-            self.Xaxis = next(ax for ax in self.signal_dict['axes'] if not ax['navigate'])
-            self.Yaxis = next(ax for ax in self.signal_dict['axes'] if ax['navigate'])
-        else:
-            raise MountainsMapFileError(f"Dimensions ({nax_nav})|{nax_sig}) invalid for export as spectrum type")
-        
-        self.data_split = [self.signal_dict['data']]
-        self.objtype_split = [20]
-        self._N_data_object = 1
-        self._N_data_channels = 1
-        
-    def _split_profile(self,):
-        """Must set axes except Z, data_split & objtype_split attributes"""
-
-        if (self._n_ax_nav,self._n_ax_sig) in [(0,1),(1,0)]:
-            self.Xaxis = self.signal_dict['axes'][0]
-        else:
-            raise MountainsMapFileError(f"Invalid ({self._n_ax_nav},{self._n_ax_sig}) for a profile type")
-        
-        self.data_split = [self.signal_dict['data']]
-        self.objtype_split = [1]
-        self._N_data_object = 1
-        self._N_data_channels = 1
-
-    def _split_profileserie(self,):
-        """Must set axes except Z, data_split & objtype_split attributes"""
-        obj_type = 4  # '_PROFILESERIE'
-
-        if (self._n_ax_nav,self._n_ax_sig)==(1,1):
-            self.Xaxis = next(ax for ax in self.signal_dict['axes'] if not ax['navigate'])
-            self.Taxis = next(ax for ax in self.signal_dict['axes'] if ax['navigate'])
-        else:
-            raise MountainsMapFileError(f"Invalid ({self._n_ax_nav},{self._n_ax_sig}) for {self._mountains_object_types[obj_type]} type")
-        
-        self.data_split = self._split_data_alongaxis(self.Taxis)
-        self.objtype_split = [obj_type] + [1]*(len(self.data_split)-1)
-        self._N_data_object = len(self.objtype_split)
-        self._N_data_channels = 1
-
-    def _split_binary_img(self,):
-        """Must set axes except Z, data_split & objtype_split attributes"""
-        obj_type = 3
-        if (self._n_ax_nav,self._n_ax_sig) in [(0,2),(2,0)]:
-            self.Xaxis = self.signal_dict['axes'][1]
-            self.Yaxis = self.signal_dict['axes'][0]
-        else:
-            raise MountainsMapFileError(f"Invalid ({self._n_ax_nav},{self._n_ax_sig}) for {self._mountains_object_types[obj_type]} type")
-
-        self.data_split = [self.signal_dict['data']]
-        self.objtype_split = [obj_type]
-        self._N_data_object = 1
-        self._N_data_channels = 1
-
-    def _split_rgb(self,):
-        """Must set axes except Z, data_split & objtype_split attributes"""
-        obj_type = 12
-        if (self._n_ax_nav,self._n_ax_sig) in [(0,2),(2,0)]:
-            self.Xaxis = self.signal_dict['axes'][1]
-            self.Yaxis = self.signal_dict['axes'][0]
-        else:
-            raise MountainsMapFileError(f"Invalid ({self._n_ax_nav},{self._n_ax_sig}) for {self._mountains_object_types[obj_type]} type")
-        
-        self.data_split = [np.int32(self.signal_dict['data']['R']), 
-                           np.int32(self.signal_dict['data']['G']), 
-                           np.int32(self.signal_dict['data']['B'])
-                           ]
-        self.objtype_split = [obj_type] + [10,10]
-        self._N_data_object = 1
-        self._N_data_channels = 3
-
-    def _split_surface(self,):
-        """Must set axes except Z, data_split & objtype_split attributes"""
-        obj_type = 2
-        if (self._n_ax_nav,self._n_ax_sig) in [(0,2),(2,0)]:
-            self.Xaxis = self.signal_dict['axes'][1]
-            self.Yaxis = self.signal_dict['axes'][0]
-        else:
-            raise MountainsMapFileError(f"Invalid ({self._n_ax_nav},{self._n_ax_sig}) for {self._mountains_object_types[obj_type]} type")
-        self.data_split = [self.signal_dict['data']]
-        self.objtype_split = [obj_type]
-        self._N_data_object = 1
-        self._N_data_channels = 1
-
-    def _split_intensitysurface(self,):
-        """Must set axes except Z, data_split & objtype_split attributes"""
-        obj_type = 10
-        if (self._n_ax_nav,self._n_ax_sig) in [(0,2),(2,0)]:
-            self.Xaxis = self.signal_dict['axes'][1]
-            self.Yaxis = self.signal_dict['axes'][0]
-        else:
-            raise MountainsMapFileError(f"Invalid ({self._n_ax_nav},{self._n_ax_sig}) for {self._mountains_object_types[obj_type]} type")
-        self.data_split = [self.signal_dict['data']]
-        self.objtype_split = [obj_type]
-        self._N_data_object = 1
-        self._N_data_channels = 1
-
-    def _split_rgbserie(self):
-        obj_type = 18 #"_SERIESOFRGBIMAGE"
-        
-        sigaxes_iter = iter(ax for ax in self.signal_dict['axes'] if not ax['navigate'])
-        self.Yaxis = next(sigaxes_iter)
-        self.Xaxis = next(sigaxes_iter)
-        self.Taxis = next(ax for ax in self.signal_dict['axes'] if ax['navigate'])
-        tmp_data_split = self._split_data_alongaxis(self.Taxis)
-
-        self.data_split = []
-        self.objtype_split = []
-        for d in tmp_data_split:
-            self.data_split += [d['R'].astype(np.int32), d['G'].astype(np.int32), d['B'].astype(np.int32)]
-            self.objtype_split += [12,10,10]
-        self.objtype_split[0] = obj_type
-        
-        self._N_data_object = self.Taxis['size']
-        self._N_data_channels = 3
-
-    def _split_surfaceserie(self):
-        obj_type = 5
-        sigaxes_iter = iter(ax for ax in self.signal_dict['axes'] if not ax['navigate'])
-        self.Yaxis = next(sigaxes_iter)
-        self.Xaxis = next(sigaxes_iter)
-        self.Taxis = next(ax for ax in self.signal_dict['axes'] if ax['navigate'])
-        self.data_split = self._split_data_alongaxis(self.Taxis)
-        self.objtype_split = [2]*len(self.data_split)
-        self.objtype_split[0] = obj_type
-        self._N_data_object = len(self.data_split)
-        self._N_data_channels = 1
-
-    def _split_hyperspectral(self):
-        obj_type = 21
-        sigaxes_iter = iter(ax for ax in self.signal_dict['axes'] if ax['navigate'])
-        self.Yaxis = next(sigaxes_iter)
-        self.Xaxis = next(sigaxes_iter)
-        self.Taxis = next(ax for ax in self.signal_dict['axes'] if not ax['navigate'])
-        self.data_split = [self.signal_dict['data']]
-        self.objtype_split = [obj_type]
-        self._N_data_object = 1
-        self._N_data_channels = 1
-
-    def _split_data_alongaxis(self, axis: dict) -> list[np.ndarray]:
-        idx = self.signal_dict['axes'].index(axis)
-        # return idx
-        datasplit = []
-        for dslice in np.rollaxis(self.signal_dict['data'],idx):
-            datasplit.append(dslice)
-        return datasplit
-
+    #Splitting /subclassing methods
     def _split_signal_dict(self):
         """Select the suitable _mountains_object_types """
         
@@ -875,10 +647,10 @@ class DigitalSurfHandler(object):
                 warnings.warn(f"A channel discarded upon saving \
                               RGBA signal in .sur format")
                 self._split_rgb()
-            elif self._is_surface(): #'_SURFACE'
-                self._split_surface()
+            # elif self._is_surface(): #'_SURFACE'
+            #     self._split_surface()
             else: # _INTENSITYSURFACE
-                self._split_intensitysurface()
+                self._split_surface()
         elif (n_nav,n_sig) == (1,0):
             warnings.warn(f"Exporting surface signal dimension {n_sig} and navigation dimension \
                           {n_nav} falls back on profile type but is not good practice. Consider \
@@ -894,7 +666,6 @@ class DigitalSurfHandler(object):
                 self._split_rgbserie()
             if is_rgba(self.signal_dict['data']):
                 warnings.warn(f"Alpha channel discarded upon saving RGBA signal in .sur format")
-                obj_type = 18 #"_SERIESOFRGBIMAGE"
                 self._split_rgbserie()
             else:
                 self._split_surfaceserie()
@@ -917,14 +688,187 @@ class DigitalSurfHandler(object):
         else:
             raise MountainsMapFileError(msg=f"Object with signal dimension {n_sig} and navigation dimension {n_nav} not supported for .sur export")
 
-    def _norm_data(self, data: np.ndarray, is_special: bool, apply_sat_lo: bool = False, apply_sat_hi: bool = False):
+    def _split_spectrum(self,):
+        """Set _Object_type, axes except Z, data_split, objtype_split _N_data_objects, _N_data_channels"""
+        #When splitting spectrum, no series axis (T/W),
+        #X axis is the spectral dimension and Y the series dimension (if series).
+        obj_type = 20
+        self._Object_type = self._mountains_object_types[obj_type]
+
+        nax_nav = self._n_ax_nav
+        nax_sig = self._n_ax_sig
+
+        if (nax_nav,nax_sig)==(0,1) or (nax_nav,nax_sig)==(1,0):
+            self.Xaxis = self.signal_dict['axes'][0]
+        elif (nax_nav,nax_sig)==(1,1):
+            self.Xaxis = next(ax for ax in self.signal_dict['axes'] if not ax['navigate'])
+            self.Yaxis = next(ax for ax in self.signal_dict['axes'] if ax['navigate'])
+        else:
+            raise MountainsMapFileError(f"Dimensions ({nax_nav})|{nax_sig}) invalid for export as spectrum type")
+        
+        self.data_split = [self.signal_dict['data']]
+        self.objtype_split = [obj_type]
+        self._N_data_objects = 1
+        self._N_data_channels = 1
+        
+    def _split_profile(self,):
+        """Set _Object_type, axes except Z, data_split, objtype_split _N_data_objects, _N_data_channels"""
+        
+        obj_type = 1
+        self._Object_type = self._mountains_object_types[obj_type]
+
+        if (self._n_ax_nav,self._n_ax_sig) in [(0,1),(1,0)]:
+            self.Xaxis = self.signal_dict['axes'][0]
+        else:
+            raise MountainsMapFileError(f"Invalid ({self._n_ax_nav},{self._n_ax_sig}) for a profile type")
+        
+        self.data_split = [self.signal_dict['data']]
+        self.objtype_split = [obj_type]
+        self._N_data_objects = 1
+        self._N_data_channels = 1
+
+    def _split_profileserie(self,):
+        """Set _Object_type, axes except Z, data_split, objtype_split _N_data_objects, _N_data_channels"""
+        obj_type = 4  # '_PROFILESERIE'
+        self._Object_type = self._mountains_object_types[obj_type]
+
+        if (self._n_ax_nav,self._n_ax_sig)==(1,1):
+            self.Xaxis = next(ax for ax in self.signal_dict['axes'] if not ax['navigate'])
+            self.Taxis = next(ax for ax in self.signal_dict['axes'] if ax['navigate'])
+        else:
+            raise MountainsMapFileError(f"Invalid ({self._n_ax_nav},{self._n_ax_sig}) for {self._Object_type} type")
+        
+        self.data_split = self._split_data_alongaxis(self.Taxis)
+        self.objtype_split = [obj_type] + [1]*(len(self.data_split)-1)
+        self._N_data_objects = len(self.objtype_split)
+        self._N_data_channels = 1
+
+    def _split_binary_img(self,):
+        """Set _Object_type, axes except Z, data_split, objtype_split _N_data_objects, _N_data_channels"""
+        obj_type = 3
+        self._Object_type = self._mountains_object_types[obj_type]
+
+        if (self._n_ax_nav,self._n_ax_sig) in [(0,2),(2,0)]:
+            self.Xaxis = self.signal_dict['axes'][1]
+            self.Yaxis = self.signal_dict['axes'][0]
+        else:
+            raise MountainsMapFileError(f"Invalid ({self._n_ax_nav},{self._n_ax_sig}) for {self._mountains_object_types[obj_type]} type")
+
+        self.data_split = [self.signal_dict['data']]
+        self.objtype_split = [obj_type]
+        self._N_data_objects = 1
+        self._N_data_channels = 1
+
+    def _split_rgb(self,):
+        """Set _Object_type, axes except Z, data_split, objtype_split _N_data_objects, _N_data_channels"""
+        obj_type = 12
+        self._Object_type = self._mountains_object_types[obj_type]
+        if (self._n_ax_nav,self._n_ax_sig) in [(0,2),(2,0)]:
+            self.Xaxis = self.signal_dict['axes'][1]
+            self.Yaxis = self.signal_dict['axes'][0]
+        else:
+            raise MountainsMapFileError(f"Invalid ({self._n_ax_nav},{self._n_ax_sig}) for {self._mountains_object_types[obj_type]} type")
+        
+        self.data_split = [np.int32(self.signal_dict['data']['R']), 
+                           np.int32(self.signal_dict['data']['G']), 
+                           np.int32(self.signal_dict['data']['B'])
+                           ]
+        self.objtype_split = [obj_type] + [10,10]
+        self._N_data_objects = 1
+        self._N_data_channels = 3
+
+    def _split_surface(self,):
+        """Set _Object_type, axes except Z, data_split, objtype_split _N_data_objects, _N_data_channels"""
+        obj_type = 2
+        self._Object_type = self._mountains_object_types[obj_type]
+        if (self._n_ax_nav,self._n_ax_sig) in [(0,2),(2,0)]:
+            self.Xaxis = self.signal_dict['axes'][1]
+            self.Yaxis = self.signal_dict['axes'][0]
+        else:
+            raise MountainsMapFileError(f"Invalid ({self._n_ax_nav},{self._n_ax_sig}) for {self._mountains_object_types[obj_type]} type")
+        self.data_split = [self.signal_dict['data']]
+        self.objtype_split = [obj_type]
+        self._N_data_objects = 1
+        self._N_data_channels = 1
+
+    def _split_intensitysurface(self,):
+        """Set _Object_type, axes except Z, data_split, objtype_split _N_data_objects, _N_data_channels"""
+        obj_type = 10
+        self._Object_type = self._mountains_object_types[obj_type]
+        if (self._n_ax_nav,self._n_ax_sig) in [(0,2),(2,0)]:
+            self.Xaxis = self.signal_dict['axes'][1]
+            self.Yaxis = self.signal_dict['axes'][0]
+        else:
+            raise MountainsMapFileError(f"Invalid ({self._n_ax_nav},{self._n_ax_sig}) for {self._mountains_object_types[obj_type]} type")
+        self.data_split = [self.signal_dict['data']]
+        self.objtype_split = [obj_type]
+        self._N_data_objects = 1
+        self._N_data_channels = 1
+
+    def _split_rgbserie(self):
+        """Set _Object_type, axes except Z, data_split, objtype_split _N_data_objects, _N_data_channels"""
+        obj_type = 18 #"_SERIESOFRGBIMAGE"
+        self._Object_type = self._mountains_object_types[obj_type]
+
+        sigaxes_iter = iter(ax for ax in self.signal_dict['axes'] if not ax['navigate'])
+        self.Yaxis = next(sigaxes_iter)
+        self.Xaxis = next(sigaxes_iter)
+        self.Taxis = next(ax for ax in self.signal_dict['axes'] if ax['navigate'])
+        tmp_data_split = self._split_data_alongaxis(self.Taxis)
+
+        self.data_split = []
+        self.objtype_split = []
+        for d in tmp_data_split:
+            self.data_split += [d['R'].astype(np.int32), d['G'].astype(np.int32), d['B'].astype(np.int32)]
+            self.objtype_split += [12,10,10]
+        self.objtype_split[0] = obj_type
+        
+        self._N_data_objects = self.Taxis['size']
+        self._N_data_channels = 3
+
+    def _split_surfaceserie(self):
+        """Set _Object_type, axes except Z, data_split, objtype_split _N_data_objects, _N_data_channels"""
+        obj_type = 5
+        self._Object_type = self._mountains_object_types[obj_type]
+        sigaxes_iter = iter(ax for ax in self.signal_dict['axes'] if not ax['navigate'])
+        self.Yaxis = next(sigaxes_iter)
+        self.Xaxis = next(sigaxes_iter)
+        self.Taxis = next(ax for ax in self.signal_dict['axes'] if ax['navigate'])
+        self.data_split = self._split_data_alongaxis(self.Taxis)
+        self.objtype_split = [2]*len(self.data_split)
+        self.objtype_split[0] = obj_type
+        self._N_data_objects = len(self.data_split)
+        self._N_data_channels = 1
+
+    def _split_hyperspectral(self):
+        """Set _Object_type, axes except Z, data_split, objtype_split _N_data_objects, _N_data_channels"""
+        obj_type = 21
+        self._Object_type = self._mountains_object_types[obj_type]
+        sigaxes_iter = iter(ax for ax in self.signal_dict['axes'] if ax['navigate'])
+        self.Yaxis = next(sigaxes_iter)
+        self.Xaxis = next(sigaxes_iter)
+        self.Taxis = next(ax for ax in self.signal_dict['axes'] if not ax['navigate'])
+        self.data_split = [self.signal_dict['data']]
+        self.objtype_split = [obj_type]
+        self._N_data_objects = 1
+        self._N_data_channels = 1
+
+    def _split_data_alongaxis(self, axis: dict) -> list[np.ndarray]:
+        """Split the data in a series of lower-dim datasets that can be exported to 
+        a surface / profile file"""
+        idx = self.signal_dict['axes'].index(axis)
+        # return idx
+        datasplit = []
+        for dslice in np.rollaxis(self.signal_dict['data'],idx):
+            datasplit.append(dslice)
+        return datasplit
+
+    def _norm_data(self, data: np.ndarray, is_special: bool):
         """Normalize input data to 16-bits or 32-bits ints and initialize an axis on which the data is normalized.
 
         Args:
             data (np.ndarray): dataset
-            is_special (bool): whether NaNs get sent to N.M points in the sur format.
-            apply_sat_lo (bool, optional): Signal low-value  saturation in output datafile. Defaults to False.
-            apply_sat_hi (bool, optional): Signal high-value saturation in output datafile. Defaults to False.
+            is_special (bool): whether NaNs get sent to N.M points in the sur format and apply saturation
 
         Raises:
             MountainsMapFileError: raised if input is of complex type
@@ -939,17 +883,17 @@ class DigitalSurfHandler(object):
         if np.issubdtype(data_type,np.complexfloating):
             raise MountainsMapFileError(f"digitalsurf file formats do not support export of complex data. Convert data to real-value representations before before export")
         elif data_type==np.uint8:
-            warnings.warn("np.uint8 datatype exported as 16bits")
-            pointsize = 16 #Pointsize has to be 16 or 32 in surf format
+            warnings.warn("np.uint8 datatype exported as np.int16.")
+            pointsize = 16
             Zmin, Zmax, Zscale, Zoffset = self._norm_signed_int(data.astype(np.int16), pointsize, is_special)
             data_int = data.astype(np.int16)
         elif data_type==np.uint16:
-            warnings.warn("np.uint16 datatype exported as 32bits")
+            warnings.warn("np.uint16 datatype exported as np.int32")
             pointsize = 32 #Pointsize has to be 16 or 32 in surf format
             Zmin, Zmax, Zscale, Zoffset = self._norm_signed_int(data.astype(np.int32), pointsize, is_special)
             data_int = data.astype(np.int32)
         elif np.issubdtype(data_type,np.unsignedinteger):
-            raise MountainsMapFileError(f"digitalsurf file formats do not support unsigned data >16bits. Convert data to signed integers before export.")
+            raise MountainsMapFileError(f"digitalsurf file formats do not support unsigned int >16bits. Convert data to signed integers before export.")
         elif data_type==np.int8:
             pointsize = 16 #Pointsize has to be 16 or 32 in surf format
             Zmin, Zmax, Zscale, Zoffset = self._norm_signed_int(data, 8, is_special)
@@ -965,16 +909,15 @@ class DigitalSurfHandler(object):
         elif np.issubdtype(data_type,np.integer):
             raise MountainsMapFileError(f"digitalsurf file formats do not support export integers larger than 32 bits. Convert data to 32-bit representation before exporting")
         elif np.issubdtype(data_type,np.floating):
-            if self.signal_dict['data'].itemsize*8 > 32:
-                warnings.warn(f"Lossy conversion of {data_type} to 32-bits-ints representation will occur.")
             pointsize = 32
             Zmin, Zmax, Zscale, Zoffset, data_int = self._norm_float(data, is_special)
 
         return pointsize, Zmin, Zmax, Zscale, Zoffset, data_int
 
     def _norm_signed_int(self, data:np.ndarray, intsize: int, is_special: bool = False):
+        """Normalized data of integer type. No normalization per se, but the Zmin and Zmax threshold are set 
+        if saturation needs to be flagged"""
         # There are no NaN values for integers. Special points means considering high/low saturation of integer scale.
-        
         data_int_min =  - 2**(intsize-1)
         data_int_max =  2**(intsize -1)
 
@@ -984,12 +927,13 @@ class DigitalSurfHandler(object):
         Zmin = data_int_min + 1 if is_satlo else data.min()
         Zmax = data_int_max - 1 if is_sathi else data.max()
         Zscale = 1.0
-        Zoffset = 0.0
+        Zoffset = Zmin
 
         return Zmin, Zmax, Zscale, Zoffset
 
     def _norm_float(self, data : np.ndarray, is_special: bool = False,):
-        """Normalize float data on a 32 bits int scale."""
+        """Normalize float data on a 32 bits int scale. Inherently lossy
+        but that's how things are with mountainsmap files. """
 
         Zoffset_f =  np.nanmin(data)
         Zmax_f =  np.nanmax(data)
@@ -1035,22 +979,6 @@ class DigitalSurfHandler(object):
 
         return Zname,Zunit
 
-    def _get_datetime_info(self,) -> tuple[int,int,int,int,int,int]:
-        date = self.signal_dict['metadata']['General'].get('date','')
-        time = self.signal_dict['metadata']['General'].get('time','')
-
-        try:
-            [yyyy,mm,dd] = date.strip().split('-')
-        except ValueError:
-            [yyyy,mm,dd] = [0,0,0]
-
-        try:
-            [hh,minmin,ss] = time.strip().strip('Z').slit(':')
-        except ValueError:
-            [hh,minmin,ss] = [0,0,0]
-        
-        return yyyy,mm,dd,hh,minmin,ss
-
     def _build_workdict(self,
                         data: np.ndarray,
                         obj_type: int,
@@ -1058,10 +986,13 @@ class DigitalSurfHandler(object):
                         comment: str = "",
                         is_special: bool = True,
                         compressed: bool = True,
+                        object_name: str = '',
                         operator_name: str = '',
+                        absolute: int = 0,
                         private_zone: bytes = b'',
                         client_zone: bytes = b''
                         ):
+        """Populate _work_dict with the """
 
         if not compressed:
             self._work_dict['_01_Signature']['value'] = 'DIGITAL SURF' # DSCOMPRESSED by default
@@ -1069,20 +1000,20 @@ class DigitalSurfHandler(object):
             self._work_dict['_01_Signature']['value'] = 'DSCOMPRESSED' # DSCOMPRESSED by default
 
         # self._work_dict['_02_Format']['value'] = 0 # Dft. other possible value is 257 for MacintoshII computers with Motorola CPUs. Obv not supported...
-        self._work_dict['_03_Number_of_Objects']['value'] = self._N_data_object
+        self._work_dict['_03_Number_of_Objects']['value'] = self._N_data_objects
         # self._work_dict['_04_Version']['value'] = 1 # Version number. Always default.
         self._work_dict['_05_Object_Type']['value'] = obj_type
-        # self._work_dict['_06_Object_Name']['value'] = '' Obsolete, DOS-version only (Not supported)
+        self._work_dict['_06_Object_Name']['value'] = object_name #Obsolete, DOS-version only (Not supported)
         self._work_dict['_07_Operator_Name']['value'] = operator_name #Should be settable from kwargs
         self._work_dict['_08_P_Size']['value'] = self._N_data_channels
 
-        # self._work_dict['_09_Acquisition_Type']['value'] = 0 # AFM data only, could be inferred
-        # self._work_dict['_10_Range_Type']['value'] = 0 #Only 1 for high-range (z-stage scanning), AFM data only, could be inferred
+        self._work_dict['_09_Acquisition_Type']['value'] = 0 # AFM data only, could be inferred
+        self._work_dict['_10_Range_Type']['value'] = 0 #Only 1 for high-range (z-stage scanning), AFM data only, could be inferred
                 
         self._work_dict['_11_Special_Points']['value'] = int(is_special)
 
-        # self._work_dict['_12_Absolute']['value'] = 0 #Probably irrelevant in most cases. Absolute vs rel heights (for profilometers), can be inferred
-        # self._work_dict['_13_Gauge_Resolution']['value'] = 0.0 #Probably irrelevant. Only for profilometers (maybe AFM), can be inferred
+        self._work_dict['_12_Absolute']['value'] = absolute #Probably irrelevant in most cases. Absolute vs rel heights (for profilometers), can be inferred
+        self._work_dict['_13_Gauge_Resolution']['value'] = 0.0 #Probably irrelevant. Only for profilometers (maybe AFM), can be inferred
 
         # T-axis acts as W-axis for spectrum / hyperspectrum surfaces.
         if obj_type in [21]:
@@ -1091,7 +1022,7 @@ class DigitalSurfHandler(object):
             ws = 0
         self._work_dict['_14_W_Size']['value'] = ws
 
-        bsize, Zmin, Zmax, Zscale, Zoffset, data_int = self._norm_data(data,is_special,apply_sat_lo=True,apply_sat_hi=True)
+        bsize, Zmin, Zmax, Zscale, Zoffset, data_int = self._norm_data(data,is_special)
         Zname, Zunit = self._get_Zname_Zunit(metadata)
 
         #Axes element set regardless of object size
@@ -1100,7 +1031,9 @@ class DigitalSurfHandler(object):
         self._work_dict['_17_Zmax']['value'] = Zmax
         self._work_dict['_18_Number_of_Points']['value']= self.Xaxis.get('size',1)
         self._work_dict['_19_Number_of_Lines']['value'] = self.Yaxis.get('size',1)
-        self._work_dict['_20_Total_Nb_of_Pts']['value'] = data.size
+        #This needs to be this way due to the way we export our hyp maps
+        self._work_dict['_20_Total_Nb_of_Pts']['value'] = self.Xaxis.get('size',1)*self.Yaxis.get('size',1)
+        
         self._work_dict['_21_X_Spacing']['value'] = self.Xaxis.get('scale',0.0)
         self._work_dict['_22_Y_Spacing']['value'] = self.Yaxis.get('scale',0.0)
         self._work_dict['_23_Z_Spacing']['value'] = Zscale 
@@ -1136,11 +1069,13 @@ class DigitalSurfHandler(object):
         
         if compressed:
             data_bin = self._compress_data(data_int,nstreams=1) #nstreams hard-set to 1. Could be unlocked in the future
+            compressed_size = len(data_bin)
         else:
-            fmt = "<h" if data_int.itemsize==16 else '<i' #select between short and long integers
+            fmt = "<h" if self._work_dict['_15_Size_of_Points']['value']==16 else '<i' #select between short and long integers
             data_bin = data_int.ravel().astype(fmt).tobytes()
+            compressed_size = 0
         
-        self._work_dict['_48_Compressed_data_size']['value'] = len(data_bin) #Obsolete in case of non-compressed
+        self._work_dict['_48_Compressed_data_size']['value'] = compressed_size #Obsolete in case of non-compressed
 
         # _49_Obsolete
 
@@ -1186,16 +1121,16 @@ class DigitalSurfHandler(object):
             # We append the first object to the content list
             self._append_work_dict_to_content()
             # Lookup how many objects are stored in the file and save
-            self._N_data_object = self._get_work_dict_key_value("_03_Number_of_Objects")
+            self._N_data_objects = self._get_work_dict_key_value("_03_Number_of_Objects")
             self._N_data_channels = self._get_work_dict_key_value("_08_P_Size")
 
             # Determine how many objects we need to read
-            if self._N_data_channels > 0 and self._N_data_object > 0:
-                n_objects_to_read = self._N_data_channels * self._N_data_object
+            if self._N_data_channels > 0 and self._N_data_objects > 0:
+                n_objects_to_read = self._N_data_channels * self._N_data_objects
             elif self._N_data_channels > 0:
                 n_objects_to_read = self._N_data_channels
-            elif self._N_data_object > 0:
-                n_objects_to_read = self._N_data_object
+            elif self._N_data_objects > 0:
+                n_objects_to_read = self._N_data_objects
             else:
                 n_objects_to_read = 1
 
@@ -1626,7 +1561,7 @@ class DigitalSurfHandler(object):
         original_metadata_dict = {}
 
         # Iteration over Number of data objects
-        for i in range(self._N_data_object):
+        for i in range(self._N_data_objects):
             # Iteration over the Number of Data channels
             for j in range(max(self._N_data_channels,1)):
                 # Creating a dictionary key for each object
@@ -2009,8 +1944,21 @@ class DigitalSurfHandler(object):
             )
 
         return signal
-
     # pack/unpack binary quantities
+
+    @staticmethod
+    def _get_uint16(file, default=None):
+        """Read a 16-bits int with a user-definable default value if
+        no file is given"""
+        if file is None:
+            return default
+        b = file.read(2)
+        return struct.unpack("<H", b)[0]
+
+    @staticmethod
+    def _set_uint16(file, val):
+        file.write(struct.pack("<H", val))
+
     @staticmethod
     def _get_int16(file, default=None):
         """Read a 16-bits int with a user-definable default value if
@@ -2018,10 +1966,7 @@ class DigitalSurfHandler(object):
         if file is None:
             return default
         b = file.read(2)
-        if sys.byteorder == "big":
-            return struct.unpack(">h", b)[0]
-        else:
-            return struct.unpack("<h", b)[0]
+        return struct.unpack("<h", b)[0]
 
     @staticmethod
     def _set_int16(file, val):
@@ -2127,12 +2072,23 @@ class DigitalSurfHandler(object):
         else:
             return False
 
+    def _get_uncompressed_datasize(self) -> int:
+        """Return size of uncompressed data in bytes"""
+        psize = int(self._get_work_dict_key_value("_15_Size_of_Points") / 8)
+        # Datapoints in X and Y dimensions
+        Npts_tot = self._get_work_dict_key_value("_20_Total_Nb_of_Pts")
+        # Datasize in WL. max between value and 1 as often W_Size saved as 0
+        Wsize = max(self._get_work_dict_key_value("_14_W_Size"),1)
+        # Wsize = 1
+        
+        datasize = Npts_tot * Wsize * psize
+
+        return datasize
+
     def _unpack_data(self, file, encoding="latin-1"):
 
         # Size of datapoints in bytes. Always int16 (==2) or 32 (==4)
         psize = int(self._get_work_dict_key_value("_15_Size_of_Points") / 8)
-        Zmin = self._get_work_dict_key_value("_16_Zmin")
-
         dtype = np.int16 if psize == 2 else np.int32
 
         if self._get_work_dict_key_value("_01_Signature") != "DSCOMPRESSED":
@@ -2142,17 +2098,17 @@ class DigitalSurfHandler(object):
             # Datapoints in X and Y dimensions
             Npts_tot = self._get_work_dict_key_value("_20_Total_Nb_of_Pts")
             # Datasize in WL
-            Wsize = self._get_work_dict_key_value("_14_W_Size")
+            Wsize = max(self._get_work_dict_key_value("_14_W_Size"),1)
 
             # We need to take into account the fact that Wsize is often
             # set to 0 instead of 1 in non-spectral data to compute the
             # space occupied by data in the file
-            readsize = Npts_tot * psize
-            if Wsize != 0:
-                readsize *= Wsize
-
+            readsize = Npts_tot * psize * Wsize
+            # if Wsize != 0:
+            #     readsize *= Wsize
+            buf = file.read(readsize)
             # Read the exact size of the data
-            _points = np.frombuffer(file.read(readsize), dtype=dtype)
+            _points = np.frombuffer(buf, dtype=dtype)
 
         else:
             # If the points are compressed do the uncompress magic. There
@@ -2184,8 +2140,9 @@ class DigitalSurfHandler(object):
         if self._get_work_dict_key_value("_11_Special_Points") == 1:
             # has non-measured points
             nm = _points == self._get_work_dict_key_value("_16_Zmin") - 2
-
-        _points = (_points.astype(float) - Zmin) * self._get_work_dict_key_value("_23_Z_Spacing") * self._get_work_dict_key_value("_35_Z_Unit_Ratio") + self._get_work_dict_key_value("_55_Z_Offset")
+        
+        Zmin = self._get_work_dict_key_value("_16_Zmin")
+        _points = (_points.astype(float) - Zmin)*self._get_work_dict_key_value("_23_Z_Spacing") * self._get_work_dict_key_value("_35_Z_Unit_Ratio") + self._get_work_dict_key_value("_55_Z_Offset")
 
         # We set the point in the numeric scale
         if self._is_data_int():
@@ -2199,7 +2156,10 @@ class DigitalSurfHandler(object):
     def _pack_data(self, file, val, encoding="latin-1"):
         """This needs to be special because it writes until the end of file."""
         #Also valid for uncompressed
-        datasize = self._get_work_dict_key_value('_48_Compressed_data_size')
+        if self._get_work_dict_key_value("_01_Signature") != "DSCOMPRESSED":
+            datasize = self._get_uncompressed_datasize()
+        else:
+            datasize = self._get_work_dict_key_value('_48_Compressed_data_size')
         self._set_bytes(file,val,datasize)
 
     @staticmethod
@@ -2286,8 +2246,14 @@ def file_writer(filename, signal: dict, **kwds):
     comments: dict, default = {}
         Set a custom dictionnary in the comments field of the exported file. 
         Ignored if set_comments is not set to 'custom'. 
+    object_name: str, default = ''
+        Set the object name field in the output file
     operator_name: str, default = ''
         Set the operator name field in the exported file.
+    absolute: int, default = 0,
+        Unsigned int capable of flagging whether surface heights are relative (0) or
+        absolute (1). Higher unsigned int values can be used to distinguish several 
+        data series sharing internal reference
     private_zone: bytes, default = b'',
         Set arbitrary byte-content in the private_zone field of exported file metadata. 
         Maximum size is 32.0 kB and content will be cropped if this size is exceeded
@@ -2301,5 +2267,5 @@ def file_writer(filename, signal: dict, **kwds):
     ds._build_sur_file_contents(**kwds)
     ds._write_sur_file()
 
-
-file_reader.__doc__ %= (FILENAME_DOC,SIGNAL_DOC)
+file_reader.__doc__ %= (FILENAME_DOC,LAZY_UNSUPPORTED_DOC,RETURNS_DOC)
+file_writer.__doc__ %= (FILENAME_DOC,SIGNAL_DOC)

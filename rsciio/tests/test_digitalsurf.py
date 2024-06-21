@@ -409,7 +409,7 @@ def test_load_spectrum():
 
 
 def test_load_surface():
-    fname = TEST_DATA_PATH / "test_surface.sur"
+    fname = TEST_DATA_PATH / "test_isurface.sur"
     s = hs.load(fname)
     md = s.metadata
     assert md.Signal.quantity == "CL Intensity (a.u.)"
@@ -495,19 +495,7 @@ def test_metadata_mapping():
             "exit_slit_width"
         ]
         == 7000
-    )
-
-
-def test_get_n_obj_chn():
-
-    omd = {"Object_0_Channel_0":{},
-           "Object_1_Channel_0":{},
-           "Object_2_Channel_0":{},
-           "Object_2_Channel_1":{},
-           "Object_2_Channel_2":{},
-           "Object_3_Channel_0":{},}
-
-    assert DigitalSurfHandler._get_nobjects(omd)==3
+        )
 
 
 def test_compressdata():
@@ -545,43 +533,48 @@ def test_compressdata():
 
 
 def test_get_comment_dict():
-    tdh = DigitalSurfHandler()
-    tdh.signal_dict={'original_metadata':{
-        'Object_0_Channel_0':{
+    omd={'Object_0_Channel_0':{
             'Parsed':{
                 'key_1': 1,
                 'key_2':'2'
             }
         }
-    }}
+    }
 
-    assert tdh._get_comment_dict('auto')=={'key_1': 1,'key_2':'2'}
-    assert tdh._get_comment_dict('off')=={}
-    assert tdh._get_comment_dict('raw')=={'Object_0_Channel_0':{'Parsed':{'key_1': 1,'key_2':'2'}}}
-    assert tdh._get_comment_dict('custom',custom={'a':0}) == {'a':0}
+    assert DigitalSurfHandler._get_comment_dict(omd,'auto')=={'key_1': 1,'key_2':'2'}
+    assert DigitalSurfHandler._get_comment_dict(omd,'off')=={}
+    assert DigitalSurfHandler._get_comment_dict(omd,'raw')=={'Object_0_Channel_0':{'Parsed':{'key_1': 1,'key_2':'2'}}}
+    assert DigitalSurfHandler._get_comment_dict(omd,'custom',custom={'a':0}) == {'a':0}
 
     #Goes to second dict if only this one's valid
-    tdh.signal_dict={'original_metadata':{
+    omd={
         'Object_0_Channel_0':{'Header':{}},
         'Object_0_Channel_1':{'Header':'ObjHead','Parsed':{'key_1': '0'}},
-    }}
-    assert tdh._get_comment_dict('auto') == {'key_1': '0'}
+    }
+    assert DigitalSurfHandler._get_comment_dict(omd, 'auto') == {'key_1': '0'}
 
     #Return empty if none valid
-    tdh.signal_dict={'original_metadata':{
+    omd={
         'Object_0_Channel_0':{'Header':{}},
         'Object_0_Channel_1':{'Header':'ObjHead'},
-    }}
-    assert tdh._get_comment_dict('auto') == {}
+    }
+    assert DigitalSurfHandler._get_comment_dict(omd,'auto') == {}
 
     #Return dict-cast if a single field is named 'Parsed' (weird case)
-    tdh.signal_dict={'original_metadata':{
+    omd={
         'Object_0_Channel_0':{'Header':{}},
         'Object_0_Channel_1':{'Header':'ObjHead','Parsed':'SomeContent'},
-    }}
-    assert tdh._get_comment_dict('auto') == {'Parsed':'SomeContent'}
+    }
+    assert DigitalSurfHandler._get_comment_dict(omd,'auto') == {'Parsed':'SomeContent'}
 
-@pytest.mark.parametrize("test_object", ["test_profile.pro", "test_spectra.pro", "test_spectral_map.sur", "test_spectral_map_compressed.sur", "test_spectrum.pro", "test_spectrum_compressed.pro", "test_surface.sur"])
+
+@pytest.mark.parametrize("test_object", ["test_profile.pro", 
+                                         "test_spectra.pro", 
+                                         "test_spectral_map.sur", 
+                                         "test_spectral_map_compressed.sur", 
+                                         "test_spectrum.pro", 
+                                         "test_spectrum_compressed.pro", 
+                                         "test_isurface.sur"])
 def test_writetestobjects(tmp_path,test_object):
     """Test data integrity of load/save functions. Starting from externally-generated data (i.e. not from hyperspy)"""
 
@@ -613,8 +606,33 @@ def test_writetestobjects(tmp_path,test_object):
         assert np.allclose(ax.axis,ax2.axis)
         assert np.allclose(ax.axis,ax3.axis)
 
+@pytest.mark.parametrize("test_tuple ", [("test_profile.pro",'_PROFILE'),
+                                         ("test_spectra.pro",'_SPECTRUM'),
+                                         ("test_spectral_map.sur",'_HYPCARD'),
+                                         ("test_spectral_map_compressed.sur",'_HYPCARD'), 
+                                         ("test_spectrum.pro",'_SPECTRUM'),
+                                         ("test_spectrum_compressed.pro",'_SPECTRUM'),
+                                         ("test_surface.sur",'_SURFACE'),
+                                         ('test_RGB.sur','_RGBIMAGE')])
+def test_split(test_tuple):
+    """Test for expected object type in the reference dataset"""
+    obj = test_tuple[0]
+    res = test_tuple[1]
+
+    df = TEST_DATA_PATH.joinpath(obj)
+    dh= DigitalSurfHandler(obj)
+
+    d = hs.load(df)
+    dh.signal_dict = d._to_dictionary()
+    dh._n_ax_nav, dh._n_ax_sig = dh._get_n_axes(dh.signal_dict)
+    dh._split_signal_dict()
+
+    assert dh._Object_type == res
+
 def test_writeRGB(tmp_path):
-    
+    # This is just a different test function because the
+    # comparison of rgb data must be done differently 
+    # (due to hyperspy underlying structure)
     df = TEST_DATA_PATH.joinpath("test_RGB.sur")
     d = hs.load(df)
     fn = tmp_path.joinpath("test_RGB.sur")
@@ -644,8 +662,12 @@ def test_writeRGB(tmp_path):
         assert np.allclose(ax.axis,ax3.axis)
 
 @pytest.mark.parametrize("dtype", [np.int16, np.int32, np.float64, np.uint8, np.uint16])
-def test_writegeneric_validtypes(tmp_path,dtype):
-
+@pytest.mark.parametrize('compressed',[True,False])
+def test_writegeneric_validtypes(tmp_path,dtype,compressed):
+    """This test establish"""
     gen = hs.signals.Signal1D(np.arange(24,dtype=dtype))+25
     fgen = tmp_path.joinpath('test.pro')
-    gen.save(fgen,overwrite=True)
+    gen.save(fgen,compressed = compressed, overwrite=True)
+
+    gen2 = hs.load(fgen)
+    assert np.allclose(gen2.data,gen.data)

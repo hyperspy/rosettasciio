@@ -118,17 +118,30 @@ jobs:
           pip install git+https://github.com/hyperspy/hyperspy.git
           pip install git+https://github.com/hyperspy/exspy.git
 
-      - name: Install latest python-box
-        # When installing hyperspy, python-box 6 is installed (rosettasciio pinning)
-        # Remove when rosettasciio >0.4.0 is released
-        if: ${{ ! contains(matrix.LABEL, 'oldest') }}
+      - name: Install pint and python-mrcz dev
+        # for numpy 2.0 support for python >= 3.9
+        # https://github.com/em-MRCZ/python-mrcz/pull/15
+        # https://github.com/hgrecco/pint/issues/1974
+        if: ${{ ! contains(matrix.LABEL, 'oldest') && matrix.PYTHON_VERSION != '3.8' }}
         run: |
-          pip install --upgrade python-box
+          pip install git+https://github.com/ericpre/python-mrcz.git@numpy2.0_and_deprecation_fixes
+          pip install git+https://github.com/hgrecco/pint
 
       - name: Install
         shell: bash
         run: |
           pip install --upgrade -e .'${{ env.PIP_SELECTOR }}'
+
+      - name: Uninstall pyUSID
+        # remove when pyUSID supports numpy 2 
+        if: ${{ ! contains(matrix.LABEL, 'oldest') && matrix.PYTHON_VERSION != '3.8' }}
+        run: |
+          pip uninstall -y pyUSID
+
+      - name: Install numpy 2.0 
+        if: ${{ ! contains(matrix.LABEL, 'oldest') && matrix.PYTHON_VERSION != '3.8' }}
+        run: |
+          pip install numpy==2
 
       - name: Pip list
         run: |

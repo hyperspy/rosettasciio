@@ -606,6 +606,7 @@ def test_writetestobjects(tmp_path,test_object):
         assert np.allclose(ax.axis,ax2.axis)
         assert np.allclose(ax.axis,ax3.axis)
 
+
 @pytest.mark.parametrize("test_tuple ", [("test_profile.pro",'_PROFILE'),
                                          ("test_spectra.pro",'_SPECTRUM'),
                                          ("test_spectral_map.sur",'_HYPCARD'),
@@ -661,13 +662,104 @@ def test_writeRGB(tmp_path):
         assert np.allclose(ax.axis,ax2.axis)
         assert np.allclose(ax.axis,ax3.axis)
 
-@pytest.mark.parametrize("dtype", [np.int16, np.int32, np.float64, np.uint8, np.uint16])
+@pytest.mark.parametrize("dtype", [np.int8, np.int16, np.int32, np.float64, np.uint8, np.uint16])
 @pytest.mark.parametrize('compressed',[True,False])
 def test_writegeneric_validtypes(tmp_path,dtype,compressed):
-    """This test establish"""
+    """This test establishes the capability of saving a generic hyperspy signals 
+    generated from numpy array"""
     gen = hs.signals.Signal1D(np.arange(24,dtype=dtype))+25
     fgen = tmp_path.joinpath('test.pro')
     gen.save(fgen,compressed = compressed, overwrite=True)
 
     gen2 = hs.load(fgen)
     assert np.allclose(gen2.data,gen.data)
+
+@pytest.mark.parametrize("dtype", [np.int64, np.complex64, np.uint64, ])
+def test_writegeneric_failingtypes(tmp_path,dtype):
+    gen = hs.signals.Signal1D(np.arange(24,dtype=dtype))+25
+    fgen = tmp_path.joinpath('test.pro')
+    with pytest.raises(MountainsMapFileError):
+        gen.save(fgen,overwrite= True)
+
+@pytest.mark.parametrize("dtype", [(np.uint8,"rgba8"), (np.uint16,"rgba16")])
+@pytest.mark.parametrize('compressed',[True,False])
+@pytest.mark.parametrize('transpose',[True,False])
+def test_writegeneric_rgba(tmp_path,dtype,compressed,transpose):
+    """This test establishes the possibility of saving RGBA data while discarding 
+    A channel and warning"""
+    size = (17,38,4)
+    maxint = np.iinfo(dtype[0]).max
+
+    gen = hs.signals.Signal1D(np.random.randint(low=0,high=maxint,size=size,dtype=dtype[0]))
+    gen.change_dtype(dtype[1])
+
+    fgen = tmp_path.joinpath('test.sur')
+    
+    if transpose:
+        gen = gen.T
+
+    with pytest.warns():
+        gen.save(fgen,compressed = compressed, overwrite=True)
+
+    gen2 = hs.load(fgen)
+
+    for k in ['R','G','B']:
+        assert np.allclose(gen.data[k],gen2.data[k])
+        assert np.allclose(gen.data[k],gen2.data[k])
+
+@pytest.mark.parametrize('compressed',[True,False])
+@pytest.mark.parametrize('transpose',[True,False])
+def test_writegeneric_binaryimg(tmp_path,compressed,transpose):
+    
+    size = (76,3)
+
+    gen = hs.signals.Signal2D(np.random.randint(low=0,high=1,size=size,dtype=bool))
+
+    fgen = tmp_path.joinpath('test.sur')
+    
+    if transpose:
+        gen = gen.T
+        with pytest.warns():
+            gen.save(fgen,compressed = compressed, overwrite=True)
+    else:
+        gen.save(fgen,compressed = compressed, overwrite=True)
+
+    gen2 = hs.load(fgen)
+
+    assert np.allclose(gen.data,gen2.data)
+
+@pytest.mark.parametrize('compressed',[True,False])
+def test_writegeneric_profileseries(tmp_path,compressed):    
+
+    size = (9,655)
+
+    gen = hs.signals.Signal1D(np.random.random(size=size)*1444+2550.)
+    fgen = tmp_path.joinpath('test.pro')
+    
+    gen.save(fgen,compressed = compressed, overwrite=True)
+
+    gen2 = hs.load(fgen)
+
+    assert np.allclose(gen.data,gen2.data)
+
+
+@pytest.mark.parametrize("dtype", [(np.uint8,"rgb8"), (np.uint16,"rgb16")])
+@pytest.mark.parametrize('compressed',[True,False])
+def test_writegeneric_rgbseries(tmp_path,dtype,compressed):
+    """This test establishes the possibility of saving RGBA data while discarding 
+    A channel and warning"""
+    size = (5,44,24,3)
+    maxint = np.iinfo(dtype[0]).max
+
+    gen = hs.signals.Signal1D(np.random.randint(low=0,high=maxint,size=size,dtype=dtype[0]))
+    gen.change_dtype(dtype[1])
+
+    fgen = tmp_path.joinpath('test.sur')
+
+    gen.save(fgen,compressed = compressed, overwrite=True)
+
+    gen2 = hs.load(fgen)
+
+    for k in ['R','G','B']:
+        assert np.allclose(gen.data[k],gen2.data[k])
+        assert np.allclose(gen.data[k],gen2.data[k])

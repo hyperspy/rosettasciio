@@ -606,7 +606,6 @@ def test_writetestobjects(tmp_path,test_object):
         assert np.allclose(ax.axis,ax2.axis)
         assert np.allclose(ax.axis,ax3.axis)
 
-
 @pytest.mark.parametrize("test_tuple ", [("test_profile.pro",'_PROFILE'),
                                          ("test_spectra.pro",'_SPECTRUM'),
                                          ("test_spectral_map.sur",'_HYPCARD'),
@@ -629,6 +628,38 @@ def test_split(test_tuple):
     dh._split_signal_dict()
 
     assert dh._Object_type == res
+
+@pytest.mark.parametrize("dtype", [np.int8, np.int16, np.int32, np.uint8, np.uint16])
+@pytest.mark.parametrize('special',[True,False])
+@pytest.mark.parametrize('fullscale',[True,False])
+def test_norm_int_data(dtype,special,fullscale):
+    dh = DigitalSurfHandler()
+    
+    if fullscale:
+        minint = np.iinfo(dtype).min
+        maxint = np.iinfo(dtype).max
+    else:
+        minint = np.iinfo(dtype).min + 23
+        maxint = np.iinfo(dtype).max - 9
+
+    dat = np.random.randint(low=minint,high=maxint,size=222,dtype=dtype)
+    #Ensure the maximum and minimum off the int scale is actually present in data
+    if fullscale:
+        dat[2] = minint
+        dat[11] = maxint
+
+    pointsize, Zmin, Zmax, Zscale, Zoffset, data_int = dh._norm_data(dat,special)
+
+    off = minint+1 if special and fullscale else dat.min()
+    maxval = maxint-1 if special and fullscale else dat.max()
+
+    assert np.isclose(Zscale,1.0)
+    assert np.isclose(Zoffset,off)
+    assert np.allclose(data_int,dat)
+    assert Zmin==off
+    assert Zmax==maxval
+
+
 
 def test_writeRGB(tmp_path):
     # This is just a different test function because the
@@ -688,9 +719,10 @@ def test_writegeneric_rgba(tmp_path,dtype,compressed,transpose):
     """This test establishes the possibility of saving RGBA data while discarding 
     A channel and warning"""
     size = (17,38,4)
+    minint = np.iinfo(dtype[0]).min
     maxint = np.iinfo(dtype[0]).max
 
-    gen = hs.signals.Signal1D(np.random.randint(low=0,high=maxint,size=size,dtype=dtype[0]))
+    gen = hs.signals.Signal1D(np.random.randint(low=minint,high=maxint,size=size,dtype=dtype[0]))
     gen.change_dtype(dtype[1])
 
     fgen = tmp_path.joinpath('test.sur')
@@ -746,12 +778,12 @@ def test_writegeneric_profileseries(tmp_path,compressed):
 @pytest.mark.parametrize("dtype", [(np.uint8,"rgb8"), (np.uint16,"rgb16")])
 @pytest.mark.parametrize('compressed',[True,False])
 def test_writegeneric_rgbseries(tmp_path,dtype,compressed):
-    """This test establishes the possibility of saving RGBA data while discarding 
-    A channel and warning"""
+    """This test establishes the possibility of saving RGB surface series"""
     size = (5,44,24,3)
+    minint = np.iinfo(dtype[0]).min
     maxint = np.iinfo(dtype[0]).max
 
-    gen = hs.signals.Signal1D(np.random.randint(low=0,high=maxint,size=size,dtype=dtype[0]))
+    gen = hs.signals.Signal1D(np.random.randint(low=minint,high=maxint,size=size,dtype=dtype[0]))
     gen.change_dtype(dtype[1])
 
     fgen = tmp_path.joinpath('test.sur')
@@ -762,4 +794,49 @@ def test_writegeneric_rgbseries(tmp_path,dtype,compressed):
 
     for k in ['R','G','B']:
         assert np.allclose(gen.data[k],gen2.data[k])
+
+
+@pytest.mark.parametrize("dtype", [(np.uint8,"rgba8"), (np.uint16,"rgba16")])
+@pytest.mark.parametrize('compressed',[True,False])
+def test_writegeneric_rgbaseries(tmp_path,dtype,compressed):
+    """This test establishes the possibility of saving RGBA data while discarding 
+    A channel and warning"""
+    size = (5,44,24,4)
+    minint = np.iinfo(dtype[0]).min
+    maxint = np.iinfo(dtype[0]).max
+
+    gen = hs.signals.Signal1D(np.random.randint(low=minint,high=maxint,size=size,dtype=dtype[0]))
+    gen.change_dtype(dtype[1])
+
+    fgen = tmp_path.joinpath('test.sur')
+
+    with pytest.warns():
+        gen.save(fgen,compressed = compressed, overwrite=True)
+
+    gen2 = hs.load(fgen)
+
+    for k in ['R','G','B']:
         assert np.allclose(gen.data[k],gen2.data[k])
+
+
+@pytest.mark.parametrize("dtype", [np.int16, np.int32, np.float64])
+@pytest.mark.parametrize("compressed",[True,False])
+def test_writegeneric_surfaceseries(tmp_path,dtype,compressed):
+    """This test establishes the possibility of saving RGBA surface series while discarding 
+    A channel and warning"""
+    size = (9,44,58)
+
+    if np.issubdtype(dtype,np.integer):
+        minint = np.iinfo(dtype).min
+        maxint = np.iinfo(dtype).max
+        gen = hs.signals.Signal2D(np.random.randint(low=minint,high=maxint,size=size,dtype=dtype))
+    else:
+        gen = hs.signals.Signal2D(np.random.random(size=size).astype(dtype)*1e6)
+
+    fgen = tmp_path.joinpath('test.sur')
+
+    gen.save(fgen,compressed = compressed, overwrite=True)
+
+    gen2 = hs.load(fgen)
+
+    assert np.allclose(gen.data,gen2.data)

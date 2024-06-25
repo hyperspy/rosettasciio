@@ -49,7 +49,7 @@ import numpy as np
 # from hyperspy.misc.utils import DictionaryTreeBrowser
 from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC, SIGNAL_DOC
 from rsciio.utils.exceptions import MountainsMapFileError
-from rsciio.utils.rgb_tools import is_rgb, is_rgba, rgbx2regular_array
+from rsciio.utils.rgb_tools import is_rgb, is_rgba
 from rsciio.utils.date_time_tools import get_date_time_from_metadata
 
 _logger = logging.getLogger(__name__)
@@ -480,37 +480,6 @@ class DigitalSurfHandler(object):
                 for key in self._work_dict:
                     self._work_dict[key]['b_pack_fn'](f,self._work_dict[key]['value']) 
 
-    def _validate_filename(self):
-
-        sur_only = ['_SURFACE',
-                    '_BINARYIMAGE',
-                    '_SURFACESERIE',
-                    '_MULTILAYERSURFACE',
-                    '_INTENSITYIMAGE',
-                    '_INTENSITYSURFACE',
-                    '_RGBIMAGE',
-                    '_RGBSURFACE',
-                    '_RGBINTENSITYSURFACE',
-                    '_SERIESOFRGBIMAGES',
-                    '_HYPCARD']
-
-        pro_only = ['_PROFILE',
-                    '_PROFILESERIE',
-                    '_MULTILAYERPROFILE',
-                    '_FORCECURVE',
-                    '_SERIEOFFORCECURVE',
-                    '_CONTOURPROFILE',
-                    '_SPECTRUM',
-                    ]
-
-        if self._Object_type in sur_only and not self.filename.lower().endswith('sur'):
-            raise MountainsMapFileError(f"Attempting save of DigitalSurf {self._Object_type} with\
-                                        .{self.filename.split('.')[-1]} extension, which only supports .sur")
-
-        if self._Object_type in pro_only and not self.filename.lower().endswith('pro'):
-            raise MountainsMapFileError(f"Attempting save of DigitalSurf {self._Object_type} with\
-                                        .{self.filename.split('.')[-1]} extension, which only supports .pro")
-
     def _build_sur_file_contents(self,
                                  set_comments:str='auto',
                                  is_special:bool=False,
@@ -573,7 +542,7 @@ class DigitalSurfHandler(object):
    
     #Signal dictionary analysis methods
     @staticmethod
-    def _get_n_axes(sig_dict: dict) -> tuple[int,int]:
+    def _get_n_axes(sig_dict: dict):
         """Return number of navigation and signal axes in the signal dict (in that order).
         Could be moved away from the .sur api as other functions probably use this as well
 
@@ -711,11 +680,8 @@ class DigitalSurfHandler(object):
         obj_type = 4  # '_PROFILESERIE'
         self._Object_type = self._mountains_object_types[obj_type]
 
-        if (self._n_ax_nav,self._n_ax_sig)==(1,1):
-            self.Xaxis = next(ax for ax in self.signal_dict['axes'] if not ax['navigate'])
-            self.Taxis = next(ax for ax in self.signal_dict['axes'] if ax['navigate'])
-        else:
-            raise MountainsMapFileError(f"Invalid ({self._n_ax_nav},{self._n_ax_sig}) for {self._Object_type} type")
+        self.Xaxis = next(ax for ax in self.signal_dict['axes'] if not ax['navigate'])
+        self.Taxis = next(ax for ax in self.signal_dict['axes'] if ax['navigate'])
         
         self.data_split = self._split_data_alongaxis(self.Taxis)
         self.objtype_split = [obj_type] + [1]*(len(self.data_split)-1)
@@ -727,11 +693,8 @@ class DigitalSurfHandler(object):
         obj_type = 3
         self._Object_type = self._mountains_object_types[obj_type]
 
-        if (self._n_ax_nav,self._n_ax_sig) in [(0,2),(2,0)]:
-            self.Xaxis = self.signal_dict['axes'][1]
-            self.Yaxis = self.signal_dict['axes'][0]
-        else:
-            raise MountainsMapFileError(f"Invalid ({self._n_ax_nav},{self._n_ax_sig}) for {self._mountains_object_types[obj_type]} type")
+        self.Xaxis = self.signal_dict['axes'][1]
+        self.Yaxis = self.signal_dict['axes'][0]
 
         self.data_split = [self.signal_dict['data']]
         self.objtype_split = [obj_type]
@@ -816,7 +779,7 @@ class DigitalSurfHandler(object):
         self._N_data_objects = 1
         self._N_data_channels = 1
 
-    def _split_data_alongaxis(self, axis: dict) -> list[np.ndarray]:
+    def _split_data_alongaxis(self, axis: dict):
         """Split the data in a series of lower-dim datasets that can be exported to 
         a surface / profile file"""
         idx = self.signal_dict['axes'].index(axis)
@@ -855,27 +818,27 @@ class DigitalSurfHandler(object):
         elif data_type==np.uint8:
             warnings.warn("np.uint8 datatype exported as np.int16.")
             pointsize = 16
-            Zmin, Zmax, Zscale, Zoffset = self._norm_signed_int(data.astype(np.int16), pointsize, is_special)
+            Zmin, Zmax, Zscale, Zoffset = self._norm_signed_int(data, is_special)
             data_int = data.astype(np.int16)
         elif data_type==np.uint16:
             warnings.warn("np.uint16 datatype exported as np.int32")
             pointsize = 32 #Pointsize has to be 16 or 32 in surf format
-            Zmin, Zmax, Zscale, Zoffset = self._norm_signed_int(data.astype(np.int32), pointsize, is_special)
+            Zmin, Zmax, Zscale, Zoffset = self._norm_signed_int(data, is_special)
             data_int = data.astype(np.int32)
         elif np.issubdtype(data_type,np.unsignedinteger):
             raise MountainsMapFileError(f"digitalsurf file formats do not support unsigned int >16bits. Convert data to signed integers before export.")
         elif data_type==np.int8:
             pointsize = 16 #Pointsize has to be 16 or 32 in surf format
-            Zmin, Zmax, Zscale, Zoffset = self._norm_signed_int(data, 8, is_special)
+            Zmin, Zmax, Zscale, Zoffset = self._norm_signed_int(data, is_special)
             data_int = data.astype(np.int16)
         elif data_type==np.int16:
             pointsize = 16
-            Zmin, Zmax, Zscale, Zoffset = self._norm_signed_int(data, pointsize, is_special)
+            Zmin, Zmax, Zscale, Zoffset = self._norm_signed_int(data, is_special)
             data_int = data
         elif data_type==np.int32:
             pointsize = 32
             data_int = data
-            Zmin, Zmax, Zscale, Zoffset = self._norm_signed_int(data, pointsize, is_special)
+            Zmin, Zmax, Zscale, Zoffset = self._norm_signed_int(data, is_special)
         elif np.issubdtype(data_type,np.integer):
             raise MountainsMapFileError(f"digitalsurf file formats do not support export integers larger than 32 bits. Convert data to 32-bit representation before exporting")
         elif np.issubdtype(data_type,np.floating):
@@ -884,12 +847,12 @@ class DigitalSurfHandler(object):
 
         return pointsize, Zmin, Zmax, Zscale, Zoffset, data_int
 
-    def _norm_signed_int(self, data:np.ndarray, intsize: int, is_special: bool = False):
-        """Normalized data of integer type. No normalization per se, but the Zmin and Zmax threshold are set 
-        if saturation needs to be flagged"""
-        # There are no NaN values for integers. Special points means considering high/low saturation of integer scale.
-        data_int_min =  - 2**(intsize-1)
-        data_int_max =  2**(intsize -1) - 1
+    def _norm_signed_int(self, data:np.ndarray, is_special: bool = False):
+        """Normalized data of integer type. No normalization per se, but the Zmin and Zmax 
+        threshold are set if saturation flagging is asked."""
+        # There are no NaN values for integers. Special points means saturation of integer scale.
+        data_int_min = np.iinfo(data.dtype).min
+        data_int_max = np.iinfo(data.dtype).max
 
         is_satlo = (data==data_int_min).sum() >= 1 and is_special
         is_sathi = (data==data_int_max).sum() >= 1 and is_special
@@ -926,7 +889,7 @@ class DigitalSurfHandler(object):
 
         return Zmin, Zmax, Zscale, Zoffset_f, data_int
 
-    def _get_Zname_Zunit(self, metadata: dict) -> tuple[str,str]:
+    def _get_Zname_Zunit(self, metadata: dict):
         """Attempt reading Z-axis name and Unit from metadata.Signal.Quantity field. 
         Return empty str if do not exist.
 
@@ -2090,13 +2053,30 @@ class DigitalSurfHandler(object):
         self._set_str(file, val, privatesize)
 
     def _is_data_int(self,):
-        if self._Object_type in ['_BINARYIMAGE',
-                                 '_RGBIMAGE',
-                                 '_RGBSURFACE',
-                                 '_SERIESOFRGBIMAGES']:
-            return True
+        """Determine wether data consists of unscaled int values.
+        This is not the case for all objects. Surface and surface series can admit 
+        this logic. In theory, hyperspectral studiables as well but it is more convenient
+        to use them as floats due to typical data treatment in hyperspy (scaling etc)"""
+        objtype = self._mountains_object_types[self._get_work_dict_key_value("_05_Object_Type")]
+        if objtype in ['_SURFACESERIE','_SURFACE']:
+            scale =  self._get_work_dict_key_value("_23_Z_Spacing") / self._get_work_dict_key_value("_35_Z_Unit_Ratio") 
+            offset = self._get_work_dict_key_value("_55_Z_Offset")
+            if float(scale).is_integer() and float(offset).is_integer():
+                return True
+            else:
+                return False
         else:
             return False
+
+    def _is_data_scaleint(self,):
+        """Digitalsurf image formats are not stored as their raw int values, but instead are
+        scaled and a scale / offset is set so that the data scales down to uint. Why this is 
+        done this way is not clear to me. """  
+        objtype = self._mountains_object_types[self._get_work_dict_key_value("_05_Object_Type")]
+        if objtype in ['_BINARYIMAGE', '_RGBIMAGE', 
+                       '_RGBSURFACE', '_SERIESOFRGBIMAGES',
+                       '_INTENSITYIMAGE']:
+            return True
 
     def _get_uncompressed_datasize(self) -> int:
         """Return size of uncompressed data in bytes"""
@@ -2168,14 +2148,19 @@ class DigitalSurfHandler(object):
             nm = _points == self._get_work_dict_key_value("_16_Zmin") - 2
         
         Zmin = self._get_work_dict_key_value("_16_Zmin")
-        _points = (_points.astype(float) - Zmin)*self._get_work_dict_key_value("_23_Z_Spacing") * self._get_work_dict_key_value("_35_Z_Unit_Ratio") + self._get_work_dict_key_value("_55_Z_Offset")
+        scale = self._get_work_dict_key_value("_23_Z_Spacing") / self._get_work_dict_key_value("_35_Z_Unit_Ratio")
+        offset = self._get_work_dict_key_value("_55_Z_Offset")
 
-        # We set the point in the numeric scale
+        # Packing data into ints or float, with or without scaling.
         if self._is_data_int():
+            _points = _points
+        elif self._is_data_scaleint():
+            _points = (_points.astype(float) - Zmin)*scale + offset
             _points = np.round(_points).astype(int)
         else:
-            _points[nm] = np.nan
-        
+            _points = (_points.astype(float) - Zmin)*scale + offset
+            _points[nm] = np.nan #Ints have no nans
+
         # Return the points, rescaled
         return _points
 
@@ -2297,9 +2282,6 @@ def file_writer(filename,
     client_zone : bytes, default = b''
         Set arbitrary byte-content in the client_zone field of exported file metadata.
         Maximum size is 128B and and content will be cropped if this size is exceeded.
-    **kwds : dict
-        Unpacked keywords arguments dictionary. Does not accept other arguments than
-        those specified above.
     """
     ds = DigitalSurfHandler(filename=filename)
     ds.signal_dict = signal

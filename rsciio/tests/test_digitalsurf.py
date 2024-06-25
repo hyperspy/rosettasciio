@@ -495,132 +495,147 @@ def test_metadata_mapping():
             "exit_slit_width"
         ]
         == 7000
-        )
+    )
 
 
 def test_compressdata():
 
     testdat = np.arange(120, dtype=np.int32)
 
-    #Refuse too many / neg streams
+    # Refuse too many / neg streams
     with pytest.raises(MountainsMapFileError):
-        DigitalSurfHandler._compress_data(testdat,nstreams=9)
+        DigitalSurfHandler._compress_data(testdat, nstreams=9)
     with pytest.raises(MountainsMapFileError):
-        DigitalSurfHandler._compress_data(testdat,nstreams=-1)
-    
+        DigitalSurfHandler._compress_data(testdat, nstreams=-1)
+
     # Accept 1 (dft) or several streams
     bcomp = DigitalSurfHandler._compress_data(testdat)
-    assert bcomp.startswith(b'\x01\x00\x00\x00\xe0\x01\x00\x00')
-    bcomp = DigitalSurfHandler._compress_data(testdat,nstreams=2)
-    assert bcomp.startswith(b'\x02\x00\x00\x00\xf0\x00\x00\x00_\x00\x00\x00')
+    assert bcomp.startswith(b"\x01\x00\x00\x00\xe0\x01\x00\x00")
+    bcomp = DigitalSurfHandler._compress_data(testdat, nstreams=2)
+    assert bcomp.startswith(b"\x02\x00\x00\x00\xf0\x00\x00\x00_\x00\x00\x00")
 
     # Accept 16-bits int as well as 32
     testdat = np.arange(120, dtype=np.int16)
     bcomp = DigitalSurfHandler._compress_data(testdat)
-    assert bcomp.startswith(b'\x01\x00\x00\x00\xf0\x00\x00\x00')
-
+    assert bcomp.startswith(b"\x01\x00\x00\x00\xf0\x00\x00\x00")
 
     # Also streams non-perfectly divided data
     testdat = np.arange(120, dtype=np.int16)
     bcomp = DigitalSurfHandler._compress_data(testdat)
-    assert bcomp.startswith(b'\x01\x00\x00\x00\xf0\x00\x00\x00')
+    assert bcomp.startswith(b"\x01\x00\x00\x00\xf0\x00\x00\x00")
 
     testdat = np.arange(127, dtype=np.int16)
-    bcomp = DigitalSurfHandler._compress_data(testdat,nstreams=3)
-    assert bcomp.startswith(b'\x03\x00\x00\x00V\x00\x00\x00C\x00\x00\x00'+
-                            b'V\x00\x00\x00F\x00\x00\x00'+
-                            b'R\x00\x00\x00B\x00\x00\x00')
+    bcomp = DigitalSurfHandler._compress_data(testdat, nstreams=3)
+    assert bcomp.startswith(
+        b"\x03\x00\x00\x00V\x00\x00\x00C\x00\x00\x00"
+        + b"V\x00\x00\x00F\x00\x00\x00"
+        + b"R\x00\x00\x00B\x00\x00\x00"
+    )
 
 
 def test_get_comment_dict():
-    omd={'Object_0_Channel_0':{
-            'Parsed':{
-                'key_1': 1,
-                'key_2':'2'
-            }
-        }
+    omd = {"Object_0_Channel_0": {"Parsed": {"key_1": 1, "key_2": "2"}}}
+
+    assert DigitalSurfHandler._get_comment_dict(omd, "auto") == {
+        "key_1": 1,
+        "key_2": "2",
+    }
+    assert DigitalSurfHandler._get_comment_dict(omd, "off") == {}
+    assert DigitalSurfHandler._get_comment_dict(omd, "raw") == {
+        "Object_0_Channel_0": {"Parsed": {"key_1": 1, "key_2": "2"}}
+    }
+    assert DigitalSurfHandler._get_comment_dict(omd, "custom", custom={"a": 0}) == {
+        "a": 0
     }
 
-    assert DigitalSurfHandler._get_comment_dict(omd,'auto')=={'key_1': 1,'key_2':'2'}
-    assert DigitalSurfHandler._get_comment_dict(omd,'off')=={}
-    assert DigitalSurfHandler._get_comment_dict(omd,'raw')=={'Object_0_Channel_0':{'Parsed':{'key_1': 1,'key_2':'2'}}}
-    assert DigitalSurfHandler._get_comment_dict(omd,'custom',custom={'a':0}) == {'a':0}
-
-    #Goes to second dict if only this one's valid
-    omd={
-        'Object_0_Channel_0':{'Header':{}},
-        'Object_0_Channel_1':{'Header':'ObjHead','Parsed':{'key_1': '0'}},
+    # Goes to second dict if only this one's valid
+    omd = {
+        "Object_0_Channel_0": {"Header": {}},
+        "Object_0_Channel_1": {"Header": "ObjHead", "Parsed": {"key_1": "0"}},
     }
-    assert DigitalSurfHandler._get_comment_dict(omd, 'auto') == {'key_1': '0'}
+    assert DigitalSurfHandler._get_comment_dict(omd, "auto") == {"key_1": "0"}
 
-    #Return empty if none valid
-    omd={
-        'Object_0_Channel_0':{'Header':{}},
-        'Object_0_Channel_1':{'Header':'ObjHead'},
+    # Return empty if none valid
+    omd = {
+        "Object_0_Channel_0": {"Header": {}},
+        "Object_0_Channel_1": {"Header": "ObjHead"},
     }
-    assert DigitalSurfHandler._get_comment_dict(omd,'auto') == {}
+    assert DigitalSurfHandler._get_comment_dict(omd, "auto") == {}
 
-    #Return dict-cast if a single field is named 'Parsed' (weird case)
-    omd={
-        'Object_0_Channel_0':{'Header':{}},
-        'Object_0_Channel_1':{'Header':'ObjHead','Parsed':'SomeContent'},
+    # Return dict-cast if a single field is named 'Parsed' (weird case)
+    omd = {
+        "Object_0_Channel_0": {"Header": {}},
+        "Object_0_Channel_1": {"Header": "ObjHead", "Parsed": "SomeContent"},
     }
-    assert DigitalSurfHandler._get_comment_dict(omd,'auto') == {'Parsed':'SomeContent'}
+    assert DigitalSurfHandler._get_comment_dict(omd, "auto") == {
+        "Parsed": "SomeContent"
+    }
 
 
-@pytest.mark.parametrize("test_object", ["test_profile.pro", 
-                                         "test_spectra.pro", 
-                                         "test_spectral_map.sur", 
-                                         "test_spectral_map_compressed.sur", 
-                                         "test_spectrum.pro", 
-                                         "test_spectrum_compressed.pro", 
-                                         "test_isurface.sur"])
-def test_writetestobjects(tmp_path,test_object):
+@pytest.mark.parametrize(
+    "test_object",
+    [
+        "test_profile.pro",
+        "test_spectra.pro",
+        "test_spectral_map.sur",
+        "test_spectral_map_compressed.sur",
+        "test_spectrum.pro",
+        "test_spectrum_compressed.pro",
+        "test_isurface.sur",
+    ],
+)
+def test_writetestobjects(tmp_path, test_object):
     """Test data integrity of load/save functions. Starting from externally-generated data (i.e. not from hyperspy)"""
 
     df = TEST_DATA_PATH.joinpath(test_object)
 
     d = hs.load(df)
     fn = tmp_path.joinpath(test_object)
-    d.save(fn,is_special=False)
+    d.save(fn, is_special=False)
     d2 = hs.load(fn)
-    d2.save(fn,is_special=False)
+    d2.save(fn, is_special=False)
     d3 = hs.load(fn)
 
-    assert np.allclose(d2.data,d.data)
-    assert np.allclose(d2.data,d3.data)
-    
+    assert np.allclose(d2.data, d.data)
+    assert np.allclose(d2.data, d3.data)
+
     a = d.axes_manager.navigation_axes
     b = d2.axes_manager.navigation_axes
     c = d3.axes_manager.navigation_axes
 
-    for ax,ax2,ax3 in zip(a,b,c):
-        assert np.allclose(ax.axis,ax2.axis)
-        assert np.allclose(ax.axis,ax3.axis)
+    for ax, ax2, ax3 in zip(a, b, c):
+        assert np.allclose(ax.axis, ax2.axis)
+        assert np.allclose(ax.axis, ax3.axis)
 
     a = d.axes_manager.signal_axes
     b = d2.axes_manager.signal_axes
     c = d3.axes_manager.signal_axes
 
-    for ax,ax2,ax3 in zip(a,b,c):
-        assert np.allclose(ax.axis,ax2.axis)
-        assert np.allclose(ax.axis,ax3.axis)
+    for ax, ax2, ax3 in zip(a, b, c):
+        assert np.allclose(ax.axis, ax2.axis)
+        assert np.allclose(ax.axis, ax3.axis)
 
-@pytest.mark.parametrize("test_tuple ", [("test_profile.pro",'_PROFILE'),
-                                         ("test_spectra.pro",'_SPECTRUM'),
-                                         ("test_spectral_map.sur",'_HYPCARD'),
-                                         ("test_spectral_map_compressed.sur",'_HYPCARD'), 
-                                         ("test_spectrum.pro",'_SPECTRUM'),
-                                         ("test_spectrum_compressed.pro",'_SPECTRUM'),
-                                         ("test_surface.sur",'_SURFACE'),
-                                         ('test_RGB.sur','_RGBIMAGE')])
+
+@pytest.mark.parametrize(
+    "test_tuple ",
+    [
+        ("test_profile.pro", "_PROFILE"),
+        ("test_spectra.pro", "_SPECTRUM"),
+        ("test_spectral_map.sur", "_HYPCARD"),
+        ("test_spectral_map_compressed.sur", "_HYPCARD"),
+        ("test_spectrum.pro", "_SPECTRUM"),
+        ("test_spectrum_compressed.pro", "_SPECTRUM"),
+        ("test_surface.sur", "_SURFACE"),
+        ("test_RGB.sur", "_RGBIMAGE"),
+    ],
+)
 def test_split(test_tuple):
     """Test for expected object type in the reference dataset"""
     obj = test_tuple[0]
     res = test_tuple[1]
 
     df = TEST_DATA_PATH.joinpath(obj)
-    dh= DigitalSurfHandler(obj)
+    dh = DigitalSurfHandler(obj)
 
     d = hs.load(df)
     dh.signal_dict = d._to_dictionary()
@@ -629,12 +644,13 @@ def test_split(test_tuple):
 
     assert dh._Object_type == res
 
+
 @pytest.mark.parametrize("dtype", [np.int8, np.int16, np.int32, np.uint8, np.uint16])
-@pytest.mark.parametrize('special',[True,False])
-@pytest.mark.parametrize('fullscale',[True,False])
-def test_norm_int_data(dtype,special,fullscale):
+@pytest.mark.parametrize("special", [True, False])
+@pytest.mark.parametrize("fullscale", [True, False])
+def test_norm_int_data(dtype, special, fullscale):
     dh = DigitalSurfHandler()
-    
+
     if fullscale:
         minint = np.iinfo(dtype).min
         maxint = np.iinfo(dtype).max
@@ -642,199 +658,222 @@ def test_norm_int_data(dtype,special,fullscale):
         minint = np.iinfo(dtype).min + 23
         maxint = np.iinfo(dtype).max - 9
 
-    dat = np.random.randint(low=minint,high=maxint,size=222,dtype=dtype)
-    #Ensure the maximum and minimum off the int scale is actually present in data
+    dat = np.random.randint(low=minint, high=maxint, size=222, dtype=dtype)
+    # Ensure the maximum and minimum off the int scale is actually present in data
     if fullscale:
         dat[2] = minint
         dat[11] = maxint
 
-    pointsize, Zmin, Zmax, Zscale, Zoffset, data_int = dh._norm_data(dat,special)
+    pointsize, Zmin, Zmax, Zscale, Zoffset, data_int = dh._norm_data(dat, special)
 
-    off = minint+1 if special and fullscale else dat.min()
-    maxval = maxint-1 if special and fullscale else dat.max()
+    off = minint + 1 if special and fullscale else dat.min()
+    maxval = maxint - 1 if special and fullscale else dat.max()
 
-    assert np.isclose(Zscale,1.0)
-    assert np.isclose(Zoffset,off)
-    assert np.allclose(data_int,dat)
-    assert Zmin==off
-    assert Zmax==maxval
+    assert np.isclose(Zscale, 1.0)
+    assert np.isclose(Zoffset, off)
+    assert np.allclose(data_int, dat)
+    assert Zmin == off
+    assert Zmax == maxval
+
 
 def test_writeRGB(tmp_path):
     # This is just a different test function because the
-    # comparison of rgb data must be done differently 
+    # comparison of rgb data must be done differently
     # (due to hyperspy underlying structure)
     df = TEST_DATA_PATH.joinpath("test_RGB.sur")
     d = hs.load(df)
     fn = tmp_path.joinpath("test_RGB.sur")
-    d.save(fn,is_special=False)
+    d.save(fn, is_special=False)
     d2 = hs.load(fn)
-    d2.save(fn,is_special=False)
+    d2.save(fn, is_special=False)
     d3 = hs.load(fn)
 
-    for k in ['R','G','B']:
-        assert np.allclose(d2.data[k],d.data[k])
-        assert np.allclose(d3.data[k],d.data[k])
+    for k in ["R", "G", "B"]:
+        assert np.allclose(d2.data[k], d.data[k])
+        assert np.allclose(d3.data[k], d.data[k])
 
     a = d.axes_manager.navigation_axes
     b = d2.axes_manager.navigation_axes
     c = d3.axes_manager.navigation_axes
 
-    for ax,ax2,ax3 in zip(a,b,c):
-        assert np.allclose(ax.axis,ax2.axis)
-        assert np.allclose(ax.axis,ax3.axis)
+    for ax, ax2, ax3 in zip(a, b, c):
+        assert np.allclose(ax.axis, ax2.axis)
+        assert np.allclose(ax.axis, ax3.axis)
 
     a = d.axes_manager.signal_axes
     b = d2.axes_manager.signal_axes
     c = d3.axes_manager.signal_axes
 
-    for ax,ax2,ax3 in zip(a,b,c):
-        assert np.allclose(ax.axis,ax2.axis)
-        assert np.allclose(ax.axis,ax3.axis)
+    for ax, ax2, ax3 in zip(a, b, c):
+        assert np.allclose(ax.axis, ax2.axis)
+        assert np.allclose(ax.axis, ax3.axis)
 
-@pytest.mark.parametrize("dtype", [np.int8, np.int16, np.int32, np.float64, np.uint8, np.uint16])
-@pytest.mark.parametrize('compressed',[True,False])
-def test_writegeneric_validtypes(tmp_path,dtype,compressed):
-    """This test establishes the capability of saving a generic hyperspy signals 
+
+@pytest.mark.parametrize(
+    "dtype", [np.int8, np.int16, np.int32, np.float64, np.uint8, np.uint16]
+)
+@pytest.mark.parametrize("compressed", [True, False])
+def test_writegeneric_validtypes(tmp_path, dtype, compressed):
+    """This test establishes the capability of saving a generic hyperspy signals
     generated from numpy array"""
-    gen = hs.signals.Signal1D(np.arange(24,dtype=dtype))+25
-    fgen = tmp_path.joinpath('test.pro')
-    gen.save(fgen,compressed = compressed, overwrite=True)
+    gen = hs.signals.Signal1D(np.arange(24, dtype=dtype)) + 25
+    fgen = tmp_path.joinpath("test.pro")
+    gen.save(fgen, compressed=compressed, overwrite=True)
 
     gen2 = hs.load(fgen)
-    assert np.allclose(gen2.data,gen.data)
+    assert np.allclose(gen2.data, gen.data)
 
-@pytest.mark.parametrize("dtype", [np.int64, np.complex64, np.uint64, ])
-def test_writegeneric_failingtypes(tmp_path,dtype):
-    gen = hs.signals.Signal1D(np.arange(24,dtype=dtype))+25
-    fgen = tmp_path.joinpath('test.pro')
+
+@pytest.mark.parametrize(
+    "dtype",
+    [
+        np.int64,
+        np.complex64,
+        np.uint64,
+    ],
+)
+def test_writegeneric_failingtypes(tmp_path, dtype):
+    gen = hs.signals.Signal1D(np.arange(24, dtype=dtype)) + 25
+    fgen = tmp_path.joinpath("test.pro")
     with pytest.raises(MountainsMapFileError):
-        gen.save(fgen,overwrite= True)
+        gen.save(fgen, overwrite=True)
 
-@pytest.mark.parametrize("dtype", [(np.uint8,"rgba8"), (np.uint16,"rgba16")])
-@pytest.mark.parametrize('compressed',[True,False])
-@pytest.mark.parametrize('transpose',[True,False])
-def test_writegeneric_rgba(tmp_path,dtype,compressed,transpose):
-    """This test establishes the possibility of saving RGBA data while discarding 
+
+@pytest.mark.parametrize("dtype", [(np.uint8, "rgba8"), (np.uint16, "rgba16")])
+@pytest.mark.parametrize("compressed", [True, False])
+@pytest.mark.parametrize("transpose", [True, False])
+def test_writegeneric_rgba(tmp_path, dtype, compressed, transpose):
+    """This test establishes the possibility of saving RGBA data while discarding
     A channel and warning"""
-    size = (17,38,4)
+    size = (17, 38, 4)
     minint = np.iinfo(dtype[0]).min
     maxint = np.iinfo(dtype[0]).max
 
-    gen = hs.signals.Signal1D(np.random.randint(low=minint,high=maxint,size=size,dtype=dtype[0]))
+    gen = hs.signals.Signal1D(
+        np.random.randint(low=minint, high=maxint, size=size, dtype=dtype[0])
+    )
     gen.change_dtype(dtype[1])
 
-    fgen = tmp_path.joinpath('test.sur')
-    
+    fgen = tmp_path.joinpath("test.sur")
+
     if transpose:
         gen = gen.T
 
     with pytest.warns():
-        gen.save(fgen,compressed = compressed, overwrite=True)
+        gen.save(fgen, compressed=compressed, overwrite=True)
 
     gen2 = hs.load(fgen)
 
-    for k in ['R','G','B']:
-        assert np.allclose(gen.data[k],gen2.data[k])
-        assert np.allclose(gen.data[k],gen2.data[k])
+    for k in ["R", "G", "B"]:
+        assert np.allclose(gen.data[k], gen2.data[k])
+        assert np.allclose(gen.data[k], gen2.data[k])
 
-@pytest.mark.parametrize('compressed',[True,False])
-@pytest.mark.parametrize('transpose',[True,False])
-def test_writegeneric_binaryimg(tmp_path,compressed,transpose):
-    
-    size = (76,3)
 
-    gen = hs.signals.Signal2D(np.random.randint(low=0,high=1,size=size,dtype=bool))
+@pytest.mark.parametrize("compressed", [True, False])
+@pytest.mark.parametrize("transpose", [True, False])
+def test_writegeneric_binaryimg(tmp_path, compressed, transpose):
 
-    fgen = tmp_path.joinpath('test.sur')
-    
+    size = (76, 3)
+
+    gen = hs.signals.Signal2D(np.random.randint(low=0, high=1, size=size, dtype=bool))
+
+    fgen = tmp_path.joinpath("test.sur")
+
     if transpose:
         gen = gen.T
         with pytest.warns():
-            gen.save(fgen,compressed = compressed, overwrite=True)
+            gen.save(fgen, compressed=compressed, overwrite=True)
     else:
-        gen.save(fgen,compressed = compressed, overwrite=True)
+        gen.save(fgen, compressed=compressed, overwrite=True)
 
     gen2 = hs.load(fgen)
 
-    assert np.allclose(gen.data,gen2.data)
+    assert np.allclose(gen.data, gen2.data)
 
-@pytest.mark.parametrize('compressed',[True,False])
-def test_writegeneric_profileseries(tmp_path,compressed):    
 
-    size = (9,655)
+@pytest.mark.parametrize("compressed", [True, False])
+def test_writegeneric_profileseries(tmp_path, compressed):
 
-    gen = hs.signals.Signal1D(np.random.random(size=size)*1444+2550.)
-    fgen = tmp_path.joinpath('test.pro')
-    
-    gen.save(fgen,compressed = compressed, overwrite=True)
+    size = (9, 655)
+
+    gen = hs.signals.Signal1D(np.random.random(size=size) * 1444 + 2550.0)
+    fgen = tmp_path.joinpath("test.pro")
+
+    gen.save(fgen, compressed=compressed, overwrite=True)
 
     gen2 = hs.load(fgen)
 
-    assert np.allclose(gen.data,gen2.data)
+    assert np.allclose(gen.data, gen2.data)
 
 
-@pytest.mark.parametrize("dtype", [(np.uint8,"rgb8"), (np.uint16,"rgb16")])
-@pytest.mark.parametrize('compressed',[True,False])
-def test_writegeneric_rgbseries(tmp_path,dtype,compressed):
+@pytest.mark.parametrize("dtype", [(np.uint8, "rgb8"), (np.uint16, "rgb16")])
+@pytest.mark.parametrize("compressed", [True, False])
+def test_writegeneric_rgbseries(tmp_path, dtype, compressed):
     """This test establishes the possibility of saving RGB surface series"""
-    size = (5,44,24,3)
+    size = (5, 44, 24, 3)
     minint = np.iinfo(dtype[0]).min
     maxint = np.iinfo(dtype[0]).max
 
-    gen = hs.signals.Signal1D(np.random.randint(low=minint,high=maxint,size=size,dtype=dtype[0]))
+    gen = hs.signals.Signal1D(
+        np.random.randint(low=minint, high=maxint, size=size, dtype=dtype[0])
+    )
     gen.change_dtype(dtype[1])
 
-    fgen = tmp_path.joinpath('test.sur')
+    fgen = tmp_path.joinpath("test.sur")
 
-    gen.save(fgen,compressed = compressed, overwrite=True)
+    gen.save(fgen, compressed=compressed, overwrite=True)
 
     gen2 = hs.load(fgen)
 
-    for k in ['R','G','B']:
-        assert np.allclose(gen.data[k],gen2.data[k])
+    for k in ["R", "G", "B"]:
+        assert np.allclose(gen.data[k], gen2.data[k])
 
 
-@pytest.mark.parametrize("dtype", [(np.uint8,"rgba8"), (np.uint16,"rgba16")])
-@pytest.mark.parametrize('compressed',[True,False])
-def test_writegeneric_rgbaseries(tmp_path,dtype,compressed):
-    """This test establishes the possibility of saving RGBA data while discarding 
+@pytest.mark.parametrize("dtype", [(np.uint8, "rgba8"), (np.uint16, "rgba16")])
+@pytest.mark.parametrize("compressed", [True, False])
+def test_writegeneric_rgbaseries(tmp_path, dtype, compressed):
+    """This test establishes the possibility of saving RGBA data while discarding
     A channel and warning"""
-    size = (5,44,24,4)
+    size = (5, 44, 24, 4)
     minint = np.iinfo(dtype[0]).min
     maxint = np.iinfo(dtype[0]).max
 
-    gen = hs.signals.Signal1D(np.random.randint(low=minint,high=maxint,size=size,dtype=dtype[0]))
+    gen = hs.signals.Signal1D(
+        np.random.randint(low=minint, high=maxint, size=size, dtype=dtype[0])
+    )
     gen.change_dtype(dtype[1])
 
-    fgen = tmp_path.joinpath('test.sur')
+    fgen = tmp_path.joinpath("test.sur")
 
     with pytest.warns():
-        gen.save(fgen,compressed = compressed, overwrite=True)
+        gen.save(fgen, compressed=compressed, overwrite=True)
 
     gen2 = hs.load(fgen)
 
-    for k in ['R','G','B']:
-        assert np.allclose(gen.data[k],gen2.data[k])
+    for k in ["R", "G", "B"]:
+        assert np.allclose(gen.data[k], gen2.data[k])
 
 
 @pytest.mark.parametrize("dtype", [np.int16, np.int32, np.float64])
-@pytest.mark.parametrize("compressed",[True,False])
-def test_writegeneric_surfaceseries(tmp_path,dtype,compressed):
-    """This test establishes the possibility of saving RGBA surface series while discarding 
+@pytest.mark.parametrize("compressed", [True, False])
+def test_writegeneric_surfaceseries(tmp_path, dtype, compressed):
+    """This test establishes the possibility of saving RGBA surface series while discarding
     A channel and warning"""
-    size = (9,44,58)
+    size = (9, 44, 58)
 
-    if np.issubdtype(dtype,np.integer):
+    if np.issubdtype(dtype, np.integer):
         minint = np.iinfo(dtype).min
         maxint = np.iinfo(dtype).max
-        gen = hs.signals.Signal2D(np.random.randint(low=minint,high=maxint,size=size,dtype=dtype))
+        gen = hs.signals.Signal2D(
+            np.random.randint(low=minint, high=maxint, size=size, dtype=dtype)
+        )
     else:
-        gen = hs.signals.Signal2D(np.random.random(size=size).astype(dtype)*1e6)
+        gen = hs.signals.Signal2D(np.random.random(size=size).astype(dtype) * 1e6)
 
-    fgen = tmp_path.joinpath('test.sur')
+    fgen = tmp_path.joinpath("test.sur")
 
-    gen.save(fgen,compressed = compressed, overwrite=True)
+    gen.save(fgen, compressed=compressed, overwrite=True)
 
     gen2 = hs.load(fgen)
 
-    assert np.allclose(gen.data,gen2.data)
+    assert np.allclose(gen.data, gen2.data)

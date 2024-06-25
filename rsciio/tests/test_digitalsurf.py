@@ -675,17 +675,24 @@ def test_norm_int_data(dtype, special, fullscale):
     assert Zmin == off
     assert Zmax == maxval
 
-
-def test_writeRGB(tmp_path):
+@pytest.mark.parametrize("transpose", [True, False])
+def test_writetestobjects_rgb(tmp_path,transpose):
     # This is just a different test function because the
     # comparison of rgb data must be done differently
     # (due to hyperspy underlying structure)
     df = TEST_DATA_PATH.joinpath("test_RGB.sur")
     d = hs.load(df)
     fn = tmp_path.joinpath("test_RGB.sur")
-    d.save(fn, is_special=False)
+
+    if transpose:
+        d = d.T
+        with pytest.warns():
+            d.save(fn)
+    else:
+        d.save(fn)
+        
     d2 = hs.load(fn)
-    d2.save(fn, is_special=False)
+    d2.save(fn)
     d3 = hs.load(fn)
 
     for k in ["R", "G", "B"]:
@@ -723,6 +730,35 @@ def test_writegeneric_validtypes(tmp_path, dtype, compressed):
     gen2 = hs.load(fgen)
     assert np.allclose(gen2.data, gen.data)
 
+@pytest.mark.parametrize("compressed", [True, False])
+def test_writegeneric_nans(tmp_path, compressed):
+    """This test establishes the capability of saving a generic signal
+    generated from numpy array containing floats"""
+    gen = hs.signals.Signal1D(np.random.random(size=301))
+
+    gen.data[66] = np.nan
+    gen.data[111] = np.nan
+
+    fgen = tmp_path.joinpath("test.pro")
+
+    gen.save(fgen, compressed=compressed, is_special=True, overwrite=True)
+
+    gen2 = hs.load(fgen)
+    assert np.allclose(gen2.data, gen.data, equal_nan=True)
+
+def test_writegeneric_transposedprofile(tmp_path):
+    """This test checks the expected behaviour that a transposed profile gets
+    correctly saved but a warning is raised."""
+    gen = hs.signals.Signal1D(np.random.random(size=99))
+    gen = gen.T
+
+    fgen = tmp_path.joinpath("test.pro")
+
+    with pytest.warns():
+        gen.save(fgen, overwrite=True)
+
+    gen2 = hs.load(fgen)
+    assert np.allclose(gen2.data, gen.data)
 
 @pytest.mark.parametrize(
     "dtype",
@@ -738,6 +774,11 @@ def test_writegeneric_failingtypes(tmp_path, dtype):
     with pytest.raises(MountainsMapFileError):
         gen.save(fgen, overwrite=True)
 
+def test_writegeneric_failingformat(tmp_path):
+    gen = hs.signals.Signal1D(np.zeros((3,4,5,6)))
+    fgen = tmp_path.joinpath("test.sur")
+    with pytest.raises(MountainsMapFileError):
+        gen.save(fgen, overwrite=True)
 
 @pytest.mark.parametrize("dtype", [(np.uint8, "rgba8"), (np.uint16, "rgba16")])
 @pytest.mark.parametrize("compressed", [True, False])

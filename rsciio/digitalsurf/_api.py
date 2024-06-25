@@ -676,6 +676,7 @@ class DigitalSurfHandler(object):
         nax_nav = self._n_ax_nav
         nax_sig = self._n_ax_sig
 
+        # _split_signal_dict ensures that the correct dims are sent here.
         if (nax_nav, nax_sig) == (0, 1) or (nax_nav, nax_sig) == (1, 0):
             self.Xaxis = self.signal_dict["axes"][0]
         elif (nax_nav, nax_sig) == (1, 1):
@@ -683,10 +684,6 @@ class DigitalSurfHandler(object):
                 ax for ax in self.signal_dict["axes"] if not ax["navigate"]
             )
             self.Yaxis = next(ax for ax in self.signal_dict["axes"] if ax["navigate"])
-        else:
-            raise MountainsMapFileError(
-                f"Dimensions ({nax_nav})|{nax_sig}) invalid for export as spectrum type"
-            )
 
         self.data_split = [self.signal_dict["data"]]
         self.objtype_split = [obj_type]
@@ -2281,7 +2278,7 @@ class DigitalSurfHandler(object):
 
         # Packing data into ints or float, with or without scaling.
         if self._is_data_int():
-            _points = _points
+            pass #Case left here for future modification
         elif self._is_data_scaleint():
             _points = (_points.astype(float) - Zmin) * scale + offset
             _points = np.round(_points).astype(int)

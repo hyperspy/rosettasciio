@@ -659,8 +659,6 @@ def test_norm_int_data(dtype,special,fullscale):
     assert Zmin==off
     assert Zmax==maxval
 
-
-
 def test_writeRGB(tmp_path):
     # This is just a different test function because the
     # comparison of rgb data must be done differently 

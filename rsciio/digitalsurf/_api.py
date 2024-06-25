@@ -1783,6 +1783,8 @@ class DigitalSurfHandler(object):
         # Title lines start with an underscore
         titlestart = "{:s}_".format(prefix)
 
+        keymain = None
+
         for line in str_ms.splitlines():
             # Here we ignore any empty line or line starting with @@
             ignore = False
@@ -1795,6 +1797,9 @@ class DigitalSurfHandler(object):
                     key_main = line[len(titlestart) :].strip()
                     dict_ms[key_main] = {}
                 elif line.startswith(prefix):
+                    if keymain is None:
+                        keymain = 'UNTITLED'
+                        dict_ms[key_main] = {}
                     key, *li_value = line.split(delimiter)
                     # Key is also stripped from beginning or end whitespace
                     key = key[len(prefix) :].strip()

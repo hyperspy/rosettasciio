@@ -40,7 +40,6 @@ from rsciio.utils.distributed import memmap_distributed
 
 _logger = logging.getLogger(__name__)
 
-
 _PATH_DOCSTRING = """path : str or bytes
             The path to the ``mib`` file, otherwise the memory buffer
             of the ``mib`` file. Lazy loading is not supported with memory
@@ -281,7 +280,7 @@ def load_mib_data(
             # to load is too small, we can't reshape and we fall back to stack of images
             _logger.warning(
                 "The `navigation_shape` doesn't match the number of frames to load. "
-                "The `navigation_shape` is set to the number of read to read: "
+                "The `navigation_shape` is set to the number of frames to read: "
                 f"({number_of_frames_to_load},)."
             )
             navigation_shape = (number_of_frames_to_load,)
@@ -349,6 +348,10 @@ def load_mib_data(
 
     # remove navigation_dimension with value 1 before reshaping
     navigation_shape = tuple(i for i in navigation_shape if i > 1)
+    if np.prod(navigation_shape) != np.prod(data.shape[:-2]):
+        raise ValueError(
+            f"Cannot load MIB file. Navigation shape {navigation_shape} does not match data size {data.shape}"
+        )
     data = data.reshape(navigation_shape + mib_prop.merlin_size)
     if lazy and isinstance(chunks, tuple) and len(chunks) > 2:
         # rechunk navigation space when chunking is specified as a tuple
@@ -357,7 +360,7 @@ def load_mib_data(
     if return_headers:
         if distributed:
             raise ValueError(
-                "Retuning headers is not supported with `distributed=True`."
+                "Returning headers is not supported with `distributed=True`."
             )
         return data, headers
     else:
@@ -389,6 +392,53 @@ def parse_hdr_file(path):
     return result
 
 
+def _get_navigation_shape_from_hdr(_hdr):
+    """
+    Find the navigation shape from the .hdr file.
+
+    The resulting navigation shape also takes into account integer line-skips if present.
+
+    Returns
+    -------
+    tuple
+        The navigation shape as a tuple.
+    lineksip: int or None
+        The number of frames to be skipped at the end of each line. If no lineskips are found, None is returned.
+    """
+    navigation_shape = None
+    lineskip = None
+    if "ScanX" in _hdr and "ScanY" in _hdr:
+        # Use the scan parameters in the hdr file to find the scan shape
+        frames_number = int(_hdr["Frames in Acquisition (Number)"])
+        navigation_shape = (
+            int(_hdr["ScanX"]),
+            int(_hdr["ScanY"]),
+        )  # Get navigation shape from the header file
+        if frames_number != np.prod(navigation_shape):
+            extra_frames = frames_number - np.prod(navigation_shape)
+            if extra_frames < 0:
+                _logger.warning(
+                    f"Total frames ({frames_number} in .mib file is less than expected from scan shape in hdr file "
+                    f"({np.prod(navigation_shape)}). The data looks to be incomplete."
+                )
+                navigation_shape = None
+            else:
+                if extra_frames % navigation_shape[0] == 0:
+                    lineskip = extra_frames // navigation_shape[0]
+                    navigation_shape = (
+                        navigation_shape[0] + lineskip,
+                        navigation_shape[1],
+                    )
+                else:
+                    _logger.warning(
+                        f"Total frames in .mib file is larger than expected from scan shape in hdr file "
+                        f"({extra_frames} frames in excess), but does not match an integer lineskip "
+                        f"({extra_frames / navigation_shape[0]}). The data may be incomplete."
+                    )
+                    navigation_shape = None
+    return navigation_shape, lineskip
+
+
 def _parse_exposure_to_ms(str_):
     # exposure is in "ns", remove unit, convert to float and to ms
     return float(str_[:-2]) / 1e6
@@ -397,7 +447,6 @@ def _parse_exposure_to_ms(str_):
 _HEADERS_DOCSTRING = """headers : bytes str or iterable of bytes str
         The headers as a bytes string.
     """
-
 
 _MAX_INDEX_DOCSTRING = """max_index : int
         Define the maximum index of the frame to be considered to avoid
@@ -533,13 +582,13 @@ def file_reader(
     In case of interrupted acquisition, only the completed lines are read and
     the incomplete line are discarded.
 
-    When the scanning shape (i. e. navigation shape) is not available from the
+    When the scanning shape (i.e. navigation shape) is not available from the
     metadata (for example with acquisition using pixel trigger), the timestamps
     will be used to guess the navigation shape.
 
     Examples
     --------
-    In case, the navigation shape can't read from the data itself (for example,
+    In case the navigation shape can't read from the data itself (for example,
     type of acquisition unsupported), the ``navigation_shape`` can be specified:
 
     .. code-block:: python
@@ -563,6 +612,11 @@ def file_reader(
 
     frame_per_trigger = 1
     headers = None
+
+    lineskip = None
+    if navigation_shape is None and hdr is not None:
+        navigation_shape, lineskip = _get_navigation_shape_from_hdr(hdr)
+
     if navigation_shape is None:
         if hdr is not None:
             # Use the hdr file to find the number of frames
@@ -613,6 +667,10 @@ def file_reader(
         return_mmap=False,
     )
     data = np.flip(data, axis=-2)
+
+    # Slice the data according to lineskip if the data has dimension 4.
+    if lineskip is not None and len(data.shape) == 4:
+        data = data[: data.shape[0] - lineskip, :]
 
     # data has 3 dimension but we need to to take account the dimension of the
     # navigation_shape after reshape

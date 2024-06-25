@@ -664,6 +664,8 @@ def test_norm_int_data(dtype, special, fullscale):
         dat[2] = minint
         dat[11] = maxint
 
+    Zscale = 0.0 #to avoid CodeQL error: pot. non-initialized var
+    Zoffset = -np.inf #to avoid CodeQL error: pot. non-initialized var
     pointsize, Zmin, Zmax, Zscale, Zoffset, data_int = dh._norm_data(dat, special)
 
     off = minint + 1 if special and fullscale else dat.min()
@@ -690,7 +692,7 @@ def test_writetestobjects_rgb(tmp_path,transpose):
             d.save(fn)
     else:
         d.save(fn)
-        
+
     d2 = hs.load(fn)
     d2.save(fn)
     d3 = hs.load(fn)

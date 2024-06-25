@@ -2200,6 +2200,8 @@ class DigitalSurfHandler(object):
             "_INTENSITYIMAGE",
         ]:
             return True
+        else:
+            return False
 
     def _get_uncompressed_datasize(self) -> int:
         """Return size of uncompressed data in bytes"""

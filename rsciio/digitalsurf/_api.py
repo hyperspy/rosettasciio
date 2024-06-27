@@ -127,7 +127,7 @@ class DigitalSurfHandler(object):
         self._work_dict = {
             "_01_Signature": {
                 "value": "DSCOMPRESSED",  # Uncompressed key is DIGITAL SURF
-                "b_unpack_fn": lambda f: self._get_str(f, 12, "DSCOMPRESSED"),
+                "b_unpack_fn": lambda f: self._get_str(f, 12),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 12),
             },
             "_02_Format": {
@@ -152,12 +152,12 @@ class DigitalSurfHandler(object):
             },
             "_06_Object_Name": {
                 "value": "",
-                "b_unpack_fn": lambda f: self._get_str(f, 30, ""),
+                "b_unpack_fn": lambda f: self._get_str(f, 30, ),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 30),
             },
             "_07_Operator_Name": {
                 "value": "ROSETTA",
-                "b_unpack_fn": lambda f: self._get_str(f, 30, ""),
+                "b_unpack_fn": lambda f: self._get_str(f, 30, ),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 30),
             },
             "_08_P_Size": {
@@ -197,7 +197,7 @@ class DigitalSurfHandler(object):
             },
             "_15_Size_of_Points": {
                 "value": 16,
-                "b_unpack_fn": lambda f: self._get_int16(f, 32),
+                "b_unpack_fn": self._get_int16,
                 "b_pack_fn": self._set_int16,
             },
             "_16_Zmin": {
@@ -242,47 +242,47 @@ class DigitalSurfHandler(object):
             },
             "_24_Name_of_X_Axis": {
                 "value": "X",
-                "b_unpack_fn": lambda f: self._get_str(f, 16, "X"),
+                "b_unpack_fn": lambda f: self._get_str(f, 16 ),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 16),
             },
             "_25_Name_of_Y_Axis": {
                 "value": "Y",
-                "b_unpack_fn": lambda f: self._get_str(f, 16, "Y"),
+                "b_unpack_fn": lambda f: self._get_str(f, 16 ),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 16),
             },
             "_26_Name_of_Z_Axis": {
                 "value": "Z",
-                "b_unpack_fn": lambda f: self._get_str(f, 16, "Z"),
+                "b_unpack_fn": lambda f: self._get_str(f, 16 ),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 16),
             },
             "_27_X_Step_Unit": {
                 "value": "um",
-                "b_unpack_fn": lambda f: self._get_str(f, 16, "um"),
+                "b_unpack_fn": lambda f: self._get_str(f, 16 ),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 16),
             },
             "_28_Y_Step_Unit": {
                 "value": "um",
-                "b_unpack_fn": lambda f: self._get_str(f, 16, "um"),
+                "b_unpack_fn": lambda f: self._get_str(f, 16 ),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 16),
             },
             "_29_Z_Step_Unit": {
                 "value": "um",
-                "b_unpack_fn": lambda f: self._get_str(f, 16, "um"),
+                "b_unpack_fn": lambda f: self._get_str(f, 16 ),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 16),
             },
             "_30_X_Length_Unit": {
                 "value": "um",
-                "b_unpack_fn": lambda f: self._get_str(f, 16, "um"),
+                "b_unpack_fn": lambda f: self._get_str(f, 16 ),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 16),
             },
             "_31_Y_Length_Unit": {
                 "value": "um",
-                "b_unpack_fn": lambda f: self._get_str(f, 16, "um"),
+                "b_unpack_fn": lambda f: self._get_str(f, 16 ),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 16),
             },
             "_32_Z_Length_Unit": {
                 "value": "um",
-                "b_unpack_fn": lambda f: self._get_str(f, 16, "um"),
+                "b_unpack_fn": lambda f: self._get_str(f, 16 ),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 16),
             },
             "_33_X_Unit_Ratio": {
@@ -412,12 +412,12 @@ class DigitalSurfHandler(object):
             },
             "_58_T_Axis_Name": {
                 "value": "T",
-                "b_unpack_fn": lambda f: self._get_str(f, 13, "Wavelength"),
+                "b_unpack_fn": lambda f: self._get_str(f, 13 ),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 13),
             },
             "_59_T_Step_Unit": {
                 "value": "um",
-                "b_unpack_fn": lambda f: self._get_str(f, 13, "nm"),
+                "b_unpack_fn": lambda f: self._get_str(f, 13 ),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 13),
             },
             "_60_Comment": {
@@ -1138,15 +1138,9 @@ class DigitalSurfHandler(object):
             )
             self._N_data_channels = self._get_work_dict_key_value("_08_P_Size")
 
-            # Determine how many objects we need to read
-            if self._N_data_channels > 0 and self._N_data_objects > 0:
-                n_objects_to_read = self._N_data_channels * self._N_data_objects
-            elif self._N_data_channels > 0:
-                n_objects_to_read = self._N_data_channels
-            elif self._N_data_objects > 0:
-                n_objects_to_read = self._N_data_objects
-            else:
-                n_objects_to_read = 1
+            # Determine how many objects we need to read, at least 1 object and 1 channel 
+            # even if metadata is set to 0 (happens sometimes)
+            n_objects_to_read = max(self._N_data_channels,1) * max(self._N_data_objects,1)
 
             # Lookup what object type we are dealing with and save
             self._Object_type = DigitalSurfHandler._mountains_object_types[
@@ -2045,11 +2039,9 @@ class DigitalSurfHandler(object):
     # pack/unpack binary quantities
 
     @staticmethod
-    def _get_uint16(file, default=None):
+    def _get_uint16(file):
         """Read a 16-bits int with a user-definable default value if
         no file is given"""
-        if file is None:
-            return default
         b = file.read(2)
         return struct.unpack("<H", b)[0]
 
@@ -2058,11 +2050,9 @@ class DigitalSurfHandler(object):
         file.write(struct.pack("<H", val))
 
     @staticmethod
-    def _get_int16(file, default=None):
+    def _get_int16(file,):
         """Read a 16-bits int with a user-definable default value if
         no file is given"""
-        if file is None:
-            return default
         b = file.read(2)
         return struct.unpack("<h", b)[0]
 
@@ -2071,11 +2061,9 @@ class DigitalSurfHandler(object):
         file.write(struct.pack("<h", val))
 
     @staticmethod
-    def _get_str(file, size, default=None, encoding="latin-1"):
+    def _get_str(file, size, encoding="latin-1"):
         """Read a str of defined size in bytes with a user-definable default
         value if no file is given"""
-        if file is None:
-            return default
         read_str = file.read(size).decode(encoding)
         return read_str.strip(" \t\n")
 
@@ -2091,16 +2079,11 @@ class DigitalSurfHandler(object):
         )
 
     @staticmethod
-    def _get_int32(file, default=None):
+    def _get_int32(file):
         """Read a 32-bits int with a user-definable default value if no
         file is given"""
-        if file is None:
-            return default
         b = file.read(4)
-        if sys.byteorder == "big":
-            return struct.unpack(">i", b)[0]
-        else:
-            return struct.unpack("<i", b)[0]
+        return struct.unpack("<i", b)[0]
 
     @staticmethod
     def _set_int32(file, val):
@@ -2108,11 +2091,9 @@ class DigitalSurfHandler(object):
         file.write(struct.pack("<i", val))
 
     @staticmethod
-    def _get_float(file, default=None):
+    def _get_float(file,):
         """Read a 4-bytes (single precision) float from a binary file f with a
         default value if no file is given"""
-        if file is None:
-            return default
         return struct.unpack("<f", file.read(4))[0]
 
     @staticmethod
@@ -2121,25 +2102,17 @@ class DigitalSurfHandler(object):
         file.write(struct.pack("<f", val))
 
     @staticmethod
-    def _get_uint32(file, default=None):
-        if file is None:
-            return default
+    def _get_uint32(file, ):
         b = file.read(4)
-        if sys.byteorder == "big":
-            return struct.unpack(">I", b)[0]
-        else:
-            return struct.unpack("<I", b)[0]
+        return struct.unpack("<I", b)[0]
 
     @staticmethod
     def _set_uint32(file, val):
         file.write(struct.pack("<I", val))
 
     @staticmethod
-    def _get_bytes(file, size, default=None):
-        if file is None:
-            return default
-        else:
-            return file.read(size)
+    def _get_bytes(file, size):
+        return file.read(size)
 
     @staticmethod
     def _set_bytes(file, val, size):

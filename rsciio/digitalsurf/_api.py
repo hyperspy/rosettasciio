@@ -2361,15 +2361,16 @@ def file_writer(
     %s
     %s
     set_comments : str , default = 'auto'
-        Whether comments should be a simplified original_metadata ('auto'),
-        exported as the raw original_metadata dictionary ('raw'), skipped ('off'),
-        or supplied by the user as an additional kwarg ('custom').
+        Whether comments should be a simplified version original_metadata ('auto'),
+        the raw original_metadata dictionary ('raw'), skipped ('off'), or supplied 
+        by the user as an additional kwarg ('custom').
     is_special : bool , default = False
-        If True, NaN values in the dataset or integers reaching boundary values are
-        flagged in the export as non-measured and saturating, respectively. If False,
-        those values are kept as-is.
+        If True, NaN values in the dataset or integers reaching the boundary of the 
+        signed int-representation are flagged as non-measured or saturating, 
+        respectively. If False, those values are not flagged (converted to valid points).
     compressed : bool, default =True
-        If True, compress the data in the export file using zlib.
+        If True, compress the data in the export file using zlib. Can help dramatically 
+        reduce the file size.
     comments : dict, default = {}
         Set a custom dictionnary in the comments field of the exported file.
         Ignored if set_comments is not set to 'custom'.
@@ -2386,7 +2387,7 @@ def file_writer(
         Maximum size is 32.0 kB and content will be cropped if this size is exceeded.
     client_zone : bytes, default = b''
         Set arbitrary byte-content in the client_zone field of exported file metadata.
-        Maximum size is 128B and and content will be cropped if this size is exceeded.
+        Maximum size is 128 B and and content will be cropped if this size is exceeded.
     """
     ds = DigitalSurfHandler(filename=filename)
     ds.signal_dict = signal

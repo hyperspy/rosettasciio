@@ -950,7 +950,6 @@ class FeiSpectrumStream(object):
         """
         # Here we load the stream data into memory, which is fine is the
         # arrays are small. We could load them lazily when lazy.
-        stream_data = self.stream_group["Data"][:].T[0]
         sparse_array = stream_readers.stream_to_sparse_COO_array(
             stream_data=stream_data,
             spatial_shape=self.reader.spatial_shape,
@@ -967,8 +966,8 @@ class FeiSpectrumStream(object):
 
         Parameters
         ----------
-        stream_data: array
-        spectrum_image: array or None
+        stream_data : numpy.ndarray
+        spectrum_image : numpy.ndarray or None
             If array, the data from the stream are added to the array.
             Otherwise it creates a new array and returns it.
 

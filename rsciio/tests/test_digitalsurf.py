@@ -499,7 +499,6 @@ def test_metadata_mapping():
 
 
 def test_compressdata():
-
     testdat = np.arange(120, dtype=np.int32)
 
     # Refuse too many / neg streams
@@ -665,8 +664,8 @@ def test_norm_int_data(dtype, special, fullscale):
         dat[2] = minint
         dat[11] = maxint
 
-    Zscale = 0.0 #to avoid CodeQL error: pot. non-initialized var
-    Zoffset = -np.inf #to avoid CodeQL error: pot. non-initialized var
+    Zscale = 0.0  # to avoid CodeQL error: pot. non-initialized var
+    Zoffset = -np.inf  # to avoid CodeQL error: pot. non-initialized var
     pointsize, Zmin, Zmax, Zscale, Zoffset, data_int = dh._norm_data(dat, special)
 
     off = minint + 1 if special and fullscale else dat.min()
@@ -678,8 +677,9 @@ def test_norm_int_data(dtype, special, fullscale):
     assert Zmin == off
     assert Zmax == maxval
 
+
 @pytest.mark.parametrize("transpose", [True, False])
-def test_writetestobjects_rgb(tmp_path,transpose):
+def test_writetestobjects_rgb(tmp_path, transpose):
     # This is just a different test function because the
     # comparison of rgb data must be done differently
     # (due to hyperspy underlying structure)
@@ -718,6 +718,7 @@ def test_writetestobjects_rgb(tmp_path,transpose):
         assert np.allclose(ax.axis, ax2.axis)
         assert np.allclose(ax.axis, ax3.axis)
 
+
 @pytest.mark.parametrize(
     "dtype", [np.int8, np.int16, np.int32, np.float64, np.uint8, np.uint16]
 )
@@ -731,6 +732,7 @@ def test_writegeneric_validtypes(tmp_path, dtype, compressed):
 
     gen2 = hs.load(fgen)
     assert np.allclose(gen2.data, gen.data)
+
 
 @pytest.mark.parametrize("compressed", [True, False])
 def test_writegeneric_nans(tmp_path, compressed):
@@ -748,6 +750,7 @@ def test_writegeneric_nans(tmp_path, compressed):
     gen2 = hs.load(fgen)
     assert np.allclose(gen2.data, gen.data, equal_nan=True)
 
+
 def test_writegeneric_transposedprofile(tmp_path):
     """This test checks the expected behaviour that a transposed profile gets
     correctly saved but a warning is raised."""
@@ -761,6 +764,7 @@ def test_writegeneric_transposedprofile(tmp_path):
 
     gen2 = hs.load(fgen)
     assert np.allclose(gen2.data, gen.data)
+
 
 @pytest.mark.parametrize(
     "dtype",
@@ -776,11 +780,13 @@ def test_writegeneric_failingtypes(tmp_path, dtype):
     with pytest.raises(MountainsMapFileError):
         gen.save(fgen, overwrite=True)
 
+
 def test_writegeneric_failingformat(tmp_path):
-    gen = hs.signals.Signal1D(np.zeros((3,4,5,6)))
+    gen = hs.signals.Signal1D(np.zeros((3, 4, 5, 6)))
     fgen = tmp_path.joinpath("test.sur")
     with pytest.raises(MountainsMapFileError):
         gen.save(fgen, overwrite=True)
+
 
 @pytest.mark.parametrize("dtype", [(np.uint8, "rgba8"), (np.uint16, "rgba16")])
 @pytest.mark.parametrize("compressed", [True, False])
@@ -815,7 +821,6 @@ def test_writegeneric_rgba(tmp_path, dtype, compressed, transpose):
 @pytest.mark.parametrize("compressed", [True, False])
 @pytest.mark.parametrize("transpose", [True, False])
 def test_writegeneric_binaryimg(tmp_path, compressed, transpose):
-
     size = (76, 3)
 
     gen = hs.signals.Signal2D(np.random.randint(low=0, high=1, size=size, dtype=bool))
@@ -836,7 +841,6 @@ def test_writegeneric_binaryimg(tmp_path, compressed, transpose):
 
 @pytest.mark.parametrize("compressed", [True, False])
 def test_writegeneric_profileseries(tmp_path, compressed):
-
     size = (9, 655)
 
     gen = hs.signals.Signal1D(np.random.random(size=size) * 1444 + 2550.0)

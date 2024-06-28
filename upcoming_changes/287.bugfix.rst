@@ -1,0 +1,1 @@
+:ref:`EMD Velox <emd_fei-format>`: fix reading EDS stream detector lazily with ``sum_EDS_detectors=True``.

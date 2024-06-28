@@ -405,6 +405,25 @@ class TestFeiEMD:
         assert len(signal) == length
         # TODO: add parsing azimuth_angle
 
+    @pytest.mark.parametrize("lazy", (False, True))
+    def test_fei_si_4detectors_compare(self, lazy):
+        fname = self.fei_files_path / "fei_SI_EDS-HAADF-4detectors_2frames.emd"
+        s_sum_EDS = hs.load(fname, sum_EDS_detectors=True, lazy=lazy)[-1]
+        s = hs.load(fname, sum_EDS_detectors=False, lazy=lazy)[-4:]
+        if lazy:
+            s_sum_EDS.compute()
+            for s_ in s:
+                s_.compute()
+
+        s2 = hs.stack(s, new_axis_name="detector").sum("detector")
+
+        np.testing.assert_allclose(s[-1].data.sum(), 865236)
+        np.testing.assert_allclose(s[-2].data.sum(), 913682)
+        np.testing.assert_allclose(s[-3].data.sum(), 867647)
+        np.testing.assert_allclose(s[-4].data.sum(), 916174)
+        np.testing.assert_allclose(s2.data.sum(), 3562739)
+        np.testing.assert_allclose(s2.data, s_sum_EDS.data)
+
     def test_fei_emd_ceta_camera(self):
         signal = hs.load(self.fei_files_path / "1532 Camera Ceta.emd")
         np.testing.assert_allclose(signal.data, np.zeros((64, 64)))

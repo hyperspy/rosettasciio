@@ -2166,11 +2166,21 @@ class DigitalSurfHandler(object):
             self._get_work_dict_key_value("_05_Object_Type")
         ]
         if objtype in [
-            "_BINARYIMAGE",
             "_RGBIMAGE",
-            "_RGBSURFACE",
             "_SERIESOFRGBIMAGES",
             "_INTENSITYIMAGE",
+        ]:
+            return True
+        else:
+            return False
+
+    def _is_data_bin(self):
+        """Digitalsurf image formats can be binary sometimes"""
+        objtype = self._mountains_object_types[
+            self._get_work_dict_key_value("_05_Object_Type")
+        ]
+        if objtype in [
+            "_BINARYIMAGE",
         ]:
             return True
         else:
@@ -2257,6 +2267,8 @@ class DigitalSurfHandler(object):
         elif self._is_data_scaleint():
             _points = (_points.astype(float) - Zmin) * scale + offset
             _points = np.round(_points).astype(int)
+        elif self._is_data_bin():
+            pass
         else:
             _points = (_points.astype(float) - Zmin) * scale + offset
             _points[nm] = np.nan  # Ints have no nans

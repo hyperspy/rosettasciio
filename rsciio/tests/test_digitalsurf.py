@@ -582,6 +582,7 @@ def test_get_comment_dict():
         "test_spectrum.pro",
         "test_spectrum_compressed.pro",
         "test_isurface.sur",
+        "test_RGBSURFACE.sur",
     ],
 )
 def test_writetestobjects(tmp_path, test_object):
@@ -716,7 +717,6 @@ def test_writetestobjects_rgb(tmp_path,transpose):
     for ax, ax2, ax3 in zip(a, b, c):
         assert np.allclose(ax.axis, ax2.axis)
         assert np.allclose(ax.axis, ax3.axis)
-
 
 @pytest.mark.parametrize(
     "dtype", [np.int8, np.int16, np.int32, np.float64, np.uint8, np.uint16]

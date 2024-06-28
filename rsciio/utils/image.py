@@ -41,13 +41,18 @@ FocalPlaneResolutionUnit_mapping = {
 
 def _parse_axes_from_metadata(exif_tags, sizes):
     if exif_tags is None:
-        return []
-    offsets = exif_tags.get("FocalPlaneXYOrigins", [0, 0])
-    # jpg files made with Renishaw have this tag
-    scales = exif_tags.get("FieldOfViewXY", [1, 1])
+        # if no exif_tags exist, axes are set to scale of 1 pixel/pixel
+        # return of axes must not be empty, or dimensions are lost
+        offsets = [0,0]
+        scales = [sizes[1],sizes[0]]
+        unit = "pixel"
+    else:
+        offsets = exif_tags.get("FocalPlaneXYOrigins", [0, 0])
+        # jpg files made with Renishaw have this tag
+        scales = exif_tags.get("FieldOfViewXY", [1, 1])
 
-    unit = FocalPlaneResolutionUnit_mapping[
-        exif_tags.get("FocalPlaneResolutionUnit", "")
+        unit = FocalPlaneResolutionUnit_mapping[
+            exif_tags.get("FocalPlaneResolutionUnit", "")
     ]
 
     axes = [

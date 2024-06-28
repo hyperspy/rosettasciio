@@ -1,0 +1,4 @@
+:ref:`EMD Velox <emd_fei-format>` fixes for reading files containing multiple EDS streams:
+
+- fix reading multiple EDS streams lazily with ``sum_EDS_detectors=True``,
+- fix reading separate EDS stream and individual frames when using ``sum_EDS_detectors=False`` and ``sum_frames=False``.

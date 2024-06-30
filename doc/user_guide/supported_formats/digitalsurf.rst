@@ -36,7 +36,7 @@ inspects the names of signal axes and ``metadata.Signal.quantity``. The criteria
 | 0               | 2             | ``.sur``: BinaryImage (based on dtype), RGBImage (based on dtype),           |
 |                 |               | Surface (default)                                                            |
 +-----------------+---------------+------------------------------------------------------------------------------+
-| 1               | 0             | ``.pro``: same as (1,0)                                                      |
+| 1               | 0             | ``.pro``: same as (0,1)                                                      |
 +-----------------+---------------+------------------------------------------------------------------------------+
 | 1               | 1             | ``.pro``: Spectrum Serie (based on axes name), Profile Serie (default)       |
 +-----------------+---------------+------------------------------------------------------------------------------+

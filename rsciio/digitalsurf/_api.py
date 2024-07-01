@@ -104,7 +104,7 @@ class DigitalSurfHandler(object):
         21: "_HYPCARD",
     }
 
-    def __init__(self, filename: str = ""):
+    def __init__(self, filename: str):
         # We do not need to check for file existence here because
         # io module implements it in the load function
         self.filename = filename
@@ -954,9 +954,6 @@ class DigitalSurfHandler(object):
         elif len(quantity) == 1:
             Zname = quantity.pop()
             Zunit = ""
-        else:
-            Zname = ""
-            Zunit = ""
 
         return Zname, Zunit
 
@@ -1088,20 +1085,20 @@ class DigitalSurfHandler(object):
         # _49_Obsolete
 
         comment_len = len(f"{comment}".encode("latin-1"))
-        if comment_len > 2**15:
+        if comment_len >= 2**15:
             warnings.warn(
                 f"Comment exceeding max length of 32.0 kB and will be cropped"
             )
-            comment_len = np.int16(2**15)
+            comment_len = np.int16(2**15-1)
 
         self._work_dict["_50_Comment_size"]["value"] = comment_len
 
         privatesize = len(private_zone)
-        if privatesize > 2**15:
+        if privatesize >= 2**15:
             warnings.warn(
                 f"Private size exceeding max length of 32.0 kB and will be cropped"
             )
-            privatesize = np.int16(2**15)
+            privatesize = np.uint16(2**15-1)
 
         self._work_dict["_51_Private_size"]["value"] = privatesize
 
@@ -1870,7 +1867,7 @@ class DigitalSurfHandler(object):
         # Title lines start with an underscore
         titlestart = "{:s}_".format(prefix)
 
-        keymain = None
+        key_main = None
 
         for line in str_ms.splitlines():
             # Here we ignore any empty line or line starting with @@
@@ -1884,8 +1881,8 @@ class DigitalSurfHandler(object):
                     key_main = line[len(titlestart) :].strip()
                     dict_ms[key_main] = {}
                 elif line.startswith(prefix):
-                    if keymain is None:
-                        keymain = "UNTITLED"
+                    if key_main is None:
+                        key_main = "UNTITLED"
                         dict_ms[key_main] = {}
                     key, *li_value = line.split(delimiter)
                     # Key is also stripped from beginning or end whitespace
@@ -2006,9 +2003,9 @@ class DigitalSurfHandler(object):
                 if has_units:
                     _ = keys_queue.pop(ku_idx)
                     vu = vals_queue.pop(ku_idx)
-                    cmtstr += f"${k} = {v.__repr__()} {vu}\n"
+                    cmtstr += f"${k} = {v.__str__()} {vu}\n"
                 else:
-                    cmtstr += f"${k} = {v.__repr__()}\n"
+                    cmtstr += f"${k} = {v.__str__()}\n"
 
         return cmtstr
 
@@ -2218,8 +2215,7 @@ class DigitalSurfHandler(object):
             # set to 0 instead of 1 in non-spectral data to compute the
             # space occupied by data in the file
             readsize = Npts_tot * psize * Wsize
-            # if Wsize != 0:
-            #     readsize *= Wsize
+
             buf = file.read(readsize)
             # Read the exact size of the data
             _points = np.frombuffer(buf, dtype=dtype)
@@ -2374,15 +2370,15 @@ def file_writer(
     %s
     set_comments : str , default = 'auto'
         Whether comments should be a simplified version original_metadata ('auto'),
-        the raw original_metadata dictionary ('raw'), skipped ('off'), or supplied 
-        by the user as an additional kwarg ('custom').
+        the raw original_metadata dictionary ('raw'), skipped ('off'), or supplied
+         by the user as an additional kwarg ('custom').
     is_special : bool , default = False
-        If True, NaN values in the dataset or integers reaching the boundary of the 
-        signed int-representation are flagged as non-measured or saturating, 
-        respectively. If False, those values are not flagged (converted to valid points).
+        If True, NaN values in the dataset or integers reaching the boundary of the
+         signed int-representation are flagged as non-measured or saturating,
+         respectively. If False, those values are not flagged (converted to valid points).
     compressed : bool, default =True
-        If True, compress the data in the export file using zlib. Can help dramatically 
-        reduce the file size.
+        If True, compress the data in the export file using zlib. Can help dramatically
+         reduce the file size.
     comments : dict, default = {}
         Set a custom dictionnary in the comments field of the exported file.
         Ignored if set_comments is not set to 'custom'.

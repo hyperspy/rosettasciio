@@ -409,7 +409,7 @@ def test_load_spectrum():
 
 
 def test_load_surface():
-    fname = TEST_DATA_PATH / "test_isurface.sur"
+    fname = TEST_DATA_PATH / "test_surface.sur"
     s = hs.load(fname)
     md = s.metadata
     assert md.Signal.quantity == "CL Intensity (a.u.)"
@@ -580,7 +580,7 @@ def test_get_comment_dict():
         "test_spectral_map_compressed.sur",
         "test_spectrum.pro",
         "test_spectrum_compressed.pro",
-        "test_isurface.sur",
+        "test_surface.sur",
         "test_RGBSURFACE.sur",
     ],
 )

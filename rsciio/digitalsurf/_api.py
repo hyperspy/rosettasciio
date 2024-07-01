@@ -2382,14 +2382,14 @@ def file_writer(
     set_comments : str , default = 'auto'
         Whether comments should be a simplified version original_metadata ('auto'),
         the raw original_metadata dictionary ('raw'), skipped ('off'), or supplied
-         by the user as an additional kwarg ('custom').
+        by the user as an additional kwarg ('custom').
     is_special : bool , default = False
         If True, NaN values in the dataset or integers reaching the boundary of the
-         signed int-representation are flagged as non-measured or saturating,
-         respectively. If False, those values are not flagged (converted to valid points).
+        signed int-representation are flagged as non-measured or saturating,
+        respectively. If False, those values are not flagged (converted to valid points).
     compressed : bool, default =True
         If True, compress the data in the export file using zlib. Can help dramatically
-         reduce the file size.
+        reduce the file size.
     comments : dict, default = {}
         Set a custom dictionnary in the comments field of the exported file.
         Ignored if set_comments is not set to 'custom'.

@@ -23,16 +23,15 @@
 # comments can be systematically parsed into metadata and write a support for
 # original_metadata or other
 
+import ast
 import datetime
-from copy import deepcopy
 import logging
 import os
-import struct
-import sys
 import re
+import struct
 import warnings
 import zlib
-import ast
+from copy import deepcopy
 
 # Commented for now because I don't know what purpose it serves
 # import traits.api as t
@@ -53,9 +52,9 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
+from rsciio.utils.date_time_tools import get_date_time_from_metadata
 from rsciio.utils.exceptions import MountainsMapFileError
 from rsciio.utils.rgb_tools import is_rgb, is_rgba
-from rsciio.utils.date_time_tools import get_date_time_from_metadata
 
 _logger = logging.getLogger(__name__)
 
@@ -152,12 +151,18 @@ class DigitalSurfHandler(object):
             },
             "_06_Object_Name": {
                 "value": "",
-                "b_unpack_fn": lambda f: self._get_str(f, 30, ),
+                "b_unpack_fn": lambda f: self._get_str(
+                    f,
+                    30,
+                ),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 30),
             },
             "_07_Operator_Name": {
                 "value": "ROSETTA",
-                "b_unpack_fn": lambda f: self._get_str(f, 30, ),
+                "b_unpack_fn": lambda f: self._get_str(
+                    f,
+                    30,
+                ),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 30),
             },
             "_08_P_Size": {
@@ -242,47 +247,47 @@ class DigitalSurfHandler(object):
             },
             "_24_Name_of_X_Axis": {
                 "value": "X",
-                "b_unpack_fn": lambda f: self._get_str(f, 16 ),
+                "b_unpack_fn": lambda f: self._get_str(f, 16),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 16),
             },
             "_25_Name_of_Y_Axis": {
                 "value": "Y",
-                "b_unpack_fn": lambda f: self._get_str(f, 16 ),
+                "b_unpack_fn": lambda f: self._get_str(f, 16),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 16),
             },
             "_26_Name_of_Z_Axis": {
                 "value": "Z",
-                "b_unpack_fn": lambda f: self._get_str(f, 16 ),
+                "b_unpack_fn": lambda f: self._get_str(f, 16),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 16),
             },
             "_27_X_Step_Unit": {
                 "value": "um",
-                "b_unpack_fn": lambda f: self._get_str(f, 16 ),
+                "b_unpack_fn": lambda f: self._get_str(f, 16),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 16),
             },
             "_28_Y_Step_Unit": {
                 "value": "um",
-                "b_unpack_fn": lambda f: self._get_str(f, 16 ),
+                "b_unpack_fn": lambda f: self._get_str(f, 16),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 16),
             },
             "_29_Z_Step_Unit": {
                 "value": "um",
-                "b_unpack_fn": lambda f: self._get_str(f, 16 ),
+                "b_unpack_fn": lambda f: self._get_str(f, 16),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 16),
             },
             "_30_X_Length_Unit": {
                 "value": "um",
-                "b_unpack_fn": lambda f: self._get_str(f, 16 ),
+                "b_unpack_fn": lambda f: self._get_str(f, 16),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 16),
             },
             "_31_Y_Length_Unit": {
                 "value": "um",
-                "b_unpack_fn": lambda f: self._get_str(f, 16 ),
+                "b_unpack_fn": lambda f: self._get_str(f, 16),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 16),
             },
             "_32_Z_Length_Unit": {
                 "value": "um",
-                "b_unpack_fn": lambda f: self._get_str(f, 16 ),
+                "b_unpack_fn": lambda f: self._get_str(f, 16),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 16),
             },
             "_33_X_Unit_Ratio": {
@@ -412,12 +417,12 @@ class DigitalSurfHandler(object):
             },
             "_58_T_Axis_Name": {
                 "value": "T",
-                "b_unpack_fn": lambda f: self._get_str(f, 13 ),
+                "b_unpack_fn": lambda f: self._get_str(f, 13),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 13),
             },
             "_59_T_Step_Unit": {
                 "value": "um",
-                "b_unpack_fn": lambda f: self._get_str(f, 13 ),
+                "b_unpack_fn": lambda f: self._get_str(f, 13),
                 "b_pack_fn": lambda f, v: self._set_str(f, v, 13),
             },
             "_60_Comment": {
@@ -613,7 +618,7 @@ class DigitalSurfHandler(object):
                 self._split_rgb()
             elif is_rgba(self.signal_dict["data"]):
                 warnings.warn(
-                    f"A channel discarded upon saving \
+                    "A channel discarded upon saving \
                               RGBA signal in .sur format"
                 )
                 self._split_rgb()
@@ -636,7 +641,7 @@ class DigitalSurfHandler(object):
                 self._split_rgbserie()
             elif is_rgba(self.signal_dict["data"]):
                 warnings.warn(
-                    f"Alpha channel discarded upon saving RGBA signal in .sur format"
+                    "Alpha channel discarded upon saving RGBA signal in .sur format"
                 )
                 self._split_rgbserie()
             else:
@@ -651,7 +656,7 @@ class DigitalSurfHandler(object):
                 self._split_rgb()
             elif is_rgba(self.signal_dict["data"]):
                 warnings.warn(
-                    f"A channel discarded upon saving \
+                    "A channel discarded upon saving \
                             RGBA signal in .sur format"
                 )
                 self._split_rgb()
@@ -846,7 +851,7 @@ class DigitalSurfHandler(object):
 
         if np.issubdtype(data_type, np.complexfloating):
             raise MountainsMapFileError(
-                f"digitalsurf file formats do not support export of complex data. Convert data to real-value representations before before export"
+                "digitalsurf file formats do not support export of complex data. Convert data to real-value representations before before export"
             )
         elif data_type == bool:
             pointsize = 16
@@ -867,7 +872,7 @@ class DigitalSurfHandler(object):
             data_int = data.astype(np.int32)
         elif np.issubdtype(data_type, np.unsignedinteger):
             raise MountainsMapFileError(
-                f"digitalsurf file formats do not support unsigned int >16bits. Convert data to signed integers before export."
+                "digitalsurf file formats do not support unsigned int >16bits. Convert data to signed integers before export."
             )
         elif data_type == np.int8:
             pointsize = 16  # Pointsize has to be 16 or 32 in surf format
@@ -883,7 +888,7 @@ class DigitalSurfHandler(object):
             Zmin, Zmax, Zscale, Zoffset = self._norm_signed_int(data, is_special)
         elif np.issubdtype(data_type, np.integer):
             raise MountainsMapFileError(
-                f"digitalsurf file formats do not support export integers larger than 32 bits. Convert data to 32-bit representation before exporting"
+                "digitalsurf file formats do not support export integers larger than 32 bits. Convert data to 32-bit representation before exporting"
             )
         elif np.issubdtype(data_type, np.floating):
             pointsize = 32
@@ -974,41 +979,41 @@ class DigitalSurfHandler(object):
         """Populate _work_dict with the"""
 
         if not compressed:
-            self._work_dict["_01_Signature"][
-                "value"
-            ] = "DIGITAL SURF"  # DSCOMPRESSED by default
+            self._work_dict["_01_Signature"]["value"] = (
+                "DIGITAL SURF"  # DSCOMPRESSED by default
+            )
         else:
-            self._work_dict["_01_Signature"][
-                "value"
-            ] = "DSCOMPRESSED"  # DSCOMPRESSED by default
+            self._work_dict["_01_Signature"]["value"] = (
+                "DSCOMPRESSED"  # DSCOMPRESSED by default
+            )
 
         # self._work_dict['_02_Format']['value'] = 0 # Dft. other possible value is 257 for MacintoshII computers with Motorola CPUs. Obv not supported...
         self._work_dict["_03_Number_of_Objects"]["value"] = self._N_data_objects
         # self._work_dict['_04_Version']['value'] = 1 # Version number. Always default.
         self._work_dict["_05_Object_Type"]["value"] = obj_type
-        self._work_dict["_06_Object_Name"][
-            "value"
-        ] = object_name  # Obsolete, DOS-version only (Not supported)
-        self._work_dict["_07_Operator_Name"][
-            "value"
-        ] = operator_name  # Should be settable from kwargs
+        self._work_dict["_06_Object_Name"]["value"] = (
+            object_name  # Obsolete, DOS-version only (Not supported)
+        )
+        self._work_dict["_07_Operator_Name"]["value"] = (
+            operator_name  # Should be settable from kwargs
+        )
         self._work_dict["_08_P_Size"]["value"] = self._N_data_channels
 
-        self._work_dict["_09_Acquisition_Type"][
-            "value"
-        ] = 0  # AFM data only, could be inferred
-        self._work_dict["_10_Range_Type"][
-            "value"
-        ] = 0  # Only 1 for high-range (z-stage scanning), AFM data only, could be inferred
+        self._work_dict["_09_Acquisition_Type"]["value"] = (
+            0  # AFM data only, could be inferred
+        )
+        self._work_dict["_10_Range_Type"]["value"] = (
+            0  # Only 1 for high-range (z-stage scanning), AFM data only, could be inferred
+        )
 
         self._work_dict["_11_Special_Points"]["value"] = int(is_special)
 
-        self._work_dict["_12_Absolute"][
-            "value"
-        ] = absolute  # Probably irrelevant in most cases. Absolute vs rel heights (for profilometers), can be inferred
-        self._work_dict["_13_Gauge_Resolution"][
-            "value"
-        ] = 0.0  # Probably irrelevant. Only for profilometers (maybe AFM), can be inferred
+        self._work_dict["_12_Absolute"]["value"] = (
+            absolute  # Probably irrelevant in most cases. Absolute vs rel heights (for profilometers), can be inferred
+        )
+        self._work_dict["_13_Gauge_Resolution"]["value"] = (
+            0.0  # Probably irrelevant. Only for profilometers (maybe AFM), can be inferred
+        )
 
         # T-axis acts as W-axis for spectrum / hyperspectrum surfaces.
         if obj_type in [21]:
@@ -1078,9 +1083,9 @@ class DigitalSurfHandler(object):
             data_bin = data_int.ravel().astype(fmt).tobytes()
             compressed_size = 0
 
-        self._work_dict["_48_Compressed_data_size"][
-            "value"
-        ] = compressed_size  # Obsolete in case of non-compressed
+        self._work_dict["_48_Compressed_data_size"]["value"] = (
+            compressed_size  # Obsolete in case of non-compressed
+        )
 
         # _49_Obsolete
 
@@ -1096,7 +1101,7 @@ class DigitalSurfHandler(object):
         privatesize = len(private_zone)
         if privatesize >= 2**15:
             warnings.warn(
-                f"Private size exceeding max length of 32.0 kB and will be cropped"
+                "Private size exceeding max length of 32.0 kB and will be cropped"
             )
             privatesize = np.uint16(2**15-1)
 
@@ -1135,9 +1140,11 @@ class DigitalSurfHandler(object):
             )
             self._N_data_channels = self._get_work_dict_key_value("_08_P_Size")
 
-            # Determine how many objects we need to read, at least 1 object and 1 channel 
+            # Determine how many objects we need to read, at least 1 object and 1 channel
             # even if metadata is set to 0 (happens sometimes)
-            n_objects_to_read = max(self._N_data_channels,1) * max(self._N_data_objects,1)
+            n_objects_to_read = max(self._N_data_channels, 1) * max(
+                self._N_data_objects, 1
+            )
 
             # Lookup what object type we are dealing with and save
             self._Object_type = DigitalSurfHandler._mountains_object_types[
@@ -1497,7 +1504,6 @@ class DigitalSurfHandler(object):
     def _build_RGB_image_series(
         self,
     ):
-
         # First object dictionary
         hypdic = self._list_sur_file_content[0]
 
@@ -1938,7 +1944,7 @@ class DigitalSurfHandler(object):
         elif method == "off":
             return {}
         elif method == "auto":
-            pattern = re.compile("Object_\d*_Channel_\d*")
+            pattern = re.compile(r"Object_\d*_Channel_\d*")
             omd = original_metadata
             # filter original metadata content of dict type and matching pattern.
             validfields = [
@@ -1965,7 +1971,7 @@ class DigitalSurfHandler(object):
             return {}
         else:
             raise MountainsMapFileError(
-                f"Non-valid method for setting mountainsmap file comment. Choose one of: 'auto','raw','custom','off' "
+                "Non-valid method for setting mountainsmap file comment. Choose one of: 'auto','raw','custom','off' "
             )
 
     @staticmethod
@@ -2047,7 +2053,9 @@ class DigitalSurfHandler(object):
         file.write(struct.pack("<H", val))
 
     @staticmethod
-    def _get_int16(file,):
+    def _get_int16(
+        file,
+    ):
         """Read a 16-bits int with a user-definable default value if
         no file is given"""
         b = file.read(2)
@@ -2088,7 +2096,9 @@ class DigitalSurfHandler(object):
         file.write(struct.pack("<i", val))
 
     @staticmethod
-    def _get_float(file,):
+    def _get_float(
+        file,
+    ):
         """Read a 4-bytes (single precision) float from a binary file f with a
         default value if no file is given"""
         return struct.unpack("<f", file.read(4))[0]
@@ -2099,7 +2109,9 @@ class DigitalSurfHandler(object):
         file.write(struct.pack("<f", val))
 
     @staticmethod
-    def _get_uint32(file, ):
+    def _get_uint32(
+        file,
+    ):
         b = file.read(4)
         return struct.unpack("<I", b)[0]
 
@@ -2197,7 +2209,6 @@ class DigitalSurfHandler(object):
         return datasize
 
     def _unpack_data(self, file, encoding="latin-1"):
-
         # Size of datapoints in bytes. Always int16 (==2) or 32 (==4)
         psize = int(self._get_work_dict_key_value("_15_Size_of_Points") / 8)
         dtype = np.int16 if psize == 2 else np.int32
@@ -2259,7 +2270,7 @@ class DigitalSurfHandler(object):
 
         # Packing data into ints or float, with or without scaling.
         if self._is_data_int():
-            pass #Case left here for future modification
+            pass  # Case left here for future modification
         elif self._is_data_scaleint():
             _points = (_points.astype(float) - Zmin) * scale + offset
             _points = np.round(_points).astype(int)
@@ -2288,7 +2299,7 @@ class DigitalSurfHandler(object):
 
         if nstreams <= 0 or nstreams > 8:
             raise MountainsMapFileError(
-                f"Number of compression streams must be >= 1, <= 8"
+                "Number of compression streams must be >= 1, <= 8"
             )
 
         bstr = b""

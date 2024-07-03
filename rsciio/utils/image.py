@@ -30,8 +30,8 @@ CustomTAGS = {
 # from https://exiftool.org/TagNames/EXIF.html
 # For tag 0x9210 (37392)
 FocalPlaneResolutionUnit_mapping = {
-    "": "",
-    1: "",
+    None: None,
+    1: None,
     2: "inches",
     3: "cm",
     4: "mm",
@@ -40,21 +40,20 @@ FocalPlaneResolutionUnit_mapping = {
 
 
 def _parse_axes_from_metadata(exif_tags, sizes):
-    if exif_tags is None:
-        # return of axes must not be empty, or dimensions are lost
-        # if no exif_tags exist, axes are set to a scale of 1 per pixel,
-        # unit is set to None, hyperspy will parse it as a traits.api.undefined value
-        offsets = [0,0]
-        fields_of_views = [sizes[1],sizes[0]]
-        unit = None
-    else:
-        offsets = exif_tags.get("FocalPlaneXYOrigins", [0, 0])
+    # return of axes must not be empty, or dimensions are lost
+    # if no exif_tags exist, axes are set to a scale of 1 per pixel,
+    # unit is set to None, hyperspy will parse it as a traits.api.undefined value
+    offsets = [0, 0]
+    fields_of_views = [sizes[1], sizes[0]]
+    unit = None
+    if exif_tags is not None:
+        # Fallback to default value when tag not available
+        offsets = exif_tags.get("FocalPlaneXYOrigins", offsets)
         # jpg files made with Renishaw have this tag
-        fields_of_views = exif_tags.get("FieldOfViewXY", [1, 1])
-
+        fields_of_views = exif_tags.get("FieldOfViewXY", fields_of_views)
         unit = FocalPlaneResolutionUnit_mapping[
-            exif_tags.get("FocalPlaneResolutionUnit", "")
-    ]
+            exif_tags.get("FocalPlaneResolutionUnit", unit)
+        ]
 
     axes = [
         {

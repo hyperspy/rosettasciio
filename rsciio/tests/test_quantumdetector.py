@@ -41,6 +41,7 @@ zarr = pytest.importorskip("zarr", reason="zarr not installed")
 TEST_DATA_DIR = Path(__file__).parent / "data" / "quantumdetector"
 ZIP_FILE = TEST_DATA_DIR / "Merlin_Single_Quad.zip"
 ZIP_FILE2 = TEST_DATA_DIR / "Merlin_navigation4x2_ROI.zip"
+ZIP_FILE3 = TEST_DATA_DIR / "Merlin_navigation4x2_signalNx256_ROI.zip"
 TEST_DATA_DIR_UNZIPPED = TEST_DATA_DIR / "unzipped"
 
 
@@ -57,6 +58,11 @@ QUAD_CHIP_FNAME_LIST = [
     for depth in [1, 6, 12, 24]
 ]
 
+SIGNAL_ROI_FNAME_LIST = [
+    "002_merlin_test_roi_sig256x128_nav4x2_hot_pixel_52x_39y.mib",
+    "003_merlin_test_roi_sig256x64_nav4x2_hot_pixel_52x_39y.mib",
+]
+
 
 def filter_list(fname_list, string):
     return [fname for fname in fname_list if string in fname]
@@ -70,6 +76,9 @@ def setup_module():
 
         if ZIP_FILE2.exists():
             with zipfile.ZipFile(ZIP_FILE2, "r") as zipped:
+                zipped.extractall(TEST_DATA_DIR_UNZIPPED)
+        if ZIP_FILE3.exists():
+            with zipfile.ZipFile(ZIP_FILE3, "r") as zipped:
                 zipped.extractall(TEST_DATA_DIR_UNZIPPED)
 
 
@@ -412,3 +421,25 @@ def test_distributed(lazy):
         s.compute()
         s2.compute()
     np.testing.assert_array_equal(s.data, s2.data)
+
+
+@pytest.mark.parametrize("fname", SIGNAL_ROI_FNAME_LIST)
+def test_hot_pixel_signal_ROI(fname):
+    s = hs.load(TEST_DATA_DIR_UNZIPPED / fname)
+    for i in s:
+        for j in i:
+            data = j.data
+            xy = np.argwhere(data == data.max())
+            assert len(xy) == 1
+            coord_shifted = np.array(*xy) - np.array([data.shape[0], 0])
+            assert np.all(coord_shifted == np.array([-40, 52]))
+
+
+@pytest.mark.parametrize("fname", SIGNAL_ROI_FNAME_LIST)
+def test_signal_shape_ROI(fname):
+    s = hs.load(TEST_DATA_DIR_UNZIPPED / fname)
+    assert s.axes_manager.navigation_shape == (4, 2)
+    if "sig256x64" in fname:
+        assert s.axes_manager.signal_shape == (256, 64)
+    if "sig256x128" in fname:
+        assert s.axes_manager.signal_shape == (256, 128)

@@ -145,7 +145,7 @@ class MIBProperties:
             raise TypeError("`path` must be a str or a buffer.")
 
         # read detector size
-        self.merlin_size = (int(head[4]), int(head[5]))
+        self.merlin_size = (int(head[5]), int(head[4]))
 
         # test if RAW
         if head[6] == "R64":  # pragma: no cover

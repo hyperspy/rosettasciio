@@ -298,3 +298,17 @@ def test_export_output_size_iterable_length_1(tmp_path):
     fname = tmp_path / "test_export_output_size_iterable_length_1.jpg"
     with pytest.raises(ValueError):
         s.save(fname, output_size=(256,))
+
+
+def test_missing_exif_tags():
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+    import traits.api as t
+
+    s = hs.load(testfile_dir / "jpg_no_exif_tags.jpg")
+
+    assert s.data.shape == (182, 255)
+    assert s.axes_manager.signal_shape == (255, 182)
+    for axis in s.axes_manager.signal_axes:
+        assert axis.scale == 1
+        assert axis.offset == 0
+        assert axis.units == t.Undefined

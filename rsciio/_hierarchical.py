@@ -74,7 +74,7 @@ def unflatten_data(data, shape, is_hdf5=False):
                 is_hdf5
                 and data.dtype is not None
                 and data.dtype.metadata.get("vlen") is not None
-                and data.dtype.metadata["vlen"].metadata.get("vlen") == str
+                and issubclass(data.dtype.metadata["vlen"].metadata.get("vlen"), str)
             )
         except (AttributeError, KeyError):
             # AttributeError in case `dtype.metadata`` is None (most of the time)

@@ -140,6 +140,11 @@ def test_dir_plugins(plugin):
             "parse_exposures",
             "parse_timestamps",
         ]
+    elif plugin["name"] == "DigitalSurf":
+        assert dir(plugin_module) == [
+            "file_reader", 
+            "file_writer", 
+            "parse_metadata"]
     elif plugin["writes"] is False:
         assert dir(plugin_module) == ["file_reader"]
     else:

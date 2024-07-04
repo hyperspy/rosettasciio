@@ -59,6 +59,72 @@ from rsciio.utils.rgb_tools import is_rgb, is_rgba
 _logger = logging.getLogger(__name__)
 
 
+def parse_metadata(cmt : str, prefix : str = '$', delimiter : str = '=') -> dict:
+    """
+    Parse metadata from the comment field of a digitalsurf file, or any other
+    str in similar formatting. Return it as a hyperspy-compatible nested dict.
+
+    Parameters
+    ----------
+    cmt : str
+        Str containing contents of a digitalsurf file "comment" field.
+    prefix : str, default = '$' 
+        Prefix character, must be present at the start of each line.
+        Otherwise, the line is ignored. '$' for digitalsurf files, 
+        typically '' when parsing from text files.
+    delimiter : string, default = '='
+        Character that delimit key-value pairs in digitalsurf comment. 
+        Usually, '=' is used.
+
+    Returns
+    -------
+    dict_md : dict
+        Nested dictionnary containing comment contents.
+
+    """
+    # dict_ms is created as an empty dictionnary
+    dict_md = {}
+    # Title lines start with an underscore
+    titlestart = "{:s}_".format(prefix)
+
+    key_main = None
+
+    for line in cmt.splitlines():
+        # Here we ignore any empty line or line starting with @@
+        ignore = False
+        if not line.strip() or line.startswith("@@"):
+            ignore = True
+        # If the line must not be ignored
+        if not ignore:
+            if line.startswith(titlestart):
+                # We strip keys from whitespace at the end and beginning
+                key_main = line[len(titlestart) :].strip()
+                dict_md[key_main] = {}
+            elif line.startswith(prefix):
+                if key_main is None:
+                    key_main = "UNTITLED"
+                    dict_md[key_main] = {}
+                key, *li_value = line.split(delimiter)
+                # Key is also stripped from beginning or end whitespace
+                key = key[len(prefix) :].strip()
+                str_value = li_value[0] if len(li_value) > 0 else ""
+                # remove whitespace at the beginning of value
+                str_value = str_value.strip()
+                li_value = str_value.split(" ")
+                try:
+                    if key == "Grating":
+                        dict_md[key_main][key] = li_value[
+                            0
+                        ]  # we don't want to eval this one
+                    else:
+                        dict_md[key_main][key] = ast.literal_eval(li_value[0])
+                except Exception:
+                    dict_md[key_main][key] = li_value[0]
+                if len(li_value) > 1:
+                    dict_md[key_main][key + "_units"] = li_value[1]
+    return dict_md
+
+
 class DigitalSurfHandler(object):
     """Class to read Digital Surf MountainsMap files.
 
@@ -1657,7 +1723,7 @@ class DigitalSurfHandler(object):
                 # Check if it is the case and append it to original metadata if yes
                 valid_comment = self._check_comments(a["_60_Comment"], "$", "=")
                 if valid_comment:
-                    parsedict = self._MS_parse(a["_60_Comment"], "$", "=")
+                    parsedict = parse_metadata(a["_60_Comment"], "$", "=")
                     parsedict = {k.lstrip("_"): m for k, m in parsedict.items()}
                     original_metadata_dict[key].update({"Parsed": parsedict})
 
@@ -1849,66 +1915,6 @@ class DigitalSurfHandler(object):
 
         # return falsiness of the string.
         return valid
-
-    @staticmethod
-    def _MS_parse(str_ms, prefix, delimiter):
-        """Parses a string containing metadata information. The string can be
-        read from the comment section of a .sur file, or, alternatively, a file
-        containing them with a similar formatting.
-
-        Parameters
-        ----------
-        str_ms: string containing metadata
-        prefix: string (or char) character assumed to start each line.
-        '$' if a .sur file.
-        delimiter: string that delimits the keyword from value. always '='
-
-        Returns
-        -------
-        dict_ms: dictionnary in the correct hyperspy metadata format
-
-        """
-        # dict_ms is created as an empty dictionnary
-        dict_ms = {}
-        # Title lines start with an underscore
-        titlestart = "{:s}_".format(prefix)
-
-        key_main = None
-
-        for line in str_ms.splitlines():
-            # Here we ignore any empty line or line starting with @@
-            ignore = False
-            if not line.strip() or line.startswith("@@"):
-                ignore = True
-            # If the line must not be ignored
-            if not ignore:
-                if line.startswith(titlestart):
-                    # We strip keys from whitespace at the end and beginning
-                    key_main = line[len(titlestart) :].strip()
-                    dict_ms[key_main] = {}
-                elif line.startswith(prefix):
-                    if key_main is None:
-                        key_main = "UNTITLED"
-                        dict_ms[key_main] = {}
-                    key, *li_value = line.split(delimiter)
-                    # Key is also stripped from beginning or end whitespace
-                    key = key[len(prefix) :].strip()
-                    str_value = li_value[0] if len(li_value) > 0 else ""
-                    # remove whitespace at the beginning of value
-                    str_value = str_value.strip()
-                    li_value = str_value.split(" ")
-                    try:
-                        if key == "Grating":
-                            dict_ms[key_main][key] = li_value[
-                                0
-                            ]  # we don't want to eval this one
-                        else:
-                            dict_ms[key_main][key] = ast.literal_eval(li_value[0])
-                    except Exception:
-                        dict_ms[key_main][key] = li_value[0]
-                    if len(li_value) > 1:
-                        dict_ms[key_main][key + "_units"] = li_value[1]
-        return dict_ms
 
     @staticmethod
     def _get_comment_dict(

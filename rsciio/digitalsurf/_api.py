@@ -68,18 +68,18 @@ def parse_metadata(cmt : str, prefix : str = '$', delimiter : str = '=') -> dict
     ----------
     cmt : str
         Str containing contents of a digitalsurf file "comment" field.
-    prefix : str, default = '$' 
-        Prefix character, must be present at the start of each line.
-        Otherwise, the line is ignored. '$' for digitalsurf files, 
-        typically '' when parsing from text files.
-    delimiter : string, default = '='
+    prefix : str
+        Prefix character, must be present at the start of each line,
+        otherwise the line is ignored. ``"$"`` for digitalsurf files, 
+        typically an empty string (``""``) when parsing from text files.
+        Default is ``"$"``.
+    delimiter : str
         Character that delimit key-value pairs in digitalsurf comment. 
-        Usually, '=' is used.
-
+        Default is ``"="``.
     Returns
     -------
-    dict_md : dict
-        Nested dictionnary containing comment contents.
+    dict
+        Nested dictionnary of the metadata.
 
     """
     # dict_ms is created as an empty dictionnary

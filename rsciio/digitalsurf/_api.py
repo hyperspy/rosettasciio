@@ -59,7 +59,7 @@ from rsciio.utils.rgb_tools import is_rgb, is_rgba
 _logger = logging.getLogger(__name__)
 
 
-def parse_metadata(cmt : str, prefix : str = '$', delimiter : str = '=') -> dict:
+def parse_metadata(cmt: str, prefix: str = "$", delimiter: str = "=") -> dict:
     """
     Parse metadata from the comment field of a digitalsurf file, or any other
     str in similar formatting. Return it as a hyperspy-compatible nested dict.
@@ -70,11 +70,11 @@ def parse_metadata(cmt : str, prefix : str = '$', delimiter : str = '=') -> dict
         Str containing contents of a digitalsurf file "comment" field.
     prefix : str
         Prefix character, must be present at the start of each line,
-        otherwise the line is ignored. ``"$"`` for digitalsurf files, 
+        otherwise the line is ignored. ``"$"`` for digitalsurf files,
         typically an empty string (``""``) when parsing from text files.
         Default is ``"$"``.
     delimiter : str
-        Character that delimit key-value pairs in digitalsurf comment. 
+        Character that delimit key-value pairs in digitalsurf comment.
         Default is ``"="``.
 
     Returns
@@ -919,7 +919,7 @@ class DigitalSurfHandler(object):
             raise MountainsMapFileError(
                 "digitalsurf file formats do not support export of complex data. Convert data to real-value representations before before export"
             )
-        elif data_type == bool:
+        elif np.issubdtype(data_type, bool):
             pointsize = 16
             Zmin = 0
             Zmax = 1
@@ -1157,10 +1157,8 @@ class DigitalSurfHandler(object):
 
         comment_len = len(f"{comment}".encode("latin-1"))
         if comment_len >= 2**15:
-            warnings.warn(
-                f"Comment exceeding max length of 32.0 kB and will be cropped"
-            )
-            comment_len = np.int16(2**15-1)
+            warnings.warn("Comment exceeding max length of 32.0 kB and will be cropped")
+            comment_len = np.int16(2**15 - 1)
 
         self._work_dict["_50_Comment_size"]["value"] = comment_len
 
@@ -1169,7 +1167,7 @@ class DigitalSurfHandler(object):
             warnings.warn(
                 "Private size exceeding max length of 32.0 kB and will be cropped"
             )
-            privatesize = np.uint16(2**15-1)
+            privatesize = np.uint16(2**15 - 1)
 
         self._work_dict["_51_Private_size"]["value"] = privatesize
 

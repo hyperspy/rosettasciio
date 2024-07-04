@@ -141,7 +141,7 @@ atto_scan_keys = [
 
 
 def test_invalid_data():
-    dsh = DigitalSurfHandler('untitled.sur')
+    dsh = DigitalSurfHandler("untitled.sur")
 
     with pytest.raises(MountainsMapFileError):
         dsh._Object_type = "INVALID"
@@ -435,7 +435,7 @@ def test_load_surface():
 
 
 def test_choose_signal_type():
-    reader = DigitalSurfHandler('untitled.sur')
+    reader = DigitalSurfHandler("untitled.sur")
 
     # Empty dict should not raise error but return empty string
     mock_dict = {}
@@ -659,7 +659,7 @@ def test_split(test_tuple):
 @pytest.mark.parametrize("special", [True, False])
 @pytest.mark.parametrize("fullscale", [True, False])
 def test_norm_int_data(dtype, special, fullscale):
-    dh = DigitalSurfHandler('untitled.sur')
+    dh = DigitalSurfHandler("untitled.sur")
 
     if fullscale:
         minint = np.iinfo(dtype).min
@@ -686,7 +686,6 @@ def test_norm_int_data(dtype, special, fullscale):
     assert np.allclose(data_int, dat)
     assert Zmin == off
     assert Zmax == maxval
-
 
 
 @pytest.mark.parametrize("transpose", [True, False])
@@ -730,7 +729,6 @@ def test_writetestobjects_rgb(tmp_path, transpose):
         assert np.allclose(ax.axis, ax3.axis)
 
 
-
 @pytest.mark.parametrize(
     "dtype", [np.int8, np.int16, np.int32, np.float64, np.uint8, np.uint16]
 )
@@ -744,7 +742,6 @@ def test_writegeneric_validtypes(tmp_path, dtype, compressed):
 
     gen2 = hs.load(fgen)
     assert np.allclose(gen2.data, gen.data)
-
 
 
 @pytest.mark.parametrize("compressed", [True, False])
@@ -764,7 +761,6 @@ def test_writegeneric_nans(tmp_path, compressed):
     assert np.allclose(gen2.data, gen.data, equal_nan=True)
 
 
-
 def test_writegeneric_transposedprofile(tmp_path):
     """This test checks the expected behaviour that a transposed profile gets
     correctly saved but a warning is raised."""
@@ -780,14 +776,14 @@ def test_writegeneric_transposedprofile(tmp_path):
     assert np.allclose(gen2.data, gen.data)
 
 
-def test_writegeneric_transposedsurface(tmp_path,):
+def test_writegeneric_transposedsurface(
+    tmp_path,
+):
     """This test establishes the possibility of saving RGBA surface series while discarding
     A channel and warning"""
     size = (44, 58)
-    
-    gen = hs.signals.Signal2D(
-            np.random.random(size=size)*1e4
-        )
+
+    gen = hs.signals.Signal2D(np.random.random(size=size) * 1e4)
     gen = gen.T
 
     fgen = tmp_path.joinpath("test.sur")
@@ -812,7 +808,6 @@ def test_writegeneric_failingtypes(tmp_path, dtype):
     fgen = tmp_path.joinpath("test.pro")
     with pytest.raises(MountainsMapFileError):
         gen.save(fgen, overwrite=True)
-
 
 
 def test_writegeneric_failingformat(tmp_path):
@@ -961,43 +956,45 @@ def test_writegeneric_surfaceseries(tmp_path, dtype, compressed):
 
 
 def test_writegeneric_datetime(tmp_path):
-
     gen = hs.signals.Signal1D(np.random.rand(87))
-    gen.metadata.General.date = '2024-06-30'
-    gen.metadata.General.time = '13:29:10'
-    
+    gen.metadata.General.date = "2024-06-30"
+    gen.metadata.General.time = "13:29:10"
+
     fgen = tmp_path.joinpath("test.pro")
     gen.save(fgen)
 
     gen2 = hs.load(fgen)
     assert gen2.original_metadata.Object_0_Channel_0.Header.H40_Seconds == 10
     assert gen2.original_metadata.Object_0_Channel_0.Header.H41_Minutes == 29
-    assert gen2.original_metadata.Object_0_Channel_0.Header.H42_Hours   == 13
-    assert gen2.original_metadata.Object_0_Channel_0.Header.H43_Day     == 30
-    assert gen2.original_metadata.Object_0_Channel_0.Header.H44_Month   == 6
-    assert gen2.original_metadata.Object_0_Channel_0.Header.H45_Year    == 2024
+    assert gen2.original_metadata.Object_0_Channel_0.Header.H42_Hours == 13
+    assert gen2.original_metadata.Object_0_Channel_0.Header.H43_Day == 30
+    assert gen2.original_metadata.Object_0_Channel_0.Header.H44_Month == 6
+    assert gen2.original_metadata.Object_0_Channel_0.Header.H45_Year == 2024
     assert gen2.original_metadata.Object_0_Channel_0.Header.H46_Day_of_week == 6
 
 
 def test_writegeneric_comments(tmp_path):
-
     gen = hs.signals.Signal1D(np.random.rand(87))
     fgen = tmp_path.joinpath("test.pro")
 
-    res = "".join(["a" for i in range(2**15+2)])
-    cmt = {'comment': res}
+    res = "".join(["a" for i in range(2**15 + 2)])
+    cmt = {"comment": res}
 
     with pytest.raises(MountainsMapFileError):
-        gen.save(fgen,set_comments='somethinginvalid')
+        gen.save(fgen, set_comments="somethinginvalid")
 
     with pytest.warns():
-        gen.save(fgen,set_comments='custom',comments=cmt)
-    
+        gen.save(fgen, set_comments="custom", comments=cmt)
+
     gen2 = hs.load(fgen)
-    assert gen2.original_metadata.Object_0_Channel_0.Parsed.UNTITLED.comment.startswith('a')
-    assert len(gen2.original_metadata.Object_0_Channel_0.Parsed.UNTITLED.comment) < 2**15-1
+    assert gen2.original_metadata.Object_0_Channel_0.Parsed.UNTITLED.comment.startswith(
+        "a"
+    )
+    assert (
+        len(gen2.original_metadata.Object_0_Channel_0.Parsed.UNTITLED.comment)
+        < 2**15 - 1
+    )
 
-    priv = res.encode('latin-1')
+    priv = res.encode("latin-1")
     with pytest.warns():
-        gen.save(fgen,private_zone=priv,overwrite=True)
-    
+        gen.save(fgen, private_zone=priv, overwrite=True)

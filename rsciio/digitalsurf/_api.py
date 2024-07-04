@@ -76,11 +76,11 @@ def parse_metadata(cmt : str, prefix : str = '$', delimiter : str = '=') -> dict
     delimiter : str
         Character that delimit key-value pairs in digitalsurf comment. 
         Default is ``"="``.
+
     Returns
     -------
     dict
         Nested dictionnary of the metadata.
-
     """
     # dict_ms is created as an empty dictionnary
     dict_md = {}

@@ -5,15 +5,17 @@ Hamamatsu
 
 Reader for spectroscopy data saved in ``.img`` (ITEX) files from the HPD-TA
 (High Performance Digital Temporal Analyzer) or HiPic (High Performance image control)
-softwares from Hamamatsu, e.g. for streak cameras or high performance CCD cameras.
+softwares from Hamamatsu, e.g. for images from streak cameras or high performance
+CCD cameras.
 
-If `LumiSpy <https://lumispy.org>`_ is installed, ``Luminescence`` will be
-used as the ``signal_type``.
+If `LumiSpy <https://lumispy.org>`_ is installed, ``TransientSpec`` will be
+used as the ``signal_type``, which is intended for streak camera images with
+both wavelength and time axes.
 
 .. Note::
 
-   Reading files containing multiple channels or multiple images per channel
-   is not implemented.
+   Currently, reading files containing multiple channels or multiple images per
+   channel is not implemented.
 
 API functions
 ^^^^^^^^^^^^^

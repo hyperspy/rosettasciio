@@ -406,10 +406,12 @@ class TestFeiEMD:
         # TODO: add parsing azimuth_angle
 
     @pytest.mark.parametrize("lazy", (False, True))
-    def test_fei_si_4detectors_compare(self, lazy):
+    @pytest.mark.parametrize("sum_frames", (False, True))
+    def test_fei_si_4detectors_compare(self, lazy, sum_frames):
         fname = self.fei_files_path / "fei_SI_EDS-HAADF-4detectors_2frames.emd"
-        s_sum_EDS = hs.load(fname, sum_EDS_detectors=True, lazy=lazy)[-1]
-        s = hs.load(fname, sum_EDS_detectors=False, lazy=lazy)[-4:]
+        kwargs = dict(lazy=lazy, sum_frames=sum_frames)
+        s_sum_EDS = hs.load(fname, sum_EDS_detectors=True, **kwargs)[-1]
+        s = hs.load(fname, sum_EDS_detectors=False, **kwargs)[-4:]
         if lazy:
             s_sum_EDS.compute()
             for s_ in s:

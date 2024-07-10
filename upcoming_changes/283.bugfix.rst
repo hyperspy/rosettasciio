@@ -1,1 +1,0 @@
-Fixes axes for JPG with no exif_tags. Return of axes while loading isn't emty anymore.

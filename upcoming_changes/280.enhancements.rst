@@ -1,5 +1,0 @@
-:ref:`DigitalSurf surfaces <digitalsurf-format>`:
-
-- add support for saving file - see :func:`~.digitalsurf.file_writer`
-- add the :func:`~.digitalsurf.parse_metadata` function to parse metadata from ``sur`` file
-- add series of RGB images / surfaces support. 

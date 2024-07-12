@@ -1,1 +1,0 @@
-:ref:`quantumdetector-format`: Fix signal shape of data acquired in ROI mode.

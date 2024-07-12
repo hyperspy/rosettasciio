@@ -8,6 +8,36 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 
 .. towncrier release notes start
 
+0.6 (2024-07-11)
+================
+
+Enhancements
+------------
+
+- :ref:`DigitalSurf surfaces <digitalsurf-format>`:
+
+  - add support for saving file - see :func:`~.digitalsurf.file_writer`
+  - add the :func:`~.digitalsurf.parse_metadata` function to parse metadata from ``sur`` file
+  - add series of RGB images / surfaces support. (`#280 <https://github.com/hyperspy/rosettasciio/issues/280>`_)
+
+
+Bug Fixes
+---------
+
+- Fixes axes for JPG with no exif_tags. Return of axes while loading isn't emty anymore. (`#283 <https://github.com/hyperspy/rosettasciio/issues/283>`_)
+- :ref:`EMD Velox <emd_fei-format>` fixes for reading files containing multiple EDS streams:
+
+  - fix reading multiple EDS streams lazily with ``sum_EDS_detectors=True``,
+  - fix reading separate EDS stream and individual frames when using ``sum_EDS_detectors=False`` and ``sum_frames=False``. (`#287 <https://github.com/hyperspy/rosettasciio/issues/287>`_)
+- :ref:`quantumdetector-format`: Fix signal shape of data acquired in ROI mode. (`#289 <https://github.com/hyperspy/rosettasciio/issues/289>`_)
+
+
+Maintenance
+-----------
+
+- Add support for numpy 2 in Renishaw, Semper and Dens reader. (`#281 <https://github.com/hyperspy/rosettasciio/issues/281>`_)
+
+
 0.5 (2024-06-15)
 ================
 

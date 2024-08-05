@@ -102,11 +102,6 @@ jobs:
           python --version
           pip --version
 
-      - name: Install oldest supported version
-        if: contains(matrix.LABEL, 'oldest')
-        run: |
-          pip install ${{ matrix.DEPENDENCIES }}
-
       - name: Install hyperspy and exspy
         if: ${{ ! contains(matrix.LABEL, 'without-hyperspy') }}
         run: |
@@ -138,6 +133,11 @@ jobs:
         run: |
           pip uninstall -y pyUSID
 
+      - name: Install oldest supported version
+        if: contains(matrix.LABEL, 'oldest')
+        run: |
+          pip install ${{ matrix.DEPENDENCIES }}
+  
       - name: Install numpy 2.0 
         if: ${{ ! contains(matrix.LABEL, 'oldest') && matrix.PYTHON_VERSION != '3.8' }}
         run: |

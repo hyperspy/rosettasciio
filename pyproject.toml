@@ -116,7 +116,8 @@ doc = [
   "sphinx",
   "sphinx-favicon",
   "sphinxcontrib-towncrier",
-  "towncrier",
+  # unpin when sphinxcontrib-towncrier supports towncrier >=24
+  "towncrier<24",
 ]
 all = [
   "rosettasciio[blockfile]",

@@ -23,7 +23,8 @@ jobs:
       CIBW_TEST_SKIP: "cp38-macosx_arm64"
       # No need to build wheels for pypy because the pure python wheels can be used
       # PyPy documentation recommends no to build the C extension
-      CIBW_SKIP: "{pp*,*-musllinux*,*win32,*-manylinux_i686}"
+      # CPython 3.13 not supported yet because of pint
+      CIBW_SKIP: "{pp*,cp313*,*-musllinux*,*win32,*-manylinux_i686}"
     strategy:
       fail-fast: false
       matrix:
@@ -49,7 +50,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build wheels for CPython
-        uses: pypa/cibuildwheel@v2.19.2
+        uses: pypa/cibuildwheel@v2.20.0
         env:
           CIBW_ARCHS: ${{ matrix.CIBW_ARCHS }}
 

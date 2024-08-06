@@ -154,7 +154,7 @@ def file_reader(
         Force read image resolution using the ``x_resolution``, ``y_resolution``
         and ``resolution_unit`` tiff tags. Beware: most software don't (properly)
         use these tags when saving ``.tiff`` files.
-        See `<https://www.awaresystems.be/imaging/tiff/tifftags/resolutionunit.html>`_.
+        See `<https://www.loc.gov/preservation/digital/formats/content/tiff_tags.shtml>`_.
     multipage_as_list : bool, default=False
         Read multipage tiff and return list with full content of every page. This
         utilises ``tifffile``s ``pages`` instead of ``series`` way of data access,

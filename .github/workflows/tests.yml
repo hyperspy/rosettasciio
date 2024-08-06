@@ -1,6 +1,12 @@
 name: Tests
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - 'dependabot/*'
+      - 'pre-commit-ci-update-config'
+  workflow_dispatch:
 
 jobs:
   run_test_site:
@@ -23,7 +29,7 @@ jobs:
             PYTHON_VERSION: '3.8'
             # Set pillow and scikit-image version to be compatible with imageio and scipy
             # matplotlib needs 3.5 to support markers in hyperspy 2.0 (requires `collection.set_offset_transform`)
-            DEPENDENCIES: matplotlib==3.5 numpy==1.20.0 tifffile==2022.7.28 dask[array]==2021.3.1 numba==0.52 imageio==2.16 pillow==8.3.2 scikit-image==0.18.0 python-box==6.0.0
+            DEPENDENCIES: matplotlib==3.5 numpy==1.20.0 tifffile==2022.7.28 dask[array]==2021.5.1 distributed==2021.5.1 numba==0.52 imageio==2.16 pillow==8.3.2 scikit-image==0.18.0 python-box==6.0.0
             LABEL: '-oldest'
           # test minimum requirement
           - os: ubuntu
@@ -102,11 +108,6 @@ jobs:
           python --version
           pip --version
 
-      - name: Install oldest supported version
-        if: contains(matrix.LABEL, 'oldest')
-        run: |
-          pip install ${{ matrix.DEPENDENCIES }}
-
       - name: Install hyperspy and exspy
         if: ${{ ! contains(matrix.LABEL, 'without-hyperspy') }}
         run: |
@@ -138,6 +139,11 @@ jobs:
         run: |
           pip uninstall -y pyUSID
 
+      - name: Install oldest supported version
+        if: contains(matrix.LABEL, 'oldest')
+        run: |
+          pip install ${{ matrix.DEPENDENCIES }}
+  
       - name: Install numpy 2.0 
         if: ${{ ! contains(matrix.LABEL, 'oldest') && matrix.PYTHON_VERSION != '3.8' }}
         run: |

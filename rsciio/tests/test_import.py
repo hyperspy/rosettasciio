@@ -44,7 +44,7 @@ def test_import_all():
     # Remove plugins which require not installed optional dependencies
     h5py = importlib.util.find_spec("h5py")
     if h5py is None:
-        plugin_name_to_remove.extend(["EMD", "HSPY", "NeXus"])
+        plugin_name_to_remove.extend(["Delmic", "EMD", "HSPY", "NeXus"])
 
     imageio = importlib.util.find_spec("imageio")
     if imageio is None:
@@ -123,7 +123,7 @@ def test_dir_plugins(plugin):
         pytest.importorskip("pyUSID")
     elif plugin["name"] == "ZSPY":
         pytest.importorskip("zarr")
-    elif plugin["name"] in ["EMD", "HSPY", "NeXus"]:
+    elif plugin["name"] in ["Delmic", "EMD", "HSPY", "NeXus"]:
         pytest.importorskip("h5py")
     plugin_module = importlib.import_module(plugin_string)
 

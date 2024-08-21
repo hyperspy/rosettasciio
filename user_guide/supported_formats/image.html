@@ -518,7 +518,7 @@ readers as documented at
 <dd class="field-even"><dl>
 <dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
 <ul class="simple">
-<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
 <li><p>‘axes’ – list of dictionaries describing the axes
 containing the fields ‘name’, ‘units’, ‘index_in_array’, and
 either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
@@ -540,7 +540,7 @@ containing the full axes vector</p></li>
 <p>The file format is defined by  the file extension that is any one
 supported by imageio. When any of the parameters <code class="docutils literal notranslate"><span class="pre">output_size</span></code>,
 <code class="docutils literal notranslate"><span class="pre">scalebar</span></code> or <code class="docutils literal notranslate"><span class="pre">imshow_kwds</span></code> is given,
-<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html#matplotlib.pyplot.imshow" title="(in Matplotlib v3.9.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imshow()</span></code></a> is used to generate a figure.</p>
+<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html#matplotlib.pyplot.imshow" title="(in Matplotlib v3.9.2)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imshow()</span></code></a> is used to generate a figure.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
@@ -576,14 +576,14 @@ ratio of the image.</p></li>
 used by default and this behaviour can be changed through the
 <code class="docutils literal notranslate"><span class="pre">imshow_kwds</span></code> dictionary.</p>
 </dd>
-<dt><strong>imshow_kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Keyword arguments dictionary for <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html#matplotlib.pyplot.imshow" title="(in Matplotlib v3.9.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imshow()</span></code></a>.</p>
+<dt><strong>imshow_kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Keyword arguments dictionary for <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html#matplotlib.pyplot.imshow" title="(in Matplotlib v3.9.2)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imshow()</span></code></a>.</p>
 </dd>
 <dt><strong>**kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Allows to pass keyword arguments supported by the individual file
 writers as documented at
 <a class="reference external" href="https://imageio.readthedocs.io/en/stable/formats/index.html">https://imageio.readthedocs.io/en/stable/formats/index.html</a> when
 exporting an image without scalebar. When exporting with a scalebar,
 the keyword arguments are passed to the <cite>pil_kwargs</cite> dictionary of
-<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html#matplotlib.pyplot.savefig" title="(in Matplotlib v3.9.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">savefig()</span></code></a>.</p>
+<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html#matplotlib.pyplot.savefig" title="(in Matplotlib v3.9.2)"><code class="xref py py-func docutils literal notranslate"><span class="pre">savefig()</span></code></a>.</p>
 </dd>
 </dl>
 </dd>
@@ -607,7 +607,7 @@ arguments:</p>
 required.</p>
 </div>
 <p>In the example above, the image is created using
-<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html#matplotlib.pyplot.imshow" title="(in Matplotlib v3.9.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imshow()</span></code></a>, and additional keyword arguments can be
+<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html#matplotlib.pyplot.imshow" title="(in Matplotlib v3.9.2)"><code class="xref py py-func docutils literal notranslate"><span class="pre">imshow()</span></code></a>, and additional keyword arguments can be
 passed to this function using <code class="docutils literal notranslate"><span class="pre">imshow_kwds</span></code>. For example, this can be used
 to save an image displayed using the matplotlib colormap <code class="docutils literal notranslate"><span class="pre">viridis</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">file_writer</span><span class="p">(</span><span class="s1">&#39;file.jpg&#39;</span><span class="p">,</span> <span class="n">signal</span><span class="p">,</span> <span class="n">imshow_kwds</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">))</span>

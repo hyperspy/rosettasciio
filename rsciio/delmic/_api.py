@@ -1,4 +1,4 @@
-import h5py as hf
+import h5py
 import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC
@@ -13,7 +13,7 @@ def file_reader(filename, *args, **kwds):
 
     %s
     """
-    hdf = hf.File(filename, "r")
+    hdf = h5py.File(filename, "r")
 
     Acquisition2 = hdf.get("Acquisition2")
     Acquisition2_ImageData = Acquisition2.get("ImageData")

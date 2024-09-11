@@ -22,6 +22,8 @@
 
 import logging
 import os
+import logging
+import glob
 
 import dask.array as da
 import numpy as np
@@ -250,7 +252,9 @@ def file_reader(
     navigation_shape=None,
     distributed=False,
     chunks="auto",
-    metadata_file=None,
+    metadata_file="auto",
+    virtual_images=None,
+    external_images=None,
 ):
     """
     File reader for the MRC format for tomographic data.
@@ -269,8 +273,26 @@ def file_reader(
 
     %s
     """
+    if metadata_file == "auto":
+        if "movie" in filename:  # DE movie
+            dir_name = os.path.dirname(filename)
+            base_name = os.path.basename(filename)
+            split = base_name.split("_")
+            unique_id = "_".join(split[:2])
+            if len(split) > 3:  # File Suffix
+                suffix = "_".join(split[2:-1])
+            else:
+                suffix = ""
+            metadata = glob.glob(dir_name + "/" + unique_id + suffix + "_info.txt")
+            virtual_images = glob.glob(dir_name + "/" + unique_id + suffix + "_[0-4]_*.mrc")
+            external_images = glob.glob(dir_name + "/" + unique_id + suffix + "_ext[1-4]_*.mrc")
+        if len(metadata) == 1:
+            metadata_file = metadata[0]
+        else:
+            metadata_file = None
 
     if metadata_file is not None:
+        # Check if the metadata file exists
         (
             de_metadata,
             metadata,
@@ -286,6 +308,21 @@ def file_reader(
         navigation_axes = None
     metadata["General"]["original_filename"] = os.path.split(filename)[1]
     metadata["Signal"]["signal_type"] = ""
+
+    if virtual_images is not None and len(virtual_images) > 0:
+        imgs = []
+        for v in virtual_images:
+            imgs = file_reader(v)["data"]
+        metadata["General"]["virtual_images"] = imgs
+        # checking to make sure the navigator is valid
+        if navigation_shape is not None and navigation_shape == imgs[0].shape:
+            metadata["_HyperSpy"]["navigator"] = imgs[0]
+
+    if external_images is not None and len(external_images) > 0:
+        imgs = []
+        for e in external_images:
+            imgs = file_reader(e)["data"]
+        metadata["General"]["external_detectors"] = imgs
 
     f = open(filename, "rb")
     std_header = np.fromfile(f, dtype=get_std_dtype_list(endianess), count=1)

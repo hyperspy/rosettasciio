@@ -122,5 +122,5 @@ def test_mrc_metadata(navigation_shape):
     assert s.axes_manager.signal_shape == (256, 256)
     assert s.axes_manager.navigation_shape == navigation_shape
     assert s.metadata.Acquisition_instrument.TEM.detector == "CeleritasXS"
-    assert s.metadata.Acquisition_instrument.TEM.magnificiation == "1000"
+    assert s.metadata.Acquisition_instrument.TEM.magnification == "1000"
     assert s.metadata.Acquisition_instrument.TEM.frames_per_second == "40000"

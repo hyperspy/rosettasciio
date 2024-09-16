@@ -168,10 +168,14 @@ def read_de_metadata_file(filename, navigation_shape=None):
             value = value.strip()
             original_metadata[key] = value
 
-    r = int(original_metadata["Scan - Repeats"])
+    #r = int(original_metadata["Scan - Repeats"])
+    r = 1  # DE saves multiple 4D acquisitions as separate files. Repeats is always 1
+    # keeping this becuase this might change in the future.
     x = int(original_metadata["Scan - Size X"])
     y = int(original_metadata["Scan - Size Y"])
-    pr = int(original_metadata["Scan - Point Repeat"])
+    #pr = int(original_metadata["Scan - Point Repeat"])
+    pr = 1  # DE saves multiple 4D acquisitions as separate files. Point repeat is always 1. Keeping because thins
+    # might change in the future
 
     if navigation_shape is not None:
         shape = navigation_shape[::-1]
@@ -230,7 +234,7 @@ def read_de_metadata_file(filename, navigation_shape=None):
     metadata = {
         "Acquisition_instrument": {
             "TEM": {
-                "magnificiation": magnification,
+                "magnification": magnification,
                 "detector": camera_model,
                 "frames_per_second": fps,
             }
@@ -286,6 +290,8 @@ def file_reader(
             metadata = glob.glob(dir_name + "/" + unique_id + suffix + "_info.txt")
             virtual_images = glob.glob(dir_name + "/" + unique_id + suffix + "_[0-4]_*.mrc")
             external_images = glob.glob(dir_name + "/" + unique_id + suffix + "_ext[1-4]_*.mrc")
+        else:
+            metadata =[]
         if len(metadata) == 1:
             metadata_file = metadata[0]
         else:
@@ -312,7 +318,7 @@ def file_reader(
     if virtual_images is not None and len(virtual_images) > 0:
         imgs = []
         for v in virtual_images:
-            imgs = file_reader(v)["data"]
+            imgs = file_reader(v)[0]["data"]
         metadata["General"]["virtual_images"] = imgs
         # checking to make sure the navigator is valid
         if navigation_shape is not None and navigation_shape == imgs[0].shape:

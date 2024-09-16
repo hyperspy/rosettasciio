@@ -202,10 +202,10 @@ def read_de_metadata_file(filename, navigation_shape=None):
         axes_units = ["times", "nm", "nm", "s"][::-1]
         axes_scales = [
             1,
-            original_metadata["Specimen Pixel Size X (nanometers)"],
-            original_metadata["Specimen Pixel Size Y (nanometers)"],
-            original_metadata["Scan - Time (seconds)"]
-            + original_metadata["Scan - Repeat Delay (seconds)"],
+            original_metadata.get("Specimen Pixel Size X (nanometers)", 1),
+            original_metadata.get("Specimen Pixel Size Y (nanometers)", 1),
+            original_metadata.get("Scan - Time (seconds)", 1)
+            + original_metadata.get("Scan - Repeat Delay (seconds)", 1),
         ][::-1]
         for i, s in enumerate(shape[::-1]):
             ind = 0

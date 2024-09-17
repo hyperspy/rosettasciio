@@ -121,5 +121,10 @@ towncrier_draft_include_empty = False
 towncrier_draft_working_directory = ".."
 
 
+linkcheck_ignore = [
+    "https://www.biorxiv.org",  # 403 Client Error: Forbidden for url
+]
+
+
 def setup(app):
     app.add_css_file("custom-styles.css")

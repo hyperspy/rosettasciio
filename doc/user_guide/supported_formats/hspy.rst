@@ -7,9 +7,7 @@ This is `HyperSpy's <https://hyperspy.org>`_ default format and for data process
 in HyperSpy, it is the only format that guarantees that no
 information will be lost in the writing process and that supports saving data
 of arbitrary dimensions. It is based on the `HDF5 open standard
-<https://www.hdfgroup.org/solutions/hdf5/>`_. The HDF5 file format is supported by `many
-applications
-<https://support.hdfgroup.org/products/hdf5_tools/SWSummarybyName.htm>`_.
+<https://www.hdfgroup.org/solutions/hdf5/>`_.
 Parts of the specifications are documented in :external+hyperspy:ref:`metadata_structure`.
 
 .. versionadded:: HyperSpy_v1.2

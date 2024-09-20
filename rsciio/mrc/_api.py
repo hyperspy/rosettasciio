@@ -277,18 +277,22 @@ def file_reader(
     %s
     """
     if metadata_file == "auto":
-        if "movie" in filename:  # DE movie
-            dir_name = os.path.dirname(filename)
-            base_name = os.path.basename(filename)
-            split = base_name.split("_")
-            unique_id = "_".join(split[:2])
-            if len(split) > 3:  # File Suffix
-                suffix = "_".join(split[2:-1])
-            else:
-                suffix = ""
-            metadata = glob.glob(dir_name + "/" + unique_id + suffix + "_info.txt")
-            virtual_images = glob.glob(dir_name + "/" + unique_id + suffix + "_[0-4]_*.mrc")
-            external_images = glob.glob(dir_name + "/" + unique_id + suffix + "_ext[1-4]_*.mrc")
+        if "movie" in filename:
+            try:  # DE movie
+                dir_name = os.path.dirname(filename)
+                base_name = os.path.basename(filename)
+                split = base_name.split("_")
+                unique_id = "_".join(split[:2])
+                if len(split) > 3:  # File Suffix
+                    suffix = "_".join(split[2:-1])
+                else:
+                    suffix = ""
+                metadata = glob.glob(dir_name + "/" + unique_id + suffix + "_info.txt")
+                virtual_images = glob.glob(dir_name + "/" + unique_id + suffix + "_[0-4]_*.mrc")
+                external_images = glob.glob(dir_name + "/" + unique_id + suffix + "_ext[1-4]_*.mrc")
+            except:
+                _logger.warning("Could not find metadata file for DE movie.")
+                metadata = []
         else:
             metadata =[]
         if len(metadata) == 1:

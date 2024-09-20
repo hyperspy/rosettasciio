@@ -56,12 +56,19 @@ MRC Format (Direct Electron)
 Loading from Direct Electron's ``.mrc`` as well as reading the metadata from the .txt file
 saved by the software is supported by passing the ``metadata_file`` argument to the
 ``file_reader`` function. The ``metadata_file`` argument can be a string or a file-like
-object.
+object. Additionally, the ``metadata_file`` argument can be automatically inferred.  This requires
+that the file name is of the form ``uniqueid_suffix_movie.mrc`` and that the metadata file is
+named ``uniqueid_suffix_info.txt``.
 
 This will automatically set the navigation shape based on the ``Scan - Size X`` and                                                   = 256
-``Scan - Size Y`` as well as the ``Scan - Repeats`` and ``Scan - Point Repeats``
-parameters in the metadata file. The navigation shape can be overridden
+``Scan - Size Y``parameters in the metadata file. The navigation shape can be overridden
 by passing the ``navigation_shape`` argument to the ``file_reader`` function.
+
+Additionally virtual_images/ external detectors can be loaded by passing a list of file names to the
+``external_images`` or the ``virtual_images`` parameter.  This will also automatically be inferred
+if the file names are of the form ``uniqueid_suffix_ext1_extName.mrc`` and
+``uniqueid_suffix_1_virtualName.mrc``. The first virtual image will be used as the navigation image
+for fast plotting.
 
 
 API functions

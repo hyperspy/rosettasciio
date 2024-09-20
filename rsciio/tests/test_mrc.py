@@ -124,3 +124,19 @@ def test_mrc_metadata(navigation_shape):
     assert s.metadata.Acquisition_instrument.TEM.detector == "CeleritasXS"
     assert s.metadata.Acquisition_instrument.TEM.magnification == "1000"
     assert s.metadata.Acquisition_instrument.TEM.frames_per_second == "40000"
+
+
+def test_mrc_metadata_auto():
+    s = hs.load(
+        TEST_DATA_DIR / "4DSTEM_scan_movie.mrc",
+    )
+    navigation_shape = (8, 32)
+    shape = navigation_shape[::-1] + (256, 256)
+    assert s.data.shape == shape
+    assert s.axes_manager.signal_shape == (256, 256)
+    assert s.axes_manager.navigation_shape == navigation_shape
+    assert s.metadata.Acquisition_instrument.TEM.detector == "CeleritasXS"
+    assert s.metadata.Acquisition_instrument.TEM.magnification == "1000"
+    assert s.metadata.Acquisition_instrument.TEM.frames_per_second == "40000"
+    assert len(s.metadata.General.virtual_images)==1
+    assert len(s.metadata.General.external_detectors) == 1

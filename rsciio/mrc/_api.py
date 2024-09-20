@@ -20,7 +20,6 @@
 # https://www.biochem.mpg.de/doc_tom/TOM_Release_2008/IOfun/tom_mrcread.html
 # and https://ami.scripps.edu/software/mrctools/mrc_specification.php
 
-import logging
 import os
 import logging
 import glob
@@ -318,7 +317,7 @@ def file_reader(
     if virtual_images is not None and len(virtual_images) > 0:
         imgs = []
         for v in virtual_images:
-            imgs = file_reader(v)[0]["data"]
+            imgs.append(file_reader(v)[0]["data"])
         metadata["General"]["virtual_images"] = imgs
         # checking to make sure the navigator is valid
         if navigation_shape is not None and navigation_shape == imgs[0].shape:
@@ -327,7 +326,7 @@ def file_reader(
     if external_images is not None and len(external_images) > 0:
         imgs = []
         for e in external_images:
-            imgs = file_reader(e)["data"]
+            imgs.append(file_reader(e)[0]["data"])
         metadata["General"]["external_detectors"] = imgs
 
     f = open(filename, "rb")

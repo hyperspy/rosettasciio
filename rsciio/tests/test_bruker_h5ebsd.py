@@ -15,43 +15,35 @@
 # You should have received a copy of the GNU General Public License
 # along with kikuchipy. If not, see <http://www.gnu.org/licenses/>.
 
-
-import os
-
-from h5py import File
+import h5py
 import pytest
 
-from kikuchipy import load
-from kikuchipy.conftest import assert_dictionary
-
-DIR_PATH = os.path.dirname(__file__)
-DATA_PATH = os.path.join(DIR_PATH, "../../../data")
-BRUKER_FILE = os.path.join(DATA_PATH, "bruker_h5ebsd/patterns.h5")
-BRUKER_FILE_ROI = os.path.join(DATA_PATH, "bruker_h5ebsd/patterns_roi.h5")
-BRUKER_FILE_ROI_NONRECTANGULAR = os.path.join(
-    DATA_PATH, "bruker_h5ebsd/patterns_roi_nonrectangular.h5"
-)
+import kikuchipy as kp
 
 
 class TestBrukerH5EBSD:
-    def test_load(self, ni_small_axes_manager):
+    def test_load(
+        self, bruker_h5ebsd_file, ni_small_axes_manager, assert_dictionary_func
+    ):
         # Cover grid type check
-        with File(BRUKER_FILE, mode="r+") as f:
+        with h5py.File(bruker_h5ebsd_file, mode="r+") as f:
             grid = f["Scan 0/EBSD/Header/Grid Type"]
             grid[()] = "hexagonal".encode()
         with pytest.raises(IOError, match="Only square grids are"):
-            _ = load(BRUKER_FILE)
-        with File(BRUKER_FILE, mode="r+") as f:
+            kp.load(bruker_h5ebsd_file)
+        with h5py.File(bruker_h5ebsd_file, mode="r+") as f:
             grid = f["Scan 0/EBSD/Header/Grid Type"]
             grid[()] = "isometric".encode()
 
-        s = load(BRUKER_FILE)
+        s = kp.load(bruker_h5ebsd_file)
         assert s.data.shape == (3, 3, 60, 60)
-        assert_dictionary(s.axes_manager.as_dictionary(), ni_small_axes_manager)
+        assert_dictionary_func(s.axes_manager.as_dictionary(), ni_small_axes_manager)
 
-    def test_load_roi(self):
-        s = load(BRUKER_FILE_ROI)
+    def test_load_roi(
+        self, bruker_h5ebsd_roi_file, bruker_h5ebsd_nonrectangular_roi_file
+    ):
+        s = kp.load(bruker_h5ebsd_roi_file)
         assert s.data.shape == (3, 2, 60, 60)
 
         with pytest.raises(ValueError, match="Only a rectangular region of"):
-            _ = load(BRUKER_FILE_ROI_NONRECTANGULAR)
+            kp.load(bruker_h5ebsd_nonrectangular_roi_file)

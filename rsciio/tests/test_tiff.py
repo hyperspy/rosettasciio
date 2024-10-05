@@ -206,10 +206,23 @@ class TestLoadingImagesSavedWithImageJ:
             assert s3.axes_manager.navigation_shape == s.axes_manager.navigation_shape
 
 
+@pytest.mark.parametrize("size", ((50, 50), (2, 50, 50)))
+def test_lazy_loading(tmp_path, size):
+    dummy_data = np.random.random_sample(size=size)
+    fname = tmp_path / "dummy.tiff"
+
+    rsciio.tiff.file_writer(fname, {"data": dummy_data})
+    from_tiff = rsciio.tiff.file_reader(fname, lazy=True)
+    data = from_tiff[0]["data"]
+
+    data = data.compute()
+    np.testing.assert_allclose(data, dummy_data)
+
+
 class TestLoadingImagesSavedWithDM:
     @staticmethod
     @pytest.mark.parametrize("lazy", [True, False])
-    def test_read_unit_from_DM_stack(lazy, tmp_path):
+    def test_read_unit_from_DM_stack(tmp_path, lazy):
         s = hs.load(
             TEST_DATA_PATH / "test_loading_image_saved_with_DM_stack.tif", lazy=lazy
         )
@@ -249,6 +262,8 @@ class TestLoadingImagesSavedWithDM:
         np.testing.assert_allclose(
             s2.axes_manager[2].offset, s.axes_manager[2].offset, atol=1e-5
         )
+        if lazy:
+            s.compute()
 
     @staticmethod
     def test_read_unit_from_dm():

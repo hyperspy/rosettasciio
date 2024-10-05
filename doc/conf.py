@@ -108,7 +108,7 @@ nitpick_ignore_regex = [(r"py:.*", r"hyperspy.api.*")]
 # -- Options for numpydoc extension -----------------------------------
 
 numpydoc_xref_param_type = True
-numpydoc_xref_ignore = {"type", "optional", "default", "of"}
+numpydoc_xref_ignore = {"type", "optional", "default", "of", "File", "handle"}
 
 if Version(numpydoc.__version__) >= Version("1.6.0rc0"):
     numpydoc_validation_checks = {"all", "ES01", "EX01", "GL02", "GL03", "SA01", "SS06"}

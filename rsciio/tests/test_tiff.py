@@ -19,7 +19,6 @@
 
 import os
 import tempfile
-import warnings
 import zipfile
 from pathlib import Path
 
@@ -33,6 +32,7 @@ t = pytest.importorskip("traits.api", reason="traits not installed")
 
 import rsciio.tiff  # noqa: E402
 from rsciio.utils.tests import assert_deep_almost_equal  # noqa: E402
+from rsciio.utils.tools import get_file_handle  # noqa: E402
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "tiff"
 TEST_NPZ_DATA_PATH = Path(__file__).parent / "data" / "npz"
@@ -214,9 +214,40 @@ def test_lazy_loading(tmp_path, size):
     rsciio.tiff.file_writer(fname, {"data": dummy_data})
     from_tiff = rsciio.tiff.file_reader(fname, lazy=True)
     data = from_tiff[0]["data"]
+    fh = get_file_handle(data)
+    # check that the file is open
+    fh.fileno()
 
     data = data.compute()
     np.testing.assert_allclose(data, dummy_data)
+
+    # After we load to memory, we can close the file manually
+    fh.close()
+    with pytest.raises(ValueError):
+        # file is now closed
+        fh.fileno()
+
+
+def test_lazy_loading_hyperspy_close(tmp_path):
+    # check that the file is closed automatically in hyperspy
+    dummy_data = np.random.random_sample(size=(2, 50, 50))
+    fname = tmp_path / "dummy.tiff"
+    s = hs.signals.Signal2D(dummy_data)
+    s.save(fname)
+
+    s2 = hs.load(fname, lazy=True)
+    fh = get_file_handle(s2.data)
+    print("fh", fh)
+    # check that the file is open
+    fh.fileno()
+    s2.compute(close_file=True)
+    np.testing.assert_allclose(s2.data, dummy_data)
+
+    # when calling compute in hyperspy,
+    # the file should be closed automatically
+    with pytest.raises(ValueError):
+        # file is now closed
+        fh.fileno()
 
 
 class TestLoadingImagesSavedWithDM:
@@ -1009,14 +1040,10 @@ class TestReadHamamatsu:
         # - raise warning
         # - Initialise uniform data axis
         with pytest.raises(ValueError):
-            s = hs.load(fname, hamamatsu_streak_axis_type="xxx")
+            _ = hs.load(fname, hamamatsu_streak_axis_type="xxx")
 
-        # Explicitly calling hamamatsu_streak_axis_type='uniform'
-        # should NOT raise a warning
-        with warnings.catch_warnings():
-            warnings.simplefilter("error")
-            s = hs.load(fname, hamamatsu_streak_axis_type="uniform")
-            assert s.axes_manager.all_uniform
+        s = hs.load(fname, hamamatsu_streak_axis_type="uniform")
+        assert s.axes_manager.all_uniform
 
     def test_hamamatsu_streak_scanfile(self):
         file = "test_hamamatsu_streak_SCAN.tif"

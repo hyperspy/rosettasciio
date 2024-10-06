@@ -29,7 +29,7 @@ jobs:
             PYTHON_VERSION: '3.8'
             # Set pillow and scikit-image version to be compatible with imageio and scipy
             # matplotlib needs 3.5 to support markers in hyperspy 2.0 (requires `collection.set_offset_transform`)
-            DEPENDENCIES: matplotlib==3.5 numpy==1.20.0 tifffile==2022.7.28 dask[array]==2021.5.1 distributed==2021.5.1 numba==0.52 imageio==2.16 pillow==8.3.2 scikit-image==0.18.0 python-box==6.0.0
+            DEPENDENCIES: matplotlib==3.5 numpy==1.20.0 tifffile==2022.7.28 dask[array]==2021.5.1 distributed==2021.5.1 numba==0.53 imageio==2.16 pillow==8.3.2 scikit-image==0.18.0 python-box==6.0.0
             LABEL: '-oldest'
           # test minimum requirement
           - os: ubuntu
@@ -54,6 +54,10 @@ jobs:
           - os: ubuntu
             os_version: latest
             PYTHON_VERSION: '3.11'
+          - os: ubuntu
+            os_version: latest
+            PYTHON_VERSION: '3.13'
+            LABEL: '-minimum'
           - os: macos
             os_version: '13'
             PYTHON_VERSION: '3.11'
@@ -120,7 +124,13 @@ jobs:
           pip install git+https://github.com/hyperspy/hyperspy.git
           pip install git+https://github.com/hyperspy/exspy.git
 
-      - name: Install pint and python-mrcz dev
+      - name: Install hyperspy (python 3.13) and exspy (dev)
+        if: ${{ matrix.PYTHON_VERSION == '3.13' }}
+        run: |
+          pip install git+https://github.com/ericpre/hyperspy.git@python313
+          pip install git+https://github.com/hyperspy/exspy.git
+
+      - name: Install python-mrcz dev
         # for numpy 2.0 support for python >= 3.9
         # https://github.com/em-MRCZ/python-mrcz/pull/15
         if: ${{ ! contains(matrix.LABEL, 'oldest') && matrix.PYTHON_VERSION != '3.8' }}
@@ -146,7 +156,7 @@ jobs:
       - name: Install numpy 2.0 
         if: ${{ ! contains(matrix.LABEL, 'oldest') && matrix.PYTHON_VERSION != '3.8' }}
         run: |
-          pip install numpy==2
+          pip install numpy>=2
 
       - name: Pip list
         run: |

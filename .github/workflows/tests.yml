@@ -79,6 +79,7 @@ jobs:
         name: Install Python
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
+          cache: 'pip'
         
       - name: Get the number of CPUs
         id: cpus

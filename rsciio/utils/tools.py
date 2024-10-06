@@ -503,27 +503,59 @@ def ensure_unicode(stuff, encoding="utf8", encoding2="latin-1"):
 
 
 def get_file_handle(data, warn=True):
-    """Return file handle of a dask array when possible; currently only hdf5 file are
-    supported.
     """
-    arrkey = None
+    Return file handle of a dask array when possible.
+    Currently only hdf5 and tiff file are supported.
+
+    Parameters
+    ----------
+    data : dask.array.Array
+        The dask array from which the file handle
+        will be retrieved.
+    warn : bool
+        Whether to warn or not when the file handle
+        can't be retrieved. Default is True.
+
+    Returns
+    -------
+    File handle or None
+        The file handle of the file when possible.
+    """
+    arrkey_hdf5 = None
+    arrkey_tifffile = None
     for key in data.dask.keys():
         # The if statement with both "array-original" and "original-array"
         # is due to dask changing the name of this key. After dask-2022.1.1
         # the key is "original-array", before it is "array-original"
         if ("array-original" in key) or ("original-array" in key):
-            arrkey = key
+            arrkey_hdf5 = key
             break
-    if arrkey:
+        # For tiff files, use _load_data key
+        if "_load_data" in key:
+            arrkey_tifffile = key
+    if arrkey_hdf5:
         try:
-            return data.dask[arrkey].file
-        except (AttributeError, ValueError):
+            return data.dask[arrkey_hdf5].file
+        except (AttributeError, ValueError):  # pragma: no cover
             if warn:
                 _logger.warning(
-                    "Failed to retrieve file handle, either "
-                    "the file is already closed or it is not "
-                    "an hdf5 file."
+                    "Failed to retrieve file handle, either the file is "
+                    "already closed or it is not an hdf5 file."
                 )
+    if arrkey_tifffile:
+        try:
+            # access the filehandle through the pages or series
+            # interfaces of tifffile
+            # this may be brittle and may need maintenance as
+            # dask or tifffile evolve
+            return data.dask[arrkey_tifffile][2][0].parent.filehandle._fh
+        except IndexError:  # pragma: no cover
+            if warn:
+                _logger.warning(
+                    "Failed to retrieve file handle, either the file is "
+                    "already closed or it is not a supported tiff file."
+                )
+
     return None
 
 

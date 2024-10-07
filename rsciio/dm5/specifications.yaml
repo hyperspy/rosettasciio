@@ -1,5 +1,5 @@
-name: DigitalMicrograph5
-name_aliases: [DM5]
+name: DM5
+name_aliases: [DigitalMicrograph5, Digital Micrograph 5]
 description: Read and write data from .dm5 file formats from DigitalMicrograph 5.
 full_support: False
 file_extensions: [dm5, DM5]

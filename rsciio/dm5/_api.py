@@ -4,7 +4,11 @@ from importlib.metadata import metadata
 import h5py
 import dask.array as da
 import numpy as np
+
+from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 from rsciio.hspy._api import HyperspyWriter
+from logging import getLogger
+_logger = getLogger(__name__)
 
 
 # for some reason this is slightly different in dm4???
@@ -12,13 +16,20 @@ from rsciio.hspy._api import HyperspyWriter
 #
 data_types = {
     np.short().dtype: [2, 2], # 2 byte integer signed
-    np.uint8().dtype: [6, 1], # 1 byte integer unsigned
-    np.float32().dtype: [2, 4], # 4 byte real (IEEE 754)
-    np.uint16().dtype: [10,2],  # 2 byte integer unsigned
+    np.float32().dtype: [2, 4],  # 4 byte real (IEEE 754)
 
-    np.int32().dtype: [23, 4], # 4 byte integer signed
-    np.uint32().dtype: [23, 4], # 4 byte integer signed
+    np.uint8().dtype: [6, 1], # 1 byte integer unsigned
+    np.int8().dtype: [6, 1], # 1 byte integer signed
+    np.int16().dtype: [1, 2],  # 2 byte integer signed
+    np.int32().dtype: [7, 4],  # 4 byte integer signed
+    np.uint32().dtype: [7, 4],  # 4 byte integer signed
+    np.float64().dtype: [12, 8], # 8 byte real (IEEE 754)
+    np.uint16().dtype: [10,2],  # 2 byte integer unsigned
+    np.complex64().dtype: [13, 8], # 8 byte complex
+    np.complex128().dtype: [13, 16], # 16 byte complex
+
               }
+
 
 class DM5:
     """
@@ -28,7 +39,10 @@ class DM5:
     - ImageList: a list of images. This is the main data structure in a DM5 file.
     - Image Behavior: a list of behaviors that can be applied to images. (e.g. Image Shift, Image Rotation) (Not implemented)
     - Thumbnails: A slice of the image data that can be used to display the image as a thumbnail. (Not implemented)
-    - Image Source List: A list of sources for the images. (Not implemented)
+    - Image Source List: This helps to define how the data should be displayed. A couple of things to note. The
+    Index [0] [1] etc. is not the same as the index of the image in the ImageList. I think you can have multiple 'views'
+    of the same image. Instead the ImageRef attribute is used to reference the image in the ImageList. The ClassName
+    attribute is used to define the type of image and can be [4DSummed, Summed, Simple]. The ImageSourceList is used to
 
 
 
@@ -52,8 +66,7 @@ class DM5:
         self.file.create_group("ImageSourceList")
         self.file["ImageSourceList"].create_group("[0]")
 
-        if signal_dimensions==2 and navigation_dimensions ==2:
-            # this is for 4D Data
+        if signal_dimensions==2 and navigation_dimensions ==2: # this is for 4D Data
             self.file["ImageSourceList"]["[0]"].attrs.update({"ClassName":"ImageSource:4DSummed", # Need the right ClassName
                                                               "Do Sum": 1, # Sum the image?
                                                               "ImageRef":0, # Image to take the sum of... (Similar to Hyperspy)
@@ -63,52 +76,141 @@ class DM5:
                                                               "LayerSndStart": 0,
                                                               "Summed Fst Dimension": 0, # Sum 1st dimension
                                                               "Summed Snd Dimension": 1, # Sum 2nd dimension
-                                                              })
+                                                              }) # data is reversed from usual in DM but not numpy
             self.file["ImageSourceList"]["[0]"].create_group("Id")
             self.file["ImageSourceList"]["[0]"]["Id"].attrs.update({"[0]": 0})
 
-        elif signal_dimensions ==2 and navigation_dimensions==1:
-            #Insitu Imaging (Still need to check what the correct default behavior is...)
+            # Write the Document Objects similar to ROIs in Hyperspy for Visualization
+            self.file.create_group("DocumentObjectList")
+            self.file["DocumentObjectList"].create_group("[0]")
+            self.file["DocumentObjectList"]["[0]"].attrs.update({"AnnotationType": 20, # Create an image
+                                                                 'ImageSource': 0, #
+                                                                 'ImageDisplayType': 1,  # 1 = Image
+                                                                 'RangeAdjust': 1.0,
+                                                                 'SparseSurvey_GridSize': 32,
+                                                                 'SparseSurvey_NumberPixels': 64, # fast survey?
+                                                                 'SparseSurvey_UseNumberPixels': 1,
+                                                                 'SurveyTechnique': 2,
+                                                                 })
+            self.file["DocumentObjectList"]["[0]"].create_group("ImageDisplayInfo")
+            self.file["DocumentObjectList"]["[0]"]["ImageDisplayInfo"].attrs.update({"EstimatedMin": 0,
+                                                       "HiLimitContrastDeltaTriggerPercentage": 0,
+                                                                                     })
+
+
+        elif signal_dimensions == 1 and navigation_dimensions == 2: # Spectrum Image (Data might need to be reversed...)
+            self.file["ImageSourceList"]["[0]"].attrs.update({"ClassName": "ImageSource:Summed",
+                                                                "Do Sum": 1,
+                                                                "ImageRef": 0,
+                                                                "LayerEnd": 0,
+                                                                "LayerStart": 0,
+                                                                "Summed Dimension": 2,
+                                                                })  # Sum last dimension
+            self.file["ImageSourceList"]["[0]"].create_group("Id")
+            self.file["ImageSourceList"]["[0]"]["Id"].attrs.update({"[0]": 0})
+
+            # Write the Document Objects similar to ROIs in Hyperspy for Visualization.
+            self.file.create_group("DocumentObjectList")
+            self.file["DocumentObjectList"].create_group("[0]")
+            self.file["DocumentObjectList"]["[0]"].attrs.update({"AnnotationType": 20,
+                                                                 'ImageSource': 0, # Reference to the ImageSource
+                                                                 'ImageDisplayType': 1,  # 1 = Image?
+                                                                 'IsMoveable': 1,
+                                                                 'IsResizable': 1,
+                                                                 'IsSelectable': 1,
+                                                                 'IsTransferrable': 1, #sp?
+                                                                 'IsTranslatable': 1,
+                                                                 'IsVisible': 1,
+                                                                 'UniqueID': 8,
+                                                                 })
+
+
+
+        elif signal_dimensions ==2 and navigation_dimensions==1: # Image Stack (In Situ)
             self.file["ImageSourceList"]["[0]"].attrs.update(
                 {"ClassName": "ImageSource:Summed",  # Need the right ImageSource!
                  "Do Sum": 1,  # Sum the image?
                  "ImageRef": 0,  # Image to take the sum of... (Similar to Hyperspy)
                  "LayerEnd": 0,
                  "LayerStart": 0,
-                 "Summed Dimension": 0,  # Sum 1st dimension?
+                 "Summed Dimension": 2,  # Sum last dimension?
+                 })
+            self.file.attrs.update({"InImageMode": 1})
+            self.file["ImageSourceList"]["[0]"].create_group("Id")
+            self.file["ImageSourceList"]["[0]"]["Id"].attrs.update({"[0]": 0})
+            self.file.create_group("DocumentObjectList")
+            self.file["DocumentObjectList"].create_group("[0]")
+            self.file["DocumentObjectList"]["[0]"].attrs.update({"AnnotationType": 20,
+                                                                 'ImageSource': 0, # Reference to the ImageSource
+                                                                 'ImageDisplayType': 1,  # 1 = Image?
+                                                                 'IsMoveable': 1,
+                                                                 'IsResizable': 1,
+                                                                 'IsSelectable': 1,
+                                                                 'IsTransferrable': 1, #sp?
+                                                                 'IsTranslatable': 1,
+                                                                 'IsVisible': 1,
+                                                                 'UniqueID': 8,
+                                                                 })
+            self.file["DocumentObjectList"]["[0]"].create_group("AnnotationGroupList")
+            self.file["DocumentObjectList"]["[0]"]["AnnotationGroupList"].create_group("[0]")
+            self.file["DocumentObjectList"]["[0]"]["AnnotationGroupList"]["[0]"].attrs.update({"AnnotationType": 23,
+                                                                                    "Name": "SICursor",
+                                                                                    "Rectangle": (0, 0, 1, 1),
+                                                                                     })
+            self.file["DocumentObjectList"]["[0]"].create_group("ImageDisplayInfo")
+            self.file["DocumentObjectList"]["[0]"]["ImageDisplayInfo"].attrs.update({"EstimatedMin": 0,
+                                                       "HiLimitContrastDeltaTriggerPercentage": 0})
+
+        elif signal_dimensions == 1 and navigation_dimensions == 1:
+            self.file["ImageSourceList"]["[0]"].attrs.update(
+                {"ClassName": "ImageSource:Summed",  # Need the right ImageSource!
+                 "Do Sum": 1,  # Sum the image?
+                 "ImageRef": 0,  # Image to take the sum of... (Similar to Hyperspy)
+                 "LayerEnd": 0,
+                 "LayerStart": 0,
+                 "Summed Dimension": 1,  # Sum last dimension?
                  })
             self.file["ImageSourceList"]["[0]"].create_group("Id")
             self.file["ImageSourceList"]["[0]"]["Id"].attrs.update({"[0]": 0})
-        elif signal_dimensions == 1 and navigation_dimensions == 1:
-
-
-
-        # Do we need to write anything here?
-
-    def write_document_objects(self):
-        """
-        DM uses Document Objects similar to markers/ROIs in hyperspy.
-        """
-        self.file.create_group("DocumentObjectList")
-        self.file["DocumentObjectList"].create_group("[0]")
-        self.file["DocumentObjectList"]["[0]"].attrs.update({"AnnotationType": 20,
-                                                            'ImageSource': 0,
-                                                            'ImageDisplayType': 1, # 1 = Image
-                                                             'RangeAdjust': 1.0,
-                                                             'SparseSurvey_GridSize': 32,
-                                                             'SparseSurvey_NumberPixels': 64,
-                                                             'SparseSurvey_UseNumberPixels': 1,
-                                                             'SurveyTechnique': 2,
-                                                             })
-        self.file["DocumentObjectList"]["[0]"].create_group("ImageDisplayInfo")
-        self.file["DocumentObjectList"]["[0]"]["ImageDisplayInfo"].attrs.update({"EstimatedMin":0,
-                                                                "HiLimitContrastDeltaTriggerPercentage":0})
+            self.file.create_group("DocumentObjectList")
+            self.file["DocumentObjectList"].create_group("[0]")
+            self.file["DocumentObjectList"]["[0]"].attrs.update({"AnnotationType": 20,
+                                                                 'ImageSource': 0,  # Reference to the ImageSource
+                                                                 'ImageDisplayType': 1,  # 1 = Image?
+                                                                 'RangeAdjust': 1.0,
+                                                                 'IsMoveable': 1,
+                                                                 'IsResizable': 1,
+                                                                 'IsSelectable': 1,
+                                                                 'IsTransferrable': 1,  # sp?
+                                                                 'IsTranslatable': 1,
+                                                                 'IsVisible': 1,
+                                                                 'UniqueID': 8,
+                                                                 })
+        else:
+            self.file["ImageSourceList"]["[0]"].attrs.update(
+                {"ClassName": "ImageSource:Simple",  # Need the right ImageSource!
+                 "ImageRef": 0, # Reference to self (Usually 0 is a ??thumbnail?? which we don't write)
+                 })
+            self.file.create_group("DocumentObjectList")
+            self.file["DocumentObjectList"].create_group("[0]")
+            self.file["DocumentObjectList"]["[0]"].attrs.update({"AnnotationType": 20,
+                                                                 'ImageSource': 0,  # Reference to the ImageSource
+                                                                 'ImageDisplayType': 1,  # 1 = Image?
+                                                                 'RangeAdjust': 1.0,
+                                                                 'IsMoveable': 1,
+                                                                 'IsResizable': 1,
+                                                                 'IsSelectable': 1,
+                                                                 'IsTransferrable': 1,  # sp?
+                                                                 'IsTranslatable': 1,
+                                                                 'IsVisible': 1,
+                                                                 'UniqueID': 8,
+                                                                 })
 
     def write_header_info(self):
         """
         Just write the minimum "header" info to open the file in DM.
         """
-        self.file.attrs.update({"InImageMode": 1}) # The rest of the attributes are for defining window size...
+        self.file.attrs.update({"InImageMode": 1}) # The rest of the attributes are for defining the window size...
 
     def write_image_behavior(self):
         """
@@ -121,9 +223,9 @@ class DM5:
 
     def read_images(self):
         for image_group in self.image_list.values():
-            self.images.append(Image(image_group))
+            self.images.append(Image(image_group, file=self.file))
 
-    def write_image(self, data, axes_dicts=None, metadata =None, brightness=None):
+    def write_image(self, data, axes_dicts, metadata =None, brightness=None):
         """
         Write an image to the DM5 file.
         """
@@ -139,24 +241,22 @@ class DM5:
         self.image_list[new_image_number].create_group("ImageTags")
         self.image_list[new_image_number].create_group("UniqueID")
 
-        image = Image(self.image_list[new_image_number])
+        image = Image(self.image_list[new_image_number], file=self.file)
         self.images.append(image)
+        navigation_dimensions = len([axis for axis in axes_dicts if axis["navigate"] == True])
+        signal_dimensions = len([axis for axis in axes_dicts if axis["navigate"] == False])
 
         image.update_data(data)
-        if axes_dicts is not None:
-            for axis, axis_dict in axes_dicts.items():
-                image.update_calibration(axis, **axis_dict)
-                image.update_dimension(axis, axis_dict["size"])
-        else:
-            for axis in range(len(data.shape)):
-                image.update_calibration(axis)
-                image.update_dimension(axis)
+        for axis, axis_dict in enumerate(axes_dicts):
+            image.update_calibration(axis, **axis_dict)
+            image.update_dimension(axis, axis_dict["size"])
 
-        image.update_metadata(metadata)
+        image.update_metadata(metadata, signal_dimensions=signal_dimensions,
+                              navigation_dimensions=navigation_dimensions)
 
         image.update_brightness(brightness)
-        self.write_sources()
-        self.write_document_objects()
+        self.write_sources(navigation_dimensions= navigation_dimensions,
+                           signal_dimensions=signal_dimensions)
         self.write_image_behavior()
         self.write_header_info()
 
@@ -175,14 +275,53 @@ class Image:
     - UniqueID: a unique identifier for the image
     """
 
-    def __init__(self, image_group, tags=None, unique_id=None):
+    def __init__(self, image_group, tags=None, unique_id=None, file=None):
         self.image_data = image_group['ImageData']
         self.image_tags = image_group['ImageTags']
         self.unique_id = image_group['UniqueID']
+        self.file = file
 
     def __str__(self):
         return f"Image: {self.image_data['Data'].shape}"
 
+    @property
+    def ndim(self):
+        return len(self.image_data['Data'].shape)
+
+    def signal_dimensions(self):
+        """
+        Get the number of signal dimensions.
+        """
+        _, original_metadata = self.get_metadata()
+        meta = original_metadata.get("Meta Data", {})
+        format = meta.get("Format", "Unknown")
+        if format == "Diffraction image":
+            return 2
+        elif format == "Spectrum image":
+            return 1
+        elif format == "Spectrum":
+            return 1
+        elif format == "Image":
+            return 2
+        else: # Now we just try to guess from the DocumentObjectList
+            try:
+                class_name =self.file["ImageSourceList"]["[0]"].attrs["ClassName"]
+            except KeyError:
+                raise KeyError("A Valid DM5 File needs to have an ImageSourceList with a "
+                               "ClassName attribute to determine how the data should be displayed.")
+            if self.ndim == 2 and class_name == "ImageSource:Simple":
+                return 2
+            elif self.ndim == 1 and class_name == "ImageSource:Simple":
+                return 1
+            elif self.ndim == 4 and class_name == "ImageSource:4DSummed":
+                return 2
+            else:
+
+                raise NotImplementedError("Determining the Type for unlabeled DM5 files. Please add the"
+                                          " 'Image', 'Spectrum', 'Spectrum Image' 'Diffraction image' tag to the"
+                                          "Meta Data.Format attribute in the ImageTags group.")
+    def navigation_dimensions(self):
+        return self.ndim - self.signal_dimensions()
 
     def get_axis_dict(self, axis):
         """
@@ -197,38 +336,40 @@ class Image:
         -----
             Axis is 0-indexed.
         """
-        try:
-            calibration_dict = dict(self.image_data['Calibrations']["Dimension"][f"[{axis}]"])
-            axis_dict = {"name": calibration_dict.get("Label", ""),
+
+        axis = self.ndim - axis - 1
+        navigate = axis >= self.signal_dimensions()
+        calibration_dict = dict(self.image_data['Calibrations']["Dimension"][f"[{axis}]"].attrs)
+        axis_dict = {"name": calibration_dict.get("Label", ""),
                          "offset": calibration_dict.get("Origin", 0),
                          "scale": calibration_dict.get("Scale", 1),
-                         "unit": calibration_dict.get("Unit", ""),
-                         "size": self._get_dimension(axis)}
+                         "units": calibration_dict.get("Units", ""),
+                         "size": self._get_dimension(axis),
+                         "navigate": navigate
+                         }
 
-        except KeyError: # if calibration data is not present. Reads incomplete files...
-            axis_dict = {"name": "",
-                         "offset": 0,
-                         "scale": 1,
-                         "unit": "",
-                         "size": self._get_dimension(axis)}
         return axis_dict
 
-    def update_calibration(self, axis, label="", origin=0, scale=1, unit=""):
+    def update_calibration(self, axis, name="", offset=0, scale=1, units="", **kwds):
         """
         Add calibration data to the image for a given axis.
         """
+        axis = self.ndim - axis - 1
         if not "Calibrations" in self.image_data:
             self.image_data.create_group("Calibrations")
         if not "Dimension" in self.image_data['Calibrations']:
             self.image_data['Calibrations'].create_group("Dimension")
         if not f"[{axis}]" in self.image_data['Calibrations']["Dimension"]:
             self.image_data['Calibrations']["Dimension"].create_group(f"[{axis}]")
-
+        if not isinstance(units, str): # Handle Undefined Units
+            units = ""
+        if not isinstance(name, str):
+            name = ""
         self.image_data['Calibrations']["Dimension"][f"[{axis}]"].attrs.update({
-            "Label": label,
-            "Origin": origin,
-            "Scale": scale,
-            "Unit": unit
+            "Label": name,
+            "Origin": float(offset),
+            "Scale": float(scale),
+            "Units": units
         })
         self.image_data['Calibrations'].attrs.update({"DisplayCalibratedUnits": 1})
 
@@ -266,6 +407,7 @@ class Image:
         Under Calibrations and under Dimension. I think that only the Calibrations should be updated.
 
         """
+        axis = self.ndim - axis - 1
         if not "Dimensions" in self.image_data:
             self.image_data.create_group("Dimensions")
         if length is None:
@@ -277,7 +419,7 @@ class Image:
             return self.image_data['Dimensions'].attrs[f"[{axis}]"]
         except KeyError:
             shape = self.image_data['Data'].shape
-            return shape[len(shape) - axis-1]
+            return shape[axis]
 
     def get_data(self, lazy=False):
         """
@@ -311,7 +453,6 @@ class Image:
         metadata["General"]["title"] = "" # DM uses the filename as the title
 
 
-        metadata[""]
         if "Acquisition" in original_metadata:
             metadata["Acquisition"] = original_metadata["Acquisition"]
 
@@ -333,27 +474,35 @@ class Image:
         return metadata, original_metadata
 
 
-    def update_metadata(self, metadata=None):
+    def update_metadata(self, metadata=None, signal_dimensions=None, navigation_dimensions=None):
         """
         Update the metadata for the image.
-
-
         """
         if metadata is None:
             metadata = {}
         formatted_metadata = {}
 
         formatted_metadata["Acquisition"] = {}
-
-        # Test
         formatted_metadata["Meta Data"] = {}
-        formatted_metadata["Meta Data"]["Format"] = "Diffraction image"
-        formatted_metadata["Meta Data"]["Acquisition Mode"] = "Parallel imaging"
-        formatted_metadata["Meta Data"]["Experiment keywords"] = {}
-        formatted_metadata["Meta Data"]["Experiment keywords"]["[0]"] = "Label: Diffraction"
-        # Data is reversed from usual...
-        formatted_metadata["Meta Data"]["Data Order Swapped"] = "true"
+        if signal_dimensions == 2 and navigation_dimensions == 2: # 4D Data
+            formatted_metadata["Meta Data"]["Format"] = "Diffraction image"
+            formatted_metadata["Meta Data"]["Acquisition Mode"] = "Parallel imaging"
+            formatted_metadata["Meta Data"]["Experiment keywords"] = {}
+            formatted_metadata["Meta Data"]["Experiment keywords"]["[0]"] = "Label: Diffraction"
+        elif signal_dimensions == 1 and navigation_dimensions == 2:
+            formatted_metadata["Meta Data"]["Format"] = "Spectrum image"
+        elif signal_dimensions == 1 and navigation_dimensions == 1:
+            formatted_metadata["Meta Data"]["Format"] = "Spectrum"
+        elif signal_dimensions == 2 and navigation_dimensions <= 1:
+            formatted_metadata["Meta Data"]["Format"] = "Image"
+            formatted_metadata["Meta Data"]["Signal"] = "Image"
+        else:
+            formatted_metadata["Meta Data"]["Format"] = "Unknown"
+        if navigation_dimensions > 0:
+            formatted_metadata["Meta Data"]["IsSequence"] = "true"
         dict2group(formatted_metadata, self.image_tags)
+        self.image_tags.create_group("UserTags")
+        dict2group(metadata, self.image_tags["UserTags"])
         return
 
     def to_signal_dict(self):
@@ -364,10 +513,8 @@ class Image:
         metadata, original_metadata = self.get_metadata()
         axes = []
         for axis in range(len(data.shape)):
-            axes.append(self.get_axis_dict(axis + 1))
+            axes.append(self.get_axis_dict(axis))
         return {"data": data, "metadata": metadata, "original_metadata": original_metadata, "axes": axes}
-
-
 
 
 def dict2group(dictionary, group):
@@ -376,7 +523,10 @@ def dict2group(dictionary, group):
             subgroup = group.create_group(key)
             dict2group(value, subgroup)
         else:
-            group.attrs[key] = value
+            try:
+                group.attrs[key] = value
+            except TypeError:
+                group.attrs[key] = "_Unsupported_"
 
 def _group2dict(group, dictionary=None):
     if dictionary is None:
@@ -398,10 +548,70 @@ def _group2dict(group, dictionary=None):
             if value.dtype.str.endswith("U1"):
                 value = value.tolist()
         else:
-            dictionary[key] = value
+            value = value
+        dictionary[key] = value
 
     if not isinstance(group, h5py.Dataset):
         for key in group.keys():
             dictionary[key] = {}
             _group2dict(group[key], dictionary[key])
     return dictionary
+
+def file_reader(filename, lazy=False, **kwds):
+    """
+    Read data from hdf5-files saved with the HyperSpy hdf5-format
+    specification (``.hspy``).
+
+    Parameters
+    ----------
+    %s
+    %s
+    **kwds : dict, optional
+        The keyword arguments are passed to :py:class:`h5py.File`.
+
+    %s
+    """
+    try:
+        # in case blosc compression is used
+        # module needs to be imported to register plugin
+        import hdf5plugin  # noqa: F401
+    except ImportError:
+        pass
+
+    DM5_file = DM5(filename, mode='r')
+    images = DM5_file.read_images()
+    if len(DM5_file.images) == 1:
+        index = 0
+    else:# len(DM5_file.images) > 1:
+        index = 1 # I think that the first image is a thumbnail...
+    metadata, original_metadata = DM5_file.images[index].get_metadata()
+    axes = []
+    data = DM5_file.images[index].get_data(lazy=lazy)
+    shape = data.shape
+    for axis in range(len(shape)):
+        axes.append(DM5_file.images[index].get_axis_dict(axis))
+    return [{"data": data, "metadata": metadata, "original_metadata": original_metadata, "axes": axes},]
+
+def file_writer(filename, signal):
+    """
+    Write data to a HDF5 file.
+
+    """
+    axes = signal["axes"] # in array orde
+    data = signal["data"]
+    metadata = signal["metadata"]
+
+    DM5_file = DM5(filename, mode='w')
+    DM5_file.write_image(data, axes_dicts=axes, metadata=metadata)
+    DM5_file.file.close()
+
+
+
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+
+
+
+
+
+
+

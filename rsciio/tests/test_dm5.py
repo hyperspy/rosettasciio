@@ -30,23 +30,35 @@ import pytest
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 
-
 TEST_DATA_PATH = Path(__file__).parent / "data" / "dm5"
 
 
 class TestDM5:
-
-
-    @pytest.mark.parametrize("navigation_dimension", [0,1, 2])
+    @pytest.mark.parametrize("navigation_dimension", [0, 1, 2])
     @pytest.mark.parametrize("signal_dimension", [1, 2])
-    @pytest.mark.parametrize("dtype", [np.uint8, np.uint16, np.float32, np.float64, np.complex128,
-                                       np.int8, np.int16, np.int32,])
-    def test_save_load_files(self, navigation_dimension, signal_dimension, dtype, tmp_path):
-
-        fname = tmp_path / f"test_save_files_nav{navigation_dimension}_sig{signal_dimension}_{dtype().dtype}.dm5"
+    @pytest.mark.parametrize(
+        "dtype",
+        [
+            np.uint8,
+            np.uint16,
+            np.float32,
+            np.float64,
+            np.complex128,
+            np.int8,
+            np.int16,
+            np.int32,
+        ],
+    )
+    def test_save_load_files(
+        self, navigation_dimension, signal_dimension, dtype, tmp_path
+    ):
+        fname = (
+            tmp_path
+            / f"test_save_files_nav{navigation_dimension}_sig{signal_dimension}_{dtype().dtype}.dm5"
+        )
 
         dim = navigation_dimension + signal_dimension
-        data_shape = [10,11,12,13,14][:dim]
+        data_shape = [10, 11, 12, 13, 14][:dim]
         data = np.ones(data_shape, dtype=dtype)
         if signal_dimension == 1:
             signal = hs.signals.Signal1D(data)
@@ -55,8 +67,8 @@ class TestDM5:
         names = ["a", "b", "c", "d", "e"]
         for i in range(dim):
             ax = signal.axes_manager[i]
-            ax.name = names[i]+ str(ax.size)
-            ax.units = names[i] +" nm"
+            ax.name = names[i] + str(ax.size)
+            ax.units = names[i] + " nm"
             ax.scale = 0.1
         original = [signal.axes_manager[i].name for i in range(dim)]
         signal.save(fname, overwrite=True)

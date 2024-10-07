@@ -387,12 +387,13 @@ class Image:
         self.image_data['Calibrations'].attrs.update({"DisplayCalibratedUnits": 1})
 
 
+
     def brightness(self):
         """
         Get the brightness of the image.
         """
         try:
-            dict(self.image_data["Calibrations"]["Brightness"].attrs)
+            return dict(self.image_data["Calibrations"]["Brightness"].attrs)
         except KeyError:
             return {}
 
@@ -586,7 +587,7 @@ def file_reader(filename, lazy=False, **kwds):
         # in case blosc compression is used
         # module needs to be imported to register plugin
         import hdf5plugin  # noqa: F401
-    except ImportError:
+    except ImportError: # pragma: no cover
         pass
 
     DM5_file = DM5(filename, mode='r')

@@ -1,5 +1,20 @@
-from asyncore import write
-from importlib.metadata import metadata
+# -*- coding: utf-8 -*-
+# Copyright 2007-2023 The HyperSpy developers
+#
+# This file is part of RosettaSciIO.
+#
+# RosettaSciIO is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# RosettaSciIO is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import h5py
 import dask.array as da
@@ -7,8 +22,6 @@ import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 from rsciio.hspy._api import HyperspyWriter
-from logging import getLogger
-_logger = getLogger(__name__)
 
 
 # for some reason this is slightly different in dm4???
@@ -547,8 +560,6 @@ def _group2dict(group, dictionary=None):
             value = value.astype("U")
             if value.dtype.str.endswith("U1"):
                 value = value.tolist()
-        else:
-            value = value
         dictionary[key] = value
 
     if not isinstance(group, h5py.Dataset):
@@ -579,7 +590,7 @@ def file_reader(filename, lazy=False, **kwds):
         pass
 
     DM5_file = DM5(filename, mode='r')
-    images = DM5_file.read_images()
+    DM5_file.read_images()
     if len(DM5_file.images) == 1:
         index = 0
     else:# len(DM5_file.images) > 1:

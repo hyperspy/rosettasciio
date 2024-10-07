@@ -24,6 +24,7 @@
 
 from pathlib import Path
 
+import dask.array as da
 import numpy as np
 import pytest
 
@@ -83,3 +84,44 @@ class TestDM5:
             assert "nm" in s.axes_manager[i].units
             assert s.axes_manager[i].scale == 0.1
             assert s.axes_manager[i].size == int(original[i][-2:])
+
+    def test_save_load_undefined_axes(self, tmp_path):
+        fname = tmp_path / "test_save_undefined.dm5"
+
+        data_shape = [10, 11, 12, 13]
+        data = np.ones(data_shape, dtype=np.float32)
+        signal = hs.signals.Signal2D(data)
+        signal.save(fname, overwrite=True)
+        s = hs.load(fname)
+        for i in range(4):
+            assert s.axes_manager[i].name == ""
+            assert s.axes_manager[i].units == ""
+
+    def test_save_load_metadata(self, tmp_path):
+        fname = tmp_path / "test_save_undefined.dm5"
+
+        data_shape = [10, 11, 12, 13]
+        data = np.ones(data_shape, dtype=np.float32)
+        signal = hs.signals.Signal2D(data)
+        signal.metadata.General.title = "test"
+        signal.metadata.add_node("Acquisition_instrument.TEM")
+        signal.metadata.General["test"] = "test".encode()
+        signal.metadata.Acquisition_instrument.TEM.beam_energy = 200
+        signal.metadata.Acquisition_instrument.TEM.magnification = 100
+        signal.metadata.Acquisition_instrument.TEM.camera_length = 10
+
+        signal.save(fname, overwrite=True)
+        s = hs.load(fname)
+        assert s.metadata.Acquisition_instrument.TEM.beam_energy == 200
+        assert s.metadata.Acquisition_instrument.TEM.camera_length == 10
+        assert s.metadata.Acquisition_instrument.TEM.magnification == 100
+
+    def test_save_load_lazy(self, tmp_path):
+        fname = tmp_path / "test_save_lazy.dm5"
+
+        data_shape = [10, 11, 12, 13]
+        data = np.ones(data_shape, dtype=np.float32)
+        signal = hs.signals.Signal2D(data)
+        signal.save(fname, overwrite=True)
+        s = hs.load(fname, lazy=True)
+        assert isinstance(s.data, da.Array)

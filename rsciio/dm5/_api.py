@@ -337,9 +337,6 @@ class Image:
         self.unique_id = image_group["UniqueID"]
         self.file = file
 
-    def __str__(self):
-        return f"Image: {self.image_data['Data'].shape}"
-
     @property
     def ndim(self):
         return len(self.image_data["Data"].shape)
@@ -362,7 +359,7 @@ class Image:
         else:  # Now we just try to guess from the DocumentObjectList
             try:
                 class_name = self.file["ImageSourceList"]["[0]"].attrs["ClassName"]
-            except KeyError:
+            except KeyError:  # pragma: no cover
                 raise KeyError(
                     "A Valid DM5 File needs to have an ImageSourceList with a "
                     "ClassName attribute to determine how the data should be displayed."
@@ -379,9 +376,6 @@ class Image:
                     " 'Image', 'Spectrum', 'Spectrum Image' 'Diffraction image' tag to the"
                     "Meta Data.Format attribute in the ImageTags group."
                 )
-
-    def navigation_dimensions(self):
-        return self.ndim - self.signal_dimensions()
 
     def get_axis_dict(self, axis):
         """
@@ -441,10 +435,15 @@ class Image:
     def brightness(self):
         """
         Get the brightness of the image.
+
+        Note
+        ----
+        Hyperspy has a rudimentary concept of brightness This currently doesn't do anything but should be implemented
+        in the future.
         """
-        try:
+        try:  # pragma: no cover
             return dict(self.image_data["Calibrations"]["Brightness"].attrs)
-        except KeyError:
+        except KeyError:  # pragma: no cover
             return {}
 
     def update_brightness(self, brightness=None):
@@ -463,9 +462,13 @@ class Image:
         """
         Update the dimension of the image for a given axis.
 
-        This is two places in the DM5 file???
-
-        Under Calibrations and under Dimension. I think that only the Calibrations should be updated.
+        Parameters
+        ----------
+        axis : int
+            The axis to update the dimension for (Starting from 0 in array order). This will be reversed to match DM's
+            axis order.
+        length : int, optional
+            The length of the axis.
 
         """
         axis = self.ndim - axis - 1
@@ -478,13 +481,19 @@ class Image:
     def _get_dimension(self, axis):
         try:
             return self.image_data["Dimensions"].attrs[f"[{axis}]"]
-        except KeyError:
+        except KeyError:  # pragma: no cover
             shape = self.image_data["Data"].shape
             return shape[axis]
 
     def get_data(self, lazy=False):
         """
         Get the image data.
+
+        Parameters
+        ----------
+        lazy : bool, optional
+            Whether to return a dask array or a numpy
+
         """
         if lazy:
             return da.from_array(self.image_data["Data"])
@@ -494,6 +503,11 @@ class Image:
     def update_data(self, data):
         """
         Update the image data.
+
+        Parameters
+        ----------
+        data : np.ndarray or da.Array
+            The new image data.
         """
         HyperspyWriter.overwrite_dataset(self.image_data, data, "Data")
         self.image_data.attrs.update(
@@ -522,7 +536,7 @@ class Image:
         if "Microscope Info" in original_metadata:
             metadata["Acquisition_instrument"] = {}
             metadata["Acquisition_instrument"]["TEM"] = {}
-            metadata["Acquisition_instrument"]["TEM"]["beam_energy "] = (
+            metadata["Acquisition_instrument"]["TEM"]["beam_energy"] = (
                 original_metadata["Microscope Info"].get("Voltage", 0) / 1000
             )
             metadata["Acquisition_instrument"]["TEM"]["acquisition_mode"] = (
@@ -534,8 +548,6 @@ class Image:
             metadata["Acquisition_instrument"]["TEM"]["camera_length"] = (
                 original_metadata["Microscope Info"].get("STEM Camera Length", 0)
             )
-            metadata["Acquisition_instrument"] = original_metadata["Microscope Info"]
-        metadata["Acquisition_instrument"] = {}
         return metadata, original_metadata
 
     def update_metadata(
@@ -543,9 +555,21 @@ class Image:
     ):
         """
         Update the metadata for the image.
+
+        Parameters
+        ----------
+        metadata : dict, optional
+            The metadata to update.
+        signal_dimensions : int, optional
+            The number of signal dimensions.
+        navigation_dimensions : int, optional
+            The number of navigation dimensions.
         """
         if metadata is None:
             metadata = {}
+        if navigation_dimensions is None and signal_dimensions is None:
+            signal_dimensions = self.ndim
+            navigation_dimensions = 0
         formatted_metadata = {}
 
         formatted_metadata["Acquisition"] = {}
@@ -569,25 +593,34 @@ class Image:
         if navigation_dimensions > 0:
             formatted_metadata["Meta Data"]["IsSequence"] = "true"
         dict2group(formatted_metadata, self.image_tags)
+
+        # Update Microscope Info
+        if (
+            "Acquisition_instrument" in metadata
+            and "TEM" in metadata["Acquisition_instrument"]
+        ):
+            self.image_tags.create_group("Microscope Info")
+            microscope_info_dict = {
+                "Voltage": metadata["Acquisition_instrument"]["TEM"].get(
+                    "beam_energy", 0
+                )
+                * 1000,
+                "Illumination Mode": metadata["Acquisition_instrument"]["TEM"].get(
+                    "acquisition_mode", "Unknown"
+                ),
+                "Indicated Magnification": metadata["Acquisition_instrument"][
+                    "TEM"
+                ].get("magnification", 0),
+                "STEM Camera Length": metadata["Acquisition_instrument"]["TEM"].get(
+                    "camera_length", 0
+                ),
+            }
+
+            dict2group(microscope_info_dict, self.image_tags["Microscope Info"])
+
         self.image_tags.create_group("UserTags")
         dict2group(metadata, self.image_tags["UserTags"])
         return
-
-    def to_signal_dict(self):
-        """
-        Convert the image to a Hyperspy signal dictionary.
-        """
-        data = self.get_data()
-        metadata, original_metadata = self.get_metadata()
-        axes = []
-        for axis in range(len(data.shape)):
-            axes.append(self.get_axis_dict(axis))
-        return {
-            "data": data,
-            "metadata": metadata,
-            "original_metadata": original_metadata,
-            "axes": axes,
-        }
 
 
 def dict2group(dictionary, group):
@@ -611,16 +644,8 @@ def _group2dict(group, dictionary=None):
                 value = value.decode()
             except UnicodeDecodeError:
                 value = "Decoding error"
-        if isinstance(value, (np.bytes_, str)):
-            if value == "_None_":
-                value = None
         elif isinstance(value, np.bool_):
             value = bool(value)
-        elif isinstance(value, np.ndarray) and value.dtype.char == "S":
-            # Convert strings to unicode
-            value = value.astype("U")
-            if value.dtype.str.endswith("U1"):
-                value = value.tolist()
         dictionary[key] = value
 
     if not isinstance(group, h5py.Dataset):

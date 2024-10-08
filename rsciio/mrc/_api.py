@@ -168,20 +168,27 @@ def read_de_metadata_file(filename, nav_shape=None):
             value = value.strip()
             original_metadata[key] = value
 
-    in_stem_mode = original_metadata.get("Image Project TEMorSTEM Mode", -1)
+    in_stem_mode = int(original_metadata.get("Instrument Project TEMorSTEM Mode", -1))
     scanning = original_metadata.get("Scan - Enable", "Disable") == "Enable"
     raster = original_metadata.get("Scan - Type", "Raster") == "Raster"
-    if not raster:
+    if not raster:  # pragma: no cover
         _logger.warning(
             "Non-raster scans are not fully supported yet. Please raise an issue on GitHub"
             " if you need this feature."
         )
     if in_stem_mode == -1:
         in_stem_mode = scanning
-    elif in_stem_mode == 0:
+    elif in_stem_mode == 0:  # 0 -> TEM Mode
         in_stem_mode = False
     else:
         in_stem_mode = True
+
+    has_camera_length = int(
+        original_metadata.get("Instrument Project Camera Length (centimeters)", -1)
+    )
+    diffracting = (
+        has_camera_length != -1 or in_stem_mode
+    )  # Force diffracting if in STEM mode
 
     if in_stem_mode and scanning and raster or nav_shape is not None:
         axes_scales = np.array(
@@ -225,11 +232,11 @@ def read_de_metadata_file(filename, nav_shape=None):
         navigate = [True, False, False]
 
         nav_shape = None  # read from the .mrc file
-        frame_sum = original_metadata.get("Autosave Movie Sum Count", 1)
-        frame_time = original_metadata.get("Frames Per Second", 1)
+        frame_sum = float(original_metadata.get("Autosave Movie Sum Count", 1))
+        frame_time = float(original_metadata.get("Frames Per Second", 1))
         sec_per_frame = 1 / (frame_time * frame_sum)
         axes_shapes = [-1, -1, -1]  # get from the .mrc file
-        if in_stem_mode:
+        if diffracting:
             axes_scales = np.array(
                 [
                     sec_per_frame,
@@ -237,7 +244,7 @@ def read_de_metadata_file(filename, nav_shape=None):
                     original_metadata.get("Diffraction Pixel Size X", 1),
                 ]
             )
-            axes_units = ["sec", "nm", "nm"]
+            axes_units = ["sec", "nm^-1", "nm^-1"]
             axes_names = ["time", "ky", "kx"]
         else:
             axes_scales = np.array(

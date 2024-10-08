@@ -108,7 +108,7 @@ def test_mrc_chunks_equal(distributed):
     )
 
 
-@pytest.mark.parametrize("navigation_shape", [None, (8, 32), (8, 16, 2)])
+@pytest.mark.parametrize("navigation_shape", [None, (256,), (8, 32), (8, 16, 2)])
 def test_mrc_metadata(navigation_shape):
     s = hs.load(
         TEST_DATA_DIR / "4DSTEMscan.mrc",
@@ -146,3 +146,23 @@ def test_mrc_metadata_auto():
         + s.axes_manager._signal_shape_in_array
     )
     assert s.data.shape == shape
+
+
+@pytest.mark.parametrize(
+    "metadata_file",
+    [
+        TEST_DATA_DIR / "3DSTEM_scan_info.txt",
+        TEST_DATA_DIR / "3DTEM_scan_info.txt",
+        TEST_DATA_DIR / "3DTEMDiffracting_scan_info.txt",
+    ],
+)
+def test_mrc_metadata_modes(metadata_file):
+    s = hs.load(TEST_DATA_DIR / "4DSTEM_scan_movie.mrc", metadata_file=metadata_file)
+    diffracting = "STEM" in metadata_file.name or "Diffracting" in metadata_file.name
+    s.axes_manager.navigation_axes[0].units = "sec"
+    if diffracting:
+        s.axes_manager.signal_axes[0].units = "nm^-1"
+        s.axes_manager.signal_axes[1].units = "nm^-1"
+    else:
+        s.axes_manager.signal_axes[0].units = "nm"
+        s.axes_manager.signal_axes[1].units = "nm"

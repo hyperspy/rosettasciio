@@ -1,0 +1,8 @@
+name: DM5
+name_aliases: [DigitalMicrograph5, Digital Micrograph 5]
+description: Read and write data from .dm5 file formats from DigitalMicrograph 5.
+full_support: False
+file_extensions: [dm5, DM5]
+default_extension: 0
+writes: True
+non_uniform_axis: False

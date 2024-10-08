@@ -138,5 +138,11 @@ def test_mrc_metadata_auto():
     assert s.metadata.Acquisition_instrument.TEM.detector == "CeleritasXS"
     assert s.metadata.Acquisition_instrument.TEM.magnification == "1000"
     assert s.metadata.Acquisition_instrument.TEM.frames_per_second == "40000"
-    assert len(s.metadata.General.virtual_images)==1
+    assert len(s.metadata.General.virtual_images) == 1
     assert len(s.metadata.General.external_detectors) == 1
+
+    shape = (
+        s.axes_manager._navigation_shape_in_array
+        + s.axes_manager._signal_shape_in_array
+    )
+    assert s.data.shape == shape

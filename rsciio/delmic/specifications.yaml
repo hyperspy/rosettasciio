@@ -1,0 +1,8 @@
+name: Delmic
+name_aliases: [Delmic hdf5, Delmic h5, Delmic_hdf5, Delmic_h5, Odemis]
+description: Read data from Delmic hdf5 files saved using Odemis.
+full_support: False
+file_extensions: ['h5','hdf5']
+default_extension: 0
+writes: False
+non_uniform_axis: True

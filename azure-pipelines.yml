@@ -19,38 +19,38 @@ resources:
       # For more details on service connection endpoint, see
       # https://docs.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints
       endpoint: hyperspy # Azure DevOps service connection
-      ref: use_mamba
+      ref: use_miniforge
 
 strategy:
   matrix:
     Linux_Python310:
       vmImage: 'ubuntu-latest'
       PYTHON_VERSION: '3.10'
-      MAMBAFORGE_PATH: $(Agent.BuildDirectory)/mambaforge
+      MINIFORGE_PATH: $(Agent.BuildDirectory)/miniforge3
     Linux_Python39:
       vmImage: 'ubuntu-latest'
       PYTHON_VERSION: '3.9'
-      MAMBAFORGE_PATH: $(Agent.BuildDirectory)/mambaforge
+      MINIFORGE_PATH: $(Agent.BuildDirectory)/miniforge3
     Linux_Python38:
       vmImage: 'ubuntu-latest'
       PYTHON_VERSION: '3.8'
-      MAMBAFORGE_PATH: $(Agent.BuildDirectory)/mambaforge
+      MINIFORGE_PATH: $(Agent.BuildDirectory)/miniforge3
     MacOS_Python38:
       vmImage: 'macOS-latest'
       PYTHON_VERSION: '3.8'
-      MAMBAFORGE_PATH: $(Agent.BuildDirectory)/mambaforge
+      MINIFORGE_PATH: $(Agent.BuildDirectory)/miniforge3
     MacOS_Python310:
       vmImage: 'macOS-latest'
       PYTHON_VERSION: '3.10'
-      MAMBAFORGE_PATH: $(Agent.BuildDirectory)/mambaforge
+      MINIFORGE_PATH: $(Agent.BuildDirectory)/miniforge3
     Windows_Python38:
       vmImage: 'windows-latest'
       PYTHON_VERSION: '3.8'
-      MAMBAFORGE_PATH: $(Agent.BuildDirectory)\mambaforge
+      MINIFORGE_PATH: $(Agent.BuildDirectory)\miniforge3
     Windows_Python310:
       vmImage: 'windows-latest'
       PYTHON_VERSION: '3.10'
-      MAMBAFORGE_PATH: $(Agent.BuildDirectory)\mambaforge
+      MINIFORGE_PATH: $(Agent.BuildDirectory)\miniforge3
 
 pool:
   vmImage: '$(vmImage)'
@@ -65,7 +65,7 @@ steps:
   condition: ne(variables['Build.Repository.Name'], 'hyperspy/rosettasciio')
   displayName: Fetch tags from hyperspy/rosettasciio
 - template: azure_pipelines/clone_ci-scripts_repo.yml@templates
-- template: azure_pipelines/install_mambaforge.yml@templates
+- template: azure_pipelines/install_miniforge.yml@templates
 - template: azure_pipelines/activate_conda.yml@templates
 - template: azure_pipelines/setup_anaconda_packages.yml@templates
 

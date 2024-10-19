@@ -499,7 +499,10 @@ rather than loading the file as a signal.</p>
 <dd class="field-odd"><dl>
 <dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
 </dd>
-<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not.</p>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not. The file will stay open
+until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/base_classes/signal/LazySignal.html#hyperspy._signals.lazy.LazySignal.compute" title="(in HyperSpy v2.1)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
+or closed manually. <a class="reference internal" href="#rsciio.utils.tools.get_file_handle" title="rsciio.utils.tools.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
+can be used to access the file handler and close it manually.</p>
 </dd>
 <dt><strong>metadata_key</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=None</span></dt><dd><p>None will return all datasets found including linked data.
 Providing a string or list of strings will only return items
@@ -532,66 +535,31 @@ dataset itself.</p>
 </dd></dl>
 
 </section>
-<section id="module-rsciio.tests.registry_utils">
-<span id="test-utility-functions"></span><h2>Test utility functions<a class="headerlink" href="#module-rsciio.tests.registry_utils" title="Link to this heading">#</a></h2>
+<section id="module-rsciio.utils.tools">
+<span id="generic-utility-functions"></span><h2>Generic utility functions<a class="headerlink" href="#module-rsciio.utils.tools" title="Link to this heading">#</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="rsciio.tests.registry_utils.download_all">
-<span class="sig-prename descclassname"><span class="pre">rsciio.tests.registry_utils.</span></span><span class="sig-name descname"><span class="pre">download_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pooch_object</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_hash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progressbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.tests.registry_utils.download_all" title="Link to this definition">#</a></dt>
-<dd><p>Download all test data if they are not already locally available in
-<code class="docutils literal notranslate"><span class="pre">rsciio.tests.data</span></code> folder.</p>
+<dt class="sig sig-object py" id="rsciio.utils.tools.get_file_handle">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.tools.</span></span><span class="sig-name descname"><span class="pre">get_file_handle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.tools.get_file_handle" title="Link to this definition">#</a></dt>
+<dd><p>Return file handle of a dask array when possible.
+Currently only hdf5 and tiff file are supported.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
-<dt><strong>pooch_object</strong><span class="classifier"><a class="reference external" href="https://www.fatiando.org/pooch/latest/api/generated/pooch.Pooch.html#pooch.Pooch" title="(in Pooch vv1.8.2)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pooch.Pooch</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>The registry to be used. If None, a RosettaSciIO registry will
-be used.</p>
+<dt><strong>data</strong><span class="classifier"><a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></span></dt><dd><p>The dask array from which the file handle
+will be retrieved.</p>
 </dd>
-<dt><strong>ignore_hash</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>Don’t compare the hash of the downloaded file with the corresponding
-hash in the registry. On windows, the hash comparison will fail for
-non-binary file, because of difference in line ending. If None, the
-comparision will only be used on unix system.</p>
+<dt><strong>warn</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a></span></dt><dd><p>Whether to warn or not when the file handle
+can’t be retrieved. Default is True.</p>
 </dd>
-<dt><strong>show_progressbar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Whether to show the progressbar or not.</p>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>File handle or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a></dt><dd><p>The file handle of the file when possible.</p>
 </dd>
 </dl>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="rsciio.tests.registry_utils.make_registry">
-<span class="sig-prename descclassname"><span class="pre">rsciio.tests.registry_utils.</span></span><span class="sig-name descname"><span class="pre">make_registry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.tests.registry_utils.make_registry" title="Link to this definition">#</a></dt>
-<dd><p>Make a registry of files and hashes for the given directory.</p>
-<p>This is helpful if you have many files in your test dataset as it keeps you
-from needing to manually update the registry.</p>
-<dl class="field-list">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl>
-<dt><strong>directory</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Directory of the test data to put in the registry. All file names in
-the registry will be relative to this directory.</p>
-</dd>
-<dt><strong>output</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Name of the output registry file.</p>
-</dd>
-<dt><strong>recursive</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a></span></dt><dd><p>If True, will recursively look for files in subdirectories of
-<em>directory</em>.</p>
-</dd>
-<dt><strong>exclude_pattern</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a></span></dt><dd><p>List of pattern to exclude.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<p class="rubric">Notes</p>
-<p>Adapted from <a class="github reference external" href="https://github.com/fatiando/pooch/blob/main/pooch/hashes.py">fatiando/pooch</a>
-BSD-3-Clause</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="rsciio.tests.registry_utils.update_registry">
-<span class="sig-prename descclassname"><span class="pre">rsciio.tests.registry_utils.</span></span><span class="sig-name descname"><span class="pre">update_registry</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.tests.registry_utils.update_registry" title="Link to this definition">#</a></dt>
-<dd><p>Update the <code class="docutils literal notranslate"><span class="pre">rsciio.tests.registry.txt</span></code> file, which is required after
-adding or updating test data files.</p>
-<p>Unix system only. This is not supported on windows, because the hash
-comparison will fail for non-binary file, because of difference in line
-ending.</p>
 </dd></dl>
 
 </section>
@@ -752,6 +720,69 @@ this:</p>
 </dd></dl>
 
 </section>
+<section id="module-rsciio.tests.registry_utils">
+<span id="test-utility-functions"></span><h2>Test utility functions<a class="headerlink" href="#module-rsciio.tests.registry_utils" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.tests.registry_utils.download_all">
+<span class="sig-prename descclassname"><span class="pre">rsciio.tests.registry_utils.</span></span><span class="sig-name descname"><span class="pre">download_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pooch_object</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_hash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progressbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.tests.registry_utils.download_all" title="Link to this definition">#</a></dt>
+<dd><p>Download all test data if they are not already locally available in
+<code class="docutils literal notranslate"><span class="pre">rsciio.tests.data</span></code> folder.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>pooch_object</strong><span class="classifier"><a class="reference external" href="https://www.fatiando.org/pooch/latest/api/generated/pooch.Pooch.html#pooch.Pooch" title="(in Pooch vv1.8.2)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pooch.Pooch</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>The registry to be used. If None, a RosettaSciIO registry will
+be used.</p>
+</dd>
+<dt><strong>ignore_hash</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>Don’t compare the hash of the downloaded file with the corresponding
+hash in the registry. On windows, the hash comparison will fail for
+non-binary file, because of difference in line ending. If None, the
+comparision will only be used on unix system.</p>
+</dd>
+<dt><strong>show_progressbar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Whether to show the progressbar or not.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.tests.registry_utils.make_registry">
+<span class="sig-prename descclassname"><span class="pre">rsciio.tests.registry_utils.</span></span><span class="sig-name descname"><span class="pre">make_registry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.tests.registry_utils.make_registry" title="Link to this definition">#</a></dt>
+<dd><p>Make a registry of files and hashes for the given directory.</p>
+<p>This is helpful if you have many files in your test dataset as it keeps you
+from needing to manually update the registry.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>directory</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Directory of the test data to put in the registry. All file names in
+the registry will be relative to this directory.</p>
+</dd>
+<dt><strong>output</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Name of the output registry file.</p>
+</dd>
+<dt><strong>recursive</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a></span></dt><dd><p>If True, will recursively look for files in subdirectories of
+<em>directory</em>.</p>
+</dd>
+<dt><strong>exclude_pattern</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a></span></dt><dd><p>List of pattern to exclude.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Adapted from <a class="github reference external" href="https://github.com/fatiando/pooch/blob/main/pooch/hashes.py">fatiando/pooch</a>
+BSD-3-Clause</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.tests.registry_utils.update_registry">
+<span class="sig-prename descclassname"><span class="pre">rsciio.tests.registry_utils.</span></span><span class="sig-name descname"><span class="pre">update_registry</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.tests.registry_utils.update_registry" title="Link to this definition">#</a></dt>
+<dd><p>Update the <code class="docutils literal notranslate"><span class="pre">rsciio.tests.registry.txt</span></code> file, which is required after
+adding or updating test data files.</p>
+<p>Unix system only. This is not supported on windows, because the hash
+comparison will fail for non-binary file, because of difference in line
+ending.</p>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -805,10 +836,8 @@ this:</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.hdf5.read_metadata_from_file"><code class="docutils literal notranslate"><span class="pre">read_metadata_from_file()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.tests.registry_utils">Test utility functions</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tests.registry_utils.download_all"><code class="docutils literal notranslate"><span class="pre">download_all()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tests.registry_utils.make_registry"><code class="docutils literal notranslate"><span class="pre">make_registry()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tests.registry_utils.update_registry"><code class="docutils literal notranslate"><span class="pre">update_registry()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.utils.tools">Generic utility functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.tools.get_file_handle"><code class="docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.utils.distributed">Distributed utility functions</a><ul class="nav section-nav flex-column">
@@ -819,6 +848,12 @@ this:</p>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio">Logging</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.set_log_level"><code class="docutils literal notranslate"><span class="pre">set_log_level()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.tests.registry_utils">Test utility functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tests.registry_utils.download_all"><code class="docutils literal notranslate"><span class="pre">download_all()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tests.registry_utils.make_registry"><code class="docutils literal notranslate"><span class="pre">make_registry()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tests.registry_utils.update_registry"><code class="docutils literal notranslate"><span class="pre">update_registry()</span></code></a></li>
 </ul>
 </li>
 </ul>

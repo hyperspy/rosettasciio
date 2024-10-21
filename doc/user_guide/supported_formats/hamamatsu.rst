@@ -8,7 +8,7 @@ Reader for spectroscopy data saved in ``.img`` (ITEX) files from the HPD-TA
 softwares from Hamamatsu, e.g. for images from streak cameras or high performance
 CCD cameras.
 
-If `LumiSpy <https://lumispy.org>`_ is installed, ``TransientSpec`` will be
+If `LumiSpy <https://lumispy.org>`_ is installed, ``LumiTransientSpectrum`` will be
 used as the ``signal_type``, which is intended for streak camera images with
 both wavelength and time axes.
 

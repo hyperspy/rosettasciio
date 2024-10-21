@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="../../_static/logo_sq.svg" type="image/svg+xml">
-    <title>&lt;no title&gt; &#8212; RosettaSciIO  documentation</title>
+    <title>Delmic HDF5 &#8212; RosettaSciIO  documentation</title>
   
   
   
@@ -39,9 +39,11 @@
     <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/supported_formats/supported_formats';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/supported_formats/delmic';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="DENSsolutions formats" href="dens.html" />
+    <link rel="prev" title="Direct Electron EMD (DE5)" href="de5.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -137,7 +139,7 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../index.html">
     User Guide
   </a>
@@ -268,9 +270,7 @@ document.write(`
       
       
       
-        
-      
-      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+      <div class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -285,7 +285,7 @@ document.write(`
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
+<li class="nav-item current active">
   <a class="nav-link nav-internal" href="../index.html">
     User Guide
   </a>
@@ -373,6 +373,56 @@ document.write(`
     
   </div>
   
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Supported formats</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="blockfile.html">Blockfile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bruker.html">Bruker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="de5.html">Direct Electron EMD (DE5)</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Delmic HDF5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dens.html">DENSsolutions formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="digitalmicrograph.html">Gatan Digital Micrograph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="digitalsurf.html">DigitalSurf format (SUR &amp; PRO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="edax.html">EDAX TEAM/Genesis (SPC, SPD)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="emd.html">Electron Microscopy Dataset (EMD)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="empad.html">EMPAD format (XML &amp; RAW)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hamamatsu.html">Hamamatsu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hspy.html">HSpy - HyperSpy’s HDF5 Specification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="image.html">Image formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jeol.html">JEOL Analyst Station (ASW, …)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jobinyvon.html">Horiba Jobin Yvon LabSpec</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mrc.html">MRC format</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="mrcz.html">MRCZ format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="msa.html">EMSA/MSA format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="netcdf.html">NetCDF (EELSlab) format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nexus.html">NeXus data format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pantarhei.html">CEOS Panta Rhei (PRZ)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="phenom.html">Phenom ELID format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protochips.html">Protochips logfile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quantumdetector.html">Quantum Detector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="renishaw.html">Renishaw</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripple.html">Ripple format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="semper.html">SEMPER binary format (UNF)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tia.html">FEI TIA (SER &amp; EMI)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tiff.html">Tagged image file format (TIFF)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trivista.html">TriVista</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tvips.html">TVIPS format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usid.html">Universal Spectroscopy and Imaging Data (h5USID)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="zspy.html">ZSpy - HyperSpy’s Zarr Specification</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../interoperability.html">Interoperability</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
   </div>
@@ -405,7 +455,13 @@ document.write(`
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
-    <li class="breadcrumb-item active" aria-current="page">&lt;no title&gt;</li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">User Guide</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Supported formats</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Delmic HDF5</li>
   </ul>
 </nav>
 </div>
@@ -422,273 +478,58 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <div class="pst-scrollable-table-container"><table class="table" id="id1">
-<caption><span class="caption-text">Supported file formats</span><a class="headerlink" href="#id1" title="Link to this table">#</a></caption>
-<thead>
-<tr class="row-odd"><th class="head"><p>Format</p></th>
-<th class="head"><p>Default extension(s)</p></th>
-<th class="head"><p>Read</p></th>
-<th class="head"><p>Write</p></th>
-<th class="head"><p>lazy</p></th>
-<th class="head"><p>distributed</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><a class="reference internal" href="blockfile.html#blockfile-format"><span class="std std-ref">Blockfile</span></a></p></td>
-<td><p>blo</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="bruker.html#bruker-format"><span class="std std-ref">Bruker composite file</span></a></p></td>
-<td><p>bcf</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="bruker.html#bruker-format"><span class="std std-ref">Bruker single spectrum XML</span></a></p></td>
-<td><p>spx</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="delmic.html#delmic-format"><span class="std std-ref">Delmic</span></a></p></td>
-<td><p>h5</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="de5.html#de5-format"><span class="std std-ref">Direct electron EMD</span></a></p></td>
-<td><p>de5</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="dens.html#dens-impulse-format"><span class="std std-ref">DENSsolutions Impulse logfile</span></a></p></td>
-<td><p>dens, csv &amp; log</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="dens.html#dens-heater-format"><span class="std std-ref">DENSsolutions Digiheater logfile</span></a></p></td>
-<td><p>dens</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="digitalmicrograph.html#digitalmicrograph-format"><span class="std std-ref">Gatan Digital Micrograph v3,4</span></a></p></td>
-<td><p>dm3, dm4</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="digitalsurf.html#digitalsurf-format"><span class="std std-ref">DigitalSurf surfaces</span></a></p></td>
-<td><p>sur &amp; pro</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="edax.html#edax-format"><span class="std std-ref">EDAX TEAM/Genesis</span></a></p></td>
-<td><p>spc, spd</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="emd.html#emd-ncem-format"><span class="std std-ref">Electron Microscopy Dataset (NCEM)</span></a></p></td>
-<td><p>emd</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="emd.html#emd-fei-format"><span class="std std-ref">Electron Microscopy Dataset (Velox)</span></a></p></td>
-<td><p>emd</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="empad.html#empad-format"><span class="std std-ref">EMPAD XML</span></a></p></td>
-<td><p>xml &amp; raw</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tia.html#tia-format"><span class="std std-ref">FEI TIA</span></a></p></td>
-<td><p>emi &amp; ser</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="hamamatsu.html#hamamatsu-format"><span class="std std-ref">Hamamatsu</span></a></p></td>
-<td><p>img</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="jobinyvon.html#jobinyvon-format"><span class="std std-ref">Horiba Jobin Yvon LabSpec</span></a></p></td>
-<td><p>xml</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="hspy.html#hspy-format"><span class="std std-ref">HSpy - HyperSpy hdf5</span></a></p></td>
-<td><p>hspy</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="image.html#image-format"><span class="std std-ref">Images (imageio)</span></a></p></td>
-<td><p>jpg, png, tif, …</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="jeol.html#jeol-format"><span class="std std-ref">JEOL</span></a></p></td>
-<td><p>asw, map, img, pts, eds</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="mrc.html#mrc-format"><span class="std std-ref">MRC</span></a></p></td>
-<td><p>mrc</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="mrcz.html#mrcz-format"><span class="std std-ref">MRCZ (compressed)</span></a></p></td>
-<td><p>mrcz</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="msa.html#msa-format"><span class="std std-ref">EMSA/MSA</span></a></p></td>
-<td><p>emsa/msa</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="netcdf.html#netcdf-format"><span class="std std-ref">NetCDF (EELSlab)</span></a></p></td>
-<td><p>nc</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="nexus.html#nexus-format"><span class="std std-ref">NeXus</span></a></p></td>
-<td><p>nxs</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pantarhei.html#pantarhei-format"><span class="std std-ref">CEOS Phanta Rhei</span></a></p></td>
-<td><p>prz</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="phenom.html#elid-format"><span class="std std-ref">Phenom ELID</span></a></p></td>
-<td><p>elid</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="protochips.html#protochips-format"><span class="std std-ref">Protochips logfile</span></a></p></td>
-<td><p>csv &amp; log</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="quantumdetector.html#quantumdetector-format"><span class="std std-ref">Quantum Detector</span></a></p></td>
-<td><p>mib</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="renishaw.html#renishaw-format"><span class="std std-ref">Renishaw</span></a></p></td>
-<td><p>wdf</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="ripple.html#ripple-format"><span class="std std-ref">Ripple</span></a></p></td>
-<td><p>rpl</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="semper.html#semper-format"><span class="std std-ref">SEMPER binary UNF</span></a></p></td>
-<td><p>unf</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tiff.html#tiff-format"><span class="std std-ref">TIFF (tiffile)</span></a></p></td>
-<td><p>tif, tiff</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="trivista.html#trivista-format"><span class="std std-ref">TriVista</span></a></p></td>
-<td><p>tvf</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tvips.html#tvips-format"><span class="std std-ref">TVIPS</span></a></p></td>
-<td><p>tvips</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="usid.html#usid-format"><span class="std std-ref">Universal Spectroscopy and Imaging Data (USID)</span></a></p></td>
-<td><p>h5, hdf5</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>No</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="zspy.html#zspy-format"><span class="std std-ref">ZSpy - HyperSpy ZARR</span></a></p></td>
-<td><p>zspy</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-<td><p>Yes</p></td>
-</tr>
-</tbody>
-</table>
+  <section id="delmic-hdf5">
+<span id="delmic-format"></span><h1>Delmic HDF5<a class="headerlink" href="#delmic-hdf5" title="Link to this heading">#</a></h1>
+<p>RosettaScIO can only read hyperspectral cathodoluminescence .h5 datasets from Delmic. The file reading will be implemented step by step for the various Delmic data formats.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To read the cathodoluminescence .h5 datasets in <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, use the
+<code class="docutils literal notranslate"><span class="pre">reader</span></code> argument to define the correct file plugin as the <code class="docutils literal notranslate"><span class="pre">.h5</span></code>
+extension is not unique to this reader:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">hyperspy.api</span> <span class="k">as</span> <span class="nn">hs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;filename.h5&quot;</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="s2">&quot;Delmic&quot;</span><span class="p">)</span>
+</pre></div>
 </div>
+</div>
+<section id="module-rsciio.delmic">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.delmic" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.delmic.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.delmic.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.delmic.file_reader" title="Link to this definition">#</a></dt>
+<dd><p>Read a Delmic hdf5 hyperspectral image.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not. The file will stay open
+until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/base_classes/signal/LazySignal.html#hyperspy._signals.lazy.LazySignal.compute" title="(in HyperSpy v2.1)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
+or closed manually. <a class="reference internal" href="../../api/utils.html#rsciio.utils.tools.get_file_handle" title="rsciio.utils.tools.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
+can be used to access the file handler and close it manually.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>‘metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>‘original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+<p>When the file contains several datasets, each dataset will be loaded as separate dictionary.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
 
 
                 </article>
@@ -700,6 +541,24 @@ document.write(`
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
+    <a class="left-prev"
+       href="de5.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Direct Electron EMD (DE5)</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="dens.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">DENSsolutions formats</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
 </div>
                 </footer>
               
@@ -717,15 +576,18 @@ document.write(`
     <i class="fa-solid fa-list"></i> On this page
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
-    <ul class="simple visible nav section-nav flex-column">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.delmic">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.delmic.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
 </ul>
-
+</li>
+</ul>
   </nav></div>
 
   <div class="sidebar-secondary-item">
 
   <div class="tocsection sourcelink">
-    <a href="../../_sources/user_guide/supported_formats/supported_formats.rst.txt">
+    <a href="../../_sources/user_guide/supported_formats/delmic.rst.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
   </div>

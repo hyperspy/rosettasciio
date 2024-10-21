@@ -1,7 +1,8 @@
 import h5py
 import numpy as np
 
-from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC
+from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+
 
 
 def file_reader(filename, lazy=False):
@@ -13,6 +14,7 @@ def file_reader(filename, lazy=False):
 
     Parameters
     ----------
+    %s
     %s
 
     %s
@@ -78,4 +80,5 @@ def file_reader(filename, lazy=False):
     ]
 
 
-file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+

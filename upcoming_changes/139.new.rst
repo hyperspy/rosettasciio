@@ -1,1 +1,1 @@
-new: Support for Delmic HDF5 format.
+Add basic support for the Delmic HDF5 format.

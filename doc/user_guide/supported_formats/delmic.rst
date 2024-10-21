@@ -1,7 +1,7 @@
 .. _delmic-format:
 
-Delmic formats
----------------------
+Delmic HDF5
+-----------
 
 RosettaScIO can only read hyperspectral cathodoluminescence .h5 datasets from Delmic. The file reading will be implemented step by step for the various Delmic data formats.
 
@@ -17,3 +17,6 @@ RosettaScIO can only read hyperspectral cathodoluminescence .h5 datasets from De
 
 API functions
 """""""""""""
+
+.. automodule:: rsciio.delmic
+   :members:

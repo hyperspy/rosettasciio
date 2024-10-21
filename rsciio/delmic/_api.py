@@ -5,7 +5,9 @@ from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC
 
 
 def file_reader(filename, *args, **kwds):
-    """Read a Delmic hdf5 hyperspectral image.
+    """
+    Read a Delmic hdf5 hyperspectral image.
+
 
     Parameters
     ----------

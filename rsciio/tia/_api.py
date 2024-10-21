@@ -16,21 +16,19 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import logging
+import os
 import struct
 import warnings
-from glob import glob
-import os
-from dateutil import parser
-import logging
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
+from glob import glob
 
 import numpy as np
+from dateutil import parser
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
-from rsciio.utils.tools import sarray2dict
-from rsciio.utils.tools import DTBox
-
+from rsciio.utils.tools import DTBox, sarray2dict
 
 _logger = logging.getLogger(__name__)
 
@@ -510,7 +508,7 @@ def ser_reader(filename, objects=None, lazy=False, only_valid_data=True):
     """
     header, data = load_ser_file(filename)
     record_by = guess_record_by(header["DataTypeID"])
-    ndim = int(header["NumberDimensions"])
+    ndim = int(header["NumberDimensions"][0])
     date, time = None, None
     if objects is not None:
         objects_dict = convert_xml_to_dict(objects[0])
@@ -712,7 +710,7 @@ def load_only_data(
     # dimensions we must fill the rest with zeros or (better) nans if the
     # dtype is float
     if np.prod(array_shape) != np.prod(data["Array"].shape):
-        if int(header["NumberDimensions"]) == 1 and only_valid_data:
+        if int(header["NumberDimensions"][0]) == 1 and only_valid_data:
             # No need to fill with zeros if `TotalNumberElements !=
             # ValidNumberElements` for series data.
             # The valid data is always `0:ValidNumberElements`

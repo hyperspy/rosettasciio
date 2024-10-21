@@ -16,11 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import logging
 import importlib.util
-from pathlib import Path
+import logging
 from copy import deepcopy
-from enum import IntEnum, EnumMeta
+from enum import EnumMeta, IntEnum
+from pathlib import Path
 
 import numpy as np
 from numpy.polynomial.polynomial import polyfit

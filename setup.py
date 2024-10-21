@@ -6,9 +6,10 @@ https://github.com/pypa/sampleproject
 """
 
 # Always prefer setuptools over distutils
-from setuptools import setup, Extension, Command
 import os
 import warnings
+
+from setuptools import Command, Extension, setup
 
 setup_path = os.path.abspath(os.path.dirname(__file__))
 
@@ -93,7 +94,6 @@ else:
 
 
 class Recythonize(Command):
-
     """cythonize all extensions"""
 
     description = "(re-)cythonize all changed cython extensions"

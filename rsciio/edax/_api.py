@@ -20,19 +20,19 @@
 # https://www.biochem.mpg.de/doc_tom/TOM_Release_2008/IOfun/tom_mrcread.html
 # and https://ami.scripps.edu/software/mrctools/mrc_specification.php
 
-import os
 import logging
+import os
+
 import numpy as np
 
 from rsciio._docstrings import (
+    ENDIANESS_DOC,
     FILENAME_DOC,
     LAZY_DOC,
-    ENDIANESS_DOC,
     RETURNS_DOC,
 )
-from rsciio.utils.tools import sarray2dict
 from rsciio.utils.elements import atomic_number2name
-
+from rsciio.utils.tools import sarray2dict
 
 _logger = logging.getLogger(__name__)
 
@@ -860,7 +860,7 @@ def spd_reader(
             # see https://github.com/hyperspy/hyperspy/pull/2007 and
             #     https://github.com/h5py/h5py/issues/289 for context
             original_metadata["ipr_header"]["charText"] = [
-                np.string_(i) for i in original_metadata["ipr_header"]["charText"]
+                np.bytes_(i) for i in original_metadata["ipr_header"]["charText"]
             ]
     else:
         _logger.warning(
@@ -888,9 +888,9 @@ def spd_reader(
         "size": data.shape[2],
         "index_in_array": 2,
         "name": "Energy",
-        "scale": original_metadata["spc_header"]["evPerChan"] / 1000.0
-        if read_spc
-        else 1,
+        "scale": (
+            original_metadata["spc_header"]["evPerChan"] / 1000.0 if read_spc else 1
+        ),
         "offset": original_metadata["spc_header"]["startEnergy"] if read_spc else 1,
         "units": "keV" if read_spc else None,
         "navigate": False,

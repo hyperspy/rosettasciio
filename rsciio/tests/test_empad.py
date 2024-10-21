@@ -16,17 +16,19 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import gc
+import importlib
+from importlib.metadata import version
 from pathlib import Path
 
 import numpy as np
 import pytest
-import gc
-
-hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
-
-import traits.api as t
+from packaging.version import Version
 
 from rsciio.empad._api import _parse_xml
+
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+t = pytest.importorskip("traits.api", reason="traits not installed")
 
 
 DATA_DIR = Path(__file__).parent / "data" / "empad"
@@ -67,7 +69,13 @@ def test_read_stack(lazy):
     assert signal_axes[0].name == "width"
     assert signal_axes[1].name == "height"
     for axis in signal_axes:
-        assert axis.units == t.Undefined
+        if importlib.util.find_spec("pyxem") and Version(version("pyxem")) >= Version(
+            "0.19"
+        ):
+            units = "px"
+        else:
+            units = t.Undefined
+        assert axis.units == units
         assert axis.scale == 1.0
         assert axis.offset == -64
     navigation_axes = s.axes_manager.navigation_axes

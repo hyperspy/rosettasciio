@@ -1,4 +1,5 @@
 """NeXus file reading and writing."""
+
 # -*- coding: utf-8 -*-
 # Copyright 2007-2023 The HyperSpy developers
 #
@@ -35,7 +36,6 @@ from rsciio._docstrings import (
 from rsciio._hierarchical import get_signal_chunks
 from rsciio.hspy._api import overwrite_dataset
 from rsciio.utils.tools import DTBox
-
 
 _logger = logging.getLogger(__name__)
 
@@ -131,7 +131,7 @@ def _parse_to_file(value):
         toreturn = totest
     if isinstance(totest, str):
         toreturn = totest.encode("utf-8")
-        toreturn = np.string_(toreturn)
+        toreturn = np.bytes_(toreturn)
     return toreturn
 
 
@@ -226,7 +226,11 @@ def _get_nav_list(data, dataentry):
             if ax != ".":
                 index_name = ax + "_indices"
                 if index_name in dataentry.attrs:
-                    ind_in_array = int(dataentry.attrs[index_name])
+                    ind_in_array = dataentry.attrs[index_name]
+                    if len(ind_in_array.shape) > 0:
+                        ind_in_array = int(ind_in_array[0])
+                    else:
+                        ind_in_array = int(ind_in_array)
                 else:
                     ind_in_array = i
                 axis_index_list.append(ind_in_array)
@@ -588,10 +592,11 @@ def file_reader(
                                     "original_metadata"
                                 ]
                             else:
-                                dictionary[
-                                    "original_metadata"
-                                ] = _find_search_keys_in_dict(
-                                    (oma["original_metadata"]), search_keys=metadata_key
+                                dictionary["original_metadata"] = (
+                                    _find_search_keys_in_dict(
+                                        (oma["original_metadata"]),
+                                        search_keys=metadata_key,
+                                    )
                                 )
                             # reconstruct the axes_list for axes_manager
                             for k, v in oma["original_metadata"].items():
@@ -690,9 +695,9 @@ def _is_int(s):
 
 
 def _check_search_keys(search_keys):
-    if type(search_keys) is str:
+    if isinstance(search_keys, str):
         return [search_keys]
-    elif type(search_keys) is list:
+    elif isinstance(search_keys, list):
         if all(isinstance(key, str) for key in search_keys):
             return search_keys
         else:
@@ -786,7 +791,7 @@ def _find_data(group, search_keys=None, hardlinks_only=False, absolute_path=None
         else:
             return all_nx_datasets, all_hdf_datasets
 
-    elif type(search_keys) is list or type(absolute_path) is list:
+    elif isinstance(search_keys, list) or isinstance(absolute_path, list):
         if hardlinks_only:
             # return only the stored data, no linked data
             nx_datasets = unique_nx_datasets
@@ -859,7 +864,7 @@ def _load_metadata(group, lazy=False, skip_array_metadata=False):
             else:
                 rootkey = "/" + key
             new_key = _fix_exclusion_keys(key)
-            if type(item) is h5py.Dataset:
+            if isinstance(item, h5py.Dataset):
                 if item.attrs:
                     if new_key not in tree.keys():
                         tree[new_key] = {}
@@ -883,7 +888,7 @@ def _load_metadata(group, lazy=False, skip_array_metadata=False):
                     else:
                         tree[new_key] = _parse_from_file(item, lazy=lazy)
 
-            elif type(item) is h5py.Group:
+            elif isinstance(item, h5py.Group):
                 if "NX_class" in item.attrs:
                     if item.attrs["NX_class"] not in [b"NXdata", "NXdata"]:
                         tree[new_key] = find_meta_in_tree(
@@ -964,7 +969,9 @@ def _find_search_keys_in_dict(tree, search_keys=None):
                 rootkey = rootname + "/" + key
             else:
                 rootkey = key
-            if type(search_keys) is list and any([s1 in rootkey for s1 in search_keys]):
+            if isinstance(search_keys, list) and any(
+                [s1 in rootkey for s1 in search_keys]
+            ):
                 mod_keys = _text_split(rootkey, (".", "/"))
                 # create the key, values in the dict
                 p = metadata_dict

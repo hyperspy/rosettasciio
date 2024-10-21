@@ -22,9 +22,10 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from rsciio.utils.tests import assert_deep_almost_equal
+
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 exspy = pytest.importorskip("exspy", reason="exspy not installed")
-from hyperspy.misc.test_utils import assert_deep_almost_equal
 
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "pantarhei"
@@ -89,6 +90,7 @@ def test_save_load_cycle(tmp_path):
 
     s2 = hs.load(fname)
     np.testing.assert_allclose(s2.data, s.data)
+    assert s2.metadata.Signal.signal_type == s.metadata.Signal.signal_type
 
 
 def test_save_load_cycle_new_signal_1D_nav1(tmp_path):

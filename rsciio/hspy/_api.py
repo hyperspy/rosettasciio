@@ -17,12 +17,12 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import logging
-from packaging.version import Version
 from pathlib import Path
 
 import dask.array as da
-from dask.diagnostics import ProgressBar
 import h5py
+from dask.diagnostics import ProgressBar
+from packaging.version import Version
 
 from rsciio._docstrings import (
     CHUNKS_DOC,
@@ -30,13 +30,12 @@ from rsciio._docstrings import (
     COMPRESSION_HDF5_NOTES_DOC,
     FILENAME_DOC,
     LAZY_DOC,
-    SHOW_PROGRESSBAR_DOC,
     RETURNS_DOC,
+    SHOW_PROGRESSBAR_DOC,
     SIGNAL_DOC,
 )
-from rsciio._hierarchical import HierarchicalWriter, HierarchicalReader, version
-from rsciio.utils.tools import get_file_handle, dummy_context_manager
-
+from rsciio._hierarchical import HierarchicalReader, HierarchicalWriter, version
+from rsciio.utils.tools import dummy_context_manager, get_file_handle
 
 _logger = logging.getLogger(__name__)
 
@@ -48,12 +47,12 @@ default_version = Version(version)
 
 class HyperspyReader(HierarchicalReader):
     _file_type = "hspy"
+    _is_hdf5 = True
 
     def __init__(self, file):
         super().__init__(file)
         self.Dataset = h5py.Dataset
         self.Group = h5py.Group
-        self.unicode_kwds = {"dtype": h5py.special_dtype(vlen=str)}
 
 
 class HyperspyWriter(HierarchicalWriter):
@@ -63,16 +62,13 @@ class HyperspyWriter(HierarchicalWriter):
     """
 
     target_size = 1e6
+    _unicode_kwds = {"dtype": h5py.string_dtype()}
+    _is_hdf5 = True
 
     def __init__(self, file, signal, expg, **kwds):
         super().__init__(file, signal, expg, **kwds)
         self.Dataset = h5py.Dataset
         self.Group = h5py.Group
-        self.unicode_kwds = {"dtype": h5py.special_dtype(vlen=str)}
-        if len(signal["data"]) > 0:
-            self.ragged_kwds = {
-                "dtype": h5py.special_dtype(vlen=signal["data"][0].dtype)
-            }
 
     @staticmethod
     def _store_data(data, dset, group, key, chunks, show_progressbar=True):
@@ -90,11 +86,13 @@ class HyperspyWriter(HierarchicalWriter):
             dset = [
                 dset,
             ]
+
         for i, (data_, dset_) in enumerate(zip(data, dset)):
             if isinstance(data_, da.Array):
                 if data_.chunks != dset_.chunks:
                     data[i] = data_.rechunk(dset_.chunks)
                 if data_.ndim == 1 and data_.dtype == object:
+                    # https://github.com/hyperspy/rosettasciio/issues/198
                     raise ValueError(
                         "Saving a 1-D ragged dask array to hspy is not supported yet. "
                         "Please use the .zspy extension."
@@ -113,18 +111,19 @@ class HyperspyWriter(HierarchicalWriter):
                 da.store(data, dset)
 
     @staticmethod
-    def _get_object_dset(group, data, key, chunks, **kwds):
+    def _get_object_dset(group, data, key, chunks, dtype=None, **kwds):
         """Creates a h5py dataset object for saving ragged data"""
-        # For saving ragged array
-        if chunks is None:
+        if chunks is None:  # pragma: no cover
             chunks = 1
-        test_ind = data.ndim * (0,)
-        if isinstance(data, da.Array):
-            dtype = data[test_ind].compute().dtype
-        else:
-            dtype = data[test_ind].dtype
+
+        if dtype is None:
+            test_data = data[data.ndim * (0,)]
+            if isinstance(test_data, da.Array):
+                test_data = test_data.compute()
+            dtype = test_data.dtype
+
         dset = group.require_dataset(
-            key, data.shape, dtype=h5py.special_dtype(vlen=dtype), chunks=chunks, **kwds
+            key, data.shape, dtype=h5py.vlen_dtype(dtype), chunks=chunks, **kwds
         )
         return dset
 
@@ -145,7 +144,8 @@ def file_reader(filename, lazy=False, **kwds):
     """
     try:
         # in case blosc compression is used
-        import hdf5plugin
+        # module needs to be imported to register plugin
+        import hdf5plugin  # noqa: F401
     except ImportError:
         pass
     mode = kwds.pop("mode", "r")

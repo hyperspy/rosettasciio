@@ -16,12 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import xml.etree.ElementTree as ET
-import logging
 import importlib.util
-from pathlib import Path
-from copy import deepcopy
+import logging
+import xml.etree.ElementTree as ET
 from collections import defaultdict
+from copy import deepcopy
+from pathlib import Path
 
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
@@ -234,9 +234,9 @@ class TrivistaTVFReader:
         infoSerialized_processed = _process_info_serialized(
             infoSerialized["Info"]["Groups"]["Group"]
         )
-        filtered_original_metadata["Document"][
-            "InfoSerialized"
-        ] = infoSerialized_processed
+        filtered_original_metadata["Document"]["InfoSerialized"] = (
+            infoSerialized_processed
+        )
 
         ## these methods alter metadata_hardware
         self._filter_laser_metadata(infoSerialized_processed, metadata_hardware)
@@ -276,9 +276,9 @@ class TrivistaTVFReader:
         for microscope in metadata_hardware["Hardware"]["Microscopes"]["Microscope"]:
             for objective in microscope["Objectives"]["Objective"]:
                 if objective["IsEnabled"] == "True":
-                    metadata_hardware["Hardware"]["Microscopes"][
-                        "Microscope"
-                    ] = microscope
+                    metadata_hardware["Hardware"]["Microscopes"]["Microscope"] = (
+                        microscope
+                    )
                     metadata_hardware["Hardware"]["Microscopes"]["Microscope"][
                         "Objectives"
                     ]["Objective"] = objective
@@ -311,9 +311,9 @@ class TrivistaTVFReader:
             if spectrometer["Serialnumber"] in spectrometer_serial_numbers:
                 idx = spectrometer_serial_numbers.index(spectrometer["Serialnumber"])
                 spectrometer_name = spectrometer_serialized_list[idx]
-                metadata_hardware["Hardware"]["Spectrometers"][
-                    spectrometer_name
-                ] = spectrometer
+                metadata_hardware["Hardware"]["Spectrometers"][spectrometer_name] = (
+                    spectrometer
+                )
                 ## filter grating via groove density
                 gratings_root = spectrometer["Gratings"]["Grating"]
                 for grating in gratings_root:
@@ -420,7 +420,7 @@ class TrivistaTVFReader:
                 "Objective"
             ]["Magnification"]
         )
-        if not laser_wavelength is None:
+        if laser_wavelength is not None:
             laser["wavelength"] = laser_wavelength
         return laser
 

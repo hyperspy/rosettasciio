@@ -16,11 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import os
 import logging
+import os
+from collections.abc import Iterable
 
 import imageio.v3 as iio
 import numpy as np
+from PIL import Image
 
 from rsciio._docstrings import (
     FILENAME_DOC,
@@ -28,8 +30,8 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
+from rsciio.utils.image import _parse_axes_from_metadata, _parse_exif_tags
 from rsciio.utils.tools import _UREG
-
 
 _logger = logging.getLogger(__name__)
 
@@ -64,16 +66,16 @@ def file_writer(
     output_size : {2-tuple, int, None}, Default=None
         The output size of the image in pixels (width, height):
 
-            * if ``int``, defines the width of the image, the height is
-              determined from the aspec ratio of the image
-            * if ``2-tuple``, defines the width and height of the
-              image. Padding with white pixels is used to maintain the aspect
-              ratio of the image.
-            * if ``None``, the size of the data is used.
+        * if ``int``, defines the width of the image, the height is
+          determined from the aspect ratio of the image
+        * if ``2-tuple``, defines the width and height of the
+          image. Padding with white pixels is used to maintain the aspect
+          ratio of the image.
+        * if ``None``, the size of the data is used.
 
         For output sizes larger than the data size, "nearest" interpolation is
         used by default and this behaviour can be changed through the
-        *imshow_kwds* dictionary.
+        ``imshow_kwds`` dictionary.
 
     imshow_kwds : dict, optional
         Keyword arguments dictionary for :py:func:`~.matplotlib.pyplot.imshow`.
@@ -134,17 +136,17 @@ def file_writer(
         else:
             raise RuntimeError("This dimensionality is not supported.")
 
-        aspect_ratio = imshow_kwds.get("aspect", None)
-        if not isinstance(aspect_ratio, (int, float)):
-            aspect_ratio = data.shape[0] / data.shape[1]
-
+        aspect_ratio = imshow_kwds.get("aspect", 1)
         if output_size is None:
-            # fall back to image size taking into account aspect_ratio
+            # fall back to image size taking into account aspect
             ratio = (1, aspect_ratio)
-            output_size = [axis["size"] * r for axis, r in zip(axes, ratio)]
+            output_size = [axis["size"] * r for axis, r in zip(axes[::-1], ratio)]
         elif isinstance(output_size, (int, float)):
+            aspect_ratio *= data.shape[0] / data.shape[1]
             output_size = [output_size, output_size * aspect_ratio]
-
+        elif isinstance(output_size, Iterable) and len(output_size) != 2:
+            # Catch error here, because matplotlib error is not obvious
+            raise ValueError("If `output_size` is an iterable, it must be of length 2.")
         fig = Figure(figsize=[size / dpi for size in output_size], dpi=dpi)
 
         # List of format supported by matplotlib
@@ -223,20 +225,29 @@ def file_reader(filename, lazy=False, **kwds):
     if lazy:
         # load the image fully to check the dtype and shape, should be cheap.
         # Then store this info for later re-loading when required
-        from dask.array import from_delayed
         from dask import delayed
+        from dask.array import from_delayed
 
         val = delayed(_read_data, pure=True)(filename, **kwds)
-        dc = from_delayed(val, shape=dc.shape, dtype=dc.dtype)
+        dc = from_delayed(val, shape=val.shape, dtype=val.dtype)
     else:
         dc = _read_data(filename, **kwds)
+
+    om = {}
+
+    im = Image.open(filename)
+    om["exif_tags"] = _parse_exif_tags(im)
+    axes = _parse_axes_from_metadata(om["exif_tags"], dc.shape)
+
     return [
         {
             "data": dc,
+            "axes": axes,
             "metadata": {
                 "General": {"original_filename": os.path.split(filename)[1]},
                 "Signal": {"signal_type": ""},
             },
+            "original_metadata": om,
         }
     ]
 

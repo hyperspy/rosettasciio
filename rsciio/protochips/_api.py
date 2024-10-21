@@ -17,14 +17,14 @@
 # along with RosettaSciIO.  If not, see <https://www.gnu.org/licenses/#GPL>.
 
 
-import numpy as np
-import os
-from datetime import datetime as dt
-import warnings
 import logging
+import os
+import warnings
+from datetime import datetime as dt
+
+import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
-
 
 _logger = logging.getLogger(__name__)
 

@@ -1,11 +1,11 @@
-"""skimage's `rescale_intensity` that takes and returns dask arrays.
-"""
-from packaging.version import Version
+"""skimage's `rescale_intensity` that takes and returns dask arrays."""
+
 import warnings
 
 import numpy as np
 import skimage
-from skimage.exposure.exposure import intensity_range, _output_dtype
+from packaging.version import Version
+from skimage.exposure.exposure import _output_dtype, intensity_range
 
 
 def rescale_intensity(image, in_range="image", out_range="dtype"):

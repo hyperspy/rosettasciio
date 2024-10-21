@@ -16,21 +16,21 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import importlib
 import os
 import tempfile
+from datetime import datetime
 from time import perf_counter, sleep
 
 import numpy as np
 import numpy.testing as npt
 import pytest
-from datetime import datetime
 
+from rsciio.utils.tests import assert_deep_almost_equal
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 mrcz = pytest.importorskip("mrcz", reason="mrcz not installed")
 
-
-from hyperspy.misc.test_utils import assert_deep_almost_equal
 
 # ==============================================================================
 # MRCZ Test
@@ -191,16 +191,9 @@ class TestPythonMrcz:
         ("dtype", "compressor", "clevel", "lazy"), _generate_parameters()
     )
     def test_MRC(self, dtype, compressor, clevel, lazy):
-        t_start = perf_counter()
+        blosc = importlib.util.find_spec("blosc")
 
-        try:
-            import blosc
-
-            blosc_installed = True
-        except Exception:
-            blosc_installed = False
-
-        if not blosc_installed and compressor is not None:
+        if blosc is None and compressor is not None:
             with pytest.raises(ImportError):
                 self.compareSaveLoad(
                     [2, 64, 32],

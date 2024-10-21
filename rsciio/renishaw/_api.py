@@ -62,8 +62,9 @@
 import datetime
 import importlib.util
 import logging
+import os
 from copy import deepcopy
-from enum import IntEnum, Enum, EnumMeta
+from enum import Enum, EnumMeta, IntEnum
 from io import BytesIO
 from pathlib import Path
 
@@ -71,16 +72,16 @@ import numpy as np
 from numpy.polynomial.polynomial import polyfit
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio.utils import rgb_tools
 
 _logger = logging.getLogger(__name__)
 
-## PIL alternative: imageio.v3.immeta extracts exif as binary
-## but then this binary string needs to be parsed
+
 try:
     from PIL import Image
 except ImportError:
     PIL_installed = False
-    _logger.warning("Pillow not installed. Cannot load whitelight image into metadata")
+    _logger.warning("Pillow not installed. Cannot load whitelight image.")
 else:
     PIL_installed = True
 
@@ -323,21 +324,6 @@ class DataType(IntEnum, metaclass=DefaultEnumMeta):
     )
 
 
-# for wthl image
-class ExifTags(IntEnum, metaclass=DefaultEnumMeta):
-    # Standard EXIF TAGS
-    ImageDescription = 0x10E  # 270
-    Make = 0x10F  # 271
-    ExifOffset = 0x8769  # 34665
-    FocalPlaneXResolution = 0xA20E  # 41486
-    FocalPlaneYResolution = 0xA20F  # 41487
-    FocalPlaneResolutionUnit = 0xA210  # 41488
-    # Customized EXIF TAGS from Renishaw
-    FocalPlaneXYOrigins = 0xFEA0  # 65184
-    FieldOfViewXY = 0xFEA1  # 65185
-    Unknown = 0xFEA2  # 65186
-
-
 class WDFReader(object):
     """Reader for Renishaw(TM) WiRE Raman spectroscopy files (.wdf format)
 
@@ -469,7 +455,6 @@ class WDFReader(object):
         self._parse_MAP("MAP_0")
         self._parse_MAP("MAP_1")
         self._parse_TEXT()
-        self._parse_WHTL()
 
         ## parse blocks with axes information
         signal_dict = self._parse_XLST()
@@ -788,7 +773,7 @@ class WDFReader(object):
         header["uuid"] = f"{self.__read_numeric('uint32', convert=False)}"
         for _ in range(3):
             header["uuid"] += f"-{self.__read_numeric('uint32', convert=False)}"
-        unused1 = self.__read_numeric("uint32", size=3)
+        _ = self.__read_numeric("uint32", size=3)
         header["ntracks"] = self.__read_numeric("uint32")
         header["file_status_error_code"] = self.__read_numeric("uint32")
         result["points_per_spectrum"] = self.__read_numeric("uint32")
@@ -816,7 +801,7 @@ class WDFReader(object):
         header["time_end"] = convert_windowstime_to_datetime(time_end_wt)
         header["quantity_unit"] = UnitType(self.__read_numeric("uint32")).name
         header["laser_wavenumber"] = self.__read_numeric("float")
-        unused2 = self.__read_numeric("uint64", size=6)
+        _ = self.__read_numeric("uint64", size=6)
         header["username"] = self.__read_utf8(32)
         header["title"] = self.__read_utf8(160)
 
@@ -937,9 +922,7 @@ class WDFReader(object):
         for _ in range(origin_count):
             ax_tmp_dict = {}
             ## ignore first bit of dtype read (sometimes 0, sometimes 1 in testfiles)
-            dtype = DataType(
-                self.__read_numeric("uint32", convert=False) & ~(0b1 << 31)
-            ).name
+            dtype = DataType(self.__read_numeric("uint32") & ~(0b1 << 31)).name
             ax_tmp_dict["units"] = str(UnitType(self.__read_numeric("uint32")))
             ax_tmp_dict["annotation"] = self.__read_utf8(0x10)
             ax_tmp_dict["data"] = self._set_data_for_ORGN(dtype)
@@ -991,7 +974,7 @@ class WDFReader(object):
         )
 
         flag = MapType(self.__read_numeric("uint32")).name
-        unused = self.__read_numeric("uint32")
+        _ = self.__read_numeric("uint32")
         offset_xyz = [self.__read_numeric("float") for _ in range(3)]
         scale_xyz = [self.__read_numeric("float") for _ in range(3)]
         size_xyz = [self.__read_numeric("uint32") for _ in range(3)]
@@ -1025,7 +1008,7 @@ class WDFReader(object):
         if flag == MapType.xyline.name:
             result = self._set_wmap_nav_linexy(result["X"], result["Y"])
         elif flag == DefaultEnum.Unknown.name:
-            _logger.warning(f"Unknown flag ({wmap_dict['flag']}) for WMAP mapping.")
+            _logger.info(f"Unknown flag ({wmap_dict['flag']}) for WMAP mapping.")
         return result
 
     def _set_wmap_nav_linexy(self, x_axis, y_axis):
@@ -1062,13 +1045,32 @@ class WDFReader(object):
             )
         for axis in orgn_data.keys():
             del nav_dict[axis]["annotation"]
+            data = nav_dict[axis].pop("data")
             nav_dict[axis]["navigate"] = True
-            data = np.unique(nav_dict[axis].pop("data"))
             nav_dict[axis]["size"] = data.size
-            nav_dict[axis]["offset"] = data[0]
-            ## time axis in test data is not perfectly uniform, but X,Y,Z are
-            nav_dict[axis]["scale"] = np.mean(np.diff(data))
             nav_dict[axis]["name"] = axis
+            scale_mean = np.mean(np.diff(data))
+            if axis == "FocusTrack_Z" or scale_mean == 0:
+                # FocusTrack_Z is not uniform and not necessarily ordered
+                # Fix me when hyperspy supports non-ordered non-uniform axis
+                # For now, remove units and fall back on default axis
+                # nav_dict[axis]["axis"] = data
+                if scale_mean == 0:
+                    # case "scale_mean == 0" is for series where the axis is invariant.
+                    # In principle, this should happen but the WiRE software allows it
+                    reason = f"Axis {axis} is invariant"
+                else:
+                    reason = "Non-ordered axis is not supported"
+                _logger.warning(
+                    f"{reason}, a default axis with scale 1 "
+                    "and offset 0 will be used."
+                )
+                del nav_dict[axis]["units"]
+            else:
+                # time axis in test data is not perfectly uniform, but X,Y,Z are
+                nav_dict[axis]["offset"] = data[0]
+                nav_dict[axis]["scale"] = scale_mean
+
         return nav_dict
 
     def _compare_measurement_type_to_ORGN_WMAP(self, orgn_data, wmap_data):
@@ -1144,7 +1146,7 @@ class WDFReader(object):
     def _map_general_md(self):
         general = {}
         general["title"] = self.original_metadata.get("WDF1_1", {}).get("title")
-        general["original_filename"] = self._filename
+        general["original_filename"] = os.path.split(self._filename)[1]
         try:
             date, time = self.original_metadata["WDF1_1"]["time_start"].split("#")
         except KeyError:
@@ -1158,7 +1160,7 @@ class WDFReader(object):
         signal = {}
         if importlib.util.find_spec("lumispy") is None:
             _logger.warning(
-                "Cannot find package lumispy, using BaseSignal as signal_type."
+                "Cannot find package lumispy, using generic signal class BaseSignal."
             )
             signal["signal_type"] = ""
         else:
@@ -1225,6 +1227,8 @@ class WDFReader(object):
         laser = self._map_laser_md()
         spectrometer = self._map_spectrometer_md()
 
+        # TODO: find laser power?
+
         metadata = {
             "General": general,
             "Signal": signal,
@@ -1245,53 +1249,72 @@ class WDFReader(object):
         text = self.__read_utf8(block_size - 16)
         self.original_metadata.update({"TEXT_0": text})
 
-    def _parse_WHTL(self):
+    def _get_WHTL(self):
         if not self._check_block_exists("WHTL_0"):
-            return
+            return None
         pos, size = self._block_info["WHTL_0"]
         jpeg_header = 0x10
         self._file_obj.seek(pos)
         img_bytes = self._file_obj.read(size - jpeg_header)
         img = BytesIO(img_bytes)
-        whtl_metadata = {"image": img}
 
-        ## extract EXIF tags and store them in metadata
+        ## extract and parse EXIF tags
         if PIL_installed:
-            pil_img = Image.open(img)
-            ## missing header keys when Pillow >= 8.2.0 -> does not flatten IFD anymore
-            ## see https://pillow.readthedocs.io/en/stable/releasenotes/8.2.0.html#image-getexif-exif-and-gps-ifd
-            ## Use fall-back _getexif method instead
-            exif_header = dict(pil_img._getexif())
-            whtl_metadata["FocalPlaneResolutionUnit"] = str(
-                UnitType(exif_header.get(ExifTags.FocalPlaneResolutionUnit))
-            )
-            whtl_metadata["FocalPlaneXResolution"] = exif_header.get(
-                ExifTags.FocalPlaneXResolution
-            )
-            whtl_metadata["FocalPlaneYResolution"] = exif_header.get(
-                ExifTags.FocalPlaneYResolution
-            )
-            whtl_metadata["FocalPlaneXYOrigins"] = exif_header.get(
-                ExifTags.FocalPlaneXYOrigins
-            )
-            whtl_metadata["ImageDescription"] = exif_header.get(
-                ExifTags.ImageDescription
-            )
-            whtl_metadata["Make"] = exif_header.get(ExifTags.Make)
-            whtl_metadata["Unknown"] = exif_header.get(ExifTags.Unknown)
-            whtl_metadata["FieldOfViewXY"] = exif_header.get(ExifTags.FieldOfViewXY)
+            from rsciio.utils.image import _parse_axes_from_metadata, _parse_exif_tags
 
-        self.original_metadata.update({"WHTL_0": whtl_metadata})
+            pil_img = Image.open(img)
+            original_metadata = {}
+            data = rgb_tools.regular_array2rgbx(np.array(pil_img))
+            original_metadata["exif_tags"] = _parse_exif_tags(pil_img)
+            axes = _parse_axes_from_metadata(original_metadata["exif_tags"], data.shape)
+            metadata = {
+                "General": {"original_filename": os.path.split(self._filename)[1]},
+                "Signal": {"signal_type": ""},
+            }
+
+            map_md = self.original_metadata.get("WMAP_0")
+            if map_md is not None:
+                width = map_md["scale_xyz"][0] * map_md["size_xyz"][0]
+                length = map_md["scale_xyz"][1] * map_md["size_xyz"][1]
+                offset = (
+                    np.array(map_md["offset_xyz"][:2]) + np.array([width, length]) / 2
+                )
+
+                marker_dict = {
+                    "class": "Rectangles",
+                    "name": "Map",
+                    "plot_on_signal": True,
+                    "kwargs": {
+                        "offsets": offset,
+                        "widths": width,
+                        "heights": length,
+                        "color": ("red",),
+                        "facecolor": "none",
+                    },
+                }
+
+                metadata["Markers"] = {"Map": marker_dict}
+
+            return {
+                "axes": axes,
+                "data": data,
+                "metadata": metadata,
+                "original_metadata": original_metadata,
+            }
+        else:  # pragma: no cover
+            # Explicit return for readibility
+            return None
 
 
 def file_reader(
     filename,
     lazy=False,
-    use_uniform_signal_axis=True,
+    use_uniform_signal_axis=False,
     load_unmatched_metadata=False,
 ):
     """
-    Read Renishaw's ``.wdf`` file.
+    Read Renishaw's ``.wdf`` file. In case of mapping data, the image area will
+    be returned with a marker showing the mapped area.
 
     Parameters
     ----------
@@ -1332,9 +1355,13 @@ def file_reader(
         dictionary["metadata"] = deepcopy(wdf.metadata)
         dictionary["original_metadata"] = deepcopy(wdf.original_metadata)
 
-    return [
-        dictionary,
-    ]
+        image_dict = wdf._get_WHTL()
+
+    dict_list = [dictionary]
+    if image_dict is not None:
+        dict_list.append(image_dict)
+
+    return dict_list
 
 
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)

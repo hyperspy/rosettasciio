@@ -17,17 +17,16 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import csv
-from datetime import datetime, timedelta
-from dateutil import parser
 import logging
 import os
-from packaging.version import Version
 import re
 import warnings
+from datetime import datetime, timedelta
 
 import numpy as np
-from tifffile import imwrite, TiffFile, TiffPage, TIFF
-from tifffile import __version__ as tiffversion
+import tifffile
+from dateutil import parser
+from tifffile import TiffFile, TiffPage, imwrite
 
 from rsciio._docstrings import (
     FILENAME_DOC,
@@ -35,9 +34,8 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
-from rsciio.utils.tools import DTBox, _UREG
 from rsciio.utils.date_time_tools import get_date_time_from_metadata
-
+from rsciio.utils.tools import _UREG, DTBox
 
 _logger = logging.getLogger(__name__)
 
@@ -95,6 +93,7 @@ def file_writer(filename, signal, export_scale=True, extratags=None, **kwds):
     """
 
     data = signal["data"]
+    metadata = signal.get("metadata", {})
     photometric = "MINISBLACK"
     # HyperSpy uses struct arrays to store RGBA data
     from rsciio.utils import rgb_tools
@@ -112,7 +111,7 @@ def file_writer(filename, signal, export_scale=True, extratags=None, **kwds):
             "Description and export scale cannot be used at the same time, "
             "because it is incompability with the 'ImageJ' tiff format"
         )
-    if export_scale:
+    if export_scale and "axes" in signal.keys():
         kwds.update(_get_tags_dict(signal, extratags=extratags))
         _logger.debug(f"kwargs passed to tifffile.py imsave: {kwds}")
 
@@ -123,7 +122,7 @@ def file_writer(filename, signal, export_scale=True, extratags=None, **kwds):
             # (https://github.com/cgohlke/tifffile/issues/21)
             kwds["metadata"] = None
 
-    if signal["metadata"]["General"].get("date"):
+    if "General" in metadata.keys() and metadata["General"].get("date"):
         dt = get_date_time_from_metadata(signal["metadata"], formatting="datetime")
         kwds["datetime"] = dt
 
@@ -156,7 +155,7 @@ def file_reader(
         Force read image resolution using the ``x_resolution``, ``y_resolution``
         and ``resolution_unit`` tiff tags. Beware: most software don't (properly)
         use these tags when saving ``.tiff`` files.
-        See `<https://www.awaresystems.be/imaging/tiff/tifftags/resolutionunit.html>`_.
+        See `<https://www.loc.gov/preservation/digital/formats/content/tiff_tags.shtml>`_.
     multipage_as_list : bool, default=False
         Read multipage tiff and return list with full content of every page. This
         utilises ``tifffile``s ``pages`` instead of ``series`` way of data access,
@@ -192,23 +191,28 @@ def file_reader(
     >>> # Load a non-uniform axis from a hamamatsu streak file:
     >>> s = file_reader('file.tif', hamamatsu_streak_axis_type='data')
     """
-    with TiffFile(filename, **kwds) as tiff:
-        if multipage_as_list:
-            handles = tiff.pages  # use full access with pages interface
-        else:
-            handles = tiff.series  # use fast access with series interface
-        dict_list = [
-            _read_tiff(
-                tiff,
-                handle,
-                filename,
-                force_read_resolution,
-                lazy=lazy,
-                hamamatsu_streak_axis_type=hamamatsu_streak_axis_type,
-                **kwds,
-            )
-            for handle in handles
-        ]
+    # We can't use context manager, because it closes the file on exit
+    # and the file needs to stay open when loading lazily
+    # close the file manually
+    tiff = TiffFile(filename, **kwds)
+    if multipage_as_list:
+        handles = tiff.pages  # use full access with pages interface
+    else:
+        handles = tiff.series  # use fast access with series interface
+    dict_list = [
+        _read_tiff(
+            tiff,
+            handle,
+            filename,
+            force_read_resolution,
+            lazy=lazy,
+            hamamatsu_streak_axis_type=hamamatsu_streak_axis_type,
+            **kwds,
+        )
+        for handle in handles
+    ]
+    if not lazy:
+        tiff.close()
 
     return dict_list
 
@@ -287,7 +291,7 @@ def _read_tiff(
     shape = handle.shape
     dtype = handle.dtype
 
-    is_rgb = page.photometric == TIFF.PHOTOMETRIC.RGB and RGB_as_structured_array
+    is_rgb = page.photometric == tifffile.PHOTOMETRIC.RGB and RGB_as_structured_array
     _logger.debug("Is RGB: %s" % is_rgb)
     if is_rgb:
         axes = axes[:-1]
@@ -423,15 +427,15 @@ def _is_force_readable(op, force_read_resolution) -> bool:
 def _axes_force_read(op, shape, names):
     scales, offsets, units = _axes_defaults()
     res_unit_tag = op["ResolutionUnit"]
-    if res_unit_tag != TIFF.RESUNIT.NONE:
+    if res_unit_tag != tifffile.RESUNIT.NONE:
         _logger.debug("Resolution unit: %s" % res_unit_tag)
         scales["x"], scales["y"] = _get_scales_from_x_y_resolution(op)
         # conversion to µm:
-        if res_unit_tag == TIFF.RESUNIT.INCH:
+        if res_unit_tag == tifffile.RESUNIT.INCH:
             for key in ["x", "y"]:
                 units[key] = "µm"
                 scales[key] = scales[key] * 25400
-        elif res_unit_tag == TIFF.RESUNIT.CENTIMETER:
+        elif res_unit_tag == tifffile.RESUNIT.CENTIMETER:
             for key in ["x", "y"]:
                 units[key] = "µm"
                 scales[key] = scales[key] * 10000
@@ -574,8 +578,10 @@ def _is_jeol_sightx(op) -> bool:
 def _axes_jeol_sightx(tiff, op, shape, names):
     # convert xml text to dictionary of tiff op['ImageDescription']
     import xml.etree.ElementTree as ET
-    from rsciio.utils.tools import XmlToDict
+
     from box import Box
+
+    from rsciio.utils.tools import XmlToDict
 
     scales, offsets, units = _axes_defaults()
     jeol_xml = "".join(
@@ -602,7 +608,7 @@ def _axes_jeol_sightx(tiff, op, shape, names):
     op["SightX_Notes"] = ", ".join(mode_strs)
 
     res_unit_tag = op["ResolutionUnit"]
-    if res_unit_tag == TIFF.RESUNIT.INCH:
+    if res_unit_tag == tifffile.RESUNIT.INCH:
         scale = 0.0254  # inch/m
     else:
         scale = 0.01  # tiff scaling, cm/m

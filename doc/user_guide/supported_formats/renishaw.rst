@@ -5,6 +5,10 @@ Renishaw
 
 Reader for spectroscopy data saved using Renishaw's WiRE software.
 Currently, RosettaSciIO can only read the ``.wdf`` format from Renishaw.
+When reading spectral images, the white light image will be returned along the 
+spectral images in the list of dictionaries. The position of the mapped area
+is returned in the metadata dictionary of the white light image and this will
+be displayed when plotting the image with HyperSpy.
 
 If `LumiSpy <https://lumispy.org>`_ is installed, ``Luminescence`` will be
 used as the ``signal_type``.

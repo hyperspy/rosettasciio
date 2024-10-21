@@ -370,7 +370,6 @@ def test_read_MonarcCL_ccd_metadata():
     assert md.Acquisition_instrument.Detector.processing == "Dark Subtracted"
     assert md.Acquisition_instrument.Detector.sensor_roi == (0, 0, 100, 1336)
     assert md.Acquisition_instrument.Detector.pixel_size == 20.0
-    # assert md.Acquisition_instrument.Spectrometer.entrance_slit_width == 1
 
 
 def test_read_MonoCL_SI_metadata():
@@ -449,16 +448,12 @@ def test_read_MonarcCL_SI_metadata():
         md.Acquisition_instrument.Detector.integration_time, 0.05
     )
     assert md.Acquisition_instrument.Detector.pixel_size == 20.0
-    # np.testing.assert_allclose(
-    #    md.Acquisition_instrument.Spectrometer.central_wavelength, 869.9838)
     np.testing.assert_allclose(
         md.Acquisition_instrument.Detector.saturation_fraction[0], 0.004867628
     )
     assert md.Acquisition_instrument.Detector.binning == (2, 400)
     assert md.Acquisition_instrument.Detector.processing == "Dark Subtracted"
     assert md.Acquisition_instrument.Detector.sensor_roi == (0, 0, 400, 1340)
-    # assert md.Acquisition_instrument.Spectrum_image.drift_correction_periodicity == 1
-    # assert md.Acquisition_instrument.Spectrum_image.drift_correction_units == "second(s)"
     assert md.Acquisition_instrument.Spectrum_image.mode == "2D Array"
 
 
@@ -500,7 +495,7 @@ def test_location():
     assert s.metadata.General.time == "20:55:20"
     s = hs.load(TEST_DATA_PATH / fname_list[2])
     assert s.metadata.General.date == "2016-08-27"
-    #    assert_equal(s.metadata.General.time, "20:55:20") # MX not working
+    assert s.metadata.General.time == "20:55:59"
     s = hs.load(TEST_DATA_PATH / fname_list[3])
     assert s.metadata.General.date == "2016-08-27"
     assert s.metadata.General.time == "20:52:30"
@@ -611,8 +606,8 @@ def test_multi_signal():
     assert len(json.dumps(s2.original_metadata.as_dictionary())) == 15024
 
     # test axes
-    assert s1.axes_manager[-1].is_binned == False
-    assert s2.axes_manager[-1].is_binned == False
+    assert s1.axes_manager[-1].is_binned is False
+    assert s2.axes_manager[-1].is_binned is False
 
     # simple tests on the data itself:
     assert s1.data.sum() == 949490255
@@ -712,7 +707,7 @@ def test_load_stackbuilder_imagestack():
     assert md.Sample.description == "DWNC"
     assert md.Signal.quantity == "Electrons (Counts)"
     assert md.Signal.signal_type == ""
-    assert am.signal_axes[0].is_binned == False
+    assert am.signal_axes[0].is_binned is False
     np.testing.assert_allclose(
         md.Signal.Noise_properties.Variance_linear_model.gain_factor, 0.15674974
     )

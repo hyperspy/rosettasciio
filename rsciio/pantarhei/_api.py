@@ -18,17 +18,17 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/>.
 
 
-from datetime import datetime as dt
 import logging
 import os
+from datetime import datetime as dt
 
 import numpy as np
 
 from rsciio._docstrings import (
     FILENAME_DOC,
+    LAZY_UNSUPPORTED_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
-    LAZY_UNSUPPORTED_DOC,
 )
 from rsciio.utils.tools import DTBox
 
@@ -181,9 +181,11 @@ def import_pr(data, meta_data, filename=None):
     default_labels = reversed(["X", "Y", "Z"][: content_type_np_order.count(None)])
 
     data_labels = [
-        content_type_np_order[i]
-        if content_type_np_order[i] is not None
-        else next(default_labels)
+        (
+            content_type_np_order[i]
+            if content_type_np_order[i] is not None
+            else next(default_labels)
+        )
         for i in new_order
     ]
     calibration_ordered = [calibrations_np_order[i] for i in new_order]
@@ -289,8 +291,8 @@ def export_pr(signal):
     ref_size = meta_data["ref_size"][::-1]  # switch to numpy order
     pixel_factors = [ref_size[i] / data.shape[i] for i in range(data.ndim)]
     axes_meta_data = get_metadata_from_axes_info(axes_info, pixel_factors=pixel_factors)
-    for k in axes_meta_data:
-        meta_data[k] = axes_meta_data[k]
+    meta_data.update(axes_meta_data)
+
     return data, meta_data
 
 
@@ -299,7 +301,7 @@ def _metadata_converter_in(meta_data, axes, filename):
 
     signal_dimensions = 0
     for ax in axes:
-        if ax["navigate"] == False:
+        if ax["navigate"] is False:
             signal_dimensions += 1
 
     microscope_base_voltage = meta_data.get("electron_gun.voltage")
@@ -329,17 +331,19 @@ def _metadata_converter_in(meta_data, axes, filename):
     if meta_data.get("filter.mode") == "EELS" and signal_dimensions == 1:
         mapped.set_item("Signal.signal_type", "EELS")
 
-    name = meta_data.get("repo_id").split(".")[0]
-    mapped.set_item("General.title", name)
+    name = meta_data.get("repo_id")
+    if name is not None:
+        mapped.set_item("General.title", name.split(".")[0])
 
     if filename is not None:
         mapped.set_item("General.original_filename", os.path.split(filename)[1])
 
+    timestamp = None
     if "acquisition.time" in meta_data:
         timestamp = meta_data["acquisition.time"]
     elif "camera.time" in meta_data:
         timestamp = meta_data["camera.time"]
-    if "timestamp" in locals():
+    if timestamp is not None:
         timestamp = dt.fromisoformat(timestamp)
         mapped.set_item("General.date", timestamp.date().isoformat())
         mapped.set_item("General.time", timestamp.time().isoformat())
@@ -382,9 +386,11 @@ def _metadata_converter_in(meta_data, axes, filename):
 
 
 def _metadata_converter_out(metadata, original_metadata=None):
-    metadata = DTBox(metadata, box_dots=True)
-    original_metadata = DTBox(original_metadata, box_dots=True)
-    original_fname = metadata.get("General.original_filename", "")
+    # Don't use `box_dots=True` to be able to use key containing period
+    # When a entry doesn't exist a empty DTBox is returned
+    metadata = DTBox(metadata, box_dots=False, default_box=True)
+    original_metadata = DTBox(original_metadata, box_dots=False, default_box=True)
+    original_fname = metadata.General.original_filename or ""
     original_extension = os.path.splitext(original_fname)[1]
     if original_metadata.get("ref_size"):
         PR_metadata_present = True
@@ -392,7 +398,7 @@ def _metadata_converter_out(metadata, original_metadata=None):
         PR_metadata_present = False
 
     if original_extension == ".prz" and PR_metadata_present:
-        meta_data = original_metadata
+        meta_data = original_metadata.to_dict()
         meta_data["ref_size"] = meta_data["ref_size"][::-1]
         for key in ["content.types", "user.calib", "inherited.calib", "device.calib"]:
             if key in meta_data:
@@ -405,43 +411,43 @@ def _metadata_converter_out(metadata, original_metadata=None):
 
     else:
         meta_data = {}
-        if metadata.get("Signal.signal_type") == "EELS":
+        if metadata.Signal.signal_type == "EELS":
             meta_data["filter.mode"] = "EELS"
 
-        name = metadata.get("General.title")
-        if name is not None:
+        name = metadata.General.title
+        if name:
             meta_data["repo_id"] = name + ".0"
 
-        date = metadata.get("General.date")
-        time = metadata.get("General.time")
-        if date is not None and time is not None:
+        date = metadata.General.date
+        time = metadata.General.time
+        if date and time:
             timestamp = date + "T" + time
             meta_data["acquisition.time"] = timestamp
 
-        md_TEM = metadata.get("Acquisition_instrument.TEM")
-        if md_TEM is not None:
-            beam_energy = md_TEM.get("beam_energy")
-            convergence_angle = md_TEM.get("convergence_angle")
-            collection_angle = md_TEM.get("Detector.EELS.collection_angle")
-            aperture = md_TEM.get("Detector.EELS.aperture")
-            acquisition_mode = md_TEM.get("acquisition_mode")
-            magnification = md_TEM.get("magnification")
-            camera_length = md_TEM.get("camera_length")
+        md_TEM = metadata.Acquisition_instrument.TEM
+        if md_TEM:
+            beam_energy = md_TEM.beam_energy
+            convergence_angle = md_TEM.convergence_angle
+            collection_angle = md_TEM.Detector.EELS.collection_angle
+            aperture = md_TEM.Detector.EELS.aperture
+            acquisition_mode = md_TEM.acquisition_mode
+            magnification = md_TEM.magnification
+            camera_length = md_TEM.camera_length
 
-            if aperture is not None:
+            if aperture:
                 if isinstance(aperture, (float, int)):
                     aperture = str(aperture) + " mm"
                 meta_data["filter.aperture"] = aperture
-            if beam_energy is not None:
+            if beam_energy:
                 beam_energy_ev = beam_energy * 1e3
                 meta_data["electron_gun.voltage"] = beam_energy_ev
-            if convergence_angle is not None:
+            if convergence_angle:
                 convergence_angle_rad = convergence_angle / 1e3
                 meta_data["condenser.convergence_semi_angle"] = convergence_angle_rad
-            if collection_angle is not None:
+            if collection_angle:
                 collection_angle_rad = collection_angle / 1e3
                 meta_data["filter.collection_semi_angle"] = collection_angle_rad
-            if camera_length is not None:
+            if camera_length:
                 meta_data["projector.camera_length"] = camera_length
             if acquisition_mode == "STEM":
                 key = "scan_driver"
@@ -449,7 +455,7 @@ def _metadata_converter_out(metadata, original_metadata=None):
             else:
                 key = "projector"
                 meta_data["source.type"] = "camera"
-            if magnification is not None:
+            if magnification:
                 meta_data[f"{key}.magnification"] = magnification
 
     return meta_data

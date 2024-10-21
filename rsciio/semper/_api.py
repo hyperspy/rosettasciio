@@ -72,12 +72,12 @@
 #  57-99   all free/zero except for use by DATA cmd
 # 101-256  title (ic chars)
 
-from collections import OrderedDict
-import struct
-from functools import partial
 import logging
+import struct
 import warnings
+from collections import OrderedDict
 from datetime import datetime
+from functools import partial
 
 import numpy as np
 
@@ -87,14 +87,12 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
-from rsciio.utils.tools import sarray2dict, DTBox
-
+from rsciio.utils.tools import DTBox, sarray2dict
 
 _logger = logging.getLogger(__name__)
 
 
 class SemperFormat(object):
-
     """Class for importing and exporting SEMPER `.unf`-files.
 
     The :class:`~.SemperFormat` class represents a SEMPER binary file format
@@ -216,12 +214,14 @@ class SemperFormat(object):
         )  # Unpacking function for 4 byte floats!
         rec_length = np.fromfile(unf_file, dtype="<i", count=1)[0]  # length of label
         label = sarray2dict(np.fromfile(unf_file, dtype=cls.LABEL_DTYPES, count=1))
-        label["SEMPER"] = "".join([str(chr(l)) for l in label["SEMPER"]])
+        label["SEMPER"] = "".join([str(chr(label_)) for label_ in label["SEMPER"]])
         assert label["SEMPER"] == "Semper"
         # Process dimensions:
         for key in ["NCOL", "NROW", "NLAY", "ICCOLN", "ICROWN", "ICLAYN"]:
             value = (
-                256**2 * label.pop(key + "H") + 256 * label[key][0] + label[key][1]
+                256**2 * np.int32(label.pop(key + "H"))
+                + 256 * label[key][0]
+                + label[key][1]
             )
             label[key] = value
         # Process date:
@@ -234,7 +234,7 @@ class SemperFormat(object):
             range_string = "{:.6g},{:.6g}".format(range_min, range_max)
         else:
             range_string = "".join(
-                [str(chr(l)) for l in label["RANGE"][: label["NCRANG"]]]
+                [str(chr(label_)) for label_ in label["RANGE"][: label["NCRANG"]]]
             )
         label["RANGE"] = range_string
         # Process real coords:
@@ -254,12 +254,20 @@ class SemperFormat(object):
         label["DATAV6"] = data_v6
         label["DATAV7"] = data_v7
         # Process title:
-        title = "".join([str(chr(l)) for l in label["TITLE"][: label["NTITLE"]]])
+        title = "".join(
+            [str(chr(label_)) for label_ in label["TITLE"][: label["NTITLE"]]]
+        )
         label["TITLE"] = title
         # Process units:
-        label["XUNIT"] = "".join([chr(l) for l in label["XUNIT"]]).replace("\x00", "")
-        label["YUNIT"] = "".join([chr(l) for l in label["YUNIT"]]).replace("\x00", "")
-        label["ZUNIT"] = "".join([chr(l) for l in label["ZUNIT"]]).replace("\x00", "")
+        label["XUNIT"] = "".join([chr(label_) for label_ in label["XUNIT"]]).replace(
+            "\x00", ""
+        )
+        label["YUNIT"] = "".join([chr(label_) for label_ in label["YUNIT"]]).replace(
+            "\x00", ""
+        )
+        label["ZUNIT"] = "".join([chr(label_) for label_ in label["ZUNIT"]]).replace(
+            "\x00", ""
+        )
         # Sanity check:
         assert np.fromfile(unf_file, dtype="<i4", count=1)[0] == rec_length
         # Return label:
@@ -395,8 +403,8 @@ class SemperFormat(object):
             pos = f.tell()
             shape = metadata["NLAY"], metadata["NROW"], metadata["NCOL"]
             if lazy:
-                from dask.array import from_delayed
                 from dask import delayed
+                from dask.array import from_delayed
 
                 task = delayed(_read_data)(f, filename, pos, data_format, shape)
                 data = from_delayed(task, shape=shape, dtype=data_format)

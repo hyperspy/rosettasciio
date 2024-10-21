@@ -16,14 +16,18 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-from packaging.version import Version
+import importlib
+from pathlib import Path
 
 import numpy as np
 import pytest
+from packaging.version import Version
 
 imageio = pytest.importorskip("imageio")
 
-from rsciio.image import file_writer
+from rsciio.image import file_writer  # noqa: E402
+
+testfile_dir = (Path(__file__).parent / "data" / "image").resolve()
 
 
 @pytest.mark.skipif(
@@ -194,16 +198,21 @@ def test_export_output_size(output_size, tmp_path):
     assert s_reload.data.shape == (512, 512)
 
 
-@pytest.mark.parametrize("output_size", (512, (512, 512)))
-def test_export_output_size_non_square(output_size, tmp_path):
+@pytest.mark.parametrize("scalebar", [True, False])
+@pytest.mark.parametrize("output_size", (None, 512, (512, 512)))
+def test_export_output_size_non_square(output_size, tmp_path, scalebar):
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     pixels = (8, 16)
-    s = hs.signals.Signal2D(np.arange(np.multiply(*pixels)).reshape(pixels))
+    s = hs.signals.Signal2D(
+        np.arange(np.multiply(*pixels), dtype=np.uint8).reshape(pixels)
+    )
 
     fname = tmp_path / "test_export_size_non_square.jpg"
-    s.save(fname, output_size=output_size)
+    s.save(fname, output_size=output_size, scalebar=scalebar)
     s_reload = hs.load(fname)
 
+    if output_size is None:
+        output_size = (8, 16)
     if isinstance(output_size, int):
         output_size = (output_size * np.divide(*pixels), output_size)
 
@@ -252,9 +261,8 @@ def test_error_library_no_installed(tmp_path):
     }
     signal_dict = {"data": np.arange(128 * 128).reshape(128, 128), "axes": [axis, axis]}
 
-    try:
-        import matplotlib
-    except Exception:
+    matplotlib = importlib.util.find_spec("matplotlib")
+    if matplotlib is None:
         # When matplotlib is not installed, raises an error to inform user
         # that matplotlib is necessary
         with pytest.raises(ValueError):
@@ -264,3 +272,43 @@ def test_error_library_no_installed(tmp_path):
             file_writer(
                 tmp_path / "test_image_error.jpg", signal_dict, imshow_kwds={"a": "b"}
             )
+
+
+def test_renishaw_wire():
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+    s = hs.load(testfile_dir / "renishaw_wire.jpg")
+    assert s.data.shape == (480, 752)
+    for axis, scale, offset, name in zip(
+        s.axes_manager.signal_axes,
+        [2.42207446, 2.503827],
+        [19105.5, -6814.538],
+        ["y", "x"],
+    ):
+        np.testing.assert_allclose(axis.scale, scale)
+        np.testing.assert_allclose(axis.offset, offset)
+        axis.name == name
+        axis.units == "µm"
+
+
+def test_export_output_size_iterable_length_1(tmp_path):
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+    pixels = (256, 256)
+    s = hs.signals.Signal2D(np.arange(np.multiply(*pixels)).reshape(pixels))
+
+    fname = tmp_path / "test_export_output_size_iterable_length_1.jpg"
+    with pytest.raises(ValueError):
+        s.save(fname, output_size=(256,))
+
+
+def test_missing_exif_tags():
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+    import traits.api as t
+
+    s = hs.load(testfile_dir / "jpg_no_exif_tags.jpg")
+
+    assert s.data.shape == (182, 255)
+    assert s.axes_manager.signal_shape == (255, 182)
+    for axis in s.axes_manager.signal_axes:
+        assert axis.scale == 1
+        assert axis.offset == 0
+        assert axis.units == t.Undefined

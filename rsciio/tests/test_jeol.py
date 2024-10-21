@@ -17,8 +17,8 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import gc
-from pathlib import Path
 import zipfile
+from pathlib import Path
 
 import numpy as np
 import pytest

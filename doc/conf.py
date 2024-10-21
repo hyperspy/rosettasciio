@@ -15,7 +15,6 @@
 # sys.path.insert(0, os.path.abspath('.'))
 
 import numpydoc
-import pydata_sphinx_theme
 from packaging.version import Version
 
 # -- Project information -----------------------------------------------------
@@ -45,6 +44,7 @@ extensions = [
 intersphinx_mapping = {
     "conda": ("https://conda.io/projects/conda/en/latest", None),
     "dask": ("https://docs.dask.org/en/latest", None),
+    "exspy": ("https://hyperspy.org/exspy", None),
     "hyperspy": ("https://hyperspy.org/hyperspy-doc/current/", None),
     "h5py": ("https://docs.h5py.org/en/stable/", None),
     "matplotlib": ("https://matplotlib.org/stable", None),
@@ -108,7 +108,7 @@ nitpick_ignore_regex = [(r"py:.*", r"hyperspy.api.*")]
 # -- Options for numpydoc extension -----------------------------------
 
 numpydoc_xref_param_type = True
-numpydoc_xref_ignore = {"type", "optional", "default", "of"}
+numpydoc_xref_ignore = {"type", "optional", "default", "of", "File", "handle"}
 
 if Version(numpydoc.__version__) >= Version("1.6.0rc0"):
     numpydoc_validation_checks = {"all", "ES01", "EX01", "GL02", "GL03", "SA01", "SS06"}
@@ -119,6 +119,11 @@ if Version(numpydoc.__version__) >= Version("1.6.0rc0"):
 towncrier_draft_autoversion_mode = "draft"
 towncrier_draft_include_empty = False
 towncrier_draft_working_directory = ".."
+
+
+linkcheck_ignore = [
+    "https://www.biorxiv.org",  # 403 Client Error: Forbidden for url
+]
 
 
 def setup(app):

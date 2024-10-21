@@ -21,24 +21,23 @@
 # Plugin to read the Gatan Digital Micrograph(TM) file format
 
 
-import os
 import logging
-import dateutil.parser
-
-import numpy as np
+import os
 from copy import deepcopy
 
-from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
-import rsciio.utils.readfile as iou
-from rsciio.utils.exceptions import DM3TagIDError, DM3DataTypeError, DM3TagTypeError
+import dateutil.parser
+import numpy as np
 from box import Box
 
+import rsciio.utils.readfile as iou
+from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio.utils.exceptions import DM3DataTypeError, DM3TagIDError, DM3TagTypeError
+from rsciio.utils.tools import ensure_unicode
 
 _logger = logging.getLogger(__name__)
 
 
 class DigitalMicrographReader(object):
-
     """Class to read Gatan Digital Micrograph (TM) files.
 
     Currently it supports versions 3 and 4.
@@ -273,11 +272,13 @@ class DigitalMicrographReader(object):
         struct encoded dtype.
 
         """
-        length = self.read_l_or_q(self.f, "big")
+        # expected to be a length
+        _ = self.read_l_or_q(self.f, "big")
         nfields = self.read_l_or_q(self.f, "big")
         definition = ()
         for ifield in range(nfields):
-            length2 = self.read_l_or_q(self.f, "big")
+            # expected to be a length
+            _ = self.read_l_or_q(self.f, "big")
             definition += (self.read_l_or_q(self.f, "big"),)
 
         return definition
@@ -293,7 +294,7 @@ class DigitalMicrographReader(object):
         """
         data = self.get_data_reader(etype)[0](self.f, self.endian)
         if isinstance(data, str):
-            data = hyperspy.misc.utils.ensure_unicode(data)
+            data = ensure_unicode(data)
         return data
 
     def read_string(self, length, skip=False):
@@ -303,6 +304,7 @@ class DigitalMicrographReader(object):
         If it's a tag name, each char is 1-Byte;
         if it's a tag data, each char is 2-Bytes Unicode,
         """
+        size_bytes = 0
         if skip is True:
             offset = self.f.tell()
             self.f.seek(length, 1)
@@ -439,7 +441,7 @@ class DigitalMicrographReader(object):
         images = [
             image
             for key, image in self.tags_dict["ImageList"].items()
-            if not int(key.replace("TagGroup", "")) in thumbnail_idx
+            if int(key.replace("TagGroup", "")) not in thumbnail_idx
         ]
         return images
 
@@ -1153,9 +1155,9 @@ class ImageObject(object):
                     ): ("Acquisition_instrument.Detector.processing", None),
                     "{}.Acquisition.Device.CCD.Pixel_Size_um".format(tags_path): (
                         "Acquisition_instrument.Detector.pixel_size",
-                        lambda x: x[0]
-                        if (isinstance(x, tuple) and x[0] == x[1])
-                        else x,
+                        lambda x: (
+                            x[0] if (isinstance(x, tuple) and x[0] == x[1]) else x
+                        ),
                     ),
                     # Serial Spectrum
                     "{}.CL.Acquisition.Acquisition_begin".format(tags_path): (
@@ -1295,8 +1297,8 @@ def file_reader(filename, lazy=False, order=None, optimize=True):
             post_process.append(lambda s: s.squeeze())
             if lazy:
                 image.filename = filename
-                from dask.array import from_delayed
                 import dask.delayed as dd
+                from dask.array import from_delayed
 
                 val = dd(image.get_data, pure=True)()
                 data = from_delayed(val, shape=image.shape, dtype=image.dtype)

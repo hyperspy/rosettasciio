@@ -7,9 +7,7 @@ This is `HyperSpy's <https://hyperspy.org>`_ default format and for data process
 in HyperSpy, it is the only format that guarantees that no
 information will be lost in the writing process and that supports saving data
 of arbitrary dimensions. It is based on the `HDF5 open standard
-<https://www.hdfgroup.org/solutions/hdf5/>`_. The HDF5 file format is supported by `many
-applications
-<https://support.hdfgroup.org/products/hdf5_tools/SWSummarybyName.htm>`_.
+<https://www.hdfgroup.org/solutions/hdf5/>`_.
 Parts of the specifications are documented in :external+hyperspy:ref:`metadata_structure`.
 
 .. versionadded:: HyperSpy_v1.2
@@ -40,7 +38,7 @@ filename e.g.:
 
 
 When saving to ``.hspy``, all supported objects in the signal's
-:external+hyperspy:attr:`hyperspy.signal.BaseSignal.metadata` are stored. This includes lists, tuples
+:external+hyperspy:attr:`hyperspy.api.signals.BaseSignal.metadata` are stored. This includes lists, tuples
 and signals. Please note that in order to increase saving efficiency and speed,
 if possible, the inner-most structures are converted to numpy arrays when saved.
 This procedure homogenizes any types of the objects inside, most notably casting
@@ -58,7 +56,7 @@ The change of type is done using numpy "safe" rules, so no information is lost,
 as numbers are represented to full machine precision.
 
 This feature is particularly useful when using
-:external+hyperspy:meth:`hyperspy._signals.eds.EDSSpectrum.get_lines_intensity`:
+:external+exspy:meth:`exspy.signals.EDSSpectrum.get_lines_intensity`:
 
 .. code-block:: python
 

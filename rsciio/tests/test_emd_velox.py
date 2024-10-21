@@ -21,24 +21,19 @@
 # National Lab (see https://emdatasets.com/ for more information).
 # NOT to be confused with the FEI EMD format which was developed later.
 
-import os
+import gc
+import logging
+import shutil
+from datetime import datetime
 from pathlib import Path
 
+import numpy as np
 import pytest
+from dateutil import tz
+
+from rsciio.utils.tests import assert_deep_almost_equal
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
-
-import dask.array as da
-from datetime import datetime
-from dateutil import tz
-import gc
-import h5py
-import numpy as np
-import tempfile
-import shutil
-
-from hyperspy.misc.test_utils import assert_deep_almost_equal
-
 pytest.importorskip("sparse")
 
 
@@ -129,11 +124,11 @@ class TestFeiEMD:
         fei_image = np.load(self.fei_files_path / "fei_emd_image.npy")
         assert signal.axes_manager[0].name == "x"
         assert signal.axes_manager[0].units == "µm"
-        assert signal.axes_manager[0].is_binned == False
+        assert signal.axes_manager[0].is_binned is False
         np.testing.assert_allclose(signal.axes_manager[0].scale, 0.00530241, rtol=1e-5)
         assert signal.axes_manager[1].name == "y"
         assert signal.axes_manager[1].units == "µm"
-        assert signal.axes_manager[1].is_binned == False
+        assert signal.axes_manager[1].is_binned is False
         np.testing.assert_allclose(signal.axes_manager[1].scale, 0.00530241, rtol=1e-5)
         np.testing.assert_allclose(signal.data, fei_image)
         assert_deep_almost_equal(signal.metadata.as_dictionary(), md)
@@ -410,6 +405,27 @@ class TestFeiEMD:
         assert len(signal) == length
         # TODO: add parsing azimuth_angle
 
+    @pytest.mark.parametrize("lazy", (False, True))
+    @pytest.mark.parametrize("sum_frames", (False, True))
+    def test_fei_si_4detectors_compare(self, lazy, sum_frames):
+        fname = self.fei_files_path / "fei_SI_EDS-HAADF-4detectors_2frames.emd"
+        kwargs = dict(lazy=lazy, sum_frames=sum_frames)
+        s_sum_EDS = hs.load(fname, sum_EDS_detectors=True, **kwargs)[-1]
+        s = hs.load(fname, sum_EDS_detectors=False, **kwargs)[-4:]
+        if lazy:
+            s_sum_EDS.compute()
+            for s_ in s:
+                s_.compute()
+
+        s2 = hs.stack(s, new_axis_name="detector").sum("detector")
+
+        np.testing.assert_allclose(s[-1].data.sum(), 865236)
+        np.testing.assert_allclose(s[-2].data.sum(), 913682)
+        np.testing.assert_allclose(s[-3].data.sum(), 867647)
+        np.testing.assert_allclose(s[-4].data.sum(), 916174)
+        np.testing.assert_allclose(s2.data.sum(), 3562739)
+        np.testing.assert_allclose(s2.data, s_sum_EDS.data)
+
     def test_fei_emd_ceta_camera(self):
         signal = hs.load(self.fei_files_path / "1532 Camera Ceta.emd")
         np.testing.assert_allclose(signal.data, np.zeros((64, 64)))
@@ -499,8 +515,6 @@ def test_fei_dpc_loading():
 
 @pytest.mark.parametrize("fname", ["FFTComplexEven.emd", "FFTComplexOdd.emd"])
 def test_velox_fft_odd_number(fname):
-    print("0", fname)
-    print(TEST_DATA_PATH / fname)
     s = hs.load(TEST_DATA_PATH / fname)
     assert len(s) == 2
 
@@ -510,3 +524,36 @@ def test_velox_fft_odd_number(fname):
 
     assert s[1].axes_manager.signal_shape == (128, 128)
     assert np.issubdtype(s[1].data.dtype, float)
+
+
+class TestVeloxEMDv11:
+    fei_files_path = TEST_DATA_PATH / "velox_emd_version11"
+
+    @classmethod
+    def setup_class(cls):
+        import zipfile
+
+        zipf = TEST_DATA_PATH / "velox_emd_version11.zip"
+        with zipfile.ZipFile(zipf, "r") as zipped:
+            zipped.extractall(cls.fei_files_path)
+
+    @classmethod
+    def teardown_class(cls):
+        gc.collect()
+        shutil.rmtree(cls.fei_files_path)
+
+    @pytest.mark.parametrize("lazy", (True, False))
+    def test_spectrum_images(self, lazy):
+        s = hs.load(self.fei_files_path / "Test SI 16x16 215 kx.emd", lazy=lazy)
+        assert s[-1].metadata.Sample.elements == ["C", "O", "Ca", "Cu"]
+        assert len(s) == 10
+        for i, v in enumerate(["C", "Ca", "O", "Cu", "HAADF", "EDS"]):
+            assert s[i + 4].metadata.General.title == v
+
+        assert s[-1].data.shape == (16, 16, 4096)
+
+    def test_prune_data(self, caplog):
+        with caplog.at_level(logging.WARNING):
+            _ = hs.load(self.fei_files_path / "Test SI 16x16 ReducedData 215 kx.emd")
+
+        assert "No spectrum stream is present" in caplog.text

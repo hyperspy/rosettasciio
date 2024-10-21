@@ -16,20 +16,20 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-from packaging.version import Version
-import mrcz as _mrcz
 import logging
 
+import mrcz as _mrcz
+from packaging.version import Version
+
 from rsciio._docstrings import (
+    ENDIANESS_DOC,
     FILENAME_DOC,
     LAZY_DOC,
-    ENDIANESS_DOC,
     MMAP_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
 )
 from rsciio.utils.tools import DTBox
-
 
 _logger = logging.getLogger(__name__)
 
@@ -211,7 +211,7 @@ def file_writer(
 
     # Get pixelsize and pixelunits from the axes
     pixelunits = signal["axes"][-1]["units"]
-    pixelsize = [signal["axes"][I]["scale"] for I in _WRITE_ORDER]
+    pixelsize = [signal["axes"][I_]["scale"] for I_ in _WRITE_ORDER]
 
     # Strip out voltage from meta-data
     voltage = md.get("Acquisition_instrument.TEM.beam_energy")

@@ -19,16 +19,15 @@
 import gc
 import hashlib
 import os
-from pathlib import Path
 import tempfile
 import zipfile
+from pathlib import Path
 
 import numpy as np
 import pytest
 
 from rsciio.edax import file_reader
 from rsciio.utils.tests import expected_is_binned
-
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 requests = pytest.importorskip("requests", reason="requests not installed")
@@ -146,9 +145,7 @@ class TestSpcSpectrum_v061_xrf:
         ]
         sem_dict = TestSpcSpectrum_v061_xrf.spc.metadata.as_dictionary()[
             "Acquisition_instrument"
-        ][
-            "SEM"
-        ]  # this will eventually need to
+        ]["SEM"]  # this will eventually need to
         #  be changed when XRF-specific
         #  features are added
         eds_dict = sem_dict["Detector"]["EDS"]
@@ -327,43 +324,46 @@ class TestSpdMap_070_eds:
         assert np.uint16 == TestSpdMap_070_eds.spd.data.dtype
         # test d_shape
         assert (200, 256, 2500) == TestSpdMap_070_eds.spd.data.shape
-        assert [
+        assert (
             [
-                [0, 0, 0, 0, 0],  # test random data
-                [0, 0, 1, 0, 1],
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0],
-            ],
-            [
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 1, 0],
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0],
-            ],
-            [
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 1],
-                [0, 1, 1, 0, 0],
-                [0, 0, 0, 0, 0],
-            ],
-            [
-                [0, 1, 0, 0, 0],
-                [0, 0, 0, 1, 0],
-                [0, 0, 0, 0, 0],
-                [0, 0, 1, 0, 0],
-                [0, 0, 0, 1, 0],
-            ],
-            [
-                [0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0],
-                [0, 0, 1, 0, 1],
-                [0, 0, 0, 1, 0],
-                [0, 0, 0, 0, 0],
-            ],
-        ] == TestSpdMap_070_eds.spd.data[15:20, 15:20, 15:20].tolist()
+                [
+                    [0, 0, 0, 0, 0],  # test random data
+                    [0, 0, 1, 0, 1],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ],
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ],
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 1],
+                    [0, 1, 1, 0, 0],
+                    [0, 0, 0, 0, 0],
+                ],
+                [
+                    [0, 1, 0, 0, 0],
+                    [0, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 0],
+                    [0, 0, 0, 1, 0],
+                ],
+                [
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0],
+                    [0, 0, 1, 0, 1],
+                    [0, 0, 0, 1, 0],
+                    [0, 0, 0, 0, 0],
+                ],
+            ]
+            == TestSpdMap_070_eds.spd.data[15:20, 15:20, 15:20].tolist()
+        )
 
     def test_parameters(self):
         elements = TestSpdMap_070_eds.spd.metadata.as_dictionary()["Sample"]["elements"]

@@ -58,7 +58,7 @@ flexible and can also be used to inspect any hdf5 based file.
 Differences with respect to HSpy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The `HyperSpy metadata structure <https://hyperspy.org/hyperspy-doc/current/user_guide/metadata_structure.html>`_
+The :external+hyperspy:ref:`HyperSpy metadata structure <metadata_structure>`
 stores arrays as hdf datasets without attributes
 and stores floats, ints and strings as attributes.
 The NeXus format uses hdf dataset attributes to store additional

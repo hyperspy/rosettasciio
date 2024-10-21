@@ -41,7 +41,7 @@ Citing RosettaSciIO
 
 If RosettaSciIO has been significant to a project that leads to an academic
 publication, please acknowledge that fact by citing it. The DOI in the
-badge below is the `Concept DOI <https://help.zenodo.org/faq/#versioning>`_ --
+badge below is the `Concept DOI <https://support.zenodo.org/help/en-gb/1-upload-deposit/97-what-is-doi-versioning>`_ --
 it can be used to cite the project without referring to a specific
 version. If you are citing RosettaSciIO because you have used it to process data,
 please use the DOI of the specific version that you have employed. You can

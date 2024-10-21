@@ -35,7 +35,10 @@ SIGNAL_DOC = """signal : dict
 
 
 LAZY_DOC = """lazy : bool, default=False
-        Whether to open the file lazily or not.
+        Whether to open the file lazily or not. The file will stay open
+        until closed in :meth:`~hyperspy._signals.lazy.LazySignal.compute`
+        or closed manually. :func:`~.utils.tools.get_file_handle`
+        can be used to access the file handler and close it manually.
     """
 
 
@@ -112,7 +115,7 @@ COMPRESSION_HDF5_NOTES_DOC = """It is possible to enable other compression filte
 
 
 DISTRIBUTED_DOC = """distributed : bool, default=False
-        Whether to load the data using memory-mapping in a way that is 
+        Whether to load the data using memory-mapping in a way that is
         compatible with dask-distributed.  This can sometimes improve
         performance when reading large files. And splitting the data
         loading/processing over multiple workers.
@@ -132,4 +135,6 @@ RETURNS_DOC = """Returns
           containing the full axes vector
         - 'metadata' – dictionary containing the parsed metadata
         - 'original_metadata' – dictionary containing the full metadata tree from the input file
+
+        When the file contains several datasets, each dataset will be loaded as separate dictionary.
     """

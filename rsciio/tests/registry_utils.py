@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-from pathlib import Path
 import sys
 import warnings
+from pathlib import Path
 
 import pooch
 

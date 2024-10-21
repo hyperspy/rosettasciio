@@ -16,11 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import os
 import logging
-from warnings import warn
-from functools import partial
+import os
 from collections.abc import MutableMapping
+from functools import partial
+from warnings import warn
+
 import h5py
 import numpy as np
 import pyUSID as usid
@@ -32,7 +33,6 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
-
 
 _logger = logging.getLogger(__name__)
 
@@ -267,8 +267,9 @@ def _usidataset_to_signal_dict(h5_main, ignore_non_uniform_dims=True, lazy=False
     num_spec_dims = len(spec_dict)
     num_pos_dims = len(pos_dict)
     _logger.info(
-        "Dimensions: Positions: {}, Spectroscopic: {}"
-        ".".format(num_pos_dims, num_spec_dims)
+        "Dimensions: Positions: {}, Spectroscopic: {}" ".".format(
+            num_pos_dims, num_spec_dims
+        )
     )
 
     ret_vals = usid.hdf_utils.reshape_to_n_dims(h5_main, get_labels=True, lazy=lazy)

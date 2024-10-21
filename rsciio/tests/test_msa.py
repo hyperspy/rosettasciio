@@ -3,9 +3,9 @@ from pathlib import Path
 
 import pytest
 
-hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+from rsciio.utils.tests import assert_deep_almost_equal
 
-from hyperspy.misc.test_utils import assert_deep_almost_equal
+hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "msa"

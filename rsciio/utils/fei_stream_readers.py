@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import numpy as np
 import dask.array as da
+import numpy as np
 import sparse
 
 from rsciio.utils.tools import jit_ifnumba
@@ -363,13 +363,13 @@ def stream_to_array(
                 dtype=dtype,
             )
 
-            _fill_array_with_stream(
-                spectrum_image=spectrum_image,
-                stream=stream,
-                first_frame=first_frame,
-                last_frame=last_frame,
-                rebin_energy=rebin_energy,
-            )
+        _fill_array_with_stream(
+            spectrum_image=spectrum_image,
+            stream=stream,
+            first_frame=first_frame,
+            last_frame=last_frame,
+            rebin_energy=rebin_energy,
+        )
     else:
         if spectrum_image is None:
             spectrum_image = np.zeros(

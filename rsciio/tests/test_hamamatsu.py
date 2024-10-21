@@ -17,9 +17,11 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import gc
+import importlib
+from pathlib import Path
+
 import numpy as np
 import pytest
-from pathlib import Path
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -287,12 +289,11 @@ class TestOperate:
         assert metadata.General.title == metadata.General.original_filename[:-4]
 
         assert metadata.Signal.quantity == "Intensity (Counts)"
-        try:
-            import lumispy
-
-            signal_type = "Luminescence"
-        except ImportError:
+        if importlib.util.find_spec("lumispy") is None:
             signal_type = ""
+        else:
+            signal_type = "Luminescence"
+
         assert metadata.Signal.signal_type == signal_type
 
         assert isinstance(detector.binning, tuple)
@@ -303,10 +304,10 @@ class TestOperate:
         assert detector.model == "C5680"
         assert detector.frames == 60
         np.testing.assert_allclose(detector.integration_time, 300)
-        assert detector.processing.background_correction == True
-        assert detector.processing.curvature_correction == False
-        assert detector.processing.defect_correction == False
-        assert detector.processing.shading_correction == False
+        assert detector.processing.background_correction is True
+        assert detector.processing.curvature_correction is False
+        assert detector.processing.defect_correction is False
+        assert detector.processing.shading_correction is False
         np.testing.assert_allclose(detector.time_range, 20)
         assert detector.time_range_units == "µs"
         np.testing.assert_allclose(detector.mcp_gain, 50)

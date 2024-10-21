@@ -22,21 +22,21 @@
 #  https://www.nist.gov/services-resources/software/lispixdoc/image-file-formats/raw-file-format.htm
 
 import codecs
+import logging
 import os.path
 from io import StringIO
-import logging
 
 import numpy as np
 
+from rsciio import __version__
 from rsciio._docstrings import (
+    ENCODING_DOC,
     FILENAME_DOC,
     LAZY_DOC,
-    ENCODING_DOC,
     MMAP_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
 )
-from rsciio import __version__
 from rsciio.utils.tools import DTBox
 
 _logger = logging.getLogger(__name__)
@@ -477,8 +477,10 @@ def file_writer(filename, signal, encoding="latin-1"):
     md = DTBox(signal["metadata"], box_dots=True)
     dtype_name = dc.dtype.name
     if dtype_name not in dtype2keys.keys():
+        supported_dtype = ", ".join(dtype2keys.keys())
         raise IOError(
-            "The ripple format does not support writting data of {dtype_name} type"
+            f"The ripple format does not support writing data of {dtype_name} type. "
+            f"Supported data types are: {supported_dtype}."
         )
     # Check if the dimensions are supported
     dimension = len(dc.shape)
@@ -584,9 +586,9 @@ def file_writer(filename, signal, encoding="latin-1"):
         if "Detector.EDS.live_time" in mp:
             keys_dictionary["live-time"] = mp.Detector.EDS.live_time
         if "Detector.EDS.energy_resolution_MnKa" in mp:
-            keys_dictionary[
-                "detector-peak-width-ev"
-            ] = mp.Detector.EDS.energy_resolution_MnKa
+            keys_dictionary["detector-peak-width-ev"] = (
+                mp.Detector.EDS.energy_resolution_MnKa
+            )
 
     write_rpl(filename, keys_dictionary, encoding)
     write_raw(filename, signal, record_by, sig_axes, nav_axes)

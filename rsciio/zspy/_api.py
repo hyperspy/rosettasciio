@@ -20,21 +20,21 @@ import logging
 from collections.abc import MutableMapping
 
 import dask.array as da
-from dask.diagnostics import ProgressBar
 import numcodecs
+import numpy as np
 import zarr
+from dask.diagnostics import ProgressBar
 
 from rsciio._docstrings import (
     CHUNKS_DOC,
     FILENAME_DOC,
     LAZY_DOC,
-    SHOW_PROGRESSBAR_DOC,
     RETURNS_DOC,
+    SHOW_PROGRESSBAR_DOC,
     SIGNAL_DOC,
 )
-from rsciio._hierarchical import HierarchicalWriter, HierarchicalReader, version
+from rsciio._hierarchical import HierarchicalReader, HierarchicalWriter, version
 from rsciio.utils.tools import dummy_context_manager
-
 
 _logger = logging.getLogger(__name__)
 
@@ -79,19 +79,14 @@ class ZspyReader(HierarchicalReader):
 class ZspyWriter(HierarchicalWriter):
     target_size = 1e8
     _file_type = "zspy"
+    _unicode_kwds = dict(dtype=str)
 
     def __init__(self, file, signal, expg, **kwargs):
         super().__init__(file, signal, expg, **kwargs)
         self.Dataset = zarr.Array
-        self.unicode_kwds = {"dtype": object, "object_codec": numcodecs.JSON()}
-        self.ragged_kwds = {
-            "dtype": object,
-            "object_codec": numcodecs.VLenArray(signal["data"][0].dtype),
-            "exact": True,
-        }
 
     @staticmethod
-    def _get_object_dset(group, data, key, chunks, **kwds):
+    def _get_object_dset(group, data, key, chunks, dtype=None, **kwds):
         """Creates a Zarr Array object for saving ragged data
 
         Forces the number of chunks span the array if not a dask array as
@@ -102,17 +97,32 @@ class ZspyWriter(HierarchicalWriter):
             chunks = data.shape
         these_kwds = kwds.copy()
         these_kwds.update(dict(dtype=object, exact=True, chunks=chunks))
-        test_ind = data.ndim * (0,)
-        # Need to know the underlying dtype for the codec
-        # Note this can't be an object array
-        if isinstance(data, da.Array):
-            dtype = data[test_ind].compute().dtype
+
+        if dtype is None:
+            test_data = data[data.ndim * (0,)]
+            if isinstance(test_data, da.Array):
+                test_data = test_data.compute()
+            if hasattr(test_data, "dtype"):
+                # this is a numpy array
+                dtype = test_data.dtype
+            else:
+                dtype = type(test_data)
+
+        # For python type, JSON / MsgPack codecs, otherwise
+        # use VLenArray with specific numpy dtype
+        if (
+            np.issubdtype(dtype, str)
+            or np.issubdtype(dtype, list)
+            or np.issubdtype(dtype, tuple)
+        ):
+            object_codec = numcodecs.MsgPack()
         else:
-            dtype = data[test_ind].dtype
+            object_codec = numcodecs.VLenArray(dtype)
+
         dset = group.require_dataset(
             key,
             data.shape,
-            object_codec=numcodecs.VLenArray(dtype),
+            object_codec=object_codec,
             **these_kwds,
         )
         return dset

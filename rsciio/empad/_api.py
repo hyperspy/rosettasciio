@@ -16,16 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import os
 import ast
-import xml.etree.ElementTree as ET
-import numpy as np
 import logging
+import os
+import xml.etree.ElementTree as ET
+
+import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
-from rsciio.utils.tools import _UREG
-from rsciio.utils.tools import convert_xml_to_dict
-
+from rsciio.utils.tools import _UREG, convert_xml_to_dict
 
 _logger = logging.getLogger(__name__)
 
@@ -151,7 +150,7 @@ def file_reader(filename, lazy=False):
 
     sizes = [info[name] for name in names]
 
-    if not "series_count" in info.keys():
+    if "series_count" not in info.keys():
         try:
             fov = ast.literal_eval(
                 om.root.iom_measurements.optics.get_full_scan_field_of_view

@@ -5,10 +5,11 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
+from rsciio.ripple import _api as ripple
+
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 exspy = pytest.importorskip("exspy", reason="exspy not installed")
 
-from rsciio.ripple import _api as ripple
 
 # Tuple of tuples (data shape, signal_dimensions)
 SHAPES_SDIM = (
@@ -102,7 +103,7 @@ def _get_filename(s, metadata):
 
 
 def _create_signal(shape, dim, dtype, metadata):
-    data = np.arange(np.product(shape)).reshape(shape).astype(dtype)
+    data = np.arange(np.prod(shape)).reshape(shape).astype(dtype)
     if dim == 1:
         if len(shape) > 2:
             s = exspy.signals.EELSSpectrum(data)

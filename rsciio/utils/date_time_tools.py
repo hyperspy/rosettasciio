@@ -17,10 +17,10 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import datetime
-from dateutil import tz, parser
 import logging
 
 import numpy as np
+from dateutil import parser, tz
 
 _logger = logging.getLogger(__name__)
 

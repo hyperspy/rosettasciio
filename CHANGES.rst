@@ -8,6 +8,100 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 
 .. towncrier release notes start
 
+0.6 (2024-07-11)
+================
+
+Enhancements
+------------
+
+- :ref:`DigitalSurf surfaces <digitalsurf-format>`:
+
+  - add support for saving file - see :func:`~.digitalsurf.file_writer`
+  - add the :func:`~.digitalsurf.parse_metadata` function to parse metadata from ``sur`` file
+  - add series of RGB images / surfaces support. (`#280 <https://github.com/hyperspy/rosettasciio/issues/280>`_)
+
+
+Bug Fixes
+---------
+
+- Fixes axes for JPG with no exif_tags. Return of axes while loading isn't emty anymore. (`#283 <https://github.com/hyperspy/rosettasciio/issues/283>`_)
+- :ref:`EMD Velox <emd_fei-format>` fixes for reading files containing multiple EDS streams:
+
+  - fix reading multiple EDS streams lazily with ``sum_EDS_detectors=True``,
+  - fix reading separate EDS stream and individual frames when using ``sum_EDS_detectors=False`` and ``sum_frames=False``. (`#287 <https://github.com/hyperspy/rosettasciio/issues/287>`_)
+- :ref:`quantumdetector-format`: Fix signal shape of data acquired in ROI mode. (`#289 <https://github.com/hyperspy/rosettasciio/issues/289>`_)
+
+
+Maintenance
+-----------
+
+- Add support for numpy 2 in Renishaw, Semper and Dens reader. (`#281 <https://github.com/hyperspy/rosettasciio/issues/281>`_)
+
+
+0.5 (2024-06-15)
+================
+
+Enhancements
+------------
+
+- :ref:`emd_fei-format`: Enforce setting identical units for the ``x`` and ``y`` axes, as convenience to use the scalebar in HyperSpy. (`#243 <https://github.com/hyperspy/rosettasciio/issues/243>`_)
+- :ref:`quantumdetector-format`: Add support for dask distributed scheduler. (`#267 <https://github.com/hyperspy/rosettasciio/issues/267>`_)
+
+
+Bug Fixes
+---------
+
+- :ref:`emd_fei-format`: Fix conversion of offset units which can sometimes mismatch the scale units. (`#243 <https://github.com/hyperspy/rosettasciio/issues/243>`_)
+- :ref:`ripple-format`: Fix typo and improve error message for unsupported ``dtype`` in writer. (`#251 <https://github.com/hyperspy/rosettasciio/issues/251>`_)
+- :ref:`emd_fei-format`: Fix parsing elements from EDS data from velox emd file v11. (`#274 <https://github.com/hyperspy/rosettasciio/issues/274>`_)
+
+
+Maintenance
+-----------
+
+- Use ``ruff`` for code formating and linting. (`#250 <https://github.com/hyperspy/rosettasciio/issues/250>`_)
+- Fix ``tifffile`` deprecation. (`#262 <https://github.com/hyperspy/rosettasciio/issues/262>`_)
+- Add support for ``python-box`` 7. (`#263 <https://github.com/hyperspy/rosettasciio/issues/263>`_)
+
+
+0.4 (2024-04-02)
+================
+
+Enhancements
+------------
+
+- :ref:`Renishaw wdf <renishaw-format>`:
+
+  - return survey image instead of saving it to the metadata and add marker of the mapping area on the survey image.
+  - Add support for reading data with invariant axis, for example when the values of the Z axis doesn't change.
+  - Parse calibration of ``jpg`` images saved with Renishaw Wire software. (`#227 <https://github.com/hyperspy/rosettasciio/issues/227>`_)
+- Add support for reading :ref:`emd <emd_fei-format>` Velox version 11. (`#232 <https://github.com/hyperspy/rosettasciio/issues/232>`_)
+- Add :ref:`making test data files <making_test_files>` section to contributing guide, explain characteristics of "good" test data files. (`#233 <https://github.com/hyperspy/rosettasciio/issues/233>`_)
+- :ref:`Quantum Detector <quantumdetector-format>` reader: use timestamps to get navigation shape when the navigation shape is not available - for example, acquisition with pixel trigger or scan shape not in metadata. (`#235 <https://github.com/hyperspy/rosettasciio/issues/235>`_)
+- Improve setting output size for an image. (`#244 <https://github.com/hyperspy/rosettasciio/issues/244>`_)
+
+
+Bug Fixes
+---------
+
+- Fix saving ``hspy`` file with empty array (signal or metadata) and fix closing ``hspy`` file when a error occurs during reading or writing. (`#206 <https://github.com/hyperspy/rosettasciio/issues/206>`_)
+- Fix saving ragged arrays of vectors from/to a chunked ``hspy`` and ``zspy`` store.  Greatly increases the speed of saving and loading ragged arrays from chunked datasets. (`#211 <https://github.com/hyperspy/rosettasciio/issues/211>`_)
+- Fix saving ragged array of strings in ``hspy`` and ``zspy`` format. (`#217 <https://github.com/hyperspy/rosettasciio/issues/217>`_)
+- Fix setting beam energy for XRF maps in ``bcf`` files. (`#231 <https://github.com/hyperspy/rosettasciio/issues/231>`_)
+- :ref:`Quantum Detector <quantumdetector-format>` reader: fix setting chunks. (`#235 <https://github.com/hyperspy/rosettasciio/issues/235>`_)
+
+
+Maintenance
+-----------
+
+- Add ``POOCH_BASE_URL`` to specify the base url used by pooch to download test data. This fixes the failure of the ``package_and_test.yml`` workflow in pull requests where test data are added or updated. (`#200 <https://github.com/hyperspy/rosettasciio/issues/200>`_)
+- Fix documentation links following release of hyperspy 2.0. (`#210 <https://github.com/hyperspy/rosettasciio/issues/210>`_)
+- Run test suite on osx arm64 on GitHub CI and speed running test suite using all available CPUs (3 or 4) instead of only 2. (`#222 <https://github.com/hyperspy/rosettasciio/issues/222>`_)
+- Fix deprecation warnings introduced with numpy 1.25 ("Conversion of an array with ndim > 0 to a scalar is deprecated, ..."). (`#230 <https://github.com/hyperspy/rosettasciio/issues/230>`_)
+- Fix numpy 2.0 removal (``np.product`` and ``np.string_``). (`#238 <https://github.com/hyperspy/rosettasciio/issues/238>`_)
+- Fix download test data when using ``pytest --pyargs rsciio -n``. (`#245 <https://github.com/hyperspy/rosettasciio/issues/245>`_)
+
+
 0.3 (2023-12-12)
 ================
 
@@ -160,10 +254,10 @@ Maintenance
 - Fix minimum install, add corresponding tests build and tidy up leftover code (`#13 <https://github.com/hyperspy/rosettasciio/issues/13>`_)
 - Fixes and code consistency improvements based on analysis provided by lgtm.org (`#23 <https://github.com/hyperspy/rosettasciio/issues/23>`_)
 - Added github action for code scanning using the codeQL engine. (`#26 <https://github.com/hyperspy/rosettasciio/issues/26>`_)
-- Following the deprecation cycle announced in `HyperSpy <https://hyperspy.org/hyperspy-doc/current/user_guide/changes.html>`_,
+- Following the deprecation cycle announced in `HyperSpy <https://hyperspy.org/hyperspy-doc/v2.0/changes.html>`_,
   the following keywords and attributes have been removed:
 
-  - :ref:`Bruker composite file (BCF) <bcf-format>`: The ``'spectrum'`` option for the
+  - :ref:`Bruker composite file (BCF) <bruker-format>`: The ``'spectrum'`` option for the
     ``select_type`` parameter was removed. Use 'spectrum_image' instead.
   - :ref:`Electron Microscopy Dataset (EMD) NCEM <emd_ncem-format>`: Using the
     keyword ``'dataset_name'`` was removed, use ``'dataset_path'`` instead.

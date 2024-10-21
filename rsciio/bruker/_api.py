@@ -23,25 +23,24 @@
 #  SFS (Single File System) (used in bcf technology) is present in
 #  the same library.
 
-from os.path import splitext, basename
-from math import ceil
-import logging
-from zlib import decompress as unzip_block
-from struct import unpack as strct_unp
-from datetime import datetime
-from ast import literal_eval
 import codecs
-import xml.etree.ElementTree as ET
 import io
+import logging
+import xml.etree.ElementTree as ET
+from ast import literal_eval
+from datetime import datetime
+from math import ceil
+from os.path import basename, splitext
+from struct import unpack as strct_unp
+from zlib import decompress as unzip_block
 
-from rsciio.utils.date_time_tools import msfiletime_to_unix
-from rsciio.utils.tools import sanitize_msxml_float, XmlToDict
-
-import dask.delayed as dd
+import dask
 import dask.array as da
 import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio.utils.date_time_tools import msfiletime_to_unix
+from rsciio.utils.tools import XmlToDict, sanitize_msxml_float
 
 _logger = logging.getLogger(__name__)
 
@@ -619,6 +618,10 @@ class HyperHeader(object):
             det = gen_detector_node(eds_metadata)
             det["EDS"]["real_time"] = self.calc_real_time()
             acq_inst["Detector"] = det
+            # In case of XRF, the primary energy is only defined in
+            # the spectrum metadata
+            acq_inst["beam_energy"] = eds_metadata.hv
+
         return acq_inst
 
     def _parse_image(self, xml_node, overview=False):
@@ -869,7 +872,6 @@ class HyperHeader(object):
 
 
 class BCF_reader(SFS_reader):
-
     """Class to read bcf (Bruker hypermapping) file.
 
     Inherits SFS_reader and all its attributes and methods.
@@ -978,7 +980,9 @@ class BCF_reader(SFS_reader):
                 index=index, downsample=downsample, for_numpy=True
             )
         if lazy:
-            value = dd(parse_func)(vrt_file_hand, shape, dtype, downsample=downsample)
+            value = dask.delayed(parse_func)(
+                vrt_file_hand, shape, dtype, downsample=downsample
+            )
             result = da.from_delayed(value, shape=shape, dtype=dtype)
         else:
             result = parse_func(vrt_file_hand, shape, dtype, downsample=downsample)
@@ -1201,7 +1205,7 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
                                 "<" + channels * st[size_p],
                                 buffer1[offset : offset + length],
                             )
-                            pixel += [l + gain for l in temp]
+                            pixel += [l_ + gain for l_ in temp]
                         offset += length
                 if chan2 < chan1:
                     rest = chan1 - chan2
@@ -1406,11 +1410,15 @@ def bcf_images(obj_bcf):
 
 
 def bcf_hyperspectra(
-    obj_bcf, index=None, downsample=None, cutoff_at_kV=None, lazy=False  # noqa
+    obj_bcf,
+    index=None,
+    downsample=None,
+    cutoff_at_kV=None,
+    lazy=False,  # noqa
 ):
     """Returns list of dict with eds hyperspectra and metadata."""
     global warn_once
-    if (fast_unbcf == False) and warn_once:
+    if (fast_unbcf is False) and warn_once:
         _logger.warning(
             """unbcf_fast library is not present...
 Parsing BCF with Python-only backend, which is slow... please wait.

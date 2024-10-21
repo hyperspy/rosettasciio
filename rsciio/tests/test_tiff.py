@@ -18,24 +18,21 @@
 
 
 import os
-from packaging.version import Version
-from pathlib import Path
 import tempfile
-import warnings
 import zipfile
+from pathlib import Path
 
 import numpy as np
 import pytest
+from packaging.version import Version
 
 tifffile = pytest.importorskip("tifffile", reason="tifffile not installed")
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+t = pytest.importorskip("traits.api", reason="traits not installed")
 
-import traits.api as t
-
-from hyperspy.misc.test_utils import assert_deep_almost_equal
-
-import rsciio.tiff
-
+import rsciio.tiff  # noqa: E402
+from rsciio.utils.tests import assert_deep_almost_equal  # noqa: E402
+from rsciio.utils.tools import get_file_handle  # noqa: E402
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "tiff"
 TEST_NPZ_DATA_PATH = Path(__file__).parent / "data" / "npz"
@@ -209,10 +206,54 @@ class TestLoadingImagesSavedWithImageJ:
             assert s3.axes_manager.navigation_shape == s.axes_manager.navigation_shape
 
 
+@pytest.mark.parametrize("size", ((50, 50), (2, 50, 50)))
+def test_lazy_loading(tmp_path, size):
+    dummy_data = np.random.random_sample(size=size)
+    fname = tmp_path / "dummy.tiff"
+
+    rsciio.tiff.file_writer(fname, {"data": dummy_data})
+    from_tiff = rsciio.tiff.file_reader(fname, lazy=True)
+    data = from_tiff[0]["data"]
+    fh = get_file_handle(data)
+    # check that the file is open
+    fh.fileno()
+
+    data = data.compute()
+    np.testing.assert_allclose(data, dummy_data)
+
+    # After we load to memory, we can close the file manually
+    fh.close()
+    with pytest.raises(ValueError):
+        # file is now closed
+        fh.fileno()
+
+
+def test_lazy_loading_hyperspy_close(tmp_path):
+    # check that the file is closed automatically in hyperspy
+    dummy_data = np.random.random_sample(size=(2, 50, 50))
+    fname = tmp_path / "dummy.tiff"
+    s = hs.signals.Signal2D(dummy_data)
+    s.save(fname)
+
+    s2 = hs.load(fname, lazy=True)
+    fh = get_file_handle(s2.data)
+    print("fh", fh)
+    # check that the file is open
+    fh.fileno()
+    s2.compute(close_file=True)
+    np.testing.assert_allclose(s2.data, dummy_data)
+
+    # when calling compute in hyperspy,
+    # the file should be closed automatically
+    with pytest.raises(ValueError):
+        # file is now closed
+        fh.fileno()
+
+
 class TestLoadingImagesSavedWithDM:
     @staticmethod
     @pytest.mark.parametrize("lazy", [True, False])
-    def test_read_unit_from_DM_stack(lazy, tmp_path):
+    def test_read_unit_from_DM_stack(tmp_path, lazy):
         s = hs.load(
             TEST_DATA_PATH / "test_loading_image_saved_with_DM_stack.tif", lazy=lazy
         )
@@ -252,6 +293,8 @@ class TestLoadingImagesSavedWithDM:
         np.testing.assert_allclose(
             s2.axes_manager[2].offset, s.axes_manager[2].offset, atol=1e-5
         )
+        if lazy:
+            s.compute()
 
     @staticmethod
     def test_read_unit_from_dm():
@@ -502,9 +545,9 @@ class TestReadFEIHelios:
         assert s.data.dtype == "uint8"
         # delete timestamp from metadata since it's runtime dependent
         del s.metadata.General.FileIO.Number_0.timestamp
-        self.FEI_Helios_metadata["General"][
-            "original_filename"
-        ] = "FEI-Helios-Ebeam-8bits.tif"
+        self.FEI_Helios_metadata["General"]["original_filename"] = (
+            "FEI-Helios-Ebeam-8bits.tif"
+        )
         assert_deep_almost_equal(s.metadata.as_dictionary(), self.FEI_Helios_metadata)
 
     def test_read_FEI_SEM_scale_metadata_16bits(self):
@@ -519,9 +562,9 @@ class TestReadFEIHelios:
         assert s.data.dtype == "uint16"
         # delete timestamp from metadata since it's runtime dependent
         del s.metadata.General.FileIO.Number_0.timestamp
-        self.FEI_Helios_metadata["General"][
-            "original_filename"
-        ] = "FEI-Helios-Ebeam-16bits.tif"
+        self.FEI_Helios_metadata["General"]["original_filename"] = (
+            "FEI-Helios-Ebeam-16bits.tif"
+        )
         assert_deep_almost_equal(s.metadata.as_dictionary(), self.FEI_Helios_metadata)
 
     def test_read_FEI_navcam_metadata(self):
@@ -537,9 +580,9 @@ class TestReadFEIHelios:
         # delete timestamp and version from metadata since it's runtime dependent
         del s.metadata.General.FileIO.Number_0.timestamp
         del s.metadata.General.FileIO.Number_0.hyperspy_version
-        self.FEI_navcam_metadata["General"][
-            "original_filename"
-        ] = "FEI-Helios-navcam.tif"
+        self.FEI_navcam_metadata["General"]["original_filename"] = (
+            "FEI-Helios-navcam.tif"
+        )
         assert_deep_almost_equal(s.metadata.as_dictionary(), self.FEI_navcam_metadata)
 
     def test_read_FEI_navcam_no_IRBeam_metadata(self):
@@ -555,9 +598,9 @@ class TestReadFEIHelios:
         # delete timestamp and version from metadata since it's runtime dependent
         del s.metadata.General.FileIO.Number_0.timestamp
         del s.metadata.General.FileIO.Number_0.hyperspy_version
-        self.FEI_navcam_metadata["General"][
-            "original_filename"
-        ] = "FEI-Helios-navcam-with-no-IRBeam.tif"
+        self.FEI_navcam_metadata["General"]["original_filename"] = (
+            "FEI-Helios-navcam-with-no-IRBeam.tif"
+        )
         assert_deep_almost_equal(s.metadata.as_dictionary(), self.FEI_navcam_metadata)
 
     def test_read_FEI_navcam_no_IRBeam_bad_floats_metadata(self):
@@ -568,11 +611,12 @@ class TestReadFEIHelios:
         # delete timestamp and version from metadata since it's runtime dependent
         del s.metadata.General.FileIO.Number_0.timestamp
         del s.metadata.General.FileIO.Number_0.hyperspy_version
-        self.FEI_navcam_metadata["General"][
-            "original_filename"
-        ] = "FEI-Helios-navcam-with-no-IRBeam-bad-floats.tif"
+        self.FEI_navcam_metadata["General"]["original_filename"] = (
+            "FEI-Helios-navcam-with-no-IRBeam-bad-floats.tif"
+        )
 
-        # working distance in the file was a bogus value, so it shouldn't be in the resulting metadata
+        # working distance in the file was a bogus value,
+        # so it shouldn't be in the resulting metadata
         del self.FEI_navcam_metadata["Acquisition_instrument"]["SEM"][
             "working_distance"
         ]
@@ -886,20 +930,20 @@ def test_axes_metadata():
         s2 = hs.load(fname)
         assert s2.axes_manager.navigation_axes[0].name == "image series"
         assert s2.axes_manager.navigation_axes[0].units == nav_unit
-        assert s2.axes_manager.navigation_axes[0].is_binned == False
+        assert s2.axes_manager.navigation_axes[0].is_binned is False
 
         fname2 = os.path.join(tmpdir, "axes_metadata_IYX.tif")
         s.save(fname2, metadata={"axes": "IYX"})
         s3 = hs.load(fname2)
         assert s3.axes_manager.navigation_axes[0].name == "image series"
         assert s3.axes_manager.navigation_axes[0].units == nav_unit
-        assert s3.axes_manager.navigation_axes[0].is_binned == False
+        assert s3.axes_manager.navigation_axes[0].is_binned is False
 
         fname2 = os.path.join(tmpdir, "axes_metadata_ZYX.tif")
         s.save(fname2, metadata={"axes": "ZYX"})
         s3 = hs.load(fname2)
         assert s3.axes_manager.navigation_axes[0].units == nav_unit
-        assert s3.axes_manager.navigation_axes[0].is_binned == False
+        assert s3.axes_manager.navigation_axes[0].is_binned is False
 
 
 def test_olympus_SIS():
@@ -996,14 +1040,10 @@ class TestReadHamamatsu:
         # - raise warning
         # - Initialise uniform data axis
         with pytest.raises(ValueError):
-            s = hs.load(fname, hamamatsu_streak_axis_type="xxx")
+            _ = hs.load(fname, hamamatsu_streak_axis_type="xxx")
 
-        # Explicitly calling hamamatsu_streak_axis_type='uniform'
-        # should NOT raise a warning
-        with warnings.catch_warnings():
-            warnings.simplefilter("error")
-            s = hs.load(fname, hamamatsu_streak_axis_type="uniform")
-            assert s.axes_manager.all_uniform
+        s = hs.load(fname, hamamatsu_streak_axis_type="uniform")
+        assert s.axes_manager.all_uniform
 
     def test_hamamatsu_streak_scanfile(self):
         file = "test_hamamatsu_streak_SCAN.tif"

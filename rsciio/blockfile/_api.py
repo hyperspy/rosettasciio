@@ -16,33 +16,38 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import os
-import logging
-import warnings
 import datetime
-import dateutil
+import logging
+import os
+import warnings
 
-import numpy as np
 import dask
+import dateutil
+import numpy as np
 from dask.diagnostics import ProgressBar
 from skimage import dtype_limits
 
 from rsciio._docstrings import (
+    ENDIANESS_DOC,
     FILENAME_DOC,
     LAZY_DOC,
-    ENDIANESS_DOC,
     MMAP_DOC,
     RETURNS_DOC,
-    SIGNAL_DOC,
     SHOW_PROGRESSBAR_DOC,
+    SIGNAL_DOC,
+)
+from rsciio.utils.date_time_tools import (
+    datetime_to_serial_date,
+    serial_date_to_ISO_format,
 )
 from rsciio.utils.skimage_exposure import rescale_intensity
-from rsciio.utils.tools import DTBox, sarray2dict, dict2sarray
-from rsciio.utils.date_time_tools import (
-    serial_date_to_ISO_format,
-    datetime_to_serial_date,
+from rsciio.utils.tools import (
+    DTBox,
+    convert_units,
+    dict2sarray,
+    dummy_context_manager,
+    sarray2dict,
 )
-from rsciio.utils.tools import dummy_context_manager, convert_units
 
 _logger = logging.getLogger(__name__)
 
@@ -179,6 +184,10 @@ def get_header_from_signal(signal, endianess="<"):
         SY = SX
     elif len(nav_axes) == 0:
         NX = NY = SX = SY = 1
+    else:
+        raise ValueError(
+            "Number of navigation axes has to be 0, 1 or 2"
+        )  # pragma: no cover
 
     DP_SZ = [axis["size"] for axis in sig_axes][::-1]
     if DP_SZ[0] != DP_SZ[1]:
@@ -186,7 +195,7 @@ def get_header_from_signal(signal, endianess="<"):
     DP_SZ = DP_SZ[0]
     SDP = 100.0 / sig_axes[1]["scale"]
 
-    offset2 = NX * NY + header["Data_offset_1"]
+    offset2 = NX * NY + header["Data_offset_1"][0]
     # Based on inspected files, the DPs are stored at 16-bit boundary...
     # Normally, you'd expect word alignment (32-bits) ¯\_(°_o)_/¯
     offset2 += offset2 % 16
@@ -409,11 +418,11 @@ def file_writer(
         # Write header
         header.tofile(f)
         # Write header note field:
-        if len(note) > int(header["Data_offset_1"]) - f.tell():
-            note = note[: int(header["Data_offset_1"]) - f.tell() - len(note)]
+        if len(note) > int(header["Data_offset_1"][0]) - f.tell():
+            note = note[: int(header["Data_offset_1"][0]) - f.tell() - len(note)]
         f.write(note.encode())
         # Zero pad until next data block
-        zero_pad = int(header["Data_offset_1"]) - f.tell()
+        zero_pad = int(header["Data_offset_1"][0]) - f.tell()
         np.zeros((zero_pad,), np.byte).tofile(f)
         # Write virtual bright field
         if navigator is None:
@@ -440,11 +449,11 @@ def file_writer(
         navigator = navigator.astype(endianess + "u1")
         np.asanyarray(navigator).tofile(f)
         # Zero pad until next data block
-        if f.tell() > int(header["Data_offset_2"]):
+        if f.tell() > int(header["Data_offset_2"][0]):
             raise ValueError(
                 "Signal navigation size does not match " "data dimensions."
             )
-        zero_pad = int(header["Data_offset_2"]) - f.tell()
+        zero_pad = int(header["Data_offset_2"][0]) - f.tell()
         np.zeros((zero_pad,), np.byte).tofile(f)
         file_location = f.tell()
 
@@ -467,7 +476,7 @@ def file_writer(
         ("IMG", endianess + "u1", pixels),
     ]
     magics = np.full(records, 0x55AA, dtype=endianess + "u2")
-    ids = np.arange(np.product(records), dtype=endianess + "u4").reshape(records)
+    ids = np.arange(np.prod(records), dtype=endianess + "u4").reshape(records)
     file_memmap = np.memmap(
         filename, dtype=record_dtype, mode="r+", offset=file_location, shape=records
     )

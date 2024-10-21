@@ -17,16 +17,20 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 
-import numpy as np
 import os
 from datetime import datetime
+
+import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
 
 
 def _cnv_time(timestr):
     try:
-        t = datetime.strptime(timestr.decode(), "%H:%M:%S.%f")
+        if not isinstance(timestr, str):
+            # for numpy < 2.0
+            timestr = timestr.decode()
+        t = datetime.strptime(timestr, "%H:%M:%S.%f")
         dt = t - datetime(t.year, t.month, t.day)
         r = float(dt.seconds) + float(dt.microseconds) * 1e-6
     except ValueError:

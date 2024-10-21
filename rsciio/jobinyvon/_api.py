@@ -20,16 +20,15 @@
 # https://www.biochem.mpg.de/doc_tom/TOM_Release_2008/IOfun/tom_mrcread.html
 # and https://ami.scripps.edu/software/mrctools/mrc_specification.php
 
-import logging
 import importlib.util
+import logging
 import xml.etree.ElementTree as ET
-from pathlib import Path
 from copy import deepcopy
+from pathlib import Path
 
 import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
-
 
 _logger = logging.getLogger(__name__)
 
@@ -223,9 +222,9 @@ class JobinYvonXMLReader:
         ## use second extracted value
         for key in change_to_second_value:
             try:
-                self.original_metadata["experimental_setup"][
-                    key
-                ] = self.original_metadata["experimental_setup"][key]["2"]
+                self.original_metadata["experimental_setup"][key] = (
+                    self.original_metadata["experimental_setup"][key]["2"]
+                )
             except KeyError:
                 pass
 
@@ -234,9 +233,9 @@ class JobinYvonXMLReader:
             if isinstance(value, dict):
                 # only if there is an entry/value
                 if bool(value):
-                    self.original_metadata["experimental_setup"][
-                        key
-                    ] = self.original_metadata["experimental_setup"][key]["1"]
+                    self.original_metadata["experimental_setup"][key] = (
+                        self.original_metadata["experimental_setup"][key]["1"]
+                    )
 
         for key, value in self.original_metadata["date"].items():
             if isinstance(value, dict):
@@ -248,9 +247,9 @@ class JobinYvonXMLReader:
         for key, value in self.original_metadata["file_information"].items():
             if isinstance(value, dict):
                 if bool(value):
-                    self.original_metadata["file_information"][
-                        key
-                    ] = self.original_metadata["file_information"][key]["1"]
+                    self.original_metadata["file_information"][key] = (
+                        self.original_metadata["file_information"][key]["1"]
+                    )
 
         ## convert strings to float
         for key in convert_to_numeric:
@@ -263,17 +262,17 @@ class JobinYvonXMLReader:
 
         ## move the unit from grating to the key name
         try:
-            self.original_metadata["experimental_setup"][
-                "Grating (gr/mm)"
-            ] = self.original_metadata["experimental_setup"].pop("Grating")
+            self.original_metadata["experimental_setup"]["Grating (gr/mm)"] = (
+                self.original_metadata["experimental_setup"].pop("Grating")
+            )
         except KeyError:  # pragma: no cover
             pass  # pragma: no cover
 
         ## add percentage for filter key name
         try:
-            self.original_metadata["experimental_setup"][
-                "ND Filter (%)"
-            ] = self.original_metadata["experimental_setup"].pop("ND Filter")
+            self.original_metadata["experimental_setup"]["ND Filter (%)"] = (
+                self.original_metadata["experimental_setup"].pop("ND Filter")
+            )
         except KeyError:  # pragma: no cover
             pass  # pragma: no cover
 
@@ -295,9 +294,9 @@ class JobinYvonXMLReader:
         self._get_metadata_values(metadata, "experimental_setup")
         self._get_metadata_values(file_specs, "file_information")
         try:
-            self.original_metadata["experimental_setup"][
-                "measurement_type"
-            ] = self._measurement_type
+            self.original_metadata["experimental_setup"]["measurement_type"] = (
+                self._measurement_type
+            )
         except AttributeError:  # pragma: no cover
             pass  # pragma: no cover
         try:
@@ -305,9 +304,9 @@ class JobinYvonXMLReader:
         except AttributeError:  # pragma: no cover
             pass  # pragma: no cover
         try:
-            self.original_metadata["experimental_setup"][
-                "rotation angle (rad)"
-            ] = self._angle
+            self.original_metadata["experimental_setup"]["rotation angle (rad)"] = (
+                self._angle
+            )
         except AttributeError:
             pass
         self._clean_up_metadata()
@@ -328,9 +327,9 @@ class JobinYvonXMLReader:
             if id == "0x6D707974":
                 self.original_metadata["experimental_setup"]["signal type"] = child.text
             if id == "0x7C696E75":
-                self.original_metadata["experimental_setup"][
-                    "signal units"
-                ] = child.text
+                self.original_metadata["experimental_setup"]["signal units"] = (
+                    child.text
+                )
 
     def _set_nav_axis(self, xml_element, tag):
         """Helper method for setting navigation axes.

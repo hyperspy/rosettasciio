@@ -16,34 +16,33 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import logging
 import os
 import re
-import logging
 import warnings
-from dateutil.parser import parse as dtparse
 from datetime import datetime, timezone
 
-import numpy as np
-import dask.array as da
 import dask
-from dask.diagnostics import ProgressBar
+import dask.array as da
+import numpy as np
 import pint
+from dask.diagnostics import ProgressBar
+from dateutil.parser import parse as dtparse
 
 from rsciio._docstrings import (
     FILENAME_DOC,
     LAZY_DOC,
     RETURNS_DOC,
-    SIGNAL_DOC,
     SHOW_PROGRESSBAR_DOC,
+    SIGNAL_DOC,
 )
 from rsciio.utils.tools import (
     _UREG,
-    dummy_context_manager,
     DTBox,
+    dummy_context_manager,
     jit_ifnumba,
     sarray2dict,
 )
-
 
 _logger = logging.getLogger(__name__)
 

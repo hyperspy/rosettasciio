@@ -16,17 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import importlib
+import logging
 import os
 from collections.abc import Iterable
 from datetime import datetime, timedelta
-import logging
-import importlib
 
 import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 from rsciio.utils.tools import jit_ifnumba
-
 
 _logger = logging.getLogger(__name__)
 

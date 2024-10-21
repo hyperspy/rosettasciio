@@ -1,0 +1,1 @@
+Add support for tiff file in :func:`~.utils.tools.get_file_handle`.

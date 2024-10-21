@@ -16,16 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-"""Creates files replicating Renishaw's .wdf files metadata structure (PSET Blocks).
-"""
+"""Creates files replicating Renishaw's .wdf files metadata structure (PSET Blocks)."""
 
 import numpy as np
+
 from rsciio.renishaw._api import (
-    WDFReader,
+    MetadataFlags,
     MetadataTypeMulti,
     MetadataTypeSingle,
-    MetadataFlags,
     TypeNames,
+    WDFReader,
 )
 
 # logging.basicConfig(level=10)

@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import os
 import hashlib
 import logging
+import os
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -30,8 +30,7 @@ from rsciio import IO_PLUGINS
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
-from hyperspy.axes import DataAxis
-
+from hyperspy.axes import DataAxis  # noqa: E402
 
 TEST_DATA_PATH = Path(__file__).parent / "data"
 FULLFILENAME = Path(__file__).parent / "test_io_overwriting.hspy"
@@ -104,21 +103,21 @@ class TestNonUniformAxisCheck:
         # make sure we start from a clean state
 
     def test_io_nonuniform(self, tmp_path):
-        assert self.s.axes_manager[0].is_uniform == False
+        assert self.s.axes_manager[0].is_uniform is False
         self.s.save(tmp_path / "tmp.hspy")
         with pytest.raises(TypeError, match="not supported for non-uniform"):
             self.s.save(tmp_path / "tmp.msa")
 
     def test_nonuniform_writer_characteristic(self):
         for plugin in IO_PLUGINS:
-            if not "non_uniform_axis" in plugin:
+            if "non_uniform_axis" not in plugin:
                 print(
                     f"{plugin.name} IO-plugin is missing the "
                     "characteristic `non_uniform_axis`"
                 )
 
     def test_nonuniform_error(self, tmp_path):
-        assert self.s.axes_manager[0].is_uniform == False
+        assert self.s.axes_manager[0].is_uniform is False
         incompatible_writers = [
             plugin["file_extensions"][plugin["default_extension"]]
             for plugin in IO_PLUGINS

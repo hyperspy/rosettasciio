@@ -21,6 +21,7 @@
 
 import logging
 import os
+import warnings
 from pathlib import Path
 
 import dask.array as da
@@ -28,13 +29,14 @@ import numpy as np
 
 from rsciio._docstrings import (
     CHUNKS_READ_DOC,
+    DISTRIBUTED_DOC,
     FILENAME_DOC,
     LAZY_DOC,
     MMAP_DOC,
     NAVIGATION_SHAPE,
     RETURNS_DOC,
 )
-
+from rsciio.utils.distributed import memmap_distributed
 
 _logger = logging.getLogger(__name__)
 
@@ -130,20 +132,20 @@ class MIBProperties:
                     self.file_size = f.tell()
                     self.buffer = False
                     self.path = path
-            except:  # pragma: no cover
+            except BaseException:  # pragma: no cover
                 raise RuntimeError("File does not contain MIB header.")
         elif isinstance(path, bytes):
             try:
                 head = path[:384].decode().split(",")
                 self.file_size = len(path)
                 self.buffer = True
-            except:  # pragma: no cover
+            except BaseException:  # pragma: no cover
                 raise RuntimeError("Buffer does not contain MIB header.")
         else:  # pragma: no cover
             raise TypeError("`path` must be a str or a buffer.")
 
         # read detector size
-        self.merlin_size = (int(head[4]), int(head[5]))
+        self.merlin_size = (int(head[5]), int(head[4]))
 
         # test if RAW
         if head[6] == "R64":  # pragma: no cover
@@ -194,6 +196,7 @@ def load_mib_data(
     navigation_shape=None,
     first_frame=None,
     last_frame=None,
+    distributed=False,
     mib_prop=None,
     return_headers=False,
     print_info=False,
@@ -210,6 +213,7 @@ def load_mib_data(
     %s
     %s
     %s
+    %s
     mib_prop : ``MIBProperties``, default=None
         The ``MIBProperties`` instance of the file. If None, it will be
         parsed from the file.
@@ -218,7 +222,7 @@ def load_mib_data(
     print_info : bool, default=False
         If True, display information when loading the file.
     return_mmap : bool
-        If True, return the py:func:`numpy.memmap` object. Default is True.
+        If True, return the :class:`numpy.memmap` object. Default is True.
 
     Returns
     -------
@@ -242,7 +246,7 @@ def load_mib_data(
     data_dtype = np.dtype(mib_prop.dtype).newbyteorder(">")
     merlin_frame_dtype = np.dtype(
         [
-            ("header", np.string_, mib_prop.head_size),
+            ("header", np.bytes_, mib_prop.head_size),
             ("data", data_dtype, mib_prop.merlin_size),
         ]
     )
@@ -267,9 +271,9 @@ def load_mib_data(
             # Reshape only when the slice from zeros
             if first_frame == 0 and len(navigation_shape) > 1:
                 navigation_shape = (
-                    navigation_shape[1],
-                    frame_number_in_file // navigation_shape[1],
-                )
+                    navigation_shape[0],
+                    frame_number_in_file // navigation_shape[0],
+                )[::-1]
             else:
                 navigation_shape = (number_of_frames_to_load,)
         elif number_of_frames_to_load < frame_number:
@@ -302,15 +306,21 @@ def load_mib_data(
     # if it is read from TCPIP interface it needs to drop first 15 bytes which
     # describe the stream size. Also watch for the coma in front of the stream.
     if isinstance(mib_prop.path, str):
-        data = np.memmap(
-            mib_prop.path,
-            dtype=merlin_frame_dtype,
+        memmap_kwargs = dict(
+            filename=mib_prop.path,
             # take into account first_frame
             offset=mib_prop.offset + merlin_frame_dtype.itemsize * first_frame,
             # need to use np.prod(navigation_shape) to crop number line
             shape=np.prod(navigation_shape),
-            mode=mmap_mode,
+            dtype=merlin_frame_dtype,
         )
+        if distributed:
+            data = memmap_distributed(chunks=chunks, key="data", **memmap_kwargs)
+            if not lazy:
+                data = data.compute()
+                # get_file_handle(data).close()
+        else:
+            data = np.memmap(mode=mmap_mode, **memmap_kwargs)
     elif isinstance(path, bytes):
         data = np.frombuffer(
             path,
@@ -322,19 +332,33 @@ def load_mib_data(
     else:  # pragma: no cover
         raise TypeError("`path` must be a str or a buffer.")
 
-    headers = data["header"]
-    data = data["data"]
+    if not distributed:
+        headers = data["header"]
+        data = data["data"]
     if not return_mmap:
-        if lazy:
-            data = da.from_array(data, chunks=chunks)
+        if not distributed and lazy:
+            if isinstance(chunks, tuple) and len(chunks) > 2:
+                # Since the data is reshaped later on, we set only the
+                # signal dimension chunks here
+                _chunks = ("auto",) + chunks[-2:]
+            else:
+                _chunks = chunks
+            data = da.from_array(data, chunks=_chunks)
         else:
             data = np.array(data)
 
     # remove navigation_dimension with value 1 before reshaping
     navigation_shape = tuple(i for i in navigation_shape if i > 1)
     data = data.reshape(navigation_shape + mib_prop.merlin_size)
+    if lazy and isinstance(chunks, tuple) and len(chunks) > 2:
+        # rechunk navigation space when chunking is specified as a tuple
+        data = data.rechunk(chunks)
 
     if return_headers:
+        if distributed:
+            raise ValueError(
+                "Retuning headers is not supported with `distributed=True`."
+            )
         return data, headers
     else:
         return data
@@ -347,6 +371,7 @@ load_mib_data.__doc__ %= (
     MMAP_DOC,
     NAVIGATION_SHAPE,
     _FIRST_LAST_FRAME,
+    DISTRIBUTED_DOC,
 )
 
 
@@ -401,7 +426,7 @@ def parse_exposures(headers, max_index=10000):
     from the headers. By default, reads only the first 10 000 frames.
 
     >>> from rsciio.quantumdetector import load_mib_data, parse_exposures
-    >>> data, headers = load_mib_data(path, return_header=True, return_mmap=True)
+    >>> data, headers = load_mib_data(path, return_headers=True, return_mmap=True)
     >>> exposures = parse_exposures(headers)
 
     All frames can be parsed by using ``max_index=-1``:
@@ -480,13 +505,18 @@ def file_reader(
     navigation_shape=None,
     first_frame=None,
     last_frame=None,
+    distributed=False,
     print_info=False,
 ):
     """
     Read a Quantum Detectors ``mib`` file.
 
+    If a ``hdr`` file with the same file name was saved along the ``mib`` file,
+    it will be used to read the metadata.
+
     Parameters
     ----------
+    %s
     %s
     %s
     %s
@@ -503,6 +533,20 @@ def file_reader(
     In case of interrupted acquisition, only the completed lines are read and
     the incomplete line are discarded.
 
+    When the scanning shape (i. e. navigation shape) is not available from the
+    metadata (for example with acquisition using pixel trigger), the timestamps
+    will be used to guess the navigation shape.
+
+    Examples
+    --------
+    In case, the navigation shape can't read from the data itself (for example,
+    type of acquisition unsupported), the ``navigation_shape`` can be specified:
+
+    .. code-block:: python
+
+        >>> from rsciio.quantumdetector import file_reader
+        >>> s_dict = file_reader("file.mib", navigation_shape=(256, 256))
+
     """
     mib_prop = MIBProperties()
     mib_prop.parse_file(filename)
@@ -517,13 +561,43 @@ def file_reader(
         hdr = None
         _logger.warning("`hdr` file couldn't be found.")
 
-    if navigation_shape is None and hdr is not None:
-        # Use the hdr file to find the number of frames
-        navigation_shape = (
-            int(hdr["Frames per Trigger (Number)"]),
-            int(hdr["Frames in Acquisition (Number)"])
-            // int(hdr["Frames per Trigger (Number)"]),
-        )
+    frame_per_trigger = 1
+    headers = None
+    if navigation_shape is None:
+        if hdr is not None:
+            # Use the hdr file to find the number of frames
+            frame_per_trigger = int(hdr["Frames per Trigger (Number)"])
+            frames_number = int(hdr["Frames in Acquisition (Number)"])
+        else:
+            _, headers = load_mib_data(filename, return_headers=True)
+            frames_number = len(headers)
+
+        if frame_per_trigger == 1:
+            if headers is None:
+                _, headers = load_mib_data(filename, return_headers=True)
+            # Use parse_timestamps to find the number of frame per line
+            # we will get a difference of timestamps at the beginning of each line
+            with warnings.catch_warnings():
+                # Filter warning for converting timezone aware datetime
+                # The time zone is dropped
+                # Changed from `DeprecationWarning` to `UserWarning` in numpy 2.0
+                warnings.simplefilter("ignore")
+                times = np.array(parse_timestamps(headers)).astype(dtype="datetime64")
+
+            times_diff = np.diff(times).astype(float)
+            if len(times_diff) > 0:
+                # Substract the mean and take the first position above 0
+                indices = np.argwhere(times_diff - np.mean(times_diff) > 0)
+                if len(indices) > 0 and len(indices[0]) > 0:
+                    frame_per_trigger = indices[0][0] + 1
+
+        if frames_number == 0:
+            # Some hdf files have the "Frames per Trigger (Number)": 0
+            # in this case, we don't reshape
+            # Possibly for "continuous and indefinite" acquisition
+            navigation_shape = None
+        else:
+            navigation_shape = (frame_per_trigger, frames_number // frame_per_trigger)
 
     data = load_mib_data(
         filename,
@@ -533,6 +607,7 @@ def file_reader(
         navigation_shape=navigation_shape,
         first_frame=first_frame,
         last_frame=last_frame,
+        distributed=distributed,
         mib_prop=mib_prop,
         print_info=print_info,
         return_mmap=False,
@@ -597,5 +672,6 @@ file_reader.__doc__ %= (
     MMAP_DOC,
     NAVIGATION_SHAPE,
     _FIRST_LAST_FRAME,
+    DISTRIBUTED_DOC,
     RETURNS_DOC,
 )

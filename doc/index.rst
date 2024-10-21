@@ -19,6 +19,66 @@ project for multi-dimensional data analysis. As HyperSpy is rooted in the electr
 microscopy community, data formats used by this community are still particularly
 well represented.
 
+
+.. grid:: 2 3 3 3
+  :gutter: 2
+
+  .. grid-item-card::
+    :link: user_guide/install
+    :link-type: doc
+
+    :octicon:`rocket;2em;sd-text-info` Getting Started
+    ^^^
+
+    New to rosettasciio or Python? The getting started guide provides an
+    introduction on basic usage of rosettasciio and how to install it.
+
+  .. grid-item-card::
+    :link: user_guide/supported_formats
+    :link-type: doc
+
+    :octicon:`checklist;2em;sd-text-info` Supported Formats
+    ^^^
+
+    This provides a nice overview of the different files that can be read and written by rosettasciio.
+
+  .. grid-item-card::
+    :link: user_guide/interoperability
+    :link-type: doc
+
+    :octicon:`arrow-switch;2em;sd-text-info` Interoperability
+    ^^^
+
+    Documentation describing how to use rosettasciio with other libraries than HyperSpy.
+
+  .. grid-item-card::
+    :link: file_specification/index
+    :link-type: doc
+
+    :octicon:`checklist;2em;sd-text-info` File Specifications
+    ^^^
+
+    Links to File Specifications for the different file formats supported by rosettasciio.
+
+  .. grid-item-card::
+    :link: api/index
+    :link-type: doc
+
+    :octicon:`book;2em;sd-text-info` API Reference
+    ^^^
+
+    Documentation of the Application Programming Interface (API),
+
+  .. grid-item-card::
+    :link: contributing
+    :link-type: doc
+
+    :octicon:`code-square;2em;sd-text-info` Contributing
+    ^^^
+
+    Information on how to contribute to the development of rosettasciio.
+
+
 RosettaSciIO provides the dataset, its axes and related metadata contained in a
 file in a python dictionary that can be easily handled by other libraries.
 Similarly, it takes a dictionary as input for file writers.

@@ -377,7 +377,8 @@ def file_reader(
             imgs.append(file_reader(v)[0]["data"])
         metadata["General"]["virtual_images"] = imgs
         # checking to make sure the navigator is valid
-        if navigation_shape is not None and navigation_shape == imgs[0].shape:
+        if navigation_shape is not None and navigation_shape[::-1] == imgs[0].shape:
+            metadata["_HyperSpy"] = {}
             metadata["_HyperSpy"]["navigator"] = imgs[0]
 
     if external_images is not None and len(external_images) > 0:

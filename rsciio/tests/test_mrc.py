@@ -127,19 +127,19 @@ def test_mrc_metadata(navigation_shape):
 
 
 def test_mrc_metadata_auto():
-    s = hs.load(
-        TEST_DATA_DIR / "4DSTEM_scan_movie.mrc",
-    )
-    navigation_shape = (8, 32)
-    shape = navigation_shape[::-1] + (256, 256)
+    s = hs.load(TEST_DATA_DIR / "20241021_00405_movie.mrc", lazy=True)
+    navigation_shape = (8, 4)
+    shape = navigation_shape[::-1] + (4, 8)
     assert s.data.shape == shape
-    assert s.axes_manager.signal_shape == (256, 256)
+    assert s.axes_manager.signal_shape == (8, 4)
     assert s.axes_manager.navigation_shape == navigation_shape
-    assert s.metadata.Acquisition_instrument.TEM.detector == "CeleritasXS"
+    assert s.metadata.Acquisition_instrument.TEM.detector == "DESim"
     assert s.metadata.Acquisition_instrument.TEM.magnification == "1000"
-    assert s.metadata.Acquisition_instrument.TEM.frames_per_second == "40000"
-    assert len(s.metadata.General.virtual_images) == 1
+    assert s.metadata.Acquisition_instrument.TEM.frames_per_second == "700"
+    assert len(s.metadata.General.virtual_images) == 2
     assert len(s.metadata.General.external_detectors) == 1
+
+    assert s.metadata._HyperSpy.navigator is not None
 
     shape = (
         s.axes_manager._navigation_shape_in_array
@@ -157,7 +157,7 @@ def test_mrc_metadata_auto():
     ],
 )
 def test_mrc_metadata_modes(metadata_file):
-    s = hs.load(TEST_DATA_DIR / "4DSTEM_scan_movie.mrc", metadata_file=metadata_file)
+    s = hs.load(TEST_DATA_DIR / "20241021_00405_movie.mrc", metadata_file=metadata_file)
     diffracting = "STEM" in metadata_file.name or "Diffracting" in metadata_file.name
     s.axes_manager.navigation_axes[0].units = "sec"
     if diffracting:

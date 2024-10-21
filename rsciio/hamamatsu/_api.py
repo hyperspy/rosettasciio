@@ -359,7 +359,7 @@ class IMGReader:
             )
             signal["signal_type"] = ""
         else:
-            signal["signal_type"] = "Luminescence"  # pragma: no cover
+            signal["signal_type"] = "LumiTransientSpectrum"  # pragma: no cover
 
         try:
             quantity = self.original_metadata["Comment"]["Acquisition"]["ZAxisLabel"]
@@ -497,7 +497,9 @@ class IMGReader:
 
 def file_reader(filename, lazy=False, use_uniform_signal_axes=False, **kwds):
     """
-    Read Hamamatsu's ``.img`` file.
+    Read Hamamatsu's ``.img`` file, e.g. for streak camera images. In case
+    LumiSpy is installed, the signal type is automatically set to
+    ``LumiTransientSpectrum``.
 
     Parameters
     ----------

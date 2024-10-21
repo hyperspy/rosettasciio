@@ -34,7 +34,7 @@ well represented.
     introduction on basic usage of rosettasciio and how to install it.
 
   .. grid-item-card::
-    :link: user_guide/supported_formats
+    :link: user_guide/supported_formats/index
     :link-type: doc
 
     :octicon:`checklist;2em;sd-text-info` Supported Formats

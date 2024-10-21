@@ -4,7 +4,8 @@ import numpy as np
 from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC
 
 
-def file_reader(filename):
+def file_reader(filename, lazy=False):
+
 
     """
     Read a Delmic hdf5 hyperspectral image.

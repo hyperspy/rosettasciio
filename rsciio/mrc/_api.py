@@ -168,6 +168,7 @@ def read_de_metadata_file(filename, nav_shape=None):
             value = value.strip()
             original_metadata[key] = value
 
+    # -1 -> Not read from TEM Channel 0 -> TEM 1 -> STEM
     in_stem_mode = int(original_metadata.get("Instrument Project TEMorSTEM Mode", -1))
     scanning = original_metadata.get("Scan - Enable", "Disable") == "Enable"
     raster = original_metadata.get("Scan - Type", "Raster") == "Raster"
@@ -320,7 +321,10 @@ def file_reader(
     %s
     metadata_file : str
         The filename of the metadata file.
-
+    virtual_images : list
+        A list of filenames of virtual images.
+    external_images : list
+        A list of filenames of external images.
     %s
     """
     if metadata_file == "auto":

@@ -61,7 +61,7 @@ that the file name is of the form ``uniqueid_suffix_movie.mrc`` and that the met
 named ``uniqueid_suffix_info.txt``.
 
 This will automatically set the navigation shape based on the ``Scan - Size X`` and                                                   = 256
-``Scan - Size Y``parameters in the metadata file. The navigation shape can be overridden
+``Scan - Size Y`` parameters in the metadata file. The navigation shape can be overridden
 by passing the ``navigation_shape`` argument to the ``file_reader`` function.
 
 Additionally virtual_images/ external detectors can be loaded by passing a list of file names to the
@@ -70,6 +70,15 @@ if the file names are of the form ``uniqueid_suffix_ext1_extName.mrc`` and
 ``uniqueid_suffix_1_virtualName.mrc``. The first virtual image will be used as the navigation image
 for fast plotting.
 
+.. code-block:: python
+
+    import hyperspy.api as hs
+
+    # Will automatically load metadata_file="20220101_0001_info.txt" and any external/virtual images with the same naming convention
+    hs.load("20220101_0001_movie.mrc")
+    hs.load("data.mrc", metadata_file="data_info.txt") # Will load metadata from data_info.txt
+    hs.load("20220101_0001_movie.mrc", external_images=["20220101_0001_ext1_Ext #1.mrc"]) # Will load external image 1
+    hs.load("20220101_0001_movie.mrc", virtual_images=["20220101_0001_1_Virtual #1.mrc"]) # Will load virtual image 1
 
 API functions
 ^^^^^^^^^^^^^

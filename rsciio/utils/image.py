@@ -23,7 +23,7 @@ CustomTAGS = {
     # Customized EXIF TAGS from Renishaw
     0xFEA0: "FocalPlaneXYOrigins",  # 65184
     0xFEA1: "FieldOfViewXY",  # 65185
-    0xFEA2: "Unknown",  # 65186
+    0xFEA2: "Unknown",  # 65186, could it be magnification?
 }
 
 
@@ -50,7 +50,8 @@ def _parse_axes_from_metadata(exif_tags, sizes):
         # Fallback to default value when tag not available
         offsets = exif_tags.get("FocalPlaneXYOrigins", offsets)
         # jpg files made with Renishaw have this tag
-        fields_of_views = exif_tags.get("FieldOfViewXY", fields_of_views)
+        fields_of_views[0] = exif_tags.get("FocalPlaneXResolution", fields_of_views[0])
+        fields_of_views[1] = exif_tags.get("FocalPlaneYResolution", fields_of_views[1])
         unit = FocalPlaneResolutionUnit_mapping[
             exif_tags.get("FocalPlaneResolutionUnit", unit)
         ]

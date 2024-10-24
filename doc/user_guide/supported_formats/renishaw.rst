@@ -20,6 +20,17 @@ used as the ``signal_type``.
    the signal axes and `X`, `Y`, `Z`, `FocusTrackZ` and `Time` for navigation axes.
    Reading maps obtained in a serpentine path is not implemented.
 
+.. Note::
+
+   The laser power can be accessed from the ``original_metadata``:
+
+   .. code:: python
+
+      >>> import hyperspy as HyperSpy
+      >>> s = hs.load("raman_map.wdf")
+      >>> s.original_metadata.get_item("WXIS_0.ND Transmission %")
+      10
+      
 
 This reader is based on the `py-wdf-reader <https://github.com/alchem0x2A/py-wdf-reader.git>`_,
 which is inspired by the `matlab reader <https://doi.org/10.5281/zenodo.495477>`_ from Alex Henderson.

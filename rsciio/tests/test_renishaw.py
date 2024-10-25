@@ -1219,7 +1219,7 @@ class TestStreamline:
         }
 
         for i, (axis, scale) in enumerate(
-            zip(s.axes_manager._axes, (22.570833, 23.710106))
+            zip(s.axes_manager._axes, (1.1285417, 1.1855053))
         ):
             assert axis.units == "µm"
             np.testing.assert_allclose(axis.scale, scale)

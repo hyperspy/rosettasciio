@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Aug 27 14:25:52 2024.
+
+@author: noemiebonnet
+"""
+
 from pathlib import Path
 
 import numpy as np
@@ -6,546 +13,417 @@ import pytest
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 pytest.importorskip("h5py", reason="h5py not installed")
 
-testfile_dir = (Path(__file__).parent / "data" / "delmic").resolve()
-testfile_hyperspectral_path = (testfile_dir / "test_hyperspectral.h5").resolve()
+testfile_dir = (
+    Path(__file__).parent / "data" / "delmic"
+).resolve()
+testfile_intensity_path = (
+    testfile_dir / "sparc-intensity.h5"
+).resolve()
+testfile_hyperspectral_path = (
+    testfile_dir / "sparc-hyperspectral.h5"
+).resolve()
+testfile_hyperspectral_data_path = (
+    testfile_dir / "sparc-hyperspectral-data.npy"
+).resolve()
+testfile_hyperspectral_wavelengths_path = (
+    testfile_dir / "sparc-hyperspectral-wavelengths.npy"
+).resolve()
+testfile_temporaltrace_path = (
+    testfile_dir / "sparc-time-correlator.h5"
+).resolve()
+testfile_temporaltrace_data_path = (
+    testfile_dir / "sparc-time-correlator-data.npy"
+).resolve()
+testfile_temporaltrace_timelist_path = (
+    testfile_dir / "sparc-time-correlator-timelist.npy"
+).resolve()
+testfile_streakcamera_path = (
+    testfile_dir / "sparc-streak-camera.h5"
+).resolve()
+testfile_streakcamera_data_path = (
+    testfile_dir / "sparc-streak-camera-data.npy"
+).resolve()
+testfile_streakcamera_timelist_path = (
+    testfile_dir / "sparc-streak-camera-timelist.npy"
+).resolve()
+testfile_streakcamera_wavelengths_path = (
+    testfile_dir / "sparc-streak-camera-wavelengths.npy"
+).resolve()
+testfile_ek_path = (
+    testfile_dir / "sparc-e-k.h5"
+).resolve()
+testfile_ek_data_path = (
+    testfile_dir / "sparc-e-k-data.npy"
+).resolve()
+testfile_ek_channels_path = (
+    testfile_dir / "sparc-e-k-channels.npy"
+).resolve()
+testfile_ek_wavelengths_path = (
+    testfile_dir / "sparc-e-k-wavelengths.npy"
+).resolve()
+testfile_AR_path = (
+    testfile_dir / "sparc-angle-resolved.h5"
+).resolve()
+testfile_AR_data_path = (
+    testfile_dir / "sparc-angle-resolved-data.npy"
+).resolve()
+testfile_AR_angles_path = (
+    testfile_dir / "sparc-angle-resolved-angles.npy"
+).resolve()
+testfile_AR_channels_path = (
+    testfile_dir / "sparc-angle-resolved-channels.npy"
+).resolve()
 
 
-ref = np.array(
-    [
-        3.76316345e-07,
-        3.77196136e-07,
-        3.78075897e-07,
-        3.78955627e-07,
-        3.79835419e-07,
-        3.80715179e-07,
-        3.81594910e-07,
-        3.82474640e-07,
-        3.83354401e-07,
-        3.84234161e-07,
-        3.85113861e-07,
-        3.85993622e-07,
-        3.86873322e-07,
-        3.87753052e-07,
-        3.88632782e-07,
-        3.89512482e-07,
-        3.90392181e-07,
-        3.91271881e-07,
-        3.92151611e-07,
-        3.93031311e-07,
-        3.93910950e-07,
-        3.94790680e-07,
-        3.95670319e-07,
-        3.96549988e-07,
-        3.97429657e-07,
-        3.98309296e-07,
-        3.99188934e-07,
-        4.00068573e-07,
-        4.00948212e-07,
-        4.01827820e-07,
-        4.02707428e-07,
-        4.03587036e-07,
-        4.04466644e-07,
-        4.05346191e-07,
-        4.06225800e-07,
-        4.07105347e-07,
-        4.07984894e-07,
-        4.08864471e-07,
-        4.09743988e-07,
-        4.10623474e-07,
-        4.11502991e-07,
-        4.12382507e-07,
-        4.13261993e-07,
-        4.14141479e-07,
-        4.15020966e-07,
-        4.15900421e-07,
-        4.16779846e-07,
-        4.17659271e-07,
-        4.18538727e-07,
-        4.19418121e-07,
-        4.20297546e-07,
-        4.21176910e-07,
-        4.22056274e-07,
-        4.22935608e-07,
-        4.23815002e-07,
-        4.24694305e-07,
-        4.25573608e-07,
-        4.26452942e-07,
-        4.27332214e-07,
-        4.28211487e-07,
-        4.29090729e-07,
-        4.29970001e-07,
-        4.30849213e-07,
-        4.31728424e-07,
-        4.32607635e-07,
-        4.33486816e-07,
-        4.34365997e-07,
-        4.35245148e-07,
-        4.36124268e-07,
-        4.37003387e-07,
-        4.37882507e-07,
-        4.38761566e-07,
-        4.39640625e-07,
-        4.40519653e-07,
-        4.41398743e-07,
-        4.42277710e-07,
-        4.43156708e-07,
-        4.44035706e-07,
-        4.44914673e-07,
-        4.45793610e-07,
-        4.46672516e-07,
-        4.47551453e-07,
-        4.48430298e-07,
-        4.49309204e-07,
-        4.50188019e-07,
-        4.51066833e-07,
-        4.51945618e-07,
-        4.52824402e-07,
-        4.53703186e-07,
-        4.54581909e-07,
-        4.55460663e-07,
-        4.56339325e-07,
-        4.57217987e-07,
-        4.58096649e-07,
-        4.58975311e-07,
-        4.59853912e-07,
-        4.60732483e-07,
-        4.61611084e-07,
-        4.62489624e-07,
-        4.63368134e-07,
-        4.64246613e-07,
-        4.65125092e-07,
-        4.66003540e-07,
-        4.66882019e-07,
-        4.67760406e-07,
-        4.68638733e-07,
-        4.69517090e-07,
-        4.70395447e-07,
-        4.71273743e-07,
-        4.72152039e-07,
-        4.73030273e-07,
-        4.73908508e-07,
-        4.74786682e-07,
-        4.75664886e-07,
-        4.76543030e-07,
-        4.77421143e-07,
-        4.78299255e-07,
-        4.79177307e-07,
-        4.80055359e-07,
-        4.80933350e-07,
-        4.81811371e-07,
-        4.82689331e-07,
-        4.83567261e-07,
-        4.84445190e-07,
-        4.85323029e-07,
-        4.86200897e-07,
-        4.87078705e-07,
-        4.87956512e-07,
-        4.88834259e-07,
-        4.89712006e-07,
-        4.90589722e-07,
-        4.91467377e-07,
-        4.92345001e-07,
-        4.93222626e-07,
-        4.94100220e-07,
-        4.94977753e-07,
-        4.95855316e-07,
-        4.96732788e-07,
-        4.97610260e-07,
-        4.98487640e-07,
-        4.99365082e-07,
-        5.00242432e-07,
-        5.01119751e-07,
-        5.01997070e-07,
-        5.02874329e-07,
-        5.03751556e-07,
-        5.04628754e-07,
-        5.05505951e-07,
-        5.06383057e-07,
-        5.07260193e-07,
-        5.08137268e-07,
-        5.09014282e-07,
-        5.09891296e-07,
-        5.10768219e-07,
-        5.11645172e-07,
-        5.12522034e-07,
-        5.13398926e-07,
-        5.14275757e-07,
-        5.15152527e-07,
-        5.16029297e-07,
-        5.16906006e-07,
-        5.17782715e-07,
-        5.18659363e-07,
-        5.19535950e-07,
-        5.20412537e-07,
-        5.21289063e-07,
-        5.22165588e-07,
-        5.23041992e-07,
-        5.23918396e-07,
-        5.24794861e-07,
-        5.25671204e-07,
-        5.26547485e-07,
-        5.27423828e-07,
-        5.28299988e-07,
-        5.29176270e-07,
-        5.30052368e-07,
-        5.30928467e-07,
-        5.31804565e-07,
-        5.32680603e-07,
-        5.33556580e-07,
-        5.34432495e-07,
-        5.35308411e-07,
-        5.36184387e-07,
-        5.37060181e-07,
-        5.37936035e-07,
-        5.38811707e-07,
-        5.39687439e-07,
-        5.40563171e-07,
-        5.41438721e-07,
-        5.42314331e-07,
-        5.43189880e-07,
-        5.44065369e-07,
-        5.44940857e-07,
-        5.45816223e-07,
-        5.46691589e-07,
-        5.47566956e-07,
-        5.48442261e-07,
-        5.49317505e-07,
-        5.50192688e-07,
-        5.51067871e-07,
-        5.51942993e-07,
-        5.52818054e-07,
-        5.53693115e-07,
-        5.54568054e-07,
-        5.55442993e-07,
-        5.56317810e-07,
-        5.57192688e-07,
-        5.58067444e-07,
-        5.58942261e-07,
-        5.59816956e-07,
-        5.60691589e-07,
-        5.61566223e-07,
-        5.62440735e-07,
-        5.63315308e-07,
-        5.64189758e-07,
-        5.65064148e-07,
-        5.65938538e-07,
-        5.66812866e-07,
-        5.67687134e-07,
-        5.68561340e-07,
-        5.69435547e-07,
-        5.70309631e-07,
-        5.71183777e-07,
-        5.72057800e-07,
-        5.72931824e-07,
-        5.73805725e-07,
-        5.74679626e-07,
-        5.75553467e-07,
-        5.76427246e-07,
-        5.77300964e-07,
-        5.78174622e-07,
-        5.79048279e-07,
-        5.79921814e-07,
-        5.80795410e-07,
-        5.81668823e-07,
-        5.82542297e-07,
-        5.83415710e-07,
-        5.84289001e-07,
-        5.85162231e-07,
-        5.86035461e-07,
-        5.86908691e-07,
-        5.87781799e-07,
-        5.88654846e-07,
-        5.89527771e-07,
-        5.90400757e-07,
-        5.91273682e-07,
-        5.92146484e-07,
-        5.93019226e-07,
-        5.93892029e-07,
-        5.94764771e-07,
-        5.95637329e-07,
-        5.96509888e-07,
-        5.97382446e-07,
-        5.98254944e-07,
-        5.99127319e-07,
-        5.99999695e-07,
-        6.00871948e-07,
-        6.01744202e-07,
-        6.02616333e-07,
-        6.03488464e-07,
-        6.04360535e-07,
-        6.05232605e-07,
-        6.06104492e-07,
-        6.06976379e-07,
-        6.07848206e-07,
-        6.08719971e-07,
-        6.09591797e-07,
-        6.10463440e-07,
-        6.11335022e-07,
-        6.12206543e-07,
-        6.13078003e-07,
-        6.13949402e-07,
-        6.14820801e-07,
-        6.15692078e-07,
-        6.16563416e-07,
-        6.17434570e-07,
-        6.18305664e-07,
-        6.19176697e-07,
-        6.20047729e-07,
-        6.20918701e-07,
-        6.21789612e-07,
-        6.22660400e-07,
-        6.23531128e-07,
-        6.24401855e-07,
-        6.25272461e-07,
-        6.26143005e-07,
-        6.27013550e-07,
-        6.27883911e-07,
-        6.28754395e-07,
-        6.29624695e-07,
-        6.30494934e-07,
-        6.31365112e-07,
-        6.32235352e-07,
-        6.33105408e-07,
-        6.33975403e-07,
-        6.34845276e-07,
-        6.35715149e-07,
-        6.36584961e-07,
-        6.37454712e-07,
-        6.38324341e-07,
-        6.39193970e-07,
-        6.40063477e-07,
-        6.40933044e-07,
-        6.41802490e-07,
-        6.42671753e-07,
-        6.43541077e-07,
-        6.44410339e-07,
-        6.45279480e-07,
-        6.46148499e-07,
-        6.47017517e-07,
-        6.47886414e-07,
-        6.48755310e-07,
-        6.49624146e-07,
-        6.50492859e-07,
-        6.51361511e-07,
-        6.52230164e-07,
-        6.53098694e-07,
-        6.53967163e-07,
-        6.54835632e-07,
-        6.55703918e-07,
-        6.56572205e-07,
-        6.57440369e-07,
-        6.58308472e-07,
-        6.59176514e-07,
-        6.60044495e-07,
-        6.60912354e-07,
-        6.61780212e-07,
-        6.62647949e-07,
-        6.63515686e-07,
-        6.64383301e-07,
-        6.65250854e-07,
-        6.66118408e-07,
-        6.66985779e-07,
-        6.67853149e-07,
-        6.68720398e-07,
-        6.69587524e-07,
-        6.70454651e-07,
-        6.71321716e-07,
-        6.72188599e-07,
-        6.73055542e-07,
-        6.73922363e-07,
-        6.74789124e-07,
-        6.75655823e-07,
-        6.76522400e-07,
-        6.77388916e-07,
-        6.78255371e-07,
-        6.79121765e-07,
-        6.79988037e-07,
-        6.80854248e-07,
-        6.81720398e-07,
-        6.82586487e-07,
-        6.83452454e-07,
-        6.84318359e-07,
-        6.85184143e-07,
-        6.86049927e-07,
-        6.86915710e-07,
-        6.87781311e-07,
-        6.88646851e-07,
-        6.89512329e-07,
-        6.90377686e-07,
-        6.91242920e-07,
-        6.92108154e-07,
-        6.92973267e-07,
-        6.93838379e-07,
-        6.94703369e-07,
-        6.95568237e-07,
-        6.96433044e-07,
-        6.97297791e-07,
-        6.98162537e-07,
-        6.99027039e-07,
-        6.99891602e-07,
-        7.00756042e-07,
-        7.01620361e-07,
-        7.02484619e-07,
-        7.03348816e-07,
-        7.04212891e-07,
-        7.05076904e-07,
-        7.05940857e-07,
-        7.06804688e-07,
-        7.07668457e-07,
-        7.08532104e-07,
-        7.09395752e-07,
-        7.10259277e-07,
-        7.11122681e-07,
-        7.11986084e-07,
-        7.12849426e-07,
-        7.13712646e-07,
-        7.14575745e-07,
-        7.15438721e-07,
-        7.16301636e-07,
-        7.17164429e-07,
-        7.18027222e-07,
-        7.18889893e-07,
-        7.19752502e-07,
-        7.20615112e-07,
-        7.21477539e-07,
-        7.22339844e-07,
-        7.23202087e-07,
-        7.24064331e-07,
-        7.24926392e-07,
-        7.25788391e-07,
-        7.26650269e-07,
-        7.27512085e-07,
-        7.28373779e-07,
-        7.29235474e-07,
-        7.30096985e-07,
-        7.30958496e-07,
-        7.31819946e-07,
-        7.32681213e-07,
-        7.33542358e-07,
-        7.34403564e-07,
-        7.35264587e-07,
-        7.36125549e-07,
-        7.36986389e-07,
-        7.37847107e-07,
-        7.38707764e-07,
-        7.39568359e-07,
-        7.40428833e-07,
-        7.41289246e-07,
-        7.42149536e-07,
-        7.43009766e-07,
-        7.43869934e-07,
-        7.44729980e-07,
-        7.45589966e-07,
-        7.46449890e-07,
-        7.47309570e-07,
-        7.48169250e-07,
-        7.49028870e-07,
-        7.49888306e-07,
-        7.50747681e-07,
-        7.51607056e-07,
-        7.52466187e-07,
-        7.53325317e-07,
-        7.54184326e-07,
-        7.55043335e-07,
-        7.55902161e-07,
-        7.56760864e-07,
-        7.57619568e-07,
-        7.58478088e-07,
-        7.59336548e-07,
-        7.60194885e-07,
-        7.61053162e-07,
-        7.61911316e-07,
-        7.62769409e-07,
-        7.63627380e-07,
-        7.64485229e-07,
-        7.65343018e-07,
-        7.66200745e-07,
-        7.67058350e-07,
-        7.67915833e-07,
-        7.68773254e-07,
-        7.69630554e-07,
-        7.70487793e-07,
-        7.71344849e-07,
-        7.72201843e-07,
-        7.73058777e-07,
-        7.73915588e-07,
-        7.74772278e-07,
-        7.75628906e-07,
-        7.76485413e-07,
-        7.77341858e-07,
-        7.78198181e-07,
-        7.79054382e-07,
-        7.79910522e-07,
-        7.80766541e-07,
-        7.81622498e-07,
-        7.82478271e-07,
-        7.83333984e-07,
-        7.84189575e-07,
-        7.85045105e-07,
-        7.85900513e-07,
-        7.86755798e-07,
-        7.87610962e-07,
-        7.88466125e-07,
-        7.89321167e-07,
-        7.90176025e-07,
-        7.91030823e-07,
-        7.91885559e-07,
-        7.92740173e-07,
-        7.93594666e-07,
-        7.94449036e-07,
-        7.95303284e-07,
-        7.96157471e-07,
-        7.97011536e-07,
-        7.97865479e-07,
-        7.98719360e-07,
-        7.99573059e-07,
-        8.00426819e-07,
-        8.01280334e-07,
-        8.02133789e-07,
-        8.02987183e-07,
-        8.03840393e-07,
-        8.04693542e-07,
-        8.05546509e-07,
-        8.06399475e-07,
-        8.07252258e-07,
-        8.08104919e-07,
-        8.08957520e-07,
-        8.09809998e-07,
-        8.10662354e-07,
-        8.11514648e-07,
-        8.12366882e-07,
-        8.13218872e-07,
-        8.14070923e-07,
-        8.14922729e-07,
-        8.15774414e-07,
-        8.16626038e-07,
-        8.17477539e-07,
-        8.18328918e-07,
-        8.19180237e-07,
-        8.20031433e-07,
-        8.20882507e-07,
-    ]
-)
+# Intensity dataset
+def test_read_data_intensity():
+    """Test reading data for a CL intensity dataset."""
+    s = hs.load(testfile_intensity_path, reader="Delmic")
+
+    x = np.array([27147, 28907])
+    y = np.array([26964, 27695])
+    np.testing.assert_allclose(s.data[0], x)
+    np.testing.assert_allclose(s.data[1], y)
 
 
-def test_read():
+def test_read_axes_intensity():
+    """Test reading axes for a CL intensity dataset."""
+    s = hs.load(testfile_intensity_path, reader="Delmic")
+
+    # test X axis
+    assert s.axes_manager[0].name == "X"
+    assert s.axes_manager[0].units == "nm"
+
+    np.testing.assert_allclose(s.axes_manager[0].scale, 200)
+    np.testing.assert_allclose(s.axes_manager[0].offset, 0.0)
+    np.testing.assert_allclose(s.axes_manager[0].size, 2)
+
+    # test Y axis
+    assert s.axes_manager[1].name == "Y"
+    assert s.axes_manager[1].units == "nm"
+
+    np.testing.assert_allclose(s.axes_manager[1].scale, 200)
+    np.testing.assert_allclose(s.axes_manager[1].offset, 0.0)
+    np.testing.assert_allclose(s.axes_manager[1].size, 2)
+
+
+def test_read_metadata_intensity():
+    """Test reading metadata for a CL intensity dataset."""
+    s = hs.load(testfile_intensity_path, reader="Delmic")
+
+    assert s.metadata["General"]["title"] == ""
+    assert s.metadata["Signal"]["quantity"] == "Intensity (counts)"
+    assert s.metadata["Signal"]["signal_origin"] == ""
+    assert (
+        s.metadata["Signal"]["signal_type"] == ""
+    )  # to be modified in case of lumispy
+
+
+def test_read_original_metadata_intensity():
+    """Test reading original metadata for a CL intensity dataset."""
+    s = hs.load(testfile_intensity_path, reader="Delmic")
+
+    assert s.original_metadata["C"] == 1
+    assert s.original_metadata["T"] == 1
+    assert s.original_metadata["X"] == 2
+    assert s.original_metadata["Y"] == 2
+    assert s.original_metadata["Z"] == 1
+
+
+# Hyperspectral dataset
+def test_read_data_hyperspectral():
+    """Test reading data for a CL hyperspectral dataset."""
     s = hs.load(testfile_hyperspectral_path, reader="Delmic")
+    data = np.load(testfile_hyperspectral_data_path)
 
-    np.testing.assert_allclose(s.axes_manager[0].scale, 0.00010759749808557962)
-    np.testing.assert_allclose(s.axes_manager[0].offset, 0)
-    np.testing.assert_allclose(s.axes_manager[0].size, 4)
+    np.testing.assert_allclose(s.data, data)
 
-    np.testing.assert_allclose(s.axes_manager[1].scale, 0.00010759749808557962)
-    np.testing.assert_allclose(s.axes_manager[1].offset, 0)
-    np.testing.assert_allclose(s.axes_manager[1].size, 4)
+
+def test_read_axes_hyperspectral():
+    """Test reading axes for a CL hyperspectral dataset."""
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic")
+    ref = np.load(testfile_hyperspectral_wavelengths_path)
+
+    np.testing.assert_allclose(s.axes_manager[0].scale, 963.862901465797)
+    np.testing.assert_allclose(s.axes_manager[0].offset, -411.20439112265274)
+    np.testing.assert_allclose(s.axes_manager[0].size, 2)
+
+    np.testing.assert_allclose(s.axes_manager[1].scale, 963.862901465797)
+    np.testing.assert_allclose(s.axes_manager[1].offset, 362.48947994366983)
+    np.testing.assert_allclose(s.axes_manager[1].size, 3)
 
     np.testing.assert_allclose(s.axes_manager[2].axis, ref)
 
-    assert s.axes_manager[1].name == "X"
-    assert s.axes_manager[1].units == "µm"
+    assert s.axes_manager[0].name == "X"
+    assert s.axes_manager[0].units == "nm"
 
-    assert s.axes_manager[0].name == "Y"
+    assert s.axes_manager[1].name == "Y"
+    assert s.axes_manager[1].units == "nm"
+
+    assert s.axes_manager[2].name == "Wavelength"
+    assert s.axes_manager[2].units == "nm"
+
+
+def test_read_metadata_hyperspectral():
+    """Test reading metadata for a CL hyperspectral dataset."""
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic")
+
+    assert s.metadata["General"]["title"] == ""
+    assert s.metadata["Signal"]["quantity"] == "Intensity (counts)"
+    assert s.metadata["Signal"]["signal_origin"] == ""
+    assert (
+        s.metadata["Signal"]["signal_type"] == ""
+    )  # to be modified in case of lumispy
+
+
+def test_read_original_metadata_hyperspectral():
+    """Test reading original metadata for a CL hyperspectral dataset."""
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic")
+
+    assert s.original_metadata["C"] == 128
+    assert s.original_metadata["T"] == 1
+    assert s.original_metadata["X"] == 2
+    assert s.original_metadata["Y"] == 3
+    assert s.original_metadata["Z"] == 1
+
+
+# Time-resolved dataset
+def test_read_data_temporaltrace():
+    """Test reading data for a CL decay trace or g(2) datasets."""
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic")
+    data = np.load(testfile_temporaltrace_data_path)
+
+    np.testing.assert_allclose(s.data, data)
+
+
+def test_read_axes_temporaltrace():
+    """Test reading axes for a CL decay trace or g(2) datasets."""
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic")
+    ref = np.load(testfile_temporaltrace_timelist_path)
+
+    np.testing.assert_allclose(s.axes_manager[0].scale, 917.1372563963987)
+    np.testing.assert_allclose(s.axes_manager[0].offset, -314.999999999998)
+    np.testing.assert_allclose(s.axes_manager[0].size, 2)
+
+    np.testing.assert_allclose(s.axes_manager[1].scale, 917.1372563963987)
+    np.testing.assert_allclose(s.axes_manager[1].offset, 350.00000000000034)
+    np.testing.assert_allclose(s.axes_manager[1].size, 3)
+
+    np.testing.assert_allclose(s.axes_manager[2].axis, ref)
+
+    assert s.axes_manager[0].name == "X"
+    assert s.axes_manager[0].units == "nm"
+
+    assert s.axes_manager[1].name == "Y"
+    assert s.axes_manager[1].units == "nm"
+
+    assert s.axes_manager[2].name == "Time"
+    assert s.axes_manager[2].units == "ns"
+
+
+def test_read_metadata_temporaltrace():
+    """Test reading metadata for a CL decay trace or g(2) datasets."""
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic")
+
+    assert s.metadata["General"]["title"] == ""
+    assert s.metadata["Signal"]["quantity"] == "Intensity (counts)"
+    assert s.metadata["Signal"]["signal_origin"] == ""
+    assert (
+        s.metadata["Signal"]["signal_type"] == ""
+    )  # to be modified in case of lumispy
+
+
+def test_read_original_metadata_temporaltrace():
+    """Test reading original metadata for a CL decay trace or g(2) datasets."""
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic")
+
+    assert s.original_metadata["C"] == 1
+    assert s.original_metadata["T"] == 65536
+    assert s.original_metadata["X"] == 2
+    assert s.original_metadata["Y"] == 3
+    assert s.original_metadata["Z"] == 1
+
+
+# Streak camera dataset
+def test_read_data_streakcamera():
+    """Test reading data for a CL streak camera dataset."""
+    s = hs.load(testfile_streakcamera_path, reader="Delmic")
+    data = np.load(testfile_streakcamera_data_path)
+
+    np.testing.assert_allclose(s.data, data)
+
+
+def test_read_axes_streakcamera():
+    """Test reading axes for a CL streak camera dataset."""
+    s = hs.load(testfile_streakcamera_path, reader="Delmic")
+    ref_t = np.load(testfile_streakcamera_timelist_path)
+    ref_w = np.load(testfile_streakcamera_wavelengths_path)
+
+    np.testing.assert_allclose(s.axes_manager[0].scale, 3.1073798455896666)
+    np.testing.assert_allclose(s.axes_manager[0].offset, -2.411301009767636)
+    np.testing.assert_allclose(s.axes_manager[0].size, 3)
+
+    np.testing.assert_allclose(s.axes_manager[1].scale, 3.1073798455896666)
+    np.testing.assert_allclose(s.axes_manager[1].offset, 0.573579891248638)
+    np.testing.assert_allclose(s.axes_manager[1].size, 2)
+
+    np.testing.assert_allclose(s.axes_manager[3].axis, ref_t)
+    np.testing.assert_allclose(s.axes_manager[2].axis, ref_w)
+
+    assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "µm"
 
-    assert s.axes_manager[2].units == "nm"
+    assert s.axes_manager[1].name == "Y"
+    assert s.axes_manager[1].units == "µm"
+
+    assert s.axes_manager[3].name == "Time"
+    assert s.axes_manager[3].units == "s"
+
     assert s.axes_manager[2].name == "Wavelength"
+    assert s.axes_manager[2].units == "nm"
+
+
+def test_read_metadata_streakcamera():
+    """Test reading metadata for a CL streack camera dataset."""
+    s = hs.load(testfile_streakcamera_path, reader="Delmic")
+
+    assert s.metadata["General"]["title"] == ""
+    assert s.metadata["Signal"]["quantity"] == "Intensity (counts)"
+    assert s.metadata["Signal"]["signal_origin"] == ""
+    assert (
+        s.metadata["Signal"]["signal_type"] == ""
+    )  # to be modified in case of lumispy
+
+
+def test_read_original_metadata_streakcamera():
+    """Test reading original metadata for a CL streak camera dataset."""
+    s = hs.load(testfile_streakcamera_path, reader="Delmic")
+
+    assert s.original_metadata["C"] == 256
+    assert s.original_metadata["T"] == 256
+    assert s.original_metadata["X"] == 3
+    assert s.original_metadata["Y"] == 2
+    assert s.original_metadata["Z"] == 1
+
+
+# E-k dataset
+def test_read_data_ek():
+    """Test reading data for a CL AR Spectrum (E-k) dataset."""
+    s = hs.load(testfile_ek_path, reader="Delmic")
+    data = np.load(testfile_ek_data_path)
+
+    np.testing.assert_allclose(s.data, data)
+
+
+def test_read_axes_ek():
+    """Test reading axes for a CL AR Spectrum (E-k) dataset."""
+    s = hs.load(testfile_ek_path, reader="Delmic")
+    ref_a = np.load(testfile_ek_channels_path)
+    ref_w = np.load(testfile_ek_wavelengths_path)
+
+    np.testing.assert_allclose(s.axes_manager[0].scale, 299.0099783670874)
+    np.testing.assert_allclose(s.axes_manager[0].offset, -184.58470506959597)
+    np.testing.assert_allclose(s.axes_manager[0].size, 3)
+
+    np.testing.assert_allclose(s.axes_manager[1].scale, 299.0099783670874)
+    np.testing.assert_allclose(s.axes_manager[1].offset, 83.36029719057113)
+    np.testing.assert_allclose(s.axes_manager[1].size, 2)
+
+    np.testing.assert_allclose(s.axes_manager[3].axis, ref_a)
+    np.testing.assert_allclose(s.axes_manager[2].axis, ref_w)
+
+    assert s.axes_manager[0].name == "X"
+    assert s.axes_manager[0].units == "nm"
+
+    assert s.axes_manager[1].name == "Y"
+    assert s.axes_manager[1].units == "nm"
+
+    assert s.axes_manager[2].name == "Wavelength"
+    assert s.axes_manager[2].units == "nm"
+
+    assert s.axes_manager[3].name == "Angle"
+    assert s.axes_manager[3].units == ""
+
+
+def test_read_metadata_ek():
+    """Test reading metadata for a CL AR Spectrum (E-k) dataset."""
+    s = hs.load(testfile_ek_path, reader="Delmic")
+
+    assert s.metadata["General"]["title"] == ""
+    assert s.metadata["Signal"]["quantity"] == "Intensity (counts)"
+    assert s.metadata["Signal"]["signal_origin"] == ""
+    assert (
+        s.metadata["Signal"]["signal_type"] == ""
+    )  # to be modified in case of lumispy
+
+
+def test_read_original_metadata_ek():
+    """Test reading original metadata for a CL AR Spectrum (E-k) dataset."""
+    s = hs.load(testfile_ek_path, reader="Delmic")
+
+    assert s.original_metadata["C"] == 160
+    assert s.original_metadata["A"] == 135
+    assert s.original_metadata["X"] == 3
+    assert s.original_metadata["Y"] == 2
+    assert s.original_metadata["Z"] == 1
+
+
+# Angle-resolved dataset
+def test_read_data_AR():
+    """Test reading data for a CL AR dataset."""
+    s = hs.load(testfile_AR_path, reader="Delmic")
+    data = np.load(testfile_AR_data_path)
+
+    np.testing.assert_allclose(s.data, data)
+
+
+def test_read_axes_AR():
+    """Test reading axes for a CL AR dataset."""
+    s = hs.load(testfile_AR_path, reader="Delmic")
+    ref_a = np.load(testfile_AR_angles_path)
+    ref_w = np.load(testfile_AR_channels_path)
+
+    np.testing.assert_allclose(s.axes_manager[0].scale, 963.8629014657938)
+    np.testing.assert_allclose(s.axes_manager[0].offset, -403.5624697252699)
+    np.testing.assert_allclose(s.axes_manager[0].size, 2)
+
+    np.testing.assert_allclose(s.axes_manager[1].scale, 963.8629014657942)
+    np.testing.assert_allclose(s.axes_manager[1].offset, 393.0571655331861)
+    np.testing.assert_allclose(s.axes_manager[1].size, 3)
+
+    np.testing.assert_allclose(s.axes_manager[2].axis, ref_a)
+    np.testing.assert_allclose(s.axes_manager[3].axis, ref_w)
+
+    assert s.axes_manager[0].name == "X"
+    assert s.axes_manager[0].units == "nm"
+
+    assert s.axes_manager[1].name == "Y"
+    assert s.axes_manager[1].units == "nm"
+
+    assert s.axes_manager[3].name == "C"
+    assert s.axes_manager[3].units == ""
+
+    assert s.axes_manager[2].name == "Angle"
+    assert s.axes_manager[2].units == ""
+
+
+def test_read_metadata_AR():
+    """Test reading metadata for a CL AR dataset."""
+    s = hs.load(testfile_AR_path, reader="Delmic")
+
+    assert s.metadata["General"]["title"] == ""
+    assert s.metadata["Signal"]["quantity"] == "Intensity (counts)"
+    assert s.metadata["Signal"]["signal_origin"] == ""
+    assert (
+        s.metadata["Signal"]["signal_type"] == ""
+    )  # to be modified in case of lumispy
+
+
+def test_read_original_metadata_AR():
+    """Test reading original metadata for a CL AR dataset."""
+    s = hs.load(testfile_AR_path, reader="Delmic")
+
+    assert s.original_metadata["A"] == 256
+    assert s.original_metadata["X"] == 2
+    assert s.original_metadata["Y"] == 3
+    assert s.original_metadata["Z"] == 256

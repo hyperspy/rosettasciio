@@ -1,0 +1,1 @@
+Raise a warning instead of an error when the beam energy can't be found in :ref:`bruker-format` xrf files.

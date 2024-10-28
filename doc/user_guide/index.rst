@@ -11,5 +11,6 @@ how to use RosettaSciIO with other libraries than HyperSpy/ with other languages
    :maxdepth: 2
    
    install
-   supported_formats/index
    interoperability
+
+.. include:: install.rst

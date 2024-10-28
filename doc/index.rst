@@ -30,17 +30,18 @@ well represented.
     :octicon:`rocket;2em;sd-text-info` Getting Started
     ^^^
 
-    New to rosettasciio or Python? The getting started guide provides an
-    introduction on basic usage of rosettasciio and how to install it.
+    New to RosettaSciIO or Python? Find information on how to
+    install RosettaSciIO.
 
   .. grid-item-card::
-    :link: user_guide/supported_formats/index
+    :link: supported_formats/index
     :link-type: doc
 
     :octicon:`checklist;2em;sd-text-info` Supported Formats
     ^^^
 
-    This provides a nice overview of the different files that can be read and written by rosettasciio.
+    Overview of the different file formats that RosettaSciIO can read
+    from and write to, as well as information on specific options if applicable.
 
   .. grid-item-card::
     :link: user_guide/interoperability
@@ -49,7 +50,8 @@ well represented.
     :octicon:`arrow-switch;2em;sd-text-info` Interoperability
     ^^^
 
-    Documentation describing how to use rosettasciio with other libraries than HyperSpy.
+    Information on scripts and packages that allow opening data saved using
+    RosettaSciIO with third-party programs.
 
   .. grid-item-card::
     :link: file_specification/index
@@ -58,7 +60,8 @@ well represented.
     :octicon:`checklist;2em;sd-text-info` File Specifications
     ^^^
 
-    Links to File Specifications for the different file formats supported by rosettasciio.
+    Links to or documentation of file specifications for
+    some of the formats supported by RosettaSciIO.
 
   .. grid-item-card::
     :link: api/index
@@ -67,7 +70,9 @@ well represented.
     :octicon:`book;2em;sd-text-info` API Reference
     ^^^
 
-    Documentation of the Application Programming Interface (API),
+    Documentation describing how to use RosettaSciIO with other
+    libraries than HyperSpy or for custom implementations using the
+    Application Programming Interface (API).
 
   .. grid-item-card::
     :link: contributing
@@ -76,12 +81,12 @@ well represented.
     :octicon:`code-square;2em;sd-text-info` Contributing
     ^^^
 
-    Information on how to contribute to the development of rosettasciio.
+    Information on how to implement new file plugins or help improve existing ones.
 
 
 RosettaSciIO provides the dataset, its axes and related metadata contained in a
-file in a python dictionary that can be easily handled by other libraries.
-Similarly, it takes a dictionary as input for file writers.
+file in a :ref:`python dictionary <interfacing-api>` that can be easily
+handled by other libraries.
 
 .. note::
 
@@ -126,6 +131,7 @@ Table of contents
 
    user_guide/index
    file_specification/index
+   supported_formats/index
    api/index
    contributing
    changes

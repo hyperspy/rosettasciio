@@ -150,7 +150,7 @@ def read_de_metadata_file(filename, nav_shape=None):
     ----------
     filename : str
         The filename of the metadata file.
-    navigation_shape : tuple
+    nav_shape : tuple
         The shape of the navigation axes.
 
     Returns
@@ -320,11 +320,15 @@ def file_reader(
     %s
     %s
     metadata_file : str
-        The filename of the metadata file.
+        The filename of the metadata file, if "auto" it will try to find the
+        metadata file automatically. For DE movies of 4D STEM datasets this
+        defines the shape and metadata.
     virtual_images : list
-        A list of filenames of virtual images.
+        A list of filenames of virtual images. For DE movies these are automatically loaded.
     external_images : list
-        A list of filenames of external images.
+        A list of filenames of external images (e.g. external detectors) to be loaded
+        alongside the main data. For DE movies these are automatically loaded.
+
     %s
     """
     if metadata_file == "auto":

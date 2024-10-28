@@ -75,10 +75,13 @@ for fast plotting.
     import hyperspy.api as hs
 
     # Will automatically load metadata_file="20220101_0001_info.txt" and any external/virtual images with the same naming convention
-    hs.load("20220101_0001_movie.mrc")
+    s = hs.load("20220101_0001_movie.mrc")
+    s # <Signal2D, title: 20220101_0001_movie, dimensions: (32, 32|256, 256)>
     hs.load("data.mrc", metadata_file="data_info.txt") # Will load metadata from data_info.txt
-    hs.load("20220101_0001_movie.mrc", external_images=["20220101_0001_ext1_Ext #1.mrc"]) # Will load external image 1
-    hs.load("20220101_0001_movie.mrc", virtual_images=["20220101_0001_1_Virtual #1.mrc"]) # Will load virtual image 1
+    s = hs.load("20220101_0001_movie.mrc", external_images=["20220101_0001_ext1_Ext #1.mrc"]) # Will load external image 1
+    s.metadata["General"]["external_detectors"][0] # <Signal2D, title:, dimensions: (|32,32)>
+    s = hs.load("20220101_0001_movie.mrc", virtual_images=["20220101_0001_1_Virtual #1.mrc"]) # Will load virtual image 1
+    s.metadata["General"]["virtual_images"][0] # <Signal2D, title:, dimensions: (|32,32)>
 
 API functions
 ^^^^^^^^^^^^^

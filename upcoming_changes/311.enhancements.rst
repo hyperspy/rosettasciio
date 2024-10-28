@@ -1,0 +1,5 @@
+:ref:`Direct Electron MRC <mrc-format>`:
+
+- add support for newer version of DE server,
+- add support foe discovering metadata file (``*_info.txt``) based on the naming scheme.
+

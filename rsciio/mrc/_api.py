@@ -308,7 +308,7 @@ def file_reader(
     external_images=None,
 ):
     """
-    File reader for the MRC format for tomographic data.
+    File reader for the MRC format for tomographic and 4D-STEM data.
 
     Parameters
     ----------

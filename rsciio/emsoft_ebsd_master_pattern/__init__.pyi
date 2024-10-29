@@ -15,6 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with kikuchipy. If not, see <http://www.gnu.org/licenses/>.
 
-from . import plugins
+from ._api import file_reader
 
-__all__ = ["plugins"]
+__all__ = ["file_reader"]

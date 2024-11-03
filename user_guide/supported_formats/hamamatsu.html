@@ -457,20 +457,24 @@
 <span id="hamamatsu-format"></span><h1>Hamamatsu<a class="headerlink" href="#hamamatsu" title="Link to this heading">#</a></h1>
 <p>Reader for spectroscopy data saved in <code class="docutils literal notranslate"><span class="pre">.img</span></code> (ITEX) files from the HPD-TA
 (High Performance Digital Temporal Analyzer) or HiPic (High Performance image control)
-softwares from Hamamatsu, e.g. for streak cameras or high performance CCD cameras.</p>
-<p>If <a class="reference external" href="https://lumispy.org">LumiSpy</a> is installed, <code class="docutils literal notranslate"><span class="pre">Luminescence</span></code> will be
-used as the <code class="docutils literal notranslate"><span class="pre">signal_type</span></code>.</p>
+softwares from Hamamatsu, e.g. for images from streak cameras or high performance
+CCD cameras.</p>
+<p>If <a class="reference external" href="https://lumispy.org">LumiSpy</a> is installed, <code class="docutils literal notranslate"><span class="pre">LumiTransientSpectrum</span></code> will be
+used as the <code class="docutils literal notranslate"><span class="pre">signal_type</span></code>, which is intended for streak camera images with
+both wavelength and time axes.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Reading files containing multiple channels or multiple images per channel
-is not implemented.</p>
+<p>Currently, reading files containing multiple channels or multiple images per
+channel is not implemented.</p>
 </div>
 <section id="module-rsciio.hamamatsu">
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.hamamatsu" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.hamamatsu.file_reader">
 <span class="sig-prename descclassname"><span class="pre">rsciio.hamamatsu.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_uniform_signal_axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.hamamatsu.file_reader" title="Link to this definition">#</a></dt>
-<dd><p>Read Hamamatsu’s <code class="docutils literal notranslate"><span class="pre">.img</span></code> file.</p>
+<dd><p>Read Hamamatsu’s <code class="docutils literal notranslate"><span class="pre">.img</span></code> file, e.g. for streak camera images. In case
+LumiSpy is installed, the signal type is automatically set to
+<code class="docutils literal notranslate"><span class="pre">LumiTransientSpectrum</span></code>.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>

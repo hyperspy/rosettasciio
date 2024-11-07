@@ -15,46 +15,37 @@
 # You should have received a copy of the GNU General Public License
 # along with kikuchipy. If not, see <http://www.gnu.org/licenses/>.
 
-"""Reader of simulated ECP master patterns from an EMsoft HDF5 file.
+"""Reader of simulated EBSD master patterns from an EMsoft HDF5 file.
 """
 
 from pathlib import Path
 
 from kikuchipy.io.plugins._emsoft_master_pattern import EMsoftMasterPatternReader
 
-__all__ = ["file_reader"]
+ENERGY_ARG = """Desired beam energy or energy range. If not given (default), all
+        available energies are read.
+"""
+PROJECTION_ARG = """Projection(s) to read. Options are "stereographic" (default) or
+        "lambert".
+"""
+HEMISPHERE_ARG = """Projection hemisphere(s) to read. Options are "upper" (default),
+        "lower", or "both". If "both", these will be stacked in the
+        vertical navigation axis.
+"""
 
 
-# Plugin characteristics
-# ----------------------
-format_name = "emsoft_ecp_master_pattern"
-description = (
-    "Read support for simulated electron channeling pattern (ECP)"
-    "master patterns stored in an EMsoft HDF5 file."
-)
-full_support = False
-# Recognised file extension
-file_extensions = ["h5", "hdf5"]
-default_extension = 0
-# Writing capabilities
-writes = False
-
-# Unique HDF5 footprint
-footprint = ["emdata/ecpmaster"]
-
-
-class EMsoftECPMasterPatternReader(EMsoftMasterPatternReader):
+class EMsoftEBSDMasterPatternReader(EMsoftMasterPatternReader):
     @property
     def diffraction_type(self) -> str:
-        return "ECP"
+        return "EBSD"
 
     @property
     def cl_parameters_group_name(self) -> str:
-        return "MCCL"  # Monte Carlo openCL
+        return "MCCL"  # Monte Carlo OpenCL
 
     @property
     def energy_string(self) -> str:
-        return "EkeV"
+        return "EkeVs"
 
 
 def file_reader(
@@ -65,7 +56,7 @@ def file_reader(
     lazy: bool = False,
     **kwargs,
 ) -> list[dict]:
-    """Read simulated electron channeling pattern (ECP) master patterns
+    """Read simulated electron backscatter diffraction master patterns
     from EMsoft's HDF5 file format :cite:`callahan2013dynamical`.
 
     Not meant to be used directly; use :func:`~kikuchipy.load`.
@@ -73,30 +64,26 @@ def file_reader(
     Parameters
     ----------
     filename
-        Full file path of the HDF file.
+        Full file path of the HDF5 file.
     energy
-        Desired beam energy or energy range. If not given (default), all
-        available energies are read.
+        %s
     projection
-        Projection(s) to read. Options are ``"stereographic"`` (default)
-        or ``"lambert"``.
+        %s
     hemisphere
-        Projection hemisphere(s) to read. Options are ``"upper"``
-        (default), ``"lower"`` or ``"both"``. If ``"both"``, these will
-        be stacked in the vertical navigation axis.
+        %s
     lazy
         Open the data lazily without actually reading the data from disk
         until requested. Allows opening datasets larger than available
-        memory. Default is ``False``.
+        memory. Default is False.
     **kwargs
         Keyword arguments passed to :class:`h5py.File`.
 
     Returns
     -------
     signal_dict_list
-        Data, axes, metadata and original metadata.
+        Data, axes, metadata, and original metadata.
     """
-    reader = EMsoftECPMasterPatternReader(
+    reader = EMsoftEBSDMasterPatternReader(
         filename=filename,
         energy=energy,
         projection=projection,
@@ -104,3 +91,6 @@ def file_reader(
         lazy=lazy,
     )
     return reader.read(**kwargs)
+
+
+file_reader.__doc__ %= (ENERGY_ARG, PROJECTION_ARG, HEMISPHERE_ARG)

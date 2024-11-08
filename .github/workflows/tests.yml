@@ -110,6 +110,12 @@ jobs:
           python --version
           pip --version
 
+      - name: Install traits dev for python 3.13
+        if: ${{ matrix.PYTHON_VERSION == '3.13' }}
+        run: |
+          # traits release with python 3.13 pending
+          pip install git+https://github.com/enthought/traits.git
+
       - name: Install hyperspy and exspy
         if: ${{ ! contains(matrix.LABEL, 'without-hyperspy') }}
         run: |

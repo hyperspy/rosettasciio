@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -35,9 +36,11 @@ TEST_DATA_PATH_OLD = TEST_DATA_PATH / "old"
 def prepare_non_zero_float():
     import tarfile
 
+    kwargs = {"filter": "data"} if sys.version_info.minor >= 12 else {}
+
     tgz_fname = TEST_DATA_PATH_OLD / "non_float_meta_value_zeroed.tar.gz"
     with tarfile.open(tgz_fname, "r:gz") as tar:
-        tar.extractall(path=TEST_DATA_PATH_OLD)
+        tar.extractall(path=TEST_DATA_PATH_OLD, **kwargs)
 
     yield
 

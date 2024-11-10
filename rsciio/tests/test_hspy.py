@@ -39,6 +39,7 @@ from hyperspy.axes import (  # noqa: E402
     UniformDataAxis,
 )
 from hyperspy.decorators import lazifyTestClass  # noqa: E402
+from hyperspy.exceptions import VisibleDeprecationWarning  # noqa: E402
 from hyperspy.misc.test_utils import sanitize_dict as san_dict  # noqa: E402
 
 from rsciio._hierarchical import get_signal_chunks  # noqa: E402
@@ -419,7 +420,9 @@ def test_none_metadata():
 
 def test_rgba16():
     print(TEST_DATA_PATH)
-    s = hs.load(TEST_DATA_PATH / "test_rgba16.hdf5", reader="HSPY")
+    with pytest.warns(VisibleDeprecationWarning):
+        #  The binned attribute has been moved from metadata.Signal
+        s = hs.load(TEST_DATA_PATH / "test_rgba16.hdf5", reader="HSPY")
     data = np.load(TEST_NPZ_DATA_PATH / "test_rgba16.npz")["a"]
     assert (s.data == data).all()
 
@@ -784,7 +787,9 @@ class TestPermanentMarkersIO:
         # the point marker only needs the x1 and y1 value to work
         # so this should load
         fname = TEST_DATA_PATH / "test_marker_point_y2_data_deleted.hdf5"
-        s = hs.load(fname, reader="HSPY")
+        with pytest.warns(VisibleDeprecationWarning):
+            # The binned attribute has been moved from metadata.Signal
+            s = hs.load(fname, reader="HSPY")
         assert len(s.metadata.Markers) == 5
 
     def test_save_variable_length_markers(self, tmp_path):
@@ -893,14 +898,12 @@ def test_saving_ragged_array_single_string(tmp_path, file):
 @zspy_marker
 @pytest.mark.parametrize("lazy", [True, False])
 def test_save_load_model(tmp_path, file, lazy):
-    from hyperspy._components.gaussian import Gaussian
-
     filename = tmp_path / file
     s = hs.signals.Signal1D(np.ones((10, 10, 10, 10)))
     if lazy:
         s = s.as_lazy()
     m = s.create_model()
-    m.append(Gaussian())
+    m.append(hs.model.components1D.Gaussian())
     m.store("test")
     s.save(filename)
     signal2 = hs.load(filename)

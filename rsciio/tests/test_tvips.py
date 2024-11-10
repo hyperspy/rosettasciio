@@ -445,12 +445,17 @@ def test_file_writer(
 
     filepath = tmp_path / "test_tvips_save_000.tvips"
     scan_shape = signal.axes_manager.navigation_shape
-    file_writer(
-        filepath,
-        signal._to_dictionary(),
-        max_file_size=max_file_size,
-        frame_header_extra_bytes=fheb,
-    )
+    if max_file_size is not None and max_file_size < 500:
+        cm = pytest.warns(UserWarning)
+    else:
+        cm = dummy_context_manager()
+    with cm:
+        file_writer(
+            filepath,
+            signal._to_dictionary(),
+            max_file_size=max_file_size,
+            frame_header_extra_bytes=fheb,
+        )
     if max_file_size is None:
         assert len(list(tmp_path.iterdir())) == 1
     else:

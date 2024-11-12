@@ -31,6 +31,7 @@
 <link href="../../_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../_static/custom-styles.css" />
   
   <!-- So that users can add custom icons -->
@@ -42,6 +43,8 @@
     <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=d1c4098b"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/supported_formats/tvips';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -490,7 +493,7 @@ manually recorded.</p>
 <dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
 </dd>
 <dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not. The file will stay open
-until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/base_classes/signal/LazySignal.html#hyperspy._signals.lazy.LazySignal.compute" title="(in HyperSpy v2.1)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
+until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/base_classes/signal/LazySignal.html#hyperspy._signals.lazy.LazySignal.compute" title="(in HyperSpy v2.2)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
 or closed manually. <a class="reference internal" href="../../api/utils.html#rsciio.utils.tools.get_file_handle" title="rsciio.utils.tools.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
 can be used to access the file handler and close it manually.</p>
 </dd>

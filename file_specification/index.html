@@ -31,6 +31,7 @@
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
   
   <!-- So that users can add custom icons -->
@@ -42,6 +43,8 @@
     <script src="../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=d1c4098b"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'file_specification/index';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -429,6 +432,18 @@ available publicly available from EDAX:</p>
 <h2>Ripple (Lispix)<a class="headerlink" href="#ripple-lispix" title="Link to this heading">#</a></h2>
 <p><a class="reference internal" href="ripple-specs.html#ripple-file-specification"><span class="std std-ref">Format description</span></a> for the <a class="reference internal" href="../user_guide/supported_formats/ripple.html#ripple-format"><span class="std std-ref">ripple</span></a> file format.</p>
 </section>
+<section id="mrc-ccp-em">
+<h2>MRC (CCP-EM)<a class="headerlink" href="#mrc-ccp-em" title="Link to this heading">#</a></h2>
+<p>The <a class="reference internal" href="../user_guide/supported_formats/mrc.html#mrc-format"><span class="std std-ref">MRC</span></a> file format is a standard open file format for electron microscopy data and is
+defined by  <a class="reference external" href="https://doi.org/10.1016/j.jsb.2015.04.002">Cheng et al</a>. The file format is described in
+detail following the link as well:  <a class="reference external" href="https://www.ccpem.ac.uk/mrc_format/mrc2014.php">MRC2014</a>.</p>
+<p>Additionally Direct Electron saves a couple of files along with the <code class="docutils literal notranslate"><span class="pre">.mrc</span></code> file. In general, the file naming
+scheme is CurrentDate_MovieNumber_suffix_movie.mrc with the metadata file named CurrentDate_MovieNumber_suffix_info.txt.
+and different external detectors or virtual images are saved as CurrentDate_MovieNumber_suffix_ext#_extName.mrc or
+CurrentDate_MovieNumber_suffix_#_virtualName.mrc respectively. The suffix is optional and can be any
+string or left empty. By default Virtual image 0 is the sum at each navigation point and is equivalent to the
+navigation image.</p>
+</section>
 </section>
 
 
@@ -480,6 +495,7 @@ available publicly available from EDAX:</p>
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#edax">EDAX</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ripple-lispix">Ripple (Lispix)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mrc-ccp-em">MRC (CCP-EM)</a></li>
 </ul>
   </nav></div>
 

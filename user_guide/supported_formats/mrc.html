@@ -31,6 +31,7 @@
 <link href="../../_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../_static/custom-styles.css" />
   
   <!-- So that users can add custom icons -->
@@ -42,6 +43,8 @@
     <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=d1c4098b"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/supported_formats/mrc';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -466,10 +469,10 @@ specify the shape of the navigation space.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>For <code class="docutils literal notranslate"><span class="pre">.mrc</span></code> files, the <code class="docutils literal notranslate"><span class="pre">file_reader</span></code> takes the <code class="docutils literal notranslate"><span class="pre">mmap_mode</span></code> keyword argument
-to load the file using a different mode (default is copy-on-write) . However,
-note that lazy loading does not support in-place writing (i.e lazy loading and
-the <code class="docutils literal notranslate"><span class="pre">r+</span></code> mode are incompatible).</p>
+<p>For <code class="docutils literal notranslate"><span class="pre">.mrc</span></code> files, the <a class="reference internal" href="#rsciio.mrc.file_reader" title="rsciio.mrc.file_reader"><code class="xref py py-func docutils literal notranslate"><span class="pre">file_reader()</span></code></a> takes the <code class="docutils literal notranslate"><span class="pre">mmap_mode</span></code>
+keyword argument to load the file using a different mode (default is copy-on-write).
+However, note that lazy loading does not support in-place writing (i.e lazy loading
+and the <code class="docutils literal notranslate"><span class="pre">r+</span></code> mode are incompatible).</p>
 </div>
 <p>See also the <a class="reference external" href="https://www.ccpem.ac.uk/mrc_format/mrc_format.php">format documentation</a>
 by the Collaborative Computational Project for Electron cryo-Microscopy (CCP-EM).</p>
@@ -478,24 +481,24 @@ using the <a class="reference internal" href="mrcz.html#mrcz-format"><span class
 <a class="reference external" href="https://python-mrcz.readthedocs.io">mrcz format</a> should be used in order
 to write a <code class="docutils literal notranslate"><span class="pre">.mrc</span></code> compliant file. In particular, the <code class="docutils literal notranslate"><span class="pre">compressor</span></code> argument should
 not be passed (Default is <code class="docutils literal notranslate"><span class="pre">None</span></code>):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">rsciio</span> <span class="kn">import</span> <span class="n">mrcz</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio</span> <span class="kn">import</span> <span class="n">mrcz</span>
 
-<span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int16&#39;</span><span class="p">)</span>
-<span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">Signal2D</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-<span class="n">s_dict</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">as_dictionary</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int16&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">Signal2D</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s_dict</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">as_dictionary</span><span class="p">()</span>
 
-<span class="n">mrcz</span><span class="o">.</span><span class="n">file_writer</span><span class="p">(</span><span class="s1">&#39;test.mrc&#39;</span><span class="p">,</span> <span class="n">s_dict</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mrcz</span><span class="o">.</span><span class="n">file_writer</span><span class="p">(</span><span class="s1">&#39;test.mrc&#39;</span><span class="p">,</span> <span class="n">s_dict</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Alternatively, use <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.signals/BaseSignal.html#hyperspy.api.signals.BaseSignal.save" title="(in HyperSpy v2.1)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal.save()</span></code></a>, which will pick the
+<p>Alternatively, use <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.signals/BaseSignal.html#hyperspy.api.signals.BaseSignal.save" title="(in HyperSpy v2.2)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal.save()</span></code></a>, which will pick the
 <code class="docutils literal notranslate"><span class="pre">mrcz</span></code> plugin automatically:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">hyperspy.api</span> <span class="k">as</span> <span class="nn">hs</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">hyperspy.api</span> <span class="k">as</span> <span class="nn">hs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int16&#39;</span><span class="p">)</span>
-<span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">Signal2D</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-<span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;data.mrc&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int16&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">Signal2D</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;data.mrc&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -504,24 +507,61 @@ not be passed (Default is <code class="docutils literal notranslate"><span class
 <p>Loading from Direct Electron’s <code class="docutils literal notranslate"><span class="pre">.mrc</span></code> as well as reading the metadata from the .txt file
 saved by the software is supported by passing the <code class="docutils literal notranslate"><span class="pre">metadata_file</span></code> argument to the
 <code class="docutils literal notranslate"><span class="pre">file_reader</span></code> function. The <code class="docutils literal notranslate"><span class="pre">metadata_file</span></code> argument can be a string or a file-like
-object.</p>
+object. Additionally, the <code class="docutils literal notranslate"><span class="pre">metadata_file</span></code> argument can be automatically inferred.  This requires
+that the file name is of the form <code class="docutils literal notranslate"><span class="pre">uniqueid_suffix_movie.mrc</span></code> and that the metadata file is
+named <code class="docutils literal notranslate"><span class="pre">uniqueid_suffix_info.txt</span></code>.</p>
 <p>This will automatically set the navigation shape based on the <code class="docutils literal notranslate"><span class="pre">Scan</span> <span class="pre">-</span> <span class="pre">Size</span> <span class="pre">X</span></code> and                                                   = 256
-<code class="docutils literal notranslate"><span class="pre">Scan</span> <span class="pre">-</span> <span class="pre">Size</span> <span class="pre">Y</span></code> as well as the <code class="docutils literal notranslate"><span class="pre">Scan</span> <span class="pre">-</span> <span class="pre">Repeats</span></code> and <code class="docutils literal notranslate"><span class="pre">Scan</span> <span class="pre">-</span> <span class="pre">Point</span> <span class="pre">Repeats</span></code>
-parameters in the metadata file. The navigation shape can be overridden
-by passing the <code class="docutils literal notranslate"><span class="pre">navigation_shape</span></code> argument to the <code class="docutils literal notranslate"><span class="pre">file_reader</span></code> function.</p>
+<code class="docutils literal notranslate"><span class="pre">Scan</span> <span class="pre">-</span> <span class="pre">Size</span> <span class="pre">Y</span></code> parameters in the metadata file. The navigation shape can be overridden
+by passing the <code class="docutils literal notranslate"><span class="pre">navigation_shape</span></code> argument to the <a class="reference internal" href="#rsciio.mrc.file_reader" title="rsciio.mrc.file_reader"><code class="xref py py-func docutils literal notranslate"><span class="pre">file_reader()</span></code></a> function.</p>
+<p>Additionally virtual_images/ external detectors can be loaded by passing a list of file names to the
+<code class="docutils literal notranslate"><span class="pre">external_images</span></code> or the <code class="docutils literal notranslate"><span class="pre">virtual_images</span></code> parameter.  This will also automatically be inferred
+if the file names are of the form <code class="docutils literal notranslate"><span class="pre">uniqueid_suffix_ext1_extName.mrc</span></code> and
+<code class="docutils literal notranslate"><span class="pre">uniqueid_suffix_1_virtualName.mrc</span></code>. The first virtual image will be used as the navigation image
+for fast plotting.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">hyperspy.api</span> <span class="k">as</span> <span class="nn">hs</span>
+
+<span class="go"># Automatically load metadata_file=&quot;20220101_0001_info.txt&quot; and</span>
+<span class="go"># any external/virtual images with the same naming convention</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;20220101_0001_movie.mrc&quot;</span><span class="p">)</span>
+<span class="go">&lt;Signal2D, title: 20220101_0001_movie, dimensions: (32, 32|256, 256)&gt;</span>
+
+<span class="go"># Load metadata from data_info.txt</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;data.mrc&quot;</span><span class="p">,</span> <span class="n">metadata_file</span><span class="o">=</span><span class="s2">&quot;data_info.txt&quot;</span><span class="p">)</span>
+
+<span class="go"># Load external image 1</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;20220101_0001_movie.mrc&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">external_images</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;20220101_0001_ext1_Ext #1.mrc&quot;</span><span class="p">]</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;General&quot;</span><span class="p">][</span><span class="s2">&quot;external_detectors&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">&lt;Signal2D, title:, dimensions: (|32,32)&gt;</span>
+
+<span class="go"># Will load virtual image 1</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;20220101_0001_movie.mrc&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">virtual_images</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;20220101_0001_1_Virtual #1.mrc&quot;</span><span class="p">]</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;General&quot;</span><span class="p">][</span><span class="s2">&quot;virtual_images&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">&lt;Signal2D, title:, dimensions: (|32,32)&gt;</span>
+</pre></div>
+</div>
 <section id="module-rsciio.mrc">
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.mrc" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.mrc.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.mrc.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">navigation_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distributed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.mrc.file_reader" title="Link to this definition">#</a></dt>
-<dd><p>File reader for the MRC format for tomographic data.</p>
+<span class="sig-prename descclassname"><span class="pre">rsciio.mrc.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">navigation_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distributed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">virtual_images</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">external_images</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.mrc.file_reader" title="Link to this definition">#</a></dt>
+<dd><p>File reader for the MRC format for tomographic and 4D-STEM data.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
 <dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
 </dd>
 <dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not. The file will stay open
-until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/base_classes/signal/LazySignal.html#hyperspy._signals.lazy.LazySignal.compute" title="(in HyperSpy v2.1)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
+until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/base_classes/signal/LazySignal.html#hyperspy._signals.lazy.LazySignal.compute" title="(in HyperSpy v2.2)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
 or closed manually. <a class="reference internal" href="../../api/utils.html#rsciio.utils.tools.get_file_handle" title="rsciio.utils.tools.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
 can be used to access the file handler and close it manually.</p>
 </dd>
@@ -548,7 +588,14 @@ loading/processing over multiple workers.</p>
 chunks for the signal, with preferably at least one chunk per signal
 space.</p>
 </dd>
-<dt><strong>metadata_file</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>The filename of the metadata file.</p>
+<dt><strong>metadata_file</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>The filename of the metadata file, if “auto” it will try to find the
+metadata file automatically. For DE movies of 4D STEM datasets this
+defines the shape and metadata.</p>
+</dd>
+<dt><strong>virtual_images</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a></span></dt><dd><p>A list of filenames of virtual images. For DE movies these are automatically loaded.</p>
+</dd>
+<dt><strong>external_images</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a></span></dt><dd><p>A list of filenames of external images (e.g. external detectors) to be loaded
+alongside the main data. For DE movies these are automatically loaded.</p>
 </dd>
 </dl>
 </dd>

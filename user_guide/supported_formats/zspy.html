@@ -31,6 +31,7 @@
 <link href="../../_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../_static/custom-styles.css" />
   
   <!-- So that users can add custom icons -->
@@ -42,6 +43,8 @@
     <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=d1c4098b"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/supported_formats/zspy';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -464,7 +467,7 @@ information will be lost in the writing process and that supports saving data
 of arbitrary dimensions. It is based on the <a class="reference external" href="https://zarr.readthedocs.io/en/stable">Zarr project</a>. Which exists as a drop in
 replacement for hdf5 with the intention to fix some of the speed and scaling
 issues with the hdf5 format and is therefore suitable for saving
-<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/big_data.html#big-data-saving" title="(in HyperSpy v2.1)"><span class="xref std std-ref">big data</span></a>. Example using <a class="reference external" href="https://hyperspy.org">HyperSpy</a>:</p>
+<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/big_data.html#big-data-saving" title="(in HyperSpy v2.2)"><span class="xref std std-ref">big data</span></a>. Example using <a class="reference external" href="https://hyperspy.org">HyperSpy</a>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">hyperspy.api</span> <span class="k">as</span> <span class="nn">hs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">BaseSignal</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;test.zspy&#39;</span><span class="p">)</span> <span class="c1"># will save in nested directory</span>
@@ -472,15 +475,15 @@ issues with the hdf5 format and is therefore suitable for saving
 </pre></div>
 </div>
 <p>When saving to <a class="reference external" href="https://zarr.readthedocs.io/en/stable">zspy</a>, all supported objects in the signal’s
-<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.signals/BaseSignal.html#hyperspy.api.signals.BaseSignal.metadata" title="(in HyperSpy v2.1)"><code class="xref py py-attr docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal.metadata</span></code></a> is stored. This includes lists, tuples and signals.
+<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.signals/BaseSignal.html#hyperspy.api.signals.BaseSignal.metadata" title="(in HyperSpy v2.2)"><code class="xref py py-attr docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal.metadata</span></code></a> is stored. This includes lists, tuples and signals.
 Please note that in order to increase saving efficiency and speed, if possible,
 the inner-most structures are converted to numpy arrays when saved. This
 procedure homogenizes any types of the objects inside, most notably casting
 numbers as strings if any other strings are present:</p>
 <p>By default, a <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#zarr.storage.NestedDirectoryStore" title="(in zarr v0.1.dev50)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.NestedDirectoryStore</span></code></a> is used, but other
 zarr store can be used by providing a <a class="reference external" href="https://zarr.readthedocs.io/en/stable/api/storage.html#module-zarr.storage" title="(in zarr v0.1.dev50)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">zarr.storage</span></code></a>
-instead as argument to the <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.signals/BaseSignal.html#hyperspy.api.signals.BaseSignal.save" title="(in HyperSpy v2.1)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal.save()</span></code></a> or the
-<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.html#hyperspy.api.load" title="(in HyperSpy v2.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">hyperspy.api.load()</span></code></a> function. If a <code class="docutils literal notranslate"><span class="pre">.zspy</span></code> file has been saved with a different
+instead as argument to the <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.signals/BaseSignal.html#hyperspy.api.signals.BaseSignal.save" title="(in HyperSpy v2.2)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal.save()</span></code></a> or the
+<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.html#hyperspy.api.load" title="(in HyperSpy v2.2)"><code class="xref py py-func docutils literal notranslate"><span class="pre">hyperspy.api.load()</span></code></a> function. If a <code class="docutils literal notranslate"><span class="pre">.zspy</span></code> file has been saved with a different
 store, it would need to be loaded by passing a store of the same type:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">zarr</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;test.zspy&#39;</span>
@@ -508,7 +511,7 @@ specification.</p>
 <dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
 </dd>
 <dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not. The file will stay open
-until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/base_classes/signal/LazySignal.html#hyperspy._signals.lazy.LazySignal.compute" title="(in HyperSpy v2.1)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
+until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/base_classes/signal/LazySignal.html#hyperspy._signals.lazy.LazySignal.compute" title="(in HyperSpy v2.2)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
 or closed manually. <a class="reference internal" href="../../api/utils.html#rsciio.utils.tools.get_file_handle" title="rsciio.utils.tools.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
 can be used to access the file handler and close it manually.</p>
 </dd>

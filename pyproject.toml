@@ -116,6 +116,7 @@ doc = [
   "sphinx",
   "sphinx-favicon",
   "sphinxcontrib-towncrier",
+  "sphinx-copybutton",
   # unpin when sphinxcontrib-towncrier supports towncrier >=24
   "towncrier<24",
 ]

@@ -20,6 +20,7 @@
 # https://www.biochem.mpg.de/doc_tom/TOM_Release_2008/IOfun/tom_mrcread.html
 # and https://ami.scripps.edu/software/mrctools/mrc_specification.php
 
+import glob
 import logging
 import os
 
@@ -139,16 +140,17 @@ def get_data_type(mode):
         raise ValueError(f"Unrecognised mode '{mode}'.")
 
 
-def read_de_metadata_file(filename, navigation_shape=None):
+def read_de_metadata_file(filename, nav_shape=None):
     """This reads the metadata ".txt" file that is saved alongside a DE .mrc file.
 
-    This loads scan parameters such as
+    There are 3 ways in which the files are saved:
+
 
     Parameters
     ----------
     filename : str
         The filename of the metadata file.
-    navigation_shape : tuple
+    nav_shape : tuple
         The shape of the navigation axes.
 
     Returns
@@ -166,59 +168,110 @@ def read_de_metadata_file(filename, navigation_shape=None):
             value = value.strip()
             original_metadata[key] = value
 
-    r = int(original_metadata["Scan - Repeats"])
-    x = int(original_metadata["Scan - Size X"])
-    y = int(original_metadata["Scan - Size Y"])
-    pr = int(original_metadata["Scan - Point Repeat"])
-
-    if navigation_shape is not None:
-        shape = navigation_shape[::-1]
-        axes = []
-        for i, s in enumerate(shape):
-            axes_dict = {
-                "name": "",
-                "size": s,
-                "units": "",
-                "navigate": True,
-                "index_in_array": i,
-            }
-            axes.append(axes_dict)
-
+    # -1 -> Not read from TEM Channel 0 -> TEM 1 -> STEM
+    in_stem_mode = int(original_metadata.get("Instrument Project TEMorSTEM Mode", -1))
+    scanning = original_metadata.get("Scan - Enable", "Disable") == "Enable"
+    raster = original_metadata.get("Scan - Type", "Raster") == "Raster"
+    if not raster:  # pragma: no cover
+        _logger.warning(
+            "Non-raster scans are not fully supported yet. Please raise an issue on GitHub"
+            " if you need this feature."
+        )
+    if in_stem_mode == -1:
+        in_stem_mode = scanning
+    elif in_stem_mode == 0:  # 0 -> TEM Mode
+        in_stem_mode = False
     else:
-        shape = np.array([pr, x, y, r])  # reverse order to what they are read
-        axes = []
-        axes_names = [
-            "repeats",
-            "x",
-            "y",
-            "repeats",
-        ][::-1]
-        axes_units = ["times", "nm", "nm", "s"][::-1]
-        axes_scales = [
-            1,
-            original_metadata["Specimen Pixel Size X (nanometers)"],
-            original_metadata["Specimen Pixel Size Y (nanometers)"],
-            original_metadata["Scan - Time (seconds)"]
-            + original_metadata["Scan - Repeat Delay (seconds)"],
-        ][::-1]
-        for i, s in enumerate(shape[::-1]):
-            ind = 0
-            if s != 1:
-                axes_dict = {
+        in_stem_mode = True
+
+    has_camera_length = int(
+        original_metadata.get("Instrument Project Camera Length (centimeters)", -1)
+    )
+    diffracting = (
+        has_camera_length != -1 or in_stem_mode
+    )  # Force diffracting if in STEM mode
+
+    if in_stem_mode and scanning and raster or nav_shape is not None:
+        axes_scales = np.array(
+            [
+                float(
+                    original_metadata.get("Scan - Time (seconds)", 1)
+                    + original_metadata.get("Scan - Repeat Delay (seconds)", 1)
+                ),
+                float(original_metadata.get("Specimen Pixel Size Y (nanometers)", 1)),
+                float(original_metadata.get("Specimen Pixel Size X (nanometers)", 1)),
+                1,  # Signal Axes below
+                float(original_metadata.get("Diffraction Pixel Size Y", 1)),
+                float(original_metadata.get("Diffraction Pixel Size X", 1)),
+            ]
+        )
+        axes_scales[axes_scales != -1] = 1
+        axes_units = ["sec", "nm", "nm", "times", "nm^-1", "nm^-1"]
+        axes_names = ["time", "y", "x", "repeats", "ky", "kx"]
+        sizex = int(original_metadata.get("Scan - Size X", 1))
+        sizey = int(original_metadata.get("Scan - Size Y", 1))
+        if nav_shape is not None and len(nav_shape) == 3:
+            time = nav_shape[0]
+            sizey = nav_shape[1]
+            sizex = nav_shape[2]
+        elif nav_shape is not None and len(nav_shape) == 2:
+            sizex = nav_shape[1]
+            sizey = nav_shape[0]
+            time = 1
+        elif nav_shape is not None and len(nav_shape) == 1:
+            sizex = nav_shape[0]
+            sizey = 1
+            time = 1
+        else:
+            time = 1
+        sizekx = int(original_metadata.get("Image Size X (pixels)", -1))
+        sizeky = int(original_metadata.get("Image Size Y (pixels)", -1))
+        navigate = [True, True, True, True, False, False]
+        axes_shapes = [time, sizey, sizex, 1, sizeky, sizekx]
+        nav_shape = tuple([shape for shape in [time, sizex, sizey, 1] if shape != 1])
+    else:
+        navigate = [True, False, False]
+
+        nav_shape = None  # read from the .mrc file
+        frame_sum = float(original_metadata.get("Autosave Movie Sum Count", 1))
+        frame_time = float(original_metadata.get("Frames Per Second", 1))
+        sec_per_frame = 1 / (frame_time * frame_sum)
+        axes_shapes = [-1, -1, -1]  # get from the .mrc file
+        if diffracting:
+            axes_scales = np.array(
+                [
+                    sec_per_frame,
+                    original_metadata.get("Diffraction Pixel Size Y", 1),
+                    original_metadata.get("Diffraction Pixel Size X", 1),
+                ]
+            )
+            axes_units = ["sec", "nm^-1", "nm^-1"]
+            axes_names = ["time", "ky", "kx"]
+        else:
+            axes_scales = np.array(
+                [
+                    sec_per_frame,
+                    original_metadata.get("Specimen Pixel Size Y (nanometers)", 1),
+                    original_metadata.get("Specimen Pixel Size X (nanometers)", 1),
+                ]
+            )
+            axes_units = ["sec", "nm", "nm"]
+            axes_names = ["time", "y", "x"]
+    axes = []
+    ind = 0
+    for i, s in enumerate(axes_shapes):
+        if s != 1:
+            axes.append(
+                {
                     "name": axes_names[i],
-                    "size": s,
+                    "size": s,  # if -1, get from the .mrc file
                     "units": axes_units[i],
-                    "navigate": True,
+                    "scale": axes_scales[i],
+                    "navigate": navigate[i],
                     "index_in_array": ind,
                 }
-                if axes_scales[i] != -1:  # -1 means that the scale is not defined
-                    axes_dict["scale"] = axes_scales[i]
-                else:  # pragma: no cover
-                    axes_dict["scale"] = 1
-                axes.append(axes_dict)
-                ind += 1
-        shape = shape[shape != 1]  # removing the 1s from the dataset
-
+            )
+            ind += 1
     electron_gain = float(original_metadata.get("ADUs Per Electron Bin1x", 1))
     magnification = original_metadata.get("Instrument Project Magnification", None)
     camera_model = original_metadata.get("Camera Model", None)
@@ -228,7 +281,7 @@ def read_de_metadata_file(filename, navigation_shape=None):
     metadata = {
         "Acquisition_instrument": {
             "TEM": {
-                "magnificiation": magnification,
+                "magnification": magnification,
                 "detector": camera_model,
                 "frames_per_second": fps,
             }
@@ -239,7 +292,7 @@ def read_de_metadata_file(filename, navigation_shape=None):
         },
         "General": {"timestamp": timestamp},
     }
-    return original_metadata, metadata, axes, tuple(shape)
+    return original_metadata, metadata, axes, nav_shape
 
 
 def file_reader(
@@ -250,10 +303,12 @@ def file_reader(
     navigation_shape=None,
     distributed=False,
     chunks="auto",
-    metadata_file=None,
+    metadata_file="auto",
+    virtual_images=None,
+    external_images=None,
 ):
     """
-    File reader for the MRC format for tomographic data.
+    File reader for the MRC format for tomographic and 4D-STEM data.
 
     Parameters
     ----------
@@ -265,27 +320,80 @@ def file_reader(
     %s
     %s
     metadata_file : str
-        The filename of the metadata file.
+        The filename of the metadata file, if "auto" it will try to find the
+        metadata file automatically. For DE movies of 4D STEM datasets this
+        defines the shape and metadata.
+    virtual_images : list
+        A list of filenames of virtual images. For DE movies these are automatically loaded.
+    external_images : list
+        A list of filenames of external images (e.g. external detectors) to be loaded
+        alongside the main data. For DE movies these are automatically loaded.
 
     %s
     """
+    if metadata_file == "auto":
+        if "movie" in filename:
+            try:  # DE movie
+                dir_name = os.path.dirname(filename)
+                base_name = os.path.basename(filename)
+                split = base_name.split("_")
+                unique_id = "_".join(split[:2])
+                if len(split) > 3:  # File Suffix
+                    suffix = "_".join(split[2:-1])
+                else:
+                    suffix = ""
+                metadata = glob.glob(dir_name + "/" + unique_id + suffix + "_info.txt")
+                virtual_images = glob.glob(
+                    dir_name + "/" + unique_id + suffix + "_[0-4]_*.mrc"
+                )
+                external_images = glob.glob(
+                    dir_name + "/" + unique_id + suffix + "_ext[1-4]_*.mrc"
+                )
+            except (
+                IndexError
+            ):  # Not a DE movie or File Naming Convention is not followed
+                _logger.warning("Could not find metadata file for DE movie.")
+                metadata = []
+        else:
+            metadata = []
+        if len(metadata) == 1:
+            metadata_file = metadata[0]
+        else:
+            metadata_file = None
 
     if metadata_file is not None:
+        # Check if the metadata file exists
         (
             de_metadata,
             metadata,
-            navigation_axes,
+            metadata_axes,
             _navigation_shape,
-        ) = read_de_metadata_file(metadata_file, navigation_shape)
+        ) = read_de_metadata_file(metadata_file, nav_shape=navigation_shape)
         if navigation_shape is None:
             navigation_shape = _navigation_shape
         original_metadata = {"de_metadata": de_metadata}
     else:
         original_metadata = {}
         metadata = {"General": {}, "Signal": {}}
-        navigation_axes = None
+        metadata_axes = None
     metadata["General"]["original_filename"] = os.path.split(filename)[1]
     metadata["Signal"]["signal_type"] = ""
+
+    if virtual_images is not None and len(virtual_images) > 0:
+        imgs = []
+        for v in virtual_images:
+            imgs.append(file_reader(v)[0]["data"])
+        metadata["General"]["virtual_images"] = imgs
+        # checking to make sure the navigator is valid
+        if navigation_shape is not None and navigation_shape[::-1] == imgs[0].shape:
+            metadata["_HyperSpy"] = {}
+            metadata["_HyperSpy"]["navigator"] = imgs[0]
+
+    if external_images is not None and len(external_images) > 0:
+        imgs = []
+        for e in external_images:
+            imgs.append(file_reader(e)[0]["data"])
+        metadata["General"]["external_detectors"] = imgs
 
     f = open(filename, "rb")
     std_header = np.fromfile(f, dtype=get_std_dtype_list(endianess), count=1)
@@ -377,7 +485,7 @@ def file_reader(
             0,
         ] * 3
 
-    if navigation_axes is None:
+    if metadata_axes is None:
         units = [None, "nm", "nm"]
         names = ["z", "y", "x"]
         navigate = [True, False, False]
@@ -406,19 +514,9 @@ def file_reader(
             for i in range(dim)
         ]
     else:
-        axes = navigation_axes
-        if len(axes) != len(data.shape):  # Add in final two axes
-            names = ["$k_x$", "$k_y$"]
-            for i, s in enumerate(data.shape[-2:]):
-                ax = {
-                    "size": s,
-                    "name": names[i],
-                    "scale": 1,  # TODO: Add scale when reciporical space is added
-                    "offset": 0,
-                    "units": "nm$^-1$",
-                    "navigate": False,
-                }
-                axes.append(ax)
+        axes = metadata_axes
+        for ax, s in zip(axes, shape[::-1]):
+            ax["size"] = s  # Update the size of the axes
 
     dictionary = {
         "data": data,

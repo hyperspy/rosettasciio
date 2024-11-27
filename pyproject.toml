@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rosettasciio"
 description = "Reading and writing scientific file formats"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 readme = "README.md"
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -13,11 +13,11 @@ classifiers = [
   "Intended Audience :: Science/Research",
   "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
   "Operating System :: OS Independent",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Topic :: Scientific/Engineering",
   "Topic :: Scientific/Engineering :: Physics",
   "Topic :: Software Development :: Libraries",
@@ -94,7 +94,7 @@ eds-stream = ["sparse"]
 hdf5 = ["h5py>=2.3"]
 image = ["imageio>=2.16"]
 mrcz = ["blosc>=1.5", "mrcz>=0.3.6"]
-scalebar_export = ["matplotlib-scalebar", "matplotlib>=3.5"]
+scalebar_export = ["matplotlib-scalebar", "matplotlib>=3.6"]
 speed = ["numba>=0.53"]
 tiff = ["tifffile>=2022.7.28", "imagecodecs"]
 usid = ["pyUSID>=0.0.11"]

@@ -591,7 +591,7 @@ def get_ipr_dtype_list(endianess="<", version=333):
     dtype_list = [
         ("version", end + "u2"),
         ("imageType", end + "u2"),
-        ("label", end + "a8"),
+        ("label", end + "S8"),
         ("sMin", end + "u2"),
         ("sMax", end + "u2"),
         ("color", end + "u2"),
@@ -618,7 +618,7 @@ def get_ipr_dtype_list(endianess="<", version=333):
         ("mppX", end + "f4"),
         ("mppY", end + "f4"),
         ("nTextLines", end + "u2"),
-        ("charText", end + "4a32"),
+        ("charText", end + "4S32"),
         ("reserved3", end + "4f4"),
         ("nOverlayElements", end + "u2"),
         ("overlayColors", end + "16u2"),

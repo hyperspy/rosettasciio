@@ -714,7 +714,9 @@ class DigitalSurfHandler(object):
                 self._split_surfaceserie()
         elif (n_nav, n_sig) == (2, 0):
             warnings.warn(
-                f"Signal dimension {n_sig} and navigation dimension {n_nav} exported as surface type. Consider transposing signal object before exporting if this is intentional."
+                f"Signal dimension {n_sig} and navigation dimension {n_nav} exported "
+                "as surface type. Consider transposing signal object before exporting "
+                "if this is intentional."
             )
             if self._is_binary():
                 self._split_binary_img()

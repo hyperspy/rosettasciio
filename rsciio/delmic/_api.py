@@ -1,9 +1,20 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Aug 26 16:38:00 2024.
-
-@author: noemiebonnet
-"""
+# Copyright 2007-2023 The HyperSpy developers
+#
+# This file is part of RosettaSciIO.
+#
+# RosettaSciIO is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# RosettaSciIO is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import h5py
 import numpy as np
@@ -210,7 +221,7 @@ def get_unit_prefix(number):
     """Return the SI prefix for the given number based on its magnitude."""
     if 1e-15 < np.abs(number) < 1e-12:
         prefix = "f"
-    if 1e-12 < np.abs(number) < 1e-9:
+    elif 1e-12 < np.abs(number) < 1e-9:
         prefix = "p"
     elif 1e-9 < np.abs(number) < 1e-6:
         prefix = "n"

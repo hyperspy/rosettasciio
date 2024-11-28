@@ -39,7 +39,6 @@ TEST_DATA_PATH = Path(__file__).parent / "data" / "emd"
 data_signal = np.arange(27).reshape((3, 3, 3)).T
 data_image = np.arange(9).reshape((3, 3)).T
 data_spectrum = np.arange(3).T
-data_save = np.arange(24).reshape((2, 3, 4))
 sig_metadata = {"a": 1, "b": 2}
 user = {
     "name": "John Doe",
@@ -200,7 +199,7 @@ def test_load_file(tmp_path):
 
 @pytest.mark.parametrize("lazy", (True, False))
 def test_save_and_read(lazy, tmp_path):
-    signal_ref = hs.signals.BaseSignal(data_save)
+    signal_ref = hs.signals.BaseSignal(np.arange(24).reshape((2, 3, 4)))
     signal_ref.metadata.General.title = test_title
     signal_ref.axes_manager[0].name = "x"
     signal_ref.axes_manager[1].name = "y"
@@ -223,7 +222,7 @@ def test_save_and_read(lazy, tmp_path):
     signal = hs.load(tmp_path / "example_temp.emd", lazy=lazy)
     if lazy:
         signal.compute(close_file=True)
-    om = signal.original_metadata
+    om = signal.original_metadata.as_dictionary()
     np.testing.assert_equal(signal.data, signal_ref.data)
     np.testing.assert_equal(signal.axes_manager[0].name, "x")
     np.testing.assert_equal(signal.axes_manager[1].name, "y")
@@ -238,10 +237,10 @@ def test_save_and_read(lazy, tmp_path):
     np.testing.assert_equal(signal.axes_manager[1].units, "µm")
     np.testing.assert_equal(signal.axes_manager[2].units, "mm")
     np.testing.assert_equal(signal.metadata.General.title, test_title)
-    np.testing.assert_equal(om.user.as_dictionary(), user)
-    np.testing.assert_equal(om.microscope.as_dictionary(), microscope)
-    np.testing.assert_equal(om.sample.as_dictionary(), sample)
-    np.testing.assert_equal(om.comments.as_dictionary(), comments)
+    np.testing.assert_equal(om["user"], user)
+    np.testing.assert_equal(om["microscope"], microscope)
+    np.testing.assert_equal(om["sample"], sample)
+    np.testing.assert_equal(om["comments"], comments)
 
     assert isinstance(signal, hs.signals.BaseSignal)
 

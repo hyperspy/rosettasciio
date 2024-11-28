@@ -103,7 +103,7 @@ jobs:
           with open(output_file, "a", encoding="utf-8") as output_stream:
               output_stream.write(f"count={num_cpus}\n")
         shell: python
-          
+
       - name: Set Environment Variable
         shell: bash
         # Set PIP_SELECTOR environment variable according to matrix.LABEL

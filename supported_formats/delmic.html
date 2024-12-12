@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
-    <title>EMPAD format (XML &amp; RAW) &#8212; RosettaSciIO  documentation</title>
+    <title>Delmic HDF5 &#8212; RosettaSciIO  documentation</title>
   
   
   
@@ -47,11 +47,11 @@
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=d1c4098b"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/empad';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/delmic';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Hamamatsu" href="hamamatsu.html" />
-    <link rel="prev" title="Electron Microscopy Dataset (EMD)" href="emd.html" />
+    <link rel="next" title="DENSsolutions formats" href="dens.html" />
+    <link rel="prev" title="Direct Electron EMD (DE5)" href="de5.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -378,13 +378,13 @@
 <li class="toctree-l1"><a class="reference internal" href="blockfile.html">Blockfile</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bruker.html">Bruker</a></li>
 <li class="toctree-l1"><a class="reference internal" href="de5.html">Direct Electron EMD (DE5)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="delmic.html">Delmic HDF5</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Delmic HDF5</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dens.html">DENSsolutions formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="digitalmicrograph.html">Gatan Digital Micrograph</a></li>
 <li class="toctree-l1"><a class="reference internal" href="digitalsurf.html">DigitalSurf format (SUR &amp; PRO)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="edax.html">EDAX TEAM/Genesis (SPC, SPD)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="emd.html">Electron Microscopy Dataset (EMD)</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">EMPAD format (XML &amp; RAW)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="empad.html">EMPAD format (XML &amp; RAW)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hamamatsu.html">Hamamatsu</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hspy.html">HSpy - HyperSpy’s HDF5 Specification</a></li>
 <li class="toctree-l1"><a class="reference internal" href="image.html">Image formats</a></li>
@@ -447,7 +447,7 @@
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Supported formats</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">EMPAD format (XML &amp; RAW)</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Delmic HDF5</span></li>
   </ul>
 </nav>
 </div>
@@ -464,32 +464,25 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="empad-format-xml-raw">
-<span id="empad-format"></span><h1>EMPAD format (XML &amp; RAW)<a class="headerlink" href="#empad-format-xml-raw" title="Link to this heading">#</a></h1>
-<p>This is the file format used by the Electron Microscope Pixel Array
-Detector (EMPAD). It is used to store a series of diffraction patterns from
-scanning transmission electron diffraction measurements, with a limited set of
-metadata. Similarly, to the <a class="reference internal" href="ripple.html#ripple-format"><span class="std std-ref">ripple format</span></a>, the raw data
-and metadata are saved in two different files and for the EMPAD reader, these
-are saved in the <code class="docutils literal notranslate"><span class="pre">.raw</span></code> and <code class="docutils literal notranslate"><span class="pre">.xml</span></code> files, respectively. To read EMPAD data,
-use the <code class="docutils literal notranslate"><span class="pre">.xml</span></code> file, which will automatically read the raw data from the <code class="docutils literal notranslate"><span class="pre">.raw</span></code>
-file too. The filename of the <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file is defined in the <code class="docutils literal notranslate"><span class="pre">.xml</span></code> file, which
-implies changing the file name of the <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file will break reading the file.</p>
+  <section id="delmic-hdf5">
+<span id="delmic-format"></span><h1>Delmic HDF5<a class="headerlink" href="#delmic-hdf5" title="Link to this heading">#</a></h1>
+<p>RosettaScIO can only read hyperspectral cathodoluminescence .h5 datasets from Delmic. The file reading will be implemented step by step for the various Delmic data formats.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>When using <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, you need to specify the correct
-<code class="docutils literal notranslate"><span class="pre">reader</span></code> plugin, as different <code class="docutils literal notranslate"><span class="pre">.xml</span></code> formats are supported:</p>
+<p>To read the cathodoluminescence .h5 datasets in <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, use the
+<code class="docutils literal notranslate"><span class="pre">reader</span></code> argument to define the correct file plugin as the <code class="docutils literal notranslate"><span class="pre">.h5</span></code>
+extension is not unique to this reader:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">hyperspy.api</span> <span class="k">as</span> <span class="nn">hs</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sig</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;file.xml&quot;</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="s2">&quot;EMPAD&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;filename.h5&quot;</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="s2">&quot;Delmic&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<section id="module-rsciio.empad">
-<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.empad" title="Link to this heading">#</a></h2>
+<section id="module-rsciio.delmic">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.delmic" title="Link to this heading">#</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="rsciio.empad.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.empad.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.empad.file_reader" title="Link to this definition">#</a></dt>
-<dd><p>Read file format used by the Electron Microscope Pixel Array Detector (EMPAD).</p>
+<dt class="sig sig-object py" id="rsciio.delmic.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.delmic.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.delmic.file_reader" title="Link to this definition">#</a></dt>
+<dd><p>Read a Delmic hdf5 hyperspectral image.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
@@ -535,20 +528,20 @@ containing the full axes vector</p></li>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="emd.html"
+       href="de5.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Electron Microscopy Dataset (EMD)</p>
+        <p class="prev-next-title">Direct Electron EMD (DE5)</p>
       </div>
     </a>
     <a class="right-next"
-       href="hamamatsu.html"
+       href="dens.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Hamamatsu</p>
+        <p class="prev-next-title">DENSsolutions formats</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -571,8 +564,8 @@ containing the full axes vector</p></li>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.empad">API functions</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.empad.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.delmic">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.delmic.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -581,7 +574,7 @@ containing the full axes vector</p></li>
   <div class="sidebar-secondary-item">
 
   <div class="tocsection sourcelink">
-    <a href="../_sources/supported_formats/empad.rst.txt">
+    <a href="../_sources/supported_formats/delmic.rst.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
   </div>

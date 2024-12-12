@@ -3,6 +3,9 @@
 ZSpy - HyperSpy's Zarr Specification
 ------------------------------------
 
+.. note::
+   To read this format, the optional dependency ``zarr`` is required.
+
 Similarly to the :ref:`hspy format <hspy-format>`, the ``.zspy`` format guarantees that no
 information will be lost in the writing process and that supports saving data
 of arbitrary dimensions. It is based on the `Zarr project <https://zarr.readthedocs.io/en/stable>`_. Which exists as a drop in

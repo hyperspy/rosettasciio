@@ -8,6 +8,9 @@ RosettaSciIO can read the ``.asw``, ``.pts``, ``.map`` and ``.eds`` format. To r
 calibration, it is required to load the ``.asw`` file, which will load all others
 files automatically.
 
+.. note::
+   To load EDS data, the optional dependency ``sparse`` is required.
+
 API functions
 ^^^^^^^^^^^^^
 

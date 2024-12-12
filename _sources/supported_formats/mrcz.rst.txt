@@ -3,6 +3,10 @@
 MRCZ format
 -----------
 
+.. note::
+   To read this format, the optional dependencies ``blosc`` and ``mrcz`` are
+   required.
+
 The ``mrcz`` format is an extension of the CCP-EM MRC2014 file format.
 `CCP-EM MRC2014 <https://www.ccpem.ac.uk/mrc_format/mrc2014.php>`_ file format.
 It uses the `blosc` meta-compression library to bitshuffle and compress files in

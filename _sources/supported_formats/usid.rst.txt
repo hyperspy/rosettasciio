@@ -3,6 +3,9 @@
 Universal Spectroscopy and Imaging Data (h5USID)
 ------------------------------------------------
 
+.. note::
+   To read this format, the optional dependency ``pyUSID`` is required.
+
 Background
 ^^^^^^^^^^
 

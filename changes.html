@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/custom-styles.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- So that users can add custom icons -->
   <script src="_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
@@ -45,6 +46,7 @@
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="_static/copybutton.js?v=d1c4098b"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'changes';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -143,6 +145,13 @@
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="file_specification/index.html">
     File Specifications
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="supported_formats/index.html">
+    Supported formats
   </a>
 </li>
 
@@ -278,6 +287,13 @@
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="file_specification/index.html">
     File Specifications
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="supported_formats/index.html">
+    Supported formats
   </a>
 </li>
 
@@ -423,7 +439,7 @@
 <section id="enhancements">
 <h3>Enhancements<a class="headerlink" href="#enhancements" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p><a class="reference internal" href="user_guide/supported_formats/mrc.html#mrc-format"><span class="std std-ref">Direct Electron MRC</span></a>:</p>
+<li><p><a class="reference internal" href="supported_formats/mrc.html#mrc-format"><span class="std std-ref">Direct Electron MRC</span></a>:</p>
 <ul>
 <li><p>add support for newer version of DE server,</p></li>
 <li><p>add support foe discovering metadata file (<code class="docutils literal notranslate"><span class="pre">*_info.txt</span></code>) based on the naming scheme. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/311">#311</a>)</p></li>
@@ -452,10 +468,10 @@
 <section id="id10">
 <h3>Enhancements<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p><a class="reference internal" href="user_guide/supported_formats/digitalsurf.html#digitalsurf-format"><span class="std std-ref">DigitalSurf surfaces</span></a>:</p>
+<li><p><a class="reference internal" href="supported_formats/digitalsurf.html#digitalsurf-format"><span class="std std-ref">DigitalSurf surfaces</span></a>:</p>
 <ul>
-<li><p>add support for saving file - see <a class="reference internal" href="user_guide/supported_formats/digitalsurf.html#rsciio.digitalsurf.file_writer" title="rsciio.digitalsurf.file_writer"><code class="xref py py-func docutils literal notranslate"><span class="pre">file_writer()</span></code></a></p></li>
-<li><p>add the <a class="reference internal" href="user_guide/supported_formats/digitalsurf.html#rsciio.digitalsurf.parse_metadata" title="rsciio.digitalsurf.parse_metadata"><code class="xref py py-func docutils literal notranslate"><span class="pre">parse_metadata()</span></code></a> function to parse metadata from <code class="docutils literal notranslate"><span class="pre">sur</span></code> file</p></li>
+<li><p>add support for saving file - see <a class="reference internal" href="supported_formats/digitalsurf.html#rsciio.digitalsurf.file_writer" title="rsciio.digitalsurf.file_writer"><code class="xref py py-func docutils literal notranslate"><span class="pre">file_writer()</span></code></a></p></li>
+<li><p>add the <a class="reference internal" href="supported_formats/digitalsurf.html#rsciio.digitalsurf.parse_metadata" title="rsciio.digitalsurf.parse_metadata"><code class="xref py py-func docutils literal notranslate"><span class="pre">parse_metadata()</span></code></a> function to parse metadata from <code class="docutils literal notranslate"><span class="pre">sur</span></code> file</p></li>
 <li><p>add series of RGB images / surfaces support. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/280">#280</a>)</p></li>
 </ul>
 </li>
@@ -465,13 +481,13 @@
 <h3>Bug Fixes<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Fixes axes for JPG with no exif_tags. Return of axes while loading isn’t emty anymore. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/283">#283</a>)</p></li>
-<li><p><a class="reference internal" href="user_guide/supported_formats/emd.html#emd-fei-format"><span class="std std-ref">EMD Velox</span></a> fixes for reading files containing multiple EDS streams:</p>
+<li><p><a class="reference internal" href="supported_formats/emd.html#emd-fei-format"><span class="std std-ref">EMD Velox</span></a> fixes for reading files containing multiple EDS streams:</p>
 <ul>
 <li><p>fix reading multiple EDS streams lazily with <code class="docutils literal notranslate"><span class="pre">sum_EDS_detectors=True</span></code>,</p></li>
 <li><p>fix reading separate EDS stream and individual frames when using <code class="docutils literal notranslate"><span class="pre">sum_EDS_detectors=False</span></code> and <code class="docutils literal notranslate"><span class="pre">sum_frames=False</span></code>. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/287">#287</a>)</p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="user_guide/supported_formats/quantumdetector.html#quantumdetector-format"><span class="std std-ref">Quantum Detector</span></a>: Fix signal shape of data acquired in ROI mode. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/289">#289</a>)</p></li>
+<li><p><a class="reference internal" href="supported_formats/quantumdetector.html#quantumdetector-format"><span class="std std-ref">Quantum Detector</span></a>: Fix signal shape of data acquired in ROI mode. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/289">#289</a>)</p></li>
 </ul>
 </section>
 <section id="id16">
@@ -486,16 +502,16 @@
 <section id="id19">
 <h3>Enhancements<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p><a class="reference internal" href="user_guide/supported_formats/emd.html#emd-fei-format"><span class="std std-ref">EMD (Velox)</span></a>: Enforce setting identical units for the <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> axes, as convenience to use the scalebar in HyperSpy. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/243">#243</a>)</p></li>
-<li><p><a class="reference internal" href="user_guide/supported_formats/quantumdetector.html#quantumdetector-format"><span class="std std-ref">Quantum Detector</span></a>: Add support for dask distributed scheduler. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/267">#267</a>)</p></li>
+<li><p><a class="reference internal" href="supported_formats/emd.html#emd-fei-format"><span class="std std-ref">EMD (Velox)</span></a>: Enforce setting identical units for the <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> axes, as convenience to use the scalebar in HyperSpy. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/243">#243</a>)</p></li>
+<li><p><a class="reference internal" href="supported_formats/quantumdetector.html#quantumdetector-format"><span class="std std-ref">Quantum Detector</span></a>: Add support for dask distributed scheduler. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/267">#267</a>)</p></li>
 </ul>
 </section>
 <section id="id22">
 <h3>Bug Fixes<a class="headerlink" href="#id22" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p><a class="reference internal" href="user_guide/supported_formats/emd.html#emd-fei-format"><span class="std std-ref">EMD (Velox)</span></a>: Fix conversion of offset units which can sometimes mismatch the scale units. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/243">#243</a>)</p></li>
-<li><p><a class="reference internal" href="user_guide/supported_formats/ripple.html#ripple-format"><span class="std std-ref">Ripple format</span></a>: Fix typo and improve error message for unsupported <code class="docutils literal notranslate"><span class="pre">dtype</span></code> in writer. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/251">#251</a>)</p></li>
-<li><p><a class="reference internal" href="user_guide/supported_formats/emd.html#emd-fei-format"><span class="std std-ref">EMD (Velox)</span></a>: Fix parsing elements from EDS data from velox emd file v11. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/274">#274</a>)</p></li>
+<li><p><a class="reference internal" href="supported_formats/emd.html#emd-fei-format"><span class="std std-ref">EMD (Velox)</span></a>: Fix conversion of offset units which can sometimes mismatch the scale units. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/243">#243</a>)</p></li>
+<li><p><a class="reference internal" href="supported_formats/ripple.html#ripple-format"><span class="std std-ref">Ripple format</span></a>: Fix typo and improve error message for unsupported <code class="docutils literal notranslate"><span class="pre">dtype</span></code> in writer. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/251">#251</a>)</p></li>
+<li><p><a class="reference internal" href="supported_formats/emd.html#emd-fei-format"><span class="std std-ref">EMD (Velox)</span></a>: Fix parsing elements from EDS data from velox emd file v11. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/274">#274</a>)</p></li>
 </ul>
 </section>
 <section id="id26">
@@ -512,16 +528,16 @@
 <section id="id31">
 <h3>Enhancements<a class="headerlink" href="#id31" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p><a class="reference internal" href="user_guide/supported_formats/renishaw.html#renishaw-format"><span class="std std-ref">Renishaw wdf</span></a>:</p>
+<li><p><a class="reference internal" href="supported_formats/renishaw.html#renishaw-format"><span class="std std-ref">Renishaw wdf</span></a>:</p>
 <ul>
 <li><p>return survey image instead of saving it to the metadata and add marker of the mapping area on the survey image.</p></li>
 <li><p>Add support for reading data with invariant axis, for example when the values of the Z axis doesn’t change.</p></li>
 <li><p>Parse calibration of <code class="docutils literal notranslate"><span class="pre">jpg</span></code> images saved with Renishaw Wire software. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/227">#227</a>)</p></li>
 </ul>
 </li>
-<li><p>Add support for reading <a class="reference internal" href="user_guide/supported_formats/emd.html#emd-fei-format"><span class="std std-ref">emd</span></a> Velox version 11. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/232">#232</a>)</p></li>
+<li><p>Add support for reading <a class="reference internal" href="supported_formats/emd.html#emd-fei-format"><span class="std std-ref">emd</span></a> Velox version 11. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/232">#232</a>)</p></li>
 <li><p>Add <a class="reference internal" href="contributing.html#making-test-files"><span class="std std-ref">making test data files</span></a> section to contributing guide, explain characteristics of “good” test data files. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/233">#233</a>)</p></li>
-<li><p><a class="reference internal" href="user_guide/supported_formats/quantumdetector.html#quantumdetector-format"><span class="std std-ref">Quantum Detector</span></a> reader: use timestamps to get navigation shape when the navigation shape is not available - for example, acquisition with pixel trigger or scan shape not in metadata. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/235">#235</a>)</p></li>
+<li><p><a class="reference internal" href="supported_formats/quantumdetector.html#quantumdetector-format"><span class="std std-ref">Quantum Detector</span></a> reader: use timestamps to get navigation shape when the navigation shape is not available - for example, acquisition with pixel trigger or scan shape not in metadata. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/235">#235</a>)</p></li>
 <li><p>Improve setting output size for an image. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/244">#244</a>)</p></li>
 </ul>
 </section>
@@ -532,7 +548,7 @@
 <li><p>Fix saving ragged arrays of vectors from/to a chunked <code class="docutils literal notranslate"><span class="pre">hspy</span></code> and <code class="docutils literal notranslate"><span class="pre">zspy</span></code> store.  Greatly increases the speed of saving and loading ragged arrays from chunked datasets. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/211">#211</a>)</p></li>
 <li><p>Fix saving ragged array of strings in <code class="docutils literal notranslate"><span class="pre">hspy</span></code> and <code class="docutils literal notranslate"><span class="pre">zspy</span></code> format. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/217">#217</a>)</p></li>
 <li><p>Fix setting beam energy for XRF maps in <code class="docutils literal notranslate"><span class="pre">bcf</span></code> files. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/231">#231</a>)</p></li>
-<li><p><a class="reference internal" href="user_guide/supported_formats/quantumdetector.html#quantumdetector-format"><span class="std std-ref">Quantum Detector</span></a> reader: fix setting chunks. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/235">#235</a>)</p></li>
+<li><p><a class="reference internal" href="supported_formats/quantumdetector.html#quantumdetector-format"><span class="std std-ref">Quantum Detector</span></a> reader: fix setting chunks. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/235">#235</a>)</p></li>
 </ul>
 </section>
 <section id="id43">
@@ -562,22 +578,22 @@ save from DirectElectron detectors.</p></li>
 and transpose the data. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/162">#162</a>)</p></li>
 </ul>
 </li>
-<li><p>Add support for saving lazy ragged signals to the <a class="reference internal" href="user_guide/supported_formats/zspy.html#zspy-format"><span class="std std-ref">zspy format</span></a>. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/pull/193">#193</a>)</p></li>
+<li><p>Add support for saving lazy ragged signals to the <a class="reference internal" href="supported_formats/zspy.html#zspy-format"><span class="std std-ref">zspy format</span></a>. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/pull/193">#193</a>)</p></li>
 </ul>
 </section>
 <section id="id55">
 <h3>Bug Fixes<a class="headerlink" href="#id55" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p>Fix error when reading <a class="reference internal" href="user_guide/supported_formats/pantarhei.html#pantarhei-format"><span class="std std-ref">CEOS Panta Rhei (PRZ)</span></a> file with aperture <code class="docutils literal notranslate"><span class="pre">&quot;Out&quot;</span></code> (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/173">#173</a>)</p></li>
+<li><p>Fix error when reading <a class="reference internal" href="supported_formats/pantarhei.html#pantarhei-format"><span class="std std-ref">CEOS Panta Rhei (PRZ)</span></a> file with aperture <code class="docutils literal notranslate"><span class="pre">&quot;Out&quot;</span></code> (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/173">#173</a>)</p></li>
 <li><p>Improvement for installation without <code class="docutils literal notranslate"><span class="pre">numba</span></code>:</p>
 <ul>
-<li><p>Fix <a class="reference internal" href="user_guide/supported_formats/tvips.html#tvips-format"><span class="std std-ref">tvips</span></a> reader</p></li>
-<li><p>Allow reading and writing <a class="reference internal" href="user_guide/supported_formats/emd.html#emd-ncem-format"><span class="std std-ref">EMD NCEM</span></a> file</p></li>
+<li><p>Fix <a class="reference internal" href="supported_formats/tvips.html#tvips-format"><span class="std std-ref">tvips</span></a> reader</p></li>
+<li><p>Allow reading and writing <a class="reference internal" href="supported_formats/emd.html#emd-ncem-format"><span class="std std-ref">EMD NCEM</span></a> file</p></li>
 <li><p>Fix running test suite without optional dependencies (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/182">#182</a>)</p></li>
 </ul>
 </li>
 <li><p>Fix getting version on debian/ubuntu in system-wide install. Add support for installing from git archive and improve getting development version using setuptools <a class="reference external" href="https://setuptools-scm.readthedocs.io/en/latest/config">fallback_version</a> (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/187">#187</a>)</p></li>
-<li><p>Fix <code class="docutils literal notranslate"><span class="pre">dwell_time</span></code> reading in <a class="reference internal" href="user_guide/supported_formats/quantumdetector.html#quantumdetector-format"><span class="std std-ref">QuantumDetectors</span></a> reader (<code class="docutils literal notranslate"><span class="pre">.mib</span></code> file). The
+<li><p>Fix <code class="docutils literal notranslate"><span class="pre">dwell_time</span></code> reading in <a class="reference internal" href="supported_formats/quantumdetector.html#quantumdetector-format"><span class="std std-ref">QuantumDetectors</span></a> reader (<code class="docutils literal notranslate"><span class="pre">.mib</span></code> file). The
 <code class="docutils literal notranslate"><span class="pre">dwell_time</span></code> is stored in milliseconds, not microseconds as the previous code
 assumed. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/189">#189</a>)</p></li>
 </ul>
@@ -597,15 +613,15 @@ assumed. (<a class="reference external" href="https://github.com/hyperspy/rosett
 <section id="id66">
 <h3>New features<a class="headerlink" href="#id66" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p>Add support for reading the <code class="docutils literal notranslate"><span class="pre">.img</span></code>-format from <a class="reference internal" href="user_guide/supported_formats/hamamatsu.html#hamamatsu-format"><span class="std std-ref">Hamamatsu</span></a>. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/87">#87</a>)</p></li>
-<li><p>Add support for reading the <code class="docutils literal notranslate"><span class="pre">.mib</span></code>-format from <a class="reference internal" href="user_guide/supported_formats/quantumdetector.html#quantumdetector-format"><span class="std std-ref">Quantum Detector Merlin</span></a> camera. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/174">#174</a>)</p></li>
+<li><p>Add support for reading the <code class="docutils literal notranslate"><span class="pre">.img</span></code>-format from <a class="reference internal" href="supported_formats/hamamatsu.html#hamamatsu-format"><span class="std std-ref">Hamamatsu</span></a>. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/87">#87</a>)</p></li>
+<li><p>Add support for reading the <code class="docutils literal notranslate"><span class="pre">.mib</span></code>-format from <a class="reference internal" href="supported_formats/quantumdetector.html#quantumdetector-format"><span class="std std-ref">Quantum Detector Merlin</span></a> camera. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/174">#174</a>)</p></li>
 </ul>
 </section>
 <section id="id69">
 <h3>Bug Fixes<a class="headerlink" href="#id69" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p>Fix saving/reading ragged arrays with <a class="reference internal" href="user_guide/supported_formats/hspy.html#hspy-format"><span class="std std-ref">hspy</span></a>/<a class="reference internal" href="user_guide/supported_formats/zspy.html#zspy-format"><span class="std std-ref">zspy</span></a> plugins (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/164">#164</a>)</p></li>
-<li><p>Fixes slow loading of ragged <a class="reference internal" href="user_guide/supported_formats/zspy.html#zspy-format"><span class="std std-ref">zspy</span></a> arrays (#168) (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/169">#169</a>)</p></li>
+<li><p>Fix saving/reading ragged arrays with <a class="reference internal" href="supported_formats/hspy.html#hspy-format"><span class="std std-ref">hspy</span></a>/<a class="reference internal" href="supported_formats/zspy.html#zspy-format"><span class="std std-ref">zspy</span></a> plugins (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/164">#164</a>)</p></li>
+<li><p>Fixes slow loading of ragged <a class="reference internal" href="supported_formats/zspy.html#zspy-format"><span class="std std-ref">zspy</span></a> arrays (#168) (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/169">#169</a>)</p></li>
 </ul>
 </section>
 <section id="improved-documentation">
@@ -619,16 +635,16 @@ assumed. (<a class="reference external" href="https://github.com/hyperspy/rosett
 <section id="id75">
 <h3>Enhancements<a class="headerlink" href="#id75" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p>Add option to show progress bar when saving lazy signals to <a class="reference internal" href="user_guide/supported_formats/hspy.html#hspy-format"><span class="std std-ref">hspy</span></a>/<a class="reference internal" href="user_guide/supported_formats/zspy.html#zspy-format"><span class="std std-ref">zspy</span></a> files (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/170">#170</a>)</p></li>
+<li><p>Add option to show progress bar when saving lazy signals to <a class="reference internal" href="supported_formats/hspy.html#hspy-format"><span class="std std-ref">hspy</span></a>/<a class="reference internal" href="supported_formats/zspy.html#zspy-format"><span class="std std-ref">zspy</span></a> files (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/170">#170</a>)</p></li>
 <li><p>Make <code class="docutils literal notranslate"><span class="pre">numba</span></code> and <code class="docutils literal notranslate"><span class="pre">h5py</span></code> optional dependencies to support RosettaSciIO on <a class="reference external" href="https://pyodide.org/">pyodide</a> and <a class="reference external" href="https://www.pypy.org/">PyPy</a> (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/180">#180</a>)</p></li>
 </ul>
 </section>
 <section id="id78">
 <h3>Maintenance<a class="headerlink" href="#id78" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p>Remove deprecated <code class="docutils literal notranslate"><span class="pre">record_by</span></code> attribute in <a class="reference internal" href="user_guide/supported_formats/hspy.html#hspy-format"><span class="std std-ref">hspy</span></a>/<a class="reference internal" href="user_guide/supported_formats/zspy.html#zspy-format"><span class="std std-ref">zspy</span></a>, (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/143">#143</a>)</p></li>
+<li><p>Remove deprecated <code class="docutils literal notranslate"><span class="pre">record_by</span></code> attribute in <a class="reference internal" href="supported_formats/hspy.html#hspy-format"><span class="std std-ref">hspy</span></a>/<a class="reference internal" href="supported_formats/zspy.html#zspy-format"><span class="std std-ref">zspy</span></a>, (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/143">#143</a>)</p></li>
 <li><p>Add <code class="docutils literal notranslate"><span class="pre">sidpy</span></code> dependency and pin it to &lt;0.12.1 as a workaround to fix <code class="docutils literal notranslate"><span class="pre">pyusid</span></code> import (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/155">#155</a>)</p></li>
-<li><p>Update <a class="reference internal" href="user_guide/supported_formats/hspy.html#hspy-format"><span class="std std-ref">hspy</span></a>/<a class="reference internal" href="user_guide/supported_formats/zspy.html#zspy-format"><span class="std std-ref">zspy</span></a> plugins to new markers API introduced in HyperSpy 2.0 (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/164">#164</a>)</p></li>
+<li><p>Update <a class="reference internal" href="supported_formats/hspy.html#hspy-format"><span class="std std-ref">hspy</span></a>/<a class="reference internal" href="supported_formats/zspy.html#zspy-format"><span class="std std-ref">zspy</span></a> plugins to new markers API introduced in HyperSpy 2.0 (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/164">#164</a>)</p></li>
 <li><p>Pin pillow&lt;10.1.0 until imageio supports newer pillow version - see <a class="github reference external" href="https://github.com/imageio/imageio/issues/1044">imageio/imageio#1044</a> (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/175">#175</a>)</p></li>
 <li><p>Update the test suite and the CI workflows to work with and without exspy installed (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/176">#176</a>)</p></li>
 <li><p>Add badges that became available after first release (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/177">#177</a>)</p></li>
@@ -640,12 +656,12 @@ assumed. (<a class="reference external" href="https://github.com/hyperspy/rosett
 <section id="id86">
 <h3>New features<a class="headerlink" href="#id86" title="Link to this heading">#</a></h3>
 <ul class="simple">
-<li><p>Add support for reading the <code class="docutils literal notranslate"><span class="pre">.xml</span></code>-format from Horiba <a class="reference internal" href="user_guide/supported_formats/jobinyvon.html#jobinyvon-format"><span class="std std-ref">Jobin Yvon</span></a>’s LabSpec software. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/25">#25</a>)</p></li>
-<li><p>Add support for reading the <code class="docutils literal notranslate"><span class="pre">.tvf</span></code>-format from <a class="reference internal" href="user_guide/supported_formats/trivista.html#trivista-format"><span class="std std-ref">TriVista</span></a>. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/27">#27</a>)</p></li>
-<li><p>Add support for reading the <code class="docutils literal notranslate"><span class="pre">.wdf</span></code>-format from <a class="reference internal" href="user_guide/supported_formats/renishaw.html#renishaw-format"><span class="std std-ref">Renishaw’s WIRE</span></a> software. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/55">#55</a>)</p></li>
+<li><p>Add support for reading the <code class="docutils literal notranslate"><span class="pre">.xml</span></code>-format from Horiba <a class="reference internal" href="supported_formats/jobinyvon.html#jobinyvon-format"><span class="std std-ref">Jobin Yvon</span></a>’s LabSpec software. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/25">#25</a>)</p></li>
+<li><p>Add support for reading the <code class="docutils literal notranslate"><span class="pre">.tvf</span></code>-format from <a class="reference internal" href="supported_formats/trivista.html#trivista-format"><span class="std std-ref">TriVista</span></a>. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/27">#27</a>)</p></li>
+<li><p>Add support for reading the <code class="docutils literal notranslate"><span class="pre">.wdf</span></code>-format from <a class="reference internal" href="supported_formats/renishaw.html#renishaw-format"><span class="std std-ref">Renishaw’s WIRE</span></a> software. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/55">#55</a>)</p></li>
 <li><p>Added subclassing of <code class="docutils literal notranslate"><span class="pre">.sur</span></code> files in CL signal type and updated metadata parsing (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/98">#98</a>)</p></li>
 <li><p>Add optional kwarg to tiff reader <code class="docutils literal notranslate"><span class="pre">multipage_as_list</span></code> which when set to True uses <code class="docutils literal notranslate"><span class="pre">pages</span></code> interface and returns list of signal for every page with full metadata. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/104">#104</a>)</p></li>
-<li><p>Add file reader and writer for PRZ files generated by <a class="reference internal" href="user_guide/supported_formats/pantarhei.html#pantarhei-format"><span class="std std-ref">CEOS PantaRhei</span></a> (<a class="reference external" href="https://github.com/hyperspy/hyperspy/issues/2896">HyperSpy #2896</a>)</p></li>
+<li><p>Add file reader and writer for PRZ files generated by <a class="reference internal" href="supported_formats/pantarhei.html#pantarhei-format"><span class="std std-ref">CEOS PantaRhei</span></a> (<a class="reference external" href="https://github.com/hyperspy/hyperspy/issues/2896">HyperSpy #2896</a>)</p></li>
 </ul>
 </section>
 <section id="id92">
@@ -702,11 +718,11 @@ Set maximal major version of Sphinx to 5. (<a class="reference external" href="h
 <li><p>Following the deprecation cycle announced in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/v2.0/changes.html">HyperSpy</a>,
 the following keywords and attributes have been removed:</p>
 <ul>
-<li><p><a class="reference internal" href="user_guide/supported_formats/bruker.html#bruker-format"><span class="std std-ref">Bruker composite file (BCF)</span></a>: The <code class="docutils literal notranslate"><span class="pre">'spectrum'</span></code> option for the
+<li><p><a class="reference internal" href="supported_formats/bruker.html#bruker-format"><span class="std std-ref">Bruker composite file (BCF)</span></a>: The <code class="docutils literal notranslate"><span class="pre">'spectrum'</span></code> option for the
 <code class="docutils literal notranslate"><span class="pre">select_type</span></code> parameter was removed. Use ‘spectrum_image’ instead.</p></li>
-<li><p><a class="reference internal" href="user_guide/supported_formats/emd.html#emd-ncem-format"><span class="std std-ref">Electron Microscopy Dataset (EMD) NCEM</span></a>: Using the
+<li><p><a class="reference internal" href="supported_formats/emd.html#emd-ncem-format"><span class="std std-ref">Electron Microscopy Dataset (EMD) NCEM</span></a>: Using the
 keyword <code class="docutils literal notranslate"><span class="pre">'dataset_name'</span></code> was removed, use <code class="docutils literal notranslate"><span class="pre">'dataset_path'</span></code> instead.</p></li>
-<li><p><a class="reference internal" href="user_guide/supported_formats/nexus.html#nexus-format"><span class="std std-ref">NeXus data format</span></a>: The <code class="docutils literal notranslate"><span class="pre">dataset_keys</span></code>, <code class="docutils literal notranslate"><span class="pre">dataset_paths</span></code>
+<li><p><a class="reference internal" href="supported_formats/nexus.html#nexus-format"><span class="std std-ref">NeXus data format</span></a>: The <code class="docutils literal notranslate"><span class="pre">dataset_keys</span></code>, <code class="docutils literal notranslate"><span class="pre">dataset_paths</span></code>
 and <code class="docutils literal notranslate"><span class="pre">metadata_keys</span></code> keywords were removed. Use <code class="docutils literal notranslate"><span class="pre">dataset_key</span></code>, <code class="docutils literal notranslate"><span class="pre">dataset_path</span></code>
 and <code class="docutils literal notranslate"><span class="pre">metadata_key</span></code> instead. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/30">#30</a>)</p></li>
 </ul>

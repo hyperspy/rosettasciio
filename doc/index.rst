@@ -19,9 +19,74 @@ project for multi-dimensional data analysis. As HyperSpy is rooted in the electr
 microscopy community, data formats used by this community are still particularly
 well represented.
 
+
+.. grid:: 2 3 3 3
+  :gutter: 2
+
+  .. grid-item-card::
+    :link: user_guide/install
+    :link-type: doc
+
+    :octicon:`rocket;2em;sd-text-info` Getting Started
+    ^^^
+
+    New to RosettaSciIO or Python? Find information on how to
+    install RosettaSciIO.
+
+  .. grid-item-card::
+    :link: supported_formats/index
+    :link-type: doc
+
+    :octicon:`checklist;2em;sd-text-info` Supported Formats
+    ^^^
+
+    Overview of the different file formats that RosettaSciIO can read
+    from and write to, as well as information on specific options if applicable.
+
+  .. grid-item-card::
+    :link: user_guide/interoperability
+    :link-type: doc
+
+    :octicon:`arrow-switch;2em;sd-text-info` Interoperability
+    ^^^
+
+    Information on scripts and packages that allow opening data saved using
+    RosettaSciIO with third-party programs.
+
+  .. grid-item-card::
+    :link: file_specification/index
+    :link-type: doc
+
+    :octicon:`checklist;2em;sd-text-info` File Specifications
+    ^^^
+
+    Links to or documentation of file specifications for
+    some of the formats supported by RosettaSciIO.
+
+  .. grid-item-card::
+    :link: api/index
+    :link-type: doc
+
+    :octicon:`book;2em;sd-text-info` API Reference
+    ^^^
+
+    Documentation describing how to use RosettaSciIO with other
+    libraries than HyperSpy or for custom implementations using the
+    Application Programming Interface (API).
+
+  .. grid-item-card::
+    :link: contributing
+    :link-type: doc
+
+    :octicon:`code-square;2em;sd-text-info` Contributing
+    ^^^
+
+    Information on how to implement new file plugins or help improve existing ones.
+
+
 RosettaSciIO provides the dataset, its axes and related metadata contained in a
-file in a python dictionary that can be easily handled by other libraries.
-Similarly, it takes a dictionary as input for file writers.
+file in a :ref:`python dictionary <interfacing-api>` that can be easily
+handled by other libraries.
 
 .. note::
 
@@ -66,6 +131,7 @@ Table of contents
 
    user_guide/index
    file_specification/index
+   supported_formats/index
    api/index
    contributing
    changes

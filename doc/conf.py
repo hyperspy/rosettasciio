@@ -40,6 +40,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinxcontrib.towncrier",
     "sphinx_copybutton",
+    "sphinx_design",
 ]
 
 intersphinx_mapping = {

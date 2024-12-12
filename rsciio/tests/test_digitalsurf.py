@@ -22,6 +22,7 @@ import numpy as np
 import pytest
 
 from rsciio.digitalsurf._api import DigitalSurfHandler, MountainsMapFileError
+from rsciio.utils.tools import dummy_context_manager
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -676,7 +677,12 @@ def test_norm_int_data(dtype, special, fullscale):
 
     Zscale = 0.0  # to avoid CodeQL error: pot. non-initialized var
     Zoffset = -np.inf  # to avoid CodeQL error: pot. non-initialized var
-    pointsize, Zmin, Zmax, Zscale, Zoffset, data_int = dh._norm_data(dat, special)
+    if dtype in [np.uint8, np.uint16]:
+        cm = pytest.warns(UserWarning)
+    else:
+        cm = dummy_context_manager()
+    with cm:
+        pointsize, Zmin, Zmax, Zscale, Zoffset, data_int = dh._norm_data(dat, special)
 
     off = minint + 1 if special and fullscale else dat.min()
     maxval = maxint - 1 if special and fullscale else dat.max()
@@ -738,7 +744,12 @@ def test_writegeneric_validtypes(tmp_path, dtype, compressed):
     generated from numpy array"""
     gen = hs.signals.Signal1D(np.arange(24, dtype=dtype)) + 25
     fgen = tmp_path.joinpath("test.pro")
-    gen.save(fgen, compressed=compressed, overwrite=True)
+    if dtype in [np.uint8, np.uint16]:
+        cm = pytest.warns(UserWarning)
+    else:
+        cm = dummy_context_manager()
+    with cm:
+        gen.save(fgen, compressed=compressed, overwrite=True)
 
     gen2 = hs.load(fgen)
     assert np.allclose(gen2.data, gen.data)
@@ -788,7 +799,8 @@ def test_writegeneric_transposedsurface(
 
     fgen = tmp_path.joinpath("test.sur")
 
-    gen.save(fgen, overwrite=True)
+    with pytest.warns():
+        gen.save(fgen, overwrite=True)
 
     gen2 = hs.load(fgen)
 

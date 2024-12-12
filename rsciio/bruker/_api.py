@@ -490,9 +490,9 @@ class EDXSpectrum(object):
             self.detector_metadata["DetLayers"][i.tag] = dict(i.attrib)
 
         # map stuff from esma xml branch:
-        if esma_header:
+        if esma_header is not None:
             self.esma_metadata = x2d.dictionarize(esma_header)
-        if xrf_header:
+        if xrf_header is not None:
             xrf_header_dict = x2d.dictionarize(xrf_header)
             self.esma_metadata = {
                 "PrimaryEnergy": xrf_header_dict["Voltage"],

@@ -203,8 +203,10 @@ class EMD_NCEM:
         if h5py.check_string_dtype(dataset.dtype) and hasattr(dataset, "asstr"):
             # h5py 3.0 and newer
             # https://docs.h5py.org/en/3.0.0/strings.html
-            dataset = dataset.asstr()[:]
-        return dataset, chunks
+            data = dataset.asstr()[:]
+        else:
+            data = dataset[:]
+        return data, chunks
 
     def _read_emd_version(self, group):
         """Return the group version if the group is an EMD group, otherwise
@@ -225,38 +227,38 @@ class EMD_NCEM:
         axes = []
         transpose_required = True if dataset_name != "datacube" else False
 
-        array_list = [self.file.get(f"{key}/{dataset_name}") for key in group_path]
+        dataset_list = [self.file.get(f"{key}/{dataset_name}") for key in group_path]
 
-        if None in array_list:
+        if None in dataset_list:
             raise IOError("Dataset can't be found.")
 
-        if len(array_list) > 1:
+        if len(dataset_list) > 1:
             # Squeeze the data only when
             if self.lazy:
-                data_list = [da.from_array(*self._read_dataset(d)) for d in array_list]
+                data_list = [
+                    da.from_array(*self._read_dataset(d)) for d in dataset_list
+                ]
                 if transpose_required:
                     data_list = [da.transpose(d) for d in data_list]
                 data = da.stack(data_list)
                 data = da.squeeze(data)
             else:
-                data_list = [
-                    np.asanyarray(self._read_dataset(d)[0]) for d in array_list
-                ]
+                data_list = [self._read_dataset(d)[0] for d in dataset_list]
                 if transpose_required:
                     data_list = [np.transpose(d) for d in data_list]
                 data = np.stack(data_list).squeeze()
         else:
-            d = array_list[0]
+            d = dataset_list[0]
             if self.lazy:
                 data = da.from_array(*self._read_dataset(d))
             else:
-                data = np.asanyarray(self._read_dataset(d)[0])
+                data = self._read_dataset(d)[0]
             if transpose_required:
                 data = data.transpose()
 
         shape = data.shape
 
-        if len(array_list) > 1:
+        if len(dataset_list) > 1:
             offset, scale, units = 0, 1, None
             if self._is_prismatic_file and "depth" in stack_key:
                 simu_om = original_metadata.get("simulation_parameters", {})
@@ -274,7 +276,7 @@ class EMD_NCEM:
                     simu_om.get("tile", 0)[2] * simu_om.get("cellDimension", 0)[0]
                 )
                 if not math.isclose(
-                    total_thickness, len(array_list) * scale, rel_tol=1e-4
+                    total_thickness, len(dataset_list) * scale, rel_tol=1e-4
                 ):
                     _logger.warning(
                         "Depth axis is non-uniform and its offset "
@@ -289,7 +291,7 @@ class EMD_NCEM:
                     "name": stack_key if stack_key is not None else None,
                     "offset": offset,
                     "scale": scale,
-                    "size": len(array_list),
+                    "size": len(dataset_list),
                     "units": units,
                     "navigate": True,
                 }

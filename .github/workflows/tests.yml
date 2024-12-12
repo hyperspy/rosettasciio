@@ -26,37 +26,48 @@ jobs:
           # test oldest supported version of main dependencies on python 3.8
           - os: ubuntu
             os_version: latest
-            PYTHON_VERSION: '3.8'
+            PYTHON_VERSION: '3.9'
             # Set pillow and scikit-image version to be compatible with imageio and scipy
-            # matplotlib needs 3.5 to support markers in hyperspy 2.0 (requires `collection.set_offset_transform`)
-            DEPENDENCIES: matplotlib==3.5 numpy==1.20.0 tifffile==2022.7.28 dask[array]==2021.5.1 distributed==2021.5.1 numba==0.52 imageio==2.16 pillow==8.3.2 scikit-image==0.18.0 python-box==6.0.0
+            # align matplotlib dependency with hyperspy
+            DEPENDENCIES: matplotlib==3.6 numpy==1.20.0 tifffile==2022.7.28 dask[array]==2021.5.1 distributed==2021.5.1 numba==0.53 imageio==2.16 pillow==8.3.2 scikit-image==0.18.0 python-box==6.0.0
             LABEL: '-oldest'
           # test minimum requirement
           - os: ubuntu
             os_version: latest
-            PYTHON_VERSION: '3.9'
+            PYTHON_VERSION: '3.10'
             LABEL: '-minimum'
           - os: ubuntu
             os_version: latest
             PYTHON_VERSION: '3.12'
-            LABEL: '-minimum-without-hyperspy'
-          - os: ubuntu
-            os_version: latest
-            PYTHON_VERSION: '3.11'
             LABEL: '-hyperspy-dev'
           - os: ubuntu
             os_version: latest
-            PYTHON_VERSION: '3.9'
+            PYTHON_VERSION: '3.10'
             LABEL: '-without-hyperspy'
           - os: ubuntu
             os_version: latest
-            PYTHON_VERSION: '3.8'
+            PYTHON_VERSION: '3.9'
           - os: ubuntu
             os_version: latest
-            PYTHON_VERSION: '3.11'
+            PYTHON_VERSION: '3.12'
+          - os: ubuntu
+            os_version: latest
+            PYTHON_VERSION: '3.13'
+            # can remove minimum dependencies when numba supports 3.13
+            LABEL: '-minimum'
+          - os: macos
+            os_version: latest
+            PYTHON_VERSION: '3.13'
+            # can remove minimum dependencies when numba supports 3.13
+            LABEL: '-minimum'
+          - os: windows
+            os_version: latest
+            PYTHON_VERSION: '3.13'
+            # can remove minimum dependencies when numba supports 3.13
+            LABEL: '-minimum'
           - os: macos
             os_version: '13'
-            PYTHON_VERSION: '3.11'
+            PYTHON_VERSION: '3.12'
 
     steps:
       - uses: actions/checkout@v4
@@ -79,6 +90,7 @@ jobs:
         name: Install Python
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
+          cache: 'pip'
         
       - name: Get the number of CPUs
         id: cpus
@@ -91,7 +103,7 @@ jobs:
           with open(output_file, "a", encoding="utf-8") as output_stream:
               output_stream.write(f"count={num_cpus}\n")
         shell: python
-          
+
       - name: Set Environment Variable
         shell: bash
         # Set PIP_SELECTOR environment variable according to matrix.LABEL
@@ -108,8 +120,14 @@ jobs:
           python --version
           pip --version
 
+      - name: Install traits dev for python 3.13
+        if: ${{ matrix.PYTHON_VERSION == '3.13' }}
+        run: |
+          # traits release with python 3.13 pending
+          pip install git+https://github.com/enthought/traits.git
+
       - name: Install hyperspy and exspy
-        if: ${{ ! contains(matrix.LABEL, 'without-hyperspy') }}
+        if: ${{ ! contains(matrix.LABEL, 'without-hyperspy') && matrix.PYTHON_VERSION != '3.13'}}
         run: |
           pip install hyperspy exspy
 
@@ -119,14 +137,20 @@ jobs:
           pip install git+https://github.com/hyperspy/hyperspy.git
           pip install git+https://github.com/hyperspy/exspy.git
 
-      - name: Install pint and python-mrcz dev
+      - name: Install hyperspy (python 3.13) and exspy (dev)
+        if: ${{ matrix.PYTHON_VERSION == '3.13' }}
+        run: |
+          # speed up installing scikit-image using pre-release with python 3.13 wheels
+          pip install scikit-image --pre 
+          pip install git+https://github.com/ericpre/hyperspy.git@python313
+          pip install git+https://github.com/hyperspy/exspy.git
+
+      - name: Install python-mrcz dev
         # for numpy 2.0 support for python >= 3.9
         # https://github.com/em-MRCZ/python-mrcz/pull/15
-        # https://github.com/hgrecco/pint/issues/1974
-        if: ${{ ! contains(matrix.LABEL, 'oldest') && matrix.PYTHON_VERSION != '3.8' }}
+        if: ${{ ! contains(matrix.LABEL, 'oldest') && ! contains(matrix.LABEL, 'minimum') }}
         run: |
           pip install git+https://github.com/ericpre/python-mrcz.git@numpy2.0_and_deprecation_fixes
-          pip install git+https://github.com/hgrecco/pint
 
       - name: Install
         shell: bash
@@ -147,7 +171,7 @@ jobs:
       - name: Install numpy 2.0 
         if: ${{ ! contains(matrix.LABEL, 'oldest') && matrix.PYTHON_VERSION != '3.8' }}
         run: |
-          pip install numpy==2
+          pip install numpy>=2
 
       - name: Pip list
         run: |

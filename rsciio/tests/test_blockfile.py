@@ -45,7 +45,7 @@ FILE2 = TEST_DATA_DIR / "test2.blo"
 
 @pytest.fixture()
 def fake_signal():
-    fake_data = np.arange(300).reshape(3, 4, 5, 5)
+    fake_data = np.arange(300, dtype=np.uint8).reshape(3, 4, 5, 5)
     fake_signal = hs.signals.Signal2D(fake_data)
     fake_signal.axes_manager[0].scale_as_quantity = "1 mm"
     fake_signal.axes_manager[1].scale_as_quantity = "1 mm"
@@ -323,12 +323,12 @@ def test_different_x_y_scale_units(save_path):
 def test_inconvertible_units(save_path, fake_signal):
     fake_signal.axes_manager[2].units = "1/A"
     fake_signal.axes_manager[3].units = "1/A"
-    fake_signal.change_dtype(np.uint8)
     with pytest.warns(UserWarning):
         fake_signal.save(save_path, overwrite=True)
 
 
 def test_overflow(save_path, fake_signal):
+    fake_signal.change_dtype(np.uint16)
     with pytest.warns(UserWarning):
         fake_signal.save(save_path, overwrite=True)
     sig_reload = hs.load(save_path)
@@ -397,8 +397,7 @@ def test_vbfs(save_path, fake_signal, navigator):
         save_path, intensity_scaling=None, navigator=navigator, overwrite=True
     )
     sig_reload = hs.load(save_path)
-    compare = (fake_signal.data % 256).astype(np.uint8)
-    np.testing.assert_allclose(sig_reload.data, compare)
+    np.testing.assert_allclose(sig_reload.data, fake_signal.data)
 
 
 def test_invalid_vbf(save_path, fake_signal):
@@ -418,8 +417,10 @@ def test_default_header():
 
 def test_non_square(save_path):
     signal = hs.signals.Signal2D((255 * np.random.rand(10, 3, 5, 6)).astype(np.uint8))
-    with pytest.raises(ValueError):
-        signal.save(save_path, overwrite=True)
+    with pytest.warns(UserWarning):
+        # warning about expect cm units
+        with pytest.raises(ValueError):
+            signal.save(save_path, overwrite=True)
 
 
 def test_load_lazy():
@@ -459,6 +460,8 @@ def test_load_inplace():
 
 def test_write_fresh(save_path):
     signal = hs.signals.Signal2D((255 * np.random.rand(10, 3, 5, 5)).astype(np.uint8))
+    signal.axes_manager["sig"].set(units="cm")
+    signal.axes_manager["nav"].set(units="nm")
     signal.save(save_path, overwrite=True)
     sig_reload = hs.load(save_path)
     np.testing.assert_equal(signal.data, sig_reload.data)
@@ -481,14 +484,18 @@ def test_write_fresh(save_path):
 
 def test_write_data_line(save_path):
     signal = hs.signals.Signal2D((255 * np.random.rand(3, 5, 5)).astype(np.uint8))
-    signal.save(save_path, overwrite=True)
+    with pytest.warns(UserWarning):
+        # expected units warning
+        signal.save(save_path, overwrite=True)
     sig_reload = hs.load(save_path)
     np.testing.assert_equal(signal.data, sig_reload.data)
 
 
 def test_write_data_single(save_path):
     signal = hs.signals.Signal2D((255 * np.random.rand(5, 5)).astype(np.uint8))
-    signal.save(save_path, overwrite=True)
+    with pytest.warns(UserWarning):
+        # expected units warning
+        signal.save(save_path, overwrite=True)
     sig_reload = hs.load(save_path)
     np.testing.assert_equal(signal.data, sig_reload.data)
 
@@ -496,8 +503,10 @@ def test_write_data_single(save_path):
 def test_write_data_am_mismatch(save_path):
     signal = hs.signals.Signal2D((255 * np.random.rand(10, 3, 5, 5)).astype(np.uint8))
     signal.axes_manager.navigation_axes[1].size = 4
-    with pytest.raises(ValueError):
-        signal.save(save_path, overwrite=True)
+    with pytest.warns(UserWarning):
+        # expected units warning
+        with pytest.raises(ValueError):
+            signal.save(save_path, overwrite=True)
 
 
 def test_unrecognized_header_warning(save_path, fake_signal):
@@ -513,8 +522,10 @@ def test_unrecognized_header_warning(save_path, fake_signal):
 def test_write_cutoff(save_path):
     signal = hs.signals.Signal2D((255 * np.random.rand(10, 3, 5, 5)).astype(np.uint8))
     signal.axes_manager.navigation_axes[0].size = 20
-    # Test that it raises a warning
+    signal.axes_manager["sig"].set(units="cm")
+    signal.axes_manager["nav"].set(units="nm")
     signal.save(save_path, overwrite=True)
+    # Test that it raises a warning
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         sig_reload = hs.load(save_path)
@@ -538,6 +549,8 @@ def test_crop_notes(save_path):
     signal = hs.signals.Signal2D((255 * np.random.rand(2, 3, 2, 2)).astype(np.uint8))
     signal.original_metadata.add_node("blockfile_header.Note")
     signal.original_metadata.blockfile_header.Note = note
-    signal.save(save_path, overwrite=True)
+    with pytest.warns(UserWarning):
+        # expected units warning
+        signal.save(save_path, overwrite=True)
     sig_reload = hs.load(save_path)
     assert sig_reload.original_metadata.blockfile_header.Note == note[:note_len]

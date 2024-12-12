@@ -136,9 +136,10 @@ def generate_4D_files(f, data_types, dmversion):
 
 
 if __name__ == "__main__":
-    with open("generate_dm3_test_files.s", "w") as f1, open(
-        "generate_dm4_test_files.s", "w"
-    ) as f2:
+    with (
+        open("generate_dm3_test_files.s", "w") as f1,
+        open("generate_dm4_test_files.s", "w") as f2,
+    ):
         for f in (f1, f2):
             f.write("image im\n")
             f.write("string filename, path\n")

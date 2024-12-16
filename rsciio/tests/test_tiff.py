@@ -1077,6 +1077,23 @@ class TestReadHamamatsu:
         np.testing.assert_allclose(s.axes_manager[0].scale, 0.01714, rtol=1e-3)
         np.testing.assert_allclose(s.axes_manager[0].offset, 231.0909, rtol=1e-3)
 
+    def test_hamamatsu_streak_otherfile(self):
+        # Test case where ScalingXScalingFile="Other"
+        file = "test_hamamatsu_streak_OTHER.tif"
+        fname = os.path.join(self.path, file)
+
+        with pytest.warns(UserWarning):
+            s = hs.load(fname)
+
+        assert s.axes_manager.signal_shape == (672, 508)
+        assert s.axes_manager.navigation_shape == ()
+        assert s.data.shape == (508, 672)
+        assert s.axes_manager[1].units == ""
+        np.testing.assert_allclose(s.axes_manager[1].scale, 1.0, rtol=1e-3)
+        np.testing.assert_allclose(s.axes_manager[1].offset, 0.0, rtol=1e-3, atol=1e-5)
+        np.testing.assert_allclose(s.axes_manager[0].scale, 1.0, rtol=1e-3)
+        np.testing.assert_allclose(s.axes_manager[0].offset, 0.0, rtol=1e-3, atol=1e-5)
+
     def test_hamamatsu_streak_non_uniform_load(self):
         file = "test_hamamatsu_streak_SCAN.tif"
         fname = os.path.join(self.path, file)

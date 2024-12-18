@@ -695,8 +695,12 @@ def _get_hamamatsu_streak_description(tiff, op):
     # Scaling entry
     scaling = dict_meta["Scaling"]
 
-    # Address in file where the X axis is saved
-    x_scale_address = int(re.findall(r"\d+", scaling["ScalingXScalingFile"])[0])
+    # Address in file where the X axis is saved. If x axis is "Other" (no
+    # calibrated spectral axis saved in file), it just loads the axis as pixels
+    if scaling["ScalingXScalingFile"].startswith("Other"):
+        x_scale_address = None
+    else:
+        x_scale_address = int(re.findall(r"\d+", scaling["ScalingXScalingFile"])[0])
     xlen = op["ImageWidth"]
 
     # If focus mode is used there is no Y axis
@@ -709,8 +713,11 @@ def _get_hamamatsu_streak_description(tiff, op):
     # Accessing the file as a binary
     fh = tiff.filehandle
     # Reading the x axis
-    fh.seek(x_scale_address, 0)
-    xax = np.fromfile(fh, dtype="f", count=xlen)
+    if x_scale_address is None:
+        xax = np.arange(xlen)
+    else:
+        fh.seek(x_scale_address, 0)
+        xax = np.fromfile(fh, dtype="f", count=xlen)
     if y_scale_address is None:
         yax = np.arange(ylen)
     else:

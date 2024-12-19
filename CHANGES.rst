@@ -8,6 +8,40 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 
 .. towncrier release notes start
 
+0.7 (2024-12-20)
+================
+
+New features
+------------
+
+- Add basic support for the Delmic HDF5 format. (`#139 <https://github.com/hyperspy/rosettasciio/issues/139>`_)
+
+
+Enhancements
+------------
+
+- :ref:`Direct Electron MRC <mrc-format>`:
+
+  - add support for newer version of DE server,
+  - add support foe discovering metadata file (``*_info.txt``) based on the naming scheme. (`#311 <https://github.com/hyperspy/rosettasciio/issues/311>`_)
+- Add support for tiff file in :func:`~.utils.tools.get_file_handle`. (`#317 <https://github.com/hyperspy/rosettasciio/issues/317>`_)
+
+
+Bug Fixes
+---------
+
+- Set ``signal_type`` to ``LumiTransientSpectrum`` when Hamamatsu ``.img`` files are read and LumiSpy is installed. (`#209 <https://github.com/hyperspy/rosettasciio/issues/209>`_)
+- Fix lazy reading of some tiff files - fix for `#316 <https://github.com/hyperspy/rosettasciio/issues/316>`_. (`#317 <https://github.com/hyperspy/rosettasciio/issues/317>`_)
+- Fix scale in white field image in ``renishaw`` reader. (`#327 <https://github.com/hyperspy/rosettasciio/issues/327>`_)
+- Allow reading of Hamamatsu tiff file with ``ScalingXScalingFile="Other"``. (`#347 <https://github.com/hyperspy/rosettasciio/issues/347>`_)
+
+
+Maintenance
+-----------
+
+- Add explicit support for python 3.13. (`#339 <https://github.com/hyperspy/rosettasciio/issues/339>`_)
+
+
 0.6 (2024-07-11)
 ================
 

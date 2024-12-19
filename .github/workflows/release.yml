@@ -19,12 +19,10 @@ jobs:
       CIBW_ENVIRONMENT: POOCH_BASE_URL=https://github.com/${{ github.repository }}/raw/${{ github.ref_name }}/rsciio/tests/data/
       CIBW_TEST_COMMAND: "pytest --pyargs rsciio"
       CIBW_TEST_EXTRAS: "tests"
-      # Skip testing arm64 builds with python 3.8
-      CIBW_TEST_SKIP: "cp38-macosx_arm64"
       # No need to build wheels for pypy because the pure python wheels can be used
       # PyPy documentation recommends no to build the C extension
       # CPython 3.13 not supported yet because of pint
-      CIBW_SKIP: "{pp*,cp313*,*-musllinux*,*win32,*-manylinux_i686}"
+      CIBW_SKIP: "{pp*,*-musllinux*,*win32,*-manylinux_i686}"
     strategy:
       fail-fast: false
       matrix:

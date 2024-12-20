@@ -1,1 +1,0 @@
-Fix lazy reading of some tiff files - fix for `#316 <https://github.com/hyperspy/rosettasciio/issues/316>`_.

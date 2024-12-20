@@ -1,1 +1,0 @@
-Fix scale in white field image in ``renishaw`` reader.

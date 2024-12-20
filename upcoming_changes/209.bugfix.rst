@@ -1,1 +1,0 @@
-Set ``signal_type`` to ``LumiTransientSpectrum`` when Hamamatsu ``.img`` files are read and LumiSpy is installed.

@@ -123,11 +123,7 @@ def test_read_metadata_intensity():
     s = hs.load(testfile_intensity_path, reader="Delmic")
 
     assert s.metadata["General"]["title"] == ""
-    assert s.metadata["Signal"]["quantity"] == "Intensity (counts)"
-    assert s.metadata["Signal"]["signal_origin"] == ""
-    assert (
-        s.metadata["Signal"]["signal_type"] == ""
-    )  # to be modified in case of lumispy
+    assert s.metadata["Signal"]["quantity"] == "Counts"
 
 
 def test_read_original_metadata_intensity():
@@ -175,11 +171,7 @@ def test_read_metadata_hyperspectral():
     s = hs.load(testfile_hyperspectral_path, reader="Delmic")
 
     assert s.metadata["General"]["title"] == ""
-    assert s.metadata["Signal"]["quantity"] == "Intensity (counts)"
-    assert s.metadata["Signal"]["signal_origin"] == ""
-    assert (
-        s.metadata["Signal"]["signal_type"] == ""
-    )  # to be modified in case of lumispy
+    assert s.metadata["Signal"]["quantity"] == "Counts"
 
 
 def test_read_original_metadata_hyperspectral():
@@ -228,11 +220,7 @@ def test_read_metadata_temporaltrace():
     s = hs.load(testfile_temporaltrace_path, reader="Delmic")
 
     assert s.metadata["General"]["title"] == ""
-    assert s.metadata["Signal"]["quantity"] == "Intensity (counts)"
-    assert s.metadata["Signal"]["signal_origin"] == ""
-    assert (
-        s.metadata["Signal"]["signal_type"] == ""
-    )  # to be modified in case of lumispy
+    assert s.metadata["Signal"]["quantity"] == "Counts"
 
 
 def test_read_original_metadata_temporaltrace():
@@ -286,11 +274,7 @@ def test_read_metadata_streakcamera():
     s = hs.load(testfile_streakcamera_path, reader="Delmic")
 
     assert s.metadata["General"]["title"] == ""
-    assert s.metadata["Signal"]["quantity"] == "Intensity (counts)"
-    assert s.metadata["Signal"]["signal_origin"] == ""
-    assert (
-        s.metadata["Signal"]["signal_type"] == ""
-    )  # to be modified in case of lumispy
+    assert s.metadata["Signal"]["quantity"] == "Counts"
 
 
 def test_read_original_metadata_streakcamera():
@@ -344,11 +328,7 @@ def test_read_metadata_ek():
     s = hs.load(testfile_ek_path, reader="Delmic")
 
     assert s.metadata["General"]["title"] == ""
-    assert s.metadata["Signal"]["quantity"] == "Intensity (counts)"
-    assert s.metadata["Signal"]["signal_origin"] == ""
-    assert (
-        s.metadata["Signal"]["signal_type"] == ""
-    )  # to be modified in case of lumispy
+    assert s.metadata["Signal"]["quantity"] == "Counts"
 
 
 def test_read_original_metadata_ek():
@@ -402,11 +382,7 @@ def test_read_metadata_AR():
     s = hs.load(testfile_AR_path, reader="Delmic")
 
     assert s.metadata["General"]["title"] == ""
-    assert s.metadata["Signal"]["quantity"] == "Intensity (counts)"
-    assert s.metadata["Signal"]["signal_origin"] == ""
-    assert (
-        s.metadata["Signal"]["signal_type"] == ""
-    )  # to be modified in case of lumispy
+    assert s.metadata["Signal"]["quantity"] == "Counts"
 
 
 def test_read_original_metadata_AR():

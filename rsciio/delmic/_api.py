@@ -18,6 +18,7 @@
 
 import h5py
 import numpy as np
+import importlib.util
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 
@@ -448,27 +449,60 @@ def make_signal_axes(Acq):
 
 def make_metadata(Acq):
     """Create a metadata dictionary for a given acquisition (Acq)."""
+
     metadata = {
         "Signal": {
-            "quantity": "",  # Placeholder, to be filled with actual data
-            "signal_type": "",  # Placeholder, to be filled with actual data
-            "signal_origin": "",  # Placeholder, to be filled with actual data
+            "quantity": "",
+            "signal_type": "",
         }
     }
-    if "quantity" in Acq:
-        metadata["Signal"]["quantity"] = Acq["quantity"]
-    else:
-        metadata["Signal"]["quantity"] = "Intensity (counts)"  # Default value
 
-    if "signal_type" in Acq:
-        metadata["Signal"]["signal_type"] = Acq["signal_type"]
-    else:
-        metadata["Signal"]["signal_type"] = ""  # Default value
+    img_type=read_image_type(Acq)
 
-    if "signal_origin" in Acq:
-        metadata["Signal"]["signal_origin"] = Acq["signal_origin"]
-    else:
-        metadata["Signal"]["signal_origin"] = ""  # Default value
+    if importlib.util.find_spec("lumispy") is None:
+        metadata["Signal"]["signal_type"] = ""  # pragma: no cover
+        metadata["Signal"]["quantity"] = "Counts"
+        
+    elif img_type == "CL intensity":
+        metadata["Signal"]["signal_type"] = ""  # pragma: no cover
+        metadata["Signal"]["quantity"] = "Counts"
+        
+    elif img_type == "Secondary electrons concurrent":
+        metadata["Signal"]["signal_type"] = ""  # pragma: no cover
+        metadata["Signal"]["quantity"] = "Counts"
+        
+    elif img_type == "Secondary electrons survey":
+        metadata["Signal"]["signal_type"] = ""  # pragma: no cover
+        metadata["Signal"]["quantity"] = "Counts"
+        
+    elif img_type.startswith("Spectrum"):
+        metadata["Signal"]["signal_type"] = "CLSEM"  # pragma: no cover
+        metadata["Signal"]["quantity"] = "Counts"
+        
+    elif img_type.startswith("Large Area"):
+        metadata["Signal"]["signal_type"] = "CLSEM"  # pragma: no cover
+        metadata["Signal"]["quantity"] = "Counts"
+        
+    elif img_type == "Time Correlator":
+        metadata["Signal"]["signal_type"] = "LumiTransient"  # pragma: no cover
+        metadata["Signal"]["quantity"] = "Counts"
+        
+    elif img_type == "Temporal Spectrum":
+        metadata["Signal"]["signal_type"] = "LumiTransientSpectrum"  # pragma: no cover
+        metadata["Signal"]["quantity"] = "Counts"
+        
+    elif img_type == "Angle-resolved":
+        # add 'CLAngleResolved' signal type
+        metadata["Signal"]["signal_type"] = ""   # pragma: no cover
+        metadata["Signal"]["quantity"] = "Counts"
+        
+    elif img_type == "AR Spectrum":
+        # add 'CLAngleResolvedSpectrum'
+        metadata["Signal"]["signal_type"] = ""  # pragma: no cover
+        metadata["Signal"]["quantity"] = "Counts"
+        
+    elif img_type == "Anchor region":
+        pass
 
     return metadata
 

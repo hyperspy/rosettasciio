@@ -472,48 +472,25 @@ def make_metadata(Acq):
 
     return metadata
 
-
-def make_original_metadata(Acq):
+def make_original_metadata(Acq: h5py.Group) -> str:
     """Create a dictionary for the original metadata of a dataset."""
-    ImgData = Acq.get("ImageData")
-    Image = ImgData.get("Image")
     original_metadata = {}
 
-    # Extract the shape of the image data
-    shape = Image.shape
-    # Determine the number of dimensions and handle accordingly
-    if len(shape) == 5:
-        C, second_axis, Z, Y, X = shape
-    else:
-        raise ValueError(
-            f"Unexpected image shape: 5 dimensions,"
-            f"got {len(shape)}"
-        )
-
-    # Identify whether the second axis is Time (T) or Angle (A)
-    if "DimensionScaleT" in ImgData:
-        time_or_angle = "T"
-
-    elif "DimensionScaleA" in ImgData:
-        time_or_angle = "A"
-    else:
-        time_or_angle = "T"  # T is the default value for the array
-
-    # Map the axis sizes to the corresponding metadata dictionary keys
-    axis_mapping = {
-        "X": X,  # X axis
-        "Y": Y,  # Y axis
-        "Z": Z,  # Z axis
-        "C": C,  # C axis (Wavelength)
-    }
-
-    if time_or_angle:
-        axis_mapping[time_or_angle[0]] = second_axis
-
-    # Fill the original_metadata dictionary with sizes
-    original_metadata.update(axis_mapping)
-
-    # time_or_angle[0]: second_axis
+    if "PhysicalData" in Acq.keys():
+        PhysData = Acq.get("PhysicalData")
+        if PhysData is not None:
+            
+            # Read all attributes in the group
+            original_metadata = {key: value for key, value in PhysData.attrs.items()}
+                
+            # Read all datasets in the group, skipping unsupported items
+            for item_name, item in PhysData.items():
+                if isinstance(item, h5py.Dataset):  # Ensure the item is a Dataset
+                    if item.shape is not None:  # Skip datasets with NULL dataspace
+                        original_metadata[item_name] = item[()]  # Read the entire dataset
+        else:
+            original_metadata = {}  # Return an empty dictionary if the group doesn't exist
+    
     return original_metadata
 
 
@@ -521,39 +498,21 @@ def make_original_AR_metadata(Acq, data):
     """Create a dictionary of the original metadata of an AR image dataset."""
     original_metadata = {}
 
-    # Extract the shape of the image data
-    shape = data.shape
-    # Determine the number of dimensions and handle accordingly
-    if len(shape) == 4:
-        Y, X, A, Z = shape
-        # Map the axis sizes to the corresponding metadata dictionary keys
-        axis_mapping = {
-            "X": X,  # X axis
-            "Y": Y,  # Y axis
-            "Z": Z,  # Z axis
-            "A": A,  # C axis (Wavelength)
-        }
-
-        # Fill the original_metadata dictionary with sizes
-        original_metadata.update(axis_mapping)
-        
-    elif len(shape) == 2:
-        A, Z = shape
-        # Map the axis sizes to the corresponding metadata dictionary keys
-        axis_mapping = {
-            "Z": Z,  # Z axis
-            "A": A,  # C axis (Wavelength)
-        }
-
-        # Fill the original_metadata dictionary with sizes
-        original_metadata.update(axis_mapping)
-    else:
-        raise ValueError(
-            f"Unexpected image shape: 5 dimensions,"
-            f"got {len(shape)}"
-        )
-
-
+    if "PhysicalData" in Acq.keys():
+        PhysData = Acq.get("PhysicalData")
+        if PhysData is not None:
+            
+            # Read all attributes in the group
+            original_metadata = {key: value for key, value in PhysData.attrs.items()}
+                
+            # Read all datasets in the group, skipping unsupported items
+            for item_name, item in PhysData.items():
+                if isinstance(item, h5py.Dataset):  # Ensure the item is a Dataset
+                    if item.shape is not None:  # Skip datasets with NULL dataspace
+                        original_metadata[item_name] = item[()]  # Read the entire dataset
+        else:
+            original_metadata = {}  # Return an empty dictionary if the group doesn't exist
+            
     return original_metadata
 
 

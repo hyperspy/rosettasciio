@@ -1,0 +1,1 @@
+Pin zarr to version 2 until zarr version 3 is supported.

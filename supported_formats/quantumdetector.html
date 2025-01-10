@@ -30,7 +30,7 @@
   <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
@@ -547,7 +547,7 @@ will be used to guess the navigation shape.</p>
 <p class="rubric">Examples</p>
 <p>In case, the navigation shape can’t read from the data itself (for example,
 type of acquisition unsupported), the <code class="docutils literal notranslate"><span class="pre">navigation_shape</span></code> can be specified:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.quantumdetector</span> <span class="kn">import</span> <span class="n">file_reader</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">rsciio.quantumdetector</span><span class="w"> </span><span class="kn">import</span> <span class="n">file_reader</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s_dict</span> <span class="o">=</span> <span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;file.mib&quot;</span><span class="p">,</span> <span class="n">navigation_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">))</span>
 </pre></div>
 </div>
@@ -638,7 +638,7 @@ be read.</p>
 <p class="rubric">Examples</p>
 <p>Use <code class="docutils literal notranslate"><span class="pre">load_mib_data</span></code> function to the headers and parse the exposures
 from the headers. By default, reads only the first 10 000 frames.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.quantumdetector</span> <span class="kn">import</span> <span class="n">load_mib_data</span><span class="p">,</span> <span class="n">parse_exposures</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">rsciio.quantumdetector</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_mib_data</span><span class="p">,</span> <span class="n">parse_exposures</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="p">,</span> <span class="n">headers</span> <span class="o">=</span> <span class="n">load_mib_data</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">return_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_mmap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">exposures</span> <span class="o">=</span> <span class="n">parse_exposures</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span>
 </pre></div>
@@ -677,7 +677,7 @@ be read.</p>
 <p class="rubric">Examples</p>
 <p>Use <code class="docutils literal notranslate"><span class="pre">load_mib_data</span></code> function to get the headers and parse the timestamps
 from the headers. By default, reads only the first 10 000 frames.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.quantumdetector</span> <span class="kn">import</span> <span class="n">load_mib_data</span><span class="p">,</span> <span class="n">parse_exposures</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">rsciio.quantumdetector</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_mib_data</span><span class="p">,</span> <span class="n">parse_exposures</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="p">,</span> <span class="n">header</span> <span class="o">=</span> <span class="n">load_mib_data</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">return_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">timestamps</span> <span class="o">=</span> <span class="n">parse_timestamps</span><span class="p">(</span><span class="n">headers</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>

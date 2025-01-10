@@ -30,7 +30,7 @@
   <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 <link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/custom-styles.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
@@ -502,7 +502,7 @@ data registry.</p>
 <li><p>use git as usual to add files to the repository.</p></li>
 <li><p>Update <code class="docutils literal notranslate"><span class="pre">rsciio.tests.registry.txt</span></code> by running
 <a class="reference internal" href="api/utils.html#rsciio.tests.registry_utils.update_registry" title="rsciio.tests.registry_utils.update_registry"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_registry()</span></code></a> (Unix only):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rsciio.tests.registry_utils</span> <span class="kn">import</span> <span class="n">update_registry</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">rsciio.tests.registry_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">update_registry</span>
 
 <span class="n">update_registry</span><span class="p">()</span>
 </pre></div>
@@ -543,7 +543,7 @@ name of which should be descriptive of the file type/manufacturer/software. This
 directory should contain the following files:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> – Defines the exposed API functions, <code class="docutils literal notranslate"><span class="pre">file_reader</span></code> and optionally <code class="docutils literal notranslate"><span class="pre">file_writer</span></code></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">._api</span> <span class="kn">import</span> <span class="n">file_reader</span><span class="p">,</span> <span class="n">file_writer</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">._api</span><span class="w"> </span><span class="kn">import</span> <span class="n">file_reader</span><span class="p">,</span> <span class="n">file_writer</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -552,7 +552,7 @@ directory should contain the following files:</p>
 <span class="p">]</span>
 
 
-<span class="k">def</span> <span class="fm">__dir__</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="fm">__dir__</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">__all__</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -620,7 +620,7 @@ and retrieve by <code class="docutils literal notranslate"><span class="pre">imp
 <li><p>Version at build time: the version is defined from the tag or the “distance from the tag”.</p></li>
 <li><p>Version at runtime: use the version of the package (<code class="docutils literal notranslate"><span class="pre">sdist</span></code> or <code class="docutils literal notranslate"><span class="pre">wheel</span></code>), which would have been
 defined at build time. At runtime, the version is obtained using importlib.metadata as follow:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">importlib.metadata</span> <span class="kn">import</span> <span class="n">version</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">version</span>
 <span class="n">__version__</span> <span class="o">=</span> <span class="n">version</span><span class="p">(</span><span class="s2">&quot;rosettasciio&quot;</span><span class="p">)</span>
 </pre></div>
 </div>

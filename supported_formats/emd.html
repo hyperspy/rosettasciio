@@ -30,7 +30,7 @@
   <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
@@ -488,7 +488,7 @@ to save the simulation outputs.</p>
 <h3>Usage examples<a class="headerlink" href="#usage-examples" title="Link to this heading">#</a></h3>
 <p>For files containing several datasets, the <cite>dataset_path</cite> argument can be
 used to select a specific one:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.emd</span> <span class="kn">import</span> <span class="n">file_reader</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">rsciio.emd</span><span class="w"> </span><span class="kn">import</span> <span class="n">file_reader</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;adatafile.emd&quot;</span><span class="p">,</span> <span class="n">dataset_path</span><span class="o">=</span><span class="s2">&quot;/experimental/science_data_1/data&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -546,7 +546,7 @@ add support for newer versions of the format.</p>
 </div>
 <section id="id3">
 <h3>Usage examples<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.emd</span> <span class="kn">import</span> <span class="n">file_reader</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">rsciio.emd</span><span class="w"> </span><span class="kn">import</span> <span class="n">file_reader</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;sample.emd&quot;</span><span class="p">)</span>
 <span class="go">[&lt;Signal2D, title: HAADF, dimensions: (|179, 161)&gt;,</span>
 <span class="go">&lt;EDSSEMSpectrum, title: EDS, dimensions: (179, 161|4096)&gt;]</span>

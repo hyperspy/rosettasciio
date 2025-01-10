@@ -30,7 +30,7 @@
   <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
@@ -494,7 +494,7 @@ a <code class="docutils literal notranslate"><span class="pre">.nxs</span></code
 extension in order to default to the NeXus loader. If your file has
 an HDF5 extension, you can also explicitly set the NeXus file reader:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load a NeXus file with a .h5 extension</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">hyperspy.api</span> <span class="k">as</span> <span class="nn">hs</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">hyperspy.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">hs</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;filename.h5&quot;</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="s2">&quot;nxs&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -764,7 +764,7 @@ or when using <code class="docutils literal notranslate"><span class="pre">_sign
 <p>We can load a specific dataset using the <code class="docutils literal notranslate"><span class="pre">dataset_path</span></code> keyword argument.
 Setting it to the absolute path of the desired dataset will cause
 the single dataset to be loaded:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.nexus</span> <span class="kn">import</span> <span class="n">file_reader</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">rsciio.nexus</span><span class="w"> </span><span class="kn">import</span> <span class="n">file_reader</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Loading a specific dataset</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;sample.nxs&quot;</span><span class="p">,</span> <span class="n">dataset_path</span><span class="o">=</span><span class="s2">&quot;/entry/experiment/EDS/data&quot;</span><span class="p">)</span>
 </pre></div>
@@ -836,7 +836,7 @@ set <code class="docutils literal notranslate"><span class="pre">skip_array_meta
 </div>
 <p>To save multiple signals, the <code class="docutils literal notranslate"><span class="pre">file_writer</span></code> can be called directly passing a
 list of signals.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.nexus</span> <span class="kn">import</span> <span class="n">file_writer</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">rsciio.nexus</span><span class="w"> </span><span class="kn">import</span> <span class="n">file_writer</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">file_writer</span><span class="p">(</span><span class="s2">&quot;test.nxs&quot;</span><span class="p">,[</span><span class="n">signal1</span><span class="p">,</span><span class="n">signal2</span><span class="p">])</span>
 </pre></div>
 </div>
@@ -845,7 +845,7 @@ associated data or processing steps along with a final result. All signals can b
 a single signal can be marked as the default for easier loading using RosettaSciIO
 or plotting with NeXus tools.
 The default signal is selected as the first signal in the list:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.nexus</span> <span class="kn">import</span> <span class="n">file_writer</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">rsciio.nexus</span><span class="w"> </span><span class="kn">import</span> <span class="n">file_writer</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">file_writer</span><span class="p">(</span><span class="s2">&quot;test.nxs&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">signal1</span><span class="p">,</span> <span class="n">signal2</span><span class="p">],</span> <span class="n">use_default</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>

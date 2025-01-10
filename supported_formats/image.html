@@ -30,7 +30,7 @@
   <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 <link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
@@ -591,7 +591,7 @@ the keyword arguments are passed to the <cite>pil_kwargs</cite> dictionary of
 <p>When saving an image, a scalebar can be added to the image and the formatting,
 location, etc. of the scalebar can be set using the <code class="docutils literal notranslate"><span class="pre">scalebar_kwds</span></code>
 arguments:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rsciio.image</span> <span class="kn">import</span> <span class="n">file_writer</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">rsciio.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">file_writer</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">file_writer</span><span class="p">(</span><span class="s1">&#39;file.jpg&#39;</span><span class="p">,</span> <span class="n">signal</span><span class="p">,</span> <span class="n">scalebar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">file_writer</span><span class="p">(</span><span class="s1">&#39;file.jpg&#39;</span><span class="p">,</span> <span class="n">signal</span><span class="p">,</span> <span class="n">scalebar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">scalebar_kwds</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;location&#39;</span><span class="p">:</span><span class="s1">&#39;lower right&#39;</span><span class="p">})</span>
 </pre></div>

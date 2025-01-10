@@ -15,4 +15,4 @@ dependencies:
 - setuptools-scm
 - sparse
 - tifffile>=2022.7.28
-- zarr
+- zarr <3

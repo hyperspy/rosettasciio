@@ -98,7 +98,7 @@ scalebar_export = ["matplotlib-scalebar", "matplotlib>=3.6"]
 speed = ["numba>=0.53"]
 tiff = ["tifffile>=2022.7.28", "imagecodecs"]
 usid = ["pyUSID>=0.0.11"]
-zspy = ["zarr", "msgpack"]
+zspy = ["zarr>=2,<3", "msgpack"]
 tests = [
   "filelock",
   "pooch",

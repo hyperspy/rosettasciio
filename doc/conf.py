@@ -56,7 +56,7 @@ intersphinx_mapping = {
     "pooch": ("https://www.fatiando.org/pooch/latest", None),
     "python": ("https://docs.python.org/3", None),
     "pyusid": ("https://pycroscopy.github.io/pyUSID/", None),
-    "zarr": ("https://zarr.readthedocs.io/en/stable", None),
+    "zarr": ("https://zarr.readthedocs.io/en/v2.18.4", None),
 }
 
 # Add any paths that contain templates here, relative to this directory.

@@ -8,6 +8,15 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 
 .. towncrier release notes start
 
+0.7.1 (2025-01-12)
+==================
+
+Maintenance
+-----------
+
+- Pin zarr to version 2 until zarr version 3 is supported. (`#351 <https://github.com/hyperspy/rosettasciio/issues/351>`_)
+
+
 0.7 (2024-12-20)
 ================
 

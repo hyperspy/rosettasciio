@@ -22,7 +22,6 @@ import importlib.util
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 
-
 def count_acquisitions(hdf: h5py.File) -> int: 
     """Count the number of first-level groups in an HDF5 file."""
 
@@ -132,7 +131,7 @@ def load_hyperspectral(Image: h5py.Dataset) -> np.ndarray:
         )
 
     # Extract and transpose the data
-    if Image.shape[3] == 1 and Image.shape[3] == 1: 
+    if Image.shape[3] == 1 and Image.shape[4] == 1: 
         data = Image[:, 0, 0, 0, 0]
     else:
         data = Image[:, 0, 0, :, :].transpose(1, 2, 0)
@@ -162,7 +161,7 @@ def load_streak_camera_image(Image: h5py.Dataset) -> np.ndarray:
         )
 
     # Extract and transpose the data
-    if Image.shape[3] == 1 and Image.shape[3] == 1: 
+    if Image.shape[3] == 1 and Image.shape[4] == 1: 
         data = Image[:, :, 0, 0, 0].transpose(1, 0)
     else:
         data = Image[:, :, 0, :, :].transpose(2, 3, 1, 0)
@@ -193,7 +192,7 @@ def load_AR_spectrum(Image: h5py.Dataset) -> np.ndarray:
         )
 
     # Extract and transpose the data
-    if Image.shape[3] == 1 and Image.shape[3] == 1: 
+    if Image.shape[3] == 1 and Image.shape[4] == 1: 
         data = Image[:, :, 0, 0, 0].transpose(1, 0)
     else:
         data = Image[:, :, 0, :, :].transpose(2, 3, 1, 0)
@@ -218,7 +217,7 @@ def load_temporal_trace(Image: h5py.Dataset) -> np.ndarray:
         )
 
     # Extract and transpose the data
-    if Image.shape[3] == 1 and Image.shape[3] == 1: 
+    if Image.shape[3] == 1 and Image.shape[4] == 1: 
         data = Image[0, :, 0, 0, 0]
     else:
         data = Image[0, :, 0, :, :].transpose(1, 2, 0)
@@ -460,45 +459,43 @@ def make_metadata(Acq):
     img_type=read_image_type(Acq)
 
     if importlib.util.find_spec("lumispy") is None:
-        metadata["Signal"]["signal_type"] = ""  # pragma: no cover
+        metadata["Signal"]["signal_type"] = ""
         metadata["Signal"]["quantity"] = "Counts"
         
     elif img_type == "CL intensity":
-        metadata["Signal"]["signal_type"] = ""  # pragma: no cover
+        metadata["Signal"]["signal_type"] = ""
         metadata["Signal"]["quantity"] = "Counts"
         
     elif img_type == "Secondary electrons concurrent":
-        metadata["Signal"]["signal_type"] = ""  # pragma: no cover
+        metadata["Signal"]["signal_type"] = ""
         metadata["Signal"]["quantity"] = "Counts"
         
     elif img_type == "Secondary electrons survey":
-        metadata["Signal"]["signal_type"] = ""  # pragma: no cover
+        metadata["Signal"]["signal_type"] = ""
         metadata["Signal"]["quantity"] = "Counts"
         
     elif img_type.startswith("Spectrum"):
-        metadata["Signal"]["signal_type"] = "CLSEM"  # pragma: no cover
+        metadata["Signal"]["signal_type"] = "CLSEM"
         metadata["Signal"]["quantity"] = "Counts"
         
     elif img_type.startswith("Large Area"):
-        metadata["Signal"]["signal_type"] = "CLSEM"  # pragma: no cover
+        metadata["Signal"]["signal_type"] = "CLSEM"
         metadata["Signal"]["quantity"] = "Counts"
         
     elif img_type == "Time Correlator":
-        metadata["Signal"]["signal_type"] = "LumiTransient"  # pragma: no cover
+        metadata["Signal"]["signal_type"] = "LumiTransient"
         metadata["Signal"]["quantity"] = "Counts"
         
     elif img_type == "Temporal Spectrum":
-        metadata["Signal"]["signal_type"] = "LumiTransientSpectrum"  # pragma: no cover
+        metadata["Signal"]["signal_type"] = "LumiTransientSpectrum"
         metadata["Signal"]["quantity"] = "Counts"
         
     elif img_type == "Angle-resolved":
-        # add 'CLAngleResolved' signal type
-        metadata["Signal"]["signal_type"] = ""   # pragma: no cover
+        metadata["Signal"]["signal_type"] = "" # add CLAngleResolved signal
         metadata["Signal"]["quantity"] = "Counts"
         
     elif img_type == "AR Spectrum":
-        # add 'CLAngleResolvedSpectrum'
-        metadata["Signal"]["signal_type"] = ""  # pragma: no cover
+        metadata["Signal"]["signal_type"] = "" # add CLAngleResolvedSpectrum
         metadata["Signal"]["quantity"] = "Counts"
         
     elif img_type == "Anchor region":
@@ -794,9 +791,7 @@ def load_AR_signal_axes(hdf, acquisition, AR=True):
                 break
     return axes_ordered
 
-## this function should be the one used for 'CL only'
-## In case of the stack loading, all the dimensions (NAV and signal) should be loaded
-def file_reader(filename, lazy=False):
+def file_reader(filename, signal=None, lazy=False):
     """
     Read a Delmic hdf5 hyperspectral image.
 
@@ -807,181 +802,267 @@ def file_reader(filename, lazy=False):
 
     %s
     """
+    signal_mapping = {
+        "survey": 0,
+        "SE": 1,
+        "CL": 2,
+        }
+
+    if signal is None:
+        signal = "CL"
+
     try:
         with h5py.File(filename, "r") as hdf:
-            # num_acq = count_acquisitions(
-            #    hdf
-            # ) this number will be used in future versions supporting
-            # multiple acquisition loading.
-            i = 2
-            # Acquisition 2 generally contains the CL data, supporting
-            # multiple acquisition numbers will be supported in the
-            # next version.
-            Acquisition = "Acquisition" + str(i)
+            num_acq = count_acquisitions(
+                hdf
+            )
 
-            Acq = hdf.get(Acquisition)
-            if Acq is None:
-                raise ValueError(
-                    f"Acquisition {Acquisition} not found in file."
-                )
-
-            ImgData = Acq.get("ImageData")
-            Image = ImgData.get("Image")
-
-            dim = np.array(Image.shape)
-            C, T, Z, Y, X = dim
+            dict_list = []
 
             AR = is_AR(filename)
 
-            if dim.sum() < 5:
-                raise ValueError("Image dimensions are too small.")
+            if num_acq > 4 and AR:
 
-            if dim.sum() == 5:
-                if C == 1 and T == 1 and Z == 1 and Y == 1 and X == 1:
-                    data = load_image(Image)
+                for i in np.arange(0,2):
+
+                    Acquisition = "Acquisition" + str(i)
+                    Acq = hdf.get(Acquisition)
                     img_type = read_image_type(Acq)
-                    axes = make_axes(Acq)
-                    metadata = make_metadata(Acq)
-                    original_metadata = make_original_metadata(Acq)
-                    if img_type == "Secondary electrons survey":
-                        pass  # Add additional processing if needed
-                    elif img_type == "Secondary electrons concurrent":
-                        pass  # Add additional processing if needed
-                    else:
+                    if Acq is None:
                         raise ValueError(
-                            f"Unknown data type: {img_type},"
-                            f"loaded as an image."
+                            f"Acquisition {Acquisition} not found in file."
                         )
+        
+                    ImgData = Acq.get("ImageData")
+                    Image = ImgData.get("Image")
+                    
+                    if img_type in [
+                        "Secondary electrons survey",
+                        "Secondary electrons concurrent"
+                    ]:
+                        data = load_image(Image)
+                        axes = make_axes(Acq)
+                        metadata = make_metadata(Acq)
+                        original_metadata = make_original_metadata(Acq)
+                    
+                        dictionnary = {
+                            "data": data,
+                            "axes": axes,
+                            "metadata": metadata,
+                            "original_metadata": original_metadata,
+                        }
 
-            elif dim.sum() > 5:
-                if AR:
-                    data = load_AR(filename)
-                    if len(data.shape) < 3:
-                        axes = load_AR_signal_axes(
+                        dict_list.append([dictionnary])
+
+                    else:
+                        pass
+
+                data = load_AR(filename)
+                
+                Acquisition = "Acquisition2"
+    
+                Acq = hdf.get(Acquisition)
+                
+                if len(data.shape) < 3 and signal == "CL":
+                    axes = load_AR_signal_axes(
                         hdf, Acquisition, AR=True
-                    )  # Custom function to handle AR axes
-                    else :
-                        axes = load_AR_axes(
-                            hdf, Acquisition, AR=True
-                        )  # Custom function to handle AR axes
-                    metadata = make_metadata(Acq)
-                    original_metadata = make_original_AR_metadata(Acq, data)
-                else:
-                    if C > 1:
-                        if T > 1:
+                    )
+                else :
+                    axes = load_AR_axes(
+                        hdf, Acquisition, AR=True
+                    )
+                metadata = make_metadata(Acq)
+                original_metadata = make_original_AR_metadata(Acq, data)
+
+                dictionnary = {
+                    "data": data,
+                    "axes": axes,
+                    "metadata": metadata,
+                    "original_metadata": original_metadata,
+                }
+    
+                dict_list.append([dictionnary])
+            
+            else:
+                for i in np.arange(0,num_acq-1):             
+                    
+                    Acquisition = "Acquisition" + str(i)
+    
+                    Acq = hdf.get(Acquisition)
+    
+                    if Acq is None:
+                        raise ValueError(
+                            f"Acquisition {Acquisition} not found in file."
+                        )
+        
+                    ImgData = Acq.get("ImageData")
+                    Image = ImgData.get("Image")
+        
+                    dim = np.array(Image.shape)
+                    C, T, Z, Y, X = dim
+        
+                    if dim.sum() < 5:
+                        raise ValueError("Image dimensions are too small.")
+        
+                    if dim.sum() == 5:
+                        if C == 1 and T == 1 and Z == 1 and Y == 1 and X == 1:
+                            data = load_image(Image)
                             img_type = read_image_type(Acq)
-                            if img_type == "Temporal Spectrum":
-                                data = load_streak_camera_image(Image)
-                                if len(data.shape) < 3:
-                                    axes = make_signal_axes(Acq)
-                                else:                 
-                                    axes = make_axes(Acq)
-                                metadata = make_metadata(Acq)
-                                original_metadata = make_original_metadata(Acq)
-                            elif img_type == "AR Spectrum":
-                                data = load_AR_spectrum(Image)
-                                if len(data.shape) < 3:
-                                    axes = make_signal_axes(Acq)
-                                else:                 
-                                    axes = make_axes(Acq)
-                                metadata = make_metadata(Acq)
-                                original_metadata = make_original_metadata(Acq)
-                            elif img_type.startswith("Spectrum"):
-                                data = load_hyperspectral(
-                                    Image
-                                )
-                                if len(data.shape) < 2:
-                                    axes = make_signal_axes(Acq)
-                                else:                 
-                                    axes = make_axes(Acq)
-                                metadata = make_metadata(Acq)
-                                original_metadata = make_original_metadata(Acq)
-                            else:
-                                raise ValueError(
-                                    f"Unknown data type: {img_type},"
-                                    f"loaded as a temporal spectrum."
-                                )
-                        elif T == 1:
-                            data = load_hyperspectral(Image)
-                            img_type = read_image_type(Acq)
-                            if len(data.shape) < 2:
-                                axes = make_signal_axes(Acq)
-                            else:                 
-                                axes = make_axes(Acq)
+                            axes = make_axes(Acq)
                             metadata = make_metadata(Acq)
                             original_metadata = make_original_metadata(Acq)
-                            if (
-                                img_type.startswith("Spectrum") or
-                                img_type == (
-                                    "Large Area Spectrum with Spectrometer"
-                                )
-                            ):
+                            if img_type == "Secondary electrons survey":
                                 pass  # Add additional processing if needed
-                            else:
-                                raise ValueError(
-                                    f"Unknown data type: {img_type},"
-                                    f"loaded as a hyperspectral dataset."
-                                )
-                    elif C == 1:
-                        if T > 1:
-                            data = load_temporal_trace(Image)
-                            img_type = read_image_type(Acq)
-                            if len(data.shape) < 2:
-                                axes = make_signal_axes(Acq)
-                            else:                 
-                                axes = make_axes(Acq)
-                            metadata = make_metadata(Acq)
-                            original_metadata = make_original_metadata(Acq)
-                            if img_type == "Time Correlator":
+                            elif img_type == "Secondary electrons concurrent":
                                 pass  # Add additional processing if needed
-                            else:
-                                raise ValueError(
-                                    f"Unknown data type: {img_type},"
-                                    f"loaded as a temporal trace."
-                                )
-                        elif T == 1:
-                            img_type = read_image_type(Acq)
-                            if img_type == "CL intensity":
-                                data = load_image(Image)
-                                axes = make_axes(Acq)
-                                metadata = make_metadata(Acq)
-                                original_metadata = make_original_metadata(Acq)
-                            elif img_type in [
-                                "Secondary electrons survey",
-                                "Secondary electrons concurrent",
-                            ]:
-                                data = load_image(Image)
-                                axes = make_axes(Acq)
-                                metadata = make_metadata(Acq)
-                                original_metadata = make_original_metadata(Acq)
-                            elif img_type == "Angle-resolved":
-                                raise ValueError(
-                                    "Angle-resolved image type detected,"
-                                    "use specific AR loading tool."
-                                )
                             else:
                                 raise ValueError(
                                     f"Unknown data type: {img_type},"
                                     f"loaded as an image."
                                 )
-                    elif Z != 1:
-                        raise ValueError(
-                            "Invalid format: Z dimension should be 1."
-                        )
-                    else:
-                        raise ValueError("Invalid format.")
+        
+                    elif dim.sum() > 5:
+                        if AR:
+                            data = load_AR(filename)
+                            if len(data.shape) < 4 and signal == "CL":
+                                axes = load_AR_signal_axes(
+                                hdf, Acquisition, AR=True
+                            )
+                            else :
+                                axes = load_AR_axes(
+                                    hdf, Acquisition, AR=True
+                                )
+                            metadata = make_metadata(Acq)
+                            original_metadata = make_original_AR_metadata(Acq, data)
+                        else:
+                            if C > 1:
+                                if T > 1:
+                                    img_type = read_image_type(Acq)
+                                    if img_type == "Temporal Spectrum":
+                                        data = load_streak_camera_image(Image)
+                                        if len(data.shape) < 4 and signal == "CL":
+                                            axes = make_signal_axes(Acq)
+                                        else:                 
+                                            axes = make_axes(Acq)
+                                        metadata = make_metadata(Acq)
+                                        original_metadata = make_original_metadata(Acq)
+                                    elif img_type == "AR Spectrum":
+                                        data = load_AR_spectrum(Image)
+                                        if len(data.shape) < 4 and signal == "CL":
+                                            axes = make_signal_axes(Acq)
+                                        else:                 
+                                            axes = make_axes(Acq)
+                                        metadata = make_metadata(Acq)
+                                        original_metadata = make_original_metadata(Acq)
+                                    elif img_type.startswith("Spectrum"):
+                                        data = load_hyperspectral(
+                                            Image
+                                        )
+                                        if len(data.shape) < 3 and signal == "CL":
+                                            axes = make_signal_axes(Acq)
+                                        else:                 
+                                            axes = make_axes(Acq)
+                                        metadata = make_metadata(Acq)
+                                        original_metadata = make_original_metadata(Acq)
+                                    else:
+                                        raise ValueError(
+                                            f"Unknown data type: {img_type},"
+                                            f"loaded as a temporal spectrum."
+                                        )
+                                elif T == 1:
+                                    data = load_hyperspectral(Image)
+                                    img_type = read_image_type(Acq)
+                                    if len(data.shape) < 3 and signal == "CL":
+                                        axes = make_signal_axes(Acq)
+                                    else:                 
+                                        axes = make_axes(Acq)
+                                    metadata = make_metadata(Acq)
+                                    original_metadata = make_original_metadata(Acq)
+                                    if (
+                                        img_type.startswith("Spectrum") or
+                                        img_type == (
+                                            "Large Area Spectrum with Spectrometer"
+                                        )
+                                    ):
+                                        pass  # Add additional processing if needed
+                                    else:
+                                        raise ValueError(
+                                            f"Unknown data type: {img_type},"
+                                            f"loaded as a hyperspectral dataset."
+                                        )
+                            elif C == 1:
+                                if T > 1:
+                                    data = load_temporal_trace(Image)
+                                    img_type = read_image_type(Acq)
+                                    if len(data.shape) < 3 and signal == "CL":
+                                        axes = make_signal_axes(Acq)
+                                    else:                 
+                                        axes = make_axes(Acq)
+                                    metadata = make_metadata(Acq)
+                                    original_metadata = make_original_metadata(Acq)
+                                    if img_type == "Time Correlator":
+                                        pass  # Add additional processing if needed
+                                    else:
+                                        raise ValueError(
+                                            f"Unknown data type: {img_type},"
+                                            f"loaded as a temporal trace."
+                                        )
+                                elif T == 1:
+                                    img_type = read_image_type(Acq)
+                                    if img_type == "CL intensity":
+                                        data = load_image(Image)
+                                        axes = make_axes(Acq)
+                                        metadata = make_metadata(Acq)
+                                        original_metadata = make_original_metadata(Acq)
+                                    elif img_type in [
+                                        "Secondary electrons survey",
+                                        "Secondary electrons concurrent",
+                                    ]:
+                                        data = load_image(Image)
+                                        axes = make_axes(Acq)
+                                        metadata = make_metadata(Acq)
+                                        original_metadata = make_original_metadata(Acq)
+                                    elif img_type == "Angle-resolved":
+                                        raise ValueError(
+                                            "Angle-resolved image type detected,"
+                                            "use specific AR loading tool."
+                                        )
+                                    else:
+                                        raise ValueError(
+                                            f"Unknown data type: {img_type},"
+                                            f"loaded as an image."
+                                        )
+                            elif Z != 1:
+                                raise ValueError(
+                                    "Invalid format: Z dimension should be 1."
+                                )
+                            else:
+                                raise ValueError("Invalid format.")
+        
+                    dictionnary = {
+                        "data": data,
+                        "axes": axes,
+                        "metadata": metadata,
+                        "original_metadata": original_metadata,
+                    }
+    
+                    dict_list.append([dictionnary])
 
-            spim = {
-                "data": data,
-                "axes": axes,
-                "metadata": metadata,
-                "original_metadata": original_metadata,
-            }
+            if signal == "all":
+                return dict_list
 
-            return [
-                spim,
-            ]
+            if isinstance(signal, str):
+                signal = [signal]
+                
+            invalid_types = [s for s in signal if s not in signal_mapping]
+            if invalid_types:
+                raise ValueError(f"Invalid data type(s): {invalid_types}. Valid options are: {list(signal_mapping.keys())}")
 
+            
+            selected_data = [dict_list[signal_mapping[s]] for s in signal]
+
+            return selected_data[0] if len(selected_data) == 1 else selected_data
+    
     except IOError as e:
         raise IOError(f"Failed to load file '{filename}'. Error: {e}")
 

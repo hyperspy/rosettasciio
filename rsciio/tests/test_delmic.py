@@ -17,6 +17,7 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 from pathlib import Path
+import importlib.util
 
 import numpy as np
 import pytest
@@ -138,7 +139,6 @@ def test_read_data_intensity_survey():
         data = np.load(testfile_intensity_data_survey_path)
 
         np.testing.assert_allclose(s.data, data)
-        
 
 
 def test_read_axes_intensity():
@@ -230,14 +230,34 @@ def test_read_axes_intensity_survey():
     np.testing.assert_allclose(s.axes_manager[1].size, 256)
 
 
-#def test_read_metadata_intensity():
-#    """Test reading metadata for a CL intensity dataset."""
-#    s = hs.load(testfile_intensity_path, reader="Delmic")
+def test_read_metadata_intensity():
+    """Test reading metadata for a CL intensity dataset."""
+    s = hs.load(testfile_intensity_path, reader="Delmic")
 
-#    assert s.metadata["General"]["title"] == ""
-#    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["signal_type"] == "Signal2D"
+    
+def test_read_metadata_intensity_CL():
+    """Test reading metadata for a CL intensity dataset."""
+    s = hs.load(testfile_intensity_path, reader="Delmic",signal="CL")
 
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["signal_type"] == "Signal2D"
+    
+def test_read_metadata_intensity_SE():
+    """Test reading metadata for a CL intensity dataset."""
+    s = hs.load(testfile_intensity_path, reader="Delmic",signal="SE")
 
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
+    
+def test_read_metadata_intensity_survey():
+    """Test reading metadata for a CL intensity dataset."""
+    s = hs.load(testfile_intensity_path, reader="Delmic",signal="survey")
+
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
+    
 def test_read_original_metadata_intensity():
     """Test reading original metadata for a CL intensity dataset."""
     s = hs.load(testfile_intensity_path, reader="Delmic")
@@ -261,7 +281,6 @@ def test_read_original_metadata_intensity_survey():
     s = hs.load(testfile_intensity_path, reader="Delmic",signal='survey')
 
     assert s.original_metadata 
-
 
 # Hyperspectral dataset
 def test_read_data_hyperspectral():
@@ -367,12 +386,39 @@ def test_read_axes_hyperspectral_survey():
     np.testing.assert_allclose(s.axes_manager[1].offset, 0.0)
     np.testing.assert_allclose(s.axes_manager[1].size, 512)
 
-#def test_read_metadata_hyperspectral():
-#    """Test reading metadata for a CL hyperspectral dataset."""
-#    s = hs.load(testfile_hyperspectral_path, reader="Delmic")
+def test_read_metadata_hyperspectral():
+    """Test reading metadata for a CL hyperspectral dataset."""
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic")
 
-#    assert s.metadata["General"]["title"] == ""
-#    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    if importlib.util.find_spec("lumispy") is None:
+        assert s.metadata["Signal"]["signal_type"] == "Signal1D"
+    else:
+        assert s.metadata["Signal"]["signal_type"] == "CL_SEM"
+    
+def test_read_metadata_hyperspectral_CL():
+    """Test reading metadata for a CL hyperspectral dataset."""
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic",signal='CL')
+
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    if importlib.util.find_spec("lumispy") is None:
+        assert s.metadata["Signal"]["signal_type"] == "Signal1D"
+    else:
+        assert s.metadata["Signal"]["signal_type"] == "CL_SEM"
+    
+def test_read_metadata_hyperspectral_SE():
+    """Test reading metadata for a CL hyperspectral dataset."""
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic",signal='SE')
+
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
+    
+def test_read_metadata_hyperspectral_survey():
+    """Test reading metadata for a CL hyperspectral dataset."""
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic",signal='survey')
+
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
 
 
 def test_read_original_metadata_hyperspectral():
@@ -530,13 +576,39 @@ def test_read_axes_temporaltrace_survey():
     assert s.axes_manager[1].navigate == True
 
 
-#def test_read_metadata_temporaltrace():
-#    """Test reading metadata for a CL decay trace or g(2) datasets."""
-#    s = hs.load(testfile_temporaltrace_path, reader="Delmic")
+def test_read_metadata_temporaltrace():
+   """Test reading metadata for a CL decay trace or g(2) datasets."""
+   s = hs.load(testfile_temporaltrace_path, reader="Delmic")
 
-#    assert s.metadata["General"]["title"] == ""
-#    assert s.metadata["Signal"]["quantity"] == "Counts"
+   assert s.metadata["Signal"]["quantity"] == "Counts"
+   if importlib.util.find_spec("lumispy") is None:
+       assert s.metadata["Signal"]["signal_type"] == "Signal1D"
+   else:
+       assert s.metadata["Signal"]["signal_type"] == "LumiTransient"
 
+def test_read_metadata_temporaltrace_CL():
+   """Test reading metadata for a CL decay trace or g(2) datasets."""
+   s = hs.load(testfile_temporaltrace_path, reader="Delmic",signal="CL")
+
+   assert s.metadata["Signal"]["quantity"] == "Counts"
+   if importlib.util.find_spec("lumispy") is None:
+       assert s.metadata["Signal"]["signal_type"] == "Signal1D"
+   else:
+       assert s.metadata["Signal"]["signal_type"] == "LumiTransient"
+   
+def test_read_metadata_temporaltrace_SE():
+   """Test reading metadata for a CL decay trace or g(2) datasets."""
+   s = hs.load(testfile_temporaltrace_path, reader="Delmic",signal="SE")
+
+   assert s.metadata["Signal"]["quantity"] == "Counts"
+   assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
+   
+def test_read_metadata_temporaltrace_survey():
+   """Test reading metadata for a CL decay trace or g(2) datasets."""
+   s = hs.load(testfile_temporaltrace_path, reader="Delmic",signal="survey")
+
+   assert s.metadata["Signal"]["quantity"] == "Counts"
+   assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
 
 def test_read_original_metadata_temporaltrace():
     """Test reading original metadata for a CL decay trace or g(2) datasets."""
@@ -702,12 +774,39 @@ def test_read_axes_streakcamera_survey():
     assert s.axes_manager[1].navigate == True
 
 
-#def test_read_metadata_streakcamera():
-#    """Test reading metadata for a CL streack camera dataset."""
-#    s = hs.load(testfile_streakcamera_path, reader="Delmic")
+def test_read_metadata_streakcamera():
+    """Test reading metadata for a CL streack camera dataset."""
+    s = hs.load(testfile_streakcamera_path, reader="Delmic")
 
-#    assert s.metadata["General"]["title"] == ""
-#    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    if importlib.util.find_spec("lumispy") is None:
+        assert s.metadata["Signal"]["signal_type"] == "Signal2D"
+    else:
+        assert s.metadata["Signal"]["signal_type"] == "LumiTransientSpectrum"
+        
+def test_read_metadata_streakcamera_CL():
+    """Test reading metadata for a CL streack camera dataset."""
+    s = hs.load(testfile_streakcamera_path, reader="Delmic",signal='CL')
+
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    if importlib.util.find_spec("lumispy") is None:
+        assert s.metadata["Signal"]["signal_type"] == "Signal2D"
+    else:
+        assert s.metadata["Signal"]["signal_type"] == "LumiTransientSpectrum"
+        
+def test_read_metadata_streakcamera_SE():
+    """Test reading metadata for a CL streack camera dataset."""
+    s = hs.load(testfile_streakcamera_path, reader="Delmic",signal='SE')
+
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
+    
+def test_read_metadata_streakcamera_survey():
+    """Test reading metadata for a CL streack camera dataset."""
+    s = hs.load(testfile_streakcamera_path, reader="Delmic",signal='survey')
+
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
 
 
 def test_read_original_metadata_streakcamera():
@@ -873,13 +972,33 @@ def test_read_axes_ek_survey():
     assert s.axes_manager[1].units == "nm"
     assert s.axes_manager[1].navigate == True
 
-#def test_read_metadata_ek():
-#    """Test reading metadata for a CL AR Spectrum (E-k) dataset."""
-#    s = hs.load(testfile_ek_path, reader="Delmic")
+def test_read_metadata_ek():
+    """Test reading metadata for a CL AR Spectrum (E-k) dataset."""
+    s = hs.load(testfile_ek_path, reader="Delmic")
 
-#    assert s.metadata["General"]["title"] == ""
-#    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["signal_type"] == "Signal2D"
+    
+def test_read_metadata_ek_CL():
+    """Test reading metadata for a CL AR Spectrum (E-k) dataset."""
+    s = hs.load(testfile_ek_path, reader="Delmic",signal='CL')
 
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["signal_type"] == "Signal2D"
+    
+def test_read_metadata_ek_SE():
+    """Test reading metadata for a CL AR Spectrum (E-k) dataset."""
+    s = hs.load(testfile_ek_path, reader="Delmic",signal='SE')
+
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
+    
+def test_read_metadata_ek_survey():
+    """Test reading metadata for a CL AR Spectrum (E-k) dataset."""
+    s = hs.load(testfile_ek_path, reader="Delmic",signal='survey')
+
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
 
 def test_read_original_metadata_ek():
     """Test reading original metadata for a CL AR Spectrum (E-k) dataset."""
@@ -1047,13 +1166,33 @@ def test_read_axes_AR_survey():
 
 
 
-#def test_read_metadata_AR():
-#    """Test reading metadata for a CL AR dataset."""
-#    s = hs.load(testfile_AR_path, reader="Delmic")
+def test_read_metadata_AR():
+    """Test reading metadata for a CL AR dataset."""
+    s = hs.load(testfile_AR_path, reader="Delmic")
 
-#    assert s.metadata["General"]["title"] == ""
-#    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["signal_type"] == "Signal2D"
+    
+def test_read_metadata_CL():
+    """Test reading metadata for a CL AR dataset."""
+    s = hs.load(testfile_AR_path, reader="Delmic",signal="CL")
 
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["signal_type"] == "Signal2D"
+    
+def test_read_metadata_SE():
+    """Test reading metadata for a CL AR dataset."""
+    s = hs.load(testfile_AR_path, reader="Delmic",signal="SE")
+
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
+    
+def test_read_metadata_survey():
+    """Test reading metadata for a CL AR dataset."""
+    s = hs.load(testfile_AR_path, reader="Delmic",signal="survey")
+
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
 
 def test_read_original_metadata_AR():
     """Test reading original metadata for a CL AR dataset."""

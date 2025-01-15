@@ -22,6 +22,7 @@ import importlib.util
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 
+
 def count_acquisitions(hdf: h5py.File) -> int: 
     """Count the number of first-level groups in an HDF5 file."""
 
@@ -459,47 +460,49 @@ def make_metadata(Acq):
     img_type=read_image_type(Acq)
 
     if importlib.util.find_spec("lumispy") is None:
-        metadata["Signal"]["signal_type"] = ""
         metadata["Signal"]["quantity"] = "Counts"
-        
-    elif img_type == "CL intensity":
-        metadata["Signal"]["signal_type"] = ""
+        if img_type == "CL intensity":
+            metadata["Signal"]["signal_type"] = "Signal2D"
+        elif img_type == "Secondary electrons concurrent":
+            metadata["Signal"]["signal_type"] = "BaseSignal"
+        elif img_type == "Secondary electrons survey":
+            metadata["Signal"]["signal_type"] = "BaseSignal"
+        elif img_type.startswith("Spectrum"):
+            metadata["Signal"]["signal_type"] = "Signal1D"
+        elif img_type.startswith("Large Area"):
+            metadata["Signal"]["signal_type"] = "Signal1D"
+        elif img_type == "Time Correlator":
+            metadata["Signal"]["signal_type"] = "Signal1D"
+        elif img_type == "Temporal Spectrum":
+            metadata["Signal"]["signal_type"] = "Signal2D"
+        elif img_type == "Angle-resolved":
+            metadata["Signal"]["signal_type"] = "Signal2D"
+        elif img_type == "AR Spectrum":
+            metadata["Signal"]["signal_type"] = "Signal2D"
+        elif  img_type == "Anchor region":
+            pass
+    else:
         metadata["Signal"]["quantity"] = "Counts"
-        
-    elif img_type == "Secondary electrons concurrent":
-        metadata["Signal"]["signal_type"] = ""
-        metadata["Signal"]["quantity"] = "Counts"
-        
-    elif img_type == "Secondary electrons survey":
-        metadata["Signal"]["signal_type"] = ""
-        metadata["Signal"]["quantity"] = "Counts"
-        
-    elif img_type.startswith("Spectrum"):
-        metadata["Signal"]["signal_type"] = "CLSEM"
-        metadata["Signal"]["quantity"] = "Counts"
-        
-    elif img_type.startswith("Large Area"):
-        metadata["Signal"]["signal_type"] = "CLSEM"
-        metadata["Signal"]["quantity"] = "Counts"
-        
-    elif img_type == "Time Correlator":
-        metadata["Signal"]["signal_type"] = "LumiTransient"
-        metadata["Signal"]["quantity"] = "Counts"
-        
-    elif img_type == "Temporal Spectrum":
-        metadata["Signal"]["signal_type"] = "LumiTransientSpectrum"
-        metadata["Signal"]["quantity"] = "Counts"
-        
-    elif img_type == "Angle-resolved":
-        metadata["Signal"]["signal_type"] = "" # add CLAngleResolved signal
-        metadata["Signal"]["quantity"] = "Counts"
-        
-    elif img_type == "AR Spectrum":
-        metadata["Signal"]["signal_type"] = "" # add CLAngleResolvedSpectrum
-        metadata["Signal"]["quantity"] = "Counts"
-        
-    elif img_type == "Anchor region":
-        pass
+        if img_type == "CL intensity":
+            metadata["Signal"]["signal_type"] = "Signal2D"
+        elif img_type == "Secondary electrons concurrent":
+            metadata["Signal"]["signal_type"] = "BaseSignal"
+        elif img_type == "Secondary electrons survey":
+            metadata["Signal"]["signal_type"] = "BaseSignal"
+        elif img_type.startswith("Spectrum"):
+            metadata["Signal"]["signal_type"] = "CLSEM"
+        elif img_type.startswith("Large Area"):
+            metadata["Signal"]["signal_type"] = "CLSEM"
+        elif img_type == "Time Correlator":
+            metadata["Signal"]["signal_type"] = "LumiTransient"
+        elif img_type == "Temporal Spectrum":
+            metadata["Signal"]["signal_type"] = "LumiTransientSpectrum"
+        elif img_type == "Angle-resolved":
+            metadata["Signal"]["signal_type"] = "Signal2D"
+        elif img_type == "AR Spectrum":
+            metadata["Signal"]["signal_type"] = "Signal2D"
+        elif  img_type == "Anchor region":
+            pass
 
     return metadata
 

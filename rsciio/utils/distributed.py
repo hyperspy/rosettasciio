@@ -253,10 +253,8 @@ def memmap_distributed(
             dtype=array_dtype,
         )
         drop_axes = (
-            (
-                num_dim,
-                num_dim + 1,
-            ),
+            num_dim,
+            num_dim + 1,
         )  # Dask 2021.10.0 minimum to use negative indexing
         use_positions = False
     data = da.map_blocks(

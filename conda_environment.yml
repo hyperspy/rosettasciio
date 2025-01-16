@@ -5,7 +5,7 @@ dependencies:
 - dask-core >=2021.3.1
 - numpy >=1.20.0
 - pint >=0.8
-- python-box >=6.0
+- python-box >=6.0,<8,!=7.3.1
 - python-dateutil
 - pyyaml
 - scipy

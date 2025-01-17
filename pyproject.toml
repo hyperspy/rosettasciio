@@ -29,7 +29,7 @@ dependencies = [
   "pint >=0.8",
   # python-box API changed on major release
   # and compatibility needs to be checked
-  "python-box >=6,<8",
+  "python-box >=6,<8,!=7.3.1",
   "pyyaml",
 ]
 dynamic = ["version"]

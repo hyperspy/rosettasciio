@@ -346,7 +346,7 @@ class SemperFormat(object):
             iform = 4  # int32
         else:
             supported_formats = [np.dtype(i).name for i in cls.IFORM_DICT.values()]
-            msg = "The SEMPER file format does not support " "{} data type. ".format(
+            msg = "The SEMPER file format does not support {} data type. ".format(
                 data.dtype.name
             )
             msg += "Supported data types are: " + ", ".join(supported_formats)
@@ -375,9 +375,9 @@ class SemperFormat(object):
             rec_length = np.fromfile(f, dtype="<i4", count=1)[0]  # length of header
             header = np.fromfile(f, dtype=cls.HEADER_DTYPES[: rec_length // 2], count=1)
             metadata.update(sarray2dict(header))
-            assert (
-                np.frombuffer(f.read(4), dtype=np.int32)[0] == rec_length
-            ), "Error while reading the header (length is not correct)!"
+            assert np.frombuffer(f.read(4), dtype=np.int32)[0] == rec_length, (
+                "Error while reading the header (length is not correct)!"
+            )
             data_format = cls.IFORM_DICT[metadata["IFORM"]]
             iversn, remain = divmod(metadata["IFLAG"], 10000)
             ilabel, ntitle = divmod(remain, 1000)
@@ -396,7 +396,7 @@ class SemperFormat(object):
                 try:
                     metadata.update(cls._read_label(f))
                 except Exception as e:
-                    warning = "Could not read label, trying to proceed " "without it!"
+                    warning = "Could not read label, trying to proceed without it!"
                     warning += " (Error message: {})".format(str(e))
                     warnings.warn(warning)
             # Read picture data:

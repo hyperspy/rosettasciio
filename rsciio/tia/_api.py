@@ -213,7 +213,7 @@ def parse_ExperimentalDescription(et, dictree):
             value = float(value) if units else value
         except ValueError:
             _logger.warning(
-                f"Expected decimal value for {label}, " f"but received {value} instead"
+                f"Expected decimal value for {label}, but received {value} instead"
             )
         dictree[item] = value
 

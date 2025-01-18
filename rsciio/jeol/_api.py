@@ -367,7 +367,7 @@ def _read_pts(
         if isinstance(downsample, Iterable):
             if len(downsample) > 2:
                 raise ValueError(
-                    "`downsample` can't be an iterable of length " "different from 2."
+                    "`downsample` can't be an iterable of length different from 2."
                 )
             downsample_width = downsample[0]
             downsample_height = downsample[1]

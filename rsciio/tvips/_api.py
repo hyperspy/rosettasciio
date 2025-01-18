@@ -132,7 +132,7 @@ def _get_main_header_from_signal(signal, version=2, frame_header_extra_bytes=0):
         offsety = round((offsety * _UREG(unit)).to(to_unit).magnitude)
     else:
         warnings.warn(
-            "Image scale units could not be converted, " "saving axes scales as is.",
+            "Image scale units could not be converted, saving axes scales as is.",
             UserWarning,
         )
     metadata = DTBox(signal["metadata"], box_dots=True)
@@ -291,7 +291,7 @@ def file_reader(
         f.seek(0)
         # read the main header in file 0
         header = np.fromfile(f, dtype=TVIPS_RECORDER_GENERAL_HEADER, count=1)
-        dtype = np.dtype(f"u{header['bitsperpixel'][0]//8}")
+        dtype = np.dtype(f"u{header['bitsperpixel'][0] // 8}")
         dimx = header["dimx"][0]
         dimy = header["dimy"][0]
         # the size of the frame header varies with version
@@ -377,8 +377,8 @@ def file_reader(
             final_frame = scan_start_frame + total_scan_frames
             if final_frame > max_frame_index:
                 raise ValueError(
-                    f"Shape {scan_shape} requires image index {final_frame-1} "
-                    f"which is out of bounds. Final frame index: {max_frame_index-1}."
+                    f"Shape {scan_shape} requires image index {final_frame - 1} "
+                    f"which is out of bounds. Final frame index: {max_frame_index - 1}."
                 )
             indices = np.arange(scan_start_frame, final_frame).reshape(scan_shape)
 

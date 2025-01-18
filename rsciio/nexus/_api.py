@@ -705,7 +705,7 @@ def _check_search_keys(search_keys):
     elif search_keys is None:
         return search_keys
     else:
-        raise ValueError("search keys must be None, a string, " "or a list of strings")
+        raise ValueError("search keys must be None, a string, or a list of strings")
 
 
 def _find_data(group, search_keys=None, hardlinks_only=False, absolute_path=None):

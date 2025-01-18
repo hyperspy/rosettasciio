@@ -76,9 +76,7 @@ def _parse_xml(filename):
             }
         )
     else:
-        raise IOError(
-            "Unsupported Empad file: the scan parameters cannot " "be imported."
-        )
+        raise IOError("Unsupported Empad file: the scan parameters cannot be imported.")
 
     return om, info
 

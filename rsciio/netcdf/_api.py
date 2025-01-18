@@ -130,7 +130,7 @@ def nc_hyperspy_reader_0dot1(ncfile, filename):
                 calibration_dict[attrib[0]] = value
         else:
             _logger.warning(
-                "Warning: the attribute '%s' is not defined in " "the file '%s'",
+                "Warning: the attribute '%s' is not defined in the file '%s'",
                 attrib[0],
                 filename,
             )
@@ -143,7 +143,7 @@ def nc_hyperspy_reader_0dot1(ncfile, filename):
                 acquisition_dict[attrib[0]] = value
         else:
             _logger.warning(
-                "Warning: the attribute '%s' is not defined in " "the file '%s'",
+                "Warning: the attribute '%s' is not defined in the file '%s'",
                 attrib[0],
                 filename,
             )
@@ -152,7 +152,7 @@ def nc_hyperspy_reader_0dot1(ncfile, filename):
             treatments_dict[attrib[0]] = eval("dc." + attrib[1])
         else:
             _logger.warning(
-                "Warning: the attribute '%s' is not defined in " "the file '%s'",
+                "Warning: the attribute '%s' is not defined in the file '%s'",
                 attrib[0],
                 filename,
             )

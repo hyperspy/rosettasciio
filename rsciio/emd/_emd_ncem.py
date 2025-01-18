@@ -76,8 +76,7 @@ class EMD_NCEM:
         if isinstance(dataset_path, list):
             if stack_group:
                 _logger.warning(
-                    "The argument 'dataset_path' and "
-                    "'stack_group' are not compatible."
+                    "The argument 'dataset_path' and 'stack_group' are not compatible."
                 )
             stack_group = False
             dataset_path = dataset_path.copy()

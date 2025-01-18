@@ -553,8 +553,7 @@ class WDFReader(object):
     def _check_block_size(name, error_area, expected_size, actual_size):
         if expected_size < actual_size:
             _logger.warning(
-                f"Unexpected size of {name} Block."
-                f"{error_area} may be read incorrectly."
+                f"Unexpected size of {name} Block.{error_area} may be read incorrectly."
             )
         elif expected_size > actual_size:
             if name == "WXDA_0":
@@ -1062,8 +1061,7 @@ class WDFReader(object):
                 else:
                     reason = "Non-ordered axis is not supported"
                 _logger.warning(
-                    f"{reason}, a default axis with scale 1 "
-                    "and offset 0 will be used."
+                    f"{reason}, a default axis with scale 1 and offset 0 will be used."
                 )
                 del nav_dict[axis]["units"]
             else:

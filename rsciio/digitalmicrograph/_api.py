@@ -631,8 +631,7 @@ class ImageObject(object):
         if self.imdict.ImageData.DataType in (27, 28):  # Packed complex
             if self.imdict.ImageData.Data.size % 2:
                 raise IOError(
-                    "ImageData.Data.size should be an even integer for "
-                    "this datatype."
+                    "ImageData.Data.size should be an even integer for this datatype."
                 )
             else:
                 return int(self.imdict.ImageData.Data.size / 2)

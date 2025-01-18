@@ -87,7 +87,7 @@ def _get_dim_dict(labels, units, val_func, ignore_non_uniform_dims=True):
             except ValueError:
                 # non-uniform dimension! - see notes above
                 if ignore_non_uniform_dims:
-                    warn("Ignoring non-uniformity of dimension: " "{}".format(dim_name))
+                    warn("Ignoring non-uniformity of dimension: {}".format(dim_name))
                     step_size = 1
                     dim_vals[0] = 0
                 else:
@@ -267,7 +267,7 @@ def _usidataset_to_signal_dict(h5_main, ignore_non_uniform_dims=True, lazy=False
     num_spec_dims = len(spec_dict)
     num_pos_dims = len(pos_dict)
     _logger.info(
-        "Dimensions: Positions: {}, Spectroscopic: {}" ".".format(
+        "Dimensions: Positions: {}, Spectroscopic: {}.".format(
             num_pos_dims, num_spec_dims
         )
     )

@@ -230,7 +230,7 @@ def file_writer(
         # will be flushed with using 'w' mode
         mode = kwds.get("mode", "w" if write_dataset else "a")
         if mode != "a" and not write_dataset:
-            raise ValueError("`mode='a'` is required to use " "`write_dataset=False`.")
+            raise ValueError("`mode='a'` is required to use `write_dataset=False`.")
         f = h5py.File(filename, mode=mode)
 
     f.attrs["file_format"] = "HyperSpy"

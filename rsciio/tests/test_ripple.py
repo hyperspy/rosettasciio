@@ -175,7 +175,7 @@ def test_data(pdict, tmp_path):
                     "Acquisition_instrument.TEM.Stage.tilt_alpha",
                     "Acquisition_instrument.TEM.Detector.EDS.azimuth_angle",
                     "Acquisition_instrument.TEM.Detector.EDS.elevation_angle",
-                    "Acquisition_instrument.TEM.Detector." "EDS.energy_resolution_MnKa",
+                    "Acquisition_instrument.TEM.Detector.EDS.energy_resolution_MnKa",
                     "Acquisition_instrument.TEM.Detector.EDS.live_time",
                 )
             if metadata:

@@ -450,9 +450,7 @@ def file_writer(
         np.asanyarray(navigator).tofile(f)
         # Zero pad until next data block
         if f.tell() > int(header["Data_offset_2"][0]):
-            raise ValueError(
-                "Signal navigation size does not match " "data dimensions."
-            )
+            raise ValueError("Signal navigation size does not match data dimensions.")
         zero_pad = int(header["Data_offset_2"][0]) - f.tell()
         np.zeros((zero_pad,), np.byte).tofile(f)
         file_location = f.tell()

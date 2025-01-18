@@ -223,7 +223,7 @@ def import_pr(data, meta_data, filename=None):
                     meta_data[key].append(item_in_numpy_order[new_order[i]])
                 except Exception as e:  # pragma: no cover
                     raise Exception(
-                        f"Could not load meta data: {key} " f"in hyperspy file: {e}."
+                        f"Could not load meta data: {key} in hyperspy file: {e}."
                     )
     axes = []
     for i, (label, calib) in enumerate(zip(data_labels, calibration_ordered)):

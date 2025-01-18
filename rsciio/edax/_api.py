@@ -851,7 +851,7 @@ def spd_reader(
     # Read the .ipr header (if possible)
     if read_ipr:
         with open(ipr_fname, "rb") as f:
-            _logger.debug(" From .spd reader - " "reading .ipr {}".format(ipr_fname))
+            _logger.debug(" From .spd reader - reading .ipr {}".format(ipr_fname))
             ipr_header = __get_ipr_header(f, endianess)
             original_metadata["ipr_header"] = sarray2dict(ipr_header)
 
@@ -872,7 +872,7 @@ def spd_reader(
     # Read the .spc header (if possible)
     if read_spc:
         with open(spc_fname, "rb") as f:
-            _logger.debug(" From .spd reader - " "reading .spc {}".format(spc_fname))
+            _logger.debug(" From .spd reader - reading .spc {}".format(spc_fname))
             spc_header = __get_spc_header(f, endianess, load_all_spc)
             spc_dict = sarray2dict(spc_header)
             original_metadata["spc_header"] = spc_dict

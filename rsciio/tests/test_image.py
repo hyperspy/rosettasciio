@@ -106,6 +106,8 @@ def test_save_load_cycle_kwds(dtype, ext, tmp_path):
 def test_export_scalebar(ext, tmp_path):
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     pytest.importorskip("matplotlib_scalebar")
+    import matplotlib.pyplot as plt
+
     # Use np.uint8 to be able to save as BMP
     pixels = 64
     data = np.arange(pixels**2).reshape((pixels, pixels)).astype(np.uint8)
@@ -114,14 +116,16 @@ def test_export_scalebar(ext, tmp_path):
     s.axes_manager[1].units = "nm"
 
     filename = tmp_path / f"test_scalebar_export.{ext}"
-    if ext in ["bmp", "gif"]:
+    if ext in plt.figure().canvas.get_supported_filetypes():
+        s.save(filename, scalebar=True)
+    else:
+        # file format not supported by matplotlib backend
         with pytest.raises(ValueError):
             s.save(filename, scalebar=True)
         with pytest.raises(ValueError):
             s.save(filename, output_size=512)
         s.save(filename)
-    else:
-        s.save(filename, scalebar=True)
+
     s_reload = hs.load(filename)
     assert s.data.shape == s_reload.data.shape
 

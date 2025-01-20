@@ -943,7 +943,7 @@ def file_reader(filename, signal=None, lazy=False):
                                     img_type = read_image_type(Acq)
                                     if img_type == "Temporal Spectrum":
                                         data = load_streak_camera_image(Image)
-                                        if len(data.shape) < 4 and signal == "CL":
+                                        if len(data.shape) < 3 and signal == "CL":
                                             axes = make_signal_axes(Acq)
                                         else:                 
                                             axes = make_axes(Acq)
@@ -951,7 +951,7 @@ def file_reader(filename, signal=None, lazy=False):
                                         original_metadata = make_original_metadata(Acq)
                                     elif img_type == "AR Spectrum":
                                         data = load_AR_spectrum(Image)
-                                        if len(data.shape) < 4 and signal == "CL":
+                                        if len(data.shape) < 3 and signal == "CL":
                                             axes = make_signal_axes(Acq)
                                         else:                 
                                             axes = make_axes(Acq)
@@ -961,7 +961,7 @@ def file_reader(filename, signal=None, lazy=False):
                                         data = load_hyperspectral(
                                             Image
                                         )
-                                        if len(data.shape) < 3 and signal == "CL":
+                                        if len(data.shape) < 2 and signal == "CL":
                                             axes = make_signal_axes(Acq)
                                         else:                 
                                             axes = make_axes(Acq)
@@ -975,7 +975,7 @@ def file_reader(filename, signal=None, lazy=False):
                                 elif T == 1:
                                     data = load_hyperspectral(Image)
                                     img_type = read_image_type(Acq)
-                                    if len(data.shape) < 3 and signal == "CL":
+                                    if len(data.shape) < 2 and signal == "CL":
                                         axes = make_signal_axes(Acq)
                                     else:                 
                                         axes = make_axes(Acq)
@@ -997,7 +997,7 @@ def file_reader(filename, signal=None, lazy=False):
                                 if T > 1:
                                     data = load_temporal_trace(Image)
                                     img_type = read_image_type(Acq)
-                                    if len(data.shape) < 3 and signal == "CL":
+                                    if len(data.shape) < 2 and signal == "CL":
                                         axes = make_signal_axes(Acq)
                                     else:                 
                                         axes = make_axes(Acq)

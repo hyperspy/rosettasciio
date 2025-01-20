@@ -46,6 +46,9 @@ testfile_hyperspectral_data_survey_path = (
 testfile_hyperspectral_wavelengths_path = (
     testfile_dir / "sparc-hyperspectral-wavelengths.npy"
 ).resolve()
+testfile_hyperspectral_spot_path = (
+    testfile_dir / "sparc-hyperspectral-spot.h5"
+).resolve()
 testfile_temporaltrace_path = (
     testfile_dir / "sparc-time-correlator.h5"
 ).resolve()
@@ -57,6 +60,9 @@ testfile_temporaltrace_data_survey_path = (
 ).resolve()
 testfile_temporaltrace_timelist_path = (
     testfile_dir / "sparc-time-correlator-timelist.npy"
+).resolve()
+testfile_temporaltrace_spot_path = (
+    testfile_dir / "sparc-time-correlator-spot.h5"
 ).resolve()
 testfile_streakcamera_path = (
     testfile_dir / "sparc-streak-camera.h5"
@@ -87,6 +93,9 @@ testfile_ek_channels_path = (
 ).resolve()
 testfile_ek_wavelengths_path = (
     testfile_dir / "sparc-e-k-wavelengths.npy"
+).resolve()
+testfile_ek_spot_path = (
+    testfile_dir / "sparc-e-k-spot.h5"
 ).resolve()
 testfile_AR_path = (
     testfile_dir / "sparc-angle-resolved.h5"
@@ -290,12 +299,24 @@ def test_read_data_hyperspectral():
 
     np.testing.assert_allclose(s.data, data)
     
+def test_read_data_hyperspectral_spot():
+    """Test reading data for a CL hyperspectral dataset."""
+    s = hs.load(testfile_hyperspectral_spot_path, reader="Delmic")
+
+    np.testing.assert_allclose(s.data.shape, 335)
+    
 def test_read_data_hyperspectral_CL():
     """Test reading data for a CL hyperspectral dataset."""
     s = hs.load(testfile_hyperspectral_path, reader="Delmic",signal='CL')
     data = np.load(testfile_hyperspectral_data_path)
 
     np.testing.assert_allclose(s.data, data)
+    
+def test_read_data_hyperspectral_spot_CL():
+    """Test reading data for a CL hyperspectral dataset."""
+    s = hs.load(testfile_hyperspectral_spot_path, reader="Delmic",signal="CL")
+
+    np.testing.assert_allclose(s.data.shape, 335)
     
 def test_read_data_hyperspectral_SE():
     """Test reading data for a CL hyperspectral dataset."""
@@ -315,9 +336,55 @@ def test_read_data_hyperspectral_survey():
     
     np.testing.assert_allclose(s.data, data)
 
+def test_read_axes_hyperspectral_spot():
+    """Test reading axes for a CL hyperspectral dataset."""
+    s = hs.load(testfile_hyperspectral_spot_path, reader="Delmic")
+    
+    assert s.axes_manager[0].name == "Wavelength"
+    assert s.axes_manager[0].units == "nm"
+    assert s.axes_manager[0].navigate == False
+    np.testing.assert_allclose(s.axes_manager[0].size, 335)
+    
+    
 def test_read_axes_hyperspectral():
     """Test reading axes for a CL hyperspectral dataset."""
     s = hs.load(testfile_hyperspectral_path, reader="Delmic")
+    ref = np.load(testfile_hyperspectral_wavelengths_path)
+
+    np.testing.assert_allclose(s.axes_manager[0].scale, 963.862901465797)
+    np.testing.assert_allclose(s.axes_manager[0].offset, -411.20439112265274)
+    np.testing.assert_allclose(s.axes_manager[0].size, 2)
+
+    np.testing.assert_allclose(s.axes_manager[1].scale, 963.862901465797)
+    np.testing.assert_allclose(s.axes_manager[1].offset, 362.48947994366983)
+    np.testing.assert_allclose(s.axes_manager[1].size, 3)
+
+    np.testing.assert_allclose(s.axes_manager[2].axis, ref)
+
+    assert s.axes_manager[0].name == "X"
+    assert s.axes_manager[0].units == "nm"
+    assert s.axes_manager[0].navigate == True
+
+    assert s.axes_manager[1].name == "Y"
+    assert s.axes_manager[1].units == "nm"
+    assert s.axes_manager[1].navigate == True
+
+    assert s.axes_manager[2].name == "Wavelength"
+    assert s.axes_manager[2].units == "nm"
+    assert s.axes_manager[2].navigate == False
+    
+def test_read_axes_hyperspectral_spot_CL():
+    """Test reading axes for a CL hyperspectral dataset."""
+    s = hs.load(testfile_hyperspectral_spot_path, reader="Delmic",signal="CL")
+    
+    assert s.axes_manager[0].name == "Wavelength"
+    assert s.axes_manager[0].units == "nm"
+    assert s.axes_manager[0].navigate == False
+    np.testing.assert_allclose(s.axes_manager[0].size, 335)
+    
+def test_read_axes_hyperspectral_CL():
+    """Test reading axes for a CL hyperspectral dataset."""
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic",signal="CL")
     ref = np.load(testfile_hyperspectral_wavelengths_path)
 
     np.testing.assert_allclose(s.axes_manager[0].scale, 963.862901465797)
@@ -460,6 +527,18 @@ def test_read_data_temporaltrace_CL():
 
     np.testing.assert_allclose(s.data, data)
     
+def test_read_data_temporaltrace_spot():
+    """Test reading data for a CL decay trace or g(2) datasets."""
+    s = hs.load(testfile_temporaltrace_spot_path, reader="Delmic")
+
+    np.testing.assert_allclose(s.data.shape, 65536)
+
+def test_read_data_temporaltrace_CL_spot():
+    """Test reading data for a CL decay trace or g(2) datasets."""
+    s = hs.load(testfile_temporaltrace_spot_path, reader="Delmic",signal='CL')
+
+    np.testing.assert_allclose(s.data.shape, 65536)
+    
 def test_read_data_temporaltrace_SE():
     """Test reading data for a CL decay trace or g(2) datasets."""
     s = hs.load(testfile_temporaltrace_path, reader="Delmic",signal='SE')
@@ -505,6 +584,15 @@ def test_read_axes_temporaltrace():
     assert s.axes_manager[2].name == "Time"
     assert s.axes_manager[2].units == "ns"
     assert s.axes_manager[2].navigate == False
+    
+def test_read_axes_temporaltrace_spot():
+    """Test reading axes for a CL decay trace or g(2) datasets."""
+    s = hs.load(testfile_temporaltrace_spot_path, reader="Delmic")
+
+    np.testing.assert_allclose(s.axes_manager[0].size, 65536)
+    assert s.axes_manager[0].name == "Time"
+    assert s.axes_manager[0].units == "ns"
+    assert s.axes_manager[0].navigate == False
 
 def test_read_axes_temporaltrace_CL():
     """Test reading axes for a CL decay trace or g(2) datasets."""
@@ -532,6 +620,15 @@ def test_read_axes_temporaltrace_CL():
     assert s.axes_manager[2].name == "Time"
     assert s.axes_manager[2].units == "ns"
     assert s.axes_manager[2].navigate == False
+    
+def test_read_axes_temporaltrace_CL_spot():
+    """Test reading axes for a CL decay trace or g(2) datasets."""
+    s = hs.load(testfile_temporaltrace_spot_path, reader="Delmic",signal='CL')
+
+    np.testing.assert_allclose(s.axes_manager[0].size, 65536)
+    assert s.axes_manager[0].name == "Time"
+    assert s.axes_manager[0].units == "ns"
+    assert s.axes_manager[0].navigate == False
     
 def test_read_axes_temporaltrace_SE():
     """Test reading axes for a CL decay trace or g(2) datasets."""
@@ -841,6 +938,13 @@ def test_read_data_ek():
     data = np.load(testfile_ek_data_path)
 
     np.testing.assert_allclose(s.data, data)
+
+def test_read_data_ek_spot():
+    """Test reading data for a CL AR Spectrum (E-k) dataset."""
+    s = hs.load(testfile_ek_spot_path, reader="Delmic")
+    dim=np.array([270,320])
+
+    np.testing.assert_allclose(s.data.shape, dim)
     
 def test_read_data_ek_CL():
     """Test reading data for a CL AR Spectrum (E-k) dataset."""
@@ -848,6 +952,13 @@ def test_read_data_ek_CL():
     data = np.load(testfile_ek_data_path)
 
     np.testing.assert_allclose(s.data, data)
+    
+def test_read_data_ek_CL_spot():
+    """Test reading data for a CL AR Spectrum (E-k) dataset."""
+    s = hs.load(testfile_ek_spot_path, reader="Delmic",signal="CL")
+    dim=np.array([270,320])
+
+    np.testing.assert_allclose(s.data.shape, dim)
     
 def test_read_data_ek_SE():
     """Test reading data for a CL AR Spectrum (E-k) dataset."""
@@ -899,6 +1010,20 @@ def test_read_axes_ek():
     assert s.axes_manager[3].units == ""
     assert s.axes_manager[3].navigate == False
     
+def test_read_axes_ek_spot():
+    """Test reading axes for a CL AR Spectrum (E-k) dataset."""
+    s = hs.load(testfile_ek_spot_path, reader="Delmic")
+    
+    np.testing.assert_allclose(s.axes_manager[0].size, 320)
+    assert s.axes_manager[0].name == "Wavelength"
+    assert s.axes_manager[0].units == "nm"
+    assert s.axes_manager[0].navigate == False
+    
+    np.testing.assert_allclose(s.axes_manager[1].size, 270)
+    assert s.axes_manager[1].name == "Angle"
+    assert s.axes_manager[1].units == ""
+    assert s.axes_manager[1].navigate == False
+    
 def test_read_axes_ek_CL():
     """Test reading axes for a CL AR Spectrum (E-k) dataset."""
     s = hs.load(testfile_ek_path, reader="Delmic",signal="CL")
@@ -931,6 +1056,20 @@ def test_read_axes_ek_CL():
     assert s.axes_manager[3].name == "Angle"
     assert s.axes_manager[3].units == ""
     assert s.axes_manager[3].navigate == False
+    
+def test_read_axes_ek_spot_CL():
+    """Test reading axes for a CL AR Spectrum (E-k) dataset."""
+    s = hs.load(testfile_ek_spot_path, reader="Delmic",signal='CL')
+    
+    np.testing.assert_allclose(s.axes_manager[0].size, 320)
+    assert s.axes_manager[0].name == "Wavelength"
+    assert s.axes_manager[0].units == "nm"
+    assert s.axes_manager[0].navigate == False
+    
+    np.testing.assert_allclose(s.axes_manager[1].size, 270)
+    assert s.axes_manager[1].name == "Angle"
+    assert s.axes_manager[1].units == ""
+    assert s.axes_manager[1].navigate == False
     
 def test_read_axes_ek_SE():
     """Test reading axes for a CL AR Spectrum (E-k) dataset."""

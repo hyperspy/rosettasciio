@@ -79,6 +79,9 @@ testfile_streakcamera_timelist_path = (
 testfile_streakcamera_wavelengths_path = (
     testfile_dir / "sparc-streak-camera-wavelengths.npy"
 ).resolve()
+testfile_streakcamera_spot_path = (
+    testfile_dir / "sparc-streak-camera-spot.h5"
+).resolve()
 testfile_ek_path = (
     testfile_dir / "sparc-e-k.h5"
 ).resolve()
@@ -740,12 +743,24 @@ def test_read_data_streakcamera():
 
     np.testing.assert_allclose(s.data, data)
     
+def test_read_data_streakcamera_spot():
+    """Test reading data for a CL streak camera dataset."""
+    s = hs.load(testfile_streakcamera_spot_path, reader="Delmic")
+
+    np.testing.assert_allclose(s.data.shape, 256)
+    
 def test_read_data_streakcamera_CL():
     """Test reading data for a CL streak camera dataset."""
     s = hs.load(testfile_streakcamera_path, reader="Delmic",signal='CL')
     data = np.load(testfile_streakcamera_data_path)
 
     np.testing.assert_allclose(s.data, data)
+    
+def test_read_data_streakcamera_CL_spot():
+    """Test reading data for a CL streak camera dataset."""
+    s = hs.load(testfile_streakcamera_spot_path, reader="Delmic",signal='CL')
+
+    np.testing.assert_allclose(s.data.shape, 256)
     
 def test_read_data_streakcamera_SE():
     """Test reading data for a CL streak camera dataset."""
@@ -790,12 +805,26 @@ def test_read_axes_streakcamera():
     assert s.axes_manager[1].navigate == True
 
     assert s.axes_manager[3].name == "Time"
-    assert s.axes_manager[3].units == "s"
+    assert s.axes_manager[3].units == "ns"
     assert s.axes_manager[3].navigate == False
 
     assert s.axes_manager[2].name == "Wavelength"
     assert s.axes_manager[2].units == "nm"
     assert s.axes_manager[2].navigate == False
+    
+def test_read_axes_streakcamera_spot():
+    """Test reading axes for a CL streak camera dataset."""
+    s = hs.load(testfile_streakcamera_spot_path, reader="Delmic")
+
+    np.testing.assert_allclose(s.axes_manager[1].size, 256)
+    assert s.axes_manager[1].name == "Time"
+    assert s.axes_manager[1].units == "ns"
+    assert s.axes_manager[1].navigate == False
+
+    np.testing.assert_allclose(s.axes_manager[0].size, 256)
+    assert s.axes_manager[0].name == "Wavelength"
+    assert s.axes_manager[0].units == "nm"
+    assert s.axes_manager[0].navigate == False
 
 def test_read_axes_streakcamera_CL():
     """Test reading axes for a CL streak camera dataset."""
@@ -823,12 +852,26 @@ def test_read_axes_streakcamera_CL():
     assert s.axes_manager[1].navigate == True
 
     assert s.axes_manager[3].name == "Time"
-    assert s.axes_manager[3].units == "s"
+    assert s.axes_manager[3].units == "ns"
     assert s.axes_manager[3].navigate == False
 
     assert s.axes_manager[2].name == "Wavelength"
     assert s.axes_manager[2].units == "nm"
     assert s.axes_manager[2].navigate == False
+
+def test_read_axes_streakcamera_spot_CL():
+    """Test reading axes for a CL streak camera dataset."""
+    s = hs.load(testfile_streakcamera_spot_path, reader="Delmic",signal='CL')
+
+    np.testing.assert_allclose(s.axes_manager[1].size, 256)
+    assert s.axes_manager[1].name == "Time"
+    assert s.axes_manager[1].units == "ns"
+    assert s.axes_manager[1].navigate == False
+
+    np.testing.assert_allclose(s.axes_manager[0].size, 256)
+    assert s.axes_manager[0].name == "Wavelength"
+    assert s.axes_manager[0].units == "nm"
+    assert s.axes_manager[0].navigate == False
 
 def test_read_axes_streakcamera_SE():
     """Test reading axes for a CL streak camera dataset."""

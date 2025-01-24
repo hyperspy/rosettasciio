@@ -228,15 +228,15 @@ def load_temporal_trace(Image: h5py.Dataset) -> np.ndarray:
 
 def get_unit_prefix(number: float) -> str:
     """Return the SI prefix for the given number based on its magnitude."""
-    if 1e-15 < np.abs(number) < 1e-12:
+    if 1e-15 <= np.abs(number) < 1e-12:
         prefix = "f"
-    elif 1e-12 < np.abs(number) < 1e-9:
+    elif 1e-12 <= np.abs(number) < 1e-9:
         prefix = "p"
-    elif 1e-9 < np.abs(number) < 1e-6:
+    elif 1e-9 <= np.abs(number) < 1e-6:
         prefix = "n"
-    elif 1e-6 < np.abs(number) < 1e-3:
+    elif 1e-6 <= np.abs(number) < 1e-3:
         prefix = "µ"
-    elif 1e-3 < np.abs(number) < 1:
+    elif 1e-3 <= np.abs(number) < 1:
         prefix = "m"
     else:
         prefix = ""

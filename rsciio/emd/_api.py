@@ -173,7 +173,6 @@ def file_reader(
     try:
         if is_EMD_Velox(file):
             from ._emd_velox import FeiEMDReader
-
             _logger.debug("EMD file is a Velox variant.")
             emd_reader = FeiEMDReader(
                 lazy=lazy,
@@ -186,7 +185,10 @@ def file_reader(
                 SI_dtype=SI_dtype,
                 load_SI_image_stack=load_SI_image_stack,
             )
-            emd_reader.read_file(file)
+            try:
+                emd_reader.read_file(file)
+            except ModuleNotFoundError:
+                raise ModuleNotFoundError("The 'sparse' library was not found. To load EDS spectrum image data from Velox EMD files, 'sparse' must be installed")
         elif is_EMD_NCEM(file):
             from ._emd_ncem import EMD_NCEM
 

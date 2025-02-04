@@ -136,7 +136,7 @@ jobs:
         run: |
           # speed up installing scikit-image using pre-release with python 3.13 wheels
           pip install scikit-image --pre 
-          pip install git+https://github.com/ericpre/hyperspy.git@python313
+          pip install git+https://github.com/hyperspy/hyperspy.git
           pip install git+https://github.com/hyperspy/exspy.git
 
       - name: Install python-mrcz dev

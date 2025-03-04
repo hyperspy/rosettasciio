@@ -39,8 +39,9 @@ def get_chunk_slice(
     ----------
     shape : tuple
         Shape of the data.
-    chunks : tuple, optional
-        Chunk shape. The default is "auto".
+    chunks : tuple or str, optional
+        Define the chunk shape. This argument is passed to :func:`dask.array.core.normalize_chunks`.
+        The default is "auto".
     block_size_limit : int, optional
         Maximum size of a block in bytes. The default is None. This is passed
         to the :py:func:`dask.array.core.normalize_chunks` function when chunks == "auto".

@@ -28,7 +28,7 @@ import dask.array as da
 import numpy as np
 
 from rsciio._docstrings import (
-    CHUNKS_DOC,
+    CHUNKS_READ_DOC,
     DISTRIBUTED_DOC,
     ENDIANESS_DOC,
     FILENAME_DOC,
@@ -552,6 +552,6 @@ file_reader.__doc__ %= (
     ENDIANESS_DOC,
     NAVIGATION_SHAPE,
     DISTRIBUTED_DOC,
-    CHUNKS_DOC,
+    CHUNKS_READ_DOC,
     RETURNS_DOC,
 )

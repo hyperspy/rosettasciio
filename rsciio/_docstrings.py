@@ -53,9 +53,9 @@ CHUNKS_DOC = """chunks : tuple of int or None, default=None
         space.
     """
 
-CHUNKS_READ_DOC = """chunks : tuple of int or None, default="auto"
+CHUNKS_READ_DOC = """chunks : tuple, int, dict or str, default="auto"
         The chunks used when reading the data lazily. This argument is passed
-        to the ``chunks`` of the :py:func:`dask.array.from_array` function.
+        to the :func:`dask.array.core.normalize_chunks` function.
     """
 
 

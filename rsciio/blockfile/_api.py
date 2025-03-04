@@ -28,10 +28,10 @@ from dask.diagnostics import ProgressBar
 from skimage import dtype_limits
 
 from rsciio._docstrings import (
+    CHUNKS_READ_DOC,
     ENDIANESS_DOC,
     FILENAME_DOC,
     LAZY_DOC,
-    MMAP_DOC,
     RETURNS_DOC,
     SHOW_PROGRESSBAR_DOC,
     SIGNAL_DOC,
@@ -40,6 +40,7 @@ from rsciio.utils.date_time_tools import (
     datetime_to_serial_date,
     serial_date_to_ISO_format,
 )
+from rsciio.utils.distributed import memmap_distributed
 from rsciio.utils.skimage_exposure import rescale_intensity
 from rsciio.utils.tools import (
     DTBox,
@@ -215,7 +216,7 @@ def get_header_from_signal(signal, endianess="<"):
     return header, note
 
 
-def file_reader(filename, lazy=False, mmap_mode=None, endianess="<"):
+def file_reader(filename, lazy=False, chunks="auto", endianess="<"):
     """
     Read a blockfile.
 
@@ -230,15 +231,7 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<"):
 
     _logger.debug("Reading blockfile: %s" % filename)
     metadata = {}
-    if mmap_mode is None:
-        mmap_mode = "r" if lazy else "c"
-    # Makes sure we open in right mode:
-    if "+" in mmap_mode or ("write" in mmap_mode and "copyonwrite" != mmap_mode):
-        if lazy:
-            raise ValueError("Lazy loading does not support in-place writing")
-        f = open(filename, "r+b")
-    else:
-        f = open(filename, "rb")
+    f = open(filename, "rb")
     _logger.debug("File opened")
 
     # Get header
@@ -283,24 +276,28 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<"):
     if not lazy:
         f.seek(offset2)
         data = np.fromfile(f, dtype=endianess + "u1")
-    else:
-        data = np.memmap(f, mode=mmap_mode, offset=offset2, dtype=endianess + "u1")
-    try:
-        data = data.reshape((NY, NX, DP_SZ * DP_SZ + 6))
-    except ValueError:
-        warnings.warn(
-            "Blockfile header dimensions larger than file size! "
-            "Will attempt to load by zero padding incomplete frames."
-        )
+        try:
+            data = data.reshape((NY, NX, DP_SZ * DP_SZ + 6))
+        except ValueError:
+            warnings.warn(
+                "Blockfile header dimensions larger than file size! "
+                "Will attempt to load by zero padding incomplete frames."
+            )
         # Data is stored DP by DP:
         pw = [(0, NX * NY * (DP_SZ * DP_SZ + 6) - data.size)]
         data = np.pad(data, pw, mode="constant")
-        data = data.reshape((NY, NX, DP_SZ * DP_SZ + 6))
-
+        data = data.reshape((NY, NX, DP_SZ * DP_SZ + 6), order="C")
+    else:
+        data = memmap_distributed(
+            filename,
+            chunks=chunks,
+            offset=offset2,
+            shape=(NY, NX, DP_SZ * DP_SZ + 6),
+            dtype=np.dtype(endianess + "u1"),
+        )
     # Every frame is preceeded by a 6 byte sequence (AA 55, and then a 4 byte
     # integer specifying frame number)
-    data = data[:, :, 6:]
-    data = data.reshape((NY, NX, DP_SZ, DP_SZ), order="C").squeeze()
+    data = data[:, :, 6:].reshape((NY, NX, DP_SZ, DP_SZ)).squeeze()
 
     units = ["nm", "nm", "cm", "cm"]
     names = ["y", "x", "dy", "dx"]
@@ -346,7 +343,13 @@ def file_reader(filename, lazy=False, mmap_mode=None, endianess="<"):
     ]
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, MMAP_DOC, ENDIANESS_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (
+    FILENAME_DOC,
+    LAZY_DOC,
+    CHUNKS_READ_DOC,
+    ENDIANESS_DOC,
+    RETURNS_DOC,
+)
 
 
 def file_writer(

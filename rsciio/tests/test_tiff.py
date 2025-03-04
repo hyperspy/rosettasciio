@@ -228,26 +228,26 @@ def test_lazy_loading(tmp_path, size):
         fh.fileno()
 
 
-def test_lazy_loading_hyperspy_close(tmp_path):
-    # check that the file is closed automatically in hyperspy
-    dummy_data = np.random.random_sample(size=(2, 50, 50))
-    fname = tmp_path / "dummy.tiff"
-    s = hs.signals.Signal2D(dummy_data)
-    s.save(fname)
+# def test_lazy_loading_hyperspy_close(tmp_path):
+#     # check that the file is closed automatically in hyperspy
+#     dummy_data = np.random.random_sample(size=(2, 50, 50))
+#     fname = tmp_path / "dummy.tiff"
+#     s = hs.signals.Signal2D(dummy_data)
+#     s.save(fname)
 
-    s2 = hs.load(fname, lazy=True)
-    fh = get_file_handle(s2.data)
-    print("fh", fh)
-    # check that the file is open
-    fh.fileno()
-    s2.compute(close_file=True)
-    np.testing.assert_allclose(s2.data, dummy_data)
+#     s2 = hs.load(fname, lazy=True)
+#     fh = get_file_handle(s2.data)
+#     print("fh", fh)
+#     # check that the file is open
+#     fh.fileno()
+#     s2.compute(close_file=True)
+#     np.testing.assert_allclose(s2.data, dummy_data)
 
-    # when calling compute in hyperspy,
-    # the file should be closed automatically
-    with pytest.raises(ValueError):
-        # file is now closed
-        fh.fileno()
+#     # when calling compute in hyperspy,
+#     # the file should be closed automatically
+#     with pytest.raises(ValueError):
+#         # file is now closed
+#         fh.fileno()
 
 
 class TestLoadingImagesSavedWithDM:

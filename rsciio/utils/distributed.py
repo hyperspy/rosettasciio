@@ -104,10 +104,14 @@ def slice_memmap(slices, file, dtypes, shape, key=None, **kwargs):
     numpy.ndarray
         Array of the data from the memory mapped file sliced using the provided slice.
     """
+    print("0", slices)
+    print("1", np.squeeze(slices))
     slices_ = np.squeeze(slices)[()]
+    print("2", slices)
     data = np.memmap(file, dtypes, shape=shape, **kwargs)
     if key is not None:
         data = data[key]
+    # s is a scalar
     slices_ = tuple([slice(s[0], s[1]) for s in slices_])
     return data[slices_]
 

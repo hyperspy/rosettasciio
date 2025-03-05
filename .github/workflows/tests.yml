@@ -20,7 +20,7 @@ jobs:
       matrix:
         os: [ubuntu, windows, macos]
         os_version: [latest]
-        PYTHON_VERSION: ['3.9', '3.10']
+        PYTHON_VERSION: ['3.9', '3.10', '3.13']
         LABEL: ['']
         include:
           # test oldest supported version of main dependencies on python 3.8
@@ -50,21 +50,6 @@ jobs:
           - os: ubuntu
             os_version: latest
             PYTHON_VERSION: '3.12'
-          - os: ubuntu
-            os_version: latest
-            PYTHON_VERSION: '3.13'
-            # can remove minimum dependencies when numba supports 3.13
-            LABEL: '-minimum'
-          - os: macos
-            os_version: latest
-            PYTHON_VERSION: '3.13'
-            # can remove minimum dependencies when numba supports 3.13
-            LABEL: '-minimum'
-          - os: windows
-            os_version: latest
-            PYTHON_VERSION: '3.13'
-            # can remove minimum dependencies when numba supports 3.13
-            LABEL: '-minimum'
           - os: macos
             os_version: '13'
             PYTHON_VERSION: '3.12'
@@ -131,14 +116,6 @@ jobs:
           pip install git+https://github.com/hyperspy/hyperspy.git
           pip install git+https://github.com/hyperspy/exspy.git
 
-      - name: Install hyperspy (python 3.13) and exspy (dev)
-        if: ${{ matrix.PYTHON_VERSION == '3.13' }}
-        run: |
-          # speed up installing scikit-image using pre-release with python 3.13 wheels
-          pip install scikit-image --pre 
-          pip install git+https://github.com/hyperspy/hyperspy.git
-          pip install git+https://github.com/hyperspy/exspy.git
-
       - name: Install python-mrcz dev
         # for numpy 2.0 support for python >= 3.9
         # https://github.com/em-MRCZ/python-mrcz/pull/15
@@ -153,7 +130,7 @@ jobs:
 
       - name: Uninstall pyUSID
         # remove when pyUSID supports numpy 2 
-        if: ${{ ! contains(matrix.LABEL, 'oldest') && matrix.PYTHON_VERSION != '3.8' }}
+        if: ${{ ! contains(matrix.LABEL, 'oldest') }}
         run: |
           pip uninstall -y pyUSID
 
@@ -161,11 +138,6 @@ jobs:
         if: contains(matrix.LABEL, 'oldest')
         run: |
           pip install ${{ matrix.DEPENDENCIES }}
-  
-      - name: Install numpy 2.0 
-        if: ${{ ! contains(matrix.LABEL, 'oldest') && matrix.PYTHON_VERSION != '3.8' }}
-        run: |
-          pip install numpy>=2
 
       - name: Pip list
         run: |

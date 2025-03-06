@@ -35,6 +35,7 @@ The **dictionary** contains the following fields:
 * ``'metadata'`` -- dictionary containing the parsed metadata
 * ``'original_metadata'`` -- dictionary containing the full metadata tree from the
   input file
+* ``'file_handle'`` -- (compatible format only) the file handle when ``lazy`` is ``True`` otherwise ``None``
 
 Interfacing the reader from one of the IO plugins:
 

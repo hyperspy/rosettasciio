@@ -102,7 +102,7 @@ def _get_filename(s, metadata):
     return filename
 
 
-def _create_signal(shape, dim, dtype, metadata):
+def _create_signal(shape, dim, dtype, metadata=None):
     data = np.arange(np.prod(shape)).reshape(shape).astype(dtype)
     if dim == 1:
         if len(shape) > 2:
@@ -141,8 +141,9 @@ def _create_signal(shape, dim, dtype, metadata):
     return s
 
 
+@pytest.mark.parametrize("distributed", (True, False))
 @pytest.mark.parametrize("pdict", generate_parameters())
-def test_data(pdict, tmp_path):
+def test_data(pdict, distributed, tmp_path):
     dtype, shape, dim, metadata = (
         pdict["dtype"],
         pdict["shape"],
@@ -153,7 +154,7 @@ def test_data(pdict, tmp_path):
     filename = _get_filename(s, metadata)
     s.save(tmp_path / filename)
     s_just_saved = hs.load(tmp_path / filename)
-    s_ref = hs.load(TEST_DATA_PATH / filename)
+    s_ref = hs.load(TEST_DATA_PATH / filename, distributed=distributed)
     try:
         for stest in (s_just_saved, s_ref):
             npt.assert_array_equal(s.data, stest.data)
@@ -204,6 +205,28 @@ def test_data(pdict, tmp_path):
         del s_just_saved
         del s_ref
         gc.collect()
+
+
+@pytest.mark.parametrize("distributed", (True, False))
+def test_load_distributed_chunks(tmp_path, distributed):
+    s = _create_signal(shape=(20, 30, 40), dim=1, dtype="uint16")
+    fname = tmp_path / "test_chunks.rpl"
+    s.save(fname)
+
+    chunks = (10, 15, 40)
+    s2 = hs.load(fname, lazy=True, distributed=distributed, chunks=chunks)
+    assert tuple([c[0] for c in s2.data.chunks]) == chunks
+
+
+def test_load_distributed_not_lazy(tmp_path):
+    s = _create_signal(shape=(20, 30, 40), dim=1, dtype="uint16")
+    fname = tmp_path / "test_chunks.rpl"
+    s.save(fname)
+
+    chunks = (10, 15, 40)
+    s2 = hs.load(fname, lazy=False, distributed=True, chunks=chunks)
+    assert isinstance(s2.data, np.ndarray)
+    np.testing.assert_allclose(s2.data, s.data)
 
 
 def generate_files():

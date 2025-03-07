@@ -35,7 +35,7 @@ from rsciio._docstrings import (
     SIGNAL_DOC,
 )
 from rsciio._hierarchical import HierarchicalReader, HierarchicalWriter, version
-from rsciio.utils.tools import dummy_context_manager, get_file_handle
+from rsciio.utils.tools import dummy_context_manager
 
 _logger = logging.getLogger(__name__)
 
@@ -216,7 +216,7 @@ def file_writer(
 
     f = None
     if signal["attributes"]["_lazy"] and Path(filename).absolute() == original_path:
-        f = get_file_handle(signal["data"], warn=False)
+        f = signal["attributes"].get("_file_handle", None)
         if f is not None and f.mode == "r":
             # when the file is read only, force to reopen it in writing mode
             raise OSError(

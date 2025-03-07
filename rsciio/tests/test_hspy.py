@@ -495,7 +495,11 @@ def test_lazy_loading(tmp_path):
     assert shape == s.data.shape
     assert isinstance(s.data, da.Array)
     assert s._lazy
+    file_handle = s._file_handle
     s.close_file()
+
+    # file not accessible anymore
+    assert not file_handle
 
 
 def test_passing_compression_opts_saving(tmp_path):
@@ -1036,37 +1040,57 @@ def test_saving_show_progressbar(tmp_path, file, show_progressbar):
 
 
 def test_saving_close_file(tmp_path):
+    from rsciio.utils.exceptions import VisibleDeprecationWarning
+
     # Setup that we will reopen
     s = hs.signals.Signal1D(da.zeros((10, 100))).as_lazy()
     fname = tmp_path / "test.hspy"
     s.save(fname, close_file=True)
 
     s2 = hs.load(fname, lazy=True, mode="a")
-    assert get_file_handle(s2.data) is not None
+    with pytest.warns(VisibleDeprecationWarning):
+        assert get_file_handle(s2.data) is not None
+    assert s2._file_handle is not None
+
     s2.save(fname, close_file=True, overwrite=True)
-    assert get_file_handle(s2.data) is None
+    with pytest.warns(VisibleDeprecationWarning):
+        assert get_file_handle(s2.data) is None
+    assert not s2._file_handle
 
     s3 = hs.load(fname, lazy=True, mode="a")
-    assert get_file_handle(s3.data) is not None
+    with pytest.warns(VisibleDeprecationWarning):
+        assert get_file_handle(s3.data) is not None
+    assert s3._file_handle is not None
+
     s3.save(fname, close_file=False, overwrite=True)
-    assert get_file_handle(s3.data) is not None
+    with pytest.warns(VisibleDeprecationWarning):
+        assert get_file_handle(s3.data) is not None
+    assert s3._file_handle is not None
+
     s3.close_file()
-    assert get_file_handle(s3.data) is None
+    with pytest.warns(VisibleDeprecationWarning):
+        assert get_file_handle(s3.data) is None
+    assert not s3._file_handle
 
     s4 = hs.load(fname, lazy=True)
-    assert get_file_handle(s4.data) is not None
+    with pytest.warns(VisibleDeprecationWarning):
+        assert get_file_handle(s4.data) is not None
+    assert s4._file_handle is not None
     with pytest.raises(OSError):
         s4.save(fname, overwrite=True)
 
 
+@pytest.mark.parametrize("from_lazy", (True, False))
 @zspy_marker
-def test_saving_overwrite_data(tmp_path, file):
-    s = hs.signals.Signal1D(da.zeros((10, 100))).as_lazy()
+def test_saving_overwrite_data(tmp_path, file, from_lazy):
+    s = hs.signals.Signal1D(np.zeros((10, 100)))
+    if from_lazy:
+        s = s.as_lazy()
     kwds = dict(close_file=True) if file == "test.hspy" else {}
     fname = tmp_path / file
     s.save(fname, **kwds)
 
-    s2 = hs.load(fname, lazy=True, mode="a")
+    s2 = hs.load(fname, mode="a")
     s2.axes_manager[0].units = "nm"
     s2.data = da.ones((10, 100))
     s2.save(fname, overwrite=True, write_dataset=False)
@@ -1080,25 +1104,33 @@ def test_saving_overwrite_data(tmp_path, file):
     s4.data = da.ones((10, 100))
     if file == "test.hspy":
         # try with opening non-lazily to check opening mode
+        # if mode is "w", rosettasciio raises an error
         # only relevant for hdf5 file
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError) as exc_info:
             s4.save(fname, overwrite=True, write_dataset=False, mode="w")
+        assert (
+            exc_info.value.args[0]
+            == "`mode='a'` is required to use `write_dataset=False`."
+        )
+        # should work with default value `mode="a"`
+        s4.save(fname, overwrite=True, write_dataset=False)
 
+    # pass with default mode ("a")
     s4.save(fname, overwrite=True, write_dataset=True)
     # make sure we can open it after, file haven't been corrupted
     _ = hs.load(fname)
 
-    # now new data
-    @zspy_marker
-    def test_chunking_saving_lazy_specify(self, tmp_path, file):
-        filename = tmp_path / file
-        s = hs.signals.Signal2D(da.zeros((50, 100, 100))).as_lazy()
-        # specify chunks
-        chunks = (50, 10, 10)
-        s.data = s.data.rechunk([50, 25, 25])
-        s.save(filename, chunks=chunks)
-        s1 = hs.load(filename, lazy=True)
-        assert tuple([c[0] for c in s1.data.chunks]) == chunks
+
+@zspy_marker
+def test_chunking_saving_lazy_specify(tmp_path, file):
+    filename = tmp_path / file
+    s = hs.signals.Signal2D(da.zeros((50, 100, 100))).as_lazy()
+    # specify chunks
+    chunks = (50, 10, 10)
+    s.data = s.data.rechunk([50, 25, 25])
+    s.save(filename, chunks=chunks)
+    s1 = hs.load(filename, lazy=True)
+    assert tuple([c[0] for c in s1.data.chunks]) == chunks
 
 
 @pytest.mark.parametrize("target_size", (1e6, 1e7))

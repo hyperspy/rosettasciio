@@ -21,6 +21,7 @@ import importlib
 import logging
 import os
 import re
+import warnings
 import xml.etree.ElementTree as ET
 from ast import literal_eval
 from collections import OrderedDict, defaultdict
@@ -30,6 +31,8 @@ from pathlib import Path
 import numpy as np
 from box import Box
 from pint import UnitRegistry
+
+from rsciio.utils.exceptions import VisibleDeprecationWarning
 
 _UREG = UnitRegistry()
 
@@ -521,6 +524,10 @@ def get_file_handle(data, warn=True):
     File handle or None
         The file handle of the file when possible.
     """
+    warnings.warn(
+        "This function is deprecated, use the file handle API instead.",
+        VisibleDeprecationWarning,
+    )
     arrkey_hdf5 = None
     arrkey_tifffile = None
     for key in data.dask.keys():

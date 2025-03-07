@@ -442,6 +442,8 @@ def file_reader(filename, lazy=False, dataset_path=None, ignore_non_uniform_dims
                 ignore_non_uniform_dims=ignore_non_uniform_dims,
                 lazy=lazy,
             )
+            if lazy:
+                signals[-1]["file_handle"] = h5_f
     else:
         if not isinstance(dataset_path, str):
             raise TypeError("'dataset_path' should be a string")
@@ -449,6 +451,8 @@ def file_reader(filename, lazy=False, dataset_path=None, ignore_non_uniform_dims
         signals = _usidataset_to_signal_dict(
             h5_dset, ignore_non_uniform_dims=ignore_non_uniform_dims, lazy=lazy
         )
+        if lazy:
+            signals[-1]["file_handle"] = h5_f
     if not lazy:
         h5_f.close()
     return signals

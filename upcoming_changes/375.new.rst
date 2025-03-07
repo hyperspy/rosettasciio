@@ -1,0 +1,1 @@
+Add ``file_handle`` API to include the file handle in the dictionary when reading a file lazily. Previously, the file handle was retrieved from the dask array keys and this approach had the drawback to rely on implementation details of dependencies.

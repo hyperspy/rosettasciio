@@ -26,10 +26,13 @@ import logging
 import os.path
 from io import StringIO
 
+import dask.array as da
 import numpy as np
 
 from rsciio import __version__
 from rsciio._docstrings import (
+    CHUNKS_DOC,
+    DISTRIBUTED_DOC,
     ENCODING_DOC,
     FILENAME_DOC,
     LAZY_DOC,
@@ -37,6 +40,7 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
+from rsciio.utils.distributed import memmap_distributed
 from rsciio.utils.tools import DTBox
 
 _logger = logging.getLogger(__name__)
@@ -189,8 +193,9 @@ def parse_ripple(fp):
     return rpl_info
 
 
-def read_raw(rpl_info, filename, mmap_mode="c"):
-    """Read the raw file object 'fp' based on the information given in the
+def read_raw(rpl_info, filename, mmap_mode="c", distributed=False, chunks="auto"):
+    """
+    ead the raw file object 'fp' based on the information given in the
     'rpl_info' dictionary.
 
     Parameters
@@ -231,22 +236,38 @@ def read_raw(rpl_info, filename, mmap_mode="c"):
     data_type = np.dtype(data_type)
     data_type = data_type.newbyteorder(endian)
 
-    data = np.memmap(filename, offset=offset, dtype=data_type, mode=mmap_mode)
-
+    shape = None
     if record_by == "vector":  # spectral image
-        size = (height, width, depth)
-        data = data.reshape(size)
+        shape = (height, width, depth)
     elif record_by == "image":  # stack of images
-        size = (depth, height, width)
-        data = data.reshape(size)
+        shape = (depth, height, width)
     elif record_by == "dont-care":  # stack of images
-        size = (height, width)
-        data = data.reshape(size)
-    return data
+        shape = (height, width)
+
+    if distributed:
+        data = memmap_distributed(
+            filename,
+            offset=offset,
+            shape=shape,
+            dtype=data_type,
+            chunks=chunks,
+        )
+    else:
+        data = np.memmap(
+            filename, offset=offset, dtype=data_type, mode=mmap_mode, shape=shape
+        )
+
+    return data.squeeze()
 
 
 def file_reader(
-    filename, lazy=False, rpl_info=None, encoding="latin-1", mmap_mode=None
+    filename,
+    lazy=False,
+    rpl_info=None,
+    encoding="latin-1",
+    mmap_mode=None,
+    distributed=False,
+    chunks="auto",
 ):
     """
     Read a ripple/raw file.
@@ -262,6 +283,8 @@ def file_reader(
         A dictionary containing the keywords in order to read a ``.raw`` file
         without corresponding ``.rpl`` file. If ``None``, the keywords are parsed
         automatically from the ``.rpl`` file.
+    %s
+    %s
     %s
     %s
 
@@ -287,7 +310,14 @@ def file_reader(
         mmap_mode = "r"
     else:
         mmap_mode = "c"
-    data = read_raw(rpl_info, rawfname, mmap_mode=mmap_mode)
+    data = read_raw(
+        rpl_info, rawfname, mmap_mode=mmap_mode, distributed=distributed, chunks=chunks
+    )
+
+    if distributed and not lazy:
+        data = data.compute()
+    if not distributed and lazy:
+        data = da.from_array(data, chunks=chunks)
 
     if rpl_info["record-by"] == "vector":
         _logger.info("Loading as Signal1D")
@@ -444,7 +474,7 @@ def file_reader(
             index_in_array += 1
 
     dictionary = {
-        "data": data.squeeze(),
+        "data": data,
         "axes": axes,
         "metadata": mp.to_dict(),
         "original_metadata": rpl_info,
@@ -454,7 +484,15 @@ def file_reader(
     ]
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENCODING_DOC, MMAP_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (
+    FILENAME_DOC,
+    LAZY_DOC,
+    ENCODING_DOC,
+    MMAP_DOC,
+    DISTRIBUTED_DOC,
+    CHUNKS_DOC,
+    RETURNS_DOC,
+)
 
 
 def file_writer(filename, signal, encoding="latin-1"):

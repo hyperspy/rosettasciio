@@ -149,7 +149,7 @@ def test_load_specific_datasets():
     assert len(s) == 2
 
 
-@pytest.mark.parametrize("lazy", (True, False))
+@pytest.mark.parametrize("lazy", (False, True))
 def test_3D_only(lazy):
     filename = TEST_DATA_PATH / "Si100_3D.emd"
     s = hs.load(filename, lazy=lazy)
@@ -195,7 +195,7 @@ def test_non_square_3D():
         np.testing.assert_allclose(axis.offset, 0)
 
 
-@pytest.mark.parametrize("lazy", (True, False))
+@pytest.mark.parametrize("lazy", (False, True))
 def test_4D(lazy):
     filename = TEST_DATA_PATH / "Si100_4D.emd"
     s = hs.load(filename, lazy=lazy)

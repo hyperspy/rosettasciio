@@ -291,8 +291,8 @@ class TestOperate:
         assert metadata.Signal.quantity == "Intensity (Counts)"
         if importlib.util.find_spec("lumispy") is None:
             signal_type = ""
-        else:
-            signal_type = "Luminescence"
+        else:  # pragma: no cover
+            signal_type = "TransientSpectrum"
 
         assert metadata.Signal.signal_type == signal_type
 

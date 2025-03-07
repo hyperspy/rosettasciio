@@ -27,9 +27,12 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from packaging.version import Version
 
 h5py = pytest.importorskip("h5py", reason="h5py not installed")
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
+import hyperspy  # noqa: E402
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "emd"
 
@@ -51,6 +54,10 @@ comments = {"comment": "Test"}
 test_title = "This is a test!"
 
 
+@pytest.mark.skipif(
+    Version(hyperspy.__version__) <= Version("2.3.0"),
+    reason="HyperSpy > 2.3.0 required.",
+)
 @pytest.mark.parametrize("lazy", (False, True))
 def test_signal_3d_loading(lazy):
     signal = hs.load(TEST_DATA_PATH / "example_signal.emd", lazy=lazy)

@@ -25,6 +25,7 @@ from pathlib import Path
 import dask.array as da
 import numpy as np
 import pytest
+from packaging.version import Version
 
 from rsciio.utils.tests import assert_deep_almost_equal
 from rsciio.utils.tools import get_file_handle
@@ -32,6 +33,7 @@ from rsciio.utils.tools import get_file_handle
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 h5py = pytest.importorskip("h5py", reason="h5py not installed")
 
+import hyperspy  # noqa: E402
 from hyperspy.axes import (  # noqa: E402
     AxesManager,
     DataAxis,
@@ -479,6 +481,10 @@ def test_nonuniformFDA(tmp_path, file, lazy):
     assert s2.axes_manager[0].size == data.size
 
 
+@pytest.mark.skipif(
+    Version(hyperspy.__version__) <= Version("2.3.0"),
+    reason="HyperSpy > 2.3.0 required.",
+)
 def test_lazy_loading(tmp_path):
     s = hs.signals.BaseSignal(np.empty((5, 5, 5)))
     fname = tmp_path / "tmp.hdf5"
@@ -1039,6 +1045,10 @@ def test_saving_show_progressbar(tmp_path, file, show_progressbar):
     s.save(filename, show_progressbar=show_progressbar)
 
 
+@pytest.mark.skipif(
+    Version(hyperspy.__version__) <= Version("2.3.0"),
+    reason="HyperSpy > 2.3.0 required.",
+)
 def test_saving_close_file(tmp_path):
     from rsciio.utils.exceptions import VisibleDeprecationWarning
 

@@ -30,6 +30,8 @@ tifffile = pytest.importorskip("tifffile", reason="tifffile not installed")
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 t = pytest.importorskip("traits.api", reason="traits not installed")
 
+import hyperspy  # noqa: E402
+
 import rsciio.tiff  # noqa: E402
 from rsciio.utils.tests import assert_deep_almost_equal  # noqa: E402
 
@@ -224,6 +226,10 @@ def test_lazy_loading(tmp_path, size):
     fh.close()
 
 
+@pytest.mark.skipif(
+    Version(hyperspy.__version__) <= Version("2.3.0"),
+    reason="HyperSpy > 2.3.0 required.",
+)
 def test_lazy_loading_hyperspy_close(tmp_path):
     # check that the file is closed automatically in hyperspy
     dummy_data = np.random.random_sample(size=(2, 50, 50))

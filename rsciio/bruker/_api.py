@@ -500,7 +500,7 @@ class EDXSpectrum:
             }
         # USED:
         self.hv = self.esma_metadata.get("PrimaryEnergy", None)
-        if self.hv is None:
+        if self.hv is None:  # pragma: no cover
             _logger.warning("The beam energy couldn't be found.")
         self.elev_angle = self.esma_metadata["ElevationAngle"]
         date_time = gen_iso_date_time(spectrum_header)

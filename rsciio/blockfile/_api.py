@@ -256,8 +256,8 @@ def file_reader(filename, lazy=False, chunks="auto", endianess="<"):
             "https://github.com/hyperspy/hyperspy"
         )
     _logger.debug("File header: " + str(header))
-    NX, NY = int(header["NX"]), int(header["NY"])
-    DP_SZ = int(header["DP_SZ"])
+    navigation_shape = (int(header["NY"]), int(header["NX"]))
+    signal_shape = (int(header["DP_SZ"]),) * 2
     if header["SDP"]:
         SDP = 100.0 / header["SDP"]
     else:
@@ -273,31 +273,38 @@ def file_reader(filename, lazy=False, chunks="auto", endianess="<"):
 
     # Then comes actual blockfile
     offset2 = header["Data_offset_2"]
+    # Every frame is preceeded by a 6 byte sequence
+    # (AA 55, and then a 4 byte integer specifying frame number)
+    frame_dtype = np.dtype(
+        [
+            ("header", np.dtype(endianess + "u1"), 6),
+            ("data", np.dtype(endianess + "u1"), np.prod(signal_shape)),
+        ]
+    )
     if not lazy:
         f.seek(offset2)
-        data = np.fromfile(f, dtype=endianess + "u1")
+        data = np.fromfile(f, dtype=frame_dtype)["data"]
         try:
-            data = data.reshape((NY, NX, DP_SZ * DP_SZ + 6))
+            data = data.reshape(navigation_shape + signal_shape).squeeze()
         except ValueError:
             warnings.warn(
                 "Blockfile header dimensions larger than file size! "
                 "Will attempt to load by zero padding incomplete frames."
             )
-        # Data is stored DP by DP:
-        pw = [(0, NX * NY * (DP_SZ * DP_SZ + 6) - data.size)]
-        data = np.pad(data, pw, mode="constant")
-        data = data.reshape((NY, NX, DP_SZ * DP_SZ + 6), order="C")
+            # Data is stored DP by DP:
+            pw = [(0, np.prod(navigation_shape) - data.shape[0]), (0, 0)]
+            data = np.pad(data, pw, mode="constant")
+            data = data.reshape(navigation_shape + signal_shape).squeeze()
     else:
         data = memmap_distributed(
             filename,
             chunks=chunks,
             offset=offset2,
-            shape=(NY, NX, DP_SZ * DP_SZ + 6),
-            dtype=np.dtype(endianess + "u1"),
+            shape=np.prod(navigation_shape),
+            dtype=frame_dtype,
+            key="data",
         )
-    # Every frame is preceeded by a 6 byte sequence (AA 55, and then a 4 byte
-    # integer specifying frame number)
-    data = data[:, :, 6:].reshape((NY, NX, DP_SZ, DP_SZ)).squeeze()
+        data = data.reshape(navigation_shape + signal_shape).squeeze()
 
     units = ["nm", "nm", "cm", "cm"]
     names = ["y", "x", "dy", "dx"]

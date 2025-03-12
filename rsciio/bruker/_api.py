@@ -62,11 +62,11 @@ Falling back to slow python only backend."""
 x2d = XmlToDict(dub_attr_pre_str="XmlClass", tags_to_flatten="ClassInstance")
 
 
-class Container(object):
+class Container:
     pass
 
 
-class SFSTreeItem(object):
+class SFSTreeItem:
     """Class to manage one internal sfs file.
 
     Reading, reading in chunks, reading and extracting, reading without
@@ -285,7 +285,7 @@ but compression signature is missing in the header. Aborting...."""
         return data
 
 
-class SFS_reader(object):
+class SFS_reader:
     """Class to read sfs file.
     SFS is AidAim software's(tm) single file system.
     The class provides basic reading capabilities of such container.
@@ -450,7 +450,7 @@ class SFS_reader(object):
         return item
 
 
-class EDXSpectrum(object):
+class EDXSpectrum:
     def __init__(self, spectrum):
         """
         Wrap the objectified bruker EDS spectrum xml part
@@ -499,7 +499,11 @@ class EDXSpectrum(object):
                 "ElevationAngle": xrf_header_dict["ExcitationAngle"],
             }
         # USED:
-        self.hv = self.esma_metadata["PrimaryEnergy"]
+        self.hv = self.esma_metadata.get("PrimaryEnergy", None)
+        if self.hv is None:  # pragma: no cover
+            _logger.warning(
+                "The beam energy could not be found in the file's metadata."
+            )
         self.elev_angle = self.esma_metadata["ElevationAngle"]
         date_time = gen_iso_date_time(spectrum_header)
         if date_time is not None:
@@ -527,7 +531,7 @@ class EDXSpectrum(object):
         return int(round((en_temp - self.offset) / self.scale))
 
 
-class HyperHeader(object):
+class HyperHeader:
     """Wrap Bruker HyperMaping xml header into python object.
 
     Arguments:
@@ -585,7 +589,7 @@ class HyperHeader(object):
         semData = root.find("./ClassInstance[@Type='TRTSEMData']")
         self.sem_metadata = x2d.dictionarize(semData)
         # parse values for use in hspy metadata:
-        self.hv = self.sem_metadata.get("HV", 0.0)  # in kV
+        self.hv = self.sem_metadata.get("HV", None)  # in kV
         # image/hypermap resolution in um/pixel:
         if "DX" in self.sem_metadata:
             self.units = "µm"
@@ -610,7 +614,9 @@ class HyperHeader(object):
         """return python dictionary with aquisition instrument
         mandatory data
         """
-        acq_inst = {"beam_energy": self.hv}
+        acq_inst = {}
+        if self.hv is not None:
+            acq_inst["beam_energy"] = self.hv
         if "Mag" in self.sem_metadata:
             acq_inst["magnification"] = self.sem_metadata["Mag"]
         if detector:
@@ -620,7 +626,8 @@ class HyperHeader(object):
             acq_inst["Detector"] = det
             # In case of XRF, the primary energy is only defined in
             # the spectrum metadata
-            acq_inst["beam_energy"] = eds_metadata.hv
+            if eds_metadata.hv is not None:
+                acq_inst["beam_energy"] = eds_metadata.hv
 
         return acq_inst
 
@@ -744,9 +751,9 @@ class HyperHeader(object):
         optimal channel number
         """
         eds_max_energy = self.spectra_data[index].amplification / 1000  # in kV
-        if hasattr(self, "hv") and (self.hv > 0) and (self.hv < eds_max_energy):
+        if self.hv and self.hv > 0 and self.hv < eds_max_energy:
             return self.spectra_data[index].energy_to_channel(self.hv)
-        if (not hasattr(self, "hv")) or (self.hv == 0):
+        if self.hv is None:
             logging.warn(
                 "bcf header contains no node for electron beam "
                 "voltage or such node is absent.\n"
@@ -1542,16 +1549,18 @@ def guess_mode(hv):
     was used from metadata: TEM or SEM.
     However simple guess can be made using the acceleration
     voltage, assuming that SEM is <= 30kV or TEM is >30kV"""
-    if hv > 30.0:
+    if hv is not None and hv > 30.0:
         mode = "TEM"
     else:
         mode = "SEM"
-    _logger.info(
-        "Guessing that the acquisition instrument is %s " % mode
-        + "because the beam energy is %i keV. If this is wrong, " % hv
-        + "please provide the right instrument using the 'instrument' "
-        + "keyword."
-    )
+
+    if hv is not None:
+        _logger.info(
+            "Guessing that the acquisition instrument is %s " % mode
+            + "because the beam energy is %i keV. If this is wrong, " % hv
+            + "please provide the right instrument using the 'instrument' "
+            + "keyword."
+        )
     return mode
 
 

@@ -111,7 +111,7 @@ class TestNonUniformAxisCheck:
     def test_nonuniform_writer_characteristic(self):
         for plugin in IO_PLUGINS:
             if "non_uniform_axis" not in plugin:
-                print(
+                print(  # noqa: T201
                     f"{plugin.name} IO-plugin is missing the "
                     "characteristic `non_uniform_axis`"
                 )

@@ -136,7 +136,7 @@ def download_all(pooch_object=None, ignore_hash=None, show_progressbar=True):
 
             pbar = tqdm(total=len(pooch_object.registry_files))
         except ImportError:
-            print("Using progresbar requires the `tqdm` library.")
+            print("Using progresbar requires the `tqdm` library.")  # noqa: T201
             show_progressbar = False
 
     for i, file in enumerate(pooch_object.registry_files):

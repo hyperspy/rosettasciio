@@ -30,7 +30,7 @@ def update_fallback_version_in_pyproject(tag, fname="pyproject.toml"):
     with open(fname, "w") as file:
         file.writelines(lines)
 
-    print(
+    print(  # noqa: T201
         f"\nNew (fallback) dev version ({new_version}) written to `pyproject.toml`.\n"
     )
 

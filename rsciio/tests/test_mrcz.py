@@ -133,7 +133,7 @@ class TestPythonMrcz:
                     break
                 except IOError:
                     sleep(0.001)
-            print(
+            print(  # noqa: T201
                 "Time to save file: {} s".format(
                     perf_counter() - (t_stop - MAX_ASYNC_TIME)
                 )
@@ -144,7 +144,7 @@ class TestPythonMrcz:
         try:
             os.remove(mrcName)
         except IOError:
-            print("Warning: file {} left on disk".format(mrcName))
+            print("Warning: file {} left on disk".format(mrcName))  # noqa: T201
 
         # change file timestamp to make the metadata of both signals equal
         testSignal.metadata.General.FileIO.Number_0.timestamp = (
@@ -218,4 +218,4 @@ class TestPythonMrcz:
         self.compareSaveLoad(
             [2, 64, 32], dtype=dtype, compressor="zstd", clevel=1, do_async=True
         )
-        print("MRCZ Asychronous test finished in {} s".format(perf_counter() - t_start))
+        print("MRCZ Asychronous test finished in {} s".format(perf_counter() - t_start))  # noqa: T201

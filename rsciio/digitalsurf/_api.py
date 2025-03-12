@@ -1229,7 +1229,6 @@ class DigitalSurfHandler(object):
     def _read_single_sur_object(self, file):
         for key, val in self._work_dict.items():
             self._work_dict[key]["value"] = val["b_unpack_fn"](file)
-            # print(f"{key}: {self._work_dict[key]['value']}")
 
     def _append_work_dict_to_content(self):
         """Save the values stored in the work dict in the surface file list"""

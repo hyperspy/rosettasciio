@@ -82,7 +82,7 @@ def read_metadata_from_file(
         stripped_metadata, search_keys=search_keys
     )
     if verbose:
-        pprint.pprint(stripped_metadata)
+        pprint.pprint(stripped_metadata)  # noqa: T203
 
     fin.close()
     return stripped_metadata
@@ -136,17 +136,17 @@ def list_datasets_in_file(
     )
     if verbose:
         if nexus_data_paths:
-            print("NXdata found")
+            print("NXdata found")  # noqa: T201
             for nxd in nexus_data_paths:
-                print(nxd)
+                print(nxd)  # noqa: T201
         else:
-            print("NXdata not found")
+            print("NXdata not found")  # noqa: T201
         if hdf_dataset_paths:
-            print("Unique HDF datasets found")
+            print("Unique HDF datasets found")  # noqa: T201
             for hdfd in hdf_dataset_paths:
-                print(hdfd, fin[hdfd].shape)
+                print(hdfd, fin[hdfd].shape)  # noqa: T201
         else:
-            print("No HDF datasets not found or data is captured by NXdata")
+            print("No HDF datasets not found or data is captured by NXdata")  # noqa: T201
     fin.close()
     return nexus_data_paths, hdf_dataset_paths
 

@@ -458,7 +458,7 @@ class TestFeiEMD:
         time_data = np.zeros_like(frame_offsets)
         path = Path("path to large dataset")
         for i, frame_offset in enumerate(frame_offsets):
-            print(frame_offset + frame_number)
+            print(frame_offset + frame_number)  # noqa: T201
             t0 = time.time()
             hs.load(
                 path / "large dataset.emd",

@@ -201,7 +201,9 @@ select = [
     "E",
     "W",
     # isort
-    "I001"
+    "I001",
+    # flake8-print
+    "T20",
 ]
 exclude = [
     "examples",

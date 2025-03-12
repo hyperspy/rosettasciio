@@ -26,13 +26,13 @@ from ._api import SFS_reader
 
 def export_metadata(filename, output_filename=None):
     """
-    Export the metadata from a bcf file to a xml file.
+    Export the metadata from a ``.bcf`` file to an ``.xml`` file.
 
     Parameters
     ----------
     %s
     output_filename : str, pathlib.Path or None
-        The filename of the exported xml file.
+        The filename of the exported ``.xml`` file.
         If ``None``, use "header.xml" as default.
 
     """

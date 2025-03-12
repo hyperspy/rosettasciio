@@ -35,7 +35,7 @@ The **dictionary** contains the following fields:
 * ``'metadata'`` -- dictionary containing the parsed metadata
 * ``'original_metadata'`` -- dictionary containing the full metadata tree from the
   input file
-* ``'file_handle'`` -- (compatible format only: :ref:`emd <emd-format>`, :ref:`hspy <hspy-format>`, :ref:`NeXus <nexus-format>`, :ref:`tiff <tiff-format>`, :ref:`USID <usid-format>`) the file handle when ``lazy`` is ``True`` otherwise ``None``
+* ``'file_handle'`` -- (compatible formats restricted to: :ref:`emd <emd-format>`, :ref:`hspy <hspy-format>`, :ref:`NeXus <nexus-format>`, :ref:`tiff <tiff-format>`, :ref:`USID <usid-format>`) the file handle when ``lazy`` is ``True`` otherwise ``None``
 
 Interfacing the reader from one of the IO plugins:
 

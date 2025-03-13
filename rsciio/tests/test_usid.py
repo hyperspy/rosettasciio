@@ -690,7 +690,8 @@ class TestUSID2HSdtype:
     "ignore:This dataset does not have an N-dimensional form:UserWarning"
 )
 class TestUSID2HSmultiDsets:
-    def test_pick_specific(self):
+    @pytest.mark.parametrize("lazy", [True, False])
+    def test_pick_specific(self, lazy):
         slow_to_fast = True
         ret_vals = gen_2pos_2spec(s2f_aux=slow_to_fast)
         pos_dims, spec_dims, ndata, data_2d = ret_vals
@@ -730,7 +731,9 @@ class TestUSID2HSmultiDsets:
             )
 
         dataset_path = "/Measurement_001/Channel_000/Raw_Data"
-        new_sig = hs.load(file_path, dataset_path=dataset_path, reader="USID")
+        new_sig = hs.load(
+            file_path, dataset_path=dataset_path, reader="USID", lazy=lazy
+        )
         compare_signal_from_usid(file_path, ndata_2, new_sig, dataset_path=dataset_path)
 
     def test_read_all_by_default(self):

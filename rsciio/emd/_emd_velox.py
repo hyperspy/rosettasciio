@@ -102,7 +102,6 @@ class FeiEMDReader(object):
     ):
         # TODO: Finish lazy implementation using the `FrameLocationTable`
         # Parallelise streams reading
-        self.filename = filename
         self.select_type = select_type
         self.dictionaries = []
         self.first_frame = first_frame
@@ -119,7 +118,7 @@ class FeiEMDReader(object):
         self._map_label_dict = {}
 
     def read_file(self, f):
-        self.filename = f.filename
+        self.file = f
         self.version = _parse_json(f["Version"][0])["version"]
         _logger.info(f"EMD file version: {self.version}")
         self.d_grp = f.get("Data")
@@ -238,6 +237,7 @@ class FeiEMDReader(object):
             "metadata": md,
             "original_metadata": original_metadata,
             "mapping": self._get_mapping(),
+            "file_handle": self.file if self.lazy else None,
         }
 
     def _read_images(self):
@@ -406,6 +406,7 @@ class FeiEMDReader(object):
             "mapping": self._get_mapping(
                 map_selected_element=False, parse_individual_EDS_detector_metadata=False
             ),
+            "file_handle": self.file if self.lazy else None,
         }
 
     def _get_detector_name(self, key):
@@ -691,6 +692,7 @@ class FeiEMDReader(object):
                     "mapping": self._get_mapping(
                         parse_individual_EDS_detector_metadata=not self.sum_frames
                     ),
+                    "file_handle": self.file if self.lazy else None,
                 }
             )
 
@@ -723,7 +725,7 @@ class FeiEMDReader(object):
 
     def _get_metadata_dict(self, om):
         meta_gen = {}
-        meta_gen["original_filename"] = os.path.split(self.filename)[1]
+        meta_gen["original_filename"] = os.path.split(self.file.filename)[1]
         if self.detector_name is not None:
             meta_gen["title"] = self.detector_name
         # We have only one entry in the original_metadata, so we can't use

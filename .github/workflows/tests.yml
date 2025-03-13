@@ -139,6 +139,11 @@ jobs:
         run: |
           pip install ${{ matrix.DEPENDENCIES }}
 
+      - name: Install hyperspy dev (with file_handle)
+        if: ${{ ! contains(matrix.LABEL, 'without-hyperspy')}}
+        run: |
+          pip install git+https://github.com/ericpre/hyperspy.git@close_file_with_handle
+
       - name: Pip list
         run: |
           pip list

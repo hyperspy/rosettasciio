@@ -30,12 +30,14 @@ from pathlib import Path
 import numpy as np
 import pytest
 from dateutil import tz
+from packaging.version import Version
 
 from rsciio.utils.tests import assert_deep_almost_equal
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 pytest.importorskip("sparse")
 
+import hyperspy  # noqa: E402
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "emd"
 
@@ -154,6 +156,10 @@ class TestFeiEMD:
         np.testing.assert_equal(signal[1].data, fei_si)
         assert isinstance(signal[1], hs.signals.Signal1D)
 
+    @pytest.mark.skipif(
+        Version(hyperspy.__version__) <= Version("2.3.0"),
+        reason="HyperSpy > 2.3.0 required.",
+    )
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_si_non_square_10frames(self, lazy):
         s = hs.load(
@@ -163,7 +169,7 @@ class TestFeiEMD:
         signal = s[1]
         if lazy:
             assert signal._lazy
-            signal.compute(close_file=True)
+            signal.compute(close_file=False)
         assert signal.metadata.Signal.signal_type == "EDS_TEM"
         assert isinstance(signal, hs.signals.Signal1D)
         assert signal.axes_manager[0].name == "x"
@@ -182,7 +188,7 @@ class TestFeiEMD:
         signal0 = s[0]
         if lazy:
             assert signal0._lazy
-            signal0.compute(close_file=True)
+            signal0.compute(close_file=False)
         assert isinstance(signal0, hs.signals.Signal2D)
         assert signal0.axes_manager[0].name == "x"
         assert signal0.axes_manager[0].size == 10
@@ -200,7 +206,7 @@ class TestFeiEMD:
         signal = s[1]
         if lazy:
             assert signal._lazy
-            signal.compute(close_file=True)
+            signal.compute(close_file=False)
         assert signal.metadata.Signal.signal_type == "EDS_TEM"
         assert isinstance(signal, hs.signals.Signal1D)
         assert signal.axes_manager[0].name == "x"
@@ -219,7 +225,7 @@ class TestFeiEMD:
         signal0 = s[0]
         if lazy:
             assert signal0._lazy
-            signal0.compute(close_file=True)
+            signal0.compute(close_file=False)
         assert isinstance(signal0, hs.signals.Signal2D)
         assert signal0.axes_manager[0].name == "Time"
         assert signal0.axes_manager[0].size == 10
@@ -242,7 +248,7 @@ class TestFeiEMD:
         signal = s[1]
         if lazy:
             assert signal._lazy
-            signal.compute(close_file=True)
+            signal.compute(close_file=False)
         assert signal.metadata.Signal.signal_type == "EDS_TEM"
         assert isinstance(signal, hs.signals.Signal1D)
         assert signal.axes_manager.navigation_shape == (10, 50, 10)
@@ -307,6 +313,7 @@ class TestFeiEMD:
         if lazy:
             assert signal._lazy
             signal.compute(close_file=True)
+            assert not signal._file_handle
         assert signal.metadata.Signal.signal_type == "EDS_TEM"
         assert isinstance(signal, hs.signals.Signal1D)
         assert signal.axes_manager.navigation_shape == (10, 50, 6)

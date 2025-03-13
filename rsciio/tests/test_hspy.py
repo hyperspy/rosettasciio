@@ -419,7 +419,7 @@ def test_none_metadata():
 
 
 def test_rgba16():
-    print(TEST_DATA_PATH)
+    print(TEST_DATA_PATH)  # noqa: T201
     with pytest.warns(VisibleDeprecationWarning):
         #  The binned attribute has been moved from metadata.Signal
         s = hs.load(TEST_DATA_PATH / "test_rgba16.hdf5", reader="HSPY")
@@ -468,7 +468,7 @@ def test_nonuniformFDA(tmp_path, file, lazy):
     s = hs.signals.Signal1D(data, axes=(axis.get_axis_dictionary(),))
     if lazy:
         s = s.as_lazy()
-    print(axis.get_axis_dictionary())
+    print(axis.get_axis_dictionary())  # noqa: T201
     s.save(fname, overwrite=True)
     s2 = hs.load(fname)
     np.testing.assert_array_almost_equal(

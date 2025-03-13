@@ -652,7 +652,7 @@ def test_data_and_axes(pdict, lazy):
     key = pdict["key"]
     assert s.data.dtype == np.dtype(dm4_data_types[key])
     subfolder = pdict["subfolder"]
-    print(pdict["subfolder"])
+    print(pdict["subfolder"])  # noqa: T201
     if subfolder == "1D":
         dat = np.arange(1, 3)
         assert s.axes_manager.signal_shape == (2,)

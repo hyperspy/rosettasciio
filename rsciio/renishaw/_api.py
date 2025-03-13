@@ -622,9 +622,6 @@ class WDFReader(object):
     def _pset_match_keys_and_values(self, id, key_dict, value_dict):
         result = {}
         ## TODO: debug setup, remove once it is understood why there are unmatched keys/values
-        ## print(f"{id}(keys, {len(list(key_dict))}): {list(key_dict)}")
-        ## print(f"{id}(values, {len(list(value_dict))}): {list(value_dict)}")
-        ## print()
         for key in list(key_dict.keys()):
             ## keep mismatched keys for debugging
             try:

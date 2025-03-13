@@ -43,9 +43,9 @@ def session_data(request, tmp_path_factory, worker_id):
         from rsciio.tests.registry_utils import download_all
 
         with capmanager.global_and_fixture_disabled():
-            print("Checking if test data need downloading...")
+            print("Checking if test data need downloading...")  # noqa: T201
             download_all()
-            print("All test data available.")
+            print("All test data available.")  # noqa: T201
 
         return "Test data available"
 

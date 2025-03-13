@@ -164,7 +164,7 @@ def overwrite(filename):
             answer = input(message)
             answer = answer.lower()
             while (answer != "y") and (answer != "n"):
-                print("Please answer y or n.")
+                print("Please answer y or n.")  # noqa: T201
                 answer = input(message)
             if answer.lower() == "y":
                 return True

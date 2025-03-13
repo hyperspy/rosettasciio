@@ -31,7 +31,7 @@ def test_load_16bit():
     # some of functions can be not covered
     # it cant use cython parsing implementation, as it is not compiled
     filename = TEST_DATA_DIR / test_files[0]
-    print("testing bcf instructively packed 16bit...")
+    print("testing bcf instructively packed 16bit...")  # noqa: T201
     s = hs.load(filename)
     bse, hype = s
     # Bruker saves all images in true 16bit:
@@ -48,7 +48,7 @@ def test_load_16bit():
 
 def test_load_16bit_reduced():
     filename = TEST_DATA_DIR / test_files[0]
-    print("testing downsampled 16bit bcf...")
+    print("testing downsampled 16bit bcf...")  # noqa: T201
     s = hs.load(filename, downsample=4, cutoff_at_kV=10)
     bse, hype = s
     # sem images are never downsampled
@@ -68,7 +68,7 @@ def test_load_16bit_reduced():
 
 def test_load_16bit_cutoff_zealous():
     filename = TEST_DATA_DIR / test_files[0]
-    print("testing downsampled 16bit bcf with cutoff_at_kV=zealous...")
+    print("testing downsampled 16bit bcf with cutoff_at_kV=zealous...")  # noqa: T201
     hype = hs.load(filename, cutoff_at_kV="zealous", select_type="spectrum_image")
     assert hype.data.shape == (30, 30, 2048)
     assert hype.axes_manager.navigation_shape == (30, 30)
@@ -77,7 +77,7 @@ def test_load_16bit_cutoff_zealous():
 
 def test_load_16bit_cutoff_auto():
     filename = TEST_DATA_DIR / test_files[0]
-    print("testing downsampled 16bit bcf with cutoff_at_kV=auto...")
+    print("testing downsampled 16bit bcf with cutoff_at_kV=auto...")  # noqa: T201
     hype = hs.load(filename, cutoff_at_kV="auto", select_type="spectrum_image")
     assert hype.data.shape == (30, 30, 2048)
     assert hype.axes_manager.navigation_shape == (30, 30)
@@ -89,7 +89,7 @@ def test_load_8bit():
     hype_sig_shapes = [(2048,), (2048,)]
     for i, bcffile in enumerate(test_files[1:3]):
         filename = TEST_DATA_DIR / bcffile
-        print("testing simple 8bit bcf...")
+        print("testing simple 8bit bcf...")  # noqa: T201
         s = hs.load(filename)
         bse, hype = s[0], s[-1]
         # Bruker saves all images in true 16bit:
@@ -105,7 +105,7 @@ def test_load_8bit():
 def test_hyperspy_wrap():
     pytest.importorskip("exspy", reason="exspy not installed.")
     filename = TEST_DATA_DIR / test_files[0]
-    print("testing bcf wrap to hyperspy signal...")
+    print("testing bcf wrap to hyperspy signal...")  # noqa: T201
 
     hype = hs.load(filename, select_type="spectrum_image")
     np.testing.assert_allclose(hype.axes_manager[0].scale, 1.66740910949362, atol=1e-12)
@@ -217,7 +217,7 @@ def test_hyperspy_wrap():
 
 def test_hyperspy_wrap_downsampled():
     filename = TEST_DATA_DIR / test_files[0]
-    print("testing bcf wrap to hyperspy signal...")
+    print("testing bcf wrap to hyperspy signal...")  # noqa: T201
     hype = hs.load(filename, select_type="spectrum_image", downsample=5)
     np.testing.assert_allclose(
         hype.axes_manager[0].scale, 8.337045547468101, atol=1e-12
@@ -264,7 +264,7 @@ def test_fast_bcf():
         filename = TEST_DATA_DIR / bcffile
         thingy = _api.BCF_reader(filename)
         for j in range(2, 5, 1):
-            print("downsampling:", j)
+            print("downsampling:", j)  # noqa: T201
             _api.fast_unbcf = True  # manually enabling fast parsing
             hmap1 = thingy.parse_hypermap(downsample=j)  # using cython
             _api.fast_unbcf = False  # manually disabling fast parsing

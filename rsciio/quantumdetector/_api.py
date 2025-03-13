@@ -295,7 +295,7 @@ def load_mib_data(
     mib_prop.frame_number_in_file = frame_number_in_file
 
     if print_info:
-        print(mib_prop)
+        print(mib_prop)  # noqa: T201
 
     if mib_prop.raw:  # pragma: no cover
         raise NotImplementedError("RAW MIB data not supported.")

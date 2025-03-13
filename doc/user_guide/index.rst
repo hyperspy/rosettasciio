@@ -12,4 +12,5 @@ A list of all the supported file formats can be found in the :ref:`supported for
    :maxdepth: 2
    
    install
+   lazy
    interoperability

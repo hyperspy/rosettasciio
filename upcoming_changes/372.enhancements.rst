@@ -1,0 +1,1 @@
+Add support for distributed lazy loading in :ref:`blockfile-format` reader and remove loading using threaded memory mapping which is discouraged in recent dask releases.

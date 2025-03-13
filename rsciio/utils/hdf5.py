@@ -146,7 +146,7 @@ def list_datasets_in_file(
             for hdfd in hdf_dataset_paths:
                 print(hdfd, fin[hdfd].shape)  # noqa: T201
         else:
-            print("No HDF datasets not found or data is captured by NXdata")  # noqa: T201
+            print("No HDF datasets found or data is captured by NXdata")  # noqa: T201
     fin.close()
     return nexus_data_paths, hdf_dataset_paths
 

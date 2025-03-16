@@ -164,11 +164,10 @@ jobs:
           pip install git+https://github.com/hyperspy/hyperspy.git
           pip install git+https://github.com/hyperspy/exspy.git
 
-      - name: Install hyperspy and exspy (dev & 3.13t)
+      - name: Install hyperspy (dev & 3.13t)
         if: ${{ matrix.HYPERSPY_VERSION == 'dev' && matrix.PYTHON_VERSION == '3.13t'}}
         run: |
           pip install git+https://github.com/hyperspy/hyperspy.git --no-deps
-          pip install git+https://github.com/hyperspy/exspy.git --no-deps
 
       - name: Install python-mrcz dev
         # for numpy 2.0 support for python >= 3.9

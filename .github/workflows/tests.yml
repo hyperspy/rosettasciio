@@ -21,7 +21,9 @@ jobs:
         os: [ubuntu, windows, macos]
         os_version: [latest]
         PYTHON_VERSION: ['3.9', '3.10', '3.13']
+        HYPERSPY_VERSION: ['release']
         LABEL: ['']
+        PIP_ARGS: ['']
         include:
           # test oldest supported version of main dependencies on python 3.8
           - os: ubuntu
@@ -31,28 +33,44 @@ jobs:
             # align matplotlib and dask dependency with hyperspy
             DEPENDENCIES: matplotlib==3.6 numpy==1.20.0 tifffile==2022.7.28 dask[array]==2022.9.2 distributed==2022.9.2 numba==0.53 imageio==2.16 pillow==8.3.2 scikit-image==0.18.0 python-box==6.0.0
             LABEL: '-oldest'
+            HYPERSPY_VERSION: 'release'
           # test minimum requirement
           - os: ubuntu
             os_version: latest
             PYTHON_VERSION: '3.10'
-            LABEL: '-minimum'
+            LABEL: '-hyperspy-minimum'
+            HYPERSPY_VERSION: 'release'
           - os: ubuntu
             os_version: latest
             PYTHON_VERSION: '3.12'
-            LABEL: '-hyperspy-dev'
+            LABEL: '-hyperspy_dev'
+            HYPERSPY_VERSION: 'dev'
           - os: ubuntu
             os_version: latest
             PYTHON_VERSION: '3.10'
-            LABEL: '-without-hyperspy'
+            LABEL: ''
           - os: ubuntu
             os_version: latest
             PYTHON_VERSION: '3.9'
+            LABEL: '-hyperspy'
+            HYPERSPY_VERSION: 'release'
           - os: ubuntu
             os_version: latest
             PYTHON_VERSION: '3.12'
+            LABEL: '-hyperspy'
+            HYPERSPY_VERSION: 'release'
           - os: macos
             os_version: '13'
             PYTHON_VERSION: '3.12'
+            LABEL: '-hyperspy'
+            HYPERSPY_VERSION: 'release'
+          - os: ubuntu
+            os_version: latest
+            PYTHON_VERSION: '3.13t'
+            # use build isolation until cython 3.1 is released
+            PIP_ARGS: '--no-build-isolation'
+            LABEL: '-hyperspy_dev-minimum'
+            HYPERSPY_VERSION: 'dev'
 
     steps:
       - uses: actions/checkout@v4
@@ -76,7 +94,7 @@ jobs:
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
           cache: 'pip'
-        
+
       - name: Get the number of CPUs
         id: cpus
         run: |
@@ -105,16 +123,52 @@ jobs:
           python --version
           pip --version
 
-      - name: Install hyperspy and exspy
-        if: ${{ ! contains(matrix.LABEL, 'without-hyperspy') && matrix.PYTHON_VERSION != '3.13'}}
+      - name: Set PYTHON_GIL
+        # make sure the GIL doesn't get enabled
+        # https://py-free-threading.github.io/running-gil-disabled/
+        if: endsWith(matrix.PYTHON_VERSION, 't')
         run: |
-          pip install hyperspy exspy
+          echo "PYTHON_GIL=0" >> "$GITHUB_ENV"
+
+      - name: Display GIL information
+        if: ${{ contains(matrix.PYTHON_VERSION, '3.13') }}
+        run: |
+          # show if free-threaded build
+          python -VV
+          # show if GIL is enable
+          python -c "import sys; print('GIL enabled:', sys._is_gil_enabled())"
+
+      - name: Install build dependency (3.13t)
+        if: ${{ matrix.PYTHON_VERSION == '3.13t'}}
+        run: |
+          pip install -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple cython
+          # install build dependencies manually to be able to use `--no-build-isolation`
+          pip install setuptools-scm wheel hatchling numpy pkgconfig
+
+      - name: Install hyperspy dependencies (3.13t)
+        if: ${{ matrix.PYTHON_VERSION == '3.13t'}}
+        run: |
+          # no freethreaded build available for h5py
+          # install other dependencies manually 
+          pip install cloudpickle dask[array] importlib-metadata jinja2 matplotlib natsort numpy packaging pint prettytable pyyaml scikit-image scipy sympy tqdm pooch requests
+          pip install traits ${{ matrix.PIP_ARGS }}
+
+      - name: Install hyperspy and exspy (release)
+        if: ${{ matrix.HYPERSPY_VERSION == 'release'}}
+        run: |
+          pip install hyperspy exspy ${{ matrix.PIP_ARGS }}
 
       - name: Install hyperspy and exspy (dev)
-        if: ${{ contains(matrix.LABEL, 'hyperspy-dev') }}
+        if: ${{ matrix.HYPERSPY_VERSION == 'dev' && matrix.PYTHON_VERSION != '3.13t'}}
         run: |
           pip install git+https://github.com/hyperspy/hyperspy.git
           pip install git+https://github.com/hyperspy/exspy.git
+
+      - name: Install hyperspy and exspy (dev & 3.13t)
+        if: ${{ matrix.HYPERSPY_VERSION == 'dev' && matrix.PYTHON_VERSION == '3.13t'}}
+        run: |
+          pip install git+https://github.com/hyperspy/hyperspy.git --no-deps
+          pip install git+https://github.com/hyperspy/exspy.git --no-deps
 
       - name: Install python-mrcz dev
         # for numpy 2.0 support for python >= 3.9
@@ -126,7 +180,7 @@ jobs:
       - name: Install
         shell: bash
         run: |
-          pip install --upgrade -e .'${{ env.PIP_SELECTOR }}'
+          pip install --upgrade -e .'${{ env.PIP_SELECTOR }}' ${{ matrix.PIP_ARGS }}
 
       - name: Uninstall pyUSID
         # remove when pyUSID supports numpy 2 

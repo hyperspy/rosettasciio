@@ -39,6 +39,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.23
         env:
           CIBW_ARCHS: ${{ matrix.CIBW_ARCHS }}
+          CIBW_BUILD_FRONTEND: 'pip; args: --pre --extra-index-url "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple"'
 
       - name: List wheels
         run: |

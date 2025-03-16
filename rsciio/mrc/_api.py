@@ -140,7 +140,7 @@ def get_data_type(mode):
         raise ValueError(f"Unrecognised mode '{mode}'.")
 
 
-def read_de_metadata_file(filename, nav_shape=None):
+def read_de_metadata_file(filename, nav_shape=None, scan_pos_file=None):
     """This reads the metadata ".txt" file that is saved alongside a DE .mrc file.
 
     There are 3 ways in which the files are saved:
@@ -163,20 +163,37 @@ def read_de_metadata_file(filename, nav_shape=None):
     original_metadata = {}
     with open(filename) as metadata:
         for line in metadata.readlines():
-            key, value = line.split("=")
-            key = key.strip()
-            value = value.strip()
-            original_metadata[key] = value
-
+            try:
+                key, value = line.split("=")
+                key = key.strip()
+                value = value.strip()
+                original_metadata[key] = value
+            except ValueError:
+                _logger.warning(
+                    f"Could not parse line: {line} in metadata file {filename} "
+                    f"Each line should be in the form 'key = value'."
+                )
     # -1 -> Not read from TEM Channel 0 -> TEM 1 -> STEM
     in_stem_mode = int(original_metadata.get("Instrument Project TEMorSTEM Mode", -1))
     scanning = original_metadata.get("Scan - Enable", "Disable") == "Enable"
     raster = original_metadata.get("Scan - Type", "Raster") == "Raster"
-    if not raster:  # pragma: no cover
-        _logger.warning(
-            "Non-raster scans are not fully supported yet. Please raise an issue on GitHub"
-            " if you need this feature."
-        )
+
+    if scanning and not raster:
+        if scan_pos_file is None:
+            raise ValueError("Scan position file is required for non-raster scans.")
+        positions = np.loadtxt(scan_pos_file, delimiter=",", dtype=int)
+        nav_shape = (positions[:, 1].max() + 1, positions[:, 0].max() + 1)
+        unique_pos, counts = np.unique(positions, axis=0, return_counts=True)
+        repeats = np.max(counts)
+        if repeats > 1:
+            nav_shape = (
+                nav_shape[0],
+                nav_shape[1],
+                repeats,
+            )  # repeat the scan positions
+    else:
+        positions = None
+
     if in_stem_mode == -1:
         in_stem_mode = scanning
     elif in_stem_mode == 0:  # 0 -> TEM Mode
@@ -191,7 +208,9 @@ def read_de_metadata_file(filename, nav_shape=None):
         has_camera_length != -1 or in_stem_mode
     )  # Force diffracting if in STEM mode
 
-    if in_stem_mode and scanning and raster or nav_shape is not None:
+    if (
+        in_stem_mode and scanning and raster or nav_shape is not None
+    ):  # nav-shape is not None for pos files
         axes_scales = np.array(
             [
                 float(
@@ -292,7 +311,7 @@ def read_de_metadata_file(filename, nav_shape=None):
         },
         "General": {"timestamp": timestamp},
     }
-    return original_metadata, metadata, axes, nav_shape
+    return original_metadata, metadata, axes, nav_shape, positions
 
 
 def file_reader(
@@ -306,6 +325,7 @@ def file_reader(
     metadata_file="auto",
     virtual_images=None,
     external_images=None,
+    scan_file=None,
 ):
     """
     File reader for the MRC format for tomographic and 4D-STEM data.
@@ -328,6 +348,9 @@ def file_reader(
     external_images : list
         A list of filenames of external images (e.g. external detectors) to be loaded
         alongside the main data. For DE movies these are automatically loaded.
+    scan_file : str
+        The filename of the scan file. This is only used for DE movies to determine the scan order
+        for custom scans.
 
     %s
     """
@@ -342,7 +365,10 @@ def file_reader(
                     suffix = "_".join(split[2:-1])
                 else:
                     suffix = ""
+                if len(dir_name) == 0:
+                    dir_name = "."
                 metadata = glob.glob(dir_name + "/" + unique_id + suffix + "_info.txt")
+
                 virtual_images = glob.glob(
                     dir_name + "/" + unique_id + suffix + "_[0-4]_*.mrc"
                 )
@@ -354,6 +380,16 @@ def file_reader(
             ):  # Not a DE movie or File Naming Convention is not followed
                 _logger.warning("Could not find metadata file for DE movie.")
                 metadata = []
+            try:
+                scan_file = glob.glob(
+                    f"{dir_name}/{unique_id}_{suffix}*coordinates.csv"
+                )[0]
+            except IndexError:
+                _logger.warning(
+                    f"Could not find scan file [{dir_name}/{unique_id}_{suffix}*_coordinates.csv]"
+                    f" for DE movie {filename}."
+                )
+                scan_file = None
         else:
             metadata = []
         if len(metadata) == 1:
@@ -368,7 +404,10 @@ def file_reader(
             metadata,
             metadata_axes,
             _navigation_shape,
-        ) = read_de_metadata_file(metadata_file, nav_shape=navigation_shape)
+            positions,
+        ) = read_de_metadata_file(
+            metadata_file, nav_shape=navigation_shape, scan_pos_file=scan_file
+        )
         if navigation_shape is None:
             navigation_shape = _navigation_shape
         original_metadata = {"de_metadata": de_metadata}
@@ -376,6 +415,7 @@ def file_reader(
         original_metadata = {}
         metadata = {"General": {}, "Signal": {}}
         metadata_axes = None
+        positions = None
     metadata["General"]["original_filename"] = os.path.split(filename)[1]
     metadata["Signal"]["signal_type"] = ""
 
@@ -412,12 +452,14 @@ def file_reader(
     shape = (NX[0], NY[0], NZ[0])
     if navigation_shape is not None:
         shape = shape[:2] + navigation_shape
-    if distributed:
+
+    if distributed or positions is not None:
         data = memmap_distributed(
             filename,
             offset=f.tell(),
             shape=shape[::-1],
             dtype=get_data_type(std_header["MODE"]),
+            positions=positions,
             chunks=chunks,
         )
         if not lazy:

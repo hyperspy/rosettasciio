@@ -1,3 +1,6 @@
+# declate the module as thread safe for free-threaded python
+# cython: freethreading_compatible=True
+
 import cython
 import numpy as np
 import sys

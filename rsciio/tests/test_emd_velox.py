@@ -36,6 +36,7 @@ from rsciio.utils.tests import assert_deep_almost_equal
 from rsciio.utils.tools import dummy_context_manager
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+pytest.importorskip("h5py", reason="h5py not installed")
 
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "emd"

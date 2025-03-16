@@ -3,10 +3,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-# import gc
-# import os
-
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+pytest.importorskip("h5py", reason="h5py not installed")
 
 testfile_dir = (Path(__file__).parent / "data" / "delmic").resolve()
 testfile_hyperspectral_path = (testfile_dir / "test_hyperspectral.h5").resolve()

@@ -22,6 +22,7 @@
 # NOT to be confused with the FEI EMD format which was developed later.
 
 import gc
+import importlib
 import logging
 import shutil
 from datetime import datetime
@@ -32,9 +33,9 @@ import pytest
 from dateutil import tz
 
 from rsciio.utils.tests import assert_deep_almost_equal
+from rsciio.utils.tools import dummy_context_manager
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
-pytest.importorskip("sparse")
 
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "emd"
@@ -146,6 +147,7 @@ class TestFeiEMD:
 
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_si(self, lazy):
+        pytest.importorskip("sparse")
         signal = hs.load(self.fei_files_path / "fei_emd_si.emd", lazy=lazy)
         if lazy:
             assert signal[1]._lazy
@@ -154,8 +156,18 @@ class TestFeiEMD:
         np.testing.assert_equal(signal[1].data, fei_si)
         assert isinstance(signal[1], hs.signals.Signal1D)
 
+    def test_fei_emd_si_missing_sparse(self):
+        cm = (
+            pytest.raises(ModuleNotFoundError)
+            if importlib.util.find_spec("sparse") is None
+            else dummy_context_manager()
+        )
+        with cm:
+            _ = hs.load(self.fei_files_path / "fei_emd_si.emd")
+
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_si_non_square_10frames(self, lazy):
+        pytest.importorskip("sparse")
         s = hs.load(
             self.fei_files_path / "fei_SI_SuperX-HAADF_10frames_10x50.emd",
             lazy=lazy,
@@ -329,6 +341,7 @@ class TestFeiEMD:
 
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_si_non_square_20frames(self, lazy):
+        pytest.importorskip("sparse")
         s = hs.load(
             self.fei_files_path / "fei_SI_SuperX-HAADF_20frames_10x50.emd",
             lazy=lazy,
@@ -354,6 +367,7 @@ class TestFeiEMD:
 
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_si_non_square_20frames_2eV(self, lazy):
+        pytest.importorskip("sparse")
         s = hs.load(
             self.fei_files_path / "fei_SI_SuperX-HAADF_20frames_10x50_2ev.emd",
             lazy=lazy,
@@ -379,6 +393,7 @@ class TestFeiEMD:
 
     @pytest.mark.parametrize("lazy", (True, False))
     def test_fei_emd_si_frame_range(self, lazy):
+        pytest.importorskip("sparse")
         signal = hs.load(
             self.fei_files_path / "fei_emd_si.emd",
             first_frame=2,
@@ -394,6 +409,7 @@ class TestFeiEMD:
 
     @pytest.mark.parametrize(["lazy", "sum_EDS_detectors"], _generate_parameters())
     def test_fei_si_4detectors(self, lazy, sum_EDS_detectors):
+        pytest.importorskip("sparse")
         fname = self.fei_files_path / "fei_SI_EDS-HAADF-4detectors_2frames.emd"
         signal = hs.load(fname, sum_EDS_detectors=sum_EDS_detectors, lazy=lazy)
         if lazy:
@@ -408,6 +424,7 @@ class TestFeiEMD:
     @pytest.mark.parametrize("lazy", (False, True))
     @pytest.mark.parametrize("sum_frames", (False, True))
     def test_fei_si_4detectors_compare(self, lazy, sum_frames):
+        pytest.importorskip("sparse")
         fname = self.fei_files_path / "fei_SI_EDS-HAADF-4detectors_2frames.emd"
         kwargs = dict(lazy=lazy, sum_frames=sum_frames)
         s_sum_EDS = hs.load(fname, sum_EDS_detectors=True, **kwargs)[-1]
@@ -544,6 +561,7 @@ class TestVeloxEMDv11:
 
     @pytest.mark.parametrize("lazy", (True, False))
     def test_spectrum_images(self, lazy):
+        pytest.importorskip("sparse")
         s = hs.load(self.fei_files_path / "Test SI 16x16 215 kx.emd", lazy=lazy)
         assert s[-1].metadata.Sample.elements == ["C", "O", "Ca", "Cu"]
         assert len(s) == 10
@@ -553,6 +571,7 @@ class TestVeloxEMDv11:
         assert s[-1].data.shape == (16, 16, 4096)
 
     def test_prune_data(self, caplog):
+        pytest.importorskip("sparse")
         with caplog.at_level(logging.WARNING):
             _ = hs.load(self.fei_files_path / "Test SI 16x16 ReducedData 215 kx.emd")
 

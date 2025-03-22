@@ -126,6 +126,7 @@ class EMD_NCEM:
                 "axes": axes,
                 "metadata": md,
                 "original_metadata": om,
+                "file_handle": self.file if lazy else None,
             }
             self.dictionaries.append(d)
 

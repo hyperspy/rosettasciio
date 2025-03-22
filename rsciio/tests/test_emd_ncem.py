@@ -25,12 +25,14 @@ import os
 import tempfile
 from pathlib import Path
 
-import dask.array as da
 import numpy as np
 import pytest
+from packaging.version import Version
 
 h5py = pytest.importorskip("h5py", reason="h5py not installed")
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+
+import hyperspy  # noqa: E402
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "emd"
 
@@ -52,11 +54,17 @@ comments = {"comment": "Test"}
 test_title = "This is a test!"
 
 
-@pytest.mark.parametrize("lazy", (True, False))
+@pytest.mark.skipif(
+    Version(hyperspy.__version__) <= Version("2.3.0"),
+    reason="HyperSpy > 2.3.0 required.",
+)
+@pytest.mark.parametrize("lazy", (False, True))
 def test_signal_3d_loading(lazy):
     signal = hs.load(TEST_DATA_PATH / "example_signal.emd", lazy=lazy)
     if lazy:
+        assert signal._file_handle
         signal.compute(close_file=True)
+        assert not signal._file_handle
     np.testing.assert_equal(signal.data, data_signal)
     assert isinstance(signal, hs.signals.BaseSignal)
 
@@ -197,7 +205,7 @@ def test_load_file(tmp_path):
         assert _s.metadata.General.title in path
 
 
-@pytest.mark.parametrize("lazy", (True, False))
+@pytest.mark.parametrize("lazy", (False, True))
 def test_save_and_read(lazy, tmp_path):
     signal_ref = hs.signals.BaseSignal(np.arange(24).reshape((2, 3, 4)))
     signal_ref.metadata.General.title = test_title
@@ -245,25 +253,20 @@ def test_save_and_read(lazy, tmp_path):
     assert isinstance(signal, hs.signals.BaseSignal)
 
 
-def test_chunking_saving_lazy(tmp_path):
-    s = hs.signals.Signal2D(da.zeros((50, 100, 100))).as_lazy()
-    s.data = s.data.rechunk([50, 25, 25])
+@pytest.mark.parametrize("save_kwargs", ({}, {"chunks": (50, 20, 20)}))
+def test_chunking_saving_lazy(tmp_path, save_kwargs):
+    original_chunks = (50, 25, 25)
+    s = hs.signals.Signal2D(np.zeros((50, 100, 100))).as_lazy(chunks=original_chunks)
     filename = tmp_path / "test_chunking_saving_lazy.emd"
-    filename2 = tmp_path / "test_chunking_saving_lazy_chunks_True.emd"
-    filename3 = tmp_path / "test_chunking_saving_lazy_chunks_specify.emd"
-    s.save(filename)
+    s.save(filename, **save_kwargs)
+
+    chunks = save_kwargs.get("chunks")
+    if isinstance(chunks, tuple):
+        # chunks passed as an argument
+        expected_chunks = chunks
+    else:
+        # current chunks is used for saving
+        expected_chunks = original_chunks
+
     s1 = hs.load(filename, lazy=True)
-    assert s.data.chunks == s1.data.chunks
-
-    # with chunks=True, use h5py chunking
-    s.save(filename2, chunks=True)
-    s2 = hs.load(filename2, lazy=True)
-    assert tuple([c[0] for c in s2.data.chunks]) == (13, 25, 13)
-    s1.close_file()
-    s2.close_file()
-
-    # Specify chunks
-    chunks = (50, 20, 20)
-    s.save(filename3, chunks=chunks)
-    s3 = hs.load(filename3, lazy=True)
-    assert tuple([c[0] for c in s3.data.chunks]) == chunks
+    assert tuple([c[0] for c in s1.data.chunks]) == expected_chunks

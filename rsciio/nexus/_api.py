@@ -613,6 +613,7 @@ def file_reader(
                             dictionary["metadata"] = hyper_metadata
         else:
             dictionary["original_metadata"] = {}
+        dictionary["file_handle"] = fin if lazy else None
 
         signal_dict_list.append(dictionary)
 
@@ -628,6 +629,7 @@ def file_reader(
                     }
                 }
                 datadict["metadata"].update(basic_metadata)
+                datadict["file_handle"] = fin if lazy else None
                 signal_dict_list.append(datadict)
 
     return signal_dict_list

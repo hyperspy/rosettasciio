@@ -117,8 +117,7 @@ doc = [
   "sphinx-favicon",
   "sphinxcontrib-towncrier",
   "sphinx-copybutton",
-  # unpin when sphinxcontrib-towncrier supports towncrier >=24
-  "towncrier<24",
+  "towncrier",
   "sphinx_design",
 ]
 all = [

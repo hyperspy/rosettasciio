@@ -396,6 +396,7 @@ def _read_tiff(
         "axes": axes,
         "metadata": md,
         "mapping": metadata_mapping,
+        "file_handle": tiff._fh if lazy else None,
     }
 
 

@@ -356,6 +356,7 @@ class HierarchicalReader:
             if not isinstance(data, da.Array):
                 data = da.from_array(data, chunks=data.chunks)
             exp["attributes"]["_lazy"] = True
+            exp["file_handle"] = self.file
         else:
             if isinstance(data, da.Array):
                 data = data.compute()
@@ -859,6 +860,9 @@ class HierarchicalWriter:
         learning_results = group.require_group("learning_results")
         self.dict2group(signal["learning_results"], learning_results, **kwds)
         attributes = group.require_group("attributes")
+        if "_file_handle" in signal["attributes"].keys():
+            # no need to save the file handle!
+            del signal["attributes"]["_file_handle"]
         self.dict2group(signal["attributes"], attributes, **kwds)
 
         if signal["models"]:

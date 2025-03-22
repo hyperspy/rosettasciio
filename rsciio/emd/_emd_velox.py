@@ -24,6 +24,7 @@
 # Writing file is only supported for EMD Berkeley file.
 
 
+import importlib
 import json
 import logging
 import os
@@ -163,7 +164,14 @@ class FeiEMDReader(object):
             t0 = time.time()
             self._read_images()
             t1 = time.time()
+            if importlib.util.find_spec("sparse") is None:  # pragma: no cover
+                raise ModuleNotFoundError(
+                    "The 'sparse' library was not found. "
+                    "To load EDS spectrum image data from Velox EMD files, "
+                    "'sparse' must be installed."
+                )
             self._read_spectrum_stream()
+
             t2 = time.time()
             _logger.info("Time to load images: {} s.".format(t1 - t0))
             _logger.info("Time to load spectrum image: {} s.".format(t2 - t1))

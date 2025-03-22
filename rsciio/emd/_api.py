@@ -167,12 +167,18 @@ def file_reader(
         spatial drift in the spectrum image by using the STEM images.
 
     %s
+
+    Raises
+    ------
+    ModuleNotFoundError
+        When reading spectrum image from Velox EMD file and the sparse is missing.
     """
     file = h5py.File(filename, "r")
     dictionaries = []
     try:
         if is_EMD_Velox(file):
             from ._emd_velox import FeiEMDReader
+
             _logger.debug("EMD file is a Velox variant.")
             emd_reader = FeiEMDReader(
                 lazy=lazy,
@@ -185,10 +191,7 @@ def file_reader(
                 SI_dtype=SI_dtype,
                 load_SI_image_stack=load_SI_image_stack,
             )
-            try:
-                emd_reader.read_file(file)
-            except ModuleNotFoundError:
-                raise ModuleNotFoundError("The 'sparse' library was not found. To load EDS spectrum image data from Velox EMD files, 'sparse' must be installed")
+            emd_reader.read_file(file)
         elif is_EMD_NCEM(file):
             from ._emd_ncem import EMD_NCEM
 

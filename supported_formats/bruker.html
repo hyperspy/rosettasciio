@@ -490,6 +490,23 @@ which in <a class="reference external" href="https://hyperspy.org">HyperSpy</a> 
 <section id="module-rsciio.bruker">
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.bruker" title="Link to this heading">#</a></h2>
 <dl class="py function">
+<dt class="sig sig-object py" id="rsciio.bruker.export_metadata">
+<span class="sig-prename descclassname"><span class="pre">rsciio.bruker.</span></span><span class="sig-name descname"><span class="pre">export_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.bruker.export_metadata" title="Link to this definition">#</a></dt>
+<dd><p>Export the metadata from a <code class="docutils literal notranslate"><span class="pre">.bcf</span></code> file to an <code class="docutils literal notranslate"><span class="pre">.xml</span></code> file.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>output_filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a></span></dt><dd><p>The filename of the exported <code class="docutils literal notranslate"><span class="pre">.xml</span></code> file.
+If <code class="docutils literal notranslate"><span class="pre">None</span></code>, use “header.xml” as default.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="rsciio.bruker.file_reader">
 <span class="sig-prename descclassname"><span class="pre">rsciio.bruker.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_at_kV</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instrument</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.bruker.file_reader" title="Link to this definition">#</a></dt>
 <dd><p>Read a Bruker <code class="docutils literal notranslate"><span class="pre">.bcf</span></code> or <code class="docutils literal notranslate"><span class="pre">.spx</span></code> file.</p>
@@ -623,6 +640,7 @@ images for navigation in the plotting.</p>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.bruker">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.bruker.export_metadata"><code class="docutils literal notranslate"><span class="pre">export_metadata()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.bruker.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
 </ul>
 </li>

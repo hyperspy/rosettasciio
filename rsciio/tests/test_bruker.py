@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from rsciio.bruker import file_reader
+from rsciio.bruker import export_metadata, file_reader
 from rsciio.utils.tests import assert_deep_almost_equal
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
@@ -324,3 +324,9 @@ def test_bruker_XRF():
 def test_unsupported_extension():
     with pytest.raises(ValueError):
         file_reader("fname.unsupported_extension")
+
+
+def test_export_xml(tmp_path):
+    export_metadata(
+        TEST_DATA_DIR / test_files[0], output_filename=tmp_path / "header.xml"
+    )

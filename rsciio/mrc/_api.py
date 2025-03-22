@@ -184,7 +184,7 @@ def read_de_metadata_file(filename, nav_shape=None):
     else:
         in_stem_mode = True
 
-    has_camera_length = int(
+    has_camera_length = float(
         original_metadata.get("Instrument Project Camera Length (centimeters)", -1)
     )
     diffracting = (

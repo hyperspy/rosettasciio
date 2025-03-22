@@ -18,14 +18,6 @@ in range 0-255).
    versions of the format might therefore not be readable. Complete
    interoperability with the official software can neither be guaranteed.
 
-Blockfiles are by default loaded in a "copy-on-write" manner using
-`numpy.memmap
-<https://numpy.org/doc/stable/reference/generated/numpy.memmap.html>`_ .
-For blockfiles ``load`` takes the ``mmap_mode`` keyword argument enabling
-loading the file using a different mode. However, note that lazy loading
-does not support in-place writing (i.e lazy loading and the "r+" mode
-are incompatible).
-
 .. note::
    To use the ``intensity_scaling`` functionality, the optional dependency
    ``scikit-image`` is required.

@@ -21,6 +21,7 @@ import gc
 import warnings
 from pathlib import Path
 
+import dask.array as da
 import numpy as np
 import pytest
 
@@ -424,38 +425,17 @@ def test_non_square(save_path):
 
 
 def test_load_lazy():
-    from dask.array import Array
-
     s = hs.load(FILE2, lazy=True)
-    assert isinstance(s.data, Array)
+    assert isinstance(s.data, da.Array)
+    s.compute()
+    s2 = hs.load(FILE2)
+    np.testing.assert_allclose(s.data, s2.data)
 
 
 def test_load_to_memory():
     s = hs.load(FILE2, lazy=False)
     assert isinstance(s.data, np.ndarray)
     assert not isinstance(s.data, np.memmap)
-
-
-def test_load_readonly():
-    s = hs.load(FILE2, lazy=True)
-    k = next(
-        filter(
-            # The or statement with both "array-original" and "original-array"
-            # is due to dask changing the name of this key. After dask-2022.1.1
-            # the key is "original-array", before it is "array-original"
-            lambda x: isinstance(x, str)
-            and (x.startswith("original-array") or x.startswith("array-original")),
-            s.data.dask.keys(),
-        )
-    )
-    mm = s.data.dask[k]
-    assert isinstance(mm, np.memmap)
-    # assert not mm.flags["WRITEABLE"] # With dask 2024.12.0 a copy was introduced so this is no longer true
-
-
-def test_load_inplace():
-    with pytest.raises(ValueError):
-        hs.load(FILE2, lazy=True, mmap_mode="r+")
 
 
 def test_write_fresh(save_path):
@@ -516,7 +496,7 @@ def test_unrecognized_header_warning(save_path, fake_signal):
         f.seek(6)
         f.write((0xAFAF).to_bytes(2, byteorder="big", signed=False))
     with pytest.warns(UserWarning, match=r"Blockfile has unrecognized .*"):
-        hs.load(save_path, mmap_mode="r+")
+        hs.load(save_path)
 
 
 def test_write_cutoff(save_path):

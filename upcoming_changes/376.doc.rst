@@ -1,0 +1,1 @@
+Add section to user guide on :ref:`memory mapping <lazy>` of binary file, explaining about the ``distributed`` and ``chunks`` parameters.

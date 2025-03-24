@@ -171,7 +171,7 @@ def file_reader(
     Raises
     ------
     ModuleNotFoundError
-        When reading spectrum image from Velox EMD file and the sparse is missing.
+        When reading spectrum image from Velox EMD file and the ``sparse`` library is missing.
     """
     file = h5py.File(filename, "r")
     dictionaries = []

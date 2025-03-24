@@ -485,12 +485,6 @@ in range 0-255).</p>
 versions of the format might therefore not be readable. Complete
 interoperability with the official software can neither be guaranteed.</p>
 </div>
-<p>Blockfiles are by default loaded in a “copy-on-write” manner using
-<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html">numpy.memmap</a> .
-For blockfiles <code class="docutils literal notranslate"><span class="pre">load</span></code> takes the <code class="docutils literal notranslate"><span class="pre">mmap_mode</span></code> keyword argument enabling
-loading the file using a different mode. However, note that lazy loading
-does not support in-place writing (i.e lazy loading and the “r+” mode
-are incompatible).</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>To use the <code class="docutils literal notranslate"><span class="pre">intensity_scaling</span></code> functionality, the optional dependency
@@ -500,7 +494,7 @@ are incompatible).</p>
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.blockfile" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.blockfile.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.blockfile.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.blockfile.file_reader" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.blockfile.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.blockfile.file_reader" title="Link to this definition">#</a></dt>
 <dd><p>Read a blockfile.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -512,12 +506,8 @@ until closed in <a class="reference external" href="https://hyperspy.org/hypersp
 or closed manually. <a class="reference internal" href="../api/utils.html#rsciio.utils.tools.get_file_handle" title="rsciio.utils.tools.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
 can be used to access the file handler and close it manually.</p>
 </dd>
-<dt><strong>mmap_mode</strong><span class="classifier">{<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, “r+”, “r”, “w+”, “c”}, default=None</span></dt><dd><p>Argument passed to <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html#numpy.memmap" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.memmap</span></code></a>. A memory-mapped array is
-stored on disk, and not directly loaded into memory.  However, it can be
-accessed and sliced like any ndarray.  Lazy loading does not support in-place writing (i.e lazy loading
-and the <code class="docutils literal notranslate"><span class="pre">&quot;r+&quot;</span></code> mode are incompatible).
-If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default), the value is <code class="docutils literal notranslate"><span class="pre">&quot;r&quot;</span></code> when <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code>, otherwise
-it is <code class="docutils literal notranslate"><span class="pre">&quot;c&quot;</span></code>.</p>
+<dt><strong>chunks</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=”auto”</span></dt><dd><p>The chunks used when reading the data lazily. This argument is passed
+to the <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.core.normalize_chunks.html#dask.array.core.normalize_chunks" title="(in Dask)"><code class="xref py py-func docutils literal notranslate"><span class="pre">dask.array.core.normalize_chunks()</span></code></a> function.</p>
 </dd>
 <dt><strong>endianess</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=”&lt;”</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">&quot;&lt;&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;&gt;&quot;</span></code>, depending on how the bits are written to
 the file.</p>

@@ -644,17 +644,17 @@ class HyperHeader:
             if overlay_node is not None:
                 overlay_dict = x2d.dictionarize(overlay_node)
                 over_rect = overlay_dict["TRTOverlayElement"]["Rect"]
-                rect = {
-                    "y1": over_rect["Top"] * self.y_res,
-                    "x1": over_rect["Left"] * self.x_res,
-                    "y2": over_rect["Bottom"] * self.y_res,
-                    "x2": over_rect["Right"] * self.x_res,
-                }
+                x1, x2 = over_rect["Left"] * self.x_res, over_rect["Right"] * self.x_res
+                y1, y2 = over_rect["Top"] * self.y_res, over_rect["Bottom"] * self.y_res
+                width, height = x2 - x1, y2 - y1
                 md_over_dict = {
-                    "marker_type": "Rectangle",
-                    "plot_on_signal": True,
-                    "data": rect,
-                    "marker_properties": {"color": "yellow", "linewidth": 2},
+                    "class": "Rectangles",
+                    "offsets": ([x1 + width / 2, y1 + height / 2],),
+                    "widths": (width,),
+                    "heights": (height,),
+                    "color": "yellow",
+                    "linewidth": 2,
+                    "facecolor": "none",
                 }
         image = Container()
         image.width = int(xml_node.find("./Width").text)  # in pixels

@@ -195,8 +195,8 @@ def parse_ripple(fp):
 
 def read_raw(rpl_info, filename, mmap_mode="c", distributed=False, chunks="auto"):
     """
-    ead the raw file object 'fp' based on the information given in the
-    'rpl_info' dictionary.
+    Read the raw file object 'fp' based on the information given in the
+    ``'rpl_info'`` dictionary.
 
     Parameters
     ----------
@@ -206,6 +206,11 @@ def read_raw(rpl_info, filename, mmap_mode="c", distributed=False, chunks="auto"
         The filename of the raw file.
     mmap_mode : str, default='c'
         The mmap_mode to use to read the file.
+
+    Returns
+    -------
+    numpy.ndarray or dask.array.Array
+        The raw data.
     """
     width = rpl_info["width"]
     height = rpl_info["height"]

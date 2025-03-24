@@ -5,7 +5,7 @@ Lazy loading
 ============
 
 .. _memory mapping: https://docs.dask.org/en/stable/array-creation.html#memory-mapping
-.. _dask distributer: https://distributed.dask.org
+.. _dask distributed: https://distributed.dask.org
 
 Data can be loaded lazily by using ``lazy=True``, however not all formats are :ref:`supported <supported-formats>`.
 The data will be loaded as a dask array instead of a numpy array.
@@ -23,13 +23,13 @@ Memory mapping
 
 Binary file formats are loaded lazily using `memory mapping`_.
 The common implementation consists in passing the :class:`numpy.memmap` to the :func:`dask.array.from_array`.
-However, it has some shortcomings, to name a few: it is not compatible with the `dask distributer`_
+However, it has some shortcomings, to name a few: it is not compatible with the `dask distributed`_
 scheduler and it has limited control on the memory usage.
 
-For supported file format, a different implementation can be used to load data lazily in a manner that is
-compatible with the `dask distributer`_  scheduler and allow better control of the memory usage. 
-This implementation uses an approach similar as describe in the dask documentation on
-`memory mapping`_ and be enabled using the ``distributed`` parameter (not all formats are
+For supported file formats, a different implementation can be used to load data lazily in a manner that is
+compatible with the `dask distributed`_  scheduler and allow for better control of the memory usage. 
+This implementation uses an approach similar to that described in the dask documentation on
+`memory mapping`_ and is enabled using the ``distributed`` parameter (not all formats are
 :ref:`supported <supported-formats>`):
 
 .. code:: python

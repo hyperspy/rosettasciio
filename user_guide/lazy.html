@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
-    <title>Interoperability &#8212; RosettaSciIO  documentation</title>
+    <title>Lazy loading &#8212; RosettaSciIO  documentation</title>
   
   
   
@@ -47,11 +47,11 @@
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=d1c4098b"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/interoperability';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/lazy';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File Specifications" href="../file_specification/index.html" />
-    <link rel="prev" title="Lazy loading" href="lazy.html" />
+    <link rel="next" title="Interoperability" href="interoperability.html" />
+    <link rel="prev" title="Installation" href="install.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -376,8 +376,8 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="lazy.html">Lazy loading</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Interoperability</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Lazy loading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interoperability.html">Interoperability</a></li>
 </ul>
 </div>
 </nav></div>
@@ -421,7 +421,7 @@
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">User Guide</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Interoperability</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Lazy loading</span></li>
   </ul>
 </nav>
 </div>
@@ -438,44 +438,46 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="interoperability">
-<h1>Interoperability<a class="headerlink" href="#interoperability" title="Link to this heading">#</a></h1>
-<section id="reading-data-saved-by-rosettasciio-using-other-software-packages">
-<h2>Reading data saved by RosettaSciIO using other software packages<a class="headerlink" href="#reading-data-saved-by-rosettasciio-using-other-software-packages" title="Link to this heading">#</a></h2>
-<p>The following scripts may help reading data saved using RosettaSciIO using
-other software packages, in particular when using the <a class="reference internal" href="../supported_formats/hspy.html#hspy-format"><span class="std std-ref">HyperSpy HDF5 format</span></a>.</p>
-<section id="importrpl-digital-micrograph-plugin">
-<span id="import-rpl"></span><h3>ImportRPL Digital Micrograph plugin<a class="headerlink" href="#importrpl-digital-micrograph-plugin" title="Link to this heading">#</a></h3>
-<p>This Digital Micrograph plugin is designed to import Ripple files into Digital Micrograph.
-It is used to ease data transit between DigitalMicrograph and e.g. HyperSpy without losing
-the calibration using the extra keywords that HyperSpy adds to the standard format.</p>
-<p>When executed, it will ask for 2 files:</p>
-<ol class="arabic simple">
-<li><p>The ripple file with the data format and calibrations.</p></li>
-<li><p>The data itself in <code class="docutils literal notranslate"><span class="pre">.raw</span></code> format.</p></li>
-</ol>
-<p>If a file with the same name and path as the ripple file exists, which has a
-<code class="docutils literal notranslate"><span class="pre">.raw</span></code> or <code class="docutils literal notranslate"><span class="pre">.bin</span></code> extension, it is opened directly without prompting.
-ImportRPL was written by Luiz Fernando Zagonel.</p>
-<p>Download <code class="docutils literal notranslate"><span class="pre">ImportRPL</span></code> from the <a class="reference external" href="https://github.com/hyperspy/ImportRPL">ImportRPL GitHub repository</a></p>
+  <section id="lazy-loading">
+<span id="lazy"></span><h1>Lazy loading<a class="headerlink" href="#lazy-loading" title="Link to this heading">#</a></h1>
+<p>Data can be loaded lazily by using <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code>, however not all formats are <a class="reference internal" href="../supported_formats/index.html#supported-formats"><span class="std std-ref">supported</span></a>.
+The data will be loaded as a dask array instead of a numpy array.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">rsciio</span><span class="w"> </span><span class="kn">import</span> <span class="n">msa</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">msa</span><span class="o">.</span><span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;file.mrc&quot;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span>
+<span class="go">dask.array&lt;array, shape=(10, 20, 30), dtype=int64, chunksize=(10, 20, 30), chunktype=numpy.ndarray&gt;</span>
+</pre></div>
+</div>
+<section id="id1">
+<h2>Memory mapping<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<p>Binary file formats are loaded lazily using <a class="reference external" href="https://docs.dask.org/en/stable/array-creation.html#memory-mapping">memory mapping</a>.
+The common implementation consists in passing the <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html#numpy.memmap" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.memmap</span></code></a> to the <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.from_array.html#dask.array.from_array" title="(in Dask)"><code class="xref py py-func docutils literal notranslate"><span class="pre">dask.array.from_array()</span></code></a>.
+However, it has some shortcomings, to name a few: it is not compatible with the <a class="reference external" href="https://distributed.dask.org">dask distributed</a>
+scheduler and it has limited control on the memory usage.</p>
+<p>For supported file formats, a different implementation can be used to load data lazily in a manner that is
+compatible with the <a class="reference external" href="https://distributed.dask.org">dask distributed</a>  scheduler and allow for better control of the memory usage.
+This implementation uses an approach similar to that described in the dask documentation on
+<a class="reference external" href="https://docs.dask.org/en/stable/array-creation.html#memory-mapping">memory mapping</a> and is enabled using the <code class="docutils literal notranslate"><span class="pre">distributed</span></code> parameter (not all formats are
+<a class="reference internal" href="../supported_formats/index.html#supported-formats"><span class="std std-ref">supported</span></a>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;file.mrc&quot;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">distributed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
-<section id="hdf5-reader-plugin-for-digital-micrograph">
-<span id="dm-import-hdf5"></span><h3>HDF5 reader plugin for Digital Micrograph<a class="headerlink" href="#hdf5-reader-plugin-for-digital-micrograph" title="Link to this heading">#</a></h3>
-<p>This Digital Micrograph plugin is designed to import HDF5 files and like the
-<cite>ImportRPL</cite> script above, it can be used to easily transfer data saved using
-RosettaSciIO to Digital Micrograph by using the HDF5 files following the
-<a class="reference internal" href="../supported_formats/hspy.html#hspy-format"><span class="std std-ref">HyperSpy format specification</span></a> (<code class="docutils literal notranslate"><span class="pre">.hspy</span></code> extension).</p>
-<p>Download <code class="docutils literal notranslate"><span class="pre">gms_plugin_hdf5</span></code> from the <a class="reference external" href="https://github.com/niermann/gms_plugin_hdf5">gms_plugin_hdf5 GitHub repository</a>.</p>
-</section>
-<section id="readhyperspyh5-matlab-plugin">
-<span id="hyperspy-matlab"></span><h3>readHyperSpyH5 MATLAB Plugin<a class="headerlink" href="#readhyperspyh5-matlab-plugin" title="Link to this heading">#</a></h3>
-<p>This MATLAB script is designed to import HDF5 files saved using the <a class="reference internal" href="../supported_formats/hspy.html#hspy-format"><span class="std std-ref">HyperSpy
-format specification</span></a> (<code class="docutils literal notranslate"><span class="pre">.hspy</span></code> extension).
-Like the Digital Micrograph script above, it is used to easily transfer data
-saved using RosettaSciIO to MATLAB, while e.g. retaining spatial calibration
-information from HyperSpy.</p>
-<p>Download <code class="docutils literal notranslate"><span class="pre">readHyperSpyH5</span></code> from the <a class="reference external" href="https://github.com/jat255/readHyperSpyH5">readHyperSpyH5 GitHub repository</a>.</p>
-</section>
+<section id="chunks">
+<h2>Chunks<a class="headerlink" href="#chunks" title="Link to this heading">#</a></h2>
+<p>Depending on the intended processing after loading the data, it may be necessary to
+define the chunking manually to control the memory usage or compute distribution.
+The chunking can also be specified as follow using the <code class="docutils literal notranslate"><span class="pre">chunks</span></code> parameter:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;file.mrc&quot;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">distributed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some file reader support specifying the <code class="docutils literal notranslate"><span class="pre">chunks</span></code> parameter with the <code class="docutils literal notranslate"><span class="pre">distributed</span></code> parameter
+being set to <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>. In both cases the reader will return a dask array with
+specifyed chunks, However, the way the dask array is created differs significantly and if
+there are issues with memory usage or slow loading, it is recommend to try the <code class="docutils literal notranslate"><span class="pre">distributed</span></code> implementation.</p>
+</div>
 </section>
 </section>
 
@@ -490,20 +492,20 @@ information from HyperSpy.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="lazy.html"
+       href="install.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Lazy loading</p>
+        <p class="prev-next-title">Installation</p>
       </div>
     </a>
     <a class="right-next"
-       href="../file_specification/index.html"
+       href="interoperability.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">File Specifications</p>
+        <p class="prev-next-title">Interoperability</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -526,12 +528,8 @@ information from HyperSpy.</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-data-saved-by-rosettasciio-using-other-software-packages">Reading data saved by RosettaSciIO using other software packages</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#importrpl-digital-micrograph-plugin">ImportRPL Digital Micrograph plugin</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hdf5-reader-plugin-for-digital-micrograph">HDF5 reader plugin for Digital Micrograph</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#readhyperspyh5-matlab-plugin">readHyperSpyH5 MATLAB Plugin</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Memory mapping</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#chunks">Chunks</a></li>
 </ul>
   </nav></div>
 
@@ -539,7 +537,7 @@ information from HyperSpy.</p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/user_guide/interoperability.rst.txt"
+      <li><a href="../_sources/user_guide/lazy.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>

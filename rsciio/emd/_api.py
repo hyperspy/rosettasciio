@@ -167,6 +167,11 @@ def file_reader(
         spatial drift in the spectrum image by using the STEM images.
 
     %s
+
+    Raises
+    ------
+    ModuleNotFoundError
+        When reading spectrum image from Velox EMD file and the ``sparse`` library is missing.
     """
     file = h5py.File(filename, "r")
     dictionaries = []

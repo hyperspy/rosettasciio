@@ -1,0 +1,1 @@
+Migrate HyperSpy markers API to HyperSpy v2 in bruker reader to fix loading files containing markers.

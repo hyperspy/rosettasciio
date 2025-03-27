@@ -642,6 +642,9 @@ class HyperHeader:
                 "TRTBasicLineOverlayElement/TRTOverlayElement"
             )
             if overlay_node is not None:
+                # Currently not tested
+                # waiting on small test files to be provided by users
+                # See https://github.com/hyperspy/rosettasciio/pull/383
                 overlay_dict = x2d.dictionarize(overlay_node)
                 over_rect = overlay_dict["TRTOverlayElement"]["Rect"]
                 x1, x2 = over_rect["Left"] * self.x_res, over_rect["Right"] * self.x_res

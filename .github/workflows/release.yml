@@ -17,11 +17,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       CIBW_ENVIRONMENT: POOCH_BASE_URL=https://github.com/${{ github.repository }}/raw/${{ github.ref_name }}/rsciio/tests/data/
-      CIBW_TEST_COMMAND: "pytest --pyargs rsciio"
-      CIBW_TEST_EXTRAS: "tests"
-      # No need to build wheels for pypy because the pure python wheels can be used
-      # PyPy documentation recommends no to build the C extension
-      CIBW_SKIP: "{pp*,*-musllinux*,*win32,*-manylinux_i686}"
     strategy:
       fail-fast: false
       matrix:
@@ -44,6 +39,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.23
         env:
           CIBW_ARCHS: ${{ matrix.CIBW_ARCHS }}
+          CIBW_BUILD_FRONTEND: 'pip; args: --pre --extra-index-url "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple"'
 
       - name: List wheels
         run: |

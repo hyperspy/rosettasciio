@@ -29,6 +29,7 @@ import pytest
 from rsciio import IO_PLUGINS
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+pytest.importorskip("h5py", reason="h5py not installed")
 
 from hyperspy.axes import DataAxis  # noqa: E402
 

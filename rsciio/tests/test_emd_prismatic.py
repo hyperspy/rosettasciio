@@ -23,6 +23,7 @@ import pytest
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 t = pytest.importorskip("traits.api", reason="traits not installed")
+pytest.importorskip("h5py", reason="h5py not installed")
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "emd"
 

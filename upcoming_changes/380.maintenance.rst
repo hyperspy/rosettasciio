@@ -1,1 +1,0 @@
-Fix parsing camera length from the ``info.txt`` file when loading :ref:`MRC <mrc-format>` files.

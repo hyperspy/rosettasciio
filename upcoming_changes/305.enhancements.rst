@@ -1,1 +1,0 @@
-Improve error message when loading spectrum image from :ref:`EMD Velox <emd_fei-format>` file and the ``sparse`` library is not installed.

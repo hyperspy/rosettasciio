@@ -1,1 +1,0 @@
-Specfiy python-box!=7.3.1 from dependency requirement as a workaround for https://github.com/cdgriffith/Box/issues/288.

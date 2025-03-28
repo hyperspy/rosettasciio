@@ -8,6 +8,42 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 
 .. towncrier release notes start
 
+0.8.0 (2025-03-28)
+==================
+
+Enhancements
+------------
+
+- Improve error message when loading spectrum image from :ref:`EMD Velox <emd_fei-format>` file and the ``sparse`` library is not installed. (`#305 <https://github.com/hyperspy/rosettasciio/issues/305>`_)
+- Add :func:`~.bruker.export_metadata` utility function for exporting metadata from :ref:`bruker-format` file. (`#326 <https://github.com/hyperspy/rosettasciio/issues/326>`_)
+- Add support for distributed lazy loading in :ref:`blockfile-format` reader and remove loading using threaded memory mapping which is discouraged in recent dask releases. (`#372 <https://github.com/hyperspy/rosettasciio/issues/372>`_)
+- Add support for distributed implementation to the :ref:`ripple <ripple-format>` reader. (`#376 <https://github.com/hyperspy/rosettasciio/issues/376>`_)
+
+
+Bug Fixes
+---------
+
+- Raise a warning instead of an error when the beam energy can't be found in :ref:`bruker-format` ``xrf`` files. (`#326 <https://github.com/hyperspy/rosettasciio/issues/326>`_)
+- Migrate HyperSpy markers API to HyperSpy v2 in bruker reader to fix loading files containing markers. (`#383 <https://github.com/hyperspy/rosettasciio/issues/383>`_)
+
+
+Improved Documentation
+----------------------
+
+- Add section to user guide on :ref:`memory mapping <lazy>` of binary file, explaining about the ``distributed`` and ``chunks`` parameters. (`#376 <https://github.com/hyperspy/rosettasciio/issues/376>`_)
+
+
+Maintenance
+-----------
+
+- Specfiy python-box!=7.3.1 from dependency requirement as a workaround for https://github.com/cdgriffith/Box/issues/288. (`#357 <https://github.com/hyperspy/rosettasciio/issues/357>`_)
+- Build and tests linux-arm wheels natively. (`#358 <https://github.com/hyperspy/rosettasciio/issues/358>`_)
+- Bump dask version requirement to 2022.9.2. (`#374 <https://github.com/hyperspy/rosettasciio/issues/374>`_)
+- Add T20 rules (flake8-print) to ruff configuration. (`#378 <https://github.com/hyperspy/rosettasciio/issues/378>`_)
+- Add free-threaded python build. (`#379 <https://github.com/hyperspy/rosettasciio/issues/379>`_)
+- Fix parsing camera length from the ``info.txt`` file when loading :ref:`MRC <mrc-format>` files. (`#380 <https://github.com/hyperspy/rosettasciio/issues/380>`_)
+
+
 0.7.1 (2025-01-12)
 ==================
 

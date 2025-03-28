@@ -1,1 +1,0 @@
-Add support for distributed implementation to the :ref:`ripple <ripple-format>` reader.

@@ -23,7 +23,7 @@ Enhancements
 Bug Fixes
 ---------
 
-- Raise a warning instead of an error when the beam energy can't be found in :ref:`bruker-format` xrf files. (`#326 <https://github.com/hyperspy/rosettasciio/issues/326>`_)
+- Raise a warning instead of an error when the beam energy can't be found in :ref:`bruker-format` ``xrf`` files. (`#326 <https://github.com/hyperspy/rosettasciio/issues/326>`_)
 - Migrate HyperSpy markers API to HyperSpy v2 in bruker reader to fix loading files containing markers. (`#383 <https://github.com/hyperspy/rosettasciio/issues/383>`_)
 
 

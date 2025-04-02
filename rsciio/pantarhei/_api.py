@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright 2022 CEOS GmbH
-# Copyright 2022 The HyperSpy developers
+# Copyright 2022-2025 The HyperSpy developers
 #
 # This file is part of RosettaSciIO.
 #

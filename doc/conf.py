@@ -14,13 +14,15 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+from datetime import datetime
+
 import numpydoc
 from packaging.version import Version
 
 # -- Project information -----------------------------------------------------
 
 project = "RosettaSciIO"
-copyright = "2022, HyperSpy Developers"
+copyright = f"2023-{datetime.today().year}, HyperSpy Developers"
 author = "HyperSpy Developers"
 
 

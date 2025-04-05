@@ -20,18 +20,23 @@ bio-scientific imaging. See `the library webpage
    Add support for writing/reading scale and unit to tif files to be read with
    ImageJ or DigitalMicrograph
 
-Currently RosettaSciIO has limited support for reading and saving the TIFF tags.
+Currently, RosettaSciIO has limited support for reading and saving the TIFF tags.
 However, the way that RosettaSciIO reads and saves the scale and the units of ``.tiff``
 files is compatible with ImageJ/Fiji and Gatan Digital Micrograph software.
 RosettaSciIO can also import the scale and the units from ``.tiff`` files saved using
 FEI, Zeiss SEM, Olympus SIS, Jeol SightX and Hamamatsu HPD-TA (streak camera)
 software.
 
-Multipage tiff files are read using either series or pages interface built in tifffile,
-``series`` interface (default) returns multipage series of images as a single array
-with single metadata and original metadata structure of first page.
-Using ``multipage_to_list=True`` will use ``pages`` interface and will return a list
+Multipage tiff files are read using either the series or pages interface built in tifffile,
+the ``series`` interface (default) returns multipage series of images as a single array
+with only the metadata and original metadata structure of the first page.
+Using ``multipage_to_list=True`` will use the ``pages`` interface and will return a list
 of separate arrays and metadata per page.
+
+When a ``tiff`` file containing a Hamamatsu streak image is read and `LumiSpy
+<https://lumispy.org>`_ is installed, ``TransientSpectrum`` will be used as the
+``signal_type``. Note that also the :ref:`hamamatsu-format` itex (``.img``)
+format can be read, for which the metadata is parsed.
 
 API functions
 ^^^^^^^^^^^^^

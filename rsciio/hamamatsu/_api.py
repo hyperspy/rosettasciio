@@ -500,7 +500,7 @@ def file_reader(filename, lazy=False, use_uniform_signal_axes=False, **kwds):
     """
     Read Hamamatsu's ``.img`` file, e.g. for streak camera images. In case
     LumiSpy is installed, the signal type is automatically set to
-    ``LumiTransientSpectrum``.
+    ``TransientSpectrum``.
 
     Parameters
     ----------
@@ -510,7 +510,9 @@ def file_reader(filename, lazy=False, use_uniform_signal_axes=False, **kwds):
         Can be specified to choose between non-uniform or uniform signal axis.
         If ``True``, the ``scale`` attribute is calculated from the average delta
         along the signal axis and a warning is raised in case the delta varies
-        by more than 1 percent.
+        by more than 1 percent.  Alternatively, the non-uniform ``DataAxis`` can
+        be subsequently converted to a ``UniformDataAxis`` by interpolation using
+        the function ``interpolate_on_axis('uniform', axis=1)``.
     **kwds : dict, optional
         Extra keyword argument will be ignored.
 

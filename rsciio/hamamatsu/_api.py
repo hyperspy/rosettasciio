@@ -360,6 +360,7 @@ class IMGReader:
             signal["signal_type"] = ""
         else:
             signal["signal_type"] = "LumiTransientSpectrum"  # pragma: no cover
+            # covered by on-demand integration/extension tests
 
         try:
             quantity = self.original_metadata["Comment"]["Acquisition"]["ZAxisLabel"]

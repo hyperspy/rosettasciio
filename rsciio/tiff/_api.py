@@ -17,6 +17,7 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import csv
+import importlib.util
 import logging
 import os
 import re
@@ -386,6 +387,9 @@ def _read_tiff(
         op.update(
             {"ImageDescriptionParsed": _get_hamamatsu_streak_description(tiff, op)}
         )
+        if importlib.util.find_spec("lumispy") is not None:
+            md["Signal"]["signal_type"] = "LumiTransientSpectrum"  # pragma: no cover
+            # covered by on-demand integration/extension tests
 
     metadata_mapping = get_metadata_mapping(page, op)
     if "SightX_Notes" in op:  # TODO move to get_jeol_sightx_mapping

@@ -319,6 +319,11 @@ class TestOperate:
         assert spectrometer.Grating.groove_density == 300
         np.testing.assert_allclose(spectrometer.central_wavelength, 500)
 
+    def test_lumispy(self):
+        pytest.importorskip("lumispy", reason="lumispy not installed")
+        metadata = self.s.metadata
+        assert metadata.Signal.signal_type == "TransientSpectrum"
+
 
 class TestFocus:
     @classmethod

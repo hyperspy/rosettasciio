@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2023-2023 The HyperSpy developers
+# Copyright 2023-2025 The HyperSpy developers
 # Copyright 2021-2023 Matus Krajnak
 #
 # This file is part of RosettaSciIO.

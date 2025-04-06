@@ -1088,6 +1088,7 @@ class TestReadHamamatsu:
         assert s.axes_manager.signal_shape == (672, 508)
         assert s.axes_manager.navigation_shape == ()
         assert s.data.shape == (508, 672)
+        assert s.axes_manager[0].units == ""
         assert s.axes_manager[1].units == ""
         np.testing.assert_allclose(s.axes_manager[1].scale, 1.0, rtol=1e-3)
         np.testing.assert_allclose(s.axes_manager[1].offset, 0.0, rtol=1e-3, atol=1e-5)

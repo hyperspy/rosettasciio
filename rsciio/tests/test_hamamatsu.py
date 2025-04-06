@@ -31,6 +31,7 @@ testfile_focus_mode_path = (testfile_dir / "focus_mode.img").resolve()
 testfile_operate_mode_path = (testfile_dir / "operate_mode.img").resolve()
 testfile_photon_count_path = (testfile_dir / "photon_counting.img").resolve()
 testfile_shading_path = (testfile_dir / "shading_file.img").resolve()
+testfile_xaxisother_path = (testfile_dir / "xaxis_other.img").resolve()
 
 
 class TestOperate:
@@ -399,3 +400,32 @@ class TestShading:
     def test_data(self):
         expected_data = [9385, 8354, 7658]
         np.testing.assert_allclose(self.s.isig[:3, 0].data, expected_data)
+
+
+class TestOther:
+    @classmethod
+    def setup_class(cls):
+        cls.s = hs.load(testfile_xaxisother_path, reader="Hamamatsu")
+
+    @classmethod
+    def teardown_class(cls):
+        del cls.s
+        gc.collect()
+
+    def test_xaxisother(self):
+        # Test case where ScalingXScalingFile="Other"
+        assert self.s.axes_manager.signal_shape == (672, 508)
+        assert self.s.axes_manager.navigation_shape == ()
+        assert self.s.data.shape == (508, 672)
+        assert self.s.axes_manager[0].units == "px"
+        assert self.s.axes_manager[0].name == "Uncalibrated X axis"
+        assert self.s.axes_manager[1].units == "px"
+        assert self.s.axes_manager[1].name == "Vertical CCD Position"
+        np.testing.assert_allclose(self.s.axes_manager[1].scale, 1.0, rtol=1e-3)
+        np.testing.assert_allclose(
+            self.s.axes_manager[1].offset, 0.0, rtol=1e-3, atol=1e-5
+        )
+        np.testing.assert_allclose(self.s.axes_manager[0].scale, 1.0, rtol=1e-3)
+        np.testing.assert_allclose(
+            self.s.axes_manager[0].offset, 0.0, rtol=1e-3, atol=1e-5
+        )

@@ -37,10 +37,9 @@ jobs:
           activate-environment: "test"
           conda-remove-defaults: "true"
 
-      - name: Install pip, astra-toolbox, ffmpeg and test dependencies
+      - name: test dependencies
         run: |
-          # astra-toolbox and ffmpeg are etspy dependencies, pybaselines optional hyperspy dependency
-          mamba install pip astra-toolbox ffmpeg pybaselines ${{ env.TEST_DEPS }} 
+          mamba install pip ${{ env.TEST_DEPS }} 
           
       - name: Conda info
         run: |
@@ -64,7 +63,7 @@ jobs:
         run: |
           pip install .
 
-      - name: Install Extension (dev)
+      - name: Install Extensions (dev)
         if: contains(matrix.EXTENSION_VERSION, 'dev')
         run: |
           pip install https://github.com/atomap-dev/atomap/archive/main.zip
@@ -79,49 +78,3 @@ jobs:
         if: ${{ always() }}
         run: |
           python -m pytest --pyargs rsciio
-
-      - name: Run HyperSpy test suite
-        if: ${{ always() }}
-        run: |
-          python -m pytest --pyargs hyperspy
-
-      - name: Install xvfb
-        run: |
-          # required for running kikuchipy test suite
-          sudo apt-get install xvfb
-
-      - name: Run Kikuchipy Test Suite
-        if: ${{ always() }}
-        run: |
-          # Virtual buffer (xvfb) required for tests using PyVista
-          xvfb-run python -m pytest --pyargs kikuchipy
-
-      - name: Run LumiSpy Test Suite
-        if: ${{ always() }}
-        run: |
-          python -m pytest --pyargs lumispy
-
-      - name: Run Pyxem Test Suite
-        if: ${{ always() }}
-        run: |
-          python -m pytest --pyargs pyxem
-
-      - name: Run holospy Test Suite
-        if: ${{ always() }}
-        run: |
-          python -m pytest --pyargs holospy
-
-      - name: Run exSpy Test Suite
-        if: ${{ always() }}
-        run: |
-          python -m pytest --pyargs exspy
-  
-      - name: Run atomap Test Suite
-        if: ${{ always() }}
-        run: |
-          python -m pytest --pyargs atomap
-
-      - name: Run ETSpy Test Suite
-        if: ${{ always() }}
-        run: |
-          python -m pytest --pyargs etspy

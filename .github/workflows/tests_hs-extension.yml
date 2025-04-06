@@ -39,8 +39,8 @@ jobs:
 
       - name: Install pip, astra-toolbox, ffmpeg and test dependencies
         run: |
-          # astra-toolbox and ffmpeg are etspy dependencies
-          mamba install pip astra-toolbox ffmpeg ${{ env.TEST_DEPS }} 
+          # astra-toolbox and ffmpeg are etspy dependencies, pybaselines optional hyperspy dependency
+          mamba install pip astra-toolbox ffmpeg pybaselines ${{ env.TEST_DEPS }} 
           
       - name: Conda info
         run: |

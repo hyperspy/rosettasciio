@@ -418,7 +418,9 @@ class TestOther:
         assert self.s.axes_manager.navigation_shape == ()
         assert self.s.data.shape == (508, 672)
         assert self.s.axes_manager[0].units == "px"
+        assert self.s.axes_manager[0].name == "Uncalibrated X axis"
         assert self.s.axes_manager[1].units == "px"
+        assert self.s.axes_manager[1].name == "Vertical CCD Position"
         np.testing.assert_allclose(self.s.axes_manager[1].scale, 1.0, rtol=1e-3)
         np.testing.assert_allclose(
             self.s.axes_manager[1].offset, 0.0, rtol=1e-3, atol=1e-5

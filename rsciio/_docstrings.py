@@ -114,14 +114,6 @@ COMPRESSION_HDF5_NOTES_DOC = """It is possible to enable other compression filte
     """
 
 
-DISTRIBUTED_DOC = """distributed : bool, default=False
-        Whether to load the data using memory-mapping in a way that is
-        compatible with dask-distributed.  This can sometimes improve
-        performance when reading large files. And splitting the data
-        loading/processing over multiple workers.
-        """
-
-
 RETURNS_DOC = """Returns
     -------
 
@@ -137,4 +129,11 @@ RETURNS_DOC = """Returns
         - 'original_metadata' – dictionary containing the full metadata tree from the input file
 
         When the file contains several datasets, each dataset will be loaded as separate dictionary.
+    """
+
+
+UNSUPPORTED_METADATA_DOC = """Notes
+    -----
+
+    This plugin does not support metadata like scale, units, etc.
     """

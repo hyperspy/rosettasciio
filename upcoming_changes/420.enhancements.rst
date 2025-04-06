@@ -1,0 +1,1 @@
+:ref:`Renishaw <renishaw-format>` format: add support for reading incomplete acquisition.

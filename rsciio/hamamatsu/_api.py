@@ -159,8 +159,8 @@ class IMGReader:
         ## IMPORTANT to convert int16 to int
         ## as int16 leads to problems when defining sizes of numpy arrays
         ## -> data is read incorrectly
-        w_px = int(self.__read_numeric("int16"))
-        header["image_width_px"] = w_px
+        self._w_px = int(self.__read_numeric("int16"))
+        header["image_width_px"] = self._w_px
         self._h_lines = int(self.__read_numeric("int16"))
         header["image_height_lines"] = self._h_lines
         header["offset_x"] = int(self.__read_numeric("int16"))
@@ -186,7 +186,7 @@ class IMGReader:
             dtype = "uint32"
         else:
             raise RuntimeError(f"reading type: {file_type} not implemented")
-        data = self.__read_numeric(dtype, size=w_px * self._h_lines)
+        data = self.__read_numeric(dtype, size=self._w_px * self._h_lines)
         self.original_metadata.update(header)
         return data, comment
 
@@ -211,13 +211,18 @@ class IMGReader:
     def _set_axis(self, name, scale_type, unit, cal_addr):
         axis = {"units": unit, "name": name, "navigate": False}
         if scale_type == 1:
-            ## in this mode (focus mode) the y-axis does not correspond to time
-            ## photoelectrons are not deflected here -> natural spread
+            ## x-axis: when x-axis is not calibrated
+            ## y-axis: focus mode, where the y-axis does not correspond
+            ## to time photoelectrons are not deflected here -> natural spread
             axis["units"] = "px"
             axis["scale"] = 1
             axis["offset"] = 0
-            axis["size"] = self._h_lines
-            axis["name"] = "Vertical CCD Position"
+            if name == "Wavelength":
+                axis["size"] = self._w_px
+                axis["name"] = "Uncalibrated X axis"
+            else:
+                axis["size"] = self._h_lines
+                axis["name"] = "Vertical CCD Position"
         elif scale_type == 2:
             data = self._extract_calibration_data(cal_addr)
             # in testfile wavelength is exactly uniform
@@ -360,6 +365,7 @@ class IMGReader:
             signal["signal_type"] = ""
         else:
             signal["signal_type"] = "LumiTransientSpectrum"  # pragma: no cover
+            # covered by on-demand integration/extension tests
 
         try:
             quantity = self.original_metadata["Comment"]["Acquisition"]["ZAxisLabel"]
@@ -499,7 +505,7 @@ def file_reader(filename, lazy=False, use_uniform_signal_axes=False, **kwds):
     """
     Read Hamamatsu's ``.img`` file, e.g. for streak camera images. In case
     LumiSpy is installed, the signal type is automatically set to
-    ``LumiTransientSpectrum``.
+    ``TransientSpectrum``.
 
     Parameters
     ----------
@@ -509,7 +515,9 @@ def file_reader(filename, lazy=False, use_uniform_signal_axes=False, **kwds):
         Can be specified to choose between non-uniform or uniform signal axis.
         If ``True``, the ``scale`` attribute is calculated from the average delta
         along the signal axis and a warning is raised in case the delta varies
-        by more than 1 percent.
+        by more than 1 percent.  Alternatively, the non-uniform ``DataAxis`` can
+        be subsequently converted to a ``UniformDataAxis`` by interpolation using
+        the function ``interpolate_on_axis('uniform', axis=1)``.
     **kwds : dict, optional
         Extra keyword argument will be ignored.
 

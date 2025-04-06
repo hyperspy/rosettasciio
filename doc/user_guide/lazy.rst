@@ -18,25 +18,6 @@ The data will be loaded as a dask array instead of a numpy array.
     dask.array<array, shape=(10, 20, 30), dtype=int64, chunksize=(10, 20, 30), chunktype=numpy.ndarray>
 
 
-Memory mapping
-==============
-
-Binary file formats are loaded lazily using `memory mapping`_.
-The common implementation consists in passing the :class:`numpy.memmap` to the :func:`dask.array.from_array`.
-However, it has some shortcomings, to name a few: it is not compatible with the `dask distributed`_
-scheduler and it has limited control on the memory usage.
-
-For supported file formats, a different implementation can be used to load data lazily in a manner that is
-compatible with the `dask distributed`_  scheduler and allow for better control of the memory usage. 
-This implementation uses an approach similar to that described in the dask documentation on
-`memory mapping`_ and is enabled using the ``distributed`` parameter (not all formats are
-:ref:`supported <supported-formats>`):
-
-.. code:: python
-
-    >>> s = hs.load("file.mrc", lazy=True, distributed=True)
-
-
 Chunks
 ======
 
@@ -46,11 +27,24 @@ The chunking can also be specified as follow using the ``chunks`` parameter:
 
 .. code:: python
 
-    >>> s = hs.load("file.mrc", lazy=True, distributed=True, chunks=(5, 10, 10))
+    >>> s = hs.load("file.mrc", lazy=True, chunks=(5, 10, 10))
 
-.. note::
+Memory mapping
+==============
 
-    Some file reader support specifying the ``chunks`` parameter with the ``distributed`` parameter
-    being set to ``True`` or ``False``. In both cases the reader will return a dask array with
-    specifyed chunks, However, the way the dask array is created differs significantly and if
-    there are issues with memory usage or slow loading, it is recommend to try the ``distributed`` implementation.
+Binary file formats are loaded lazily using `memory mapping`_ and are compatible with the `dask distributed`_
+scheduler. This implementation uses an approach similar to that described in the dask documentation on
+`memory mapping`_ - see the :func:`~.utils.distributed.memmap_distributed` function for more information.
+
+
+Distributed Loading
+===================
+
+Not all formats are compatible with the `dask distributed`_ scheduler. See the last columns of the 
+:ref:`supported formats <supported-formats>` table to know which reader are supported.
+
+In almost all cases the :func:`~.utils.distributed.memmap_distributed` function can be dropped in-place of the
+:class:`numpy.memmap` function. It also now supports the ``positions`` parameter which is different from the equivalent
+numpy function.  The ``positions`` parameter is a numpy array of positions which maps some arbitrary scan positions
+to a grid.  This is useful for loading arbitrary scan positions from a file.  The ``positions`` parameter does require
+that the data is chunked only in the navigation axis.

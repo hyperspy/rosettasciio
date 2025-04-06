@@ -275,13 +275,13 @@ def file_reader(filename, lazy=False, chunks="auto", endianess="<"):
     offset2 = header["Data_offset_2"]
     # Every frame is preceeded by a 6 byte sequence
     # (AA 55, and then a 4 byte integer specifying frame number)
-    frame_dtype = np.dtype(
-        [
-            ("header", np.dtype(endianess + "u1"), 6),
-            ("data", np.dtype(endianess + "u1"), np.prod(signal_shape)),
-        ]
-    )
     if not lazy:
+        frame_dtype = np.dtype(
+            [
+                ("header", np.dtype(endianess + "u1"), 6),
+                ("data", np.dtype(endianess + "u1"), np.prod(signal_shape)),
+            ]
+        )
         f.seek(offset2)
         data = np.fromfile(f, dtype=frame_dtype)["data"]
         try:
@@ -296,15 +296,20 @@ def file_reader(filename, lazy=False, chunks="auto", endianess="<"):
             data = np.pad(data, pw, mode="constant")
             data = data.reshape(navigation_shape + signal_shape).squeeze()
     else:
+        frame_dtype = np.dtype(
+            [
+                ("header", np.dtype(endianess + "u1"), 6),
+                ("data", np.dtype(endianess + "u1"), signal_shape),
+            ]
+        )
         data = memmap_distributed(
             filename,
             chunks=chunks,
             offset=offset2,
-            shape=np.prod(navigation_shape),
+            shape=navigation_shape,
             dtype=frame_dtype,
             key="data",
         )
-        data = data.reshape(navigation_shape + signal_shape).squeeze()
 
     units = ["nm", "nm", "cm", "cm"]
     names = ["y", "x", "dy", "dx"]

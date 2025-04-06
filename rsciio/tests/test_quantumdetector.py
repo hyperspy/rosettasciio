@@ -33,6 +33,7 @@ from rsciio.quantumdetector._api import (
     parse_hdr_file,
     parse_timestamps,
 )
+from rsciio.utils.exceptions import VisibleDeprecationWarning
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 zarr = pytest.importorskip("zarr", reason="zarr not installed")
@@ -315,32 +316,37 @@ def test_test_load_mib_data_from_buffer():
     assert data.shape == (2, 4, 256, 256)
 
     with open(fname, mode="rb") as f:
+        data, headers = load_mib_data(
+            f.read(), navigation_shape=(4, 2), return_headers=True
+        )
+
+    assert data.shape == (2, 4, 256, 256)
+    assert headers.shape == (2, 4)
+
+    with open(fname, mode="rb") as f:
         with pytest.raises(ValueError):
             # loading lazy memory buffer is not supported
             _ = load_mib_data(f.read(), lazy=True)
 
 
-@pytest.mark.parametrize("return_mmap", (True, False))
-def test_parse_exposures(return_mmap):
+def test_parse_exposures():
     fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
 
-    data, headers = load_mib_data(
-        str(fname), return_headers=True, return_mmap=return_mmap
-    )
+    data, headers = load_mib_data(str(fname), return_headers=True, return_mmap=True)
     exposures = parse_exposures(headers[0])
     assert exposures == [100.0]
 
     exposures = parse_exposures(headers)
     assert exposures == [100.0] * headers.shape[0]
 
+    with pytest.raises(ValueError):
+        load_mib_data(str(fname), return_headers=True, return_mmap=False)
 
-@pytest.mark.parametrize("return_mmap", (True, False))
-def test_parse_timestamps(return_mmap):
+
+def test_parse_timestamps():
     fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
 
-    data, headers = load_mib_data(
-        str(fname), return_headers=True, return_mmap=return_mmap
-    )
+    data, headers = load_mib_data(str(fname), return_headers=True, return_mmap=True)
     timestamps = parse_timestamps(headers[0])
     assert timestamps == ["2021-05-07T16:51:10.905800928Z"]
 
@@ -405,24 +411,6 @@ def test_frames_in_acquisition_zero():
     assert s.axes_manager.navigation_shape == ()
 
 
-@pytest.mark.parametrize("lazy", (True, False))
-def test_distributed(lazy):
-    s = hs.load(
-        TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib",
-        distributed=False,
-        lazy=lazy,
-    )
-    s2 = hs.load(
-        TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib",
-        distributed=True,
-        lazy=lazy,
-    )
-    if lazy:
-        s.compute()
-        s2.compute()
-    np.testing.assert_array_equal(s.data, s2.data)
-
-
 @pytest.mark.parametrize("fname", SIGNAL_ROI_FNAME_LIST)
 def test_hot_pixel_signal_ROI(fname):
     s = hs.load(TEST_DATA_DIR_UNZIPPED / fname)
@@ -443,3 +431,13 @@ def test_signal_shape_ROI(fname):
         assert s.axes_manager.signal_shape == (256, 64)
     if "sig256x128" in fname:
         assert s.axes_manager.signal_shape == (256, 128)
+
+
+@pytest.mark.parametrize("distributed", [True, False])
+def test_deprecated_distributed(distributed):
+    fname = TEST_DATA_DIR_UNZIPPED / "Single_9_Frame_CounterDepth_1_Rows_256.mib"
+    with pytest.warns(VisibleDeprecationWarning):
+        _ = hs.load(fname, distributed=distributed)
+
+    with pytest.warns(VisibleDeprecationWarning):
+        load_mib_data(str(fname), distributed=distributed)

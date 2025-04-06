@@ -27,8 +27,10 @@ from collections import OrderedDict, defaultdict
 from contextlib import contextmanager
 from pathlib import Path
 
+import dask
 import numpy as np
 from box import Box
+from packaging.version import Version
 from pint import UnitRegistry
 
 _UREG = UnitRegistry()
@@ -548,8 +550,13 @@ def get_file_handle(data, warn=True):
             # interfaces of tifffile
             # this may be brittle and may need maintenance as
             # dask or tifffile evolve
-            return data.dask[arrkey_tifffile][2][0].parent.filehandle._fh
-        except IndexError:  # pragma: no cover
+            if Version(dask.__version__) >= Version("2025.4.0"):
+                tiff_pages_series = data.dask[arrkey_tifffile].args[1]
+            else:
+                tiff_pages_series = data.dask[arrkey_tifffile][2][0]
+            return tiff_pages_series.parent.filehandle._fh
+        # can raise IndexError or AttributeError
+        except BaseException:  # pragma: no cover
             if warn:
                 _logger.warning(
                     "Failed to retrieve file handle, either the file is "

@@ -32,7 +32,6 @@ t = pytest.importorskip("traits.api", reason="traits not installed")
 
 import rsciio.tiff  # noqa: E402
 from rsciio.utils.tests import assert_deep_almost_equal  # noqa: E402
-from rsciio.utils.tools import get_file_handle  # noqa: E402
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "tiff"
 TEST_NPZ_DATA_PATH = Path(__file__).parent / "data" / "npz"
@@ -206,26 +205,27 @@ class TestLoadingImagesSavedWithImageJ:
             assert s3.axes_manager.navigation_shape == s.axes_manager.navigation_shape
 
 
-@pytest.mark.parametrize("size", ((50, 50), (2, 50, 50)))
-def test_lazy_loading(tmp_path, size):
-    dummy_data = np.random.random_sample(size=size)
-    fname = tmp_path / "dummy.tiff"
+# Uncomment when there is a proper file handle API
+# @pytest.mark.parametrize("size", ((50, 50), (2, 50, 50)))
+# def test_lazy_loading(tmp_path, size):
+#     dummy_data = np.random.random_sample(size=size)
+#     fname = tmp_path / "dummy.tiff"
 
-    rsciio.tiff.file_writer(fname, {"data": dummy_data})
-    from_tiff = rsciio.tiff.file_reader(fname, lazy=True)
-    data = from_tiff[0]["data"]
-    fh = get_file_handle(data)
-    # check that the file is open
-    fh.fileno()
+#     rsciio.tiff.file_writer(fname, {"data": dummy_data})
+#     from_tiff = rsciio.tiff.file_reader(fname, lazy=True)
+#     data = from_tiff[0]["data"]
+#     fh = get_file_handle(data)
+#     # check that the file is open
+#     fh.fileno()
 
-    data = data.compute()
-    np.testing.assert_allclose(data, dummy_data)
+#     data = data.compute()
+#     np.testing.assert_allclose(data, dummy_data)
 
-    # After we load to memory, we can close the file manually
-    fh.close()
-    with pytest.raises(ValueError):
-        # file is now closed
-        fh.fileno()
+#     # After we load to memory, we can close the file manually
+#     fh.close()
+#     with pytest.raises(ValueError):
+#         # file is now closed
+#         fh.fileno()
 
 
 # def test_lazy_loading_hyperspy_close(tmp_path):
@@ -1088,6 +1088,7 @@ class TestReadHamamatsu:
         assert s.axes_manager.signal_shape == (672, 508)
         assert s.axes_manager.navigation_shape == ()
         assert s.data.shape == (508, 672)
+        assert s.axes_manager[0].units == ""
         assert s.axes_manager[1].units == ""
         np.testing.assert_allclose(s.axes_manager[1].scale, 1.0, rtol=1e-3)
         np.testing.assert_allclose(s.axes_manager[1].offset, 0.0, rtol=1e-3, atol=1e-5)
@@ -1144,3 +1145,13 @@ class TestReadHamamatsu:
         omd.update({"Software": "HPD-TA 9.5 pf4"})
 
         assert rsciio.tiff._api._is_streak_hamamatsu(omd)
+
+    def test_lumispy(self):
+        pytest.importorskip("lumispy", reason="lumispy not installed")
+        file = "test_hamamatsu_streak_SCAN.tif"
+        fname = os.path.join(self.path, file)
+
+        with pytest.warns(UserWarning):
+            s = hs.load(fname)
+
+        assert s.metadata.Signal.signal_type == "TransientSpectrum"

@@ -24,18 +24,17 @@ import os
 import warnings
 from pathlib import Path
 
-import dask.array as da
 import numpy as np
 
 from rsciio._docstrings import (
     CHUNKS_READ_DOC,
-    DISTRIBUTED_DOC,
     FILENAME_DOC,
     LAZY_DOC,
     MMAP_DOC,
     NAVIGATION_SHAPE,
     RETURNS_DOC,
 )
+from rsciio.utils._deprecated import distributed_keyword_deprecation
 from rsciio.utils.distributed import memmap_distributed
 
 _logger = logging.getLogger(__name__)
@@ -188,6 +187,7 @@ class MIBProperties:
     parse_file.__doc__ %= _PATH_DOCSTRING
 
 
+@distributed_keyword_deprecation
 def load_mib_data(
     path,
     lazy=False,
@@ -196,7 +196,6 @@ def load_mib_data(
     navigation_shape=None,
     first_frame=None,
     last_frame=None,
-    distributed=False,
     mib_prop=None,
     return_headers=False,
     print_info=False,
@@ -213,12 +212,11 @@ def load_mib_data(
     %s
     %s
     %s
-    %s
     mib_prop : ``MIBProperties``, default=None
         The ``MIBProperties`` instance of the file. If None, it will be
         parsed from the file.
     return_headers : bool, default=False
-        If True, also return headers.
+        If True, also return headers. Only when ``return_mmap`` is True.
     print_info : bool, default=False
         If True, display information when loading the file.
     return_mmap : bool
@@ -240,6 +238,11 @@ def load_mib_data(
 
     if lazy and isinstance(path, bytes):
         raise ValueError("Loading memory buffer lazily is not supported.")
+
+    if return_headers and not return_mmap:
+        raise ValueError(
+            "To use `return_headers=True`, `return_mmap=True` is required."
+        )
 
     # As we save the dtype name, we don't have the endianess and we
     # need to specify it here
@@ -308,57 +311,34 @@ def load_mib_data(
     if isinstance(mib_prop.path, str):
         memmap_kwargs = dict(
             filename=mib_prop.path,
+            shape=navigation_shape,
             # take into account first_frame
             offset=mib_prop.offset + merlin_frame_dtype.itemsize * first_frame,
-            # need to use np.prod(navigation_shape) to crop number line
-            shape=np.prod(navigation_shape),
             dtype=merlin_frame_dtype,
         )
-        if distributed:
+        if return_mmap:
+            memmap_ = np.memmap(mode=mmap_mode, **memmap_kwargs)
+            headers = memmap_["header"]
+            data = memmap_["data"]
+        else:
             data = memmap_distributed(chunks=chunks, key="data", **memmap_kwargs)
             if not lazy:
                 data = data.compute()
-                # get_file_handle(data).close()
-        else:
-            data = np.memmap(mode=mmap_mode, **memmap_kwargs)
+            data = data.squeeze()
     elif isinstance(path, bytes):
-        data = np.frombuffer(
+        buffer = np.frombuffer(
             path,
             dtype=merlin_frame_dtype,
             count=mib_prop.xy,
             offset=mib_prop.offset,
-        )
+        ).reshape(navigation_shape)
+        headers = buffer["header"]
+        data = buffer["data"]
 
     else:  # pragma: no cover
         raise TypeError("`path` must be a str or a buffer.")
 
-    if not distributed:
-        headers = data["header"]
-        data = data["data"]
-    if not return_mmap:
-        if not distributed and lazy:
-            if isinstance(chunks, tuple) and len(chunks) > 2:
-                # Since the data is reshaped later on, we set only the
-                # signal dimension chunks here
-                _chunks = ("auto",) + chunks[-2:]
-            else:
-                _chunks = chunks
-            data = da.from_array(data, chunks=_chunks)
-        else:
-            data = np.array(data)
-
-    # remove navigation_dimension with value 1 before reshaping
-    navigation_shape = tuple(i for i in navigation_shape if i > 1)
-    data = data.reshape(navigation_shape + mib_prop.merlin_size)
-    if lazy and isinstance(chunks, tuple) and len(chunks) > 2:
-        # rechunk navigation space when chunking is specified as a tuple
-        data = data.rechunk(chunks)
-
     if return_headers:
-        if distributed:
-            raise ValueError(
-                "Retuning headers is not supported with `distributed=True`."
-            )
         return data, headers
     else:
         return data
@@ -371,7 +351,6 @@ load_mib_data.__doc__ %= (
     MMAP_DOC,
     NAVIGATION_SHAPE,
     _FIRST_LAST_FRAME,
-    DISTRIBUTED_DOC,
 )
 
 
@@ -505,8 +484,8 @@ def file_reader(
     navigation_shape=None,
     first_frame=None,
     last_frame=None,
-    distributed=False,
     print_info=False,
+    **kwargs,
 ):
     """
     Read a Quantum Detectors ``mib`` file.
@@ -522,9 +501,10 @@ def file_reader(
     %s
     %s
     %s
-    %s
     print_info : bool
         Display information about the mib file.
+    **kwargs : dict
+        Keyword arguments are passed to :func:`~.quantumdetector.load_mib_data`.
 
     %s
 
@@ -607,10 +587,10 @@ def file_reader(
         navigation_shape=navigation_shape,
         first_frame=first_frame,
         last_frame=last_frame,
-        distributed=distributed,
         mib_prop=mib_prop,
         print_info=print_info,
         return_mmap=False,
+        **kwargs,
     )
     data = np.flip(data, axis=-2)
 
@@ -672,6 +652,5 @@ file_reader.__doc__ %= (
     MMAP_DOC,
     NAVIGATION_SHAPE,
     _FIRST_LAST_FRAME,
-    DISTRIBUTED_DOC,
     RETURNS_DOC,
 )

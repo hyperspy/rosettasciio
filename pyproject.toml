@@ -89,11 +89,12 @@ keywords = [
 file = "COPYING.txt"
 
 [project.optional-dependencies]
+arina = ["h5py>=2.3", "hdf5plugin"]
 blockfile = ["scikit-image>=0.18"]
 eds-stream = ["sparse"]
 hdf5 = ["h5py>=2.3"]
 image = ["imageio>=2.16"]
-mrcz = ["blosc>=1.5", "mrcz>=0.3.6"]
+mrcz = ["mrcz>=0.3.6"]
 scalebar_export = ["matplotlib-scalebar", "matplotlib>=3.6"]
 speed = ["numba>=0.53"]
 tiff = ["tifffile>=2022.7.28", "imagecodecs"]
@@ -125,6 +126,7 @@ all = [
   "rosettasciio[blockfile]",
   "rosettasciio[eds-stream]",
   "rosettasciio[hdf5]",
+  "rosettasciio[arina]",
   "rosettasciio[mrcz]",
   "rosettasciio[scalebar_export]",
   "rosettasciio[speed]",
@@ -171,7 +173,7 @@ include = ["rsciio*"]
 [tool.setuptools_scm]
 # Presence enables setuptools_scm, the version will be determine at build time from git
 # The version will be updated by the `prepare_release.py` script
-fallback_version = "0.9.dev0"
+fallback_version = "0.10.dev0"
 
 [tool.towncrier]
 directory = "upcoming_changes/"

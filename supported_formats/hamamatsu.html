@@ -475,9 +475,10 @@
 (High Performance Digital Temporal Analyzer) or HiPic (High Performance image control)
 softwares from Hamamatsu, e.g. for images from streak cameras or high performance
 CCD cameras.</p>
-<p>If <a class="reference external" href="https://lumispy.org">LumiSpy</a> is installed, <code class="docutils literal notranslate"><span class="pre">LumiTransientSpectrum</span></code> will be
+<p>If <a class="reference external" href="https://lumispy.org">LumiSpy</a> is installed, <code class="docutils literal notranslate"><span class="pre">TransientSpectrum</span></code> will be
 used as the <code class="docutils literal notranslate"><span class="pre">signal_type</span></code>, which is intended for streak camera images with
-both wavelength and time axes.</p>
+both wavelength and time axes. Note that alternatively, Hamamatsu streak images
+saved in the <a class="reference internal" href="tiff.html#tiff-format"><span class="std std-ref">Tagged image file format (TIFF)</span></a> format can be read in.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Currently, reading files containing multiple channels or multiple images per
@@ -490,7 +491,7 @@ channel is not implemented.</p>
 <span class="sig-prename descclassname"><span class="pre">rsciio.hamamatsu.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_uniform_signal_axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.hamamatsu.file_reader" title="Link to this definition">#</a></dt>
 <dd><p>Read Hamamatsu’s <code class="docutils literal notranslate"><span class="pre">.img</span></code> file, e.g. for streak camera images. In case
 LumiSpy is installed, the signal type is automatically set to
-<code class="docutils literal notranslate"><span class="pre">LumiTransientSpectrum</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">TransientSpectrum</span></code>.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
@@ -504,7 +505,9 @@ can be used to access the file handler and close it manually.</p>
 <dt><strong>use_uniform_signal_axes</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Can be specified to choose between non-uniform or uniform signal axis.
 If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the <code class="docutils literal notranslate"><span class="pre">scale</span></code> attribute is calculated from the average delta
 along the signal axis and a warning is raised in case the delta varies
-by more than 1 percent.</p>
+by more than 1 percent.  Alternatively, the non-uniform <code class="docutils literal notranslate"><span class="pre">DataAxis</span></code> can
+be subsequently converted to a <code class="docutils literal notranslate"><span class="pre">UniformDataAxis</span></code> by interpolation using
+the function <code class="docutils literal notranslate"><span class="pre">interpolate_on_axis('uniform',</span> <span class="pre">axis=1)</span></code>.</p>
 </dd>
 <dt><strong>**kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Extra keyword argument will be ignored.</p>
 </dd>

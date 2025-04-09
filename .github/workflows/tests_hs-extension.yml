@@ -1,0 +1,80 @@
+name: Integration tests
+
+on:
+  workflow_dispatch:
+    workflow: "*"
+  pull_request_review:
+    types: [submitted, edited]
+  pull_request:
+    types: [labeled, ready_for_review, reopened]
+
+jobs:
+  integration_test:
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'run-extension-tests') || github.event_name == 'workflow_dispatch' }}
+    name: Extension_${{ matrix.EXTENSION_VERSION }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        EXTENSION_VERSION: ['release', 'dev']
+
+    env:
+      MPLBACKEND: agg
+      EXTENSION: atomap etspy exspy holospy kikuchipy lumispy pyxem
+      TEST_DEPS: pytest pytest-xdist pytest-rerunfailures pytest-instafail filelock pooch
+      PYTHON_VERSION: '3.12'
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          python-version: ${{ env.PYTHON_VERSION }}
+          activate-environment: "test"
+          conda-remove-defaults: "true"
+
+      - name: test dependencies
+        run: |
+          mamba install pip ${{ env.TEST_DEPS }} 
+          
+      - name: Conda info
+        run: |
+          conda info
+          conda list
+
+      - name: Install extensions (release)
+        if: contains(matrix.EXTENSION_VERSION, 'release')
+        run: |
+          mamba install hyperspy-base ${{ env.EXTENSION }}
+
+      - name: Conda list
+        run: |
+          conda list
+
+      - name: Install HyperSpy
+        run: |
+          pip install https://github.com/hyperspy/hyperspy/archive/RELEASE_next_minor.zip
+
+      - name: Install RosettaSciIO
+        run: |
+          pip install .
+
+      - name: Install Extensions (dev)
+        if: contains(matrix.EXTENSION_VERSION, 'dev')
+        run: |
+          pip install https://github.com/atomap-dev/atomap/archive/main.zip
+          pip install https://github.com/usnistgov/etspy/archive/master.zip
+          pip install https://github.com/hyperspy/exspy/archive/main.zip
+          pip install https://github.com/hyperspy/holospy/archive/main.zip
+          pip install https://github.com/pyxem/kikuchipy/archive/develop.zip
+          pip install https://github.com/lumispy/lumispy/archive/main.zip
+          pip install https://github.com/pyxem/pyxem/archive/main.zip
+
+      - name: Run RosettaSciIO Test Suite with HyperSpy extensions installed
+        if: ${{ always() }}
+        run: |
+          python -m pytest --pyargs rsciio

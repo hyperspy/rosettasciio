@@ -17,6 +17,7 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import csv
+import importlib.util
 import logging
 import os
 import re
@@ -63,7 +64,7 @@ axes_label_codes = {
 
 def file_writer(filename, signal, export_scale=True, extratags=None, **kwds):
     """
-    Write data to tif using Christoph Gohlke's tifffile library.
+    Write data to tif using Christoph Gohlke's ``tifffile`` library.
 
     Parameters
     ----------
@@ -89,7 +90,7 @@ def file_writer(filename, signal, export_scale=True, extratags=None, **kwds):
     >>> # Reading the string 'Random metadata' from a custom tag (ID 65000)
     >>> s2 = file_reader('file.tif')
     >>> s2.original_metadata['Number_65000']
-    b'Random metadata'
+    'Random metadata'
     """
 
     data = signal["data"]
@@ -141,7 +142,7 @@ def file_reader(
     **kwds,
 ):
     """
-    Read data from tif files using Christoph Gohlke's tifffile library.
+    Read data from tif files using Christoph Gohlke's ``tifffile`` library.
 
     The units and the scale of images saved with ImageJ or Digital
     Micrograph is read. There is limited support for reading the scale of
@@ -153,33 +154,35 @@ def file_reader(
     %s
     force_read_resolution : bool, default=False
         Force read image resolution using the ``x_resolution``, ``y_resolution``
-        and ``resolution_unit`` tiff tags. Beware: most software don't (properly)
+        and ``resolution_unit`` tiff tags. Beware: most software does not (properly)
         use these tags when saving ``.tiff`` files.
         See `<https://www.loc.gov/preservation/digital/formats/content/tiff_tags.shtml>`_.
     multipage_as_list : bool, default=False
-        Read multipage tiff and return list with full content of every page. This
-        utilises ``tifffile``s ``pages`` instead of ``series`` way of data access,
-        which differently to ``series`` is able to return metadata per page,
-        where ``series`` (default) is able to access only metadata from first page.
+        Read multipage tiff images and return list with full content of every page. This
+        utilises ``pages`` from ``tifffile`` instead of ``series`` for data access,
+        which in contrast to ``series`` is able to return metadata per page.
+        ``series`` (default) is only able to access metadata from the first page.
         This is recommended to be used when data is from dynamic experiments (where
-        some of parameters of the instrument are changing during acquisition).
+        some parameters of the instrument are changing during acquisition).
     hamamatsu_streak_axis_type : str, default=None
-        Decide the type of the time axis for hamamatsu streak files:
+        Select the type of time axis for hamamatsu streak files:
 
         - ``"uniform"``: the best-fit linear axis is used, inducing a (small)
-          linearisation error. Initialise a UniformDataAxis.
+          linearisation error. Initialise a ``UniformDataAxis``.
         - ``"data"``: the raw time axis parsed from the metadata is used.
-          Initialise a DataAxis.
+          Initialise a ``DataAxis``.
         - ``"functional"``: the best-fit 3rd-order polynomial axis is used,
-          avoiding linearisation error. Initialise a FunctionalDataAxis.
+          avoiding linearisation error. Initialise a ``FunctionalDataAxis``.
 
-        By default (``None``), ``uniform`` is used but a warning of the linearisation error
-        is issued. Explicitly passing ``hamamatsu_streak_axis_type='uniform'``
+        By default (``None``), ``uniform`` is used but a warning about the linearisation
+        error is issued. Explicitly passing ``hamamatsu_streak_axis_type='uniform'``
         suppresses the warning. In all cases, the original axis values are stored
-        in the ``original_metadata`` of the signal object.
+        in the ``original_metadata`` of the signal object. Alternatively, a
+        ``DataAxis`` can be subsequently converted to a ``UniformDataAxis`` by
+        interpolation using the function ``interpolate_on_axis('uniform', axis=1)``.
     **kwds : dict, optional
-        Additional arguments to be passed to the ``TiffFile`` class of the `tifffile library
-        <https://github.com/cgohlke/tifffile>`_.
+        Additional arguments to be passed to the ``TiffFile`` class of the `tifffile
+        library <https://github.com/cgohlke/tifffile>`_.
 
     %s
 
@@ -386,6 +389,9 @@ def _read_tiff(
         op.update(
             {"ImageDescriptionParsed": _get_hamamatsu_streak_description(tiff, op)}
         )
+        if importlib.util.find_spec("lumispy") is not None:
+            md["Signal"]["signal_type"] = "LumiTransientSpectrum"  # pragma: no cover
+            # covered by on-demand integration/extension tests
 
     metadata_mapping = get_metadata_mapping(page, op)
     if "SightX_Notes" in op:  # TODO move to get_jeol_sightx_mapping
@@ -1045,7 +1051,7 @@ def _get_scale_unit(axes, encoding=None):
 
 def _imagej_description(version="1.11a", **kwargs):
     """Return a string that will be used by ImageJ to read the unit when
-    appropriate arguments are provided"""
+    appropriate arguments are provided."""
     result = ["ImageJ=%s" % version]
 
     append = []

@@ -1145,3 +1145,13 @@ class TestReadHamamatsu:
         omd.update({"Software": "HPD-TA 9.5 pf4"})
 
         assert rsciio.tiff._api._is_streak_hamamatsu(omd)
+
+    def test_lumispy(self):
+        pytest.importorskip("lumispy", reason="lumispy not installed")
+        file = "test_hamamatsu_streak_SCAN.tif"
+        fname = os.path.join(self.path, file)
+
+        with pytest.warns(UserWarning):
+            s = hs.load(fname)
+
+        assert s.metadata.Signal.signal_type == "TransientSpectrum"

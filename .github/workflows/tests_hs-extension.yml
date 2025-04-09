@@ -21,7 +21,7 @@ jobs:
     env:
       MPLBACKEND: agg
       EXTENSION: atomap etspy exspy holospy kikuchipy lumispy pyxem
-      TEST_DEPS: pytest pytest-xdist pytest-rerunfailures pytest-instafail
+      TEST_DEPS: pytest pytest-xdist pytest-rerunfailures pytest-instafail filelock pooch
       PYTHON_VERSION: '3.12'
     defaults:
       run:

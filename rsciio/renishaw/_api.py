@@ -382,7 +382,7 @@ class WDFReader(object):
     these differ by UID.
 
     This parser first skips through the file to extract all Datablocks
-    (__locate_all_blocks), the respective size and position is saved in _block_info.
+    (locate_all_blocks), the respective size and position is saved in _block_info.
     After that all blocks are parsed individually, however the order matters in some
     cases.
 
@@ -427,6 +427,7 @@ class WDFReader(object):
         self._points_per_spectrum = None
         self._num_spectra = None
         self._measurement_type = None
+        self._unfinished_measurement = False
         self.data = None
         self.axes = None
         self.metadata = None
@@ -804,10 +805,11 @@ class WDFReader(object):
         header.update(result)
         self.original_metadata.update({"WDF1_1": header})
         if header["num_spectra"] != header["capacity"]:
+            self._unfinished_measurement = True
             _logger.warning(
-                f"Unfinished measurement."
-                f"The number of spectra ({header['num_spectra']}) written to the file is different"
-                f"from the set number of spectra ({header['capacity']})."
+                f"Unfinished measurement. "
+                f"The number of spectra ({header['num_spectra']}) written to the file is different "
+                f"from the set number of spectra ({header['capacity']}). "
                 "Trying to still use the data of the measured data."
             )
         if header["points_per_spectrum"] != header["XLST_length"]:
@@ -920,7 +922,11 @@ class WDFReader(object):
             ## ignore first bit of dtype read (sometimes 0, sometimes 1 in testfiles)
             dtype = DataType(self.__read_numeric("uint32") & ~(0b1 << 31)).name
             ax_tmp_dict["units"] = str(UnitType(self.__read_numeric("uint32")))
-            ax_tmp_dict["annotation"] = self.__read_utf8(0x10)
+            try:
+                ax_tmp_dict["annotation"] = self.__read_utf8(0x10)
+            except UnicodeDecodeError:
+                # error with incomplete file
+                pass
             ax_tmp_dict["data"] = self._set_data_for_ORGN(dtype)
 
             if dtype not in [
@@ -932,7 +938,8 @@ class WDFReader(object):
             else:
                 orgn_metadata[dtype] = ax_tmp_dict
         if self._measurement_type != MeasurementType.Series.name or len(orgn_nav) > 1:
-            orgn_metadata["Time"] = orgn_nav.pop("Time")
+            if "Time" in orgn_nav.keys():
+                orgn_metadata["Time"] = orgn_nav.pop("Time")
         self.original_metadata.update({"ORGN_0": orgn_metadata})
         return orgn_nav
 
@@ -998,6 +1005,10 @@ class WDFReader(object):
                 "units": units,
             }
             result[ax_name] = axis_tmp
+
+        if self._unfinished_measurement:
+            # Measurement is unfinished, keep the finished line only
+            result["Y"]["size"] = self._num_spectra // result["X"]["size"]
 
         # TODO: differentiate between more map_modes/flags
         flag = wmap_dict["flag"]
@@ -1116,25 +1127,27 @@ class WDFReader(object):
         return self.__read_numeric("float", size=size)
 
     def _reshape_data(self):
-        if self._use_uniform_signal_axis:
-            signal_size = self.axes[-1]["size"]
-        else:
-            signal_size = self.axes[-1]["axis"].size
-
         axes_sizes = []
         for i in range(len(self.axes) - 1):
             axes_sizes.append(self.axes[i]["size"])
 
         ## np.prod of an empty array is 1
-        if self._num_spectra != np.array(axes_sizes).prod():
+        if not self._unfinished_measurement and self._num_spectra != np.prod(
+            axes_sizes
+        ):
             _logger.warning(
                 "Axes sizes do not match data size.\n"
                 "Data is averaged over multiple collected spectra."
             )
             self.data = np.mean(self.data.reshape(self._num_spectra, -1), axis=0)
 
+        if self._use_uniform_signal_axis:
+            signal_size = self.axes[-1]["size"]
+        else:
+            signal_size = self.axes[-1]["axis"].size
         axes_sizes.append(signal_size)
-        self.data = np.reshape(self.data, axes_sizes)
+
+        self.data = np.reshape(self.data[: np.prod(axes_sizes)], axes_sizes)
         if self._reverse_signal:
             self.data = np.flip(self.data, len(axes_sizes) - 1)
 
@@ -1329,6 +1342,10 @@ def file_reader(
         otherwise the ``UNMATCHED`` tag will not exist.
 
     %s
+
+    Notes
+    -----
+    When reading incomplete acquisition, only completed line will be loaded.
     """
     if lazy is not False:
         raise NotImplementedError("Lazy loading is not supported.")

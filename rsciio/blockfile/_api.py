@@ -29,6 +29,7 @@ from skimage import dtype_limits
 
 from rsciio._docstrings import (
     CHUNKS_READ_DOC,
+    DISTRIBUTED_CHUNKING_NOTE_DOC,
     ENDIANESS_DOC,
     FILENAME_DOC,
     LAZY_DOC,
@@ -218,7 +219,8 @@ def get_header_from_signal(signal, endianess="<"):
 
 def file_reader(filename, lazy=False, chunks="auto", endianess="<"):
     """
-    Read a blockfile.
+    Read a blockfile using. The lazy loading uses the "distributed"
+    implementation of memory mapping.
 
     Parameters
     ----------
@@ -226,6 +228,10 @@ def file_reader(filename, lazy=False, chunks="auto", endianess="<"):
     %s
     %s
     %s
+    %s
+
+    Notes
+    -----
     %s
     """
 
@@ -300,7 +306,8 @@ def file_reader(filename, lazy=False, chunks="auto", endianess="<"):
             filename,
             chunks=chunks,
             offset=offset2,
-            shape=np.prod(navigation_shape),
+            # don't include signal_shape, because "key" is used
+            shape=navigation_shape,
             dtype=frame_dtype,
             key="data",
         )
@@ -356,6 +363,7 @@ file_reader.__doc__ %= (
     CHUNKS_READ_DOC,
     ENDIANESS_DOC,
     RETURNS_DOC,
+    DISTRIBUTED_CHUNKING_NOTE_DOC,
 )
 
 

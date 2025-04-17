@@ -18,6 +18,7 @@
 
 
 import gc
+import logging
 import warnings
 from pathlib import Path
 
@@ -27,7 +28,7 @@ import pytest
 
 from rsciio.utils.date_time_tools import serial_date_to_ISO_format
 from rsciio.utils.tests import assert_deep_almost_equal
-from rsciio.utils.tools import sarray2dict
+from rsciio.utils.tools import dummy_context_manager, sarray2dict
 
 try:
     WindowsError
@@ -48,10 +49,8 @@ FILE2 = TEST_DATA_DIR / "test2.blo"
 def fake_signal():
     fake_data = np.arange(300, dtype=np.uint8).reshape(3, 4, 5, 5)
     fake_signal = hs.signals.Signal2D(fake_data)
-    fake_signal.axes_manager[0].scale_as_quantity = "1 mm"
-    fake_signal.axes_manager[1].scale_as_quantity = "1 mm"
-    fake_signal.axes_manager[2].scale_as_quantity = "1 mm"
-    fake_signal.axes_manager[3].scale_as_quantity = "1 mm"
+    for i in range(fake_signal.data.ndim):
+        fake_signal.axes_manager[i].scale_as_quantity = "1 mm"
     return fake_signal
 
 
@@ -430,6 +429,33 @@ def test_load_lazy():
     s.compute()
     s2 = hs.load(FILE2)
     np.testing.assert_allclose(s.data, s2.data)
+
+
+@pytest.mark.parametrize(
+    "chunks", ("auto", (50, 50, 10, 10), (50, 50), (50, 50, -1, -1))
+)
+def test_load_lazy_chunking(chunks, tmp_path, caplog):
+    data = np.zeros((100, 100, 144, 144), dtype=np.uint8)
+    fname = tmp_path / "test_lazy.blo"
+    s = hs.signals.Signal2D(data)
+    for i in range(s.data.ndim):
+        s.axes_manager[i].scale_as_quantity = "1 mm"
+    s.save(fname)
+
+    if chunks != "auto" and len(chunks) > 2:
+        cm = caplog.at_level(logging.WARNING)
+        expected_warning = "Specified chunking in the signal dimension is"
+    else:
+        cm = dummy_context_manager()
+        expected_warning = ""
+
+    with cm:
+        s2 = hs.load(fname, lazy=True, chunks=chunks)
+    assert len(s2.data.chunks) == 4
+    if chunks[:2] == (50, 50):
+        assert s2.data.chunks == ((50, 50), (50, 50), (144,), (144,))
+
+    assert expected_warning in caplog.text
 
 
 def test_load_to_memory():

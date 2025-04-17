@@ -59,6 +59,12 @@ CHUNKS_READ_DOC = """chunks : tuple, int, dict or str, default="auto"
     """
 
 
+DISTRIBUTED_CHUNKING_NOTE_DOC = """With the distributed implementation of memory mapping,
+    the chunking in the signal dimension can't be set and only the navigation
+    dimensions is considered when the chunking is specified.
+"""
+
+
 SHOW_PROGRESSBAR_DOC = """show_progressbar : bool, default=True
         Whether to show the progressbar or not.
     """

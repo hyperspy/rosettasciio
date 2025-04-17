@@ -1,0 +1,1 @@
+Fix chunking in :ref:`blockfile-format` reader, which was introduced in https://github.com/hyperspy/rosettasciio/pull/372 when migrating to the "distributed" memory-mapping implementation.

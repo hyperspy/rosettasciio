@@ -16,10 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import logging
 import os
 
 import dask.array as da
 import numpy as np
+
+_logger = logging.getLogger(__name__)
 
 
 def get_chunk_slice(
@@ -178,6 +181,20 @@ def memmap_distributed(
         shape = int(os.path.getsize(filename) / unit_size)
     if not isinstance(shape, tuple):
         shape = (shape,)
+
+    if key is not None:
+        if chunks == "auto":
+            chunks = ("auto",) * len(shape) + (-1,) * len(sub_array_shape)
+        elif isinstance(chunks, (tuple, list)):
+            # When using "key", chunking in the signal dimension is not
+            # supported, keep the navigation dimension only
+            if len(chunks) > len(shape):
+                _logger.warning(
+                    "Specified chunking in the signal dimension is "
+                    "ignored because it is not supported, only chunking "
+                    "in the navigation dimension is supported."
+                )
+            chunks = chunks[: len(shape)] + (-1,) * len(sub_array_shape)
 
     # Separates slices into appropriately sized chunks.
     chunked_slices, data_chunks = get_chunk_slice(

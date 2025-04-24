@@ -246,4 +246,4 @@ def bin2D(array, binfactor):
             binfactor,
             array.shape[1] // binfactor,
             binfactor,
-        ).mean(axis=(1, 3)) 
+        ).mean(axis=(1, 3))

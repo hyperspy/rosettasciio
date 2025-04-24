@@ -121,4 +121,4 @@ def test_file_reader_nonexistent_file():
 def test_file_reader_lazy_not_implemented(test_file):
     """Test that lazy loading is not implemented."""
     with pytest.raises(NotImplementedError):
-        file_reader(test_file, lazy=True) 
+        file_reader(test_file, lazy=True)

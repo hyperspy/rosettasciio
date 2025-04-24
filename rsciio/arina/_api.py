@@ -84,11 +84,11 @@ def file_reader(
         _logger.info("Dataset is uint32 but will be converted to uint16")
         dtype = np.dtype(np.uint16)
 
-    if dtype:
+    if flatfield is not None:
+        array_3D = np.empty((nimages, width, height), dtype=np.float32)
+        _logger.info("Dataset will be converted to float32 due to flatfield correction")
+    elif dtype:
         array_3D = np.empty((nimages, width, height), dtype=dtype)
-    elif flatfield is not None:
-        array_3D = np.empty((nimages, width, height), dtype="float32")
-        _logger.info("Dataset is uint32 but will be converted to float32")
     else:
         array_3D = np.empty((nimages, width, height), dtype=dtype)
 

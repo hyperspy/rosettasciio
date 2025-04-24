@@ -35,7 +35,7 @@ def file_reader(
     lazy=False,
     scan_width=None,
     binfactor=1,
-    dtype_bin=None,
+    dtype=None,
     flatfield=None,
 ):
     """Read arina 4D-STEM datasets.
@@ -43,12 +43,11 @@ def file_reader(
     Parameters
     ----------
     scan_width : int, optional
-        x dimension of scan. If None, it will be calculated as the square root
-        of the total number of images.
+        x dimension of scan. If None, it will assume a square acquisition.
     binfactor : int, default=1
         Diffraction space binning factor for bin-on-load.
-    dtype_bin : float, optional
-        Specify datatype for bin on load if need something other than uint16.
+    dtype : float, optional
+        Specify datatype for load.
     flatfield : numpy.ndarray, optional
         Flatfield for correction factors, converts data to float.
     """
@@ -85,8 +84,8 @@ def file_reader(
         _logger.info("Dataset is uint32 but will be converted to uint16")
         dtype = np.dtype(np.uint16)
 
-    if dtype_bin:
-        array_3D = np.empty((nimages, width, height), dtype=dtype_bin)
+    if dtype:
+        array_3D = np.empty((nimages, width, height), dtype=dtype)
     elif flatfield is not None:
         array_3D = np.empty((nimages, width, height), dtype="float32")
         _logger.info("Dataset is uint32 but will be converted to float32")

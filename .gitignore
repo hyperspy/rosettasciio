@@ -10,6 +10,3 @@
 rsciio/bruker/unbcf_fast.c
 rsciio/bruker/*.so
 rsciio/bruker/*.pyd
-
-# DS 
-.DS_Store

@@ -186,7 +186,7 @@ def memmap_distributed(
         block_size_limit=block_size_limit,
         dtype=array_dtype,
     )
-    num_dim = len(shape)
+    num_dim = len(shape + sub_array_shape)
     data = da.map_blocks(
         slice_memmap,
         chunked_slices,

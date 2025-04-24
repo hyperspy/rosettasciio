@@ -85,6 +85,12 @@ def test_file_reader_with_scan_width(test_file):
     assert result["data"].shape[0] == 2
 
 
+def test_file_reader_with_dataset_dtype(test_file):
+    """Test file reading with specified dataset dtype."""
+    result = file_reader(test_file, dataset_dtype=np.float32)[0]
+    assert result["data"].dtype == np.float32
+
+
 def test_file_reader_with_flatfield(test_file):
     """Test file reading with flatfield correction."""
     # Create a simple flatfield

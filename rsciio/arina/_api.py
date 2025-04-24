@@ -43,11 +43,11 @@ def file_reader(
     Parameters
     ----------
     scan_width : int, optional
-        x dimension of scan. If None, it will assume a square acquisition.
+        x dimension of scan. If None, assumes a square acquisition.
     binfactor : int, default=1
         Diffraction space binning factor for bin-on-load.
     dataset_dtype : float, optional
-        Specify datatype for load.
+        Datatype for dataset.
     flatfield : numpy.ndarray, optional
         Flatfield for correction factors, converts data to float.
     """

@@ -17,15 +17,11 @@
 # If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import logging
-import os
 from pathlib import Path
 
 import h5py
-import hdf5plugin
+import hdf5plugin  # noqa F401
 import numpy as np
-
-from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
-from rsciio.utils.tools import get_file_handle
 
 _logger = logging.getLogger(__name__)
 

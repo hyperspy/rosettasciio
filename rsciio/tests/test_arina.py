@@ -16,11 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with rosettasciio. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import os
-import tempfile
 
 import h5py
-import hdf5plugin
+import hdf5plugin  # noqa F401
 import numpy as np
 import pytest
 

@@ -17,13 +17,14 @@
 # along with rosettasciio. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 
-import h5py
-import hdf5plugin  # noqa F401
 import numpy as np
 import pytest
 
 from rsciio.arina import file_reader
 from rsciio.tests.registry import TEST_DATA_REGISTRY
+
+h5py = pytest.importorskip("h5py", reason="h5py not installed")
+hdf5plugin = pytest.importorskip("hdf5plugin", reason="hdf5plugin not installed")
 
 
 @pytest.fixture
@@ -68,7 +69,7 @@ def test_file_reader(test_file):
 
 def test_file_reader_with_binning(test_file):
     """Test file reading with binning."""
-    result = file_reader(test_file, binfactor=2)[0]
+    result = file_reader(test_file, rebin_diffraction=2)[0]
     assert isinstance(result["data"], np.ndarray)
     assert len(result["data"].shape) == 4
     # Check that the last two dimensions are halved
@@ -77,15 +78,9 @@ def test_file_reader_with_binning(test_file):
     assert result["data"].shape[-1] == original_shape[-1] // 2
 
 
-def test_file_reader_with_scan_width(test_file):
-    """Test file reading with specified scan width."""
-    result = file_reader(test_file, scan_width=2)[0]
-    assert result["data"].shape[0] == 2
-
-
-def test_file_reader_with_dataset_dtype(test_file):
+def test_file_reader_with_dtype(test_file):
     """Test file reading with specified dataset dtype."""
-    result = file_reader(test_file, dataset_dtype=np.float32)[0]
+    result = file_reader(test_file, dtype=np.float32)[0]
     assert result["data"].dtype == np.float32
 
 
@@ -99,17 +94,6 @@ def test_file_reader_with_flatfield(test_file):
     assert result["data"].dtype == np.float32
 
 
-def test_file_reader_invalid_scan_width(test_file):
-    """Test file reading with invalid scan width."""
-    # Get the total number of images
-    with h5py.File(test_file, "r") as f:
-        nimages = sum(f["entry/data"][dset].shape[0] for dset in f["entry/data"])
-    # Use a scan width that doesn't divide evenly into the total number of images
-    invalid_scan_width = nimages + 1
-    with pytest.raises(ValueError):
-        file_reader(test_file, scan_width=invalid_scan_width)
-
-
 def test_file_reader_nonexistent_file():
     """Test file reading with nonexistent file."""
     with pytest.raises(FileNotFoundError):
@@ -120,3 +104,20 @@ def test_file_reader_lazy_not_implemented(test_file):
     """Test that lazy loading is not implemented."""
     with pytest.raises(NotImplementedError):
         file_reader(test_file, lazy=True)
+
+
+def test_arina_reader_navigation_shape(test_file):
+    """Test that navigation_shape parameter is correctly applied."""
+    s = file_reader(test_file, navigation_shape=(24, 24))
+    assert s[0]["data"].shape == (24, 24, 192, 192)
+
+
+def test_file_reader_invalid_navigation_shape(test_file):
+    """Test file reading with invalid navigation_shape."""
+    # Get the total number of images
+    with h5py.File(test_file, "r") as f:
+        nimages = sum(f["entry/data"][dset].shape[0] for dset in f["entry/data"])
+    # Use a scan width that doesn't divide evenly into the total number of images
+    invalid_navigation_shape = nimages + 1
+    with pytest.raises(ValueError):
+        file_reader(test_file, navigation_shape=(invalid_navigation_shape, "auto"))

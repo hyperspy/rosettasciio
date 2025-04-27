@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2024 The HyperSpy developers
+# Copyright 2025 The HyperSpy developers
 #
 # This library is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,20 +29,23 @@ _logger = logging.getLogger(__name__)
 def file_reader(
     filename,
     lazy=False,
-    scan_width=None,
-    binfactor=1,
-    dataset_dtype=None,
+    navigation_shape=None,
+    rebin_diffraction=1,
+    dtype=None,
     flatfield=None,
 ):
     """Read arina 4D-STEM datasets.
 
     Parameters
     ----------
-    scan_width : int, optional
-        x dimension of scan. If None, assumes a square acquisition.
-    binfactor : int, default=1
+    navigation_shape : int, optional
+        Real space dimension of scan. If None, assumes a square acquisition.
+        Specified in tuple (x_scan_dimension, y_scan_dimension), and if only one
+        direction specified can be written ax (x_scan_dimension, "auto"). If only an
+        integer is passed, it assumed to be the x_scan_dimension.
+    rebin_diffraction : int, default=1
         Diffraction space binning factor for bin-on-load.
-    dataset_dtype : float, optional
+    dtype : float, optional
         Datatype for dataset.
     flatfield : numpy.ndarray, optional
         Flatfield for correction factors, converts data to float.
@@ -65,28 +68,35 @@ def file_reader(
             nimages = nimages + f["entry"]["data"][dset].shape[0]
             height = f["entry"]["data"][dset].shape[1]
             width = f["entry"]["data"][dset].shape[2]
-            dtype = f["entry"]["data"][dset].dtype
+            dtype_scan = f["entry"]["data"][dset].dtype
 
-    width = width // binfactor
-    height = height // binfactor
+    width = width // rebin_diffraction
+    height = height // rebin_diffraction
 
-    if scan_width is None:
-        scan_width = int(np.sqrt(nimages))
+    if navigation_shape is None:
+        navigation_shape = (int(np.sqrt(nimages)), int(np.sqrt(nimages)))
+    elif np.isscalar(navigation_shape):
+        navigation_shape = (navigation_shape, "auto")
 
-    if nimages % scan_width > 1e-6:
-        raise ValueError("scan_width must be integer multiple of x*y size")
+    if navigation_shape[0] == "auto":
+        navigation_shape = (nimages // navigation_shape[1], navigation_shape[1])
+    elif navigation_shape[1] == "auto":
+        navigation_shape = (navigation_shape[0], nimages // navigation_shape[0])
 
-    if dtype.type is np.uint32 and flatfield is None:
+    if nimages != navigation_shape[0] * navigation_shape[1]:
+        raise ValueError("navigation_shape must be integer multiple of x*y size")
+
+    if dtype_scan.type is np.uint32 and flatfield is None:
         _logger.info("Dataset is uint32 but will be converted to uint16")
-        dtype = np.dtype(np.uint16)
+        dtype_scan = np.dtype(np.uint16)
 
     if flatfield is not None:
         array_3D = np.empty((nimages, width, height), dtype=np.float32)
         _logger.info("Dataset will be converted to float32 due to flatfield correction")
-    elif dataset_dtype:
-        array_3D = np.empty((nimages, width, height), dtype=dataset_dtype)
-    else:
+    elif dtype:
         array_3D = np.empty((nimages, width, height), dtype=dtype)
+    else:
+        array_3D = np.empty((nimages, width, height), dtype=dtype_scan)
 
     image_index = 0
 
@@ -104,15 +114,13 @@ def file_reader(
                 f["entry"]["data"][dset],
                 image_index,
                 array_3D,
-                binfactor,
+                rebin_diffraction,
                 correction_factors,
             )
 
-    scan_height = int(nimages / scan_width)
-
     data = array_3D.reshape(
-        scan_width,
-        scan_height,
+        navigation_shape[0],
+        navigation_shape[1],
         array_3D.shape[1],
         array_3D.shape[2],
     )
@@ -178,7 +186,7 @@ def _process_dataset(
     dset,
     start_index,
     array_3D,
-    binfactor,
+    rebin_diffraction,
     correction_factors,
 ):
     """Process a single dataset from the arina file.
@@ -191,7 +199,7 @@ def _process_dataset(
         The starting index in the output array.
     array_3D : numpy.ndarray
         The output array to fill.
-    binfactor : int
+    rebin_diffraction : int
         The binning factor to apply.
     correction_factors : numpy.ndarray
         The correction factors to apply.
@@ -205,28 +213,28 @@ def _process_dataset(
     nimages_dset = dset.shape[0]
 
     for i in range(nimages_dset):
-        if binfactor == 1:
+        if rebin_diffraction == 1:
             array_3D[image_index] = np.multiply(
                 dset[i].astype(array_3D.dtype), correction_factors
             )
         else:
             array_3D[image_index] = bin2D(
                 np.multiply(dset[i].astype(array_3D.dtype), correction_factors),
-                binfactor,
+                rebin_diffraction,
             )
 
         image_index = image_index + 1
     return image_index
 
 
-def bin2D(array, binfactor):
+def bin2D(array, rebin_diffraction):
     """Bin a 2D array by a factor.
 
     Parameters
     ----------
     array : numpy.ndarray
         The array to bin.
-    binfactor : int
+    rebin_diffraction : int
         The binning factor.
 
     Returns
@@ -234,12 +242,12 @@ def bin2D(array, binfactor):
     numpy.ndarray
         The binned array.
     """
-    if binfactor == 1:
+    if rebin_diffraction == 1:
         return array
     else:
         return array.reshape(
-            array.shape[0] // binfactor,
-            binfactor,
-            array.shape[1] // binfactor,
-            binfactor,
+            array.shape[0] // rebin_diffraction,
+            rebin_diffraction,
+            array.shape[1] // rebin_diffraction,
+            rebin_diffraction,
         ).mean(axis=(1, 3))

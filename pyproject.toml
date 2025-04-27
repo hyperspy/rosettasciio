@@ -91,7 +91,8 @@ file = "COPYING.txt"
 [project.optional-dependencies]
 blockfile = ["scikit-image>=0.18"]
 eds-stream = ["sparse"]
-hdf5 = ["h5py>=2.3", "hdf5plugin"]
+hdf5 = ["h5py>=2.3"]
+arina = ["h5py>=2.3", "hdf5plugin"]
 image = ["imageio>=2.16"]
 mrcz = ["mrcz>=0.3.6"]
 scalebar_export = ["matplotlib-scalebar", "matplotlib>=3.6"]
@@ -125,6 +126,7 @@ all = [
   "rosettasciio[blockfile]",
   "rosettasciio[eds-stream]",
   "rosettasciio[hdf5]",
+  "rosettasciio[arina]",
   "rosettasciio[mrcz]",
   "rosettasciio[scalebar_export]",
   "rosettasciio[speed]",

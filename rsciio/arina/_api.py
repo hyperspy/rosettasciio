@@ -36,13 +36,16 @@ def file_reader(
 ):
     """Read arina 4D-STEM datasets.
 
+    hdf5plugin is needed in addition to h5py due to compression filters used by the detector
+    when writing data.
+
     Parameters
     ----------
-    navigation_shape : int, optional
-        Real space dimension of scan. If None, assumes a square acquisition.
-        Specified in tuple (x_scan_dimension, y_scan_dimension), and if only one
-        direction specified can be written ax (x_scan_dimension, "auto"). If only an
-        integer is passed, it assumed to be the x_scan_dimension.
+    navigation_shape : tuple or int or None, default = None
+        Specify the shape of the navigation space. If None, assumes square acquisition.
+        A tuple can be specified as (x_scan_dimension, y_scan_dimension), (x_scan_dimension, "auto"),
+        or ("auto", y_scan_dimension). With "auto" the length is inferred from the number of
+        diffraction patterns.  If only an integer is passed, it assumed to be the x_scan_dimension.
     rebin_diffraction : int, default=1
         Diffraction space binning factor for bin-on-load.
     dtype : float, optional

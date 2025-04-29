@@ -180,15 +180,23 @@ def read_de_metadata_file(filename, nav_shape=None, scan_pos_file=None):
     if scanning and not raster:
         if scan_pos_file is None:
             raise ValueError("Scan position file is required for non-raster scans.")
-        positions = np.loadtxt(scan_pos_file, delimiter=",", dtype=int)
+        positions = np.loadtxt(scan_pos_file, delimiter=",", dtype=int)[:, ::-1]
         nav_shape = (positions[:, 1].max() + 1, positions[:, 0].max() + 1)
-        unique_pos, counts = np.unique(positions, axis=0, return_counts=True)
+        unique_pos, inverse, counts = np.unique(
+            positions, axis=0, return_counts=True, return_inverse=True
+        )
         repeats = np.max(counts)
         if repeats > 1:
+            # If there are repeated positions, we need to create a new array
+            # with the repeated positions
+            rep = np.zeros((len(positions), 1), dtype=int)
+            positions = np.hstack((positions, rep))
+            for i in range(len(positions)):
+                positions[inverse == i, 2] = np.arange(len(inverse[inverse == i]))
             nav_shape = (
+                repeats,
                 nav_shape[0],
                 nav_shape[1],
-                repeats,
             )  # repeat the scan positions
     else:
         positions = None

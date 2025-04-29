@@ -177,3 +177,16 @@ def test_mrc_random_scan_pattern():
     # check to make sure that the Sum image from DE Server matches the sum.
     sum_nav = hs.load(TEST_DATA_DIR / "ROI_Random_Scan_Sum.mrc")
     np.testing.assert_array_almost_equal(s.sum(axis=(2, 3)).data, sum_nav, decimal=-1)
+
+
+def test_repeated_mrc_custom():
+    s = hs.load(
+        TEST_DATA_DIR / "Custom_movie.mrc",
+        metadata_file=TEST_DATA_DIR / "Custom_info.txt",
+        scan_file=TEST_DATA_DIR / "Custom_scan_coordinates.csv",
+    )
+    assert s.data.shape == (5, 5, 2, 16, 16)
+    # make sure that the first and second dataset aren't equal
+    assert not np.array_equal(s.data[:, :, 0], s.data[:, :, 1])
+    np.testing.assert_array_equal(s.data[:, 1], 0)  # Skipped rows
+    np.testing.assert_array_equal(s.data[:, 3], 0)  # Skipped rows

@@ -226,8 +226,8 @@ def read_de_metadata_file(filename, nav_shape=None, scan_pos_file=None):
         axes_scales[axes_scales != -1] = 1
         axes_units = ["sec", "nm", "nm", "times", "nm^-1", "nm^-1"]
         axes_names = ["time", "y", "x", "repeats", "ky", "kx"]
-        sizex = int(original_metadata.get("Scan - Size X", 1))
-        sizey = int(original_metadata.get("Scan - Size Y", 1))
+        sizex = int(original_metadata.get("Scan - ROI Size X", 1))
+        sizey = int(original_metadata.get("Scan - ROI Size Y", 1))
         if nav_shape is not None and len(nav_shape) == 3:
             time = nav_shape[0]
             sizey = nav_shape[1]
@@ -472,9 +472,15 @@ def file_reader(
 
     # Convert bytes to unicode
     for key in ["CMAP", "STAMP", "LABELS"]:
-        original_metadata["std_header"][key] = original_metadata["std_header"][
-            key
-        ].decode()
+        try:
+            original_metadata["std_header"][key] = original_metadata["std_header"][
+                key
+            ].decode()
+        except UnicodeDecodeError:
+            _logger.warning(
+                f"Could not decode {key} in the standard header. "
+                f"Using the raw bytes instead."
+            )
     if fei_header is not None:
         fei_dict = sarray2dict(
             fei_header,

@@ -166,3 +166,22 @@ def test_mrc_metadata_modes(metadata_file):
     else:
         s.axes_manager.signal_axes[0].units = "nm"
         s.axes_manager.signal_axes[1].units = "nm"
+
+
+def test_mrc_arbitary():
+    s = hs.load(
+        TEST_DATA_DIR / "4DSTEMscan.mrc",
+        navigation_shape=(8, 32),
+        distributed=True,
+        chunks=(16, 4, 256, 256),
+        lazy=True,
+    )
+    assert s.data.chunks == (
+        (16, 16),
+        (4, 4),
+        (256,),
+        (256,),
+    )
+    assert s.data.shape == (32, 8, 256, 256)
+    assert s.axes_manager.signal_shape == (256, 256)
+    assert s.axes_manager.navigation_shape == (8, 32)

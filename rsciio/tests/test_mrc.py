@@ -15,7 +15,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
-
 from pathlib import Path
 
 import numpy as np
@@ -168,20 +167,13 @@ def test_mrc_metadata_modes(metadata_file):
         s.axes_manager.signal_axes[1].units = "nm"
 
 
-def test_mrc_arbitary():
+def test_mrc_random_scan_pattern():
     s = hs.load(
-        TEST_DATA_DIR / "4DSTEMscan.mrc",
-        navigation_shape=(8, 32),
-        distributed=True,
-        chunks=(16, 4, 256, 256),
-        lazy=True,
+        TEST_DATA_DIR / "ROI_Random_Scan_movie.mrc",
+        metadata_file=TEST_DATA_DIR / "ROI_Random_Scan_info.txt",
+        scan_file=TEST_DATA_DIR / "ROI_Random_Scan_scan_coordinates.csv",
     )
-    assert s.data.chunks == (
-        (16, 16),
-        (4, 4),
-        (256,),
-        (256,),
-    )
-    assert s.data.shape == (32, 8, 256, 256)
-    assert s.axes_manager.signal_shape == (256, 256)
-    assert s.axes_manager.navigation_shape == (8, 32)
+    assert s.data.shape == (29, 12, 16, 16)
+    # check to make sure that the Sum image from DE Server matches the sum.
+    sum_nav = hs.load(TEST_DATA_DIR / "ROI_Random_Scan_Sum.mrc")
+    np.testing.assert_array_almost_equal(s.sum(axis=(2, 3)).data, sum_nav, decimal=-1)

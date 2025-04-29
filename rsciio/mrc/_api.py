@@ -181,7 +181,7 @@ def read_de_metadata_file(filename, nav_shape=None, scan_pos_file=None):
         if scan_pos_file is None:
             raise ValueError("Scan position file is required for non-raster scans.")
         positions = np.loadtxt(scan_pos_file, delimiter=",", dtype=int)[:, ::-1]
-        nav_shape = (positions[:, 1].max() + 1, positions[:, 0].max() + 1)
+        nav_shape = (positions[:, 0].max() + 1, positions[:, 1].max() + 1)
         unique_pos, inverse, counts = np.unique(
             positions, axis=0, return_counts=True, return_inverse=True
         )

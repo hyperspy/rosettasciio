@@ -113,7 +113,7 @@ def get_arbitrary_chunk_slice(
     pos_mapping = np.zeros(shape=shape[:-2] + (1, 1), dtype=int)
 
     for i, p in enumerate(positions):
-        pos_mapping[p[1], p[0]] = i + 1
+        pos_mapping[tuple(p)] = i + 1
     pos_mapping = pos_mapping - 1  # 0 based indexing, -1 for the empty frames
 
     # Now we chunk the pos_mapping array.  In the case each frame remains in a single chunk and we only
@@ -158,7 +158,13 @@ def slice_memmap(slices, file, dtypes, shape, key=None, positions=False, **kwarg
     if key is not None:
         data = data[key]
     if positions:
-        return data[slices_]
+        # We have arbitrary positions.
+        if -1 in slices_:  # -1 means empty frame we will return 0.
+            result = data[slices_]
+            result[slices_ == -1] = 0
+            return result
+        else:
+            return data[slices_]
     else:
         slices_ = tuple([slice(s[0], s[1]) for s in slices_])
         return data[slices_]
@@ -190,6 +196,9 @@ def memmap_distributed(
         Path to the file.
     dtype : numpy.dtype
         Data type of the data for memmap function.
+    positions : array-like, optional
+        A numpy array in the form [[x1, y1], [x2, y2], ...] where x, y map the frame to the
+        real space coordinate of the data. The default is None.
     offset : int, optional
         Offset in bytes. The default is 0.
     shape : tuple, optional

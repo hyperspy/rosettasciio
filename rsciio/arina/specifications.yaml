@@ -1,0 +1,4 @@
+name: arina
+description: Reader for arina 4D-STEM datasets
+extensions: ['.h5']
+non_uniform_axis: false 

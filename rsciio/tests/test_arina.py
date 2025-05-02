@@ -32,7 +32,7 @@ from rsciio.arina import file_reader  # noqa: E402
 @pytest.fixture
 def test_file():
     """Get the path to the test file."""
-    return TEST_DATA_REGISTRY.fetch("arina/MEA_ptycho_15_master.h5")
+    return TEST_DATA_REGISTRY.fetch("arina/test_00_master.h5")
 
 
 def test_file_reader(test_file):
@@ -110,8 +110,8 @@ def test_file_reader_lazy_not_implemented(test_file):
 
 def test_arina_reader_navigation_shape(test_file):
     """Test that navigation_shape parameter is correctly applied."""
-    s = file_reader(test_file, navigation_shape=(24, 24))
-    assert s[0]["data"].shape == (24, 24, 192, 192)
+    s = file_reader(test_file, navigation_shape=(4, 4))
+    assert s[0]["data"].shape == (4, 4, 192, 192)
 
 
 def test_file_reader_invalid_navigation_shape(test_file):

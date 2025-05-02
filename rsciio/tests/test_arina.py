@@ -20,11 +20,13 @@
 import numpy as np
 import pytest
 
-from rsciio.arina import file_reader
 from rsciio.tests.registry import TEST_DATA_REGISTRY
 
 h5py = pytest.importorskip("h5py", reason="h5py not installed")
 hdf5plugin = pytest.importorskip("hdf5plugin", reason="hdf5plugin not installed")
+
+
+from rsciio.arina import file_reader  # noqa: E402
 
 
 @pytest.fixture

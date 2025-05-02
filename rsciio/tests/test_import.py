@@ -46,6 +46,10 @@ def test_import_all():
     if h5py is None:
         plugin_name_to_remove.extend(["Delmic", "EMD", "HSPY", "NeXus"])
 
+    hdf5plugin = importlib.util.find_spec("hdf5plugin")
+    if hdf5plugin is None:
+        plugin_name_to_remove.extend(["Arina"])
+
     imageio = importlib.util.find_spec("imageio")
     if imageio is None:
         plugin_name_to_remove.extend(["Image"])
@@ -111,6 +115,8 @@ def test_format_name_aliases():
 def test_dir_plugins(plugin):
     plugin_string = "rsciio.%s" % plugin["name"].lower()
     # skip for missing optional dependencies
+    if plugin["name"] == "Arina":
+        pytest.importorskip("hdf5plugin")
     if plugin["name"] == "Blockfile":
         pytest.importorskip("skimage")
     elif plugin["name"] == "Image":

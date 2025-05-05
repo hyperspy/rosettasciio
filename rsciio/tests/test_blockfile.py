@@ -540,10 +540,10 @@ def test_blo_chunking_lazy(save_path):
     data = np.zeros((90, 121, 144, 144), dtype=np.uint8)
     sig = hs.signals.Signal2D(data)
     sig.save(save_path, overwrite=True)
-    new_s = hs.load(save_path, lazy=True, chunks=(1, 1, 144//2, 144//2))
+    new_s = hs.load(save_path, lazy=True, chunks=(1, 1, 144 // 2, 144 // 2))
     assert isinstance(new_s.data, da.Array)
     assert new_s.data.shape == (90, 121, 144, 144)
-    assert new_s.data.chunks[0] == (1,)*90
-    assert new_s.data.chunks[1] == (1,)*121
+    assert new_s.data.chunks[0] == (1,) * 90
+    assert new_s.data.chunks[1] == (1,) * 121
     assert new_s.data.chunks[2] == (72, 72)
     assert new_s.data.chunks[3] == (72, 72)

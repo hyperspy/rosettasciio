@@ -65,7 +65,7 @@ is recommended to use the ``distributed`` parameter when loading data even when 
 in dask and allows for better control of the memory usage.
 
 In almost all cases the :func:`rsciio.utils.distributed.memmap_distributed` function can be dropped in-place of the
-:func:`numpy.memmmap` function. It also now supports the ``positions`` parameter which is different from the equivalent
+:class:`numpy.memmap` function. It also now supports the ``positions`` parameter which is different from the equivalent
 numpy function.  The ``positions`` parameter is a numpy array of positions which maps some arbitrary scan positions
 to a grid.  This is useful for loading arbitrary scan positions from a file.  The ``positions`` parameter does require
 that the data is chunked only in the navigation axis.

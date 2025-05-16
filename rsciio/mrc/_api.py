@@ -234,8 +234,12 @@ def read_de_metadata_file(filename, nav_shape=None, scan_pos_file=None):
         axes_scales[axes_scales != -1] = 1
         axes_units = ["sec", "nm", "nm", "times", "nm^-1", "nm^-1"]
         axes_names = ["time", "y", "x", "repeats", "ky", "kx"]
-        sizex = int(original_metadata.get("Scan - ROI Size X", 1))
-        sizey = int(original_metadata.get("Scan - ROI Size Y", 1))
+        if original_metadata.get("Scan - ROI Enable", "Disable") == "Enable":
+            sizex = int(original_metadata.get("Scan - ROI Size X", 1))
+            sizey = int(original_metadata.get("Scan - ROI Size Y", 1))
+        else:
+            sizex = int(original_metadata.get("Scan - Size X", 1))
+            sizey = int(original_metadata.get("Scan - Size Y", 1))
         if nav_shape is not None and len(nav_shape) == 3:
             time = nav_shape[0]
             sizey = nav_shape[1]
@@ -376,10 +380,14 @@ def file_reader(
                 if len(dir_name) == 0:
                     dir_name = "."
                 metadata = glob.glob(dir_name + "/" + unique_id + suffix + "_info.txt")
-
                 virtual_images = glob.glob(
-                    dir_name + "/" + unique_id + suffix + "_[0-4]_*.mrc"
+                    dir_name + "/" + unique_id + suffix + "*_[0-4]_*.mrc"
                 )
+                virtual_images_old = glob.glob(
+                    dir_name + "/" + unique_id + suffix + "_virt[0-4]_*.mrc"
+                )
+                virtual_images += virtual_images_old
+
                 external_images = glob.glob(
                     dir_name + "/" + unique_id + suffix + "_ext[1-4]_*.mrc"
                 )
@@ -430,7 +438,15 @@ def file_reader(
     if virtual_images is not None and len(virtual_images) > 0:
         imgs = []
         for v in virtual_images:
-            imgs.append(file_reader(v)[0]["data"])
+            img = file_reader(v)[0]["data"]
+            if navigation_shape is not None and navigation_shape[::-1] != img.shape:
+                if np.prod(img.shape) == np.prod(navigation_shape[::-1]):
+                    img = img.reshape(navigation_shape[::-1])
+                else:
+                    _logger.warning(
+                        f"Virtual image {v} does not match the navigation shape {navigation_shape[::-1]}"
+                    )
+            imgs.append(img)
         metadata["General"]["virtual_images"] = imgs
         # checking to make sure the navigator is valid
         if navigation_shape is not None and navigation_shape[::-1] == imgs[0].shape:

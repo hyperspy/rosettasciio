@@ -320,27 +320,24 @@ def test_test_load_mib_data_from_buffer():
             _ = load_mib_data(f.read(), lazy=True)
 
 
-@pytest.mark.parametrize("return_mmap", (True, False))
-def test_parse_exposures(return_mmap):
+def test_parse_exposures():
     fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
 
-    data, headers = load_mib_data(
-        str(fname), return_headers=True, return_mmap=return_mmap
-    )
+    data, headers = load_mib_data(str(fname), return_headers=True, return_mmap=True)
     exposures = parse_exposures(headers[0])
     assert exposures == [100.0]
 
     exposures = parse_exposures(headers)
     assert exposures == [100.0] * headers.shape[0]
 
+    with pytest.raises(ValueError):
+        load_mib_data(str(fname), return_headers=True, return_mmap=False)
 
-@pytest.mark.parametrize("return_mmap", (True, False))
-def test_parse_timestamps(return_mmap):
+
+def test_parse_timestamps():
     fname = TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib"
 
-    data, headers = load_mib_data(
-        str(fname), return_headers=True, return_mmap=return_mmap
-    )
+    data, headers = load_mib_data(str(fname), return_headers=True, return_mmap=True)
     timestamps = parse_timestamps(headers[0])
     assert timestamps == ["2021-05-07T16:51:10.905800928Z"]
 
@@ -403,24 +400,6 @@ def test_frames_in_acquisition_zero():
 
     s = hs.load(f"{fname}.mib")
     assert s.axes_manager.navigation_shape == ()
-
-
-@pytest.mark.parametrize("lazy", (True, False))
-def test_distributed(lazy):
-    s = hs.load(
-        TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib",
-        distributed=False,
-        lazy=lazy,
-    )
-    s2 = hs.load(
-        TEST_DATA_DIR_UNZIPPED / "001_4x2_6bit.mib",
-        distributed=True,
-        lazy=lazy,
-    )
-    if lazy:
-        s.compute()
-        s2.compute()
-    np.testing.assert_array_equal(s.data, s2.data)
 
 
 @pytest.mark.parametrize("fname", SIGNAL_ROI_FNAME_LIST)

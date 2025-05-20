@@ -167,7 +167,7 @@ def read_de_metadata_file(filename, nav_shape=None, scan_pos_file=None):
                 key = key.strip()
                 value = value.strip()
                 original_metadata[key] = value
-            except ValueError:
+            except ValueError:  # pragma: no cover
                 _logger.warning(
                     f"Could not parse line: {line} in metadata file {filename} "
                     f"Each line should be in the form 'key = value'."
@@ -393,7 +393,8 @@ def file_reader(
                 )
             except (
                 IndexError
-            ):  # Not a DE movie or File Naming Convention is not followed
+            ):  # pragma: no cover
+                # Not a DE movie or File Naming Convention is not followed
                 _logger.warning("Could not find metadata file for DE movie.")
                 metadata = []
             try:
@@ -442,7 +443,7 @@ def file_reader(
             if navigation_shape is not None and navigation_shape[::-1] != img.shape:
                 if np.prod(img.shape) == np.prod(navigation_shape[::-1]):
                     img = img.reshape(navigation_shape[::-1])
-                else:
+                else: # pragma: no cover
                     _logger.warning(
                         f"Virtual image {v} does not match the navigation shape {navigation_shape[::-1]}"
                     )

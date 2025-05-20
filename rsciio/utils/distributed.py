@@ -87,14 +87,11 @@ def get_arbitrary_chunk_slice(
 
     Parameters
     ----------
-    positions: array-like
+    positions : array-like
         A numpy array in the form [[x1, y1], [x2, y2], ...] where x, y map the frame to the
         real space coordinate of the data.
     shape : tuple
         Shape of the signal data.
-    positions : array-like
-        A numpy array in the form [[x1, y1], [x2, y2], ...] where x, y map the frame to the
-        real space coordinate of the data.
     chunks : tuple, optional
         Chunk shape. The default is "auto".
     block_size_limit : int, optional
@@ -103,6 +100,11 @@ def get_arbitrary_chunk_slice(
     dtype : numpy.dtype, optional
         Data type. The default is None. This is passed to the
         :py:func:`dask.array.core.normalize_chunks` function when chunks == "auto".
+
+    Returns
+    -------
+    dask.array.Array
+        Dask array of the slices.
     """
     if not isinstance(positions, np.ndarray):
         positions = np.array(positions)

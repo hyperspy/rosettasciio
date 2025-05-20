@@ -147,6 +147,30 @@ def test_mrc_metadata_auto():
     assert s.data.shape == shape
 
 
+def test_mrc_metadata_auto_custom_shape():
+    s = hs.load(TEST_DATA_DIR / "20241021_00405_movie.mrc", lazy=True,
+                navigation_shape=(16, 2))
+    navigation_shape = (16, 2)
+    shape = navigation_shape[::-1] + (4, 8)
+    assert s.data.shape == shape
+    assert s.axes_manager.signal_shape == (8, 4)
+    assert s.axes_manager.navigation_shape == navigation_shape
+    assert s.metadata.Acquisition_instrument.TEM.detector == "DESim"
+    assert s.metadata.Acquisition_instrument.TEM.magnification == "1000"
+    assert s.metadata.Acquisition_instrument.TEM.frames_per_second == "700"
+    assert len(s.metadata.General.virtual_images) == 2
+    assert len(s.metadata.General.external_detectors) == 1
+
+    assert s.metadata._HyperSpy.navigator is not None
+    assert s.metadata._HyperSpy.navigator.shape == navigation_shape[::-1]
+
+    shape = (
+        s.axes_manager._navigation_shape_in_array
+        + s.axes_manager._signal_shape_in_array
+    )
+    assert s.data.shape == shape
+
+
 @pytest.mark.parametrize(
     "metadata_file",
     [
@@ -194,7 +218,7 @@ def test_repeated_mrc_custom():
 
 def test_repeated_mrc_custom_error():
     with pytest.raises(ValueError):
-        s = hs.load(
+        hs.load(
         TEST_DATA_DIR / "Custom_movie.mrc",
         metadata_file=TEST_DATA_DIR / "Custom_info.txt",
         scan_file=TEST_DATA_DIR / "Custom_scan_coordinates.csv",
@@ -204,7 +228,7 @@ def test_repeated_mrc_custom_error():
 
 def test_repeated_mrc_custom_no_scan_file():
     with pytest.raises(ValueError):
-        s = hs.load(
+        hs.load(
         TEST_DATA_DIR / "Custom_movie.mrc",
         metadata_file=TEST_DATA_DIR / "Custom_info.txt",
     )

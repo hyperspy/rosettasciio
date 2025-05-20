@@ -7,6 +7,9 @@ import warnings
 import numpy as np
 
 
+
+
+
 class deprecated:
     """Decorator to mark deprecated functions with an informative
     warning.
@@ -61,12 +64,12 @@ class deprecated:
         @functools.wraps(func)
         def wrapped(*args, **kwargs):
             warnings.simplefilter(
-                action="always", category=np.VisibleDeprecationWarning, append=True
+                action="always", category=np.exceptions.VisibleDeprecationWarning, append=True
             )
             func_code = func.__code__
             warnings.warn_explicit(
                 message=msg,
-                category=np.VisibleDeprecationWarning,
+                category=np.exceptions.VisibleDeprecationWarning,
                 filename=func_code.co_filename,
                 lineno=func_code.co_firstlineno + 1,
             )
@@ -93,32 +96,38 @@ class deprecated_argument:
     <https://github.com/scikit-image/scikit-image/blob/main/skimage/_shared/utils.py>`_.
     """
 
-    def __init__(self, name, since, removal, alternative=None):
+    def __init__(self, name, since, removal=None, alternative=None, additional_msg=None):
         self.name = name
         self.since = since
         self.removal = removal
         self.alternative = alternative
+        self.additional_msg = additional_msg
 
     def __call__(self, func):
         @functools.wraps(func)
         def wrapped(*args, **kwargs):
             if self.name in kwargs.keys():
                 msg = (
-                    f"Argument `{self.name}` is deprecated and will be removed in "
-                    f"version {self.removal}. To avoid this warning, please do not use "
-                    f"`{self.name}`. "
-                )
+                    f"Argument `{self.name}` is deprecated")
+                if self.removal is not None:
+                    msg += f"and will be removed in version {self.removal}."
+                else:
+                    msg += " and has been removed. "
+                    kwargs.pop(self.name)
+                msg += "To avoid this warning, please do not use f`{self.name}`"
                 if self.alternative is not None:
                     msg += f"Use `{self.alternative}` instead. "
                     kwargs[self.alternative] = kwargs.pop(self.name)
                 msg += f"See the documentation of `{func.__name__}()` for more details."
+                if self.additional_msg is not None:
+                    msg += f" {self.additional_msg}"
                 warnings.simplefilter(
-                    action="always", category=np.VisibleDeprecationWarning
+                    action="always", category=np.exceptions.VisibleDeprecationWarning
                 )
                 func_code = func.__code__
                 warnings.warn_explicit(
                     message=msg,
-                    category=np.VisibleDeprecationWarning,
+                    category=np.exceptions.VisibleDeprecationWarning,
                     filename=func_code.co_filename,
                     lineno=func_code.co_firstlineno + 1,
                 )

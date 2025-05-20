@@ -35,7 +35,7 @@ from rsciio._docstrings import (
     NAVIGATION_SHAPE,
     RETURNS_DOC,
 )
-from rsciio.utils._deprecated import deprecated_argument
+from rsciio.utils._deprecated import distributed_keyword_deprecation
 from rsciio.utils.distributed import memmap_distributed
 from rsciio.utils.tools import sarray2dict
 
@@ -325,9 +325,7 @@ def read_de_metadata_file(filename, nav_shape=None, scan_pos_file=None):
     return original_metadata, metadata, axes, nav_shape, positions
 
 
-@deprecated_argument(
-    "distributed", "0.8.0", additional_msg=" This should have no effect on basic usage."
-)
+@distributed_keyword_deprecation
 def file_reader(
     filename,
     lazy=False,

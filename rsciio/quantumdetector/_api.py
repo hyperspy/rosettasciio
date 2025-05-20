@@ -34,6 +34,7 @@ from rsciio._docstrings import (
     NAVIGATION_SHAPE,
     RETURNS_DOC,
 )
+from rsciio.utils._deprecated import distributed_keyword_deprecation
 from rsciio.utils.distributed import memmap_distributed
 
 _logger = logging.getLogger(__name__)
@@ -186,6 +187,7 @@ class MIBProperties:
     parse_file.__doc__ %= _PATH_DOCSTRING
 
 
+@distributed_keyword_deprecation
 def load_mib_data(
     path,
     lazy=False,
@@ -482,6 +484,7 @@ def file_reader(
     first_frame=None,
     last_frame=None,
     print_info=False,
+    **kwargs,
 ):
     """
     Read a Quantum Detectors ``mib`` file.
@@ -499,6 +502,8 @@ def file_reader(
     %s
     print_info : bool
         Display information about the mib file.
+    **kwargs : dict
+        Keyword arguments are passed to :func:`~.quantumdetector.load_mib_data`.
 
     %s
 
@@ -584,6 +589,7 @@ def file_reader(
         mib_prop=mib_prop,
         print_info=print_info,
         return_mmap=False,
+        **kwargs,
     )
     data = np.flip(data, axis=-2)
 

@@ -33,6 +33,7 @@ from rsciio.quantumdetector._api import (
     parse_hdr_file,
     parse_timestamps,
 )
+from rsciio.utils.exceptions import VisibleDeprecationWarning
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 zarr = pytest.importorskip("zarr", reason="zarr not installed")
@@ -422,3 +423,13 @@ def test_signal_shape_ROI(fname):
         assert s.axes_manager.signal_shape == (256, 64)
     if "sig256x128" in fname:
         assert s.axes_manager.signal_shape == (256, 128)
+
+
+@pytest.mark.parametrize("distributed", [True, False])
+def test_deprecated_distributed(distributed):
+    fname = TEST_DATA_DIR_UNZIPPED / "Single_9_Frame_CounterDepth_1_Rows_256.mib"
+    with pytest.warns(VisibleDeprecationWarning):
+        _ = hs.load(fname, distributed=distributed)
+
+    with pytest.warns(VisibleDeprecationWarning):
+        load_mib_data(str(fname), distributed=distributed)

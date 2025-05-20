@@ -190,3 +190,21 @@ def test_repeated_mrc_custom():
     assert not np.array_equal(s.data[:, :, 0], s.data[:, :, 1])
     np.testing.assert_array_equal(s.data[:, 1], 0)  # Skipped rows
     np.testing.assert_array_equal(s.data[:, 3], 0)  # Skipped rows
+
+
+def test_repeated_mrc_custom_error():
+    with pytest.raises(ValueError):
+        s = hs.load(
+        TEST_DATA_DIR / "Custom_movie.mrc",
+        metadata_file=TEST_DATA_DIR / "Custom_info.txt",
+        scan_file=TEST_DATA_DIR / "Custom_scan_coordinates.csv",
+        chunks=(5, 5, 2, 2, 2),
+    )
+
+
+def test_repeated_mrc_custom_no_scan_file():
+    with pytest.raises(ValueError):
+        s = hs.load(
+        TEST_DATA_DIR / "Custom_movie.mrc",
+        metadata_file=TEST_DATA_DIR / "Custom_info.txt",
+    )

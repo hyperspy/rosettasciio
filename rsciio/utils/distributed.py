@@ -90,8 +90,11 @@ def get_arbitrary_chunk_slice(
     positions: array-like
         A numpy array in the form [[x1, y1], [x2, y2], ...] where x, y map the frame to the
         real space coordinate of the data.
-    signal_shape : tuple
+    shape : tuple
         Shape of the signal data.
+    positions : array-like
+        A numpy array in the form [[x1, y1], [x2, y2], ...] where x, y map the frame to the
+        real space coordinate of the data.
     chunks : tuple, optional
         Chunk shape. The default is "auto".
     block_size_limit : int, optional
@@ -145,6 +148,9 @@ def slice_memmap(slices, file, dtypes, shape, key=None, positions=False, **kwarg
         Shape of the entire dataset. Passed to the :class:`numpy.memmap` function.
     key : None, str
         For structured dtype only. Specify the key of the structured dtype to use.
+    positions : bool, optional
+        If True, the slices include indexes for positions which are then used to
+        create a custom scan pattern. The default is False.
     **kwargs : dict
         Additional keyword arguments to pass to the :class:`numpy.memmap` function.
 

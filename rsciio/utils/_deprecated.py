@@ -22,7 +22,7 @@ import inspect
 import warnings
 from typing import Callable, Optional, Union
 
-import numpy as np
+from rsciio.utils.exceptions import VisibleDeprecationWarning
 
 
 class deprecated:
@@ -42,7 +42,9 @@ class deprecated:
         alternative_is_function: bool = True,
         removal: Union[str, int, float, None] = None,
     ):
-        """Visible deprecation warning.
+        """
+        Visible deprecation warning.
+
         Parameters
         ----------
         since
@@ -80,13 +82,13 @@ class deprecated:
         def wrapped(*args, **kwargs):
             warnings.simplefilter(
                 action="always",
-                category=np.exceptions.VisibleDeprecationWarning,
+                category=VisibleDeprecationWarning,
                 append=True,
             )
             func_code = func.__code__
             warnings.warn_explicit(
                 message=msg,
-                category=np.exceptions.VisibleDeprecationWarning,
+                category=VisibleDeprecationWarning,
                 filename=func_code.co_filename,
                 lineno=func_code.co_firstlineno + 1,
             )
@@ -107,8 +109,8 @@ class deprecated:
 
 
 class deprecated_argument:
-    """Decorator to remove an argument from a function or method's
-    signature.
+    """
+    Decorator to remove an argument from a function or method's signature.
     Adapted from `scikit-image
     <https://github.com/scikit-image/scikit-image/blob/main/skimage/_shared/utils.py>`_.
     """
@@ -140,12 +142,12 @@ class deprecated_argument:
                 if self.additional_msg is not None:
                     msg += f" {self.additional_msg}"
                 warnings.simplefilter(
-                    action="always", category=np.exceptions.VisibleDeprecationWarning
+                    action="always", category=VisibleDeprecationWarning
                 )
                 func_code = func.__code__
                 warnings.warn_explicit(
                     message=msg,
-                    category=np.exceptions.VisibleDeprecationWarning,
+                    category=VisibleDeprecationWarning,
                     filename=func_code.co_filename,
                     lineno=func_code.co_firstlineno + 1,
                 )

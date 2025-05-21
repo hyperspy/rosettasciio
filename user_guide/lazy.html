@@ -479,6 +479,18 @@ specifyed chunks, However, the way the dask array is created differs significant
 there are issues with memory usage or slow loading, it is recommend to try the <code class="docutils literal notranslate"><span class="pre">distributed</span></code> implementation.</p>
 </div>
 </section>
+<section id="distributed-loading">
+<h2>Distributed Loading<a class="headerlink" href="#distributed-loading" title="Link to this heading">#</a></h2>
+<p>The distributed loading is enabled when using the <code class="docutils literal notranslate"><span class="pre">distributed</span></code> parameter.  In many cases it
+is recommended to use the <code class="docutils literal notranslate"><span class="pre">distributed</span></code> parameter when loading data even when not using the
+<a class="reference external" href="https://distributed.dask.org">dask distributed</a> scheduler.  This implementation is often faster than the default implementation
+in dask and allows for better control of the memory usage.</p>
+<p>In almost all cases the <a class="reference internal" href="../api/utils.html#rsciio.utils.distributed.memmap_distributed" title="rsciio.utils.distributed.memmap_distributed"><code class="xref py py-func docutils literal notranslate"><span class="pre">rsciio.utils.distributed.memmap_distributed()</span></code></a> function can be dropped in-place of the
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html#numpy.memmap" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.memmap</span></code></a> function. It also now supports the <code class="docutils literal notranslate"><span class="pre">positions</span></code> parameter which is different from the equivalent
+numpy function.  The <code class="docutils literal notranslate"><span class="pre">positions</span></code> parameter is a numpy array of positions which maps some arbitrary scan positions
+to a grid.  This is useful for loading arbitrary scan positions from a file.  The <code class="docutils literal notranslate"><span class="pre">positions</span></code> parameter does require
+that the data is chunked only in the navigation axis.</p>
+</section>
 </section>
 
 
@@ -530,6 +542,7 @@ there are issues with memory usage or slow loading, it is recommend to try the <
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Memory mapping</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#chunks">Chunks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#distributed-loading">Distributed Loading</a></li>
 </ul>
   </nav></div>
 

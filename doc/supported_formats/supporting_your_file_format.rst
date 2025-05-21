@@ -14,7 +14,8 @@ file formats.
 
 .. note:: We are always looking for more companies to support their file formats.
    If you are a company that would like to support your file format or have previously supported it,
-   please raise an issue on GitHub or contact us!
+   please raise an [issue on GitHub](https://github.com/hyperspy/rosettasciio/issues) or make a pull 
+   request on GitHub to add support - see contributing for more information!
 
 
 .. list-table:: Supported File Formats
@@ -24,13 +25,13 @@ file formats.
     * - Company
       - File Formats
     * - `CEOS <https://www.ceos-gmbh.de/de>`_
-      - .prz
+      - :ref:`.prz<pantarhei-format>`
     * - `Delmic <https://www.delmic.com/en/>`_
-      - Delmic HDF5
+      - :ref:`Delmic Hdf5<delmic-format>`
     * - `DENS <https://denssolutions.com>`_
-      - Impulse logfiles and DigiHeater logfiles
+      - :ref:`Impulse logfiles and DigiHeater logfiles<dens-format>`
     * - `Direct Electron <https://directelectron.com/dimension-for-4d-stem/>`_
-      - .mrc, .de5, .hspy
+      - :ref:`.mrc <mrc-format>`, :ref:`.de5<de5-format>`
 
 
 

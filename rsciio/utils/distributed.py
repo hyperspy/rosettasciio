@@ -74,7 +74,60 @@ def get_chunk_slice(
     return da.from_array(slices, chunks=(1,) * len(shape) + slices.shape[-2:]), chunks
 
 
-def slice_memmap(slices, file, dtypes, shape, key=None, **kwargs):
+def get_arbitrary_chunk_slice(
+    positions,
+    shape,
+    chunks="auto",
+    block_size_limit=None,
+    dtype=None,
+):
+    """
+    Get chunk slices for the :func:`rsciio.utils.distributed.slice_memmap` function. From arbitrary positions
+    given by a list of x, y coordinates.
+
+    Parameters
+    ----------
+    positions : array-like
+        A numpy array in the form [[x1, y1], [x2, y2], ...] where x, y map the frame to the
+        real space coordinate of the data.
+    shape : tuple
+        Shape of the signal data.
+    chunks : tuple, optional
+        Chunk shape. The default is "auto".
+    block_size_limit : int, optional
+        Maximum size of a block in bytes. The default is None. This is passed
+        to the :py:func:`dask.array.core.normalize_chunks` function when chunks == "auto".
+    dtype : numpy.dtype, optional
+        Data type. The default is None. This is passed to the
+        :py:func:`dask.array.core.normalize_chunks` function when chunks == "auto".
+
+    Returns
+    -------
+    dask.array.Array
+        Dask array of the slices.
+    """
+    if not isinstance(positions, np.ndarray):
+        positions = np.array(positions)
+    if chunks == "auto":
+        chunks = ("auto",) * (len(shape) - 2) + (-1, -1)
+    elif chunks[-2:] != (-1, -1):
+        raise ValueError("Last two dimensions of chunks must be -1")
+    chunks = da.core.normalize_chunks(
+        chunks=chunks, shape=shape, limit=block_size_limit, dtype=dtype
+    )
+    pos_mapping = np.zeros(shape=shape[:-2] + (1, 1), dtype=int)
+
+    for i, p in enumerate(positions):
+        pos_mapping[tuple(p)] = i + 1
+    pos_mapping = pos_mapping - 1  # 0 based indexing, -1 for the empty frames
+
+    # Now we chunk the pos_mapping array.  In the case each frame remains in a single chunk and we only
+    # return the navigation dimensions.  Later when we populate the data we will use the pos_mapping array
+    # map some frame index to the position within a dense array.
+    return da.from_array(pos_mapping, chunks=chunks[:-2] + (1, 1)), chunks
+
+
+def slice_memmap(slices, file, dtypes, shape, key=None, positions=False, **kwargs):
     """
     Slice a memory mapped file using a tuple of slices.
 
@@ -97,6 +150,9 @@ def slice_memmap(slices, file, dtypes, shape, key=None, **kwargs):
         Shape of the entire dataset. Passed to the :class:`numpy.memmap` function.
     key : None, str
         For structured dtype only. Specify the key of the structured dtype to use.
+    positions : bool, optional
+        If True, the slices include indexes for positions which are then used to
+        create a custom scan pattern. The default is False.
     **kwargs : dict
         Additional keyword arguments to pass to the :class:`numpy.memmap` function.
 
@@ -109,13 +165,23 @@ def slice_memmap(slices, file, dtypes, shape, key=None, **kwargs):
     data = np.memmap(file, dtypes, shape=shape, **kwargs)
     if key is not None:
         data = data[key]
-    slices_ = tuple([slice(s[0], s[1]) for s in slices_])
-    return data[slices_]
+    if positions:
+        # We have arbitrary positions.
+        if -1 in slices_:  # -1 means empty frame we will return 0.
+            result = data[slices_]
+            result[slices_ == -1] = 0
+            return result
+        else:
+            return data[slices_]
+    else:
+        slices_ = tuple([slice(s[0], s[1]) for s in slices_])
+        return data[slices_]
 
 
 def memmap_distributed(
     filename,
     dtype,
+    positions=None,
     offset=0,
     shape=None,
     order="C",
@@ -138,6 +204,9 @@ def memmap_distributed(
         Path to the file.
     dtype : numpy.dtype
         Data type of the data for memmap function.
+    positions : array-like, optional
+        A numpy array in the form [[x1, y1], [x2, y2], ...] where x, y map the frame to the
+        real space coordinate of the data. The default is None.
     offset : int, optional
         Offset in bytes. The default is 0.
     shape : tuple, optional
@@ -179,14 +248,32 @@ def memmap_distributed(
     if not isinstance(shape, tuple):
         shape = (shape,)
 
-    # Separates slices into appropriately sized chunks.
-    chunked_slices, data_chunks = get_chunk_slice(
-        shape=shape + sub_array_shape,
-        chunks=chunks,
-        block_size_limit=block_size_limit,
-        dtype=array_dtype,
-    )
     num_dim = len(shape + sub_array_shape)
+    if positions is not None:
+        # We have arbitrary positions
+        chunked_slices, data_chunks = get_arbitrary_chunk_slice(
+            positions=positions,
+            shape=shape + sub_array_shape,
+            chunks=chunks,
+            block_size_limit=block_size_limit,
+            dtype=array_dtype,
+        )
+        drop_axes = None
+        use_positions = True
+        shape = (len(positions),) + shape[-2:]  # update the shape to be linear
+    else:
+        # Separates slices into appropriately sized chunks.
+        chunked_slices, data_chunks = get_chunk_slice(
+            shape=shape + sub_array_shape,
+            chunks=chunks,
+            block_size_limit=block_size_limit,
+            dtype=array_dtype,
+        )
+        drop_axes = (
+            num_dim,
+            num_dim + 1,
+        )  # Dask 2021.10.0 minimum to use negative indexing
+        use_positions = False
     data = da.map_blocks(
         slice_memmap,
         chunked_slices,
@@ -198,10 +285,8 @@ def memmap_distributed(
         dtypes=dtype,
         offset=offset,
         chunks=data_chunks,
-        drop_axis=(
-            num_dim,
-            num_dim + 1,
-        ),  # Dask 2021.10.0 minimum to use negative indexing
+        drop_axis=drop_axes,
+        positions=use_positions,
         key=key,
     )
     return data

@@ -54,3 +54,18 @@ The chunking can also be specified as follow using the ``chunks`` parameter:
     being set to ``True`` or ``False``. In both cases the reader will return a dask array with
     specifyed chunks, However, the way the dask array is created differs significantly and if
     there are issues with memory usage or slow loading, it is recommend to try the ``distributed`` implementation.
+
+
+Distributed Loading
+===================
+
+The distributed loading is enabled when using the ``distributed`` parameter.  In many cases it
+is recommended to use the ``distributed`` parameter when loading data even when not using the
+`dask distributed`_ scheduler.  This implementation is often faster than the default implementation
+in dask and allows for better control of the memory usage.
+
+In almost all cases the :func:`rsciio.utils.distributed.memmap_distributed` function can be dropped in-place of the
+:class:`numpy.memmap` function. It also now supports the ``positions`` parameter which is different from the equivalent
+numpy function.  The ``positions`` parameter is a numpy array of positions which maps some arbitrary scan positions
+to a grid.  This is useful for loading arbitrary scan positions from a file.  The ``positions`` parameter does require
+that the data is chunked only in the navigation axis.

@@ -1,0 +1,1 @@
+Remove non-distributed memory mapping implementation in :ref:`rpl <ripple-format>` reader. Deprecate ``mmap_mode`` in :ref:`mrc <mrc-format>` reader since it is not used anymore with the distributed memory mapping implementation.

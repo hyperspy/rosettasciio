@@ -162,3 +162,11 @@ def distributed_keyword_deprecation(func):
         "0.8.0",
         additional_msg=" Distributed memory mapping is now supported in the default implementation.",
     )(func)
+
+
+def mmap_mode_keyword_deprecation(func):
+    return deprecated_argument(
+        "mmap_mode",
+        "0.8.0",
+        additional_msg=" `mmap_mode` is deprecated because it is not used anymore.",
+    )(func)

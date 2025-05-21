@@ -26,19 +26,20 @@ import logging
 import os.path
 from io import StringIO
 
-import dask.array as da
 import numpy as np
 
 from rsciio import __version__
 from rsciio._docstrings import (
     CHUNKS_DOC,
-    DISTRIBUTED_DOC,
     ENCODING_DOC,
     FILENAME_DOC,
     LAZY_DOC,
-    MMAP_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
+)
+from rsciio.utils._deprecated import (
+    distributed_keyword_deprecation,
+    mmap_mode_keyword_deprecation,
 )
 from rsciio.utils.distributed import memmap_distributed
 from rsciio.utils.tools import DTBox
@@ -193,7 +194,9 @@ def parse_ripple(fp):
     return rpl_info
 
 
-def read_raw(rpl_info, filename, mmap_mode="c", distributed=False, chunks="auto"):
+@distributed_keyword_deprecation
+@mmap_mode_keyword_deprecation
+def read_raw(rpl_info, filename, chunks="auto"):
     """
     Read the raw file object 'fp' based on the information given in the
     ``'rpl_info'`` dictionary.
@@ -204,8 +207,6 @@ def read_raw(rpl_info, filename, mmap_mode="c", distributed=False, chunks="auto"
         A dictionary containing the keywords as parsed by ``read_rpl``.
     filename : str
         The filename of the raw file.
-    mmap_mode : str, default='c'
-        The mmap_mode to use to read the file.
 
     Returns
     -------
@@ -249,29 +250,24 @@ def read_raw(rpl_info, filename, mmap_mode="c", distributed=False, chunks="auto"
     elif record_by == "dont-care":  # stack of images
         shape = (height, width)
 
-    if distributed:
-        data = memmap_distributed(
-            filename,
-            offset=offset,
-            shape=shape,
-            dtype=data_type,
-            chunks=chunks,
-        )
-    else:
-        data = np.memmap(
-            filename, offset=offset, dtype=data_type, mode=mmap_mode, shape=shape
-        )
+    data = memmap_distributed(
+        filename,
+        offset=offset,
+        shape=shape,
+        dtype=data_type,
+        chunks=chunks,
+    )
 
     return data.squeeze()
 
 
+@distributed_keyword_deprecation
+@mmap_mode_keyword_deprecation
 def file_reader(
     filename,
     lazy=False,
     rpl_info=None,
     encoding="latin-1",
-    mmap_mode=None,
-    distributed=False,
     chunks="auto",
 ):
     """
@@ -288,8 +284,6 @@ def file_reader(
         A dictionary containing the keywords in order to read a ``.raw`` file
         without corresponding ``.rpl`` file. If ``None``, the keywords are parsed
         automatically from the ``.rpl`` file.
-    %s
-    %s
     %s
     %s
 
@@ -311,18 +305,10 @@ def file_reader(
     if not rawfname:
         raise IOError(f'RAW file "{rawfname}" does not exists')
 
-    if lazy:
-        mmap_mode = "r"
-    else:
-        mmap_mode = "c"
-    data = read_raw(
-        rpl_info, rawfname, mmap_mode=mmap_mode, distributed=distributed, chunks=chunks
-    )
+    data = read_raw(rpl_info, rawfname, chunks=chunks)
 
-    if distributed and not lazy:
+    if not lazy:
         data = data.compute()
-    if not distributed and lazy:
-        data = da.from_array(data, chunks=chunks)
 
     if rpl_info["record-by"] == "vector":
         _logger.info("Loading as Signal1D")
@@ -493,8 +479,6 @@ file_reader.__doc__ %= (
     FILENAME_DOC,
     LAZY_DOC,
     ENCODING_DOC,
-    MMAP_DOC,
-    DISTRIBUTED_DOC,
     CHUNKS_DOC,
     RETURNS_DOC,
 )

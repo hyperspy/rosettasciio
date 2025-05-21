@@ -316,6 +316,14 @@ def test_test_load_mib_data_from_buffer():
     assert data.shape == (2, 4, 256, 256)
 
     with open(fname, mode="rb") as f:
+        data, headers = load_mib_data(
+            f.read(), navigation_shape=(4, 2), return_headers=True
+        )
+
+    assert data.shape == (2, 4, 256, 256)
+    assert headers.shape == (2, 4)
+
+    with open(fname, mode="rb") as f:
         with pytest.raises(ValueError):
             # loading lazy memory buffer is not supported
             _ = load_mib_data(f.read(), lazy=True)

@@ -326,13 +326,14 @@ def load_mib_data(
                 data = data.compute()
             data = data.squeeze()
     elif isinstance(path, bytes):
-        data = np.frombuffer(
+        buffer = np.frombuffer(
             path,
             dtype=merlin_frame_dtype,
             count=mib_prop.xy,
             offset=mib_prop.offset,
-        )["data"]
-        data = data.reshape(navigation_shape + mib_prop.merlin_size).squeeze()
+        ).reshape(navigation_shape)
+        headers = buffer["header"]
+        data = buffer["data"]
 
     else:  # pragma: no cover
         raise TypeError("`path` must be a str or a buffer.")

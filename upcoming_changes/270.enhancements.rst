@@ -1,0 +1,1 @@
+:ref:`quantumdetector-format`: Add support for reading MIB files acquired with lineskips when acquired in "Scan Mode" and with a corresponding HDR file present.

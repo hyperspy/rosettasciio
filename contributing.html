@@ -653,6 +653,25 @@ or for all platforms.</p></li>
 <a class="reference external" href="http://hyperspy.org/hyperspy-doc/current/dev_guide/intro.html">HyperSpy developer guide</a>
 for maintenance guidelines.</p>
 </section>
+<section id="deprecations">
+<h2>Deprecations<a class="headerlink" href="#deprecations" title="Link to this heading">#</a></h2>
+<p>We attempt to adhere to semantic versioning as best we can. This means that as little,
+ideally no, functionality should break between minor releases. Deprecation warnings
+are raised whenever possible and feasible for functions/methods/properties/arguments,
+so that users get a heads-up one (minor) release before something is removed or changes,
+with a possible alternative to be used.</p>
+<p>The decorator should be placed right above the object signature to be deprecated:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@deprecate</span><span class="p">(</span><span class="n">since</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">removal</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">alternative</span><span class="o">=</span><span class="s2">&quot;bar&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">foo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span>
+
+<span class="nd">@property</span>
+<span class="nd">@deprecate</span><span class="p">(</span><span class="n">since</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">removal</span><span class="o">=</span><span class="mf">0.10</span><span class="p">,</span> <span class="n">alternative</span><span class="o">=</span><span class="s2">&quot;another&quot;</span><span class="p">,</span> <span class="n">is_function</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">this_property</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="mi">2</span>
+</pre></div>
+</div>
+</section>
 </section>
 
 
@@ -715,6 +734,7 @@ for maintenance guidelines.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rosettasciio-version">RosettaSciIO version</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dependencies">Dependencies</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#maintenance">Maintenance</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deprecations">Deprecations</a></li>
 </ul>
   </nav></div>
 

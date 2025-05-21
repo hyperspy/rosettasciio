@@ -490,7 +490,6 @@ def file_reader(
     if not lazy:
         data = data.compute()
 
-
     original_metadata["std_header"] = sarray2dict(std_header)
 
     # Convert bytes to unicode

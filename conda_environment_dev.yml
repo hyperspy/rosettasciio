@@ -5,6 +5,7 @@ dependencies:
 - cython
 - filelock
 - h5py >=2.3
+- hdf5plugin
 - imageio >=2.16
 - numba >=0.52
 - pooch

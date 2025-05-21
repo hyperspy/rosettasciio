@@ -24,12 +24,10 @@ import glob
 import logging
 import os
 
-import dask.array as da
 import numpy as np
 
 from rsciio._docstrings import (
     CHUNKS_READ_DOC,
-    DISTRIBUTED_DOC,
     ENDIANESS_DOC,
     FILENAME_DOC,
     LAZY_DOC,
@@ -37,6 +35,7 @@ from rsciio._docstrings import (
     NAVIGATION_SHAPE,
     RETURNS_DOC,
 )
+from rsciio.utils._deprecated import deprecated_argument
 from rsciio.utils.distributed import memmap_distributed
 from rsciio.utils.tools import sarray2dict
 
@@ -295,13 +294,15 @@ def read_de_metadata_file(filename, nav_shape=None):
     return original_metadata, metadata, axes, nav_shape
 
 
+@deprecated_argument(
+    "distributed", "0.8.0", additional_msg=" This should have no effect on basic usage."
+)
 def file_reader(
     filename,
     lazy=False,
     mmap_mode=None,
     endianess="<",
     navigation_shape=None,
-    distributed=False,
     chunks="auto",
     metadata_file="auto",
     virtual_images=None,
@@ -312,7 +313,6 @@ def file_reader(
 
     Parameters
     ----------
-    %s
     %s
     %s
     %s
@@ -412,26 +412,18 @@ def file_reader(
     shape = (NX[0], NY[0], NZ[0])
     if navigation_shape is not None:
         shape = shape[:2] + navigation_shape
-    if distributed:
-        data = memmap_distributed(
-            filename,
-            offset=f.tell(),
-            shape=shape[::-1],
-            dtype=get_data_type(std_header["MODE"]),
-            chunks=chunks,
-        )
-        if not lazy:
-            data = data.compute()
-    else:
-        data = np.memmap(
-            f,
-            mode=mmap_mode,
-            shape=shape[::-1],
-            offset=f.tell(),
-            dtype=get_data_type(std_header["MODE"]),
-        ).squeeze()
-        if lazy:
-            data = da.from_array(data, chunks=chunks)
+    data = memmap_distributed(
+        filename,
+        offset=f.tell(),
+        shape=shape[::-1],
+        dtype=get_data_type(std_header["MODE"]),
+        chunks=chunks,
+    )
+    if any(shape[i] == 1 for i in range(len(shape))):
+        # Remove the singleton dimensions
+        data = np.squeeze(data)
+    if not lazy:
+        data = data.compute()
 
     original_metadata["std_header"] = sarray2dict(std_header)
 
@@ -551,7 +543,6 @@ file_reader.__doc__ %= (
     MMAP_DOC,
     ENDIANESS_DOC,
     NAVIGATION_SHAPE,
-    DISTRIBUTED_DOC,
     CHUNKS_READ_DOC,
     RETURNS_DOC,
 )

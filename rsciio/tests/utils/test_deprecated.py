@@ -20,9 +20,10 @@
 import warnings
 
 import pytest
+from numpy.exceptions import VisibleDeprecationWarning
 
 from rsciio.utils._deprecated import deprecated, deprecated_argument
-from numpy.exceptions import VisibleDeprecationWarning
+
 
 class TestDeprecationWarning:
     def test_deprecation_since(self):
@@ -84,10 +85,7 @@ class TestDeprecationWarning:
         )
         assert str(record[0].message) == desired_msg
         assert foo.__doc__ == (
-            "[*Deprecated*] \n"
-            "\nNotes\n-----\n"
-            ".. deprecated:: 0.7\n"
-            f"   {desired_msg}"
+            f"[*Deprecated*] \n\nNotes\n-----\n.. deprecated:: 0.7\n   {desired_msg}"
         )
 
 
@@ -107,7 +105,9 @@ class TestDeprecateArgument:
             def bar_arg_alt(self, **kwargs):
                 return kwargs
 
-            @deprecated_argument(name="a", since="1.3", additional_msg="This will not effect behavior.")
+            @deprecated_argument(
+                name="a", since="1.3", additional_msg="This will not effect behavior."
+            )
             def bar_arg_none(self, **kwargs):
                 return kwargs
 

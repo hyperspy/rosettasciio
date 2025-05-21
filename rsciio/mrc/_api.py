@@ -24,12 +24,10 @@ import glob
 import logging
 import os
 
-import dask.array as da
 import numpy as np
 
 from rsciio._docstrings import (
     CHUNKS_READ_DOC,
-    DISTRIBUTED_DOC,
     ENDIANESS_DOC,
     FILENAME_DOC,
     LAZY_DOC,
@@ -37,9 +35,9 @@ from rsciio._docstrings import (
     NAVIGATION_SHAPE,
     RETURNS_DOC,
 )
+from rsciio.utils._deprecated import deprecated_argument
 from rsciio.utils.distributed import memmap_distributed
 from rsciio.utils.tools import sarray2dict
-from rsciio.utils._deprecated import deprecated_argument
 
 _logger = logging.getLogger(__name__)
 
@@ -295,7 +293,10 @@ def read_de_metadata_file(filename, nav_shape=None):
     }
     return original_metadata, metadata, axes, nav_shape
 
-@deprecated_argument("distributed", "0.8.0", additional_msg= " This should have no effect on basic usage.")
+
+@deprecated_argument(
+    "distributed", "0.8.0", additional_msg=" This should have no effect on basic usage."
+)
 def file_reader(
     filename,
     lazy=False,
@@ -423,7 +424,6 @@ def file_reader(
         data = np.squeeze(data)
     if not lazy:
         data = data.compute()
-
 
     original_metadata["std_header"] = sarray2dict(std_header)
 

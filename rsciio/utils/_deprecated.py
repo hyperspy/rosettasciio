@@ -19,14 +19,10 @@
 
 import functools
 import inspect
-from typing import Callable, Optional, Union
 import warnings
-
+from typing import Callable, Optional, Union
 
 import numpy as np
-
-
-
 
 
 class deprecated:
@@ -83,7 +79,9 @@ class deprecated:
         @functools.wraps(func)
         def wrapped(*args, **kwargs):
             warnings.simplefilter(
-                action="always", category=np.exceptions.VisibleDeprecationWarning, append=True
+                action="always",
+                category=np.exceptions.VisibleDeprecationWarning,
+                append=True,
             )
             func_code = func.__code__
             warnings.warn_explicit(
@@ -115,7 +113,9 @@ class deprecated_argument:
     <https://github.com/scikit-image/scikit-image/blob/main/skimage/_shared/utils.py>`_.
     """
 
-    def __init__(self, name, since, removal=None, alternative=None, additional_msg=None):
+    def __init__(
+        self, name, since, removal=None, alternative=None, additional_msg=None
+    ):
         self.name = name
         self.since = since
         self.removal = removal
@@ -126,8 +126,7 @@ class deprecated_argument:
         @functools.wraps(func)
         def wrapped(*args, **kwargs):
             if self.name in kwargs.keys():
-                msg = (
-                    f"Argument `{self.name}` is deprecated")
+                msg = f"Argument `{self.name}` is deprecated"
                 if self.removal is not None:
                     msg += f" and will be removed in version {self.removal}."
                 else:

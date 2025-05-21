@@ -148,8 +148,9 @@ def test_mrc_metadata_auto():
 
 
 def test_mrc_metadata_auto_custom_shape():
-    s = hs.load(TEST_DATA_DIR / "20241021_00405_movie.mrc", lazy=True,
-                navigation_shape=(16, 2))
+    s = hs.load(
+        TEST_DATA_DIR / "20241021_00405_movie.mrc", lazy=True, navigation_shape=(16, 2)
+    )
     navigation_shape = (16, 2)
     shape = navigation_shape[::-1] + (4, 8)
     assert s.data.shape == shape
@@ -219,16 +220,16 @@ def test_repeated_mrc_custom():
 def test_repeated_mrc_custom_error():
     with pytest.raises(ValueError):
         hs.load(
-        TEST_DATA_DIR / "Custom_movie.mrc",
-        metadata_file=TEST_DATA_DIR / "Custom_info.txt",
-        scan_file=TEST_DATA_DIR / "Custom_scan_coordinates.csv",
-        chunks=(5, 5, 2, 2, 2),
-    )
+            TEST_DATA_DIR / "Custom_movie.mrc",
+            metadata_file=TEST_DATA_DIR / "Custom_info.txt",
+            scan_file=TEST_DATA_DIR / "Custom_scan_coordinates.csv",
+            chunks=(5, 5, 2, 2, 2),
+        )
 
 
 def test_repeated_mrc_custom_no_scan_file():
     with pytest.raises(ValueError):
         hs.load(
-        TEST_DATA_DIR / "Custom_movie.mrc",
-        metadata_file=TEST_DATA_DIR / "Custom_info.txt",
-    )
+            TEST_DATA_DIR / "Custom_movie.mrc",
+            metadata_file=TEST_DATA_DIR / "Custom_info.txt",
+        )

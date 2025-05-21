@@ -391,9 +391,7 @@ def file_reader(
                 external_images = glob.glob(
                     dir_name + "/" + unique_id + suffix + "_ext[1-4]_*.mrc"
                 )
-            except (
-                IndexError
-            ):  # pragma: no cover
+            except IndexError:  # pragma: no cover
                 # Not a DE movie or File Naming Convention is not followed
                 _logger.warning("Could not find metadata file for DE movie.")
                 metadata = []
@@ -443,7 +441,7 @@ def file_reader(
             if navigation_shape is not None and navigation_shape[::-1] != img.shape:
                 if np.prod(img.shape) == np.prod(navigation_shape[::-1]):
                     img = img.reshape(navigation_shape[::-1])
-                else: # pragma: no cover
+                else:  # pragma: no cover
                     _logger.warning(
                         f"Virtual image {v} does not match the navigation shape {navigation_shape[::-1]}"
                     )

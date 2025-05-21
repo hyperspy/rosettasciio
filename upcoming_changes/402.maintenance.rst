@@ -1,0 +1,2 @@
+Remove `distributed` keyword from `mrc` and change default behavior to use the
+`distributed` backend.

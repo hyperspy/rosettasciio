@@ -154,3 +154,11 @@ class deprecated_argument:
             return func(*args, **kwargs)
 
         return wrapped
+
+
+def distributed_keyword_deprecation(func):
+    return deprecated_argument(
+        "distributed",
+        "0.8.0",
+        additional_msg=" Distributed memory mapping is now supported in the default implementation.",
+    )(func)

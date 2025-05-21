@@ -20,6 +20,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from rsciio.mrc import file_reader
+from rsciio.utils.exceptions import VisibleDeprecationWarning
+
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 
@@ -58,38 +61,30 @@ def test_4DSTEM_image_navigation_shape_16_16():
     assert s.axes_manager.navigation_shape == (16, 16)
 
 
-@pytest.mark.parametrize("distributed", [True, False])
-def test_4DSTEM_image_navigation_shape_8_32(distributed):
+def test_4DSTEM_image_navigation_shape_8_32():
     s = hs.load(
         TEST_DATA_DIR / "4DSTEMscan.mrc",
         navigation_shape=(8, 32),
-        distributed=distributed,
     )
     assert s.data.shape == (32, 8, 256, 256)
     assert s.axes_manager.signal_shape == (256, 256)
     assert s.axes_manager.navigation_shape == (8, 32)
 
 
-def test_mrc_distributed_equal():
-    s = hs.load(
-        TEST_DATA_DIR / "4DSTEMscan.mrc",
-        navigation_shape=(8, 32),
-        distributed=False,
-    )
-    s2 = hs.load(
-        TEST_DATA_DIR / "4DSTEMscan.mrc",
-        navigation_shape=(8, 32),
-        distributed=True,
-    )
-    np.testing.assert_array_equal(s.data, s2.data)
-
-
 @pytest.mark.parametrize("distributed", [True, False])
-def test_mrc_chunks_equal(distributed):
+def test_distributed_deprecation_warning(distributed):
+    with pytest.warns(VisibleDeprecationWarning):
+        file_reader(
+            str(TEST_DATA_DIR / "4DSTEMscan.mrc"),
+            navigation_shape=(8, 32),
+            distributed=distributed,
+        )
+
+
+def test_mrc_chunks_equal():
     s = hs.load(
         TEST_DATA_DIR / "4DSTEMscan.mrc",
         navigation_shape=(8, 32),
-        distributed=distributed,
         chunks=(16, 4, 256, 256),
         lazy=True,
     )

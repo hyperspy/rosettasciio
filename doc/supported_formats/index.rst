@@ -10,6 +10,9 @@ usually be read-only. The **lazy** column specifies whether
 :external+hyperspy:ref:`lazy loading <big-data-label>` (and thus evaluation) of
 big datasets is supported.
 
+We'd also like to thank the :ref:`companies<supporting_your_file_format>` who have contributed to the development and support of
+their file formats.
+
 .. include:: supported_formats.rst
 
 .. toctree::
@@ -48,3 +51,4 @@ big datasets is supported.
    tvips
    usid
    zspy
+   supporting_your_file_format

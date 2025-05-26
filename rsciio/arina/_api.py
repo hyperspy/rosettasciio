@@ -23,6 +23,12 @@ import h5py
 import hdf5plugin  # noqa F401
 import numpy as np
 
+from rsciio._docstrings import (
+    FILENAME_DOC,
+    LAZY_DOC,
+    RETURNS_DOC,
+)
+
 _logger = logging.getLogger(__name__)
 
 
@@ -41,6 +47,8 @@ def file_reader(
 
     Parameters
     ----------
+    %s
+    %s
     navigation_shape : tuple or int or None, default = None
         Specify the shape of the navigation space. If None, assumes square acquisition.
         A tuple can be specified as (x_scan_dimension, y_scan_dimension), (x_scan_dimension, "auto"),
@@ -52,6 +60,7 @@ def file_reader(
         Datatype for dataset.
     flatfield : numpy.ndarray, optional
         Flatfield for correction factors, converts data to float.
+    %s
     """
     if lazy:
         raise NotImplementedError("Lazy loading is not supported for arina files")
@@ -183,6 +192,13 @@ def file_reader(
             "mapping": {},
         }
     ]
+
+
+file_reader.__doc__ %= (
+    FILENAME_DOC,
+    LAZY_DOC,
+    RETURNS_DOC,
+)
 
 
 def _process_dataset(

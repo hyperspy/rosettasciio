@@ -89,10 +89,10 @@ keywords = [
 file = "COPYING.txt"
 
 [project.optional-dependencies]
+arina = ["h5py>=2.3", "hdf5plugin"]
 blockfile = ["scikit-image>=0.18"]
 eds-stream = ["sparse"]
 hdf5 = ["h5py>=2.3"]
-arina = ["h5py>=2.3", "hdf5plugin"]
 image = ["imageio>=2.16"]
 mrcz = ["mrcz>=0.3.6"]
 scalebar_export = ["matplotlib-scalebar", "matplotlib>=3.6"]

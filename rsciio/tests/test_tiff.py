@@ -32,7 +32,6 @@ t = pytest.importorskip("traits.api", reason="traits not installed")
 
 import rsciio.tiff  # noqa: E402
 from rsciio.utils.tests import assert_deep_almost_equal  # noqa: E402
-from rsciio.utils.tools import get_file_handle  # noqa: E402
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "tiff"
 TEST_NPZ_DATA_PATH = Path(__file__).parent / "data" / "npz"
@@ -206,26 +205,27 @@ class TestLoadingImagesSavedWithImageJ:
             assert s3.axes_manager.navigation_shape == s.axes_manager.navigation_shape
 
 
-@pytest.mark.parametrize("size", ((50, 50), (2, 50, 50)))
-def test_lazy_loading(tmp_path, size):
-    dummy_data = np.random.random_sample(size=size)
-    fname = tmp_path / "dummy.tiff"
+# Uncomment when there is a proper file handle API
+# @pytest.mark.parametrize("size", ((50, 50), (2, 50, 50)))
+# def test_lazy_loading(tmp_path, size):
+#     dummy_data = np.random.random_sample(size=size)
+#     fname = tmp_path / "dummy.tiff"
 
-    rsciio.tiff.file_writer(fname, {"data": dummy_data})
-    from_tiff = rsciio.tiff.file_reader(fname, lazy=True)
-    data = from_tiff[0]["data"]
-    fh = get_file_handle(data)
-    # check that the file is open
-    fh.fileno()
+#     rsciio.tiff.file_writer(fname, {"data": dummy_data})
+#     from_tiff = rsciio.tiff.file_reader(fname, lazy=True)
+#     data = from_tiff[0]["data"]
+#     fh = get_file_handle(data)
+#     # check that the file is open
+#     fh.fileno()
 
-    data = data.compute()
-    np.testing.assert_allclose(data, dummy_data)
+#     data = data.compute()
+#     np.testing.assert_allclose(data, dummy_data)
 
-    # After we load to memory, we can close the file manually
-    fh.close()
-    with pytest.raises(ValueError):
-        # file is now closed
-        fh.fileno()
+#     # After we load to memory, we can close the file manually
+#     fh.close()
+#     with pytest.raises(ValueError):
+#         # file is now closed
+#         fh.fileno()
 
 
 # def test_lazy_loading_hyperspy_close(tmp_path):

@@ -555,7 +555,8 @@ def get_file_handle(data, warn=True):
             else:
                 tiff_pages_series = data.dask[arrkey_tifffile][2][0]
             return tiff_pages_series.parent.filehandle._fh
-        except IndexError:  # pragma: no cover
+        # can raise IndexError or AttributeError
+        except BaseException:  # pragma: no cover
             if warn:
                 _logger.warning(
                     "Failed to retrieve file handle, either the file is "

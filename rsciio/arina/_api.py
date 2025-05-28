@@ -20,12 +20,14 @@ import logging
 from pathlib import Path
 
 import h5py
+
+# import needed to be able to hdf5 filter
 import hdf5plugin  # noqa F401
 import numpy as np
 
 from rsciio._docstrings import (
     FILENAME_DOC,
-    LAZY_DOC,
+    LAZY_UNSUPPORTED_DOC,
     RETURNS_DOC,
 )
 
@@ -40,10 +42,8 @@ def file_reader(
     dtype=None,
     flatfield=None,
 ):
-    """Read arina 4D-STEM datasets.
-
-    hdf5plugin is needed in addition to h5py due to compression filters used by the detector
-    when writing data.
+    """
+    Read arina 4D-STEM datasets.
 
     Parameters
     ----------
@@ -60,7 +60,13 @@ def file_reader(
         Datatype for dataset.
     flatfield : numpy.ndarray, optional
         Flatfield for correction factors, converts data to float.
+
     %s
+
+    Notes
+    -----
+    The hdf5plugin library is needed in addition to h5py due to compression filters used by the detector
+    when writing data.
     """
     if lazy:
         raise NotImplementedError("Lazy loading is not supported for arina files")
@@ -196,7 +202,7 @@ def file_reader(
 
 file_reader.__doc__ %= (
     FILENAME_DOC,
-    LAZY_DOC,
+    LAZY_UNSUPPORTED_DOC,
     RETURNS_DOC,
 )
 

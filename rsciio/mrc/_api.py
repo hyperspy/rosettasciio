@@ -31,11 +31,13 @@ from rsciio._docstrings import (
     ENDIANESS_DOC,
     FILENAME_DOC,
     LAZY_DOC,
-    MMAP_DOC,
     NAVIGATION_SHAPE,
     RETURNS_DOC,
 )
-from rsciio.utils._deprecated import distributed_keyword_deprecation
+from rsciio.utils._deprecated import (
+    distributed_keyword_deprecation,
+    mmap_mode_keyword_deprecation,
+)
 from rsciio.utils.distributed import memmap_distributed
 from rsciio.utils.tools import sarray2dict
 
@@ -326,10 +328,10 @@ def read_de_metadata_file(filename, nav_shape=None, scan_pos_file=None):
 
 
 @distributed_keyword_deprecation
+@mmap_mode_keyword_deprecation
 def file_reader(
     filename,
     lazy=False,
-    mmap_mode=None,
     endianess="<",
     navigation_shape=None,
     chunks="auto",
@@ -343,7 +345,6 @@ def file_reader(
 
     Parameters
     ----------
-    %s
     %s
     %s
     %s
@@ -468,8 +469,6 @@ def file_reader(
         f.seek(1024 + std_header["NEXT"][0])
         fei_header = None
     NX, NY, NZ = std_header["NX"], std_header["NY"], std_header["NZ"]
-    if mmap_mode is None:
-        mmap_mode = "r" if lazy else "c"
     shape = (NX[0], NY[0], NZ[0])
     if navigation_shape is not None:
         shape = shape[:2] + navigation_shape
@@ -609,7 +608,6 @@ mapping = {
 file_reader.__doc__ %= (
     FILENAME_DOC,
     LAZY_DOC,
-    MMAP_DOC,
     ENDIANESS_DOC,
     NAVIGATION_SHAPE,
     CHUNKS_READ_DOC,

@@ -81,6 +81,15 @@ def test_distributed_deprecation_warning(distributed):
         )
 
 
+def test_deprecated_mmap_mode():
+    with pytest.warns(VisibleDeprecationWarning):
+        file_reader(
+            str(TEST_DATA_DIR / "4DSTEMscan.mrc"),
+            navigation_shape=(8, 32),
+            mmap_mode="r",
+        )
+
+
 def test_mrc_chunks_equal():
     s = hs.load(
         TEST_DATA_DIR / "4DSTEMscan.mrc",

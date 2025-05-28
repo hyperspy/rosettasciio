@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
-    <title>EDAX TEAM/Genesis (SPC, SPD) &#8212; RosettaSciIO  documentation</title>
+    <title>Arina &#8212; RosettaSciIO  documentation</title>
   
   
   
@@ -47,11 +47,11 @@
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=d1c4098b"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/edax';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/arina';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Electron Microscopy Dataset (EMD)" href="emd.html" />
-    <link rel="prev" title="DigitalSurf format (SUR &amp; PRO)" href="digitalsurf.html" />
+    <link rel="next" title="Blockfile" href="blockfile.html" />
+    <link rel="prev" title="Supported formats" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -375,7 +375,7 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="arina.html">Arina</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Arina</a></li>
 <li class="toctree-l1"><a class="reference internal" href="blockfile.html">Blockfile</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bruker.html">Bruker</a></li>
 <li class="toctree-l1"><a class="reference internal" href="de5.html">Direct Electron EMD (DE5)</a></li>
@@ -383,7 +383,7 @@
 <li class="toctree-l1"><a class="reference internal" href="dens.html">DENSsolutions formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="digitalmicrograph.html">Gatan Digital Micrograph</a></li>
 <li class="toctree-l1"><a class="reference internal" href="digitalsurf.html">DigitalSurf format (SUR &amp; PRO)</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">EDAX TEAM/Genesis (SPC, SPD)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="edax.html">EDAX TEAM/Genesis (SPC, SPD)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="emd.html">Electron Microscopy Dataset (EMD)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="empad.html">EMPAD format (XML &amp; RAW)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hamamatsu.html">Hamamatsu</a></li>
@@ -453,7 +453,7 @@
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Supported formats</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">EDAX TEAM/Genesis (SPC, SPD)</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Arina</span></li>
   </ul>
 </nav>
 </div>
@@ -470,71 +470,39 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="edax-team-genesis-spc-spd">
-<span id="edax-format"></span><h1>EDAX TEAM/Genesis (SPC, SPD)<a class="headerlink" href="#edax-team-genesis-spc-spd" title="Link to this heading">#</a></h1>
-<p>RosettaSciIO can read both <code class="docutils literal notranslate"><span class="pre">.spd</span></code> (spectrum image) and <code class="docutils literal notranslate"><span class="pre">.spc</span></code> (single spectra)
-files from the EDAX TEAM software and its predecessor EDAX Genesis.
-If reading an <code class="docutils literal notranslate"><span class="pre">.spd</span></code> file, the calibration of the
-spectrum image is loaded from the corresponding <code class="docutils literal notranslate"><span class="pre">.ipr</span></code> and <code class="docutils literal notranslate"><span class="pre">.spc</span></code> files
-stored in the same directory, or from specific files indicated by the user.
-If these calibration files are not available, the data from the <code class="docutils literal notranslate"><span class="pre">.spd</span></code>
-file will still be loaded, but with no spatial or energy calibration.</p>
-<p>When using <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, if elemental information has been
-defined in the spectrum image, those elements will automatically be added to the
-signal loaded by HyperSpy.</p>
-<p>In HyperSpy, if an <code class="docutils literal notranslate"><span class="pre">.spd</span></code> file is loaded, the result will be a HyperSpy
-<code class="docutils literal notranslate"><span class="pre">EDSSEMSpectrum</span></code> map, and the calibration will be loaded from the appropriate
-<code class="docutils literal notranslate"><span class="pre">.spc</span></code> and <code class="docutils literal notranslate"><span class="pre">.ipr</span></code> files (if available). If an <code class="docutils literal notranslate"><span class="pre">.spc</span></code> file is loaded, the
-result will be a single <code class="docutils literal notranslate"><span class="pre">EDSSEMSpectrum</span></code> with no other files needed for
-calibration.</p>
+  <section id="arina">
+<span id="arina-format"></span><h1>Arina<a class="headerlink" href="#arina" title="Link to this heading">#</a></h1>
+<p>This is the file format used by the Dectris Arina detector. It stores 4D-STEM
+data. For each scan, the detector writes one master file, a series of
+datafiles labeled with integers, and newer versions include an additional
+metadata file. When loading data, the <code class="docutils literal notranslate"><span class="pre">filename</span></code> should be the master file.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Currently, HyperSpy will load data as an <code class="docutils literal notranslate"><span class="pre">EDSSEMSpectrum</span></code> signal. If support
-for TEM EDS data is needed, please open an issue in the <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues">issues tracker</a> to alert the developers
-of the need.</p>
+<p>The <a class="reference external" href="http://www.silx.org/doc/hdf5plugin/latest/">hdf5plugin</a> library is required for reading this file format.</p>
 </div>
-<p>For reference, <a class="reference internal" href="../file_specification/index.html#edax-file-specification"><span class="std std-ref">file specifications</span></a> for the EDAX
-file formats have been publicly available from EDAX.</p>
-<section id="module-rsciio.edax">
-<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.edax" title="Link to this heading">#</a></h2>
+<section id="module-rsciio.arina">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.arina" title="Link to this heading">#</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="rsciio.edax.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.edax.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_all_spc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spc_fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ipr_fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.edax.file_reader" title="Link to this definition">#</a></dt>
-<dd><p>Read <code class="docutils literal notranslate"><span class="pre">.spc</span></code> (spectrum) or <code class="docutils literal notranslate"><span class="pre">.spd</span></code> (spectrum image) files from EDAX
-Genesis or TEAMS software.</p>
+<dt class="sig sig-object py" id="rsciio.arina.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.arina.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">navigation_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rebin_diffraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatfield</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.arina.file_reader" title="Link to this definition">#</a></dt>
+<dd><p>Read arina 4D-STEM datasets.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
 <dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
 </dd>
-<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not. The file will stay open
-until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/base_classes/signal/LazySignal.html#hyperspy._signals.lazy.LazySignal.compute" title="(in HyperSpy v2.3)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
-or closed manually. <a class="reference internal" href="../api/utils.html#rsciio.utils.tools.get_file_handle" title="rsciio.utils.tools.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
-can be used to access the file handler and close it manually.</p>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Lazy loading is not supported.</p>
 </dd>
-<dt><strong>load_all_spc</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Switch to control whether the complete .spc header is read, or just the
-important parts for import into HyperSpy.</p>
+<dt><strong>navigation_shape</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default = <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a></span></dt><dd><p>Specify the shape of the navigation space. If None, assumes square acquisition.
+A tuple can be specified as (x_scan_dimension, y_scan_dimension), (x_scan_dimension, “auto”),
+or (“auto”, y_scan_dimension). With “auto” the length is inferred from the number of
+diffraction patterns.  If only an integer is passed, it assumed to be the x_scan_dimension.</p>
 </dd>
-<dt><strong>spc_fname</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>For spd files only.
-Name of file from which to read the spectral calibration. If data
-was exported fully from EDAX TEAM software, an .spc file with the
-same name as the .spd should be present.
-If <cite>None</cite>, the default filename will be searched for.
-Otherwise, the name of the .spc file to use for calibration can
-be explicitly given as a string.</p>
+<dt><strong>rebin_diffraction</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, default=1</span></dt><dd><p>Diffraction space binning factor for bin-on-load.</p>
 </dd>
-<dt><strong>ipr_fname</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>For spd files only.
-Name of file from which to read the spatial calibration. If data
-was exported fully from EDAX TEAM software, an .ipr file with the
-same name as the .spd (plus a “_Img” suffix) should be present.
-If <cite>None</cite>, the default filename will be searched for.
-Otherwise, the name of the .ipr file to use for spatial calibration
-can be explicitly given as a string.</p>
+<dt><strong>dtype</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">float</span></code></a>, optional</span></dt><dd><p>Datatype for dataset.</p>
 </dd>
-<dt><strong>endianess</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=”&lt;”</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">&quot;&lt;&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;&gt;&quot;</span></code>, depending on how the bits are written to
-the file.</p>
-</dd>
-<dt><strong>**kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Remaining arguments are passed to <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html#numpy.memmap" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.memmap</span></code></a>.</p>
+<dt><strong>flatfield</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>, optional</span></dt><dd><p>Flatfield for correction factors, converts data to float.</p>
 </dd>
 </dl>
 </dd>
@@ -556,7 +524,8 @@ containing the full axes vector</p></li>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
-<p>The file specification is available at <a class="reference internal" href="../file_specification/index.html#edax-file-specification"><span class="std std-ref">EDAX</span></a>.</p>
+<p>The hdf5plugin library is needed in addition to h5py due to compression filters used by the detector
+when writing data.</p>
 </dd></dl>
 
 </section>
@@ -573,20 +542,20 @@ containing the full axes vector</p></li>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="digitalsurf.html"
+       href="index.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">DigitalSurf format (SUR &amp; PRO)</p>
+        <p class="prev-next-title">Supported formats</p>
       </div>
     </a>
     <a class="right-next"
-       href="emd.html"
+       href="blockfile.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Electron Microscopy Dataset (EMD)</p>
+        <p class="prev-next-title">Blockfile</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -609,8 +578,8 @@ containing the full axes vector</p></li>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.edax">API functions</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.edax.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.arina">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.arina.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -620,7 +589,7 @@ containing the full axes vector</p></li>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/supported_formats/edax.rst.txt"
+      <li><a href="../_sources/supported_formats/arina.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>

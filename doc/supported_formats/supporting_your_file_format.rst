@@ -3,17 +3,17 @@
 Supporting Your File Format
 ===========================
 
-Many companies have decided to support their own file formats and we strongly support and encourage this.
-This helps ensure that the data is being read correctly and often allow for more complete file reading.
-If you are a user of RosettaSciIO or HyperSpy and have a file format that you would like to support, please consider
+**Many companies have decided to develop and support plugins for their own file formats or the file formats associated with their products and we strongly support and encourage this commitment.**
+This engagement helps ensure that the data is being read correctly and often allows for a more comprehensive file reading and metadata parsing. For companies, it has the advantage that customers/users get easy access to the vast possibilities of data analysis using various scientific python packages.
+If you are a user of RosettaSciIO or HyperSpy and have a file format that you would like to have support for, please consider
 contacting the company to ask them to support their file format in RosettaSciIO.
 
 The following is a list of companies that are currently or have previously supported the reading/writing
-of their file formats in RosettaSciIO.  We'd like to thank them for their support and continued commitments to open
+of their file formats in RosettaSciIO.  We would like to thank them for their support and continued commitment to open
 file formats.
 
 .. note:: We are always looking for more companies to support their file formats.
-   If you are a company that would like to support your file format or have previously supported it,
+   If you represent a company that would like to support their file format or have previously supported it,
    please raise an `issue on GitHub <https://github.com/hyperspy/rosettasciio/issues>`_ or make a pull 
    request on GitHub to add support - see the :ref:`contributing guide <contributing>` for more information.
 

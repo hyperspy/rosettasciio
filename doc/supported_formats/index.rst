@@ -10,8 +10,8 @@ usually be read-only. The **lazy** column specifies whether
 :external+hyperspy:ref:`lazy loading <big-data-label>` (and thus evaluation) of
 big datasets is supported.
 
-We'd also like to thank the :ref:`companies<supporting_your_file_format>` who have contributed to the development and support of
-their file formats.
+.. note:: We'd also like to thank the :ref:`companies<supporting_your_file_format>` who have contributed to the development and support of
+   RosettaSciIO plugins for the file formats associated with their products.
 
 .. include:: supported_formats.rst
 

@@ -15,6 +15,7 @@ big datasets is supported.
 .. toctree::
    :hidden:
    
+   arina
    blockfile
    bruker
    de5

@@ -89,6 +89,7 @@ keywords = [
 file = "COPYING.txt"
 
 [project.optional-dependencies]
+arina = ["h5py>=2.3", "hdf5plugin"]
 blockfile = ["scikit-image>=0.18"]
 eds-stream = ["sparse"]
 hdf5 = ["h5py>=2.3"]
@@ -125,6 +126,7 @@ all = [
   "rosettasciio[blockfile]",
   "rosettasciio[eds-stream]",
   "rosettasciio[hdf5]",
+  "rosettasciio[arina]",
   "rosettasciio[mrcz]",
   "rosettasciio[scalebar_export]",
   "rosettasciio[speed]",

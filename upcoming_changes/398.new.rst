@@ -1,1 +1,0 @@
-Add support for reading hdf5 files from Dectris :ref:`Arina <arina-format>` camera.

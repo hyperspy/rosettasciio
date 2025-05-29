@@ -8,6 +8,46 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 
 .. towncrier release notes start
 
+0.9.0 (2025-05-29)
+==================
+
+New features
+------------
+
+- Add support for reading hdf5 files from Dectris :ref:`Arina <arina-format>` camera. (`#398 <https://github.com/hyperspy/rosettasciio/issues/398>`_)
+
+
+Enhancements
+------------
+
+- Set Hamamatsu streak image signal type to ``TransientSpectrum`` if `LumiSpy <https://lumispy.org>`_ is installed. (`#386 <https://github.com/hyperspy/rosettasciio/issues/386>`_)
+- Remove non-distributed memory mapping implementation in :ref:`rpl <ripple-format>` reader. Deprecate ``mmap_mode`` in :ref:`mrc <mrc-format>` reader since it is not used anymore with the distributed memory mapping implementation. (`#404 <https://github.com/hyperspy/rosettasciio/issues/404>`_)
+
+
+Bug Fixes
+---------
+
+- Allow reading of Hamamatsu ``.img`` files with ``ScalingXScalingFile="Other"`` (uncalibrated x axis). (`#387 <https://github.com/hyperspy/rosettasciio/issues/387>`_)
+- Remove optional dependency (``blosc``) of ``mrcz`` because wheels are not available starting from python 3.13. ``blosc`` was installed as a convenience. (`#392 <https://github.com/hyperspy/rosettasciio/issues/392>`_)
+- Fix Distributed loading of ``.blo`` files (and other binary files with the ``key`` parameter)
+  with chunks that don't span the signal axis. (`#395 <https://github.com/hyperspy/rosettasciio/issues/395>`_)
+- Remove non-distributed memory mapping implementation in quantum detector reader because it doesn't work anymore with recent versions of dask and it is not supposed to. The :ref:`distributed memory mapping <lazy>` implementation is now always used. Fix setting ``chunks``. (`#400 <https://github.com/hyperspy/rosettasciio/issues/400>`_)
+
+
+Improved Documentation
+----------------------
+
+- Add list of companies supporting their file formats. (`#403 <https://github.com/hyperspy/rosettasciio/issues/403>`_)
+
+
+Maintenance
+-----------
+
+- Fix getting filehandle from tiff file with ``dask`` >= 2025.4.0. (`#397 <https://github.com/hyperspy/rosettasciio/issues/397>`_)
+- Remove ``distributed`` keyword from :ref:`mrc <mrc-format>` file reader and change default behavior to use the
+  ``distributed`` backend. (`#402 <https://github.com/hyperspy/rosettasciio/issues/402>`_)
+
+
 0.8.0 (2025-03-28)
 ==================
 

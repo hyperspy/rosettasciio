@@ -1,1 +1,0 @@
-Remove non-distributed memory mapping implementation in quantum detector reader because it doesn't work anymore with recent versions of dask and it is not supposed to. The :ref:`distributed memory mapping <lazy>` implementation is now always used. Fix setting ``chunks``.

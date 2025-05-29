@@ -1,1 +1,0 @@
-Set Hamamatsu streak image signal type to ``TransientSpectrum`` if `LumiSpy <https://lumispy.org>`_ is installed.

@@ -1,1 +1,0 @@
-Fix getting filehandle from tiff file with ``dask`` >= 2025.4.0.

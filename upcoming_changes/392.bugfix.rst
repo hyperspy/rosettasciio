@@ -1,1 +1,0 @@
-Remove optional dependency (``blosc``) of ``mrcz`` because wheels are not available starting from python 3.13. ``blosc`` was installed as a convenience.

@@ -1,2 +1,0 @@
-Remove ``distributed`` keyword from :ref:`mrc <mrc-format>` file reader and change default behavior to use the
-``distributed`` backend.

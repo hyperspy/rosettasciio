@@ -1,1 +1,0 @@
-Allow reading of Hamamatsu ``.img`` files with ``ScalingXScalingFile="Other"`` (uncalibrated x axis).

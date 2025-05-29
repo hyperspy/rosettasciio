@@ -1,2 +1,0 @@
-Fix Distributed loading of ``.blo`` files (and other binary files with the ``key`` parameter)
-with chunks that don't span the signal axis.

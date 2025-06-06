@@ -448,26 +448,44 @@ The data will be loaded as a dask array instead of a numpy array.</p>
 <span class="go">dask.array&lt;array, shape=(10, 20, 30), dtype=int64, chunksize=(10, 20, 30), chunktype=numpy.ndarray&gt;</span>
 </pre></div>
 </div>
+<section id="id1">
+<h2>Memory mapping<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<p>Binary file formats are loaded lazily using <a class="reference external" href="https://docs.dask.org/en/stable/array-creation.html#memory-mapping">memory mapping</a>.
+The common implementation consists in passing the <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html#numpy.memmap" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.memmap</span></code></a> to the <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.from_array.html#dask.array.from_array" title="(in Dask)"><code class="xref py py-func docutils literal notranslate"><span class="pre">dask.array.from_array()</span></code></a>.
+However, it has some shortcomings, to name a few: it is not compatible with the <a class="reference external" href="https://distributed.dask.org">dask distributed</a>
+scheduler and it has limited control on the memory usage.</p>
+<p>For supported file formats, a different implementation can be used to load data lazily in a manner that is
+compatible with the <a class="reference external" href="https://distributed.dask.org">dask distributed</a>  scheduler and allow for better control of the memory usage.
+This implementation uses an approach similar to that described in the dask documentation on
+<a class="reference external" href="https://docs.dask.org/en/stable/array-creation.html#memory-mapping">memory mapping</a> and is enabled using the <code class="docutils literal notranslate"><span class="pre">distributed</span></code> parameter (not all formats are
+<a class="reference internal" href="../supported_formats/index.html#supported-formats"><span class="std std-ref">supported</span></a>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;file.mrc&quot;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">distributed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 <section id="chunks">
 <h2>Chunks<a class="headerlink" href="#chunks" title="Link to this heading">#</a></h2>
 <p>Depending on the intended processing after loading the data, it may be necessary to
 define the chunking manually to control the memory usage or compute distribution.
 The chunking can also be specified as follow using the <code class="docutils literal notranslate"><span class="pre">chunks</span></code> parameter:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;file.mrc&quot;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;file.mrc&quot;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">distributed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
 </pre></div>
 </div>
-</section>
-<section id="id1">
-<h2>Memory mapping<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
-<p>Binary file formats are loaded lazily using <a class="reference external" href="https://docs.dask.org/en/stable/array-creation.html#memory-mapping">memory mapping</a> and are compatible with the <a class="reference external" href="https://distributed.dask.org">dask distributed</a>
-scheduler. This implementation uses an approach similar to that described in the dask documentation on
-<a class="reference external" href="https://docs.dask.org/en/stable/array-creation.html#memory-mapping">memory mapping</a> - see the <a class="reference internal" href="../api/utils.html#rsciio.utils.distributed.memmap_distributed" title="rsciio.utils.distributed.memmap_distributed"><code class="xref py py-func docutils literal notranslate"><span class="pre">memmap_distributed()</span></code></a> function for more information.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some file reader support specifying the <code class="docutils literal notranslate"><span class="pre">chunks</span></code> parameter with the <code class="docutils literal notranslate"><span class="pre">distributed</span></code> parameter
+being set to <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>. In both cases the reader will return a dask array with
+specifyed chunks, However, the way the dask array is created differs significantly and if
+there are issues with memory usage or slow loading, it is recommend to try the <code class="docutils literal notranslate"><span class="pre">distributed</span></code> implementation.</p>
+</div>
 </section>
 <section id="distributed-loading">
 <h2>Distributed Loading<a class="headerlink" href="#distributed-loading" title="Link to this heading">#</a></h2>
-<p>Not all formats are compatible with the <a class="reference external" href="https://distributed.dask.org">dask distributed</a> scheduler. See the last columns of the
-<a class="reference internal" href="../supported_formats/index.html#supported-formats"><span class="std std-ref">supported formats</span></a> table to know which reader are supported.</p>
-<p>In almost all cases the <a class="reference internal" href="../api/utils.html#rsciio.utils.distributed.memmap_distributed" title="rsciio.utils.distributed.memmap_distributed"><code class="xref py py-func docutils literal notranslate"><span class="pre">memmap_distributed()</span></code></a> function can be dropped in-place of the
+<p>The distributed loading is enabled when using the <code class="docutils literal notranslate"><span class="pre">distributed</span></code> parameter.  In many cases it
+is recommended to use the <code class="docutils literal notranslate"><span class="pre">distributed</span></code> parameter when loading data even when not using the
+<a class="reference external" href="https://distributed.dask.org">dask distributed</a> scheduler.  This implementation is often faster than the default implementation
+in dask and allows for better control of the memory usage.</p>
+<p>In almost all cases the <a class="reference internal" href="../api/utils.html#rsciio.utils.distributed.memmap_distributed" title="rsciio.utils.distributed.memmap_distributed"><code class="xref py py-func docutils literal notranslate"><span class="pre">rsciio.utils.distributed.memmap_distributed()</span></code></a> function can be dropped in-place of the
 <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html#numpy.memmap" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.memmap</span></code></a> function. It also now supports the <code class="docutils literal notranslate"><span class="pre">positions</span></code> parameter which is different from the equivalent
 numpy function.  The <code class="docutils literal notranslate"><span class="pre">positions</span></code> parameter is a numpy array of positions which maps some arbitrary scan positions
 to a grid.  This is useful for loading arbitrary scan positions from a file.  The <code class="docutils literal notranslate"><span class="pre">positions</span></code> parameter does require
@@ -522,8 +540,8 @@ that the data is chunked only in the navigation axis.</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#chunks">Chunks</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Memory mapping</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#chunks">Chunks</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#distributed-loading">Distributed Loading</a></li>
 </ul>
   </nav></div>

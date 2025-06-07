@@ -375,6 +375,7 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="arina.html">Arina</a></li>
 <li class="toctree-l1"><a class="reference internal" href="blockfile.html">Blockfile</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bruker.html">Bruker</a></li>
 <li class="toctree-l1"><a class="reference internal" href="de5.html">Direct Electron EMD (DE5)</a></li>
@@ -409,6 +410,7 @@
 <li class="toctree-l1"><a class="reference internal" href="tvips.html">TVIPS format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usid.html">Universal Spectroscopy and Imaging Data (h5USID)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="zspy.html">ZSpy - HyperSpy’s Zarr Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="supporting_your_file_format.html">Supporting Your File Format</a></li>
 </ul>
 </div>
 </nav></div>
@@ -495,7 +497,7 @@ If so, you should add that after loading the file.</p>
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.ripple" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.ripple.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.ripple.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rpl_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'latin-1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distributed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.ripple.file_reader" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.ripple.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rpl_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'latin-1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.ripple.file_reader" title="Link to this definition">#</a></dt>
 <dd><p>Read a ripple/raw file.
 Parse a lispix (<a class="reference external" href="https://www.nist.gov/services-resources/software/lispix">https://www.nist.gov/services-resources/software/lispix</a>)
 ripple (.rpl) file and reads the data from the corresponding raw (.raw) file;
@@ -516,18 +518,6 @@ automatically from the <code class="docutils literal notranslate"><span class="p
 </dd>
 <dt><strong>encoding</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=”latin-1”</span></dt><dd><p>The encoding used to read the content of the file. Different file
 encodings, such as <code class="docutils literal notranslate"><span class="pre">&quot;utf8&quot;</span></code> can be set via this argument.</p>
-</dd>
-<dt><strong>mmap_mode</strong><span class="classifier">{<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, “r+”, “r”, “w+”, “c”}, default=None</span></dt><dd><p>Argument passed to <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html#numpy.memmap" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.memmap</span></code></a>. A memory-mapped array is
-stored on disk, and not directly loaded into memory.  However, it can be
-accessed and sliced like any ndarray.  Lazy loading does not support in-place writing (i.e lazy loading
-and the <code class="docutils literal notranslate"><span class="pre">&quot;r+&quot;</span></code> mode are incompatible).
-If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default), the value is <code class="docutils literal notranslate"><span class="pre">&quot;r&quot;</span></code> when <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code>, otherwise
-it is <code class="docutils literal notranslate"><span class="pre">&quot;c&quot;</span></code>.</p>
-</dd>
-<dt><strong>distributed</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to load the data using memory-mapping in a way that is
-compatible with dask-distributed.  This can sometimes improve
-performance when reading large files. And splitting the data
-loading/processing over multiple workers.</p>
 </dd>
 <dt><strong>chunks</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>Define the chunking used for saving the dataset. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, calculates
 chunks for the signal, with preferably at least one chunk per signal

@@ -178,14 +178,38 @@ def test_export_scalebar_different_scale_units(tmp_path):
     s = hs.signals.Signal2D(np.arange(pixels**2).reshape((pixels, pixels)))
     s.axes_manager[0].scale = 2
 
-    filename = tmp_path / "test_export_size.jpg"
+    filename = tmp_path / "test_export_scalebar_different_scale_units0.jpg"
     with pytest.raises(ValueError):
         s.save(filename, scalebar=True)
 
     s = hs.signals.Signal2D(np.arange(pixels**2).reshape((pixels, pixels)))
     s.axes_manager[0].units = "nm"
 
-    filename = tmp_path / "test_export_size.jpg"
+    filename = tmp_path / "test_export_scalebar_different_scale_units1.jpg"
+    with pytest.raises(ValueError):
+        s.save(filename, scalebar=True)
+
+
+@pytest.mark.parametrize(
+    "pixels_below_above", [(10, 0.991, 0.989), (1000, 0.99991, 0.99989)]
+)
+def test_export_scalebar_scale_close_enough(tmp_path, pixels_below_above):
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+    pytest.importorskip("matplotlib_scalebar")
+    pixels, below, above = pixels_below_above
+    s = hs.signals.Signal2D(np.arange(pixels**2).reshape((pixels, pixels)))
+    # scale is not exactly equal, but close enough
+    s.axes_manager[0].scale = below
+    s.axes_manager[1].scale = 1.0
+    s.axes_manager.signal_axes.set(units="nm")
+
+    filename = tmp_path / "test_export_scalebar_scale_close_enough0.jpg"
+    s.save(filename, scalebar=True)
+    _ = hs.load(filename)
+
+    # scale is not close enough above the limit of the relative error
+    s.axes_manager[0].scale = above
+    filename = tmp_path / "test_export_scalebar_scale_close_enough1.jpg"
     with pytest.raises(ValueError):
         s.save(filename, scalebar=True)
 

@@ -17,6 +17,7 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import logging
+import math
 import os
 from collections.abc import Iterable
 
@@ -167,7 +168,15 @@ def file_writer(
         # Sanity check of the axes
         # This plugin doesn't support non-uniform axes, we don't need to check
         # if the axes have a scale attribute
-        if axes[0]["scale"] != axes[1]["scale"] or axes[0]["units"] != axes[1]["units"]:
+        if (
+            axes[0]["units"] != axes[1]["units"]
+            or
+            # relative difference normalized to the size of the second axis
+            # the more pixels is in the second axis, the higher the tolerance need to be
+            not math.isclose(
+                axes[0]["scale"], axes[1]["scale"], rel_tol=0.1 / axes[1]["size"]
+            )
+        ):
             raise ValueError(
                 "Scale and units must be the same for each axes "
                 "to export images with a scale bar."

@@ -16,22 +16,19 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import importlib.util
+
 import h5py
 import numpy as np
-import importlib.util
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 
 
-def count_acquisitions(hdf: h5py.File) -> int: 
+def count_acquisitions(hdf: h5py.File) -> int:
     """Count the number of first-level groups in an HDF5 file."""
-
     # Count the number of first-level groups
-    group_count = sum(
-        1 for item in hdf.values() if isinstance(item, h5py.Group)
-        )
+    group_count = sum(1 for item in hdf.values() if isinstance(item, h5py.Group))
     return group_count
-
 
 
 def read_image_type(Acq: h5py.Group) -> str:
@@ -80,10 +77,7 @@ def is_AR(filename: str) -> bool:
                 Acquisition = "Acquisition" + str(i)
                 Acq = hdf.get(Acquisition)
 
-                if (
-                        Acq is not None and
-                        read_image_type(Acq) == "Angle-resolved"
-                ):
+                if Acq is not None and read_image_type(Acq) == "Angle-resolved":
                     return True  # Early return if AR type is found
 
     except IOError as e:
@@ -105,9 +99,7 @@ def load_image(Image: h5py.Dataset) -> np.ndarray:
 
     # Check for the expected dimensions
     if Image.shape[3] < 1 or Image.shape[4] < 1:
-        raise ValueError(
-            "The input 'Image' does not have the expected dimensions."
-        )
+        raise ValueError("The input 'Image' does not have the expected dimensions.")
 
     # Extract and transpose the data
     data = Image[0, 0, 0, :, :]
@@ -127,12 +119,10 @@ def load_hyperspectral(Image: h5py.Dataset) -> np.ndarray:
 
     # Check for the expected dimensions
     if Image.shape[0] < 1 or Image.shape[3] < 1 or Image.shape[4] < 1:
-        raise ValueError(
-            "The input 'Image' does not have the expected dimensions."
-        )
+        raise ValueError("The input 'Image' does not have the expected dimensions.")
 
     # Extract and transpose the data
-    if Image.shape[3] == 1 and Image.shape[4] == 1: 
+    if Image.shape[3] == 1 and Image.shape[4] == 1:
         data = Image[:, 0, 0, 0, 0]
     else:
         data = Image[:, 0, 0, :, :].transpose(1, 2, 0)
@@ -157,12 +147,10 @@ def load_streak_camera_image(Image: h5py.Dataset) -> np.ndarray:
         or Image.shape[3] < 1
         or Image.shape[4] < 1
     ):
-        raise ValueError(
-            "The input 'Image' does not have the expected dimensions."
-        )
+        raise ValueError("The input 'Image' does not have the expected dimensions.")
 
     # Extract and transpose the data
-    if Image.shape[3] == 1 and Image.shape[4] == 1: 
+    if Image.shape[3] == 1 and Image.shape[4] == 1:
         data = Image[:, :, 0, 0, 0].transpose(1, 0)
     else:
         data = Image[:, :, 0, :, :].transpose(2, 3, 1, 0)
@@ -173,10 +161,6 @@ def load_streak_camera_image(Image: h5py.Dataset) -> np.ndarray:
 
 def load_AR_spectrum(Image: h5py.Dataset) -> np.ndarray:
     """Extract an Angle-Resolved Spectrum (aka E-k) from a 5D dataset."""
-    # Check if Image is a h5py dataset
-    if not isinstance(Image, h5py.Dataset): ## XXX to remove
-        raise TypeError("The input 'Image' must be a h5 dataset.") ## XXX to remove
-
     # Check if Image has 5 dimensions
     if Image.ndim != 5:
         raise ValueError("The input 'Image' must be a 5D h5 dataset.")
@@ -188,12 +172,10 @@ def load_AR_spectrum(Image: h5py.Dataset) -> np.ndarray:
         or Image.shape[3] < 1
         or Image.shape[4] < 1
     ):
-        raise ValueError(
-            "The input 'Image' does not have the expected dimensions."
-        )
+        raise ValueError("The input 'Image' does not have the expected dimensions.")
 
     # Extract and transpose the data
-    if Image.shape[3] == 1 and Image.shape[4] == 1: 
+    if Image.shape[3] == 1 and Image.shape[4] == 1:
         data = Image[:, :, 0, 0, 0].transpose(1, 0)
     else:
         data = Image[:, :, 0, :, :].transpose(2, 3, 1, 0)
@@ -213,12 +195,10 @@ def load_temporal_trace(Image: h5py.Dataset) -> np.ndarray:
 
     # Check for the expected dimensions
     if Image.shape[1] < 1 or Image.shape[3] < 1 or Image.shape[4] < 1:
-        raise ValueError(
-            "The input 'Image' does not have the expected dimensions."
-        )
+        raise ValueError("The input 'Image' does not have the expected dimensions.")
 
     # Extract and transpose the data
-    if Image.shape[3] == 1 and Image.shape[4] == 1: 
+    if Image.shape[3] == 1 and Image.shape[4] == 1:
         data = Image[0, :, 0, 0, 0]
     else:
         data = Image[0, :, 0, :, :].transpose(1, 2, 0)
@@ -250,7 +230,7 @@ def unit_factor(prefix: str) -> float:
     return prefix_to_factor.get(prefix, 1)
 
 
-def make_axes(Acq):
+def make_axes(Acq: h5py.Group) -> dict:
     """Create a dictionary for the axes of a dataset."""
     ImgData = Acq.get("ImageData")
     Image = ImgData.get("Image")
@@ -282,12 +262,8 @@ def make_axes(Acq):
             Scale = np.array(ImgData.get(scale_key))
 
             if axis_name in ["C", "T"]:
-                scale_value = np.mean(
-                    Scale
-                )
-                prefix = get_unit_prefix(
-                    scale_value
-                )
+                scale_value = np.mean(Scale)
+                prefix = get_unit_prefix(scale_value)
             elif axis_name == "A":
                 scale_value = None  # No scale value needed for "A" axis
                 prefix = ""  # No prefix needed for "A" axis
@@ -333,9 +309,7 @@ def make_axes(Acq):
             else:
                 axis_dict = {
                     "name": axis_name,
-                    "size": Image.shape[
-                        -(i + 1)
-                    ],
+                    "size": Image.shape[-(i + 1)],
                     "offset": float(np.array(ImgData.get(offset_key)))
                     * unit_factor(prefix),
                     "scale": scale_value * unit_factor(prefix),
@@ -354,7 +328,8 @@ def make_axes(Acq):
 
     return axes_ordered
 
-def make_signal_axes(Acq):
+
+def make_signal_axes(Acq: h5py.Group) -> dict:
     """Create a dictionary for the axes of a dataset."""
     ImgData = Acq.get("ImageData")
     Image = ImgData.get("Image")
@@ -384,12 +359,8 @@ def make_signal_axes(Acq):
             Scale = np.array(ImgData.get(scale_key))
 
             if axis_name in ["C", "T"]:
-                scale_value = np.mean(
-                    Scale
-                )
-                prefix = get_unit_prefix(
-                    scale_value
-                )
+                scale_value = np.mean(Scale)
+                prefix = get_unit_prefix(scale_value)
             elif axis_name == "A":
                 scale_value = None  # No scale value needed for "A" axis
                 prefix = ""  # No prefix needed for "A" axis
@@ -447,9 +418,8 @@ def make_signal_axes(Acq):
     return axes_ordered
 
 
-def make_metadata(Acq):
+def make_metadata(Acq: h5py.Group) -> dict:
     """Create a metadata dictionary for a given acquisition (Acq)."""
-
     metadata = {
         "Signal": {
             "quantity": "",
@@ -457,7 +427,7 @@ def make_metadata(Acq):
         }
     }
 
-    img_type=read_image_type(Acq)
+    img_type = read_image_type(Acq)
 
     if importlib.util.find_spec("lumispy") is None:
         metadata["Signal"]["quantity"] = "Counts"
@@ -479,7 +449,7 @@ def make_metadata(Acq):
             metadata["Signal"]["signal_type"] = "Signal2D"
         elif img_type == "AR Spectrum":
             metadata["Signal"]["signal_type"] = "Signal2D"
-        elif  img_type == "Anchor region":
+        elif img_type == "Anchor region":
             pass
     else:
         metadata["Signal"]["quantity"] = "Counts"
@@ -501,52 +471,51 @@ def make_metadata(Acq):
             metadata["Signal"]["signal_type"] = "Signal2D"
         elif img_type == "AR Spectrum":
             metadata["Signal"]["signal_type"] = "Signal2D"
-        elif  img_type == "Anchor region":
+        elif img_type == "Anchor region":
             pass
 
     return metadata
 
-def make_original_metadata(Acq: h5py.Group) -> str:
+
+def make_original_metadata(Acq: h5py.Group) -> dict:
     """Create a dictionary for the original metadata of a dataset."""
     original_metadata = {}
 
     if "PhysicalData" in Acq.keys():
         PhysData = Acq.get("PhysicalData")
         if PhysData is not None:
-            
             # Read all attributes in the group
             original_metadata = {key: value for key, value in PhysData.attrs.items()}
-                
+
             # Read all datasets in the group, skipping unsupported items
             for item_name, item in PhysData.items():
-                if isinstance(item, h5py.Dataset):  # Ensure the item is a Dataset
-                    if item.shape is not None:  # Skip datasets with NULL dataspace
-                        original_metadata[item_name] = item[()]  # Read the entire dataset
+                if isinstance(item, h5py.Dataset):
+                    if item.shape is not None:
+                        original_metadata[item_name] = item[()]
         else:
-            original_metadata = {}  # Return an empty dictionary if the group doesn't exist
-    
+            original_metadata = {}
+
     return original_metadata
 
 
-def make_original_AR_metadata(Acq, data):
+def make_original_AR_metadata(Acq: h5py.Group, data: h5py.Dataset) -> dict:
     """Create a dictionary of the original metadata of an AR image dataset."""
     original_metadata = {}
 
     if "PhysicalData" in Acq.keys():
         PhysData = Acq.get("PhysicalData")
         if PhysData is not None:
-            
             # Read all attributes in the group
             original_metadata = {key: value for key, value in PhysData.attrs.items()}
-                
+
             # Read all datasets in the group, skipping unsupported items
             for item_name, item in PhysData.items():
-                if isinstance(item, h5py.Dataset):  # Ensure the item is a Dataset
-                    if item.shape is not None:  # Skip datasets with NULL dataspace
-                        original_metadata[item_name] = item[()]  # Read the entire dataset
+                if isinstance(item, h5py.Dataset):
+                    if item.shape is not None:
+                        original_metadata[item_name] = item[()]
         else:
-            original_metadata = {}  # Return an empty dictionary if the group doesn't exist
-            
+            original_metadata = {}
+
     return original_metadata
 
 
@@ -649,25 +618,23 @@ def load_AR(filename: str) -> np.ndarray:
                     )
 
         data = data[::-1, :, :, :]
-        if data.shape[3] == 1 and data.shape[3] == 1: 
+        if data.shape[3] == 1 and data.shape[3] == 1:
             data = data[::-1, :, 0, 0]
         else:
             data = data[::-1, :, :, :].transpose(1, 0, 3, 2)
-        
+
         return data
 
     except IOError as e:
         raise IOError(f"Failed to load file '{filename}'. Error: {e}")
 
 
-def load_AR_axes(hdf, acquisition, AR=True):
+def load_AR_axes(hdf: h5py.File, acquisition: h5py.Group, AR=True) -> dict:
     """Load the axes information for an angle-resolved dataset."""
     axes = []
 
     # Load X and Y axes from SE concurrent image
-    se_concurrent_acquisition = (
-        "Acquisition1"
-    )
+    se_concurrent_acquisition = "Acquisition1"
     SE_Acq = hdf.get(se_concurrent_acquisition)
     if SE_Acq:
         SE_ImgData = SE_Acq.get("ImageData")
@@ -749,7 +716,8 @@ def load_AR_axes(hdf, acquisition, AR=True):
                 break
     return axes_ordered
 
-def load_AR_signal_axes(hdf, acquisition, AR=True):
+
+def load_AR_signal_axes(hdf: h5py.File, acquisition: h5py.Group, AR=True) -> dict:
     """Load the axes information for an angle-resolved dataset."""
     axes = []
 
@@ -794,7 +762,8 @@ def load_AR_signal_axes(hdf, acquisition, AR=True):
                 break
     return axes_ordered
 
-def file_reader(filename, signal=None, lazy=False):
+
+def file_reader(filename: str, signal=None, lazy=False) -> dict:
     """
     Read a Delmic hdf5 hyperspectral image.
 
@@ -809,25 +778,21 @@ def file_reader(filename, signal=None, lazy=False):
         "survey": 0,
         "SE": 1,
         "CL": 2,
-        }
+    }
 
     if signal is None:
         signal = "CL"
 
     try:
         with h5py.File(filename, "r") as hdf:
-            num_acq = count_acquisitions(
-                hdf
-            )
+            num_acq = count_acquisitions(hdf)
 
             dict_list = []
 
             AR = is_AR(filename)
 
             if num_acq > 4 and AR:
-
-                for i in np.arange(0,2):
-
+                for i in np.arange(0, 2):
                     Acquisition = "Acquisition" + str(i)
                     Acq = hdf.get(Acquisition)
                     img_type = read_image_type(Acq)
@@ -835,19 +800,19 @@ def file_reader(filename, signal=None, lazy=False):
                         raise ValueError(
                             f"Acquisition {Acquisition} not found in file."
                         )
-        
+
                     ImgData = Acq.get("ImageData")
                     Image = ImgData.get("Image")
-                    
+
                     if img_type in [
                         "Secondary electrons survey",
-                        "Secondary electrons concurrent"
+                        "Secondary electrons concurrent",
                     ]:
                         data = load_image(Image)
                         axes = make_axes(Acq)
                         metadata = make_metadata(Acq)
                         original_metadata = make_original_metadata(Acq)
-                    
+
                         dictionnary = {
                             "data": data,
                             "axes": axes,
@@ -861,19 +826,15 @@ def file_reader(filename, signal=None, lazy=False):
                         pass
 
                 data = load_AR(filename)
-                
+
                 Acquisition = "Acquisition2"
-    
+
                 Acq = hdf.get(Acquisition)
-                
+
                 if len(data.shape) < 3 and signal == "CL":
-                    axes = load_AR_signal_axes(
-                        hdf, Acquisition, AR=True
-                    )
-                else :
-                    axes = load_AR_axes(
-                        hdf, Acquisition, AR=True
-                    )
+                    axes = load_AR_signal_axes(hdf, Acquisition, AR=True)
+                else:
+                    axes = load_AR_axes(hdf, Acquisition, AR=True)
                 metadata = make_metadata(Acq)
                 original_metadata = make_original_AR_metadata(Acq, data)
 
@@ -883,30 +844,29 @@ def file_reader(filename, signal=None, lazy=False):
                     "metadata": metadata,
                     "original_metadata": original_metadata,
                 }
-    
+
                 dict_list.append([dictionnary])
-            
+
             else:
-                for i in np.arange(0,num_acq-1):             
-                    
+                for i in np.arange(0, num_acq - 1):
                     Acquisition = "Acquisition" + str(i)
-    
+
                     Acq = hdf.get(Acquisition)
-    
+
                     if Acq is None:
                         raise ValueError(
                             f"Acquisition {Acquisition} not found in file."
                         )
-        
+
                     ImgData = Acq.get("ImageData")
                     Image = ImgData.get("Image")
-        
+
                     dim = np.array(Image.shape)
                     C, T, Z, Y, X = dim
-        
+
                     if dim.sum() < 5:
                         raise ValueError("Image dimensions are too small.")
-        
+
                     if dim.sum() == 5:
                         if C == 1 and T == 1 and Z == 1 and Y == 1 and X == 1:
                             data = load_image(Image)
@@ -923,18 +883,14 @@ def file_reader(filename, signal=None, lazy=False):
                                     f"Unknown data type: {img_type},"
                                     f"loaded as an image."
                                 )
-        
+
                     elif dim.sum() > 5:
                         if AR:
                             data = load_AR(filename)
                             if len(data.shape) < 4 and signal == "CL":
-                                axes = load_AR_signal_axes(
-                                hdf, Acquisition, AR=True
-                            )
-                            else :
-                                axes = load_AR_axes(
-                                    hdf, Acquisition, AR=True
-                                )
+                                axes = load_AR_signal_axes(hdf, Acquisition, AR=True)
+                            else:
+                                axes = load_AR_axes(hdf, Acquisition, AR=True)
                             metadata = make_metadata(Acq)
                             original_metadata = make_original_AR_metadata(Acq, data)
                         else:
@@ -945,7 +901,7 @@ def file_reader(filename, signal=None, lazy=False):
                                         data = load_streak_camera_image(Image)
                                         if len(data.shape) < 3 and signal == "CL":
                                             axes = make_signal_axes(Acq)
-                                        else:                 
+                                        else:
                                             axes = make_axes(Acq)
                                         metadata = make_metadata(Acq)
                                         original_metadata = make_original_metadata(Acq)
@@ -953,17 +909,15 @@ def file_reader(filename, signal=None, lazy=False):
                                         data = load_AR_spectrum(Image)
                                         if len(data.shape) < 3 and signal == "CL":
                                             axes = make_signal_axes(Acq)
-                                        else:                 
+                                        else:
                                             axes = make_axes(Acq)
                                         metadata = make_metadata(Acq)
                                         original_metadata = make_original_metadata(Acq)
                                     elif img_type.startswith("Spectrum"):
-                                        data = load_hyperspectral(
-                                            Image
-                                        )
+                                        data = load_hyperspectral(Image)
                                         if len(data.shape) < 2 and signal == "CL":
                                             axes = make_signal_axes(Acq)
-                                        else:                 
+                                        else:
                                             axes = make_axes(Acq)
                                         metadata = make_metadata(Acq)
                                         original_metadata = make_original_metadata(Acq)
@@ -977,21 +931,19 @@ def file_reader(filename, signal=None, lazy=False):
                                     img_type = read_image_type(Acq)
                                     if len(data.shape) < 2 and signal == "CL":
                                         axes = make_signal_axes(Acq)
-                                    else:                 
+                                    else:
                                         axes = make_axes(Acq)
                                     metadata = make_metadata(Acq)
                                     original_metadata = make_original_metadata(Acq)
-                                    if (
-                                        img_type.startswith("Spectrum") or
-                                        img_type == (
-                                            "Large Area Spectrum with Spectrometer"
-                                        )
+                                    if img_type.startswith("Spectrum") or img_type == (
+                                        "Large Area Spectrum with Spectrometer"
                                     ):
-                                        pass  # Add additional processing if needed
+                                        pass
                                     else:
                                         raise ValueError(
                                             f"Unknown data type: {img_type},"
-                                            f"loaded as a hyperspectral dataset."
+                                            f"loaded as a hyperspectral"
+                                            f" dataset."
                                         )
                             elif C == 1:
                                 if T > 1:
@@ -999,12 +951,12 @@ def file_reader(filename, signal=None, lazy=False):
                                     img_type = read_image_type(Acq)
                                     if len(data.shape) < 2 and signal == "CL":
                                         axes = make_signal_axes(Acq)
-                                    else:                 
+                                    else:
                                         axes = make_axes(Acq)
                                     metadata = make_metadata(Acq)
                                     original_metadata = make_original_metadata(Acq)
                                     if img_type == "Time Correlator":
-                                        pass  # Add additional processing if needed
+                                        pass
                                     else:
                                         raise ValueError(
                                             f"Unknown data type: {img_type},"
@@ -1027,7 +979,7 @@ def file_reader(filename, signal=None, lazy=False):
                                         original_metadata = make_original_metadata(Acq)
                                     elif img_type == "Angle-resolved":
                                         raise ValueError(
-                                            "Angle-resolved image type detected,"
+                                            "Angle-resolved image detected,"
                                             "use specific AR loading tool."
                                         )
                                     else:
@@ -1041,14 +993,14 @@ def file_reader(filename, signal=None, lazy=False):
                                 )
                             else:
                                 raise ValueError("Invalid format.")
-        
+
                     dictionnary = {
                         "data": data,
                         "axes": axes,
                         "metadata": metadata,
                         "original_metadata": original_metadata,
                     }
-    
+
                     dict_list.append([dictionnary])
 
             if signal == "all":
@@ -1056,16 +1008,20 @@ def file_reader(filename, signal=None, lazy=False):
 
             if isinstance(signal, str):
                 signal = [signal]
-                
+
             invalid_types = [s for s in signal if s not in signal_mapping]
             if invalid_types:
-                raise ValueError(f"Invalid data type(s): {invalid_types}. Valid options are: {list(signal_mapping.keys())}")
+                raise ValueError(
+                    f"Invalid data type(s): {invalid_types}. Valid options are: {list(signal_mapping.keys())}"
+                )
 
-            
             selected_data = [dict_list[signal_mapping[s]] for s in signal]
 
-            return selected_data[0] if len(selected_data) == 1 else selected_data
-    
+            if len(selected_data) == 1:
+                return selected_data[0]
+            else:
+                return selected_data
+
     except IOError as e:
         raise IOError(f"Failed to load file '{filename}'. Error: {e}")
 

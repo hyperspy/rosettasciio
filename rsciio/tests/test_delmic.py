@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-from pathlib import Path
 import importlib.util
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -25,18 +25,12 @@ import pytest
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 pytest.importorskip("h5py", reason="h5py not installed")
 
-testfile_dir = (
-    Path(__file__).parent / "data" / "delmic"
-).resolve()
-testfile_intensity_path = (
-    testfile_dir / "sparc-intensity.h5"
-).resolve()
+testfile_dir = (Path(__file__).parent / "data" / "delmic").resolve()
+testfile_intensity_path = (testfile_dir / "sparc-intensity.h5").resolve()
 testfile_intensity_data_survey_path = (
     testfile_dir / "sparc-intensity-data-survey.npy"
 ).resolve()
-testfile_hyperspectral_path = (
-    testfile_dir / "sparc-hyperspectral.h5"
-).resolve()
+testfile_hyperspectral_path = (testfile_dir / "sparc-hyperspectral.h5").resolve()
 testfile_hyperspectral_data_path = (
     testfile_dir / "sparc-hyperspectral-data.npy"
 ).resolve()
@@ -49,9 +43,7 @@ testfile_hyperspectral_wavelengths_path = (
 testfile_hyperspectral_spot_path = (
     testfile_dir / "sparc-hyperspectral-spot.h5"
 ).resolve()
-testfile_temporaltrace_path = (
-    testfile_dir / "sparc-time-correlator.h5"
-).resolve()
+testfile_temporaltrace_path = (testfile_dir / "sparc-time-correlator.h5").resolve()
 testfile_temporaltrace_data_path = (
     testfile_dir / "sparc-time-correlator-data.npy"
 ).resolve()
@@ -64,9 +56,7 @@ testfile_temporaltrace_timelist_path = (
 testfile_temporaltrace_spot_path = (
     testfile_dir / "sparc-time-correlator-spot.h5"
 ).resolve()
-testfile_streakcamera_path = (
-    testfile_dir / "sparc-streak-camera.h5"
-).resolve()
+testfile_streakcamera_path = (testfile_dir / "sparc-streak-camera.h5").resolve()
 testfile_streakcamera_data_path = (
     testfile_dir / "sparc-streak-camera-data.npy"
 ).resolve()
@@ -82,36 +72,18 @@ testfile_streakcamera_wavelengths_path = (
 testfile_streakcamera_spot_path = (
     testfile_dir / "sparc-streak-camera-spot.h5"
 ).resolve()
-testfile_ek_path = (
-    testfile_dir / "sparc-e-k.h5"
-).resolve()
-testfile_ek_data_path = (
-    testfile_dir / "sparc-e-k-data.npy"
-).resolve()
-testfile_ek_data_survey_path = (
-    testfile_dir / "sparc-e-k-data-survey.npy"
-).resolve()
-testfile_ek_channels_path = (
-    testfile_dir / "sparc-e-k-channels.npy"
-).resolve()
-testfile_ek_wavelengths_path = (
-    testfile_dir / "sparc-e-k-wavelengths.npy"
-).resolve()
-testfile_ek_spot_path = (
-    testfile_dir / "sparc-e-k-spot.h5"
-).resolve()
-testfile_AR_path = (
-    testfile_dir / "sparc-angle-resolved.h5"
-).resolve()
-testfile_AR_data_path = (
-    testfile_dir / "sparc-angle-resolved-data.npy"
-).resolve()
+testfile_ek_path = (testfile_dir / "sparc-e-k.h5").resolve()
+testfile_ek_data_path = (testfile_dir / "sparc-e-k-data.npy").resolve()
+testfile_ek_data_survey_path = (testfile_dir / "sparc-e-k-data-survey.npy").resolve()
+testfile_ek_channels_path = (testfile_dir / "sparc-e-k-channels.npy").resolve()
+testfile_ek_wavelengths_path = (testfile_dir / "sparc-e-k-wavelengths.npy").resolve()
+testfile_ek_spot_path = (testfile_dir / "sparc-e-k-spot.h5").resolve()
+testfile_AR_path = (testfile_dir / "sparc-angle-resolved.h5").resolve()
+testfile_AR_data_path = (testfile_dir / "sparc-angle-resolved-data.npy").resolve()
 testfile_AR_data_survey_path = (
     testfile_dir / "sparc-angle-resolved-data-survey.npy"
 ).resolve()
-testfile_AR_angles_path = (
-    testfile_dir / "sparc-angle-resolved-angles.npy"
-).resolve()
+testfile_AR_angles_path = (testfile_dir / "sparc-angle-resolved-angles.npy").resolve()
 testfile_AR_channels_path = (
     testfile_dir / "sparc-angle-resolved-channels.npy"
 ).resolve()
@@ -126,41 +98,44 @@ def test_read_data_intensity():
     y = np.array([26964, 27695])
     np.testing.assert_allclose(s.data[0], x)
     np.testing.assert_allclose(s.data[1], y)
-    
+
+
 def test_read_data_intensity_CL():
     """Test reading data for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic",signal="CL")
+    s = hs.load(testfile_intensity_path, reader="Delmic", signal="CL")
 
     x = np.array([27147, 28907])
     y = np.array([26964, 27695])
     np.testing.assert_allclose(s.data[0], x)
     np.testing.assert_allclose(s.data[1], y)
-    
+
+
 def test_read_data_intensity_SE():
-        """Test reading data for a CL intensity dataset."""
-        s = hs.load(testfile_intensity_path, reader="Delmic",signal="SE")
+    """Test reading data for a CL intensity dataset."""
+    s = hs.load(testfile_intensity_path, reader="Delmic", signal="SE")
 
-        x = np.array([27308, 28592])
-        y = np.array([27851, 27958])
-        np.testing.assert_allclose(s.data[0], x)
-        np.testing.assert_allclose(s.data[1], y)
-        
+    x = np.array([27308, 28592])
+    y = np.array([27851, 27958])
+    np.testing.assert_allclose(s.data[0], x)
+    np.testing.assert_allclose(s.data[1], y)
+
+
 def test_read_data_intensity_survey():
-        """Test reading data for a CL intensity dataset."""
-        s = hs.load(testfile_intensity_path, reader="Delmic",signal="survey")
-        data = np.load(testfile_intensity_data_survey_path)
+    """Test reading data for a CL intensity dataset."""
+    s = hs.load(testfile_intensity_path, reader="Delmic", signal="survey")
+    data = np.load(testfile_intensity_data_survey_path)
 
-        np.testing.assert_allclose(s.data, data)
+    np.testing.assert_allclose(s.data, data)
 
 
 def test_read_axes_intensity():
     """Test reading axes for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path,reader="Delmic")
+    s = hs.load(testfile_intensity_path, reader="Delmic")
 
     # test X axis
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     np.testing.assert_allclose(s.axes_manager[0].scale, 200)
     np.testing.assert_allclose(s.axes_manager[0].offset, 0.0)
@@ -169,20 +144,21 @@ def test_read_axes_intensity():
     # test Y axis
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
 
     np.testing.assert_allclose(s.axes_manager[1].scale, 200)
     np.testing.assert_allclose(s.axes_manager[1].offset, 0.0)
     np.testing.assert_allclose(s.axes_manager[1].size, 2)
-    
+
+
 def test_read_axes_intensity_CL():
     """Test reading axes for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path,reader="Delmic",signal='CL')
+    s = hs.load(testfile_intensity_path, reader="Delmic", signal="CL")
 
     # test X axis
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     np.testing.assert_allclose(s.axes_manager[0].scale, 200)
     np.testing.assert_allclose(s.axes_manager[0].offset, 0.0)
@@ -191,42 +167,44 @@ def test_read_axes_intensity_CL():
     # test Y axis
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
-
-    np.testing.assert_allclose(s.axes_manager[1].scale, 200)
-    np.testing.assert_allclose(s.axes_manager[1].offset, 0.0)
-    np.testing.assert_allclose(s.axes_manager[1].size, 2)  
-    
-def test_read_axes_intensity_SE():
-    """Test reading axes for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path,reader="Delmic",signal='SE')
-
-    # test X axis
-    assert s.axes_manager[0].name == "X"
-    assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
-
-    np.testing.assert_allclose(s.axes_manager[0].scale, 200)
-    np.testing.assert_allclose(s.axes_manager[0].offset, 0.0)
-    np.testing.assert_allclose(s.axes_manager[0].size, 2)
-
-    # test Y axis
-    assert s.axes_manager[1].name == "Y"
-    assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
 
     np.testing.assert_allclose(s.axes_manager[1].scale, 200)
     np.testing.assert_allclose(s.axes_manager[1].offset, 0.0)
     np.testing.assert_allclose(s.axes_manager[1].size, 2)
-    
-def test_read_axes_intensity_survey():
+
+
+def test_read_axes_intensity_SE():
     """Test reading axes for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path,reader="Delmic",signal='survey')
+    s = hs.load(testfile_intensity_path, reader="Delmic", signal="SE")
 
     # test X axis
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
+
+    np.testing.assert_allclose(s.axes_manager[0].scale, 200)
+    np.testing.assert_allclose(s.axes_manager[0].offset, 0.0)
+    np.testing.assert_allclose(s.axes_manager[0].size, 2)
+
+    # test Y axis
+    assert s.axes_manager[1].name == "Y"
+    assert s.axes_manager[1].units == "nm"
+    assert s.axes_manager[1].navigate
+
+    np.testing.assert_allclose(s.axes_manager[1].scale, 200)
+    np.testing.assert_allclose(s.axes_manager[1].offset, 0.0)
+    np.testing.assert_allclose(s.axes_manager[1].size, 2)
+
+
+def test_read_axes_intensity_survey():
+    """Test reading axes for a CL intensity dataset."""
+    s = hs.load(testfile_intensity_path, reader="Delmic", signal="survey")
+
+    # test X axis
+    assert s.axes_manager[0].name == "X"
+    assert s.axes_manager[0].units == "nm"
+    assert s.axes_manager[0].navigate
 
     np.testing.assert_allclose(s.axes_manager[0].scale, 1.7578125)
     np.testing.assert_allclose(s.axes_manager[0].offset, 0.0)
@@ -235,7 +213,7 @@ def test_read_axes_intensity_survey():
     # test Y axis
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
 
     np.testing.assert_allclose(s.axes_manager[1].scale, 1.7578125)
     np.testing.assert_allclose(s.axes_manager[1].offset, 0.0)
@@ -248,51 +226,59 @@ def test_read_metadata_intensity():
 
     assert s.metadata["Signal"]["quantity"] == "Counts"
     assert s.metadata["Signal"]["signal_type"] == "Signal2D"
-    
+
+
 def test_read_metadata_intensity_CL():
     """Test reading metadata for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic",signal="CL")
+    s = hs.load(testfile_intensity_path, reader="Delmic", signal="CL")
 
     assert s.metadata["Signal"]["quantity"] == "Counts"
     assert s.metadata["Signal"]["signal_type"] == "Signal2D"
-    
+
+
 def test_read_metadata_intensity_SE():
     """Test reading metadata for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic",signal="SE")
+    s = hs.load(testfile_intensity_path, reader="Delmic", signal="SE")
 
     assert s.metadata["Signal"]["quantity"] == "Counts"
     assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
-    
+
+
 def test_read_metadata_intensity_survey():
     """Test reading metadata for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic",signal="survey")
+    s = hs.load(testfile_intensity_path, reader="Delmic", signal="survey")
 
     assert s.metadata["Signal"]["quantity"] == "Counts"
     assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
-    
+
+
 def test_read_original_metadata_intensity():
     """Test reading original metadata for a CL intensity dataset."""
     s = hs.load(testfile_intensity_path, reader="Delmic")
 
     assert s.original_metadata
-    
+
+
 def test_read_original_metadata_intensity_CL():
     """Test reading original metadata for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_intensity_path, reader="Delmic", signal="CL")
 
-    assert s.original_metadata    
-    
+    assert s.original_metadata
+
+
 def test_read_original_metadata_intensity_SE():
     """Test reading original metadata for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic",signal='SE')
+    s = hs.load(testfile_intensity_path, reader="Delmic", signal="SE")
 
-    assert s.original_metadata 
-    
+    assert s.original_metadata
+
+
 def test_read_original_metadata_intensity_survey():
     """Test reading original metadata for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic",signal='survey')
+    s = hs.load(testfile_intensity_path, reader="Delmic", signal="survey")
 
-    assert s.original_metadata 
+    assert s.original_metadata
+
 
 # Hyperspectral dataset
 def test_read_data_hyperspectral():
@@ -301,54 +287,60 @@ def test_read_data_hyperspectral():
     data = np.load(testfile_hyperspectral_data_path)
 
     np.testing.assert_allclose(s.data, data)
-    
+
+
 def test_read_data_hyperspectral_spot():
     """Test reading data for a CL hyperspectral dataset."""
     s = hs.load(testfile_hyperspectral_spot_path, reader="Delmic")
 
     np.testing.assert_allclose(s.data.shape, 335)
-    
+
+
 def test_read_data_hyperspectral_CL():
     """Test reading data for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="CL")
     data = np.load(testfile_hyperspectral_data_path)
 
     np.testing.assert_allclose(s.data, data)
-    
+
+
 def test_read_data_hyperspectral_spot_CL():
     """Test reading data for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_spot_path, reader="Delmic",signal="CL")
+    s = hs.load(testfile_hyperspectral_spot_path, reader="Delmic", signal="CL")
 
     np.testing.assert_allclose(s.data.shape, 335)
-    
+
+
 def test_read_data_hyperspectral_SE():
     """Test reading data for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic",signal='SE')
-    
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="SE")
+
     x = np.array([27265, 27598])
     y = np.array([27892, 28124])
     z = np.array([28299, 28468])
     np.testing.assert_allclose(s.data[0], x)
     np.testing.assert_allclose(s.data[1], y)
     np.testing.assert_allclose(s.data[2], z)
-    
+
+
 def test_read_data_hyperspectral_survey():
     """Test reading data for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic",signal='survey')
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="survey")
     data = np.load(testfile_hyperspectral_data_survey_path)
-    
+
     np.testing.assert_allclose(s.data, data)
+
 
 def test_read_axes_hyperspectral_spot():
     """Test reading axes for a CL hyperspectral dataset."""
     s = hs.load(testfile_hyperspectral_spot_path, reader="Delmic")
-    
+
     assert s.axes_manager[0].name == "Wavelength"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == False
+    assert not s.axes_manager[0].navigate
     np.testing.assert_allclose(s.axes_manager[0].size, 335)
-    
-    
+
+
 def test_read_axes_hyperspectral():
     """Test reading axes for a CL hyperspectral dataset."""
     s = hs.load(testfile_hyperspectral_path, reader="Delmic")
@@ -366,28 +358,30 @@ def test_read_axes_hyperspectral():
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
 
     assert s.axes_manager[2].name == "Wavelength"
     assert s.axes_manager[2].units == "nm"
-    assert s.axes_manager[2].navigate == False
-    
+    assert not s.axes_manager[2].navigate
+
+
 def test_read_axes_hyperspectral_spot_CL():
     """Test reading axes for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_spot_path, reader="Delmic",signal="CL")
-    
+    s = hs.load(testfile_hyperspectral_spot_path, reader="Delmic", signal="CL")
+
     assert s.axes_manager[0].name == "Wavelength"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == False
+    assert not s.axes_manager[0].navigate
     np.testing.assert_allclose(s.axes_manager[0].size, 335)
-    
+
+
 def test_read_axes_hyperspectral_CL():
     """Test reading axes for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic",signal="CL")
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="CL")
     ref = np.load(testfile_hyperspectral_wavelengths_path)
 
     np.testing.assert_allclose(s.axes_manager[0].scale, 963.862901465797)
@@ -402,24 +396,25 @@ def test_read_axes_hyperspectral_CL():
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
 
     assert s.axes_manager[2].name == "Wavelength"
     assert s.axes_manager[2].units == "nm"
-    assert s.axes_manager[2].navigate == False
-    
+    assert not s.axes_manager[2].navigate
+
+
 def test_read_axes_hyperspectral_SE():
     """Test reading axes for a CL intensity dataset."""
-    s = hs.load(testfile_hyperspectral_path,reader="Delmic",signal='SE')
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="SE")
 
     # test X axis
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     np.testing.assert_allclose(s.axes_manager[0].scale, 963.862901465797)
     np.testing.assert_allclose(s.axes_manager[0].offset, -411.20439112265274)
@@ -428,20 +423,21 @@ def test_read_axes_hyperspectral_SE():
     # test Y axis
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
 
     np.testing.assert_allclose(s.axes_manager[1].scale, 963.862901465797)
     np.testing.assert_allclose(s.axes_manager[1].offset, 362.48947994366983)
     np.testing.assert_allclose(s.axes_manager[1].size, 3)
 
+
 def test_read_axes_hyperspectral_survey():
     """Test reading axes for a CL intensity dataset."""
-    s = hs.load(testfile_hyperspectral_path,reader="Delmic",signal='survey')
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="survey")
 
     # test X axis
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     np.testing.assert_allclose(s.axes_manager[0].scale, 27.343750000000004)
     np.testing.assert_allclose(s.axes_manager[0].offset, 0.0)
@@ -450,11 +446,12 @@ def test_read_axes_hyperspectral_survey():
     # test Y axis
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
 
     np.testing.assert_allclose(s.axes_manager[1].scale, 27.343750000000004)
     np.testing.assert_allclose(s.axes_manager[1].offset, 0.0)
     np.testing.assert_allclose(s.axes_manager[1].size, 512)
+
 
 def test_read_metadata_hyperspectral():
     """Test reading metadata for a CL hyperspectral dataset."""
@@ -465,27 +462,30 @@ def test_read_metadata_hyperspectral():
         assert s.metadata["Signal"]["signal_type"] == "Signal1D"
     else:
         assert s.metadata["Signal"]["signal_type"] == "CL_SEM"
-    
+
+
 def test_read_metadata_hyperspectral_CL():
     """Test reading metadata for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="CL")
 
     assert s.metadata["Signal"]["quantity"] == "Counts"
     if importlib.util.find_spec("lumispy") is None:
         assert s.metadata["Signal"]["signal_type"] == "Signal1D"
     else:
         assert s.metadata["Signal"]["signal_type"] == "CL_SEM"
-    
+
+
 def test_read_metadata_hyperspectral_SE():
     """Test reading metadata for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic",signal='SE')
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="SE")
 
     assert s.metadata["Signal"]["quantity"] == "Counts"
     assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
-    
+
+
 def test_read_metadata_hyperspectral_survey():
     """Test reading metadata for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic",signal='survey')
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="survey")
 
     assert s.metadata["Signal"]["quantity"] == "Counts"
     assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
@@ -496,24 +496,28 @@ def test_read_original_metadata_hyperspectral():
     s = hs.load(testfile_hyperspectral_path, reader="Delmic")
 
     assert s.original_metadata
-    
+
+
 def test_read_original_metadata_hyperspectral_CL():
     """Test reading original metadata for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="CL")
 
     assert s.original_metadata
-    
+
+
 def test_read_original_metadata_hyperspectral_SE():
     """Test reading original metadata for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic",signal='SE')
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="SE")
 
     assert s.original_metadata
+
 
 def test_read_original_metadata_hyperspectral_survey():
     """Test reading original metadata for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic",signal='survey')
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="survey")
 
     assert s.original_metadata
+
 
 # Time-resolved dataset
 def test_read_data_temporaltrace():
@@ -523,29 +527,33 @@ def test_read_data_temporaltrace():
 
     np.testing.assert_allclose(s.data, data)
 
+
 def test_read_data_temporaltrace_CL():
     """Test reading data for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="CL")
     data = np.load(testfile_temporaltrace_data_path)
 
     np.testing.assert_allclose(s.data, data)
-    
+
+
 def test_read_data_temporaltrace_spot():
     """Test reading data for a CL decay trace or g(2) datasets."""
     s = hs.load(testfile_temporaltrace_spot_path, reader="Delmic")
 
     np.testing.assert_allclose(s.data.shape, 65536)
 
+
 def test_read_data_temporaltrace_CL_spot():
     """Test reading data for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_spot_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_temporaltrace_spot_path, reader="Delmic", signal="CL")
 
     np.testing.assert_allclose(s.data.shape, 65536)
-    
+
+
 def test_read_data_temporaltrace_SE():
     """Test reading data for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic",signal='SE')
-    
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="SE")
+
     x = np.array([32766, 32766])
     y = np.array([32766, 32766])
     z = np.array([32766, 32766])
@@ -553,9 +561,10 @@ def test_read_data_temporaltrace_SE():
     np.testing.assert_allclose(s.data[1], y)
     np.testing.assert_allclose(s.data[2], z)
 
+
 def test_read_data_temporaltrace_survey():
     """Test reading data for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic",signal='survey')
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="survey")
     data = np.load(testfile_temporaltrace_data_survey_path)
 
     np.testing.assert_allclose(s.data, data)
@@ -578,16 +587,17 @@ def test_read_axes_temporaltrace():
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
 
     assert s.axes_manager[2].name == "Time"
     assert s.axes_manager[2].units == "ns"
-    assert s.axes_manager[2].navigate == False
-    
+    assert not s.axes_manager[2].navigate
+
+
 def test_read_axes_temporaltrace_spot():
     """Test reading axes for a CL decay trace or g(2) datasets."""
     s = hs.load(testfile_temporaltrace_spot_path, reader="Delmic")
@@ -595,11 +605,12 @@ def test_read_axes_temporaltrace_spot():
     np.testing.assert_allclose(s.axes_manager[0].size, 65536)
     assert s.axes_manager[0].name == "Time"
     assert s.axes_manager[0].units == "ns"
-    assert s.axes_manager[0].navigate == False
+    assert not s.axes_manager[0].navigate
+
 
 def test_read_axes_temporaltrace_CL():
     """Test reading axes for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="CL")
     ref = np.load(testfile_temporaltrace_timelist_path)
 
     np.testing.assert_allclose(s.axes_manager[0].scale, 917.1372563963987)
@@ -614,28 +625,30 @@ def test_read_axes_temporaltrace_CL():
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
 
     assert s.axes_manager[2].name == "Time"
     assert s.axes_manager[2].units == "ns"
-    assert s.axes_manager[2].navigate == False
-    
+    assert not s.axes_manager[2].navigate
+
+
 def test_read_axes_temporaltrace_CL_spot():
     """Test reading axes for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_spot_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_temporaltrace_spot_path, reader="Delmic", signal="CL")
 
     np.testing.assert_allclose(s.axes_manager[0].size, 65536)
     assert s.axes_manager[0].name == "Time"
     assert s.axes_manager[0].units == "ns"
-    assert s.axes_manager[0].navigate == False
-    
+    assert not s.axes_manager[0].navigate
+
+
 def test_read_axes_temporaltrace_SE():
     """Test reading axes for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic",signal='SE')
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="SE")
 
     np.testing.assert_allclose(s.axes_manager[0].scale, 917.1372563963987)
     np.testing.assert_allclose(s.axes_manager[0].offset, -314.999999999998)
@@ -647,16 +660,16 @@ def test_read_axes_temporaltrace_SE():
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
 
-    
+
 def test_read_axes_temporaltrace_survey():
     """Test reading axes for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic",signal='survey')
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="survey")
 
     np.testing.assert_allclose(s.axes_manager[0].scale, 27.343750000000004)
     np.testing.assert_allclose(s.axes_manager[0].offset, 0.0)
@@ -666,71 +679,77 @@ def test_read_axes_temporaltrace_survey():
     np.testing.assert_allclose(s.axes_manager[1].offset, 0.0)
     np.testing.assert_allclose(s.axes_manager[1].size, 512)
 
-
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
 
 
 def test_read_metadata_temporaltrace():
-   """Test reading metadata for a CL decay trace or g(2) datasets."""
-   s = hs.load(testfile_temporaltrace_path, reader="Delmic")
+    """Test reading metadata for a CL decay trace or g(2) datasets."""
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic")
 
-   assert s.metadata["Signal"]["quantity"] == "Counts"
-   if importlib.util.find_spec("lumispy") is None:
-       assert s.metadata["Signal"]["signal_type"] == "Signal1D"
-   else:
-       assert s.metadata["Signal"]["signal_type"] == "LumiTransient"
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    if importlib.util.find_spec("lumispy") is None:
+        assert s.metadata["Signal"]["signal_type"] == "Signal1D"
+    else:
+        assert s.metadata["Signal"]["signal_type"] == "LumiTransient"
+
 
 def test_read_metadata_temporaltrace_CL():
-   """Test reading metadata for a CL decay trace or g(2) datasets."""
-   s = hs.load(testfile_temporaltrace_path, reader="Delmic",signal="CL")
+    """Test reading metadata for a CL decay trace or g(2) datasets."""
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="CL")
 
-   assert s.metadata["Signal"]["quantity"] == "Counts"
-   if importlib.util.find_spec("lumispy") is None:
-       assert s.metadata["Signal"]["signal_type"] == "Signal1D"
-   else:
-       assert s.metadata["Signal"]["signal_type"] == "LumiTransient"
-   
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    if importlib.util.find_spec("lumispy") is None:
+        assert s.metadata["Signal"]["signal_type"] == "Signal1D"
+    else:
+        assert s.metadata["Signal"]["signal_type"] == "LumiTransient"
+
+
 def test_read_metadata_temporaltrace_SE():
-   """Test reading metadata for a CL decay trace or g(2) datasets."""
-   s = hs.load(testfile_temporaltrace_path, reader="Delmic",signal="SE")
+    """Test reading metadata for a CL decay trace or g(2) datasets."""
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="SE")
 
-   assert s.metadata["Signal"]["quantity"] == "Counts"
-   assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
-   
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
+
+
 def test_read_metadata_temporaltrace_survey():
-   """Test reading metadata for a CL decay trace or g(2) datasets."""
-   s = hs.load(testfile_temporaltrace_path, reader="Delmic",signal="survey")
+    """Test reading metadata for a CL decay trace or g(2) datasets."""
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="survey")
 
-   assert s.metadata["Signal"]["quantity"] == "Counts"
-   assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+    assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
+
 
 def test_read_original_metadata_temporaltrace():
     """Test reading original metadata for a CL decay trace or g(2) datasets."""
     s = hs.load(testfile_temporaltrace_path, reader="Delmic")
 
     assert s.original_metadata
-    
+
+
 def test_read_original_metadata_temporaltrace_CL():
     """Test reading original metadata for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="CL")
 
     assert s.original_metadata
-    
+
+
 def test_read_original_metadata_temporaltrace_SE():
     """Test reading original metadata for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic",signal='SE')
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="SE")
 
     assert s.original_metadata
+
 
 def test_read_original_metadata_temporaltrace_survey():
     """Test reading original metadata for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic",signal='survey')
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="survey")
 
     assert s.original_metadata
 
@@ -742,38 +761,43 @@ def test_read_data_streakcamera():
     data = np.load(testfile_streakcamera_data_path)
 
     np.testing.assert_allclose(s.data, data)
-    
+
+
 def test_read_data_streakcamera_spot():
     """Test reading data for a CL streak camera dataset."""
     s = hs.load(testfile_streakcamera_spot_path, reader="Delmic")
 
     np.testing.assert_allclose(s.data.shape, 256)
-    
+
+
 def test_read_data_streakcamera_CL():
     """Test reading data for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="CL")
     data = np.load(testfile_streakcamera_data_path)
 
     np.testing.assert_allclose(s.data, data)
-    
+
+
 def test_read_data_streakcamera_CL_spot():
     """Test reading data for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_spot_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_streakcamera_spot_path, reader="Delmic", signal="CL")
 
     np.testing.assert_allclose(s.data.shape, 256)
-    
+
+
 def test_read_data_streakcamera_SE():
     """Test reading data for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic",signal='SE')
-    
-    x = np.array([5443,   90, 5318])
-    y = np.array([241, 5256,  174])
+    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="SE")
+
+    x = np.array([5443, 90, 5318])
+    y = np.array([241, 5256, 174])
     np.testing.assert_allclose(s.data[0], x)
     np.testing.assert_allclose(s.data[1], y)
-    
+
+
 def test_read_data_streakcamera_survey():
     """Test reading data for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic",signal='survey')
+    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="survey")
     data = np.load(testfile_streakcamera_data_survey_path)
 
     np.testing.assert_allclose(s.data, data)
@@ -798,20 +822,21 @@ def test_read_axes_streakcamera():
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "µm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "µm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
 
     assert s.axes_manager[3].name == "Time"
     assert s.axes_manager[3].units == "ns"
-    assert s.axes_manager[3].navigate == False
+    assert not s.axes_manager[3].navigate
 
     assert s.axes_manager[2].name == "Wavelength"
     assert s.axes_manager[2].units == "nm"
-    assert s.axes_manager[2].navigate == False
-    
+    assert not s.axes_manager[2].navigate
+
+
 def test_read_axes_streakcamera_spot():
     """Test reading axes for a CL streak camera dataset."""
     s = hs.load(testfile_streakcamera_spot_path, reader="Delmic")
@@ -819,16 +844,17 @@ def test_read_axes_streakcamera_spot():
     np.testing.assert_allclose(s.axes_manager[1].size, 256)
     assert s.axes_manager[1].name == "Time"
     assert s.axes_manager[1].units == "ns"
-    assert s.axes_manager[1].navigate == False
+    assert not s.axes_manager[1].navigate
 
     np.testing.assert_allclose(s.axes_manager[0].size, 256)
     assert s.axes_manager[0].name == "Wavelength"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == False
+    assert not s.axes_manager[0].navigate
+
 
 def test_read_axes_streakcamera_CL():
     """Test reading axes for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="CL")
     ref_t = np.load(testfile_streakcamera_timelist_path)
     ref_w = np.load(testfile_streakcamera_wavelengths_path)
 
@@ -845,37 +871,39 @@ def test_read_axes_streakcamera_CL():
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "µm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "µm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
 
     assert s.axes_manager[3].name == "Time"
     assert s.axes_manager[3].units == "ns"
-    assert s.axes_manager[3].navigate == False
+    assert not s.axes_manager[3].navigate
 
     assert s.axes_manager[2].name == "Wavelength"
     assert s.axes_manager[2].units == "nm"
-    assert s.axes_manager[2].navigate == False
+    assert not s.axes_manager[2].navigate
+
 
 def test_read_axes_streakcamera_spot_CL():
     """Test reading axes for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_spot_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_streakcamera_spot_path, reader="Delmic", signal="CL")
 
     np.testing.assert_allclose(s.axes_manager[1].size, 256)
     assert s.axes_manager[1].name == "Time"
     assert s.axes_manager[1].units == "ns"
-    assert s.axes_manager[1].navigate == False
+    assert not s.axes_manager[1].navigate
 
     np.testing.assert_allclose(s.axes_manager[0].size, 256)
     assert s.axes_manager[0].name == "Wavelength"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == False
+    assert not s.axes_manager[0].navigate
+
 
 def test_read_axes_streakcamera_SE():
     """Test reading axes for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic",signal="SE")
+    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="SE")
 
     np.testing.assert_allclose(s.axes_manager[0].scale, 3.1073798455896666)
     np.testing.assert_allclose(s.axes_manager[0].offset, -2.411301009767636)
@@ -887,15 +915,16 @@ def test_read_axes_streakcamera_SE():
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "µm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "µm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
+
 
 def test_read_axes_streakcamera_survey():
     """Test reading axes for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic",signal='survey')
+    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="survey")
 
     np.testing.assert_allclose(s.axes_manager[0].scale, 48.828125)
     np.testing.assert_allclose(s.axes_manager[0].offset, 0.0)
@@ -907,11 +936,11 @@ def test_read_axes_streakcamera_survey():
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
 
 
 def test_read_metadata_streakcamera():
@@ -923,27 +952,30 @@ def test_read_metadata_streakcamera():
         assert s.metadata["Signal"]["signal_type"] == "Signal2D"
     else:
         assert s.metadata["Signal"]["signal_type"] == "LumiTransientSpectrum"
-        
+
+
 def test_read_metadata_streakcamera_CL():
     """Test reading metadata for a CL streack camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="CL")
 
     assert s.metadata["Signal"]["quantity"] == "Counts"
     if importlib.util.find_spec("lumispy") is None:
         assert s.metadata["Signal"]["signal_type"] == "Signal2D"
     else:
         assert s.metadata["Signal"]["signal_type"] == "LumiTransientSpectrum"
-        
+
+
 def test_read_metadata_streakcamera_SE():
     """Test reading metadata for a CL streack camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic",signal='SE')
+    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="SE")
 
     assert s.metadata["Signal"]["quantity"] == "Counts"
     assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
-    
+
+
 def test_read_metadata_streakcamera_survey():
     """Test reading metadata for a CL streack camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic",signal='survey')
+    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="survey")
 
     assert s.metadata["Signal"]["quantity"] == "Counts"
     assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
@@ -954,22 +986,25 @@ def test_read_original_metadata_streakcamera():
     s = hs.load(testfile_streakcamera_path, reader="Delmic")
 
     assert s.original_metadata
-    
+
+
 def test_read_original_metadata_streakcamera_CL():
     """Test reading original metadata for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="CL")
 
     assert s.original_metadata
-    
+
+
 def test_read_original_metadata_streakcamera_SE():
     """Test reading original metadata for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic",signal='SE')
+    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="SE")
 
     assert s.original_metadata
-    
+
+
 def test_read_original_metadata_streakcamera_survey():
     """Test reading original metadata for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic",signal='survey')
+    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="survey")
 
     assert s.original_metadata
 
@@ -982,41 +1017,46 @@ def test_read_data_ek():
 
     np.testing.assert_allclose(s.data, data)
 
+
 def test_read_data_ek_spot():
     """Test reading data for a CL AR Spectrum (E-k) dataset."""
     s = hs.load(testfile_ek_spot_path, reader="Delmic")
-    dim=np.array([270,320])
+    dim = np.array([270, 320])
 
     np.testing.assert_allclose(s.data.shape, dim)
-    
+
+
 def test_read_data_ek_CL():
     """Test reading data for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic",signal="CL")
+    s = hs.load(testfile_ek_path, reader="Delmic", signal="CL")
     data = np.load(testfile_ek_data_path)
 
     np.testing.assert_allclose(s.data, data)
-    
+
+
 def test_read_data_ek_CL_spot():
     """Test reading data for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_spot_path, reader="Delmic",signal="CL")
-    dim=np.array([270,320])
+    s = hs.load(testfile_ek_spot_path, reader="Delmic", signal="CL")
+    dim = np.array([270, 320])
 
     np.testing.assert_allclose(s.data.shape, dim)
-    
+
+
 def test_read_data_ek_SE():
     """Test reading data for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic",signal="SE")
-    
+    s = hs.load(testfile_ek_path, reader="Delmic", signal="SE")
+
     x = np.array([32766, 32766, 32766])
     y = np.array([32766, 32766, 32766])
     np.testing.assert_allclose(s.data[0], x)
     np.testing.assert_allclose(s.data[1], y)
-    
+
+
 def test_read_data_ek_survey():
     """Test reading data for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic",signal="survey")
+    s = hs.load(testfile_ek_path, reader="Delmic", signal="survey")
     data = np.load(testfile_ek_data_survey_path)
-    
+
     np.testing.assert_allclose(s.data, data)
 
 
@@ -1039,37 +1079,39 @@ def test_read_axes_ek():
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
 
     assert s.axes_manager[2].name == "Wavelength"
     assert s.axes_manager[2].units == "nm"
-    assert s.axes_manager[2].navigate == False
+    assert not s.axes_manager[2].navigate
 
     assert s.axes_manager[3].name == "Angle"
     assert s.axes_manager[3].units == ""
-    assert s.axes_manager[3].navigate == False
-    
+    assert not s.axes_manager[3].navigate
+
+
 def test_read_axes_ek_spot():
     """Test reading axes for a CL AR Spectrum (E-k) dataset."""
     s = hs.load(testfile_ek_spot_path, reader="Delmic")
-    
+
     np.testing.assert_allclose(s.axes_manager[0].size, 320)
     assert s.axes_manager[0].name == "Wavelength"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == False
-    
+    assert not s.axes_manager[0].navigate
+
     np.testing.assert_allclose(s.axes_manager[1].size, 270)
     assert s.axes_manager[1].name == "Angle"
     assert s.axes_manager[1].units == ""
-    assert s.axes_manager[1].navigate == False
-    
+    assert not s.axes_manager[1].navigate
+
+
 def test_read_axes_ek_CL():
     """Test reading axes for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic",signal="CL")
+    s = hs.load(testfile_ek_path, reader="Delmic", signal="CL")
     ref_a = np.load(testfile_ek_channels_path)
     ref_w = np.load(testfile_ek_wavelengths_path)
 
@@ -1086,37 +1128,39 @@ def test_read_axes_ek_CL():
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
 
     assert s.axes_manager[2].name == "Wavelength"
     assert s.axes_manager[2].units == "nm"
-    assert s.axes_manager[2].navigate == False
+    assert not s.axes_manager[2].navigate
 
     assert s.axes_manager[3].name == "Angle"
     assert s.axes_manager[3].units == ""
-    assert s.axes_manager[3].navigate == False
-    
+    assert not s.axes_manager[3].navigate
+
+
 def test_read_axes_ek_spot_CL():
     """Test reading axes for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_spot_path, reader="Delmic",signal='CL')
-    
+    s = hs.load(testfile_ek_spot_path, reader="Delmic", signal="CL")
+
     np.testing.assert_allclose(s.axes_manager[0].size, 320)
     assert s.axes_manager[0].name == "Wavelength"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == False
-    
+    assert not s.axes_manager[0].navigate
+
     np.testing.assert_allclose(s.axes_manager[1].size, 270)
     assert s.axes_manager[1].name == "Angle"
     assert s.axes_manager[1].units == ""
-    assert s.axes_manager[1].navigate == False
-    
+    assert not s.axes_manager[1].navigate
+
+
 def test_read_axes_ek_SE():
     """Test reading axes for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic",signal="SE")
+    s = hs.load(testfile_ek_path, reader="Delmic", signal="SE")
 
     np.testing.assert_allclose(s.axes_manager[0].scale, 299.0099783670874)
     np.testing.assert_allclose(s.axes_manager[0].offset, -184.58470506959597)
@@ -1128,15 +1172,16 @@ def test_read_axes_ek_SE():
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
-    
+    assert s.axes_manager[1].navigate
+
+
 def test_read_axes_ek_survey():
     """Test reading axes for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic",signal="survey")
+    s = hs.load(testfile_ek_path, reader="Delmic", signal="survey")
 
     np.testing.assert_allclose(s.axes_manager[0].scale, 48.828125)
     np.testing.assert_allclose(s.axes_manager[0].offset, 0.0)
@@ -1148,11 +1193,12 @@ def test_read_axes_ek_survey():
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
+
 
 def test_read_metadata_ek():
     """Test reading metadata for a CL AR Spectrum (E-k) dataset."""
@@ -1160,49 +1206,56 @@ def test_read_metadata_ek():
 
     assert s.metadata["Signal"]["quantity"] == "Counts"
     assert s.metadata["Signal"]["signal_type"] == "Signal2D"
-    
+
+
 def test_read_metadata_ek_CL():
     """Test reading metadata for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_ek_path, reader="Delmic", signal="CL")
 
     assert s.metadata["Signal"]["quantity"] == "Counts"
     assert s.metadata["Signal"]["signal_type"] == "Signal2D"
-    
+
+
 def test_read_metadata_ek_SE():
     """Test reading metadata for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic",signal='SE')
+    s = hs.load(testfile_ek_path, reader="Delmic", signal="SE")
 
     assert s.metadata["Signal"]["quantity"] == "Counts"
     assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
-    
+
+
 def test_read_metadata_ek_survey():
     """Test reading metadata for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic",signal='survey')
+    s = hs.load(testfile_ek_path, reader="Delmic", signal="survey")
 
     assert s.metadata["Signal"]["quantity"] == "Counts"
     assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
+
 
 def test_read_original_metadata_ek():
     """Test reading original metadata for a CL AR Spectrum (E-k) dataset."""
     s = hs.load(testfile_ek_path, reader="Delmic")
 
     assert s.original_metadata
-    
+
+
 def test_read_original_metadata_ek_CL():
     """Test reading original metadata for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_ek_path, reader="Delmic", signal="CL")
 
     assert s.original_metadata
-    
+
+
 def test_read_original_metadata_ek_SE():
     """Test reading original metadata for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic",signal='SE')
+    s = hs.load(testfile_ek_path, reader="Delmic", signal="SE")
 
     assert s.original_metadata
-    
+
+
 def test_read_original_metadata_ek_survey():
     """Test reading original metadata for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic",signal='survey')
+    s = hs.load(testfile_ek_path, reader="Delmic", signal="survey")
 
     assert s.original_metadata
 
@@ -1214,17 +1267,19 @@ def test_read_data_AR():
     data = np.load(testfile_AR_data_path)
 
     np.testing.assert_allclose(s.data, data)
-    
+
+
 def test_read_data_AR_CL():
     """Test reading data for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_AR_path, reader="Delmic", signal="CL")
     data = np.load(testfile_AR_data_path)
 
     np.testing.assert_allclose(s.data, data)
 
+
 def test_read_data_AR_SE():
     """Test reading data for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic",signal='SE')
+    s = hs.load(testfile_AR_path, reader="Delmic", signal="SE")
 
     x = np.array([32932, 33065])
     y = np.array([33203, 32495])
@@ -1232,13 +1287,15 @@ def test_read_data_AR_SE():
     np.testing.assert_allclose(s.data[0], x)
     np.testing.assert_allclose(s.data[1], y)
     np.testing.assert_allclose(s.data[2], z)
-    
+
+
 def test_read_data_AR_survey():
     """Test reading data for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic",signal='survey')
+    s = hs.load(testfile_AR_path, reader="Delmic", signal="survey")
     data = np.load(testfile_AR_data_survey_path)
 
     np.testing.assert_allclose(s.data, data)
+
 
 def test_read_axes_AR():
     """Test reading axes for a CL AR dataset."""
@@ -1259,23 +1316,24 @@ def test_read_axes_AR():
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
 
     assert s.axes_manager[3].name == "C"
     assert s.axes_manager[3].units == ""
-    assert s.axes_manager[3].navigate == False
+    assert not s.axes_manager[3].navigate
 
     assert s.axes_manager[2].name == "Angle"
     assert s.axes_manager[2].units == ""
-    assert s.axes_manager[2].navigate == False
-    
+    assert not s.axes_manager[2].navigate
+
+
 def test_read_axes_AR_CL():
     """Test reading axes for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_AR_path, reader="Delmic", signal="CL")
     ref_a = np.load(testfile_AR_angles_path)
     ref_w = np.load(testfile_AR_channels_path)
 
@@ -1292,23 +1350,24 @@ def test_read_axes_AR_CL():
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
+    assert s.axes_manager[1].navigate
 
     assert s.axes_manager[3].name == "C"
     assert s.axes_manager[3].units == ""
-    assert s.axes_manager[3].navigate == False
+    assert not s.axes_manager[3].navigate
 
     assert s.axes_manager[2].name == "Angle"
     assert s.axes_manager[2].units == ""
-    assert s.axes_manager[2].navigate == False
-    
+    assert not s.axes_manager[2].navigate
+
+
 def test_read_axes_AR_SE():
     """Test reading axes for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic",signal='SE')
+    s = hs.load(testfile_AR_path, reader="Delmic", signal="SE")
 
     np.testing.assert_allclose(s.axes_manager[0].scale, 963.8629014657938)
     np.testing.assert_allclose(s.axes_manager[0].offset, -403.5624697252699)
@@ -1320,15 +1379,16 @@ def test_read_axes_AR_SE():
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
-    
+    assert s.axes_manager[1].navigate
+
+
 def test_read_axes_AR_survey():
     """Test reading axes for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic",signal='survey')
+    s = hs.load(testfile_AR_path, reader="Delmic", signal="survey")
 
     np.testing.assert_allclose(s.axes_manager[0].scale, 27.343750000000004)
     np.testing.assert_allclose(s.axes_manager[0].offset, 0.0)
@@ -1340,12 +1400,11 @@ def test_read_axes_AR_survey():
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate == True
+    assert s.axes_manager[0].navigate
 
     assert s.axes_manager[1].name == "Y"
     assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate == True
-
+    assert s.axes_manager[1].navigate
 
 
 def test_read_metadata_AR():
@@ -1354,48 +1413,55 @@ def test_read_metadata_AR():
 
     assert s.metadata["Signal"]["quantity"] == "Counts"
     assert s.metadata["Signal"]["signal_type"] == "Signal2D"
-    
+
+
 def test_read_metadata_CL():
     """Test reading metadata for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic",signal="CL")
+    s = hs.load(testfile_AR_path, reader="Delmic", signal="CL")
 
     assert s.metadata["Signal"]["quantity"] == "Counts"
     assert s.metadata["Signal"]["signal_type"] == "Signal2D"
-    
+
+
 def test_read_metadata_SE():
     """Test reading metadata for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic",signal="SE")
+    s = hs.load(testfile_AR_path, reader="Delmic", signal="SE")
 
     assert s.metadata["Signal"]["quantity"] == "Counts"
     assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
-    
+
+
 def test_read_metadata_survey():
     """Test reading metadata for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic",signal="survey")
+    s = hs.load(testfile_AR_path, reader="Delmic", signal="survey")
 
     assert s.metadata["Signal"]["quantity"] == "Counts"
     assert s.metadata["Signal"]["signal_type"] == "BaseSignal"
+
 
 def test_read_original_metadata_AR():
     """Test reading original metadata for a CL AR dataset."""
     s = hs.load(testfile_AR_path, reader="Delmic")
 
     assert s.original_metadata
-    
+
+
 def test_read_original_metadata_AR_CL():
     """Test reading original metadata for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic",signal='CL')
+    s = hs.load(testfile_AR_path, reader="Delmic", signal="CL")
 
     assert s.original_metadata
-    
+
+
 def test_read_original_metadata_AR_SE():
     """Test reading original metadata for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic",signal='SE')
+    s = hs.load(testfile_AR_path, reader="Delmic", signal="SE")
 
     assert s.original_metadata
-    
+
+
 def test_read_original_metadata_AR_survey():
     """Test reading original metadata for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic",signal='survey')
+    s = hs.load(testfile_AR_path, reader="Delmic", signal="survey")
 
     assert s.original_metadata

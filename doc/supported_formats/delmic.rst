@@ -3,7 +3,7 @@
 Delmic HDF5
 -----------
 
-RosettaScIO can only read cathodoluminescence ".h5" datasets from Delmic containing a single stream. All the imaging modes are supported as long as only one cathodoluminescence stream is contained in the file. The supported CL data formats currently include: intensity, hyperspectral, angle-resolved, time-resolved decay trace, time-resolved g(2), time-resolved streak camera image, and energy-momentum. The file import as a stack of Hyperspy datasets will be implemented in the next iteration.
+RosettaScIO can read cathodoluminescence ".h5" datasets from Delmic containing a multiple streams. The supported CL data formats currently include: intensity, hyperspectral, angle-resolved, time-resolved decay trace, time-resolved g\ :sup:`(2)` curves, time-resolved streak camera, and energy-momentum images. The polarization orientation is not yet implemented in the metadata structure, as well as the photoluminescence metadata. 
 
 .. Note::
     To read the cathodoluminescence .h5 datasets in `HyperSpy <https://hyperspy.org>`_, use the
@@ -15,8 +15,15 @@ RosettaScIO can only read cathodoluminescence ".h5" datasets from Delmic contain
         >>> import hyperspy.api as hs
         >>> hs.load("filename.h5", reader="Delmic")
 
-For now only the CL dataset is opened with RosettaSciIO, the data extraction as a stack of datasets is the next planned step.
+By default, only the CL dataset is opened with RosettaSciIO. The secondary electron images (concurrent and survey) can be loaded separately, or all the datasets contained in the file can be loaded as a stack.
 
+.. Note::
+    To load the various types of datasets in the file, use the ``signal`` argument with respectively "CL", "SE", "survey", or "all" to load the cathodoluminescence, secondary electron concurrent, secondary electron survey or a stack with all the datasets.
+
+    .. code-block:: python
+
+        >>> import hyperspy.api as hs
+        >>> hs.load("filename.h5", reader="Delmic",signal='CL')
 
 API functions
 """""""""""""

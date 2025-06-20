@@ -41,7 +41,7 @@ from rsciio._docstrings import (
 
 _logger = logging.getLogger(__name__)
 
-def import_app5_to_hs(app5, which='survey', imageflip=False, metadata=True):
+def import_app5_to_hs(app5, which='survey', imageflip=False, metadata=True, wavelength=2.51):
     '''
     
     Input:
@@ -181,17 +181,20 @@ def import_app5_to_hs(app5, which='survey', imageflip=False, metadata=True):
             if imageflip==True:
                 data4D=data4D[:,::-1,:,:]
 
+                        
             SPED_calib_metadata = ET.fromstring(SPED_dataset['0']['Metadata'][()].decode())
-            xScale = float(SPED_calib_metadata.find('Calibration/X/Scale').text)
-            yScale = float(SPED_calib_metadata.find('Calibration/Y/Scale').text)
+            kxScale = float(SPED_calib_metadata.find('Calibration/X/Scale').text) * wavelength
+            kyScale = float(SPED_calib_metadata.find('Calibration/Y/Scale').text) * wavelength
+            kxOffset = float(SPED_calib_metadata.find('Calibration/X/Offset').text) * wavelength
+            kyOffset = float(SPED_calib_metadata.find('Calibration/Y/Offset').text) * wavelength
             
             # Makes the hs Virtual Image
             dicty = {'size': shape[0], 'name':'y', 'units':'nm', 'scale':yScale, 'offset':0}
             dictx = {'size': shape[1], 'name':'x', 'units':'nm', 'scale':xScale, 'offset':0}
-            dictky = {'size': DPshape[0], 'name':'ky', 'units':'pixels', 'scale':1, 'offset':0}
-            dictkx = {'size': DPshape[1], 'name':'kx', 'units':'pixels', 'scale':1, 'offset':0}
+            dictky = {'size': DPshape[0], 'name':'ky', 'units':'A-1', 'scale':kyScale, 'offset':kyOffset}
+            dictkx = {'size': DPshape[1], 'name':'kx', 'units':'A-1', 'scale':kxScale, 'offset':kxOffset}
             SPED_4DSTEM = hs.signals.Signal2D(data4D[()], axes=[dicty, dictx, dictky, dictkx])
-            
+  
             if metadata==True:
                 return SPED_4DSTEM, SeriesMetaData
             else:

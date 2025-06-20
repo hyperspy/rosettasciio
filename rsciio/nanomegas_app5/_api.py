@@ -194,6 +194,7 @@ def import_app5_to_hs(app5, which='survey', imageflip=False, metadata=True, wave
             dictky = {'size': DPshape[0], 'name':'ky', 'units':'A-1', 'scale':kyScale, 'offset':kyOffset}
             dictkx = {'size': DPshape[1], 'name':'kx', 'units':'A-1', 'scale':kxScale, 'offset':kxOffset}
             SPED_4DSTEM = hs.signals.Signal2D(data4D[()], axes=[dicty, dictx, dictky, dictkx])
+            del data4D
   
             if metadata==True:
                 return SPED_4DSTEM, SeriesMetaData

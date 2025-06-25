@@ -1,0 +1,1 @@
+Allow 1% difference in scale of the signal axis when saving an image with the image plugin.

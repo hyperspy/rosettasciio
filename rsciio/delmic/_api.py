@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2007-2023 The HyperSpy developers
+# Copyright 2024-2025 Delmic
 #
 # This file is part of RosettaSciIO.
 #
@@ -16,194 +16,139 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import importlib.util
+# The Delmic format is based on the SVI format, as defined here:
+# http://www.svi.nl/HDF5
+# A file follows this structure:
+# + /
+#   + Preview (contain thumbnails)
+#     + RGB image (*) (HDF5 Image with Dimension Scales)
+#     + DimensionScale*
+#     + *Offset (position on the axis)
+#   + AcquisitionName (one per set of emitter/detector)
+#     + ImageData
+#       + Image (HDF5 Image with Dimension Scales CTZYX or CAZYX)
+#       + DimensionScale*
+#       + *Offset (position on the axis)
+#     + PhysicalData
+#     + SVIData
+
+
+import json
+import logging
+from datetime import datetime, timezone
+from enum import Enum
+from typing import List, Dict, Any, Optional, Tuple
 
 import h5py
 import numpy as np
 
-from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+# LumiSpy provides extra Signal types for Cathodoluminescence, which can be nice for metadata,
+# but everything should work too without this extension being available.
+try:
+    import lumispy
+except ImportError:
+    lumispy = None
+
+from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC, LAZY_UNSUPPORTED_DOC
+
+_logger = logging.getLogger(__name__)
+
+# HDF5 SVI: State of the metadata -> how trustable is the value
+ST_INVALID = 111
+ST_DEFAULT = 112
+ST_ESTIMATED = 113
+ST_REPORTED = 114
+ST_VERIFIED = 115
+
+# Typical names used in Odemis streams, for different types of acquisitions
+TITLE_SURVEY = "Secondary electrons survey"
+TITLE_SE = "Secondary electrons concurrent"
+TITLE_PMT = "CL intensity"
+TITLE_AR = "Angle-resolved"
+TITLE_EK1 = "AR Spectrum"
+TITLE_TEMPORAL = "Time Correlator"
+TITLE_TEMP_SPEC = "Temporal Spectrum"
+TITLE_SPEC = "Spectrum"  # ....
+TITLE_SPEC_LA = "Large Area Spectrum"  # ...
+TITLE_DRIFT = "Anchor region"
 
 
-def count_acquisitions(hdf: h5py.File) -> int:
-    """Count the number of first-level groups in an HDF5 file."""
-    # Count the number of first-level groups
-    group_count = sum(1 for item in hdf.values() if isinstance(item, h5py.Group))
-    return group_count
+class AcquisitionType(Enum):
+    Survey = "survey"
+    SE = "se"
+    Anchor = "anchor"
+    PMT = "pmt"
+    AR = "ar"
+    EK1 = "ek1"
+    TempSpec = "temporal spectrum"
+    Temporal = "temporal"
+    Spectrum = "spectrum"
+    Unknown = "__unknown__"
 
 
-def read_image_type(Acq: h5py.Group) -> str:
+# All the type of data that is considered "CL" when opening a file
+CL_ACQ_TYPES = (
+    AcquisitionType.PMT,
+    AcquisitionType.AR,
+    AcquisitionType.EK1,
+    AcquisitionType.TempSpec,
+    AcquisitionType.Temporal,
+    AcquisitionType.Spectrum,
+)
+
+
+def _h5svi_get_state(dataset: h5py.Dataset, default=None):
     """
-    Retrieve the image type from the 'PhysicalData' group.
+    Read the "State" of a dataset: the confidence that can be put in the value
+    dataset (Dataset): the dataset
+    default: to be returned if no state is present
+    return state (int or list of int): the state value (ST_*) which will be duplicated
+     as many times as the shape of the dataset. If it's a list, it will be directly
+     used, as is. If no state available, default is returned.
+    """
+    try:
+        state = dataset.attrs["State"]
+    except IndexError:
+        return default
+
+    return state.tolist()
+
+
+def read_image_title(acq: h5py.Group) -> str:
+    """
+    Retrieve the image text description (aka title) from the acquisition group.
 
     Access the 'PhysicalData' group within an acquisition object to retrieve
     the associated image type.
-    """
-    if Acq is None:
-        raise TypeError(
-            "The input 'Acq' is None. A valid acquisition object is required."
-        )
-
-    if "PhysicalData" in Acq:
-        PhysData = Acq.get("PhysicalData")
-        if PhysData is not None:
-            Title = PhysData.get("Title")
-            if Title is not None:
-                try:
-                    Title_str = Title[()].decode("utf-8")
-                except (AttributeError, TypeError, UnicodeDecodeError) as e:
-                    Title_str = f"Decoding error: {e}"
-            else:
-                Title_str = "Title dataset missing"
-        else:
-            Title_str = "PhysicalData group missing"
-    else:
-        Title_str = "PhysicalData group missing"
-
-    return Title_str
-
-
-def is_AR(filename: str) -> bool:
-    """
-    Check if the HDF5 file has 'Angle-resolved' dataset type.
-
-    This function verifies whether any acquisition in the provided HDF5
-    file has the "Angle-resolved" type.
+    :return: the description, or "__unnamed__" if the metadata is not found or is invalid
     """
     try:
-        with h5py.File(filename, "r") as hdf:
-            num_acq = count_acquisitions(hdf)
+        title = acq["PhysicalData"]["Title"]
+        title_str = title[()].decode("utf-8")
+    except (AttributeError, TypeError, UnicodeDecodeError) as ex:
+        title_str = "__unnamed__"
+        _logger.warning("Failed to read acquisition title: %s", ex)
 
-            for i in range(num_acq):
-                Acquisition = "Acquisition" + str(i)
-                Acq = hdf.get(Acquisition)
-
-                if Acq is not None and read_image_type(Acq) == "Angle-resolved":
-                    return True  # Early return if AR type is found
-
-    except IOError as e:
-        raise IOError(f"Unable to open the file: {filename}. Error: {e}")
-
-    # Return False if no "Angle-resolved" image type is found
-    return False
+    return title_str
 
 
-def load_image(Image: h5py.Dataset) -> np.ndarray:
-    """Extract a 2D image from a 5D dataset."""
+def load_image(acq: h5py.Group) -> np.ndarray:
+    """
+    Load the raw data of an Odemis acquisition.
+    Returns
+    -------
+    5D dataset (CTZYX or CAZYX)
+    """
+    image = acq["ImageData"]["Image"]
     # Check if Image is a h5py dataset
-    if not isinstance(Image, h5py.Dataset):
-        raise TypeError("The input 'Image' must be a h5 dataset.")
+    if not isinstance(image, h5py.Dataset):
+        raise TypeError("The input 'image' must be a h5 dataset.")
 
     # Check if Image has 5 dimensions
-    if Image.ndim != 5:
-        raise ValueError("The input 'Image' must be a 5D h5 dataset.")
+    if image.ndim != 5:
+        raise ValueError("The input 'image' must be a 5D h5 dataset.")
 
-    # Check for the expected dimensions
-    if Image.shape[3] < 1 or Image.shape[4] < 1:
-        raise ValueError("The input 'Image' does not have the expected dimensions.")
-
-    # Extract and transpose the data
-    data = Image[0, 0, 0, :, :]
-
-    return data
-
-
-def load_hyperspectral(Image: h5py.Dataset) -> np.ndarray:
-    """Extract a 3D hyperspectral dataset from a 5D dataset."""
-    # Check if Image is a h5py dataset
-    if not isinstance(Image, h5py._hl.dataset.Dataset):
-        raise TypeError("The input 'Image' must be a h5 dataset.")
-
-    # Check if Image has 5 dimensions
-    if Image.ndim != 5:
-        raise ValueError("The input 'Image' must be a 5D h5 dataset.")
-
-    # Check for the expected dimensions
-    if Image.shape[0] < 1 or Image.shape[3] < 1 or Image.shape[4] < 1:
-        raise ValueError("The input 'Image' does not have the expected dimensions.")
-
-    # Extract and transpose the data
-    if Image.shape[3] == 1 and Image.shape[4] == 1:
-        data = Image[:, 0, 0, 0, 0]
-    else:
-        data = Image[:, 0, 0, :, :].transpose(1, 2, 0)
-
-    return data
-
-
-def load_streak_camera_image(Image: h5py.Dataset) -> np.ndarray:
-    """Extract a a 4D streak camera image from a 5D dataset."""
-    # Check if Image is a h5py dataset
-    if not isinstance(Image, h5py._hl.dataset.Dataset):
-        raise TypeError("The input 'Image' must be a h5 dataset.")
-
-    # Check if Image has 5 dimensions
-    if Image.ndim != 5:
-        raise ValueError("The input 'Image' must be a 5D h5 dataset.")
-
-    # Check for the expected dimensions
-    if (
-        Image.shape[0] < 1
-        or Image.shape[1] < 1
-        or Image.shape[3] < 1
-        or Image.shape[4] < 1
-    ):
-        raise ValueError("The input 'Image' does not have the expected dimensions.")
-
-    # Extract and transpose the data
-    if Image.shape[3] == 1 and Image.shape[4] == 1:
-        data = Image[:, :, 0, 0, 0].transpose(1, 0)
-    else:
-        data = Image[:, :, 0, :, :].transpose(2, 3, 1, 0)
-    # .transpose(3, 2, 0, 1)
-
-    return data
-
-
-def load_AR_spectrum(Image: h5py.Dataset) -> np.ndarray:
-    """Extract an Angle-Resolved Spectrum (aka E-k) from a 5D dataset."""
-    # Check if Image has 5 dimensions
-    if Image.ndim != 5:
-        raise ValueError("The input 'Image' must be a 5D h5 dataset.")
-
-    # Check for the expected dimensions
-    if (
-        Image.shape[0] < 1
-        or Image.shape[1] < 1
-        or Image.shape[3] < 1
-        or Image.shape[4] < 1
-    ):
-        raise ValueError("The input 'Image' does not have the expected dimensions.")
-
-    # Extract and transpose the data
-    if Image.shape[3] == 1 and Image.shape[4] == 1:
-        data = Image[:, :, 0, 0, 0].transpose(1, 0)
-    else:
-        data = Image[:, :, 0, :, :].transpose(2, 3, 1, 0)
-
-    return data
-
-
-def load_temporal_trace(Image: h5py.Dataset) -> np.ndarray:
-    """Extract a decay trace or g(2) curve from a 5D dataset."""
-    # Check if Image is a h5py dataset
-    if not isinstance(Image, h5py._hl.dataset.Dataset):
-        raise TypeError("The input 'Image' must be a h5 dataset.")
-
-    # Check if Image has 5 dimensions
-    if Image.ndim != 5:
-        raise ValueError("The input 'Image' must be a 5D h5 dataset.")
-
-    # Check for the expected dimensions
-    if Image.shape[1] < 1 or Image.shape[3] < 1 or Image.shape[4] < 1:
-        raise ValueError("The input 'Image' does not have the expected dimensions.")
-
-    # Extract and transpose the data
-    if Image.shape[3] == 1 and Image.shape[4] == 1:
-        data = Image[0, :, 0, 0, 0]
-    else:
-        data = Image[0, :, 0, :, :].transpose(1, 2, 0)
-
-    return data
+    return image[:]  # Forces it to become a numpy.array
 
 
 def get_unit_prefix(number: float) -> str:
@@ -230,800 +175,542 @@ def unit_factor(prefix: str) -> float:
     return prefix_to_factor.get(prefix, 1)
 
 
-def make_axes(Acq: h5py.Group) -> dict:
-    """Create a dictionary for the axes of a dataset."""
-    ImgData = Acq.get("ImageData")
-    Image = ImgData.get("Image")
-    axes = []
+def make_axes(acq: h5py.Group) -> List[Dict[str, Any]]:
+    """
+    Create a list of the axes of a dataset.
+    """
+    img_data = acq["ImageData"]
+    image = img_data["Image"]
 
-    # Dynamically detect the presence of "T" or "A" in the data
-    if "DimensionScaleT" in ImgData:
-        time_axis = ("T", "DimensionScaleT", "TOffset")
-    elif "DimensionScaleA" in ImgData:
-        time_axis = ("A", "DimensionScaleA", "AOffset")
-    else:
-        time_axis = None
-
-    # List of possible axes with corresponding scale and offset names,
-    # reordered to X, Y, C (Wavelength), A (Angle)
-    axis_info = [
-        ("X", "DimensionScaleX", "XOffset"),  # X axis
-        ("Y", "DimensionScaleY", "YOffset"),  # Y axis
-        ("C", "DimensionScaleC", "COffset"),  # C axis for Wavelength
-        time_axis,  # T axis for Time or A axis for Angle
-    ]
-
-    # Iterate over the axes, handling them appropriately
-    for i, axis in enumerate(axis_info):
-        if axis is None:  # Skip if no time or angle axis is detected
-            continue
-        axis_name, scale_key, offset_key = axis
-        if scale_key in ImgData:
-            Scale = np.array(ImgData.get(scale_key))
-
-            if axis_name in ["C", "T"]:
-                scale_value = np.mean(Scale)
-                prefix = get_unit_prefix(scale_value)
-            elif axis_name == "A":
-                scale_value = None  # No scale value needed for "A" axis
-                prefix = ""  # No prefix needed for "A" axis
-            else:
-                try:
-                    scale_value = float(Scale)
-                    prefix = get_unit_prefix(scale_value)
-                except (TypeError, ValueError) as e:
-                    raise TypeError(
-                        f"Expected a numeric value for '{scale_key}', "
-                        f"got {type(Scale)} instead."
-                    ) from e
-
-            if scale_value is not None and not (1e-15 < scale_value < 1):
-                raise ValueError(
-                    f"Scale value {scale_value} for axis {axis_name}"
-                    f"is outside of expected ranges."
-                )
-
-            # Handle the special cases for the C, T, and A axes
-            if axis_name == "C":
-                axis_dict = {
-                    "name": "Wavelength",
-                    "axis": Scale * unit_factor(prefix),  # Full axis loaded
-                    "units": prefix + "m",  # Adjusted unit prefix
-                    "navigate": False,  # No navigation for the C axis
-                }
-            elif axis_name == "T":
-                axis_dict = {
-                    "name": "Time",
-                    "axis": Scale * unit_factor(prefix),  # Full axis loaded
-                    "units": prefix + "s",  # Adjusted unit prefix
-                    "navigate": False,  # No navigation for the T axis
-                }
-            elif axis_name == "A":
-                ScaleA = np.arange(0, Image.shape[1])
-                axis_dict = {
-                    "name": "Angle",
-                    "axis": ScaleA,  # Full axis loaded, no scaling needed
-                    "units": "",  # Unit for Angle
-                    "navigate": False,  # No navigation for the A axis
-                }
-            else:
-                axis_dict = {
-                    "name": axis_name,
-                    "size": Image.shape[-(i + 1)],
-                    "offset": float(np.array(ImgData.get(offset_key)))
-                    * unit_factor(prefix),
-                    "scale": scale_value * unit_factor(prefix),
-                    "units": prefix + "m",
-                    "navigate": True,
-                }
-            axes.append(axis_dict)
-
-    # Reorder axes to X, Y, Wavelength, Angle
-    axes_ordered = []
-    for axis_name in ["Y", "X", "Time", "Angle", "Wavelength"]:
-        for axis in axes:
-            if axis["name"] == axis_name:
-                axes_ordered.append(axis)
-                break
-
-    return axes_ordered
-
-
-def make_signal_axes(Acq: h5py.Group) -> dict:
-    """Create a dictionary for the axes of a dataset."""
-    ImgData = Acq.get("ImageData")
-    Image = ImgData.get("Image")
-    axes = []
-
-    # Dynamically detect the presence of "T" or "A" in the data
-    if "DimensionScaleT" in ImgData:
-        time_axis = ("T", "DimensionScaleT", "TOffset")
-    elif "DimensionScaleA" in ImgData:
-        time_axis = ("A", "DimensionScaleA", "AOffset")
-    else:
-        time_axis = None
-
-    # List of possible axes with corresponding scale and offset names,
-    # reordered to C (Wavelength), A (Angle)
-    axis_info = [
-        ("C", "DimensionScaleC", "COffset"),  # C axis for Wavelength
-        time_axis,  # T axis for Time or A axis for Angle
-    ]
-
-    # Iterate over the axes, handling them appropriately
-    for i, axis in enumerate(axis_info):
-        if axis is None:  # Skip if no time or angle axis is detected
-            continue
-        axis_name, scale_key, offset_key = axis
-        if scale_key in ImgData:
-            Scale = np.array(ImgData.get(scale_key))
-
-            if axis_name in ["C", "T"]:
-                scale_value = np.mean(Scale)
-                prefix = get_unit_prefix(scale_value)
-            elif axis_name == "A":
-                scale_value = None  # No scale value needed for "A" axis
-                prefix = ""  # No prefix needed for "A" axis
-            else:
-                try:
-                    scale_value = float(Scale)
-                    prefix = get_unit_prefix(scale_value)
-                except (TypeError, ValueError) as e:
-                    raise TypeError(
-                        f"Expected a numeric value for '{scale_key}', "
-                        f"got {type(Scale)} instead."
-                    ) from e
-
-            if scale_value is not None and not (1e-15 < scale_value < 1):
-                raise ValueError(
-                    f"Scale value {scale_value} for axis {axis_name}"
-                    f"is outside of expected ranges."
-                )
-
-            # Handle the special cases for the C, T, and A axes
-            if axis_name == "C":
-                axis_dict = {
-                    "name": "Wavelength",
-                    "axis": Scale * unit_factor(prefix),  # Full axis loaded
-                    "units": prefix + "m",  # Adjusted unit prefix
-                    "navigate": False,  # No navigation for the C axis
-                }
-            elif axis_name == "T":
-                axis_dict = {
-                    "name": "Time",
-                    "axis": Scale * unit_factor(prefix),  # Full axis loaded
-                    "units": prefix + "s",  # Adjusted unit prefix
-                    "navigate": False,  # No navigation for the T axis
-                }
-            elif axis_name == "A":
-                ScaleA = np.arange(0, Image.shape[1])
-                axis_dict = {
-                    "name": "Angle",
-                    "axis": ScaleA,  # Full axis loaded, no scaling needed
-                    "units": "",  # Unit for Angle
-                    "navigate": False,  # No navigation for the A axis
-                }
-            else:
-                continue
-            axes.append(axis_dict)
-
-    # Reorder axes to Wavelength, Angle
-    axes_ordered = []
-    for axis_name in ["Time", "Angle", "Wavelength"]:
-        for axis in axes:
-            if axis["name"] == axis_name:
-                axes_ordered.append(axis)
-                break
-
-    return axes_ordered
-
-
-def make_metadata(Acq: h5py.Group) -> dict:
-    """Create a metadata dictionary for a given acquisition (Acq)."""
-    metadata = {
-        "Signal": {
-            "quantity": "",
-            "signal_type": "",
-        }
+    # List of possible axes: dimension label (in HDF5), axis name (for HyperSpy), scale, offset
+    # The standard order in Odemis is CTZYX (or CAZYX), but this shouldn't matter, as we'll read
+    # the information for each dimension, in the order stored.
+    AXIS_INFO = {
+        "C": ("Wavelength", "DimensionScaleC", None),
+        # T and A are never present simultaneously
+        "T": ("Time", "DimensionScaleT", None),
+        "A": ("Angle", "DimensionScaleA", None),
+        # Typically Z not used in CL data, so will be always be "squeezed" later
+        "Z": ("Z", "DimensionScaleZ", "ZOffset"),
+        "Y": ("Y", "DimensionScaleY", "YOffset"),
+        "X": ("X", "DimensionScaleX", "XOffset"),
     }
 
-    img_type = read_image_type(Acq)
+    # Iterate over the axes, adding them all to the axes list. In the order of the image dimensions.
+    axes = []
+    for i, dim in enumerate(image.dims):
+        axis_dict = {}
+        axes.append(axis_dict)
 
-    if importlib.util.find_spec("lumispy") is None:
-        metadata["Signal"]["quantity"] = "Counts"
-        if img_type == "CL intensity":
-            metadata["Signal"]["signal_type"] = "Signal2D"
-        elif img_type == "Secondary electrons concurrent":
-            metadata["Signal"]["signal_type"] = "BaseSignal"
-        elif img_type == "Secondary electrons survey":
-            metadata["Signal"]["signal_type"] = "BaseSignal"
-        elif img_type.startswith("Spectrum"):
-            metadata["Signal"]["signal_type"] = "Signal1D"
-        elif img_type.startswith("Large Area"):
-            metadata["Signal"]["signal_type"] = "Signal1D"
-        elif img_type == "Time Correlator":
-            metadata["Signal"]["signal_type"] = "Signal1D"
-        elif img_type == "Temporal Spectrum":
-            metadata["Signal"]["signal_type"] = "Signal2D"
-        elif img_type == "Angle-resolved":
-            metadata["Signal"]["signal_type"] = "Signal2D"
-        elif img_type == "AR Spectrum":
-            metadata["Signal"]["signal_type"] = "Signal2D"
-        elif img_type == "Anchor region":
-            pass
-    else:
-        metadata["Signal"]["quantity"] = "Counts"
-        if img_type == "CL intensity":
-            metadata["Signal"]["signal_type"] = "Signal2D"
-        elif img_type == "Secondary electrons concurrent":
-            metadata["Signal"]["signal_type"] = "BaseSignal"
-        elif img_type == "Secondary electrons survey":
-            metadata["Signal"]["signal_type"] = "BaseSignal"
-        elif img_type.startswith("Spectrum"):
-            metadata["Signal"]["signal_type"] = "CLSEM"
-        elif img_type.startswith("Large Area"):
-            metadata["Signal"]["signal_type"] = "CLSEM"
-        elif img_type == "Time Correlator":
-            metadata["Signal"]["signal_type"] = "LumiTransient"
-        elif img_type == "Temporal Spectrum":
-            metadata["Signal"]["signal_type"] = "LumiTransientSpectrum"
-        elif img_type == "Angle-resolved":
-            metadata["Signal"]["signal_type"] = "Signal2D"
-        elif img_type == "AR Spectrum":
-            metadata["Signal"]["signal_type"] = "Signal2D"
-        elif img_type == "Anchor region":
-            pass
+        try:
+            axis_name, scale_key, offset_key = AXIS_INFO[dim.label]
+        except KeyError as ex:
+            _logger.warning("Data %s has unknown axis %s", acq.name, ex)
+            axis_dict["name"] = dim.label
+            continue
+
+        axis_dict["name"] = axis_name
+        if scale_key not in img_data:
+            # No info available about this axis (probably because this dimension is empty)
+            if image.shape[i] > 1:
+                _logger.warning(
+                    "Axis %s axis_name has length %s but no scale information",
+                    axis_name,
+                    image.shape[i],
+                )
+            continue
+
+        try:
+            scale = np.array(img_data[scale_key])
+
+            # The DimensionScale array for C & T axes is explicit: for each index -> the position
+            if axis_name == "Wavelength":
+                # TODO: in theory, can also be unknown, in which case it's in pixel indices
+                scale_value = np.mean(scale)
+                prefix = get_unit_prefix(scale_value)
+                axis_dict.update(
+                    {
+                        "axis": scale * unit_factor(prefix),  # Full axis loaded
+                        "units": prefix + "m",  # Adjusted unit prefix
+                        "navigate": False,  # No navigation for the C axis
+                    }
+                )
+            elif axis_name == "Time":
+                scale_value = np.mean(scale)
+                prefix = get_unit_prefix(scale_value)
+                axis_dict.update(
+                    {
+                        "axis": scale * unit_factor(prefix),  # Full axis loaded
+                        "units": prefix + "s",  # Adjusted unit prefix
+                        "navigate": False,  # No navigation for the T axis
+                    }
+                )
+            elif axis_name == "Angle":
+                # The dimension scale contains the axis in radians, at most between -90° -> 90°, but
+                # can also contain NaN for data acquired outside from the range (typically, irrelevant
+                # data that can be discarded). For now, keep it simple, and just pass the pixel number.
+                scale_a = np.arange(0, image.shape[i])
+                axis_dict.update(
+                    {
+                        "axis": scale_a,
+                        "units": "",
+                        "navigate": False,  # No navigation for the A axis
+                    }
+                )
+            else:  # XYZ
+                # The pixel size is defined in the DimensionScale, as a single value, and the *center* of
+                # the image is defined by the Offset
+                try:
+                    scale_value = float(scale)
+                    prefix = get_unit_prefix(scale_value)
+                except (TypeError, ValueError) as e:
+                    raise TypeError(
+                        f"Expected a numeric value for '{scale_key}', got {type(scale)} instead."
+                    ) from e
+
+                # Y goes up, so top (first) pixel has the largest value => invert scale
+                if axis_name == "Y":
+                    scale_value = -scale_value
+
+                center = float(img_data[offset_key][()])
+                # In HyperSpy, offset is the (center of) the first pixel
+                offset = center - ((image.shape[i] - 1) / 2) * scale_value
+
+                axis_dict.update(
+                    {
+                        "size": image.shape[i],
+                        "offset": offset * unit_factor(prefix),
+                        "scale": scale_value * unit_factor(prefix),
+                        "units": prefix + "m",
+                        "navigate": True,
+                    }
+                )
+        except Exception as ex:
+            _logger.warning("Failed to parse axis %s: %s", axis_name, ex)
+
+    return axes
+
+
+def make_metadata(
+    acq: h5py.Group, acq_type: AcquisitionType, original_md: Dict[str, Any]
+) -> Dict[str, dict]:
+    """
+    Create a metadata dictionary for a given acquisition.
+    See https://hyperspy.org/hyperspy-doc/current/reference/metadata.html
+    In practice, it's used by HyperSpy to instantiate a Signal.
+    """
+    img_title = read_image_title(acq)
+    metadata = {
+        "General": {
+            "title": img_title,
+        },
+        "Signal": {
+            "quantity": "Counts",
+            "signal_type": "",
+        },
+    }
+
+    # If LumiSpy is available => more fancy Signal classes available
+    if lumispy:
+        ACQ_TO_SIGNAL_TYPE = {
+            AcquisitionType.TempSpec: "LumiTransientSpectrum",
+            AcquisitionType.Temporal: "LumiTransient",
+            AcquisitionType.Spectrum: "CL_SEM",
+        }
+        signal_type = ACQ_TO_SIGNAL_TYPE.get(acq_type, "")
+        metadata["Signal"]["signal_type"] = signal_type
+
+        # Store polarization information as a "detector filter", if present
+        pol = original_md.get("Polarization")
+        if pol is not None:
+            metadata["Acquisition_instrument"] = {
+                "Spectrometer": {
+                    "Filter": {
+                        "filter_type": "polarization analyzer",
+                        "position": pol,
+                    },
+                },
+            }
+
+    try:
+        acq_date = original_md["AcquisitionDate"]
+        dt = datetime.fromtimestamp(acq_date, timezone.utc)
+        date_str = dt.date().isoformat()  # 'YYYY-MM-DD'
+        time_str = dt.time().isoformat()  # 'HH:MM:SS.microseconds'
+        metadata["General"].update(
+            {
+                "date": date_str,
+                "time": time_str,
+            }
+        )
+    except KeyError:
+        pass
+    except Exception:
+        _logger.warning(f"Failed to parse acquisition date")
 
     return metadata
 
 
-def make_original_metadata(Acq: h5py.Group) -> dict:
-    """Create a dictionary for the original metadata of a dataset."""
-    original_metadata = {}
-
-    if "PhysicalData" in Acq.keys():
-        PhysData = Acq.get("PhysicalData")
-        if PhysData is not None:
-            # Read all attributes in the group
-            original_metadata = {key: value for key, value in PhysData.attrs.items()}
-
-            # Read all datasets in the group, skipping unsupported items
-            for item_name, item in PhysData.items():
-                if isinstance(item, h5py.Dataset):
-                    if item.shape is not None:
-                        original_metadata[item_name] = item[()]
-        else:
-            original_metadata = {}
-
-    return original_metadata
-
-
-def make_original_AR_metadata(Acq: h5py.Group, data: h5py.Dataset) -> dict:
-    """Create a dictionary of the original metadata of an AR image dataset."""
-    original_metadata = {}
-
-    if "PhysicalData" in Acq.keys():
-        PhysData = Acq.get("PhysicalData")
-        if PhysData is not None:
-            # Read all attributes in the group
-            original_metadata = {key: value for key, value in PhysData.attrs.items()}
-
-            # Read all datasets in the group, skipping unsupported items
-            for item_name, item in PhysData.items():
-                if isinstance(item, h5py.Dataset):
-                    if item.shape is not None:
-                        original_metadata[item_name] = item[()]
-        else:
-            original_metadata = {}
-
-    return original_metadata
-
-
-def load_AR(filename: str) -> np.ndarray:
-    """Load angle-resolved (AR) image data from the specified HDF5 file."""
-    try:
-        with h5py.File(filename, "r") as hdf:
-            num_acq = count_acquisitions(hdf)
-
-            # Initialize dimensions for data array
-            x, y, a, b = None, None, None, None
-            data_shape_identified = False
-
-            for i in range(min(3, num_acq)):
-                Acquisition = "Acquisition" + str(i)
-
-                if Acquisition in hdf:
-                    Acq = hdf.get(Acquisition)
-                    ImgData = Acq.get("ImageData")
-                    Image = ImgData.get("Image")
-
-                    img_type = read_image_type(Acq)
-
-                    if img_type == "Secondary electrons concurrent":
-                        x, y = Image[0, 0, 0, :, :].transpose().shape
-
-                    elif img_type == "Secondary electrons survey":
-                        continue  # Skip this image type
-
-                    elif img_type == "Angle-resolved":
-                        a, b = Image[0, 0, 0, :, :].transpose().shape
-                        data_shape_identified = True
-                        break  # Exit once dimensions are identified
-
-                    else:
-                        raise ValueError(f"Unknown data type: {img_type}")
-                else:
-                    raise ValueError(
-                        f"Acquisition '{Acquisition}' is missing or invalid."
-                    )
-
-            # Ensure that dimensions have been identified
-            if (
-                not data_shape_identified
-                or x is None
-                or y is None
-                or a is None
-                or b is None
-            ):
-                raise ValueError(
-                    "Could not determine data shape from initial acquisitions."
-                )
-
-            # Initialize the data array
-            data = np.empty((x, y, a, b))
-
-            # Reset the indices for data population
-            j, k = 0, 0
-
-            # Second loop: Populate the data array with AR image data
-            for i in range(num_acq):
-                Acquisition = "Acquisition" + str(i)
-
-                if Acquisition in hdf:
-                    Acq = hdf.get(Acquisition)
-                    img_type = read_image_type(Acq)
-                    if img_type == "Angle-resolved":
-                        ImgData = Acq.get("ImageData")
-                        Image = ImgData.get("Image")
-
-                        data[j, k, :, :] = Image[0, 0, 0, :, :].transpose()
-
-                        j += 1
-                        if j == x:
-                            k += 1
-                            j = 0
-
-                        # Check if the array is completely filled
-                        if j == 0 and k == y:
-                            data = data[::-1, :, :, :]
-                            return data.transpose(1, 0, 3, 2)
-
-                    elif img_type == "Secondary electrons concurrent":
-                        continue
-
-                    elif img_type == "Secondary electrons survey":
-                        continue
-
-                    elif img_type == "Anchor region":
-                        continue
-
-                    else:
-                        raise ValueError(
-                            f"Acquisition '{Acquisition}' is not an "
-                            f"AR dataset, found: {read_image_type(Acq)}"
-                        )
-                else:
-                    raise ValueError(
-                        f"Acquisition '{Acquisition}' is missing or invalid."
-                    )
-
-        data = data[::-1, :, :, :]
-        if data.shape[3] == 1 and data.shape[3] == 1:
-            data = data[::-1, :, 0, 0]
-        else:
-            data = data[::-1, :, :, :].transpose(1, 0, 3, 2)
-
-        return data
-
-    except IOError as e:
-        raise IOError(f"Failed to load file '{filename}'. Error: {e}")
-
-
-def load_AR_axes(hdf: h5py.File, acquisition: h5py.Group, AR=True) -> dict:
-    """Load the axes information for an angle-resolved dataset."""
-    axes = []
-
-    # Load X and Y axes from SE concurrent image
-    se_concurrent_acquisition = "Acquisition1"
-    SE_Acq = hdf.get(se_concurrent_acquisition)
-    if SE_Acq:
-        SE_ImgData = SE_Acq.get("ImageData")
-        SE_Image = SE_ImgData.get("Image")
-
-        # Ensure SE Image shape is compatible by taking the last two dimensions
-        if len(SE_Image.shape) >= 2:
-            Y, X = SE_Image.shape[-2:]
-        else:
-            raise ValueError(
-                "SE Image shape is invalid, expected at least 2 dimensions."
-            )
-
-        axis_info_se = [
-            ("X", "DimensionScaleX", "XOffset"),
-            ("Y", "DimensionScaleY", "YOffset"),
-        ]
-
-        for i, (axis_name, scale_key, offset_key) in enumerate(axis_info_se):
-            Scale = np.array(SE_ImgData.get(scale_key))
-            if Scale.ndim == 0:  # Check if Scale is a scalar
-                scale_value = float(Scale)
-            else:  # Handle Scale as an array
-                scale_value = Scale[0]
-
-            prefix = get_unit_prefix(scale_value)
-
-            axis_dict = {
-                "name": axis_name,
-                "size": SE_Image.shape[
-                    -(i + 1)
-                ],  # Using the last two dimensions for X and Y
-                "offset": float(np.array(SE_ImgData.get(offset_key)))
-                * unit_factor(prefix),
-                "scale": scale_value * unit_factor(prefix),
-                "units": prefix + "m",
-                "navigate": True,
-            }
-            axes.append(axis_dict)
-
-    # Load C and A axes from the angle-resolved image
-    ar_acquisition = acquisition
-    AR_Acq = hdf.get(ar_acquisition)
-    if AR_Acq:
-        AR_ImgData = AR_Acq.get("ImageData")
-        AR_Image = AR_ImgData.get("Image")
-
-        axis_info_ar = [
-            ("C", "DimensionScaleC", "COffset"),  # C axis for Wavelength
-            ("A", "DimensionScaleA", "AOffset"),  # A axis for Angle
-        ]
-
-        for axis_name, scale_key, offset_key in axis_info_ar:
-            ScaleC = np.arange(0, AR_Image.shape[3])
-            ScaleA = np.arange(0, AR_Image.shape[4])
-
-            if axis_name == "C":
-                axis_dict = {
-                    "name": "C",
-                    "axis": ScaleC,  # Use full data array for Wavelength
-                    "units": "",  # Appropriate units for Wavelength
-                    "navigate": False,
-                }
-            elif axis_name == "A":
-                axis_dict = {
-                    "name": "Angle",
-                    "axis": ScaleA,  # Use full data array for Angle
-                    "units": "",  # Appropriate units for Angle
-                    "navigate": False,
-                }
-            axes.append(axis_dict)
-
-    # Reorder axes to X, Y, C, A
-    axes_ordered = []
-    for axis_name in ["Y", "X", "C", "Angle"]:
-        for axis in axes:
-            if axis["name"] == axis_name:
-                axes_ordered.append(axis)
-                break
-    return axes_ordered
-
-
-def load_AR_signal_axes(hdf: h5py.File, acquisition: h5py.Group, AR=True) -> dict:
-    """Load the axes information for an angle-resolved dataset."""
-    axes = []
-
-    # Load C and A axes from the angle-resolved image
-    ar_acquisition = acquisition
-    AR_Acq = hdf.get(ar_acquisition)
-    if AR_Acq:
-        AR_ImgData = AR_Acq.get("ImageData")
-        AR_Image = AR_ImgData.get("Image")
-
-        axis_info_ar = [
-            ("C", "DimensionScaleC", "COffset"),  # C axis for Wavelength
-            ("A", "DimensionScaleA", "AOffset"),  # A axis for Angle
-        ]
-
-        for axis_name, scale_key, offset_key in axis_info_ar:
-            ScaleC = np.arange(0, AR_Image.shape[3])
-            ScaleA = np.arange(0, AR_Image.shape[4])
-
-            if axis_name == "C":
-                axis_dict = {
-                    "name": "C",
-                    "axis": ScaleC,  # Use full data array for Wavelength
-                    "units": "",  # Appropriate units for Wavelength
-                    "navigate": False,
-                }
-            elif axis_name == "A":
-                axis_dict = {
-                    "name": "Angle",
-                    "axis": ScaleA,  # Use full data array for Angle
-                    "units": "",  # Appropriate units for Angle
-                    "navigate": False,
-                }
-            axes.append(axis_dict)
-
-    # Reorder axes to C, A
-    axes_ordered = []
-    for axis_name in ["C", "Angle"]:
-        for axis in axes:
-            if axis["name"] == axis_name:
-                axes_ordered.append(axis)
-                break
-    return axes_ordered
-
-
-def file_reader(filename: str, signal=None, lazy=False) -> dict:
+def make_original_metadata(acq: h5py.Group) -> Dict[str, Any]:
     """
-    Read a Delmic hdf5 hyperspectral image.
+    Create a dictionary for the original metadata of a dataset."""
+    original_metadata = {}
+
+    # Copy every value found in PhysicalData (almost) as-is.
+    # The exceptions are:
+    # * Title is always the same as "ChannelDescription", so discard it
+    # * if the state is "Invalid", then discard it.
+    # * ExtraSettings is special, as it's a dict encoded in JSON, so decode it
+    for name, item in acq["PhysicalData"].items():
+        # Only care about datasets (typically, there are only datasets anyway)
+        if not isinstance(item, h5py.Dataset):
+            continue
+        if name == "Title":  # Special value, copy of ChannelDescription[0]
+            continue
+
+        # Each Dataset is an array of 1 value, with an attribute containing its state
+        state = _h5svi_get_state(item)
+        if state is not None and state[0] == ST_INVALID:
+            continue
+
+        try:
+            # It's either a numpy scalar, or an array of 1 dimension, with 1 element
+            if item.ndim == 0:  # scalar
+                value = item[()]
+            else:  # ndim == 1
+                value = item[0]
+
+            # Convert to a simple Python type
+            if name == "ExtraSettings":
+                value = json.loads(value)
+            elif isinstance(value, bytes):
+                value = value.decode("utf-8")
+            elif isinstance(value, (np.ndarray, np.generic)):
+                value = value.tolist()
+            original_metadata[name] = value
+        except Exception as ex:
+            _logger.warning("Failed to parse original metadata %s: %s", name, ex)
+
+    # Add metadata from the ImageData
+    t_offset = acq["ImageData"]["TOffset"]
+    acq_date = float(t_offset[()])  # unix timestamp
+    original_metadata["AcquisitionDate"] = acq_date
+
+    # Add HDF5 Group name, typically "/Acquisition.."
+    original_metadata["HDF5Group"] = acq.name
+
+    # Add from SVIData: all data are just plain strings
+    svi_data = acq["SVIData"]
+    original_metadata["SVIData"] = {}
+    for k in ("Company", "WriterVersion"):
+        try:
+            value = svi_data[k][()].decode("utf-8")
+            original_metadata["SVIData"][k] = value
+        except Exception as ex:
+            _logger.warning("Failed to parse original metadata %s: %s", k, ex)
+
+    return original_metadata
+
+
+def guess_signal_type(data, axes, original_metadata) -> AcquisitionType:
+    # Primarily distinguish based on the dimensions, and use metadata and title as extra clue
+    title = original_metadata["ChannelDescription"]
+
+    if title == TITLE_DRIFT:  # Quick short-cut for drift correction (SEM over time)
+        return AcquisitionType.Anchor
+
+    def get_axis_length(name):
+        for idx, axis in enumerate(axes):
+            if axis.get("name") == name:
+                return data.shape[idx]
+        return 1  # not present => it's just a single position
+
+    C = get_axis_length("Wavelength")
+    A = get_axis_length("Angle")
+    T = get_axis_length("Time")
+
+    if A > 1:  # EK (because AR doesn't explicitly have angular axis)
+        if C > 1:
+            return AcquisitionType.EK1
+        else:
+            return AcquisitionType.Unknown
+
+    # A == 1
+    if T > 1:  # Temporal or Temporal Spectrum
+        if C == 1:
+            return AcquisitionType.Temporal
+        else:
+            return AcquisitionType.TempSpec
+
+    # A == 1, and T == 1
+    if C > 1:
+        return AcquisitionType.Spectrum
+
+    # Just 2D data (assuming Z == 1, which is typically the case)
+    if isinstance(
+        original_metadata.get("PolePosition"), list
+    ):  # Typical metadata for AR
+        return AcquisitionType.AR
+    elif title == TITLE_SE:
+        return AcquisitionType.SE
+    elif title == TITLE_SURVEY:
+        return AcquisitionType.Survey
+    elif title == TITLE_PMT:
+        return AcquisitionType.PMT
+
+    _logger.info("Found acquisition data of unknown type")
+    return AcquisitionType.Unknown
+
+
+def read_acquisition(acq: h5py.Group) -> Tuple[Dict[str, Any], AcquisitionType]:
+    """
+    Reads one Odemis acquisition data, with its metadata
+    """
+    data = load_image(acq)
+    axes = make_axes(acq)
+    original_metadata = make_original_metadata(acq)
+    acq_type = guess_signal_type(data, axes, original_metadata)
+    metadata = make_metadata(acq, acq_type, original_metadata)
+
+    acq_dict = {
+        "data": data,
+        "axes": axes,
+        "metadata": metadata,
+        "original_metadata": original_metadata,
+    }
+    return acq_dict, acq_type
+
+
+def merge_ar_data(
+    ar_data: List[Dict[str, Any]], se_data: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Search for multiple Angular-Resolved acquisition (of a single beam position, so 2D) and merge them
+    together along the X & Y dimensions.
+    Parameters
+    ----------
+    ar_data:  All the AR acquisition of shape 111BA
+    se_data: the SEM concurrent data
+
+    Returns
+    -------
+    ar_merged: all the AR data replaced by a single one, 4D.
+    """
+    # Each AR data has been acquired at one (different) beam position. Each beam position corresponds
+    # to one pixel of the SEM concurrent data. So we use the same XY axes of the SEM concurrent data
+    # to add the spatial information of the AR data.
+    # Note that 2D AR data does have the position of the ebeam stored as XY axes (single coordinate).
+    # So, in theory, it should be possible to recreate it without SEM concurrent... but it's more
+    # complicated.
+    Y, X = se_data["data"].shape[-2:]
+    if X * Y != len(ar_data):
+        raise ValueError(f"Expected {X}x{Y} AR data, but got {len(ar_data)}")
+
+    # As we know that the scan order is always the same order, the simplest is to use acquisition
+    # timestamp to place the data in the right position. An alternative would be to use the X, Y
+    # (offset) position, but that's more complicated, especially if there is rotation.
+    sorted_ar = sorted(ar_data, key=lambda d: d["original_metadata"]["AcquisitionDate"])
+
+    ar0 = sorted_ar[0]
+    ar0_shape = sorted_ar[0]["data"].shape
+    # Get the 2 angle dimensions from first AR data (assuming all the AR data is the same size, and
+    # the other dimensions are 1)
+    if ar0_shape[:3] != (1, 1, 1):
+        logging.warning(
+            "Unexpected extra dimension on AR data, with shape: %s", ar0_shape
+        )
+    B, A = ar0_shape[-2:]
+    # Create an array with all the data, introducing an extra dimension on the "slow" (left) side
+    merged_data = np.array([d["data"] for d in sorted_ar])  # (Y * X, B, A)
+    merged_data.shape = (Y, X, B, A)  # Assumes it's been scanned X fast, Y slow
+
+    # The X & Y axes in the original 2D AR image (camera) don't directly correspond to angles.
+    # They would need to be "projected" according to the parabolic mirror shape (described in the metadata).
+    # Just number them in terms of "pixels" to avoid confusion.
+    merged_axes = [
+        se_data["axes"][-2],  # Y
+        se_data["axes"][-1],  # X
+        {
+            "name": "Angle B",
+            "axis": np.arange(0, B),
+            "units": "",
+            "navigate": False,
+        },
+        {
+            "name": "Angle A",
+            "axis": np.arange(0, A),
+            "units": "",
+            "navigate": False,
+        },
+    ]
+
+    merged_ar = {
+        "data": merged_data,
+        "axes": merged_axes,
+        "metadata": ar0["metadata"],
+        "original_metadata": ar0["original_metadata"],
+    }
+
+    return merged_ar
+
+
+def squeeze_dimensions(acq_data: Dict[str, Any]) -> None:
+    """
+    Removes empty dimensions from a dataset. It removes them from the numpy array shape, and from
+    the axes information.
+    Parameters
+    ----------
+    acq_data: the dataset with "data" and "axes" keys at least. Its content will be updated.
+    """
+    data = acq_data["data"]
+    axes = acq_data["axes"]
+    # Scan the dimensions in reverse order to not be affected when the dimensions are deleted
+    for i in range(data.ndim - 1, -1, -1):
+        if data.shape[i] == 1:
+            # Remove the current dimension
+            data.shape = data.shape[:i] + data.shape[i + 1 :]
+            del axes[i]
+
+
+HS_AXES_ORDER = "Z", "Y", "X", "Time", "Angle", "Wavelength"
+
+
+def reorder_dimensions(acq_data: Dict[str, Any]) -> None:
+    """
+    Reorder the axes, in order to make the data most straightforwards to visualize and manipulate
+    in HyperSpy.
+    Parameters
+    ----------
+    acq_data: the dataset, with "data" and "axes" keys at least. Its content will be updated. Both
+    data and axes are reordered. Unknown axes are placed at the end, in their original order.
+    """
+    data = acq_data["data"]
+    axes = acq_data["axes"]
+
+    def index_in_axes(n):
+        try:
+            return HS_AXES_ORDER.index(n)
+        except ValueError:  # n is not known => put last
+            return len(HS_AXES_ORDER) + 1
+
+    orig_names = [a["name"] for a in axes]
+    sorted_names = sorted(orig_names, key=index_in_axes)
+    if sorted_names != orig_names:
+        # Build the new order of axes
+        order = [orig_names.index(name) for name in sorted_names]
+        # Move axes to the new order
+        data = np.moveaxis(data, order, range(len(order)))
+        acq_data["data"] = data
+        # Reorder axes list accordingly
+        acq_data["axes"] = [axes[i] for i in order]
+
+
+def file_reader(
+    filename: str, signal: Optional[str] = None, lazy: bool = False
+) -> List[Dict[str, Any]]:
+    """
+    Read a Delmic HDF5 hyperspectral image.
 
     Parameters
     ----------
     %s
+    signal : str, default=None
+      If None, all the data in the file is returned, otherwise, it specifies the type of data
+      to load. Can be "survey" (SEM image of the whole field of view), "se" (concurrent SEM signal),
+      "cl" (cathodoluminescence signal), or "anchor" (drift correction region over time).
+      Convenient, as typically in Odemis, every CL acquisition automatically stores also the survey
+      and concurrent SEM data.
     %s
 
     %s
     """
-    signal_mapping = {
-        "survey": 0,
-        "SE": 1,
-        "CL": 2,
-    }
+    if lazy is not False:
+        raise NotImplementedError("Lazy loading is not supported.")
 
     if signal is None:
-        signal = "CL"
+        # TODO: do not include "Unknown" and "Anchor" types?
+        filtered_acq_types = tuple(AcquisitionType)  # all of them
+    elif signal == "cl":
+        filtered_acq_types = CL_ACQ_TYPES
+    elif signal in ("survey", "se", "anchor"):
+        filtered_acq_types = (AcquisitionType(signal),)
+    else:
+        raise ValueError(f"Unexpected signal '{signal}'")
 
-    try:
-        with h5py.File(filename, "r") as hdf:
-            num_acq = count_acquisitions(hdf)
+    # Load all the data, which matches the signal type
+    with h5py.File(filename, "r") as hdf:
+        acq_data = []  # Return value: list of dicts containing each acquisition
 
-            dict_list = []
+        # For merging Angular-Resolved data into a single 4D array
+        ar_data: Dict[str, list] = {}  # polarization -> list of AR acquisitions
+        sem_concurrent_ar_data = None
 
-            AR = is_AR(filename)
+        # Go through each "Group", and check whether it could be an Odemis acquisition
+        for oname, obj in hdf.items():
+            # Only interested in "Acquisition..." groups
+            if not isinstance(obj, h5py.Group) or not oname.startswith("Acquisition"):
+                continue
+            # Needs to have SVIData, ImageData/Image, and PhysicalData
+            if (
+                "SVIData" not in obj
+                or "PhysicalData" not in obj
+                or "ImageData" not in obj
+                or "Image" not in obj["ImageData"]
+            ):
+                continue  # not conforming => try next object
 
-            if num_acq > 4 and AR:
-                for i in np.arange(0, 2):
-                    Acquisition = "Acquisition" + str(i)
-                    Acq = hdf.get(Acquisition)
-                    img_type = read_image_type(Acq)
-                    if Acq is None:
-                        raise ValueError(
-                            f"Acquisition {Acquisition} not found in file."
-                        )
+            # Load data
+            try:
+                data, acq_type = read_acquisition(obj)
+            except Exception as ex:
+                _logger.warning("Failed to read data %s, skipping it: %s", oname, ex)
+                continue
 
-                    ImgData = Acq.get("ImageData")
-                    Image = ImgData.get("Image")
+            # Skip the data which is not in one of the acquisition types the user is interested in
+            if AcquisitionType.AR in filtered_acq_types:
+                # Keep the AR data apart, for merging it later
+                if acq_type == AcquisitionType.AR:
+                    # Standard AR acquisitions have no polarization, and "polarized" ones have typically
+                    # 6 polarizations positions.
+                    pol = data["original_metadata"].get("Polarization", "")
+                    if pol not in ar_data:
+                        ar_data[pol] = []
+                    ar_data[pol].append(data)
+                elif acq_type == AcquisitionType.SE:
+                    sem_concurrent_ar_data = data
 
-                    if img_type in [
-                        "Secondary electrons survey",
-                        "Secondary electrons concurrent",
-                    ]:
-                        data = load_image(Image)
-                        axes = make_axes(Acq)
-                        metadata = make_metadata(Acq)
-                        original_metadata = make_original_metadata(Acq)
+            if acq_type in filtered_acq_types and acq_type != AcquisitionType.AR:
+                acq_data.append(data)
 
-                        dictionnary = {
-                            "data": data,
-                            "axes": axes,
-                            "metadata": metadata,
-                            "original_metadata": original_metadata,
-                        }
-
-                        dict_list.append([dictionnary])
-
-                    else:
-                        pass
-
-                data = load_AR(filename)
-
-                Acquisition = "Acquisition2"
-
-                Acq = hdf.get(Acquisition)
-
-                if len(data.shape) < 3 and signal == "CL":
-                    axes = load_AR_signal_axes(hdf, Acquisition, AR=True)
-                else:
-                    axes = load_AR_axes(hdf, Acquisition, AR=True)
-                metadata = make_metadata(Acq)
-                original_metadata = make_original_AR_metadata(Acq, data)
-
-                dictionnary = {
-                    "data": data,
-                    "axes": axes,
-                    "metadata": metadata,
-                    "original_metadata": original_metadata,
-                }
-
-                dict_list.append([dictionnary])
-
-            else:
-                for i in np.arange(0, num_acq - 1):
-                    Acquisition = "Acquisition" + str(i)
-
-                    Acq = hdf.get(Acquisition)
-
-                    if Acq is None:
-                        raise ValueError(
-                            f"Acquisition {Acquisition} not found in file."
-                        )
-
-                    ImgData = Acq.get("ImageData")
-                    Image = ImgData.get("Image")
-
-                    dim = np.array(Image.shape)
-                    C, T, Z, Y, X = dim
-
-                    if dim.sum() < 5:
-                        raise ValueError("Image dimensions are too small.")
-
-                    if dim.sum() == 5:
-                        if C == 1 and T == 1 and Z == 1 and Y == 1 and X == 1:
-                            data = load_image(Image)
-                            img_type = read_image_type(Acq)
-                            axes = make_axes(Acq)
-                            metadata = make_metadata(Acq)
-                            original_metadata = make_original_metadata(Acq)
-                            if img_type == "Secondary electrons survey":
-                                pass  # Add additional processing if needed
-                            elif img_type == "Secondary electrons concurrent":
-                                pass  # Add additional processing if needed
-                            else:
-                                raise ValueError(
-                                    f"Unknown data type: {img_type},"
-                                    f"loaded as an image."
-                                )
-
-                    elif dim.sum() > 5:
-                        if AR:
-                            data = load_AR(filename)
-                            if len(data.shape) < 4 and signal == "CL":
-                                axes = load_AR_signal_axes(hdf, Acquisition, AR=True)
-                            else:
-                                axes = load_AR_axes(hdf, Acquisition, AR=True)
-                            metadata = make_metadata(Acq)
-                            original_metadata = make_original_AR_metadata(Acq, data)
-                        else:
-                            if C > 1:
-                                if T > 1:
-                                    img_type = read_image_type(Acq)
-                                    if img_type == "Temporal Spectrum":
-                                        data = load_streak_camera_image(Image)
-                                        if len(data.shape) < 3 and signal == "CL":
-                                            axes = make_signal_axes(Acq)
-                                        else:
-                                            axes = make_axes(Acq)
-                                        metadata = make_metadata(Acq)
-                                        original_metadata = make_original_metadata(Acq)
-                                    elif img_type == "AR Spectrum":
-                                        data = load_AR_spectrum(Image)
-                                        if len(data.shape) < 3 and signal == "CL":
-                                            axes = make_signal_axes(Acq)
-                                        else:
-                                            axes = make_axes(Acq)
-                                        metadata = make_metadata(Acq)
-                                        original_metadata = make_original_metadata(Acq)
-                                    elif img_type.startswith("Spectrum"):
-                                        data = load_hyperspectral(Image)
-                                        if len(data.shape) < 2 and signal == "CL":
-                                            axes = make_signal_axes(Acq)
-                                        else:
-                                            axes = make_axes(Acq)
-                                        metadata = make_metadata(Acq)
-                                        original_metadata = make_original_metadata(Acq)
-                                    else:
-                                        raise ValueError(
-                                            f"Unknown data type: {img_type},"
-                                            f"loaded as a temporal spectrum."
-                                        )
-                                elif T == 1:
-                                    data = load_hyperspectral(Image)
-                                    img_type = read_image_type(Acq)
-                                    if len(data.shape) < 2 and signal == "CL":
-                                        axes = make_signal_axes(Acq)
-                                    else:
-                                        axes = make_axes(Acq)
-                                    metadata = make_metadata(Acq)
-                                    original_metadata = make_original_metadata(Acq)
-                                    if img_type.startswith("Spectrum") or img_type == (
-                                        "Large Area Spectrum with Spectrometer"
-                                    ):
-                                        pass
-                                    else:
-                                        raise ValueError(
-                                            f"Unknown data type: {img_type},"
-                                            f"loaded as a hyperspectral"
-                                            f" dataset."
-                                        )
-                            elif C == 1:
-                                if T > 1:
-                                    data = load_temporal_trace(Image)
-                                    img_type = read_image_type(Acq)
-                                    if len(data.shape) < 2 and signal == "CL":
-                                        axes = make_signal_axes(Acq)
-                                    else:
-                                        axes = make_axes(Acq)
-                                    metadata = make_metadata(Acq)
-                                    original_metadata = make_original_metadata(Acq)
-                                    if img_type == "Time Correlator":
-                                        pass
-                                    else:
-                                        raise ValueError(
-                                            f"Unknown data type: {img_type},"
-                                            f"loaded as a temporal trace."
-                                        )
-                                elif T == 1:
-                                    img_type = read_image_type(Acq)
-                                    if img_type == "CL intensity":
-                                        data = load_image(Image)
-                                        axes = make_axes(Acq)
-                                        metadata = make_metadata(Acq)
-                                        original_metadata = make_original_metadata(Acq)
-                                    elif img_type in [
-                                        "Secondary electrons survey",
-                                        "Secondary electrons concurrent",
-                                    ]:
-                                        data = load_image(Image)
-                                        axes = make_axes(Acq)
-                                        metadata = make_metadata(Acq)
-                                        original_metadata = make_original_metadata(Acq)
-                                    elif img_type == "Angle-resolved":
-                                        raise ValueError(
-                                            "Angle-resolved image detected,"
-                                            "use specific AR loading tool."
-                                        )
-                                    else:
-                                        raise ValueError(
-                                            f"Unknown data type: {img_type},"
-                                            f"loaded as an image."
-                                        )
-                            elif Z != 1:
-                                raise ValueError(
-                                    "Invalid format: Z dimension should be 1."
-                                )
-                            else:
-                                raise ValueError("Invalid format.")
-
-                    dictionnary = {
-                        "data": data,
-                        "axes": axes,
-                        "metadata": metadata,
-                        "original_metadata": original_metadata,
-                    }
-
-                    dict_list.append([dictionnary])
-
-            if signal == "all":
-                return dict_list
-
-            if isinstance(signal, str):
-                signal = [signal]
-
-            invalid_types = [s for s in signal if s not in signal_mapping]
-            if invalid_types:
-                raise ValueError(
-                    f"Invalid data type(s): {invalid_types}. Valid options are: {list(signal_mapping.keys())}"
+        # Merge AR data, if there is AR data
+        if ar_data:
+            if sem_concurrent_ar_data is None:
+                _logger.warning(
+                    "AR data present but no SEM concurrent data found to reconstruct it"
                 )
-
-            selected_data = [dict_list[signal_mapping[s]] for s in signal]
-
-            if len(selected_data) == 1:
-                return selected_data[0]
+                acq_data.extend(ar_data)  # Still pass it on, as-is
             else:
-                return selected_data
+                for pol, ar_polarized in ar_data.items():
+                    try:
+                        ar_merged = merge_ar_data(ar_polarized, sem_concurrent_ar_data)
+                        acq_data.append(ar_merged)
+                    except Exception as ex:
+                        _logger.warning(
+                            "Failed to merge AR data, will pass it as separate data: %s",
+                            ex,
+                        )
+                        acq_data.extend(ar_polarized)
 
-    except IOError as e:
-        raise IOError(f"Failed to load file '{filename}'. Error: {e}")
+        # No data found: that's the sign it's not a Delmic HDF5
+        if not acq_data:
+            raise IOError("The file is not a valid Delmic HDF5 file")
+
+        # squeeze dimensions: remove axes which are empty
+        for data in acq_data:
+            squeeze_dimensions(data)
+            reorder_dimensions(data)
+
+        return acq_data
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC)

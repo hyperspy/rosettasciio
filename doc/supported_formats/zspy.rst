@@ -30,27 +30,49 @@ the inner-most structures are converted to numpy arrays when saved. This
 procedure homogenizes any types of the objects inside, most notably casting
 numbers as strings if any other strings are present:
 
-By default, a :py:class:`zarr.storage.NestedDirectoryStore` is used, but other
+Using different Zarr stores
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default, a :py:class:`zarr.storage.DirectoryStore` is used, but other
 zarr store can be used by providing a :py:mod:`zarr.storage`
 instead as argument to the :py:meth:`hyperspy.api.signals.BaseSignal.save` or the
-:py:func:`hyperspy.api.load` function. If a ``.zspy`` file has been saved with a different
-store, it would need to be loaded by passing a store of the same type:
+:py:func:`hyperspy.api.load` function.
+
+Using a :py:class:`~zarr.storage.ZipStore`:
+
+.. note::
+    While the :py:class:`~zarr.storage.ZipStore` is convenient to save as a single file,
+    it has limitations:
+    
+    - The :py:class:`~zarr.storage.ZipStore` currently doesn't support overwriting
+      and will raise a ``NotImplementedError`` when writing to an existing file.
+    - It doesn't support writing from multiple processes at the same time.
 
 .. code-block:: python
 
     >>> import zarr
     >>> filename = 'test.zspy'
-    >>> store = zarr.LMDBStore(filename)
-    >>> signal.save(store) # saved to LMDB
+    >>> store = zarr.storage.ZipStore(filename)
+    >>> signal.save(store) # saved using ZipStore
 
-To load this file again
+To load this file again, RosettaSciIO will automatically detect that it
+is a Zip file and load it using the :py:class:`~zarr.storage.ZipStore`:
 
 .. code-block:: python
 
     >>> import zarr
     >>> filename = 'test.zspy'
-    >>> store = zarr.LMDBStore(filename)
-    >>> s = hs.load(store) # load from LMDB
+    >>> s = hs.load(filename) # load from ZipStore
+
+If other zarr stores are used, it will be necessary to specify the store
+type when loading the file:
+
+    >>> import zarr
+    >>> filename = 'test.zspy'
+    >>> store = zarr.storage.ZipStore(filename)  # or the store the data was saved with
+    >>> s = hs.load(store) # load using the given store
+
+
 
 API functions
 ^^^^^^^^^^^^^

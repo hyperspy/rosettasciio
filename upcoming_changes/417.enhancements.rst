@@ -1,0 +1,1 @@
+:ref:`ZSpy <zspy-format>`: Simplify syntax for reading ``zspy`` saved with :class:`zarr.storage.ZipStore` store.

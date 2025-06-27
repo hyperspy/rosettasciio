@@ -17,6 +17,7 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import logging
+import zipfile
 from collections.abc import MutableMapping
 
 import dask.array as da
@@ -212,9 +213,7 @@ def file_writer(
     if isinstance(filename, MutableMapping):
         store = filename
     else:
-        store = zarr.storage.NestedDirectoryStore(
-            filename,
-        )
+        store = zarr.storage.NestedDirectoryStore(filename)
     mode = "w" if write_dataset else "a"
 
     _logger.debug(f"File mode: {mode}")
@@ -272,9 +271,21 @@ def file_reader(filename, lazy=False, **kwds):
 
     %s
     """
-    mode = kwds.pop("mode", "r")
+    # check that this is a not zarr store before checking if it is a zip file
+    if not isinstance(filename, MutableMapping) and zipfile.is_zipfile(filename):
+        filename = zarr.storage.ZipStore(filename, mode="r")
+
+    if isinstance(filename, zarr.storage.ZipStore) and "mode" in kwds.keys():
+        _logger.warning(
+            "Specifying `mode` when opening a zspy file with a ZipStore is not supported."
+        )
+
+    # if lazy is True, we need to open the file in read/write mode
+    # to be able to write later
+    kwds.setdefault("mode", "r+" if lazy else "r")
+
     try:
-        f = zarr.open(filename, mode=mode, **kwds)
+        f = zarr.open(filename, **kwds)
     except Exception:
         _logger.error(
             "The file can't be read. It may be possible that the zspy file is "
@@ -283,9 +294,12 @@ def file_reader(filename, lazy=False, **kwds):
         )
         raise
 
-    reader = ZspyReader(f)
+    to_return = ZspyReader(f).read(lazy=lazy)
+    if not lazy and isinstance(filename, zarr.storage.ZipStore):
+        # Close the file if not lazy
+        filename.close()
 
-    return reader.read(lazy=lazy)
+    return to_return
 
 
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)

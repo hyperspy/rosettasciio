@@ -36,7 +36,7 @@ class TestZspy:
 
     @pytest.mark.parametrize("store_class", [zarr.N5Store, zarr.ZipStore])
     def test_save_store(self, signal, tmp_path, store_class):
-        filename = tmp_path / "testmodels.zspy"
+        filename = tmp_path / "test_save_store.zspy"
         store = store_class(path=filename)
         signal.save(store)
 
@@ -50,17 +50,25 @@ class TestZspy:
 
         np.testing.assert_array_equal(signal2.data, signal.data)
 
-    def test_save_ZipStore_close_file(self, signal, tmp_path):
-        filename = tmp_path / "testmodels.zspy"
+    @pytest.mark.parametrize("close_file", [True, False])
+    def test_save_ZipStore_close_file(self, signal, tmp_path, close_file):
+        filename = tmp_path / "test_zip_Store.zspy"
         store = zarr.ZipStore(path=filename)
-        signal.save(store, close_file=False)
+        signal.save(store, close_file=close_file)
 
         assert os.path.isfile(filename)
 
-        store2 = zarr.ZipStore(path=filename)
-        s2 = hs.load(store2)
-
+        s2 = hs.load(filename)
         np.testing.assert_array_equal(s2.data, signal.data)
+
+    def test_save_ZipStore_mode_warning(self, signal, tmp_path, caplog):
+        filename = tmp_path / "test.zspy"
+        store = zarr.ZipStore(path=filename)
+        signal.save(store)
+
+        with caplog.at_level(logging.WARNING):
+            _ = hs.load(filename, mode="r+")
+            assert "Specifying `mode` " in caplog.text
 
     def test_save_wrong_store(self, signal, tmp_path, caplog):
         filename = tmp_path / "testmodels.zspy"

@@ -18,6 +18,7 @@
 
 import logging
 import os
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -25,6 +26,8 @@ import pytest
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 # zarr (because of numcodecs) is only supported on x86_64 machines
 zarr = pytest.importorskip("zarr", reason="zarr not installed")
+
+dname = Path(os.path.dirname(__file__)) / "data" / "zspy"
 
 
 class TestZspy:
@@ -130,3 +133,19 @@ def test_non_valid_zspy(tmp_path, caplog):
     with pytest.raises(IOError):
         with caplog.at_level(logging.ERROR):
             _ = hs.load(filename)
+
+
+@pytest.mark.parametrize(
+    "fname",
+    [
+        "signal1d_10x10-DirectoryStore.zspy",
+        "signal1d_10x10-NestedDirectoryStore.zspy",
+        "signal1d_10x10-ZipStore.zspy",
+    ],
+)
+def test_read_zspy_saved_with_zarr_v2(fname):
+    fname = dname / fname
+
+    s = hs.load(fname)
+    assert s.data.shape == (10, 10)
+    assert s.axes_manager.signal_shape == (10,)

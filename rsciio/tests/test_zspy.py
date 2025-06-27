@@ -18,6 +18,7 @@
 
 import logging
 import os
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -25,6 +26,8 @@ import pytest
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 # zarr (because of numcodecs) is only supported on x86_64 machines
 zarr = pytest.importorskip("zarr", reason="zarr not installed")
+
+dname = Path(os.path.dirname(__file__)) / "data" / "zspy"
 
 
 class TestZspy:
@@ -130,3 +133,129 @@ def test_non_valid_zspy(tmp_path, caplog):
     with pytest.raises(IOError):
         with caplog.at_level(logging.ERROR):
             _ = hs.load(filename)
+
+
+@pytest.mark.parametrize(
+    "fname",
+    [
+        "signal1d_10x10-DirectoryStore.zspy",
+        "signal1d_10x10-NestedDirectoryStore.zspy",
+        "signal1d_10x10-ZipStore.zspy",
+    ],
+)
+def test_read_zspy_saved_with_zarr_v2(fname):
+    """Test reading a zspy file saved with zarr v2 and different stores."""
+    fname = dname / fname
+
+    s = hs.load(fname)
+    assert s.data.shape == (10, 10)
+    assert s.axes_manager.signal_shape == (10,)
+
+
+def test_read_zspy_saved_with_zarr_v2_ragged_markers():
+    """
+    Test reading a zspy file with ragged markers saved with zarr v2.
+
+    File created with the following code:
+
+    import hyperspy.api as hs
+    import numpy as np
+
+    data = np.arange(20*10*10).reshape((20, 10, 10))
+    s = hs.signals.Signal2D(data)
+
+    offsets = np.empty(s.axes_manager.navigation_shape, dtype=object)
+    for ind in np.ndindex(offsets.shape):
+        i = ind[0] / 2
+        offsets[ind] = [i, i]
+    m = hs.plot.markers.Points(
+        offsets=offsets,
+        facecolor='orange',
+        )
+
+    s.plot()
+    s.add_marker(m, permanent=True)
+    s.save("signal2d_20x10x10-ragged_markers.zspy", store_type="zip")
+    """
+    fname = dname / "signal2d_20x10x10-ragged_markers.zspy"
+
+    s = hs.load(fname)
+    assert s.data.shape == (20, 10, 10)
+    m = s.metadata.Markers.Points
+    # The position of the markers increase by 0.5 in each dimension
+    # with increase the navigation position
+    for i, array in enumerate(m.kwargs["offsets"]):
+        np.testing.assert_allclose(array, [i / 2, i / 2])
+
+
+def test_read_zspy_saved_with_zarr_v2_ragged_markers_unicode():
+    """
+    Test reading a zspy file with ragged markers and unicode dtype
+    saved with zarr v2.
+
+    File created with the following code:
+
+    import hyperspy.api as hs
+    import numpy as np
+
+    data = np.ones((5, 10, 10))
+    s = hs.signals.Signal2D(data)
+
+    offsets = np.empty(s.axes_manager.navigation_shape, dtype=object)
+    texts = np.empty(s.axes_manager.navigation_shape, dtype=object)
+    for index in np.ndindex(offsets.shape):
+        i = index[0]
+        offsets[index] = [i/2, i/2]
+        texts[index] = np.array(["a" * (i + 1), "b",][: i + 2])
+    m = hs.plot.markers.Texts(
+        offsets=offsets,
+        texts=texts,
+        sizes=3,
+        facecolor="black",
+    )
+
+    s.add_marker(m, permanent=True)
+    s.save("signal2d_20x10x10-ragged_markers_unicode.zspy", store_type="zip")
+    """
+    fname = dname / "signal2d_20x10x10-ragged_markers_unicode.zspy"
+
+    s = hs.load(fname)
+    assert s.data.shape == (5, 10, 10)
+    m = s.metadata.Markers.Texts
+    assert m.kwargs["offsets"].dtype == object
+    assert m.kwargs["texts"].dtype == object
+    np.testing.assert_equal(m.kwargs["texts"][0], ["a", "b"])
+    np.testing.assert_equal(m.kwargs["texts"][1], ["aa", "b"])
+
+
+def test_read_zspy_saved_with_zarr_v2_structured_array():
+    """
+    Test reading a zspy file with structured arrays saved with zarr v2.
+    A multidimensional model is good example of a structured array, because
+    the parameters map is a structured array.
+
+    import numpy as np
+    import hyperspy.api as hs
+
+    # Generate the data and make the spectrum
+    data = np.arange(1000, dtype=np.int64).reshape((10, 100))
+    s = hs.signals.Signal1D(data)
+    s.add_poissonian_noise(random_state=0)
+
+    m = s.create_model()
+    line = hs.model.components1D.Expression("a * x + b", name="Affine")
+    m.append(line)
+
+    m.multifit()
+    m.store()
+    s.save("signal1d_10x100-model.zspy", store_type="zip")
+
+    """
+    fname = dname / "signal1d_10x100-model.zspy"
+
+    s = hs.load(fname)
+    m = s.models.restore("a")
+
+    assert m[0].a.map.dtype == np.dtype(
+        [("values", "<f8"), ("std", "<f8"), ("is_set", bool)]
+    )

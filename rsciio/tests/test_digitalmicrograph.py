@@ -627,6 +627,7 @@ def generate_parameters():
                     "filename": filename,
                     "subfolder": subfolder,
                     "key": key,
+                    "dim": dim,
                 }
             )
         for key in dm4_data_types.keys():
@@ -637,6 +638,7 @@ def generate_parameters():
                     "filename": filename,
                     "subfolder": subfolder,
                     "key": key,
+                    "dim": dim,
                 }
             )
     return parameters
@@ -646,6 +648,12 @@ def generate_parameters():
 @pytest.mark.parametrize("pdict", generate_parameters())
 @pytest.mark.parametrize("lazy", (True, False))
 def test_data_and_axes(pdict, lazy):
+    if lazy:
+        if pdict["key"] in (8, 23):  # RGBA
+            with pytest.raises(ValueError):
+                # RGBA data cannot be lazy loaded
+                hs.load(pdict["filename"], lazy=lazy)
+            pytest.skip("RGBA data cannot be lazy loaded")
     s = hs.load(pdict["filename"], lazy=lazy)
     if lazy:
         s.compute(close_file=True)
@@ -676,6 +684,18 @@ def test_data_and_axes(pdict, lazy):
         err_msg=f"content {subfolder} type {key}: "
         f"\n{str(s.data)} not equal to \n{str(dat)}",
     )
+
+
+def test_compare_complex_data_lazily():
+    # Check that complex data is read correctly when lazy loaded
+    # unpacking is the same as for non-lazy data
+    s = hs.load(DM_2D_PATH / "test_fft_packed_complex8.dm4", lazy=False)
+    s_lazy = hs.load(DM_2D_PATH / "test_fft_packed_complex8.dm4", lazy=True)
+    s_lazy.compute(close_file=True)
+
+    assert s.data.dtype == np.complex64
+    assert s_lazy.data.dtype == np.complex64
+    np.testing.assert_allclose(s.data, s_lazy.data)
 
 
 def test_axes_bug_for_image():

@@ -30,9 +30,10 @@ import numpy as np
 from box import Box
 
 import rsciio.utils._readfile as iou
-from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio._docstrings import CHUNKS_READ_DOC, FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 from rsciio.exceptions import DM3DataTypeError, DM3TagIDError, DM3TagTypeError
 from rsciio.utils._tools import ensure_unicode
+from rsciio.utils.file import memmap_distributed
 
 _logger = logging.getLogger(__name__)
 
@@ -612,20 +613,6 @@ class ImageObject(object):
         else:
             return ""
 
-    def _get_data_array(self):
-        need_to_close = False
-        if self.file.closed:
-            self.file = open(self.filename, "rb")
-            need_to_close = True
-        self.file.seek(self.imdict.ImageData.Data.offset)
-        count = self.imdict.ImageData.Data.size
-        if self.imdict.ImageData.DataType in (27, 28):  # Packed complex
-            count = int(count / 2)
-        data = np.fromfile(self.file, dtype=self.dtype, count=count)
-        if need_to_close:
-            self.file.close()
-        return data
-
     @property
     def size(self):
         if self.imdict.ImageData.DataType in (27, 28):  # Packed complex
@@ -638,10 +625,42 @@ class ImageObject(object):
         else:
             return self.imdict.ImageData.Data.size
 
-    def get_data(self):
+    def get_data(self, lazy, chunks="auto"):
         if isinstance(self.imdict.ImageData.Data, np.ndarray):
             return self.imdict.ImageData.Data
-        data = self._get_data_array()
+
+        if lazy:
+            shape = list(self.shape)
+            if self.imdict.ImageData.DataType in (8, 23):
+                raise ValueError(
+                    "Lazy loading of RGBA images is not supported. "
+                    "Please load the image without lazy=True. "
+                    "If you need to load RGBA images lazily please "
+                    "open an issue on the RosettaSciIO GitHub page."
+                )
+            if self.imdict.ImageData.DataType in (27, 28):  # Packed complex
+                shape[-1] = int(shape[-1] / 2 + 1)
+            data = memmap_distributed(
+                self.filename,
+                offset=self.imdict.ImageData.Data.offset,
+                shape=tuple(shape),
+                dtype=np.dtype(self.dtype),
+                chunks=chunks,
+                order=self.order,
+            )
+        else:
+            need_to_close = False
+            if self.file.closed:
+                self.file = open(self.filename, "rb")
+                need_to_close = True
+            self.file.seek(self.imdict.ImageData.Data.offset)
+            count = self.imdict.ImageData.Data.size
+            if self.imdict.ImageData.DataType in (27, 28):  # Packed complex
+                count = int(count / 2)
+            data = np.fromfile(self.file, dtype=self.dtype, count=count)
+            if need_to_close:
+                self.file.close()
+
         if self.imdict.ImageData.DataType in (27, 28):  # New packed complex
             return self.unpack_new_packed_complex(data)
         elif self.imdict.ImageData.DataType == 5:  # Old packed compled
@@ -651,11 +670,14 @@ class ImageObject(object):
             data = data[["R", "G", "B", "A"]].astype(
                 [("R", "u1"), ("G", "u1"), ("B", "u1"), ("A", "u1")]
             )
-        return data.reshape(self.shape, order=self.order)
+        if not lazy:
+            data = data.reshape(self.shape, order=self.order)
+
+        return data
 
     def unpack_new_packed_complex(self, data):
         packed_shape = (self.shape[0], int(self.shape[1] / 2 + 1))
-        data = data.reshape(packed_shape, order=self.order)
+        data = data.reshape(packed_shape)
         return np.hstack((data[:, ::-1], np.conjugate(data[:, 1:-1])))
 
     def unpack_packed_complex(self, tmpdata):
@@ -706,7 +728,7 @@ class ImageObject(object):
         realpart = tmpdata[start:stop:step]
         imagpart = tmpdata[start + 1 : stop + 1 : step]
         complexdata = realpart + imagpart * 1j
-        data[N + 1 : 2 * N, N : 2 * N] = complexdata.reshape(N - 1, N, order=self.order)
+        data[N + 1 : 2 * N, N : 2 * N] = complexdata.reshape(N - 1, N)
 
         # fill in the empty pixels: A(i)(j) = A(2N-i)(2N-j)*
         # 1st row, top left quarter, except 1st element
@@ -1249,7 +1271,7 @@ class ImageObject(object):
         return mapping
 
 
-def file_reader(filename, lazy=False, order=None, optimize=True):
+def file_reader(filename, lazy=False, order=None, optimize=True, chunks="auto"):
     """
     Read a DM3/4 file and loads the data into the appropriate class.
 
@@ -1270,6 +1292,7 @@ def file_reader(filename, lazy=False, order=None, optimize=True):
         during data loading, which for large data sets can lead to a slow down on
         machines with limited memory. When operating on lazy signals, if ``True``,
         the chunks are optimised for the new axes configuration.
+    %s
 
     %s
     """
@@ -1286,6 +1309,7 @@ def file_reader(filename, lazy=False, order=None, optimize=True):
         dm.tags_dict["ImageList"] = {}
 
         for image in images:
+            image.filename = filename
             dm.tags_dict["ImageList"]["TagGroup0"] = image.imdict.to_dict()
             axes = image.get_axes_dict()
             mp = image.get_metadata()
@@ -1294,15 +1318,7 @@ def file_reader(filename, lazy=False, order=None, optimize=True):
             if image.to_spectrum is True:
                 post_process.append(lambda s: s.to_signal1D(optimize=optimize))
             post_process.append(lambda s: s.squeeze())
-            if lazy:
-                image.filename = filename
-                import dask.delayed as dd
-                from dask.array import from_delayed
-
-                val = dd(image.get_data, pure=True)()
-                data = from_delayed(val, shape=image.shape, dtype=image.dtype)
-            else:
-                data = image.get_data()
+            data = image.get_data(lazy, chunks)
             # in the event there are multiple signals contained within this
             # DM file, it is important to make a "deepcopy" of the metadata
             # and original_metadata, since they are changed in each iteration
@@ -1323,4 +1339,4 @@ def file_reader(filename, lazy=False, order=None, optimize=True):
     return imd
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, CHUNKS_READ_DOC, RETURNS_DOC)

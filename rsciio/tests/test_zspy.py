@@ -18,6 +18,8 @@
 
 import logging
 import os
+import zipfile
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -25,6 +27,8 @@ import pytest
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 # zarr (because of numcodecs) is only supported on x86_64 machines
 zarr = pytest.importorskip("zarr", reason="zarr not installed")
+
+dname = Path(os.path.dirname(__file__)) / "data" / "zspy"
 
 
 class TestZspy:
@@ -36,7 +40,7 @@ class TestZspy:
 
     @pytest.mark.parametrize("store_class", [zarr.N5Store, zarr.ZipStore])
     def test_save_store(self, signal, tmp_path, store_class):
-        filename = tmp_path / "testmodels.zspy"
+        filename = tmp_path / "test_save_store.zspy"
         store = store_class(path=filename)
         signal.save(store)
 
@@ -50,17 +54,25 @@ class TestZspy:
 
         np.testing.assert_array_equal(signal2.data, signal.data)
 
-    def test_save_ZipStore_close_file(self, signal, tmp_path):
-        filename = tmp_path / "testmodels.zspy"
+    @pytest.mark.parametrize("close_file", [True, False])
+    def test_save_ZipStore_close_file(self, signal, tmp_path, close_file):
+        filename = tmp_path / "test_zip_Store.zspy"
         store = zarr.ZipStore(path=filename)
-        signal.save(store, close_file=False)
+        signal.save(store, close_file=close_file)
 
         assert os.path.isfile(filename)
 
-        store2 = zarr.ZipStore(path=filename)
-        s2 = hs.load(store2)
-
+        s2 = hs.load(filename)
         np.testing.assert_array_equal(s2.data, signal.data)
+
+    def test_save_ZipStore_mode_warning(self, signal, tmp_path, caplog):
+        filename = tmp_path / "test.zspy"
+        store = zarr.ZipStore(path=filename)
+        signal.save(store)
+
+        with caplog.at_level(logging.WARNING):
+            _ = hs.load(filename, mode="r+")
+            assert "Specifying `mode` " in caplog.text
 
     def test_save_wrong_store(self, signal, tmp_path, caplog):
         filename = tmp_path / "testmodels.zspy"
@@ -122,3 +134,52 @@ def test_non_valid_zspy(tmp_path, caplog):
     with pytest.raises(IOError):
         with caplog.at_level(logging.ERROR):
             _ = hs.load(filename)
+
+
+@pytest.mark.parametrize(
+    "fname",
+    [
+        "signal1d_10x10-DirectoryStore.zspy",
+        "signal1d_10x10-NestedDirectoryStore.zspy",
+        "signal1d_10x10-ZipStore.zspy",
+    ],
+)
+def test_read_zspy_saved_with_zarr_v2(fname):
+    fname = dname / fname
+
+    s = hs.load(fname)
+    assert s.data.shape == (10, 10)
+    assert s.axes_manager.signal_shape == (10,)
+
+
+@pytest.mark.parametrize("store_type", ["local", "zip"])
+def test_save_store(store_type, tmp_path):
+    filename = tmp_path / f"test_save_{store_type}.zspy"
+
+    data = np.ones((10, 10, 10, 10))
+    s = hs.signals.Signal1D(data)
+    s.save(filename, store_type=store_type)
+
+    if store_type == "zip":
+        assert zipfile.is_zipfile(filename)
+    else:
+        assert filename.is_dir()
+
+    s2 = hs.load(filename)
+    np.testing.assert_allclose(s2.data, s.data)
+
+
+def test_save_store_error(tmp_path):
+    # ValueError if store_type is not None and a zarr store
+    # is passed to filename
+    data = np.ones((10, 10, 10, 10))
+    s = hs.signals.Signal1D(data)
+
+    with pytest.raises(ValueError, match="one of 'local' or 'zip'."):
+        s.save(tmp_path / "test0.zspy", store_type="unsupported_store_type")
+
+    store = zarr.storage.ZipStore(tmp_path / "test1.zspy")
+    with pytest.raises(
+        ValueError, match="The `store_type` parameter must be None if a zarr "
+    ):
+        s.save(filename=store, store_type="zip")

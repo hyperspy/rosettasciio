@@ -18,6 +18,7 @@
 
 import logging
 import os
+import zipfile
 from pathlib import Path
 
 import numpy as np
@@ -259,3 +260,36 @@ def test_read_zspy_saved_with_zarr_v2_structured_array():
     assert m[0].a.map.dtype == np.dtype(
         [("values", "<f8"), ("std", "<f8"), ("is_set", bool)]
     )
+
+
+@pytest.mark.parametrize("store_type", ["local", "zip"])
+def test_save_store(store_type, tmp_path):
+    filename = tmp_path / f"test_save_{store_type}.zspy"
+
+    data = np.ones((10, 10, 10, 10))
+    s = hs.signals.Signal1D(data)
+    s.save(filename, store_type=store_type)
+
+    if store_type == "zip":
+        assert zipfile.is_zipfile(filename)
+    else:
+        assert filename.is_dir()
+
+    s2 = hs.load(filename)
+    np.testing.assert_allclose(s2.data, s.data)
+
+
+def test_save_store_error(tmp_path):
+    # ValueError if store_type is not None and a zarr store
+    # is passed to filename
+    data = np.ones((10, 10, 10, 10))
+    s = hs.signals.Signal1D(data)
+
+    with pytest.raises(ValueError, match="one of 'local' or 'zip'."):
+        s.save(tmp_path / "test0.zspy", store_type="unsupported_store_type")
+
+    store = zarr.storage.ZipStore(tmp_path / "test1.zspy")
+    with pytest.raises(
+        ValueError, match="The `store_type` parameter must be None if a zarr "
+    ):
+        s.save(filename=store, store_type="zip")

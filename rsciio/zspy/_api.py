@@ -167,6 +167,7 @@ def file_writer(
     compressor=None,
     close_file=True,
     write_dataset=True,
+    store_type=None,
     show_progressbar=True,
     **kwds,
 ):
@@ -192,6 +193,13 @@ def file_writer(
         If ``False``, doesn't write the dataset when writing the file. This can
         be useful to overwrite signal attributes only (for example ``axes_manager``)
         without having to write the whole dataset, which can take time.
+    store_type : str, "local" or "zip" or None
+        If "local", uses a :class:`zarr.storage.NestedDirectoryStore`
+        to save the file in a local directory. If "zip", uses a
+        :class:`zarr.storage.ZipStore` to save the file in a zip archive.
+        If ``None``, the default store is used (:class:`~zarr.storage.NestedDirectoryStore`)
+        is used. Specifying this parameter is incompatible with passing an instance of
+        a zarr store to the ``filename`` parameter. Default is None.
     %s
     **kwds
         The keyword arguments are passed to the
@@ -201,7 +209,11 @@ def file_writer(
     --------
     >>> from numcodecs import Blosc
     >>> compressor = Blosc(cname='zstd', clevel=1, shuffle=Blosc.SHUFFLE) # Used by default
-    >>> file_writer('test.zspy', s, compressor = compressor) # will save with Blosc compression
+    >>> file_writer("test.zspy", signal_dict, compressor=compressor) # will save with Blosc compression
+
+    Using a :class:`zarr.storage.ZipStore` store:
+
+    >>> file_writer("test.zspy", signal_dict, store_type="zip")
     """
     if compressor is None:
         compressor = numcodecs.Blosc(
@@ -211,9 +223,23 @@ def file_writer(
         raise ValueError("`write_dataset` argument must a boolean.")
 
     if isinstance(filename, MutableMapping):
+        # a store is passed for the filename
         store = filename
+        if store_type is not None:
+            raise ValueError(
+                "The `store_type` parameter must be None if a zarr "
+                "store is passed to the `filename` parameter."
+            )
     else:
-        store = zarr.storage.NestedDirectoryStore(filename)
+        if store_type in ["local", None]:
+            store = zarr.storage.NestedDirectoryStore(filename)
+        elif store_type == "zip":
+            store = zarr.storage.ZipStore(filename)
+        else:
+            raise ValueError(
+                "The `store_type` argument must be one of 'local' or 'zip'."
+            )
+
     mode = "w" if write_dataset else "a"
 
     _logger.debug(f"File mode: {mode}")

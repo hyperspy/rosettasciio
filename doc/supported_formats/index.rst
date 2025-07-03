@@ -39,6 +39,7 @@ big datasets is supported.
    msa
    netcdf
    nexus
+   numpy
    pantarhei
    phenom
    protochips

@@ -1164,7 +1164,7 @@ def test_wrong_format():
     Attempt to load an HDF5 file not of the correct format should raise an IOError
     """
     with pytest.raises(IOError):
-        s = hs.load(testfile_arina_path, reader="Delmic")
+        hs.load(testfile_arina_path, reader="Delmic")
 
     with pytest.raises(IOError):
-        s = hs.load(testfile_hspy_path, reader="Delmic")
+        hs.load(testfile_hspy_path, reader="Delmic")

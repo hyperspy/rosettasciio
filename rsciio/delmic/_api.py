@@ -37,10 +37,12 @@ import json
 import logging
 from datetime import datetime, timezone
 from enum import Enum
-from typing import List, Dict, Any, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import h5py
 import numpy as np
+
+from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
 
 # LumiSpy provides extra Signal types for Cathodoluminescence, which can be nice for metadata,
 # but everything should work too without this extension being available.
@@ -49,7 +51,6 @@ try:
 except ImportError:
     lumispy = None
 
-from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC, LAZY_UNSUPPORTED_DOC
 
 _logger = logging.getLogger(__name__)
 
@@ -320,17 +321,17 @@ def make_metadata(
         signal_type = ACQ_TO_SIGNAL_TYPE.get(acq_type, "")
         metadata["Signal"]["signal_type"] = signal_type
 
-        # Store polarization information as a "detector filter", if present
-        pol = original_md.get("Polarization")
-        if pol is not None:
-            metadata["Acquisition_instrument"] = {
-                "Spectrometer": {
-                    "Filter": {
-                        "filter_type": "polarization analyzer",
-                        "position": pol,
-                    },
+    # Store polarization information as a "detector filter", if present
+    pol = original_md.get("Polarization")
+    if pol is not None:
+        metadata["Acquisition_instrument"] = {
+            "Spectrometer": {
+                "Filter": {
+                    "filter_type": "polarization analyzer",
+                    "position": pol,
                 },
-            }
+            },
+        }
 
     try:
         acq_date = original_md["AcquisitionDate"]
@@ -346,7 +347,7 @@ def make_metadata(
     except KeyError:
         pass
     except Exception:
-        _logger.warning(f"Failed to parse acquisition date")
+        _logger.warning("Failed to parse acquisition date")
 
     return metadata
 

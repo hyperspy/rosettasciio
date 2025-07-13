@@ -87,7 +87,8 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
-from rsciio.utils.dictionary import DTBox, sarray2dict
+from rsciio.utils._array import sarray2dict
+from rsciio.utils._dictionary import DTBox
 
 _logger = logging.getLogger(__name__)
 

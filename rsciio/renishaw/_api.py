@@ -1268,7 +1268,7 @@ class WDFReader(object):
 
         ## extract and parse EXIF tags
         if PIL_installed:
-            from rsciio.utils.image import _parse_axes_from_metadata, _parse_exif_tags
+            from rsciio.utils._image import _parse_axes_from_metadata, _parse_exif_tags
 
             pil_img = Image.open(img)
             original_metadata = {}

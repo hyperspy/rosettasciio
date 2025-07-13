@@ -35,7 +35,7 @@ from rsciio._docstrings import (
 )
 from rsciio._hierarchical import get_signal_chunks
 from rsciio.hspy._api import overwrite_dataset
-from rsciio.utils.dictionary import DTBox
+from rsciio.utils._dictionary import DTBox
 
 _logger = logging.getLogger(__name__)
 

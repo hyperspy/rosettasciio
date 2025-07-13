@@ -41,7 +41,7 @@ from rsciio.utils.hdf5 import (
     _parse_metadata,
     _parse_sub_data_group_metadata,
 )
-from rsciio.utils.tools import _UREG, convert_units
+from rsciio.utils.units import _UREG, convert_units
 
 _logger = logging.getLogger(__name__)
 

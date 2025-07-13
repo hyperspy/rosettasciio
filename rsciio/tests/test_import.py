@@ -155,3 +155,14 @@ def test_dir_plugins(plugin):
         assert dir(plugin_module) == ["file_reader"]
     else:
         assert dir(plugin_module) == ["file_reader", "file_writer"]
+
+
+def test_utils():
+    pytest.importorskip("h5py")
+    for obj_name in rsciio.utils.__all__:
+        getattr(rsciio.utils, obj_name)
+
+
+def test_tools():
+    for obj_name in rsciio.utils.tools.__all__:
+        getattr(rsciio.utils.tools, obj_name)

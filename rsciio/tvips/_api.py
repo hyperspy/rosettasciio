@@ -36,13 +36,9 @@ from rsciio._docstrings import (
     SHOW_PROGRESSBAR_DOC,
     SIGNAL_DOC,
 )
-from rsciio.utils.tools import (
-    _UREG,
-    DTBox,
-    dummy_context_manager,
-    jit_ifnumba,
-    sarray2dict,
-)
+from rsciio.utils._tools import dummy_context_manager, jit_ifnumba
+from rsciio.utils.dictionary import DTBox, sarray2dict
+from rsciio.utils.units import _UREG
 
 _logger = logging.getLogger(__name__)
 

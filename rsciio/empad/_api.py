@@ -24,7 +24,8 @@ import xml.etree.ElementTree as ET
 import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
-from rsciio.utils.tools import _UREG, convert_xml_to_dict
+from rsciio.utils.units import _UREG
+from rsciio.utils.xml import convert_xml_to_dict
 
 _logger = logging.getLogger(__name__)
 

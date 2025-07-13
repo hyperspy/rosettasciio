@@ -26,8 +26,8 @@ import dask.array as da
 import numpy as np
 import pytest
 
-from rsciio.utils import get_file_handle
 from rsciio.utils._tests import assert_deep_almost_equal
+from rsciio.utils._tools import get_file_handle
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 h5py = pytest.importorskip("h5py", reason="h5py not installed")

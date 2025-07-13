@@ -38,8 +38,8 @@ from rsciio.utils._deprecated import (
     distributed_keyword_deprecation,
     mmap_mode_keyword_deprecation,
 )
+from rsciio.utils.dictionary import sarray2dict
 from rsciio.utils.distributed import memmap_distributed
-from rsciio.utils.tools import sarray2dict
 
 _logger = logging.getLogger(__name__)
 

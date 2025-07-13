@@ -19,6 +19,7 @@
 import importlib
 
 __all__ = [
+    "get_file_handle",
     "rgb_tools",
     "tools",
 ]
@@ -28,10 +29,16 @@ def __dir__():
     return sorted(__all__)
 
 
+_import_mapping = {
+    "get_file_handle": "_tools",
+}
+
+
 def __getattr__(name):
-    if name in __all__:  # pragma: no cover
-        # We can't get this block covered in the test suite because it is
-        # already imported, when running the test suite.
-        return importlib.import_module("." + name, "rsciio.utils")
+    if name in __all__:
+        if name in _import_mapping.keys():
+            submodule = _import_mapping[name]
+            return getattr(importlib.import_module(f"rsciio.utils.{submodule}"), name)
+        return importlib.import_module(f".{name}", "rsciio.utils")
 
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

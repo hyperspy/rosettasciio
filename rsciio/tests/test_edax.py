@@ -27,7 +27,7 @@ import numpy as np
 import pytest
 
 from rsciio.edax import file_reader
-from rsciio.utils.tests import expected_is_binned
+from rsciio.utils._tests import expected_is_binned
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 requests = pytest.importorskip("requests", reason="requests not installed")

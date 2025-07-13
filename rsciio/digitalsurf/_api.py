@@ -52,7 +52,7 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
-from rsciio.utils.date_time_tools import get_date_time_from_metadata
+from rsciio.utils._date_time import get_date_time_from_metadata
 from rsciio.utils.exceptions import MountainsMapFileError
 from rsciio.utils.rgb_tools import is_rgb, is_rgba
 

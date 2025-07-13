@@ -938,7 +938,7 @@ def _readcube(
             )
 
     # for lazy loading
-    from rsciio.utils.fei_stream_readers import DenseSliceCOO
+    from rsciio.utils._fei_stream_readers import DenseSliceCOO
 
     length = np.sum([len(d) for d in data_list])
     # length = number of data points

@@ -31,8 +31,8 @@ from rsciio._docstrings import (
     LAZY_DOC,
     RETURNS_DOC,
 )
+from rsciio.utils.dictionary import sarray2dict
 from rsciio.utils.elements import atomic_number2name
-from rsciio.utils.tools import sarray2dict
 
 _logger = logging.getLogger(__name__)
 

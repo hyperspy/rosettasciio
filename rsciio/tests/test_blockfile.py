@@ -26,8 +26,8 @@ import numpy as np
 import pytest
 
 from rsciio.utils.date_time_tools import serial_date_to_ISO_format
+from rsciio.utils.dictionary import sarray2dict
 from rsciio.utils.tests import assert_deep_almost_equal
-from rsciio.utils.tools import sarray2dict
 
 try:
     WindowsError

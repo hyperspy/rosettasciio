@@ -36,19 +36,15 @@ from rsciio._docstrings import (
     SHOW_PROGRESSBAR_DOC,
     SIGNAL_DOC,
 )
+from rsciio.utils._tools import dummy_context_manager
 from rsciio.utils.date_time_tools import (
     datetime_to_serial_date,
     serial_date_to_ISO_format,
 )
+from rsciio.utils.dictionary import DTBox, dict2sarray, sarray2dict
 from rsciio.utils.distributed import memmap_distributed
 from rsciio.utils.skimage_exposure import rescale_intensity
-from rsciio.utils.tools import (
-    DTBox,
-    convert_units,
-    dict2sarray,
-    dummy_context_manager,
-    sarray2dict,
-)
+from rsciio.utils.units import convert_units
 
 _logger = logging.getLogger(__name__)
 

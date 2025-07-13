@@ -27,7 +27,7 @@ import numpy as np
 from packaging.version import Version
 
 from rsciio._docstrings import SHOW_PROGRESSBAR_DOC
-from rsciio.utils.tools import ensure_unicode
+from rsciio.utils._tools import ensure_unicode
 
 version = "3.3"
 

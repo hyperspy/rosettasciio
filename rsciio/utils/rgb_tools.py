@@ -65,7 +65,7 @@ def rgbx2regular_array(data, plot_friendly=False, show_progressbar=True):
     from dask.array import Array
     from dask.diagnostics import ProgressBar
 
-    from rsciio.utils.tools import dummy_context_manager
+    from rsciio.utils._tools import dummy_context_manager
 
     # Make sure that the data is contiguous
     if isinstance(data, Array):

@@ -57,11 +57,11 @@ _import_mapping = {
     "XmlToDict": "xml",
     "xml2dtb": "xml",
     "convert_xml_to_dict": "xml",
-    "dump_dictionary": "dictionary",
-    "DTBox": "dictionary",
-    "sarray2dict": "dictionary",
-    "dict2sarray": "dictionary",
-    "convert_units": "units",
+    "dump_dictionary": "_dictionary",
+    "DTBox": "_dictionary",
+    "sarray2dict": "_array",
+    "dict2sarray": "_array",
+    "convert_units": "_units",
     "append2pathname": "path",
     "incremental_filename": "path",
     "ensure_directory": "path",
@@ -78,11 +78,11 @@ def __getattr__(name):
         if name in _import_mapping.keys():
             submodule = _import_mapping[name]
             # functions from tools have been privatised, except for "get_file_handle"
-            if submodule == "_tools":
+            if submodule.startswith("_"):
                 if name == "get_file_handle":
                     message = (
                         f"{name} has been moved to `rsciio.utils` and will be removed from "
-                        "`rsciio.utils.tools` in version 1.0.",
+                        "`rsciio.utils.tools` in version 1.0."
                     )
                 else:
                     message = f"{name} has been privatised and will be removed in version 1.0."

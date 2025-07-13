@@ -21,7 +21,7 @@ import xml.etree.ElementTree as ET
 from ast import literal_eval
 from collections import defaultdict
 
-from rsciio.utils.dictionary import DTBox
+from rsciio.utils._dictionary import DTBox
 
 # MSXML sanitization ###
 # re pattern with two capturing groups with comma in between;

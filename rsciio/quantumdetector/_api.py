@@ -35,7 +35,7 @@ from rsciio._docstrings import (
     RETURNS_DOC,
 )
 from rsciio.utils._deprecated import distributed_keyword_deprecation
-from rsciio.utils.distributed import memmap_distributed
+from rsciio.utils._distributed import memmap_distributed
 
 _logger = logging.getLogger(__name__)
 

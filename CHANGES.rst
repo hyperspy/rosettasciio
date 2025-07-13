@@ -162,7 +162,7 @@ Enhancements
 
   - add support for newer version of DE server,
   - add support foe discovering metadata file (``*_info.txt``) based on the naming scheme. (`#311 <https://github.com/hyperspy/rosettasciio/issues/311>`_)
-- Add support for tiff file in :func:`~.utils.tools.get_file_handle`. (`#317 <https://github.com/hyperspy/rosettasciio/issues/317>`_)
+- Add support for tiff file in :func:`~.utils.file.get_file_handle`. (`#317 <https://github.com/hyperspy/rosettasciio/issues/317>`_)
 
 
 Bug Fixes
@@ -281,7 +281,7 @@ New features
 ------------
 
 - Add :func:`rsciio.set_log_level` to set the logging level of ``RosettaSciIO`` (`#69 <https://github.com/hyperspy/rosettasciio/issues/69>`_)
-- Added the :func:`~rsciio.utils.distributed.memmap_distributed` function for loading a memmap file
+- Added the :func:`~rsciio.utils.file.memmap_distributed` function for loading a memmap file
   from multiple processes.
 
   - Added the arguments ``distributed`` and ``metadata_file`` to the .mrc file reader for loading metadata

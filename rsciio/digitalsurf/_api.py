@@ -54,7 +54,7 @@ from rsciio._docstrings import (
 )
 from rsciio.utils._date_time import get_date_time_from_metadata
 from rsciio.utils.exceptions import MountainsMapFileError
-from rsciio.utils.rgb_tools import is_rgb, is_rgba
+from rsciio.utils.rgb import is_rgb, is_rgba
 
 _logger = logging.getLogger(__name__)
 

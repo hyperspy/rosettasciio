@@ -98,10 +98,10 @@ def file_writer(
     scalebar_kwds.setdefault("location", "lower left")
 
     # HyperSpy uses struct arrays to store RGBA data
-    from rsciio.utils import rgb_tools
+    from rsciio.utils import rgb
 
-    if rgb_tools.is_rgbx(data):
-        data = rgb_tools.rgbx2regular_array(data)
+    if rgb.is_rgbx(data):
+        data = rgb.rgbx2regular_array(data)
 
     if scalebar:
         try:
@@ -273,8 +273,8 @@ def _read_data(filename, **kwds):
             dc = dc[:, :, 0]
         else:
             # HyperSpy uses struct arrays to store RGB data
-            from rsciio.utils import rgb_tools
+            from rsciio.utils import rgb
 
-            dc = rgb_tools.regular_array2rgbx(dc)
+            dc = rgb.regular_array2rgbx(dc)
 
     return dc

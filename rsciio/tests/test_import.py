@@ -181,3 +181,14 @@ def test_deprecated_distributed_module():
     for obj_name in utils_distributed.__all__:
         with pytest.warns(VisibleDeprecationWarning):
             getattr(utils_distributed, obj_name)
+
+
+def test_deprecated_rgb_tools_module():
+    from rsciio.utils.exceptions import VisibleDeprecationWarning
+
+    with pytest.warns(VisibleDeprecationWarning):
+        import rsciio.utils.rgb_tools as utils_rgb_tools
+
+    for obj_name in utils_rgb_tools.__all__:
+        with pytest.warns(VisibleDeprecationWarning):
+            getattr(utils_rgb_tools, obj_name)

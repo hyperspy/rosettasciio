@@ -290,9 +290,9 @@ class ElidReader:
             data = tiff.asarray()
             if len(data.shape) > 2:
                 # HyperSpy uses struct arrays to store RGB data
-                from rsciio.utils import rgb_tools
+                from rsciio.utils import rgb
 
-                data = rgb_tools.regular_array2rgbx(data)
+                data = rgb.regular_array2rgbx(data)
 
             tags = tiff.pages[0].tags
             if "FEI_TITAN" in tags:

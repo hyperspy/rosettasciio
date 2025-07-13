@@ -98,13 +98,13 @@ def file_writer(filename, signal, export_scale=True, extratags=None, **kwds):
     metadata = signal.get("metadata", {})
     photometric = "MINISBLACK"
     # HyperSpy uses struct arrays to store RGBA data
-    from rsciio.utils import rgb_tools
+    from rsciio.utils import rgb
 
     if extratags is None:
         extratags = []
 
-    if rgb_tools.is_rgbx(data):
-        data = rgb_tools.rgbx2regular_array(data)
+    if rgb.is_rgbx(data):
+        data = rgb.rgbx2regular_array(data)
         photometric = "RGB"
 
     if "description" in kwds.keys() and export_scale:
@@ -410,9 +410,9 @@ def _load_data(handle, is_rgb, memmap=None, **kwds):
     dc = handle.asarray(out=memmap)
     _logger.debug("data shape: {0}".format(dc.shape))
     if is_rgb:
-        from rsciio.utils import rgb_tools
+        from rsciio.utils import rgb
 
-        dc = rgb_tools.regular_array2rgbx(dc)
+        dc = rgb.regular_array2rgbx(dc)
 
     return dc
 

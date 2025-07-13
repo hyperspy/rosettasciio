@@ -22,7 +22,7 @@ __all__ = [
     "file",
     "hdf5",
     "path",
-    "rgb_tools",
+    "rgb",
     "tools",
     "xml",
 ]

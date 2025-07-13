@@ -23,6 +23,8 @@ import warnings
 
 from rsciio.utils.exceptions import VisibleDeprecationWarning
 
+# This module is deprecated and will be removed in version 1.0.
+
 __all__ = [
     "dummy_context_manager",
     "sanitize_msxml_float",
@@ -50,8 +52,8 @@ _import_mapping = {
     "dummy_context_manager": "_tools",
     "get_object_package_info": "_tools",
     "ensure_unicode": "_tools",
-    "get_file_handle": "_tools",
-    "inspect_npy_bytes": "_tools",
+    "get_file_handle": "file",
+    "inspect_npy_bytes": "file",
     "jit_ifnumba": "_tools",
     "sanitize_msxml_float": "xml",
     "XmlToDict": "xml",
@@ -79,13 +81,9 @@ def __getattr__(name):
             submodule = _import_mapping[name]
             # functions from tools have been privatised, except for "get_file_handle"
             if submodule.startswith("_"):
-                if name == "get_file_handle":
-                    message = (
-                        f"{name} has been moved to `rsciio.utils` and will be removed from "
-                        "`rsciio.utils.tools` in version 1.0."
-                    )
-                else:
-                    message = f"{name} has been privatised and will be removed in version 1.0."
+                message = (
+                    f"{name} has been privatised and will be removed in version 1.0."
+                )
             else:
                 # moved to different rsciio.utils submodule
                 message = (

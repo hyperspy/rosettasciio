@@ -179,4 +179,5 @@ def test_deprecated_distributed_module():
         import rsciio.utils.distributed as utils_distributed
 
     for obj_name in utils_distributed.__all__:
-        getattr(utils_distributed, obj_name)
+        with pytest.warns(VisibleDeprecationWarning):
+            getattr(utils_distributed, obj_name)

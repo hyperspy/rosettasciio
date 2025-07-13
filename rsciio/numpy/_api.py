@@ -29,7 +29,7 @@ from rsciio._docstrings import (
     UNSUPPORTED_METADATA_DOC,
 )
 from rsciio.utils._distributed import memmap_distributed
-from rsciio.utils._tools import inspect_npy_bytes
+from rsciio.utils.file import inspect_npy_bytes
 
 
 def inspect_npy_file(filename):

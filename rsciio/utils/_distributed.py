@@ -190,7 +190,7 @@ def memmap_distributed(
     key=None,
 ):
     """
-    Drop in replacement for py:func:`numpy.memmap` allowing for distributed
+    Drop in replacement for :class:`numpy.memmap` allowing for distributed
     loading of data.
 
     This always loads the data using dask which can be beneficial in many

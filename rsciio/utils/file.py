@@ -16,15 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+# ruff: noqa: F822
+
 import importlib
 
 __all__ = [
-    "file",
-    "hdf5",
-    "path",
-    "rgb_tools",
-    "tools",
-    "xml",
+    "get_file_handle",
+    "memmap_distributed",
 ]
 
 
@@ -32,8 +30,15 @@ def __dir__():
     return sorted(__all__)
 
 
+_import_mapping = {
+    "get_file_handle": "_tools",
+    "memmap_distributed": "_distributed",
+}
+
+
 def __getattr__(name):
     if name in __all__:
-        return importlib.import_module(f".{name}", "rsciio.utils")
+        submodule = _import_mapping[name]
+        return getattr(importlib.import_module(f"rsciio.utils.{submodule}"), name)
 
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

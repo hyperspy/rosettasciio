@@ -23,6 +23,8 @@ import warnings
 
 from rsciio.utils.exceptions import VisibleDeprecationWarning
 
+# This module is deprecated and will be removed in version 1.0.
+
 __all__ = [
     "dummy_context_manager",
     "sanitize_msxml_float",

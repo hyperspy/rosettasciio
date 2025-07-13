@@ -273,7 +273,7 @@ def test_fast_bcf():
 
 
 def test_decimal_regex():
-    from rsciio.utils.tools import sanitize_msxml_float
+    from rsciio.utils.xml import sanitize_msxml_float
 
     dummy_xml_positive = [
         b"<dummy_tag>85,658</dummy_tag>",

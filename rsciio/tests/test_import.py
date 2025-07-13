@@ -164,5 +164,9 @@ def test_utils():
 
 
 def test_tools():
+    from rsciio.utils.exceptions import VisibleDeprecationWarning
+
     for obj_name in rsciio.utils.tools.__all__:
-        getattr(rsciio.utils.tools, obj_name)
+        # tools functions have been privatised or moved to different submodules
+        with pytest.warns(VisibleDeprecationWarning):
+            getattr(rsciio.utils.tools, obj_name)

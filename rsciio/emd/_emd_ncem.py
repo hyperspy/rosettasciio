@@ -34,8 +34,8 @@ import h5py
 import numpy as np
 
 from rsciio._hierarchical import get_signal_chunks
-from rsciio.utils.dictionary import DTBox
-from rsciio.utils.units import _UREG
+from rsciio.utils._dictionary import DTBox
+from rsciio.utils._units import _UREG
 
 EMD_VERSION = "0.2"
 

@@ -31,8 +31,8 @@ from box import Box
 
 import rsciio.utils.readfile as iou
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio.utils._tools import ensure_unicode
 from rsciio.utils.exceptions import DM3DataTypeError, DM3TagIDError, DM3TagTypeError
-from rsciio.utils.tools import ensure_unicode
 
 _logger = logging.getLogger(__name__)
 

@@ -19,6 +19,9 @@
 
 # ruff: noqa: F822
 import importlib
+import warnings
+
+from rsciio.utils.exceptions import VisibleDeprecationWarning
 
 __all__ = [
     "dummy_context_manager",
@@ -44,25 +47,25 @@ __all__ = [
 
 
 _import_mapping = {
-    "dummy_context_manager": "._tools",
-    "sanitize_msxml_float": ".xml",
-    "XmlToDict": ".xml",
-    "xml2dtb": ".xml",
-    "convert_xml_to_dict": ".xml",
-    "dump_dictionary": ".dictionary",
-    "DTBox": ".dictionary",
-    "sarray2dict": ".dictionary",
-    "dict2sarray": ".dictionary",
-    "convert_units": ".units",
-    "get_object_package_info": "._tools",
-    "ensure_unicode": "._tools",
-    "get_file_handle": "._tools",
+    "dummy_context_manager": "_tools",
+    "get_object_package_info": "_tools",
+    "ensure_unicode": "_tools",
+    "get_file_handle": "_tools",
     "inspect_npy_bytes": "_tools",
-    "jit_ifnumba": "._tools",
-    "append2pathname": ".path",
-    "incremental_filename": ".path",
-    "ensure_directory": ".path",
-    "overwrite": ".path",
+    "jit_ifnumba": "_tools",
+    "sanitize_msxml_float": "xml",
+    "XmlToDict": "xml",
+    "xml2dtb": "xml",
+    "convert_xml_to_dict": "xml",
+    "dump_dictionary": "dictionary",
+    "DTBox": "dictionary",
+    "sarray2dict": "dictionary",
+    "dict2sarray": "dictionary",
+    "convert_units": "units",
+    "append2pathname": "path",
+    "incremental_filename": "path",
+    "ensure_directory": "path",
+    "overwrite": "path",
 }
 
 
@@ -73,9 +76,23 @@ def __dir__():
 def __getattr__(name):
     if name in __all__:
         if name in _import_mapping.keys():
-            import_path = "rsciio.utils" + _import_mapping.get(name)
-            return getattr(importlib.import_module(import_path), name)
-        else:
-            return importlib.import_module("." + name, "rsciio.utils")
+            submodule = _import_mapping[name]
+            # functions from tools have been privatised, except for "get_file_handle"
+            if submodule == "_tools":
+                if name == "get_file_handle":
+                    message = (
+                        f"{name} has been moved to `rsciio.utils` and will be removed from "
+                        "`rsciio.utils.tools` in version 1.0.",
+                    )
+                else:
+                    message = f"{name} has been privatised and will be removed in version 1.0."
+            else:
+                # moved to different rsciio.utils submodule
+                message = (
+                    f"{name} has been moved to `rsciio.utils.{submodule}` "
+                    "and will be removed from `rsciio.utils.tools` in version 1.0."
+                )
+            warnings.warn(message, VisibleDeprecationWarning)
+            return getattr(importlib.import_module(f"rsciio.utils.{submodule}"), name)
 
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

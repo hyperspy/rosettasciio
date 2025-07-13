@@ -35,7 +35,7 @@ from rsciio._docstrings import (
     SIGNAL_DOC,
 )
 from rsciio._hierarchical import HierarchicalReader, HierarchicalWriter, version
-from rsciio.utils.tools import dummy_context_manager, get_file_handle
+from rsciio.utils._tools import dummy_context_manager, get_file_handle
 
 _logger = logging.getLogger(__name__)
 

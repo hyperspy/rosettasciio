@@ -20,8 +20,12 @@ import importlib
 
 __all__ = [
     "get_file_handle",
+    "hdf5",
+    "memmap_distributed",
+    "path",
     "rgb_tools",
     "tools",
+    "xml",
 ]
 
 
@@ -31,6 +35,7 @@ def __dir__():
 
 _import_mapping = {
     "get_file_handle": "_tools",
+    "memmap_distributed": "_distributed",
 }
 
 

@@ -19,7 +19,7 @@
 import numpy as np
 
 from rsciio._docstrings import SHOW_PROGRESSBAR_DOC
-from rsciio.utils.array import get_numpy_kwargs
+from rsciio.utils._array import get_numpy_kwargs
 
 rgba8 = np.dtype({"names": ["R", "G", "B", "A"], "formats": ["u1", "u1", "u1", "u1"]})
 rgb8 = np.dtype({"names": ["R", "G", "B"], "formats": ["u1", "u1", "u1"]})

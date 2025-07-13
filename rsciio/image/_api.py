@@ -31,8 +31,8 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
-from rsciio.utils.image import _parse_axes_from_metadata, _parse_exif_tags
-from rsciio.utils.units import _UREG
+from rsciio.utils._image import _parse_axes_from_metadata, _parse_exif_tags
+from rsciio.utils._units import _UREG
 
 _logger = logging.getLogger(__name__)
 

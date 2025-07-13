@@ -28,8 +28,8 @@ from rsciio._docstrings import (
     SIGNAL_DOC,
     UNSUPPORTED_METADATA_DOC,
 )
-from rsciio.utils.distributed import memmap_distributed
-from rsciio.utils.tools import inspect_npy_bytes
+from rsciio.utils._distributed import memmap_distributed
+from rsciio.utils._tools import inspect_npy_bytes
 
 
 def inspect_npy_file(filename):

@@ -1,0 +1,6 @@
+{
+    "hyperspy_version": "2.4.0.dev36+gc59c9f5a5",
+    "io_plugin": "rsciio.zspy",
+    "operation": "save",
+    "timestamp": "2025-06-27T16:28:19.417778+01:00"
+}

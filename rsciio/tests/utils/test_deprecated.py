@@ -21,8 +21,8 @@ import warnings
 
 import pytest
 
+from rsciio.exceptions import VisibleDeprecationWarning
 from rsciio.utils._deprecated import deprecated, deprecated_argument
-from rsciio.utils.exceptions import VisibleDeprecationWarning
 
 
 class TestDeprecationWarning:

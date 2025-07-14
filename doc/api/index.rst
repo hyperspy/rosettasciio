@@ -9,6 +9,7 @@ to use its input/output (IO) capabilities.
    :hidden:
 
    utils
+   exceptions
 
 
 .. _interfacing-api:

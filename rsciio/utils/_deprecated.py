@@ -22,7 +22,7 @@ import inspect
 import warnings
 from typing import Callable, Optional, Union
 
-from rsciio.utils.exceptions import VisibleDeprecationWarning
+from rsciio.exceptions import VisibleDeprecationWarning
 
 
 class deprecated:

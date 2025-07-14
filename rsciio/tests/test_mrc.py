@@ -20,8 +20,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from rsciio.exceptions import VisibleDeprecationWarning
 from rsciio.mrc import file_reader
-from rsciio.utils.exceptions import VisibleDeprecationWarning
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 

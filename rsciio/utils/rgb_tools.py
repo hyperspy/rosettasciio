@@ -21,7 +21,7 @@
 import importlib
 import warnings
 
-from rsciio.utils.exceptions import VisibleDeprecationWarning
+from rsciio.exceptions import VisibleDeprecationWarning
 
 # This module is deprecated and will be removed in version 1.0.
 

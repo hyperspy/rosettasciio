@@ -5,8 +5,8 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
+from rsciio.exceptions import VisibleDeprecationWarning
 from rsciio.ripple import _api as ripple
-from rsciio.utils.exceptions import VisibleDeprecationWarning
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 exspy = pytest.importorskip("exspy", reason="exspy not installed")

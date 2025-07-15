@@ -29,7 +29,7 @@ def set_log_level(level):
     Parameters
     ----------
     level : int or str
-        The log level to set. Any values that `logging.Logger.setLevel()`
+        The log level to set. Any values that :meth:`logging.Logger.setLevel`
         accepts are valid. The default options are:
 
         - 'CRITICAL'

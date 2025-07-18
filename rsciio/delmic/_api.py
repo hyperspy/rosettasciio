@@ -37,7 +37,7 @@ import json
 import logging
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import h5py
 import numpy as np
@@ -345,7 +345,7 @@ def make_metadata(
             }
         )
     except KeyError:
-        pass
+        pass  # No acquisition date info, then we can skip it
     except Exception:
         _logger.warning("Failed to parse acquisition date")
 
@@ -607,7 +607,7 @@ def reorder_dimensions(acq_data: Dict[str, Any]) -> None:
 
 
 def file_reader(
-    filename: str, signal: Optional[str] = None, lazy: bool = False
+    filename: str, signal: str = "cl", lazy: bool = False
 ) -> List[Dict[str, Any]]:
     """
     Read a Delmic HDF5 hyperspectral image.
@@ -615,10 +615,10 @@ def file_reader(
     Parameters
     ----------
     %s
-    signal : str, default=None
-      If None, all the data in the file is returned, otherwise, it specifies the type of data
-      to load. Can be "survey" (SEM image of the whole field of view), "se" (concurrent SEM signal),
-      "cl" (cathodoluminescence signal), or "anchor" (drift correction region over time).
+    signal : str, default="cl"
+      Specifies the type of data to load. Can be "cl" (cathodoluminescence signal), "se"
+      (concurrent SEM signal), "survey" (SEM image of the whole field of view), "anchor"
+      (drift correction region over time), or "all" to obtain all the data in the file.
       Convenient, as typically in Odemis, every CL acquisition automatically stores also the survey
       and concurrent SEM data.
     %s
@@ -628,7 +628,7 @@ def file_reader(
     if lazy is not False:
         raise NotImplementedError("Lazy loading is not supported.")
 
-    if signal is None:
+    if signal == "all":
         # TODO: do not include "Unknown" and "Anchor" types?
         filtered_acq_types = tuple(AcquisitionType)  # all of them
     elif signal == "cl":

@@ -20,16 +20,20 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from hyperspy._signals.signal1d import Signal1D
-from hyperspy._signals.signal2d import Signal2D
-from hyperspy.signal import BaseSignal
+
+try:
+    import hyperspy.api as hs
+    from hyperspy._signals.signal1d import Signal1D
+    from hyperspy._signals.signal2d import Signal2D
+    from hyperspy.signal import BaseSignal
+except ImportError:
+    pytest.Skipped("hyperspy not installed")
 
 try:
     import lumispy
 except ImportError:
     lumispy = None
 
-hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 pytest.importorskip("h5py", reason="h5py not installed")
 
 testfile_dir = (Path(__file__).parent / "data" / "delmic").resolve()

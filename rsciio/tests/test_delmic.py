@@ -20,16 +20,20 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from hyperspy._signals.signal1d import Signal1D
-from hyperspy._signals.signal2d import Signal2D
-from hyperspy.signal import BaseSignal
+
+try:
+    import hyperspy.api as hs
+    from hyperspy._signals.signal1d import Signal1D
+    from hyperspy._signals.signal2d import Signal2D
+    from hyperspy.signal import BaseSignal
+except ImportError:
+    pytest.skip("hyperspy not installed", allow_module_level=True)
 
 try:
     import lumispy
 except ImportError:
     lumispy = None
 
-hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 pytest.importorskip("h5py", reason="h5py not installed")
 
 testfile_dir = (Path(__file__).parent / "data" / "delmic").resolve()
@@ -109,7 +113,7 @@ testfile_arina_path = (
 # Intensity dataset
 def test_read_data_intensity():
     """Test reading data for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic")
+    s = hs.load(testfile_intensity_path, reader="Delmic", signal="all")
 
     assert len(s) == 3
     assert s[0].metadata.General.title == "Secondary electrons survey"
@@ -147,7 +151,7 @@ def test_read_data_intensity_survey():
 
 def test_read_axes_intensity_CL():
     """Test reading axes for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic", signal="cl")
+    s = hs.load(testfile_intensity_path, reader="Delmic")  # Default signal is "cl"
     # Expect 2x2 pixels
 
     # test X axis
@@ -265,7 +269,7 @@ def test_read_original_metadata_intensity_survey():
 # Hyperspectral dataset
 def test_read_data_hyperspectral():
     """Test reading data for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic")
+    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="all")
     assert len(s) == 3
     assert s[0].metadata.General.title == "Secondary electrons survey"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
@@ -274,7 +278,7 @@ def test_read_data_hyperspectral():
 
 def test_read_data_hyperspectral_spot():
     """Test reading data for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_spot_path, reader="Delmic")
+    s = hs.load(testfile_hyperspectral_spot_path, reader="Delmic", signal="all")
     assert len(s) == 3
     assert s[0].metadata.General.title == "Secondary electrons survey"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
@@ -445,7 +449,7 @@ def test_read_original_metadata_hyperspectral_survey():
 # Time-resolved dataset
 def test_read_data_temporaltrace():
     """Test reading data for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic")
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="all")
     assert len(s) == 3
     assert s[0].metadata.General.title == "Secondary electrons survey"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
@@ -462,7 +466,7 @@ def test_read_data_temporaltrace_CL():
 
 def test_read_data_temporaltrace_spot():
     """Test reading data for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_spot_path, reader="Delmic")
+    s = hs.load(testfile_temporaltrace_spot_path, reader="Delmic", signal="all")
     assert len(s) == 3
     assert s[0].metadata.General.title == "Secondary electrons survey"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
@@ -623,7 +627,7 @@ def test_read_original_metadata_temporaltrace_survey():
 # Streak camera dataset
 def test_read_data_streakcamera():
     """Test reading data for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic")
+    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="all")
     assert len(s) == 3
     assert s[0].metadata.General.title == "Secondary electrons survey"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
@@ -632,7 +636,7 @@ def test_read_data_streakcamera():
 
 def test_read_data_streakcamera_spot():
     """Test reading data for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_spot_path, reader="Delmic")
+    s = hs.load(testfile_streakcamera_spot_path, reader="Delmic", signal="all")
     assert len(s) == 3
     assert s[0].metadata.General.title == "Secondary electrons survey"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
@@ -807,7 +811,7 @@ def test_read_original_metadata_streakcamera_survey():
 # E-k dataset
 def test_read_data_ek():
     """Test reading data for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic")
+    s = hs.load(testfile_ek_path, reader="Delmic", signal="all")
     assert len(s) == 3
     assert s[0].metadata.General.title == "Secondary electrons survey"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
@@ -816,7 +820,7 @@ def test_read_data_ek():
 
 def test_read_data_ek_spot():
     """Test reading data for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_spot_path, reader="Delmic")
+    s = hs.load(testfile_ek_spot_path, reader="Delmic", signal="all")
     assert len(s) == 3
     assert s[0].metadata.General.title == "Secondary electrons survey"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
@@ -990,7 +994,7 @@ def test_read_original_metadata_ek_survey():
 # Angle-resolved dataset
 def test_read_data_AR():
     """Test reading data for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic")
+    s = hs.load(testfile_AR_path, reader="Delmic", signal="all")
     assert len(s) == 3
     assert s[0].metadata.General.title == "Secondary electrons survey"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
@@ -1143,7 +1147,7 @@ def test_read_original_metadata_AR_survey():
 
 def test_read_data_ar_pol():
     """Test reading data for a CL AR polarized dataset."""
-    s = hs.load(testfile_ar_pol_spot_path, reader="Delmic")
+    s = hs.load(testfile_ar_pol_spot_path, reader="Delmic", signal="all")
     assert len(s) == 8
     assert s[0].metadata.General.title == "Secondary electrons survey"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
@@ -1164,7 +1168,7 @@ def test_wrong_format():
     Attempt to load an HDF5 file not of the correct format should raise an IOError
     """
     with pytest.raises(IOError):
-        hs.load(testfile_arina_path, reader="Delmic")
+        hs.load(testfile_arina_path, reader="Delmic", signal="all")
 
     with pytest.raises(IOError):
-        hs.load(testfile_hspy_path, reader="Delmic")
+        hs.load(testfile_hspy_path, reader="Delmic", signal="all")

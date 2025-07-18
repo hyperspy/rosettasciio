@@ -27,7 +27,7 @@ try:
     from hyperspy._signals.signal2d import Signal2D
     from hyperspy.signal import BaseSignal
 except ImportError:
-    pytest.Skipped("hyperspy not installed")
+    pytest.skip("hyperspy not installed", allow_module_level=True)
 
 try:
     import lumispy

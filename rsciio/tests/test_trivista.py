@@ -52,13 +52,11 @@ class TestSpec:
     def setup_class(cls):
         cls.s = hs.load(
             testfile_spec_path,
-            reader="TriVista",
             use_uniform_signal_axis=True,
             filter_original_metadata=True,
         )
         cls.s_non_uniform_unfiltered = hs.load(
             testfile_spec_path,
-            reader="TriVista",
             use_uniform_signal_axis=False,
             filter_original_metadata=False,
         )
@@ -1538,11 +1536,10 @@ class TestSpec:
 class TestLinescan:
     @classmethod
     def setup_class(cls):
-        cls.s = hs.load(
-            testfile_linescan_path, reader="TriVista", use_uniform_signal_axis=True
-        )
+        cls.s = hs.load(testfile_linescan_path, use_uniform_signal_axis=True)
         cls.s_non_uniform = hs.load(
-            testfile_linescan_path, reader="TriVista", use_uniform_signal_axis=False
+            testfile_linescan_path,
+            use_uniform_signal_axis=False,
         )
 
     @classmethod
@@ -1646,12 +1643,8 @@ class TestLinescan:
 class TestMap:
     @classmethod
     def setup_class(cls):
-        cls.s = hs.load(
-            testfile_map_path, reader="TriVista", use_uniform_signal_axis=True
-        )
-        cls.s_non_uniform = hs.load(
-            testfile_map_path, reader="TriVista", use_uniform_signal_axis=False
-        )
+        cls.s = hs.load(testfile_map_path, use_uniform_signal_axis=True)
+        cls.s_non_uniform = hs.load(testfile_map_path, use_uniform_signal_axis=False)
 
     @classmethod
     def teardown_class(cls):
@@ -1787,7 +1780,6 @@ class Test3Spectrometers:
     def setup_class(cls):
         cls.s = hs.load(
             testfile_triple_add_path,
-            reader="TriVista",
             use_uniform_signal_axis=True,
             filter_original_metadata=True,
         )
@@ -2335,14 +2327,12 @@ class TestStepAndGlue:
     def setup_class(cls):
         cls.glued = hs.load(
             testfile_step_and_glue_path,
-            reader="TriVista",
             use_uniform_signal_axis=True,
             filter_original_metadata=True,
             glued_data_as_stack=False,
         )
         cls.stack = hs.load(
             testfile_step_and_glue_path,
-            reader="TriVista",
             use_uniform_signal_axis=False,
             filter_original_metadata=True,
             glued_data_as_stack=True,
@@ -2418,13 +2408,11 @@ class TestTimeSeries:
     def setup_class(cls):
         cls.timeseries = hs.load(
             testfile_spec_timeseries_path,
-            reader="TriVista",
             use_uniform_signal_axis=True,
             filter_original_metadata=True,
         )
         cls.frames = hs.load(
             testfile_spec_2frames_path,
-            reader="TriVista",
             use_uniform_signal_axis=True,
             filter_original_metadata=True,
         )
@@ -2509,7 +2497,6 @@ class TestSpecIntegrationTime:
     def setup_class(cls):
         cls.s_2acc = hs.load(
             testfile_spec_2acc_path,
-            reader="TriVista",
             use_uniform_signal_axis=True,
             filter_original_metadata=True,
             glued_data_as_stack=True,
@@ -2519,7 +2506,6 @@ class TestSpecIntegrationTime:
         ## non-glued datasets
         cls.s_2acc_no_average = hs.load(
             testfile_spec_2acc_no_average_path,
-            reader="TriVista",
             use_uniform_signal_axis=True,
             filter_original_metadata=True,
             glued_data_as_stack=True,

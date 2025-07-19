@@ -212,7 +212,10 @@ def file_writer(
     folder = signal["tmp_parameters"].get("original_folder", "")
     fname = signal["tmp_parameters"].get("original_filename", "")
     ext = signal["tmp_parameters"].get("original_extension", "")
-    original_path = Path(folder, f"{fname}.{ext}")
+    if ext and not ext.startswith("."):
+        # add a dot if not present
+        ext = f".{ext}"
+    original_path = Path(folder, f"{fname}{ext}")
 
     f = None
     if signal["attributes"]["_lazy"] and Path(filename).absolute() == original_path:

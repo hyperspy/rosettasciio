@@ -27,6 +27,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from packaging.version import Version
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -49,37 +50,43 @@ else:
     lumispy_installed = True
 
 
+argument_name = (
+    "reader" if Version(hs.__version__) < Version("2.4.0.dev33") else "file_format"
+)
+hs_load_kwargs = {argument_name: "JobinYvon"}
+
+
 class TestSpec:
     @classmethod
     def setup_class(cls):
         cls.s = hs.load(
             testfile_spec_wavelength_path,
-            reader="JobinYvon",
+            **hs_load_kwargs,
             use_uniform_signal_axis=True,
         )
         cls.s_non_uniform = hs.load(
             testfile_spec_wavelength_path,
-            reader="JobinYvon",
+            **hs_load_kwargs,
             use_uniform_signal_axis=False,
         )
         cls.s_wn = hs.load(
             testfile_spec_wavenumber_path,
-            reader="JobinYvon",
+            **hs_load_kwargs,
             use_uniform_signal_axis=True,
         )
         cls.s_abs_wn = hs.load(
             testfile_spec_abs_wavenumber_path,
-            reader="JobinYvon",
+            **hs_load_kwargs,
             use_uniform_signal_axis=True,
         )
         cls.s_ev = hs.load(
             testfile_spec_energy_path,
-            reader="JobinYvon",
+            **hs_load_kwargs,
             use_uniform_signal_axis=True,
         )
         cls.s_count = hs.load(
             testfile_spec_count_path,
-            reader="JobinYvon",
+            **hs_load_kwargs,
             use_uniform_signal_axis=True,
         )
 
@@ -101,7 +108,7 @@ class TestSpec:
         lum = pytest.importorskip("lumispy", reason="lumispy not installed")
         s_lum = hs.load(
             testfile_spec_wavelength_path,
-            reader="JobinYvon",
+            **hs_load_kwargs,
             use_uniform_signal_axis=True,
         )
         assert isinstance(s_lum, lum.signals.luminescence_spectrum.LumiSpectrum)
@@ -447,12 +454,12 @@ class TestLinescan:
     def setup_class(cls):
         cls.s = hs.load(
             testfile_linescan_path,
-            reader="JobinYvon",
+            **hs_load_kwargs,
             use_uniform_signal_axis=True,
         )
         cls.s_non_uniform = hs.load(
             testfile_linescan_path,
-            reader="JobinYvon",
+            **hs_load_kwargs,
             use_uniform_signal_axis=False,
         )
 
@@ -680,12 +687,12 @@ class TestMap:
     @classmethod
     def setup_class(cls):
         cls.s = hs.load(
-            testfile_map_path, reader="JobinYvon", use_uniform_signal_axis=True
+            testfile_map_path, **hs_load_kwargs, use_uniform_signal_axis=True
         )
         cls.s_non_uniform = hs.load(
-            testfile_map_path, reader="JobinYvon", use_uniform_signal_axis=False
+            testfile_map_path, **hs_load_kwargs, use_uniform_signal_axis=False
         )
-        cls.s_rotated = hs.load(testfile_map_rotated_path, reader="JobinYvon")
+        cls.s_rotated = hs.load(testfile_map_rotated_path, **hs_load_kwargs)
 
     @classmethod
     def teardown_class(cls):
@@ -987,10 +994,10 @@ class TestGlue:
     @classmethod
     def setup_class(cls):
         cls.s = hs.load(
-            testfile_glue_path, reader="JobinYvon", use_uniform_signal_axis=True
+            testfile_glue_path, **hs_load_kwargs, use_uniform_signal_axis=True
         )
         cls.s_non_uniform = hs.load(
-            testfile_glue_path, reader="JobinYvon", use_uniform_signal_axis=False
+            testfile_glue_path, **hs_load_kwargs, use_uniform_signal_axis=False
         )
 
     @classmethod

@@ -2,6 +2,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from packaging.version import Version
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 pytest.importorskip("h5py", reason="h5py not installed")
@@ -9,6 +10,10 @@ pytest.importorskip("h5py", reason="h5py not installed")
 testfile_dir = (Path(__file__).parent / "data" / "delmic").resolve()
 testfile_hyperspectral_path = (testfile_dir / "test_hyperspectral.h5").resolve()
 
+argument_name = (
+    "reader" if Version(hs.__version__) < Version("2.4.0.dev33") else "file_format"
+)
+hs_load_kwargs = {argument_name: "Delmic"}
 
 ref = np.array(
     [
@@ -529,7 +534,7 @@ ref = np.array(
 
 
 def test_read():
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic")
+    s = hs.load(testfile_hyperspectral_path, **hs_load_kwargs)
 
     np.testing.assert_allclose(s.axes_manager[0].scale, 0.00010759749808557962)
     np.testing.assert_allclose(s.axes_manager[0].offset, 0)

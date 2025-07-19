@@ -20,6 +20,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from packaging.version import Version
 
 from rsciio.protochips._api import ProtochipsCSV, invalid_file_error
 
@@ -37,6 +38,12 @@ def create_numpy_file(filename, obj):
     np.save(filename, data.T)
 
 
+argument_name = (
+    "reader" if Version(hs.__version__) < Version("2.4.0.dev33") else "file_format"
+)
+hs_load_kwargs = {argument_name: "protochips"}
+
+
 #######################
 # Protochips gas cell #
 #######################
@@ -44,7 +51,7 @@ def create_numpy_file(filename, obj):
 
 def test_read_protochips_gas_cell():
     filename = TEST_DATA_PATH / "protochips_gas_cell.csv"
-    s = hs.load(filename, reader="protochips")
+    s = hs.load(filename, **hs_load_kwargs)
     assert len(s) == 5
     assert s[0].metadata.General.title == "Holder Temperature (Degrees C)"
     assert s[0].metadata.Signal.signal_type == ""
@@ -84,14 +91,14 @@ def test_loading_random_csv_file():
 def test_loading_invalid_protochips_file():
     filename = TEST_DATA_PATH / "invalid_protochips_file.csv"
     with pytest.raises(IOError) as cm:
-        hs.load(filename, reader="protochips")
+        hs.load(filename, **hs_load_kwargs)
         cm.match(invalid_file_error)
 
 
 class TestProtochipsGasCellCSV:
     def setup_method(self, method):
         filename = TEST_DATA_PATH / "protochips_gas_cell.csv"
-        self.s_list = hs.load(filename, reader="protochips")
+        self.s_list = hs.load(filename, **hs_load_kwargs)
 
     def test_read_metadata(self):
         date, time, dt_np = datetime_gas_cell
@@ -123,7 +130,7 @@ class TestProtochipsGasCellCSV:
 class TestProtochipsGasCellCSVNoUser:
     def setup_method(self, method):
         filename = TEST_DATA_PATH / "protochips_gas_cell_no_user.csv"
-        self.s_list = hs.load(filename, reader="protochips")
+        self.s_list = hs.load(filename, **hs_load_kwargs)
 
     def test_read_metadata(self):
         date, time, dt_np = datetime_gas_cell_no_user
@@ -198,7 +205,7 @@ class TestProtochipsGasCellCSVReader:
 
 def test_read_protochips_electrical():
     filename = TEST_DATA_PATH / "protochips_electrical.csv"
-    s = hs.load(filename, reader="protochips")
+    s = hs.load(filename, **hs_load_kwargs)
     assert len(s) == 6
     assert s[0].metadata.General.title == "Channel A Current (Amps)"
     assert s[0].metadata.Signal.signal_type == ""
@@ -259,7 +266,7 @@ class TestProtochipsElectricalCSVReader:
 
 def test_read_protochips_thermal():
     filename = TEST_DATA_PATH / "protochips_thermal.csv"
-    s = hs.load(filename, reader="protochips")
+    s = hs.load(filename, **hs_load_kwargs)
     assert s.metadata.General.title == "Channel A Temperature (Degrees C)"
     assert s.metadata.Signal.signal_type == ""
     assert s.metadata.Signal.quantity == "Temperature (Degrees C)"
@@ -296,7 +303,7 @@ class TestProtochipsThermallCSVReader:
 
 def test_read_protochips_electrothermal():
     filename = TEST_DATA_PATH / "protochips_electrothermal.csv"
-    s = hs.load(filename, reader="protochips")
+    s = hs.load(filename, **hs_load_kwargs)
     assert len(s) == 4
     assert s[0].metadata.General.title == "Channel A Temperature (Degrees C)"
     assert s[0].metadata.Signal.signal_type == ""

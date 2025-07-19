@@ -475,13 +475,6 @@ class TestReadFEIHelios:
             "authors": "supervisor",
             "date": "2016-06-13",
             "time": "17:06:40",
-            "FileIO": {
-                "0": {
-                    "operation": "load",
-                    "hyperspy_version": hs.__version__,
-                    "io_plugin": "rsciio.tiff",
-                }
-            },
         },
         "Signal": {"signal_type": ""},
         "_HyperSpy": {
@@ -509,7 +502,6 @@ class TestReadFEIHelios:
             "date": "2022-05-17",
             "time": "09:07:08",
             "authors": "user",
-            "FileIO": {"0": {"operation": "load", "io_plugin": "rsciio.tiff"}},
         },
         "Signal": {"signal_type": ""},
         "Acquisition_instrument": {
@@ -544,7 +536,7 @@ class TestReadFEIHelios:
         np.testing.assert_allclose(s.axes_manager[1].scale, 3.3724, rtol=1e-5)
         assert s.data.dtype == "uint8"
         # delete timestamp from metadata since it's runtime dependent
-        del s.metadata.General.FileIO.Number_0.timestamp
+        del s.metadata.General.FileIO
         self.FEI_Helios_metadata["General"]["original_filename"] = (
             "FEI-Helios-Ebeam-8bits.tif"
         )
@@ -561,7 +553,7 @@ class TestReadFEIHelios:
         np.testing.assert_allclose(s.axes_manager[1].scale, 3.3724, rtol=1e-5)
         assert s.data.dtype == "uint16"
         # delete timestamp from metadata since it's runtime dependent
-        del s.metadata.General.FileIO.Number_0.timestamp
+        del s.metadata.General.FileIO
         self.FEI_Helios_metadata["General"]["original_filename"] = (
             "FEI-Helios-Ebeam-16bits.tif"
         )
@@ -578,8 +570,7 @@ class TestReadFEIHelios:
         np.testing.assert_allclose(s.axes_manager[1].scale, 0.2640, rtol=0.0001)
         assert s.data.dtype == "uint8"
         # delete timestamp and version from metadata since it's runtime dependent
-        del s.metadata.General.FileIO.Number_0.timestamp
-        del s.metadata.General.FileIO.Number_0.hyperspy_version
+        del s.metadata.General.FileIO
         self.FEI_navcam_metadata["General"]["original_filename"] = (
             "FEI-Helios-navcam.tif"
         )
@@ -596,8 +587,7 @@ class TestReadFEIHelios:
         np.testing.assert_allclose(s.axes_manager[1].scale, 1, rtol=0)
         assert s.data.dtype == "uint8"
         # delete timestamp and version from metadata since it's runtime dependent
-        del s.metadata.General.FileIO.Number_0.timestamp
-        del s.metadata.General.FileIO.Number_0.hyperspy_version
+        del s.metadata.General.FileIO
         self.FEI_navcam_metadata["General"]["original_filename"] = (
             "FEI-Helios-navcam-with-no-IRBeam.tif"
         )
@@ -609,8 +599,7 @@ class TestReadFEIHelios:
         assert s.axes_manager.signal_shape == (768, 551)
         assert s.axes_manager.navigation_shape == ()
         # delete timestamp and version from metadata since it's runtime dependent
-        del s.metadata.General.FileIO.Number_0.timestamp
-        del s.metadata.General.FileIO.Number_0.hyperspy_version
+        del s.metadata.General.FileIO
         self.FEI_navcam_metadata["General"]["original_filename"] = (
             "FEI-Helios-navcam-with-no-IRBeam-bad-floats.tif"
         )
@@ -658,13 +647,6 @@ class TestReadZeissSEM:
                 "original_filename": "test_tiff_Zeiss_SEM_1k.tif",
                 "time": "09:40:32",
                 "title": "",
-                "FileIO": {
-                    "0": {
-                        "operation": "load",
-                        "hyperspy_version": hs.__version__,
-                        "io_plugin": "rsciio.tiff",
-                    }
-                },
             },
             "Signal": {"signal_type": ""},
             "_HyperSpy": {
@@ -688,7 +670,7 @@ class TestReadZeissSEM:
         np.testing.assert_allclose(s.axes_manager[1].scale, 2.614514, rtol=1e-6)
         assert s.data.dtype == "uint8"
         # delete timestamp from metadata since it's runtime dependent
-        del s.metadata.General.FileIO.Number_0.timestamp
+        del s.metadata.General.FileIO
         assert_deep_almost_equal(s.metadata.as_dictionary(), md)
 
     def test_read_Zeiss_SEM_scale_metadata_512_image(self):
@@ -714,13 +696,6 @@ class TestReadZeissSEM:
                 "original_filename": "test_tiff_Zeiss_SEM_512pix.tif",
                 "time": "08:20:42",
                 "title": "",
-                "FileIO": {
-                    "0": {
-                        "operation": "load",
-                        "hyperspy_version": hs.__version__,
-                        "io_plugin": "rsciio.tiff",
-                    }
-                },
             },
             "Signal": {"signal_type": ""},
             "_HyperSpy": {
@@ -743,7 +718,7 @@ class TestReadZeissSEM:
         np.testing.assert_allclose(s.axes_manager[1].scale, 0.011649976, rtol=1e-6)
         assert s.data.dtype == "uint8"
         # delete timestamp from metadata since it's runtime dependent
-        del s.metadata.General.FileIO.Number_0.timestamp
+        del s.metadata.General.FileIO
         assert_deep_almost_equal(s.metadata.as_dictionary(), md)
 
     def test_zeiss_multipage_as_separate_signals(self):
@@ -883,13 +858,6 @@ def test_read_TVIPS_metadata(tmp_path):
             "original_filename": "TVIPS_bin4.tif",
             "time": "9:01:17",
             "title": "",
-            "FileIO": {
-                "0": {
-                    "operation": "load",
-                    "hyperspy_version": hs.__version__,
-                    "io_plugin": "rsciio.tiff",
-                }
-            },
         },
         "Signal": {"signal_type": ""},
         "_HyperSpy": {
@@ -915,7 +883,7 @@ def test_read_TVIPS_metadata(tmp_path):
     np.testing.assert_allclose(s.axes_manager[0].scale, 1.42080, rtol=1e-5)
     np.testing.assert_allclose(s.axes_manager[1].scale, 1.42080, rtol=1e-5)
     # delete timestamp from metadata since it's runtime dependent
-    del s.metadata.General.FileIO.Number_0.timestamp
+    del s.metadata.General.FileIO
     assert_deep_almost_equal(s.metadata.as_dictionary(), md)
 
 

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
-    <title>JEOL Analyst Station (ASW, …) &#8212; RosettaSciIO  documentation</title>
+    <title>NumPy (NPY) &#8212; RosettaSciIO  documentation</title>
   
   
   
@@ -47,11 +47,11 @@
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=d1c4098b"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/jeol';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/numpy';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Horiba Jobin Yvon LabSpec" href="jobinyvon.html" />
-    <link rel="prev" title="Image formats" href="image.html" />
+    <link rel="next" title="CEOS Panta Rhei (PRZ)" href="pantarhei.html" />
+    <link rel="prev" title="NeXus data format" href="nexus.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -389,7 +389,7 @@
 <li class="toctree-l1"><a class="reference internal" href="hamamatsu.html">Hamamatsu</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hspy.html">HSpy - HyperSpy’s HDF5 Specification</a></li>
 <li class="toctree-l1"><a class="reference internal" href="image.html">Image formats</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">JEOL Analyst Station (ASW, …)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="jeol.html">JEOL Analyst Station (ASW, …)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jobinyvon.html">Horiba Jobin Yvon LabSpec</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mrc.html">MRC format</a></li>
 
@@ -397,7 +397,7 @@
 <li class="toctree-l1"><a class="reference internal" href="msa.html">EMSA/MSA format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="netcdf.html">NetCDF (EELSlab) format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="nexus.html">NeXus data format</a></li>
-<li class="toctree-l1"><a class="reference internal" href="numpy.html">NumPy (NPY)</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">NumPy (NPY)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pantarhei.html">CEOS Panta Rhei (PRZ)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="phenom.html">Phenom ELID format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="protochips.html">Protochips logfile</a></li>
@@ -455,7 +455,7 @@
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Supported formats</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">JEOL Analyst Station (ASW, …)</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">NumPy (NPY)</span></li>
   </ul>
 </nav>
 </div>
@@ -472,22 +472,21 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="jeol-analyst-station-asw">
-<span id="jeol-format"></span><h1>JEOL Analyst Station (ASW, …)<a class="headerlink" href="#jeol-analyst-station-asw" title="Link to this heading">#</a></h1>
-<p>This is the file format used by the <cite>JEOL Analysist Station software</cite> for which
-RosettaSciIO can read the <code class="docutils literal notranslate"><span class="pre">.asw</span></code>, <code class="docutils literal notranslate"><span class="pre">.pts</span></code>, <code class="docutils literal notranslate"><span class="pre">.map</span></code> and <code class="docutils literal notranslate"><span class="pre">.eds</span></code> format. To read the
-calibration, it is required to load the <code class="docutils literal notranslate"><span class="pre">.asw</span></code> file, which will load all others
-files automatically.</p>
+  <section id="numpy-npy">
+<span id="numpy-format"></span><h1>NumPy (NPY)<a class="headerlink" href="#numpy-npy" title="Link to this heading">#</a></h1>
+<p>This reader supports reading and writing of numpy arrays in the <code class="docutils literal notranslate"><span class="pre">.npy</span></code> format,
+which is a binary file format for storing numpy arrays. This reader supports reading
+large <code class="docutils literal notranslate"><span class="pre">npy</span></code> files lazily and in a <a class="reference internal" href="../user_guide/lazy.html#lazy"><span class="std std-ref">distributed</span></a> fashion.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>To load EDS data, the optional dependency <code class="docutils literal notranslate"><span class="pre">sparse</span></code> is required.</p>
+<p>This format doesn’t support storing metadata like scale, units, etc.</p>
 </div>
-<section id="module-rsciio.jeol">
-<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.jeol" title="Link to this heading">#</a></h2>
+<section id="module-rsciio.numpy">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.numpy" title="Link to this heading">#</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="rsciio.jeol.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.jeol.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rebin_energy=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_frames=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SI_dtype=&lt;class</span> <span class="pre">'numpy.uint8'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_at_kV=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsample=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_valid_data=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_em_image=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_list=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_shifts=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_start_index=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.jeol.file_reader" title="Link to this definition">#</a></dt>
-<dd><p>File reader for JEOL Analysist Station software format.</p>
+<dt class="sig sig-object py" id="rsciio.numpy.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.numpy.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">navigation_axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.numpy.file_reader" title="Link to this definition">#</a></dt>
+<dd><p>Read data from npy files.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
@@ -498,46 +497,15 @@ until closed in <a class="reference external" href="https://hyperspy.org/hypersp
 or closed manually. <a class="reference internal" href="../api/utils.html#rsciio.utils.tools.get_file_handle" title="rsciio.utils.tools.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
 can be used to access the file handler and close it manually.</p>
 </dd>
-<dt><strong>rebin_energy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, default=1</span></dt><dd><p>Factor used to rebin the energy dimension. It must be a
-divisor of the number of channels, typically 4096.</p>
+<dt><strong>chunks</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>Define the chunking used for saving the dataset. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, calculates
+chunks for the signal, with preferably at least one chunk per signal
+space.</p>
 </dd>
-<dt><strong>sum_frames</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">False</span></code>, each individual frame (sweep in JEOL software jargon)
-is loaded. Be aware that loading each individual frame will use a lot of memory.
-However, it can be used in combination with <code class="docutils literal notranslate"><span class="pre">rebin_energy</span></code>, <code class="docutils literal notranslate"><span class="pre">cutoff_at_kV</span></code>
-and <code class="docutils literal notranslate"><span class="pre">downsample</span></code> to reduce memory usage.</p>
+<dt><strong>navigation_axes</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a>, optional</span></dt><dd><p>List of axes that should be treated as navigation axes. If not provided,
+all axes will be treated as signal axes.</p>
 </dd>
-<dt><strong>SI_dtype</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.dtype</span></code></a>, default=np.uint8</span></dt><dd><p>Set the dtype of the eds dataset. Useful to adjust memory usage
-and maximum number of X-rays per channel.</p>
-</dd>
-<dt><strong>cutoff_at_kV</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>If set (&gt;= 0), use to crop the energy range up to the specified energy.
-If <code class="docutils literal notranslate"><span class="pre">None</span></code>, the whole energy range is loaded.
-Useful to reduce memory usage.</p>
-</dd>
-<dt><strong>downsample</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, default=1</span></dt><dd><p>The downsample ratio of the navigation dimension of an EDS
-dataset. It can be an integer or a tuple of length 2 to define <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>
-separetely and it must be a divisor of the size of the navigation dimension.</p>
-</dd>
-<dt><strong>only_valid_data</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>For <code class="docutils literal notranslate"><span class="pre">.pts</span></code> files only. Ignore incomplete and partly
-acquired last frame, which typically occurs when the acquisition was
-interrupted. When loading incomplete data (<code class="docutils literal notranslate"><span class="pre">only_valid_data=False</span></code>),
-the missing data are filled with zeros. If <code class="docutils literal notranslate"><span class="pre">sum_frames=True</span></code>, this argument
-will be ignored to enforce consistent summing over the mapped area.</p>
-</dd>
-<dt><strong>read_em_image</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>For <code class="docutils literal notranslate"><span class="pre">.pts</span></code> files only. If <code class="docutils literal notranslate"><span class="pre">True</span></code>,
-read SEM/STEM image from <code class="docutils literal notranslate"><span class="pre">.pts</span></code> file if available. In this case, both
-the spectrum Image and SEM/STEM Image will be returned as list.</p>
-</dd>
-<dt><strong>frame_list</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>For <code class="docutils literal notranslate"><span class="pre">.pts</span></code> files only. Frames in <code class="docutils literal notranslate"><span class="pre">frame_list</span></code> will be loaded.
-For example, <code class="docutils literal notranslate"><span class="pre">frame_list=[1,3]</span></code> means second and forth frame will be loaded.
-If <code class="docutils literal notranslate"><span class="pre">None</span></code>, all frames are loaded.</p>
-</dd>
-<dt><strong>frame_shifts</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of [<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of [<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>For <code class="docutils literal notranslate"><span class="pre">.pts</span></code> files only. Each frame will be loaded with offset of
-[dy, dx (, and optionary dEnergy)]. Units are pixels/channels.
-The result of estimate_shift2D() can be used as a parameter of frame_shifts.
-This is useful for express drift correction. Not suitable for accurate analysis.</p>
-</dd>
-<dt><strong>frame_start_index</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>The list of offset pointers of each frame in the raw data.
-The pointer for frame0 is 0.</p>
+<dt><strong>**kwargs</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Pass keyword arguments to the <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.load.html#numpy.load" title="(in NumPy v2.3)"><code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.load()</span></code></a>, when
+lazy is False, otherwise to <a class="reference internal" href="../api/utils.html#rsciio.utils.distributed.memmap_distributed" title="rsciio.utils.distributed.memmap_distributed"><code class="xref py py-func docutils literal notranslate"><span class="pre">rsciio.utils.distributed.memmap_distributed()</span></code></a>.</p>
 </dd>
 </dl>
 </dd>
@@ -558,30 +526,47 @@ containing the full axes vector</p></li>
 </dl>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>This plugin does not support metadata like scale, units, etc.</p>
+<p class="rubric">Examples</p>
+<p>To load a numpy file with lazy loading and specified chunks:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">rsciio.numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">file_reader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">file_reader</span><span class="p">(</span><span class="s1">&#39;data.npy&#39;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">250</span><span class="p">),</span> <span class="n">navigation_axes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+<span class="go">dask.array&lt;array, shape=(1000, 1000, 500, 500), dtype=float64, chunksize=(100, 100, 250, 250)&gt;</span>
+</pre></div>
+</div>
 </dd></dl>
 
-</section>
-<section id="reading-examples">
-<h2>Reading examples<a class="headerlink" href="#reading-examples" title="Link to this heading">#</a></h2>
-<p><a class="reference external" href="https://hyperspy.org">HyperSpy</a> example of loading data downsampled and with
-cropped energy range, where the original navigation dimension is 512 x 512 and
-the EDS range 40 keV over 4096 channels:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">hyperspy.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">hs</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample40kv.asw&quot;</span><span class="p">,</span> <span class="n">downsample</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">cutoff_at_kV</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-<span class="go">[&lt;Signal2D, title: IMG1, dimensions: (|512, 512)&gt;,</span>
-<span class="go"> &lt;Signal2D, title: C K, dimensions: (|512, 512)&gt;,</span>
-<span class="go"> &lt;Signal2D, title: O K, dimensions: (|512, 512)&gt;,</span>
-<span class="go"> &lt;EDSTEMSpectrum, title: EDX, dimensions: (64, 64|1096)&gt;]</span>
-</pre></div>
-</div>
-<p>Load the same file without extra arguments:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sample40kv.asw&quot;</span><span class="p">)</span>
-<span class="go">[&lt;Signal2D, title: IMG1, dimensions: (|512, 512)&gt;,</span>
-<span class="go"> &lt;Signal2D, title: C K, dimensions: (|512, 512)&gt;,</span>
-<span class="go"> &lt;Signal2D, title: O K, dimensions: (|512, 512)&gt;,</span>
-<span class="go"> &lt;EDSTEMSpectrum, title: EDX, dimensions: (512, 512|4096)&gt;]</span>
-</pre></div>
-</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.numpy.file_writer">
+<span class="sig-prename descclassname"><span class="pre">rsciio.numpy.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.numpy.file_writer" title="Link to this definition">#</a></dt>
+<dd><p>Write data to npy files.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>signal</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></span></dt><dd><p>Dictionary containing the signal object.
+Should contain the following fields:</p>
+<ul class="simple">
+<li><p>‘data’ – multidimensional numpy array</p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>‘metadata’ – dictionary containing the metadata tree</p></li>
+</ul>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Additional keyword arguments passed to <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.save.html#numpy.save" title="(in NumPy v2.3)"><code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.save()</span></code></a>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This plugin does not support metadata like scale, units, etc.</p>
+</dd></dl>
+
 </section>
 </section>
 
@@ -596,20 +581,20 @@ the EDS range 40 keV over 4096 channels:</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="image.html"
+       href="nexus.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Image formats</p>
+        <p class="prev-next-title">NeXus data format</p>
       </div>
     </a>
     <a class="right-next"
-       href="jobinyvon.html"
+       href="pantarhei.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Horiba Jobin Yvon LabSpec</p>
+        <p class="prev-next-title">CEOS Panta Rhei (PRZ)</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -632,11 +617,11 @@ the EDS range 40 keV over 4096 channels:</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.jeol">API functions</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.jeol.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.numpy">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.numpy.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.numpy.file_writer"><code class="docutils literal notranslate"><span class="pre">file_writer()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-examples">Reading examples</a></li>
 </ul>
   </nav></div>
 
@@ -644,7 +629,7 @@ the EDS range 40 keV over 4096 channels:</p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/supported_formats/jeol.rst.txt"
+      <li><a href="../_sources/supported_formats/numpy.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>

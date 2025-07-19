@@ -397,6 +397,7 @@
 <li class="toctree-l1"><a class="reference internal" href="msa.html">EMSA/MSA format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="netcdf.html">NetCDF (EELSlab) format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="nexus.html">NeXus data format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="numpy.html">NumPy (NPY)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pantarhei.html">CEOS Panta Rhei (PRZ)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="phenom.html">Phenom ELID format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="protochips.html">Protochips logfile</a></li>
@@ -495,24 +496,46 @@ Please note that in order to increase saving efficiency and speed, if possible,
 the inner-most structures are converted to numpy arrays when saved. This
 procedure homogenizes any types of the objects inside, most notably casting
 numbers as strings if any other strings are present:</p>
+<section id="using-different-zarr-stores">
+<h2>Using different Zarr stores<a class="headerlink" href="#using-different-zarr-stores" title="Link to this heading">#</a></h2>
 <p>By default, a <a class="reference external" href="https://zarr.readthedocs.io/en/v2.18.4/api/storage.html#zarr.storage.NestedDirectoryStore" title="(in zarr v2.18.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.NestedDirectoryStore</span></code></a> is used, but other
-zarr store can be used by providing a <a class="reference external" href="https://zarr.readthedocs.io/en/v2.18.4/api/storage.html#module-zarr.storage" title="(in zarr v2.18.4)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">zarr.storage</span></code></a>
-instead as argument to the <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.signals/BaseSignal.html#hyperspy.api.signals.BaseSignal.save" title="(in HyperSpy v2.3)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal.save()</span></code></a> or the
-<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.html#hyperspy.api.load" title="(in HyperSpy v2.3)"><code class="xref py py-func docutils literal notranslate"><span class="pre">hyperspy.api.load()</span></code></a> function. If a <code class="docutils literal notranslate"><span class="pre">.zspy</span></code> file has been saved with a different
-store, it would need to be loaded by passing a store of the same type:</p>
+zarr store can be used when saving to file and this can be done by using one of these
+two approaches:</p>
+<ul class="simple">
+<li><p>pass <code class="docutils literal notranslate"><span class="pre">&quot;local&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;zip&quot;</span></code> to the <code class="docutils literal notranslate"><span class="pre">store_type</span></code> parameter to use a
+<a class="reference external" href="https://zarr.readthedocs.io/en/v2.18.4/api/storage.html#zarr.storage.NestedDirectoryStore" title="(in zarr v2.18.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.NestedDirectoryStore</span></code></a> or a <a class="reference external" href="https://zarr.readthedocs.io/en/v2.18.4/api/storage.html#zarr.storage.ZipStore" title="(in zarr v2.18.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.ZipStore</span></code></a>
+zarr store, respectively;</p></li>
+<li><p>pass an instance of <a class="reference external" href="https://zarr.readthedocs.io/en/v2.18.4/api/storage.html#module-zarr.storage" title="(in zarr v2.18.4)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">zarr.storage</span></code></a> to the <code class="docutils literal notranslate"><span class="pre">filename</span></code> parameter.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>While the <a class="reference external" href="https://zarr.readthedocs.io/en/v2.18.4/api/storage.html#zarr.storage.ZipStore" title="(in zarr v2.18.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ZipStore</span></code></a> is convenient to save as a single file,
+it has limitations:</p>
+<ul class="simple">
+<li><p>The <a class="reference external" href="https://zarr.readthedocs.io/en/v2.18.4/api/storage.html#zarr.storage.ZipStore" title="(in zarr v2.18.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ZipStore</span></code></a> currently doesn’t support overwriting
+and will raise a <code class="docutils literal notranslate"><span class="pre">NotImplementedError</span></code> when writing to an existing file.</p></li>
+<li><p>It doesn’t support writing from multiple processes at the same time.</p></li>
+</ul>
+</div>
+<p>Example of saving a signal using the <a class="reference external" href="https://zarr.readthedocs.io/en/v2.18.4/api/storage.html#zarr.storage.ZipStore" title="(in zarr v2.18.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ZipStore</span></code></a>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;test.zspy&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">store</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">LMDBStore</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">signal</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">store</span><span class="p">)</span> <span class="c1"># saved to LMDB</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">signal</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;test.zspy&#39;</span><span class="p">,</span> <span class="n">store_type</span><span class="o">=</span><span class="s2">&quot;zip&quot;</span><span class="p">)</span> <span class="c1"># saved using ZipStore</span>
 </pre></div>
 </div>
-<p>To load this file again</p>
+<p>To load this file again, RosettaSciIO will automatically detect that it
+is a zip file and load it using the <a class="reference external" href="https://zarr.readthedocs.io/en/v2.18.4/api/storage.html#zarr.storage.ZipStore" title="(in zarr v2.18.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ZipStore</span></code></a>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;test.zspy&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">store</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">LMDBStore</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">store</span><span class="p">)</span> <span class="c1"># load from LMDB</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;test.zspy&#39;</span><span class="p">)</span> <span class="c1"># load from ZipStore</span>
 </pre></div>
 </div>
+<p>If other zarr stores are used, it will be necessary to specify the store
+type when loading the file:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">zarr</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">store</span> <span class="o">=</span> <span class="n">zarr</span><span class="o">.</span><span class="n">storage</span><span class="o">.</span><span class="n">ZipStore</span><span class="p">(</span><span class="s1">&#39;test.zspy&#39;</span><span class="p">)</span>  <span class="c1"># or the store the data was saved with</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">store</span><span class="p">)</span> <span class="c1"># load using the given store</span>
+</pre></div>
+</div>
+</section>
 <section id="module-rsciio.zspy">
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.zspy" title="Link to this heading">#</a></h2>
 <dl class="py function">
@@ -555,7 +578,7 @@ containing the full axes vector</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.zspy.file_writer">
-<span class="sig-prename descclassname"><span class="pre">rsciio.zspy.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compressor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">close_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progressbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.zspy.file_writer" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">rsciio.zspy.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compressor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">close_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progressbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.zspy.file_writer" title="Link to this definition">#</a></dt>
 <dd><p>Write data to HyperSpy’s zarr format.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -591,6 +614,13 @@ accessed lazily after saving.</p>
 be useful to overwrite signal attributes only (for example <code class="docutils literal notranslate"><span class="pre">axes_manager</span></code>)
 without having to write the whole dataset, which can take time.</p>
 </dd>
+<dt><strong>store_type</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, “local” or “zip” or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a></span></dt><dd><p>If “local”, uses a <a class="reference external" href="https://zarr.readthedocs.io/en/v2.18.4/api/storage.html#zarr.storage.NestedDirectoryStore" title="(in zarr v2.18.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.NestedDirectoryStore</span></code></a>
+to save the file in a local directory. If “zip”, uses a
+<a class="reference external" href="https://zarr.readthedocs.io/en/v2.18.4/api/storage.html#zarr.storage.ZipStore" title="(in zarr v2.18.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.ZipStore</span></code></a> to save the file in a zip archive.
+If <code class="docutils literal notranslate"><span class="pre">None</span></code>, the default store is used (<a class="reference external" href="https://zarr.readthedocs.io/en/v2.18.4/api/storage.html#zarr.storage.NestedDirectoryStore" title="(in zarr v2.18.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">NestedDirectoryStore</span></code></a>)
+is used. Specifying this parameter is incompatible with passing an instance of
+a zarr store to the <code class="docutils literal notranslate"><span class="pre">filename</span></code> parameter. Default is None.</p>
+</dd>
 <dt><strong>show_progressbar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Whether to show the progressbar or not.</p>
 </dd>
 <dt><strong>**kwds</strong></dt><dd><p>The keyword arguments are passed to the
@@ -602,7 +632,11 @@ without having to write the whole dataset, which can take time.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">numcodecs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Blosc</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">compressor</span> <span class="o">=</span> <span class="n">Blosc</span><span class="p">(</span><span class="n">cname</span><span class="o">=</span><span class="s1">&#39;zstd&#39;</span><span class="p">,</span> <span class="n">clevel</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="n">Blosc</span><span class="o">.</span><span class="n">SHUFFLE</span><span class="p">)</span> <span class="c1"># Used by default</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">file_writer</span><span class="p">(</span><span class="s1">&#39;test.zspy&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">compressor</span> <span class="o">=</span> <span class="n">compressor</span><span class="p">)</span> <span class="c1"># will save with Blosc compression</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file_writer</span><span class="p">(</span><span class="s2">&quot;test.zspy&quot;</span><span class="p">,</span> <span class="n">signal_dict</span><span class="p">,</span> <span class="n">compressor</span><span class="o">=</span><span class="n">compressor</span><span class="p">)</span> <span class="c1"># will save with Blosc compression</span>
+</pre></div>
+</div>
+<p>Using a <a class="reference external" href="https://zarr.readthedocs.io/en/v2.18.4/api/storage.html#zarr.storage.ZipStore" title="(in zarr v2.18.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">zarr.storage.ZipStore</span></code></a> store:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">file_writer</span><span class="p">(</span><span class="s2">&quot;test.zspy&quot;</span><span class="p">,</span> <span class="n">signal_dict</span><span class="p">,</span> <span class="n">store_type</span><span class="o">=</span><span class="s2">&quot;zip&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -664,6 +698,7 @@ read/write with the trade off of slightly more computational work on the CPU.</p
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-different-zarr-stores">Using different Zarr stores</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.zspy">API functions</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.zspy.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.zspy.file_writer"><code class="docutils literal notranslate"><span class="pre">file_writer()</span></code></a></li>

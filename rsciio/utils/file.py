@@ -10,29 +10,35 @@
 #
 # RosettaSciIO is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import numpy as np
-from packaging.version import Version
+# ruff: noqa: F822
+
+import importlib
+
+__all__ = [
+    "get_file_handle",
+    "memmap_distributed",
+]
 
 
-def get_numpy_kwargs(array):
-    """
-    Convenience funtion to return a dictionary containing the `like` keyword
-    if numpy>=1.20.
+def __dir__():
+    return sorted(__all__)
 
-    Note
-    ----
-    `like` keyword is an experimental feature introduced in numpy 1.20 and is
-    pending on acceptance of NEP 35
 
-    """
-    kw = {}
-    if Version(np.__version__) >= Version("1.20"):
-        kw["like"] = array
+_import_mapping = {
+    "get_file_handle": "_tools",
+    "memmap_distributed": "_distributed",
+}
 
-    return kw
+
+def __getattr__(name):
+    if name in __all__:
+        submodule = _import_mapping[name]
+        return getattr(importlib.import_module(f"rsciio.utils.{submodule}"), name)
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

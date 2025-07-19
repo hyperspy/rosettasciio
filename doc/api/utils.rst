@@ -1,41 +1,57 @@
 .. _utils:
 
-Utility functions
-=================
+Utils
+=====
 
 RosettaSciIO provides certain utility functions that are applicable for multiple
 formats, e.g. for the HDF5-format on which a number of plugins are based.
 
+.. _file-utils:
+
+File
+^^^^
+
+.. automodule:: rsciio.utils.file
+   :members:
+
 .. _hdf5-utils:
 
-HDF5 utility functions
-^^^^^^^^^^^^^^^^^^^^^^
+HDF5
+^^^^
 
 .. automodule:: rsciio.utils.hdf5
    :members:
 
-Generic utility functions
-^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: rsciio.utils.tools
-   :members: get_file_handle
+.. _path-utils:
 
+Path
+^^^^
 
-Distributed utility functions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. automodule:: rsciio.utils.distributed
+.. automodule:: rsciio.utils.path
    :members:
 
-Logging
-^^^^^^^
 
-.. automodule:: rsciio
-   :members: set_log_level
+.. _rgb-utils:
+
+RGB
+^^^
+
+.. automodule:: rsciio.utils.rgb
+   :members:
 
 
-Test utility functions
-^^^^^^^^^^^^^^^^^^^^^^
+.. _xml-utils:
+
+XML
+^^^
+
+.. automodule:: rsciio.utils.xml
+   :members:
+
+
+Test
+^^^^
 
 .. automodule:: rsciio.tests.registry_utils
    :members:

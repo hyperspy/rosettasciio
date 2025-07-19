@@ -1,0 +1,1 @@
+Add integration tests running with hyperspy and it's extensions installed.

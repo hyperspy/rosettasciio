@@ -38,6 +38,10 @@ from hyperspy.axes import DataAxis  # noqa: E402
 TEST_DATA_PATH = Path(__file__).parent / "data"
 FULLFILENAME = Path(__file__).parent / "test_io_overwriting.hspy"
 
+argument_name = (
+    "reader" if Version(hs.__version__) < Version("2.4.0.dev33") else "file_format"
+)
+
 
 class TestIOOverwriting:
     def setup_method(self, method):
@@ -201,8 +205,10 @@ def test_file_reader_error(tmp_path):
     f = tmp_path / "temp.hspy"
     s.save(f)
 
+    hs_load_kwargs = {argument_name: 123}
+
     with pytest.raises(ValueError, match="reader"):
-        _ = hs.load(f, reader=123)
+        _ = hs.load(f, **hs_load_kwargs)
 
 
 def test_file_reader_warning(caplog, tmp_path):
@@ -211,8 +217,9 @@ def test_file_reader_warning(caplog, tmp_path):
     f = tmp_path / "temp.hspy"
     s.save(f)
     try:
+        hs_load_kwargs = {argument_name: "some_unknown_file_extension"}
         with caplog.at_level(logging.WARNING):
-            _ = hs.load(f, reader="some_unknown_file_extension")
+            _ = hs.load(f, **hs_load_kwargs)
 
         assert "Unable to infer file type from extension" in caplog.text
     except (ValueError, OSError):
@@ -220,49 +227,58 @@ def test_file_reader_warning(caplog, tmp_path):
         pass
 
 
-def test_file_reader_options():
+def test_file_reader_options(tmp_path):
     s = hs.signals.Signal1D(np.arange(10))
 
-    with tempfile.TemporaryDirectory() as dirpath:
-        f = os.path.join(dirpath, "temp.hspy")
-        s.save(f)
-        f2 = os.path.join(dirpath, "temp.emd")
-        s.save(f2)
+    f = tmp_path / "temp.hspy"
+    s.save(f)
+    f2 = tmp_path / "temp.emd"
+    s.save(f2)
 
-        # Test string reader
-        t = hs.load(Path(dirpath, "temp.hspy"), reader="hspy")
-        assert len(t) == 1
-        np.testing.assert_allclose(t.data, np.arange(10))
+    argument_name = (
+        "reader" if Version(hs.__version__) < Version("2.4.0.dev33") else "file_format"
+    )
+    hs_load_kwargs = {argument_name: "hspy"}
 
-        # Test string reader uppercase
-        t = hs.load(Path(dirpath, "temp.hspy"), reader="HSpy")
-        assert len(t) == 1
-        np.testing.assert_allclose(t.data, np.arange(10))
+    # Test string reader
+    t = hs.load(f, **hs_load_kwargs)
+    assert len(t) == 1
+    np.testing.assert_allclose(t.data, np.arange(10))
 
-        # Test string reader alias
-        t = hs.load(Path(dirpath, "temp.hspy"), reader="hyperspy")
-        assert len(t) == 1
-        np.testing.assert_allclose(t.data, np.arange(10))
+    # Test string reader uppercase
+    t = hs.load(tmp_path / "temp.hspy", **hs_load_kwargs)
+    assert len(t) == 1
+    np.testing.assert_allclose(t.data, np.arange(10))
 
-        # Test string reader name
-        t = hs.load(Path(dirpath, "temp.emd"), reader="emd")
-        assert len(t) == 1
-        np.testing.assert_allclose(t.data, np.arange(10))
+    # Test string reader alias
+    hs_load_kwargs = {argument_name: "hyperspy"}
+    t = hs.load(tmp_path / "temp.hspy", **hs_load_kwargs)
+    assert len(t) == 1
+    np.testing.assert_allclose(t.data, np.arange(10))
 
-        # Test string reader aliases
-        t = hs.load(Path(dirpath, "temp.emd"), reader="Electron Microscopy Data (EMD)")
-        assert len(t) == 1
-        np.testing.assert_allclose(t.data, np.arange(10))
-        t = hs.load(Path(dirpath, "temp.emd"), reader="Electron Microscopy Data")
-        assert len(t) == 1
-        np.testing.assert_allclose(t.data, np.arange(10))
+    # Test string reader name
+    hs_load_kwargs = {argument_name: "emd"}
+    t = hs.load(tmp_path / "temp.emd", **hs_load_kwargs)
+    assert len(t) == 1
+    np.testing.assert_allclose(t.data, np.arange(10))
 
-        # Test object reader
-        from rsciio import hspy
+    # Test string reader aliases
+    hs_load_kwargs = {argument_name: "Electron Microscopy Data (EMD)"}
+    t = hs.load(tmp_path / "temp.emd", **hs_load_kwargs)
+    assert len(t) == 1
+    np.testing.assert_allclose(t.data, np.arange(10))
+    hs_load_kwargs = {argument_name: "Electron Microscopy Data"}
+    t = hs.load(tmp_path / "temp.emd", **hs_load_kwargs)
+    assert len(t) == 1
+    np.testing.assert_allclose(t.data, np.arange(10))
 
-        t = hs.load(Path(dirpath, "temp.hspy"), reader=hspy)
-        assert len(t) == 1
-        np.testing.assert_allclose(t.data, np.arange(10))
+    # Test object reader
+    from rsciio import hspy
+
+    hs_load_kwargs = {argument_name: hspy}
+    t = hs.load(tmp_path / "temp.hspy", **hs_load_kwargs)
+    assert len(t) == 1
+    np.testing.assert_allclose(t.data, np.arange(10))
 
 
 def test_save_default_format(tmp_path):

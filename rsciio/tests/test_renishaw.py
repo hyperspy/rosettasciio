@@ -54,13 +54,11 @@ class TestSpec:
     def setup_class(cls):
         cls.s = hs.load(
             testfile_spec,
-            reader="Renishaw",
             use_uniform_signal_axis=True,
         )
 
         cls.s_non_uniform = hs.load(
             testfile_spec,
-            reader="Renishaw",
             use_uniform_signal_axis=False,
         )
 
@@ -893,11 +891,7 @@ class TestSpec:
 class TestLinescan:
     @classmethod
     def setup_class(cls):
-        cls.s = hs.load(
-            testfile_linescan,
-            reader="Renishaw",
-            use_uniform_signal_axis=True,
-        )[0]
+        cls.s = hs.load(testfile_linescan, use_uniform_signal_axis=True)[0]
 
     @classmethod
     def teardown_class(cls):
@@ -975,7 +969,6 @@ class TestMap:
     def setup_class(cls):
         cls.s = hs.load(
             testfile_map,
-            reader="Renishaw",
             use_uniform_signal_axis=True,
         )[0]
 
@@ -1110,7 +1103,6 @@ class TestZscan:
     def setup_class(cls):
         cls.s = hs.load(
             testfile_zscan,
-            reader="Renishaw",
             use_uniform_signal_axis=True,
         )
 
@@ -1158,7 +1150,6 @@ class TestUndefined:
     def setup_class(cls):
         cls.s = hs.load(
             testfile_undefined,
-            reader="Renishaw",
             use_uniform_signal_axis=True,
         )
 
@@ -1184,7 +1175,6 @@ class TestStreamline:
     def setup_class(cls):
         cls.s = hs.load(
             testfile_streamline,
-            reader="Renishaw",
             use_uniform_signal_axis=True,
         )[0]
 
@@ -1205,7 +1195,6 @@ class TestStreamline:
     def test_WHTL(self):
         s = hs.load(
             testfile_streamline,
-            reader="Renishaw",
         )[1]
         expected_WTHL = {
             "FocalPlaneResolutionUnit": 5,
@@ -1288,7 +1277,6 @@ class TestMapBlock:
     def setup_class(cls):
         cls.s = hs.load(
             testfile_map_block,
-            reader="Renishaw",
             use_uniform_signal_axis=True,
         )[0]
 
@@ -1328,7 +1316,6 @@ class TestTimeseries:
     def setup_class(cls):
         cls.s = hs.load(
             testfile_timeseries,
-            reader="Renishaw",
             use_uniform_signal_axis=True,
         )
 
@@ -1360,7 +1347,6 @@ class TestFocusTrack:
     def setup_class(cls):
         cls.s = hs.load(
             testfile_focustrack,
-            reader="Renishaw",
             use_uniform_signal_axis=True,
         )
 
@@ -1480,17 +1466,14 @@ class TestIntegrationtime:
     def setup_class(cls):
         cls.s_11 = hs.load(
             testfile_acc1_exptime1,
-            reader="Renishaw",
             use_uniform_signal_axis=False,
         )
         cls.s_21 = hs.load(
             testfile_acc2_exptime1,
-            reader="Renishaw",
             use_uniform_signal_axis=False,
         )
         cls.s_110 = hs.load(
             testfile_acc1_exptime10,
-            reader="Renishaw",
             use_uniform_signal_axis=False,
         )
 

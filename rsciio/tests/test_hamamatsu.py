@@ -22,6 +22,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from packaging.version import Version
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -33,11 +34,16 @@ testfile_photon_count_path = (testfile_dir / "photon_counting.img").resolve()
 testfile_shading_path = (testfile_dir / "shading_file.img").resolve()
 testfile_xaxisother_path = (testfile_dir / "xaxis_other.img").resolve()
 
+argument_name = (
+    "reader" if Version(hs.__version__) < Version("2.4.0.dev33") else "file_format"
+)
+hs_load_kwargs = {argument_name: "Hamamatsu"}
+
 
 class TestOperate:
     @classmethod
     def setup_class(cls):
-        cls.s = hs.load(testfile_operate_mode_path, reader="Hamamatsu")
+        cls.s = hs.load(testfile_operate_mode_path, **hs_load_kwargs)
 
     @classmethod
     def teardown_class(cls):
@@ -329,7 +335,7 @@ class TestOperate:
 class TestFocus:
     @classmethod
     def setup_class(cls):
-        cls.s_focus = hs.load(testfile_focus_mode_path, reader="Hamamatsu")
+        cls.s_focus = hs.load(testfile_focus_mode_path, **hs_load_kwargs)
 
     @classmethod
     def teardown_class(cls):
@@ -363,7 +369,7 @@ class TestFocus:
 class TestPhotonCount:
     @classmethod
     def setup_class(cls):
-        cls.s = hs.load(testfile_photon_count_path, reader="Hamamatsu")
+        cls.s = hs.load(testfile_photon_count_path, **hs_load_kwargs)
 
     @classmethod
     def teardown_class(cls):
@@ -390,7 +396,7 @@ class TestPhotonCount:
 class TestShading:
     @classmethod
     def setup_class(cls):
-        cls.s = hs.load(testfile_shading_path, reader="Hamamatsu")
+        cls.s = hs.load(testfile_shading_path, **hs_load_kwargs)
 
     @classmethod
     def teardown_class(cls):
@@ -410,7 +416,7 @@ class TestShading:
 class TestOther:
     @classmethod
     def setup_class(cls):
-        cls.s = hs.load(testfile_xaxisother_path, reader="Hamamatsu")
+        cls.s = hs.load(testfile_xaxisother_path, **hs_load_kwargs)
 
     @classmethod
     def teardown_class(cls):

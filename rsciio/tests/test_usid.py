@@ -21,6 +21,7 @@ import tempfile
 import dask.array as da
 import numpy as np
 import pytest
+from packaging.version import Version
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 usid = pytest.importorskip("pyUSID", reason="pyUSID not installed")
@@ -28,6 +29,11 @@ sidpy = pytest.importorskip("sidpy", reason="sidpy not installed")
 h5py = pytest.importorskip("h5py", reason="h5py not installed")
 
 # ##################### HELPER FUNCTIONS ######################################
+
+argument_name = (
+    "reader" if Version(hs.__version__) < Version("2.4.0.dev33") else "file_format"
+)
+hs_load_kwargs = {argument_name: "USID"}
 
 
 def _array_translator_basic_checks(h5_f):
@@ -516,7 +522,7 @@ class TestUSID2HSbase:
             slow_to_fast=slow_to_fast,
         )
 
-        new_sig = hs.load(file_path, reader="USID")
+        new_sig = hs.load(file_path, **hs_load_kwargs)
         compare_signal_from_usid(
             file_path, ndata, new_sig, sig_type=hs.signals.BaseSignal, axes_to_spec=[]
         )
@@ -542,7 +548,7 @@ class TestUSID2HSbase:
             slow_to_fast=slow_to_fast,
         )
 
-        new_sig = hs.load(file_path, reader="USID")
+        new_sig = hs.load(file_path, **hs_load_kwargs)
         compare_signal_from_usid(
             file_path, ndata, new_sig, sig_type=hs.signals.BaseSignal, axes_to_spec=[]
         )
@@ -567,7 +573,7 @@ class TestUSID2HSbase:
             slow_to_fast=slow_to_fast,
         )
 
-        new_sig = hs.load(file_path, reader="USID", lazy=lazy)
+        new_sig = hs.load(file_path, lazy=lazy, **hs_load_kwargs)
         compare_signal_from_usid(
             file_path,
             ndata,
@@ -601,7 +607,7 @@ class TestUSID2HSdtype:
             slow_to_fast=slow_to_fast,
         )
 
-        new_sig = hs.load(file_path, reader="USID")
+        new_sig = hs.load(file_path, **hs_load_kwargs)
         compare_signal_from_usid(
             file_path,
             ndata,
@@ -630,7 +636,7 @@ class TestUSID2HSdtype:
             slow_to_fast=slow_to_fast,
         )
 
-        objects = hs.load(file_path, reader="USID")
+        objects = hs.load(file_path, **hs_load_kwargs)
         assert isinstance(objects, list)
         assert len(objects) == 2
 
@@ -673,10 +679,10 @@ class TestUSID2HSdtype:
         )
 
         with pytest.raises(ValueError):
-            _ = hs.load(file_path, reader="USID", ignore_non_uniform_dims=False)
+            _ = hs.load(file_path, ignore_non_uniform_dims=False, **hs_load_kwargs)
 
         with pytest.warns(UserWarning) as _:
-            new_sig = hs.load(file_path, reader="USID")
+            new_sig = hs.load(file_path, **hs_load_kwargs)
         compare_signal_from_usid(
             file_path,
             ndata,
@@ -730,7 +736,7 @@ class TestUSID2HSmultiDsets:
             )
 
         dataset_path = "/Measurement_001/Channel_000/Raw_Data"
-        new_sig = hs.load(file_path, dataset_path=dataset_path, reader="USID")
+        new_sig = hs.load(file_path, dataset_path=dataset_path, **hs_load_kwargs)
         compare_signal_from_usid(file_path, ndata_2, new_sig, dataset_path=dataset_path)
 
     def test_read_all_by_default(self):
@@ -772,7 +778,7 @@ class TestUSID2HSmultiDsets:
                 slow_to_fast=slow_to_fast,
             )
 
-        objects = hs.load(file_path, reader="USID")
+        objects = hs.load(file_path, **hs_load_kwargs)
         assert isinstance(objects, list)
         assert len(objects) == 2
 

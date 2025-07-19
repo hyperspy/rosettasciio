@@ -31,7 +31,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 from dateutil import tz
+from packaging.version import Version
 
+import rsciio
 from rsciio.utils.tests import assert_deep_almost_equal
 from rsciio.utils.tools import dummy_context_manager
 
@@ -94,8 +96,12 @@ class TestFeiEMD:
                 "FileIO": {
                     "0": {
                         "operation": "load",
+                        "folder": str(self.fei_files_path),
+                        "filename": "fei_emd_image",
+                        "extension": ".emd",
                         "hyperspy_version": hs.__version__,
                         "io_plugin": "rsciio.emd",
+                        "rosettasciio_version": rsciio.__version__,
                     }
                 },
             },
@@ -119,7 +125,13 @@ class TestFeiEMD:
 
         signal = hs.load(self.fei_files_path / "fei_emd_image.emd", lazy=lazy)
         # delete timestamp from metadata since it's runtime dependent
-        del signal.metadata.General.FileIO.Number_0.timestamp
+        del signal.metadata.General.FileIO[0].timestamp
+        if Version(hs.__version__) < Version("2.4.0.dev64"):
+            del md["General"]["FileIO"]["0"]["folder"]
+            del md["General"]["FileIO"]["0"]["filename"]
+            del md["General"]["FileIO"]["0"]["extension"]
+            del md["General"]["FileIO"]["0"]["rosettasciio_version"]
+
         if lazy:
             assert signal._lazy
             signal.compute(close_file=True)

@@ -22,6 +22,9 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from packaging.version import Version
+
+import rsciio
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -292,11 +295,7 @@ def test_load_eds_file(filename_as_string):
     assert axis.offset == -0.00176612
     assert axis.scale == 0.0100004
 
-    # delete timestamp from metadata since it's runtime dependent
-    del s.metadata.General.FileIO.Number_0.timestamp
-
-    md_dict = s.metadata.as_dictionary()
-    assert md_dict["General"] == {
+    md_ref = {
         "original_filename": "met03.EDS",
         "time": "14:14:51",
         "date": "2018-06-25",
@@ -304,11 +303,25 @@ def test_load_eds_file(filename_as_string):
         "FileIO": {
             "0": {
                 "operation": "load",
+                "folder": str(TESTS_FILE_PATH),
+                "filename": "met03",
+                "extension": ".EDS",
                 "hyperspy_version": hs.__version__,
                 "io_plugin": "rsciio.jeol",
+                "rosettasciio_version": rsciio.__version__,
             }
         },
     }
+    # delete timestamp from metadata since it's runtime dependent
+    del s.metadata.General.FileIO[0].timestamp
+    if Version(hs.__version__) < Version("2.4.0.dev64"):
+        del md_ref["FileIO"]["0"]["folder"]
+        del md_ref["FileIO"]["0"]["filename"]
+        del md_ref["FileIO"]["0"]["extension"]
+        del md_ref["FileIO"]["0"]["rosettasciio_version"]
+
+    md_dict = s.metadata.as_dictionary()
+    assert md_dict["General"] == md_ref
     TEM_dict = md_dict["Acquisition_instrument"]["TEM"]
     assert TEM_dict == {
         "beam_energy": 200.0,

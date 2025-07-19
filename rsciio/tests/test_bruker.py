@@ -3,7 +3,9 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from packaging.version import Version
 
+import rsciio
 from rsciio.bruker import export_metadata, file_reader
 from rsciio.utils.tests import assert_deep_almost_equal
 
@@ -147,8 +149,12 @@ def test_hyperspy_wrap():
             "FileIO": {
                 "0": {
                     "operation": "load",
+                    "folder": str(TEST_DATA_DIR),
+                    "filename": "30x30_instructively_packed_16bit_compressed",
+                    "extension": ".bcf",
                     "hyperspy_version": hs.__version__,
                     "io_plugin": "rsciio.bruker",
+                    "rosettasciio_version": rsciio.__version__,
                 }
             },
         },
@@ -207,7 +213,13 @@ def test_hyperspy_wrap():
         # original_metadata:
         omd_ref = json.load(fn)
     # delete FileIO timestamp since it's runtime dependent
-    del hype.metadata.General.FileIO.Number_0.timestamp
+    del hype.metadata.General.FileIO[0].timestamp
+    if Version(hs.__version__) < Version("2.4.0.dev64"):
+        del md_ref["General"]["FileIO"]["0"]["folder"]
+        del md_ref["General"]["FileIO"]["0"]["filename"]
+        del md_ref["General"]["FileIO"]["0"]["extension"]
+        del md_ref["General"]["FileIO"]["0"]["rosettasciio_version"]
+
     assert_deep_almost_equal(hype.metadata.as_dictionary(), md_ref)
     assert_deep_almost_equal(hype.original_metadata.as_dictionary(), omd_ref)
     assert hype.metadata.General.date == "2018-10-04"

@@ -25,8 +25,9 @@ from pathlib import Path
 import dask.array as da
 import numpy as np
 import pytest
+from packaging.version import Version
 
-from rsciio.utils.tests import assert_deep_almost_equal
+import rsciio
 from rsciio.utils.tools import get_file_handle
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
@@ -386,8 +387,12 @@ class TestSavingMetadataContainers:
                 "FileIO": {
                     "0": {
                         "operation": "load",
+                        "folder": str(TEST_DATA_PATH),
+                        "filename": "example2_v3.1",
+                        "extension": ".hspy",
                         "hyperspy_version": hs.__version__,
                         "io_plugin": "rsciio.hspy",
+                        "rosettasciio_version": rsciio.__version__,
                     }
                 },
             },
@@ -409,8 +414,13 @@ class TestSavingMetadataContainers:
         }
         s = hs.load(TEST_DATA_PATH / "example2_v3.1.hspy")
         # delete timestamp from metadata since it's runtime dependent
-        del s.metadata.General.FileIO.Number_0.timestamp
-        assert_deep_almost_equal(s.metadata.as_dictionary(), md)
+        del s.metadata.General.FileIO[0].timestamp
+        if Version(hs.__version__) < Version("2.4.0.dev64"):
+            del md["General"]["FileIO"]["0"]["folder"]
+            del md["General"]["FileIO"]["0"]["filename"]
+            del md["General"]["FileIO"]["0"]["extension"]
+            del md["General"]["FileIO"]["0"]["rosettasciio_version"]
+        assert s.metadata.as_dictionary() == md
 
 
 def test_none_metadata():

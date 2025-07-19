@@ -25,7 +25,9 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
+from packaging.version import Version
 
+import rsciio
 from rsciio import IO_PLUGINS
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
@@ -288,7 +290,7 @@ def test_load_original_metadata(tmp_path):
     assert t.original_metadata.as_dictionary() == {}
 
 
-def test_load_save_filereader_metadata():
+def test_load_save_filereader_metadata(tmp_path):
     # tests that original FileReader metadata is correctly persisted and
     # appended through a save and load cycle
     s = hs.load(TEST_DATA_PATH / "msa" / "example1.msa")
@@ -296,33 +298,49 @@ def test_load_save_filereader_metadata():
     assert s.metadata.General.FileIO.Number_0.operation == "load"
     assert s.metadata.General.FileIO.Number_0.hyperspy_version == hs.__version__
 
-    with tempfile.TemporaryDirectory() as dirpath:
-        f = os.path.join(dirpath, "temp")
-        s.save(f)
-        expected = {
-            "0": {
-                "io_plugin": "rsciio.msa",
-                "operation": "load",
-                "hyperspy_version": hs.__version__,
-            },
-            "1": {
-                "io_plugin": "rsciio.hspy",
-                "operation": "save",
-                "hyperspy_version": hs.__version__,
-            },
-            "2": {
-                "io_plugin": "rsciio.hspy",
-                "operation": "load",
-                "hyperspy_version": hs.__version__,
-            },
-        }
-        del s.metadata.General.FileIO.Number_0.timestamp  # runtime dependent
-        del s.metadata.General.FileIO.Number_1.timestamp  # runtime dependent
-        assert s.metadata.General.FileIO.Number_0.as_dictionary() == expected["0"]
-        assert s.metadata.General.FileIO.Number_1.as_dictionary() == expected["1"]
+    s.save(tmp_path / "temp.hspy")
+    expected = {
+        "0": {
+            "io_plugin": "rsciio.msa",
+            "operation": "load",
+            "folder": str(TEST_DATA_PATH / "msa"),
+            "filename": "example1",
+            "extension": ".msa",
+            "hyperspy_version": hs.__version__,
+            "rosettasciio_version": rsciio.__version__,
+        },
+        "1": {
+            "io_plugin": "rsciio.hspy",
+            "operation": "save",
+            "folder": str(tmp_path),
+            "filename": "temp",
+            "extension": ".hspy",
+            "hyperspy_version": hs.__version__,
+            "rosettasciio_version": rsciio.__version__,
+        },
+        "2": {
+            "io_plugin": "rsciio.hspy",
+            "operation": "load",
+            "folder": str(tmp_path),
+            "filename": "temp",
+            "extension": ".hspy",
+            "hyperspy_version": hs.__version__,
+            "rosettasciio_version": rsciio.__version__,
+        },
+    }
+    if Version(hs.__version__) < Version("2.4.0.dev64"):
+        for i in range(3):
+            del expected[str(i)]["folder"]
+            del expected[str(i)]["filename"]
+            del expected[str(i)]["extension"]
+            del expected[str(i)]["rosettasciio_version"]
+    del s.metadata.General.FileIO.Number_0.timestamp  # runtime dependent
+    del s.metadata.General.FileIO.Number_1.timestamp  # runtime dependent
+    assert s.metadata.General.FileIO.Number_0.as_dictionary() == expected["0"]
+    assert s.metadata.General.FileIO.Number_1.as_dictionary() == expected["1"]
 
-        t = hs.load(Path(dirpath, "temp.hspy"))
-        del t.metadata.General.FileIO.Number_0.timestamp  # runtime dependent
-        del t.metadata.General.FileIO.Number_1.timestamp  # runtime dependent
-        del t.metadata.General.FileIO.Number_2.timestamp  # runtime dependent
-        assert t.metadata.General.FileIO.as_dictionary() == expected
+    t = hs.load(tmp_path / "temp.hspy")
+    del t.metadata.General.FileIO.Number_0.timestamp  # runtime dependent
+    del t.metadata.General.FileIO.Number_1.timestamp  # runtime dependent
+    del t.metadata.General.FileIO.Number_2.timestamp  # runtime dependent
+    assert t.metadata.General.FileIO.as_dictionary() == expected

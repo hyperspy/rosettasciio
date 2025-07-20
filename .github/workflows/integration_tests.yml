@@ -11,7 +11,7 @@ on:
 jobs:
   integration_test:
     # if: ${{ contains(github.event.pull_request.labels.*.name, 'run-integration-tests') || github.event_name == 'workflow_dispatch' }}
-    name: Integration tests
+    name: hs_${{ matrix.HYPERSPY_VERSION }}-ext_${{ matrix.EXTENSION_VERSION }}
     strategy:
       fail-fast: false
       matrix:
@@ -26,7 +26,3 @@ jobs:
       EXTENSION_VERSION: ${{ matrix.EXTENSION_VERSION }}
       HYPERSPY_VERSION: ${{ matrix.HYPERSPY_VERSION }}
       USE_CONDA: false
-
-
-
-

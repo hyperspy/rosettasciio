@@ -13,6 +13,7 @@ jobs:
     # if: ${{ contains(github.event.pull_request.labels.*.name, 'run-integration-tests') || github.event_name == 'workflow_dispatch' }}
     name: Integration tests
     strategy:
+      fail-fast: false
       matrix:
         EXTENSION_VERSION: ['release', 'dev']
         HYPERSPY_VERSION: ['release', 'RnM', 'RnP']

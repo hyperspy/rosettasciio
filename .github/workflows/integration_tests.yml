@@ -25,5 +25,9 @@ jobs:
       EXTENSIONS: 'exspy holospy lumispy pyxem atomap'
       EXTENSION_VERSION: ${{ matrix.EXTENSION_VERSION }}
       HYPERSPY_VERSION: ${{ matrix.HYPERSPY_VERSION }}
+      # Use `numpy-quaternion` orix optional dependency as a workaround to fix
+      # segmentation fault issue in orix, which occurs when numpy-quaternion is
+      # not installed - reason unknown.
+      ADDITIONAL_PACKAGES: 'numpy-quaternion'
       PIP_EXTRAS: '[all,tests]'
       USE_CONDA: false

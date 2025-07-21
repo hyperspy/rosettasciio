@@ -34,7 +34,7 @@ MRC (CCP-EM)
 
 The :ref:`MRC <mrc-format>` file format is a standard open file format for electron microscopy data and is
 defined by  `Cheng et al <https://doi.org/10.1016/j.jsb.2015.04.002>`_. The file format is described in
-detail following the link as well:  `MRC2014 <https://www.ccpem.ac.uk/mrc_format/mrc2014.php>`_.
+detail following the link as well:  `MRC2014 <https://www.ccpem.ac.uk/mrc-format>`_.
 
 Additionally Direct Electron saves a couple of files along with the ``.mrc`` file. In general, the file naming
 scheme is CurrentDate_MovieNumber_suffix_movie.mrc with the metadata file named CurrentDate_MovieNumber_suffix_info.txt.

@@ -22,6 +22,9 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from packaging.version import Version
+
+import rsciio
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -77,12 +80,17 @@ TEST_FILES2 = [
     "Dummy-Data_0000024.APB",
 ]
 
+argument_name = (
+    "reader" if Version(hs.__version__) < Version("2.4.0.dev33") else "file_format"
+)
+hs_load_kwargs = {argument_name: "jeol"}
+
 
 def test_load_project():
     pytest.importorskip("numba")
     # test load all elements of the project rawdata.ASW
     filename = TESTS_FILE_PATH / TEST_FILES[0]
-    s = hs.load(filename, reader="JEOL")
+    s = hs.load(filename, **hs_load_kwargs)
     # first file is always a 16bit image of the work area
     assert s[0].data.dtype == np.uint8
     assert s[0].data.shape == (512, 512)
@@ -118,12 +126,12 @@ def test_load_project():
 
     # check scale (image)
     filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[1]
-    s1 = hs.load(filename, reader="JEOL")
+    s1 = hs.load(filename, **hs_load_kwargs)
     np.testing.assert_allclose(s[0].axes_manager[0].scale, s1.axes_manager[0].scale)
     assert s[0].axes_manager[0].units == s1.axes_manager[0].units
     # check scale (pts)
     filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[7]
-    s2 = hs.load(filename, reader="JEOL")
+    s2 = hs.load(filename, **hs_load_kwargs)
     np.testing.assert_allclose(s[6].axes_manager[0].scale, s2.axes_manager[0].scale)
     assert s[6].axes_manager[0].units == s2.axes_manager[0].units
 
@@ -131,7 +139,7 @@ def test_load_project():
 def test_load_image():
     # test load work area haadf image
     filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[1]
-    s = hs.load(filename, reader="JEOL")
+    s = hs.load(filename, **hs_load_kwargs)
     assert s.data.dtype == np.uint8
     assert s.data.shape == (512, 512)
     assert s.axes_manager.signal_dimension == 2
@@ -148,7 +156,7 @@ def test_load_datacube(SI_dtype):
     pytest.importorskip("numba")
     # test load eds datacube
     filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[7]
-    s = hs.load(filename, SI_dtype=SI_dtype, cutoff_at_kV=5, reader="JEOL")
+    s = hs.load(filename, SI_dtype=SI_dtype, cutoff_at_kV=5, **hs_load_kwargs)
     assert s.data.dtype == SI_dtype
     assert s.data.shape == (512, 512, 596)
     assert s.axes_manager.signal_dimension == 1
@@ -168,20 +176,20 @@ def test_load_datacube(SI_dtype):
 def test_load_datacube_rebin_energy():
     pytest.importorskip("numba")
     filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[7]
-    s = hs.load(filename, cutoff_at_kV=0.1, reader="JEOL")
+    s = hs.load(filename, cutoff_at_kV=0.1, **hs_load_kwargs)
     s_sum = s.sum()
 
     ref_data = hs.signals.Signal1D(np.array([3, 23, 77, 200, 487, 984, 1599, 2391]))
     np.testing.assert_allclose(s_sum.data[88:96], ref_data.data)
 
     rebin_energy = 8
-    s2 = hs.load(filename, rebin_energy=rebin_energy, reader="JEOL")
+    s2 = hs.load(filename, rebin_energy=rebin_energy, **hs_load_kwargs)
     s2_sum = s2.sum()
 
     np.testing.assert_allclose(s2_sum.data[11:12], ref_data.data.sum())
 
     with pytest.raises(ValueError, match="must be a divisor"):
-        _ = hs.load(filename, rebin_energy=10, reader="JEOL")
+        _ = hs.load(filename, rebin_energy=10, **hs_load_kwargs)
 
 
 def test_load_datacube_cutoff_at_kV():
@@ -189,8 +197,8 @@ def test_load_datacube_cutoff_at_kV():
     gc.collect()
     cutoff_at_kV = 10.0
     filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[7]
-    s = hs.load(filename, cutoff_at_kV=None, reader="JEOL")
-    s2 = hs.load(filename, cutoff_at_kV=cutoff_at_kV, reader="JEOL")
+    s = hs.load(filename, cutoff_at_kV=None, **hs_load_kwargs)
+    s2 = hs.load(filename, cutoff_at_kV=cutoff_at_kV, **hs_load_kwargs)
 
     assert s2.axes_manager[-1].size == 1096
     np.testing.assert_allclose(s2.axes_manager[2].scale, 0.00999866)
@@ -203,8 +211,8 @@ def test_load_datacube_downsample():
     pytest.importorskip("numba")
     downsample = 8
     filename = TESTS_FILE_PATH / TEST_FILES[0]
-    s = hs.load(filename, downsample=1, reader="JEOL")[-1]
-    s2 = hs.load(filename, downsample=downsample, reader="JEOL")[-1]
+    s = hs.load(filename, downsample=1, **hs_load_kwargs)[-1]
+    s2 = hs.load(filename, downsample=downsample, **hs_load_kwargs)[-1]
 
     s_sum = s.sum(-1).rebin(scale=(downsample, downsample))
     s2_sum = s2.sum(-1)
@@ -221,34 +229,34 @@ def test_load_datacube_downsample():
     np.testing.assert_allclose(s_sum.data, s2_sum.data)
 
     with pytest.raises(ValueError, match="must be a divisor"):
-        _ = hs.load(filename, downsample=10, reader="JEOL")[-1]
+        _ = hs.load(filename, downsample=10, **hs_load_kwargs)[-1]
 
     with pytest.raises(
         ValueError,
         match="`downsample` can't be an iterable of length different from 2.",
     ):
-        _ = hs.load(filename, downsample=[2, 2, 2], reader="JEOL")[-1]
+        _ = hs.load(filename, downsample=[2, 2, 2], **hs_load_kwargs)[-1]
 
     downsample = [8, 16]
-    s = hs.load(filename, downsample=downsample, reader="JEOL")[-1]
+    s = hs.load(filename, downsample=downsample, **hs_load_kwargs)[-1]
     assert s.axes_manager["x"].size * downsample[0] == 512
     assert s.axes_manager["y"].size * downsample[1] == 512
 
     with pytest.raises(ValueError, match="must be a divisor"):
-        _ = hs.load(filename, downsample=[256, 100], reader="JEOL")[-1]
+        _ = hs.load(filename, downsample=[256, 100], **hs_load_kwargs)[-1]
 
     with pytest.raises(ValueError, match="must be a divisor"):
-        _ = hs.load(filename, downsample=[100, 256], reader="JEOL")[-1]
+        _ = hs.load(filename, downsample=[100, 256], **hs_load_kwargs)[-1]
 
 
 def test_load_datacube_frames():
     pytest.importorskip("numba")
     rebin_energy = 2048
     filename = TESTS_FILE_PATH / "Sample" / "00_View000" / TEST_FILES[7]
-    s = hs.load(filename, sum_frames=True, rebin_energy=rebin_energy, reader="JEOL")
+    s = hs.load(filename, sum_frames=True, rebin_energy=rebin_energy, **hs_load_kwargs)
     assert s.data.shape == (512, 512, 2)
     s_frame = hs.load(
-        filename, sum_frames=False, rebin_energy=rebin_energy, reader="JEOL"
+        filename, sum_frames=False, rebin_energy=rebin_energy, **hs_load_kwargs
     )
     assert s_frame.data.shape == (14, 512, 512, 2)
     np.testing.assert_allclose(s_frame.sum(axis="Frame").data, s.data)
@@ -282,7 +290,7 @@ def test_load_eds_file(filename_as_string):
     filename = TESTS_FILE_PATH / "met03.EDS"
     if filename_as_string:
         filename = str(filename)
-    s = hs.load(filename, reader="JEOL")
+    s = hs.load(filename, **hs_load_kwargs)
     assert s.metadata.Signal.signal_type == "EDS_TEM"
     assert isinstance(s, hs.signals.Signal1D)
     assert s.data.shape == (2048,)
@@ -292,11 +300,7 @@ def test_load_eds_file(filename_as_string):
     assert axis.offset == -0.00176612
     assert axis.scale == 0.0100004
 
-    # delete timestamp from metadata since it's runtime dependent
-    del s.metadata.General.FileIO.Number_0.timestamp
-
-    md_dict = s.metadata.as_dictionary()
-    assert md_dict["General"] == {
+    md_ref = {
         "original_filename": "met03.EDS",
         "time": "14:14:51",
         "date": "2018-06-25",
@@ -304,11 +308,25 @@ def test_load_eds_file(filename_as_string):
         "FileIO": {
             "0": {
                 "operation": "load",
+                "folder": str(TESTS_FILE_PATH),
+                "filename": "met03",
+                "extension": ".EDS",
                 "hyperspy_version": hs.__version__,
                 "io_plugin": "rsciio.jeol",
+                "rosettasciio_version": rsciio.__version__,
             }
         },
     }
+    # delete timestamp from metadata since it's runtime dependent
+    del s.metadata.General.FileIO[0].timestamp
+    if Version(hs.__version__) < Version("2.4.0.dev64"):
+        del md_ref["FileIO"]["0"]["folder"]
+        del md_ref["FileIO"]["0"]["filename"]
+        del md_ref["FileIO"]["0"]["extension"]
+        del md_ref["FileIO"]["0"]["rosettasciio_version"]
+
+    md_dict = s.metadata.as_dictionary()
+    assert md_dict["General"] == md_ref
     TEM_dict = md_dict["Acquisition_instrument"]["TEM"]
     assert TEM_dict == {
         "beam_energy": 200.0,
@@ -332,7 +350,7 @@ def test_shift_jis_encoding():
     with open(filename, "br"):
         pass
     try:
-        _ = hs.load(filename, reader="JEOL")
+        _ = hs.load(filename, **hs_load_kwargs)
     except FileNotFoundError:
         # we don't have the other files required to open the data
         pass
@@ -362,7 +380,7 @@ def test_number_of_frames():
             downsample=[32, 32],
             rebin_energy=512,
             SI_dtype=np.int32,
-            reader="JEOL",
+            **hs_load_kwargs,
         )
         assert data.axes_manager["Frame"].size == frames
 
@@ -374,7 +392,7 @@ def test_number_of_frames():
             downsample=[32, 32],
             rebin_energy=512,
             SI_dtype=np.int32,
-            reader="JEOL",
+            **hs_load_kwargs,
         )
         assert data.axes_manager["Frame"].size == valid
 
@@ -391,7 +409,7 @@ def test_em_image_in_pts():
         read_em_image=False,
         only_valid_data=False,
         cutoff_at_kV=1,
-        reader="JEOL",
+        **hs_load_kwargs,
     )
     assert len(s) == 7
 
@@ -400,7 +418,7 @@ def test_em_image_in_pts():
         read_em_image=True,
         only_valid_data=False,
         cutoff_at_kV=1,
-        reader="JEOL",
+        **hs_load_kwargs,
     )
     assert len(s) == 7
 
@@ -410,7 +428,7 @@ def test_em_image_in_pts():
         read_em_image=False,
         only_valid_data=False,
         cutoff_at_kV=1,
-        reader="JEOL",
+        **hs_load_kwargs,
     )
     assert len(s) == 22
     s = hs.load(
@@ -418,7 +436,7 @@ def test_em_image_in_pts():
         read_em_image=True,
         only_valid_data=False,
         cutoff_at_kV=1,
-        reader="JEOL",
+        **hs_load_kwargs,
     )
     assert len(s) == 25
     assert (
@@ -436,7 +454,7 @@ def test_em_image_in_pts():
         sum_frames=True,
         cutoff_at_kV=1,
         frame_list=[0, 0, 0, 1],
-        reader="JEOL",
+        **hs_load_kwargs,
     )
     assert s[1].data[0, 0] == 87 * 4
     assert s[1].data[63, 63] == 87 * 3
@@ -447,7 +465,7 @@ def test_em_image_in_pts():
         only_valid_data=False,
         sum_frames=False,
         cutoff_at_kV=1,
-        reader="JEOL",
+        **hs_load_kwargs,
     )
     s2 = hs.load(
         dir2p / TEST_FILES2[16],
@@ -455,7 +473,7 @@ def test_em_image_in_pts():
         only_valid_data=False,
         sum_frames=True,
         cutoff_at_kV=1,
-        reader="JEOL",
+        **hs_load_kwargs,
     )
     s1 = [s[0].data.sum(axis=0), s[1].data.sum(axis=0)]
     assert np.array_equal(s1[0], s2[0].data)
@@ -472,7 +490,7 @@ def test_pts_lazy():
         only_valid_data=False,
         sum_frames=False,
         lazy=True,
-        reader="JEOL",
+        **hs_load_kwargs,
     )
     s1 = [s[0].data.sum(axis=0).compute(), s[1].data.sum(axis=0).compute()]
     s2 = hs.load(
@@ -481,7 +499,7 @@ def test_pts_lazy():
         only_valid_data=False,
         sum_frames=True,
         lazy=False,
-        reader="JEOL",
+        **hs_load_kwargs,
     )
     assert np.array_equal(s1[0], s2[0].data)
     assert np.array_equal(s1[1], s2[1].data)
@@ -498,7 +516,7 @@ def test_pts_frame_shift():
         only_valid_data=False,
         sum_frames=False,
         lazy=False,
-        reader="JEOL",
+        **hs_load_kwargs,
     )
     #         x, y, en
     points = [[24, 23, 106], [21, 16, 106]]
@@ -528,7 +546,7 @@ def test_pts_frame_shift():
             sum_frames=False,
             frame_shifts=shifts,
             lazy=False,
-            reader="JEOL",
+            **hs_load_kwargs,
         )
 
         for frame in range(s0[0].axes_manager["Frame"].size):
@@ -546,7 +564,7 @@ def test_pts_frame_shift():
             sum_frames=False,
             frame_shifts=shifts,
             lazy=True,
-            reader="JEOL",
+            **hs_load_kwargs,
         )
         dt = s1[0].data.compute()
         for frame in range(s0[0].axes_manager["Frame"].size):
@@ -562,7 +580,11 @@ def test_pts_frame_shift():
     min_sfts = sfts.min(axis=0)
     fs = sfts - max_sfts
     s = hs.load(
-        file, frame_shifts=sfts, sum_frames=False, only_valid_data=False, reader="JEOL"
+        file,
+        frame_shifts=sfts,
+        sum_frames=False,
+        only_valid_data=False,
+        **hs_load_kwargs,
     )
     sz = min_sfts - max_sfts + ref[0].data.shape[1:3]
     assert s.data.shape == (2, sz[0], sz[1], 4096)
@@ -583,10 +605,10 @@ def test_broken_files(tmp_path):
         if file.suffix == ".asw":
             # in case of asw, valid data can not be obtained
             with pytest.raises(ValueError, match="Not a valid JEOL asw format"):
-                _ = hs.load(file, reader="JEOL")
+                _ = hs.load(file, **hs_load_kwargs)
         else:
             # just skipping broken files
-            s = hs.load(file, reader="JEOL")
+            s = hs.load(file, **hs_load_kwargs)
             assert s == []
 
 
@@ -604,7 +626,7 @@ def test_seq_eds_files(tmp_path):
         zipped.extractall(tmp_path)
 
     # test reading sequential acuired EDS spectrum
-    s = hs.load(tmp_path / "1" / "1.ASW", reader="JEOL")
+    s = hs.load(tmp_path / "1" / "1.ASW", **hs_load_kwargs)
     # check if three subfiles are in file (img, eds, eds)
     assert len(s) == 3
     # check positional information in subfiles
@@ -634,7 +656,7 @@ def test_seq_eds_files(tmp_path):
     data2[0x42D] = 0x30
     with open(fname2, "wb") as f:
         f.write(data2)
-    dat = hs.load(fname2, reader="JEOL")
+    dat = hs.load(fname2, **hs_load_kwargs)
     assert len(dat) == 0
 
     # No ViewInfo
@@ -642,7 +664,7 @@ def test_seq_eds_files(tmp_path):
     data2[0x1AD] = 0x30
     with open(fname2, "wb") as f:
         f.write(data2)
-    dat = hs.load(fname2, reader="JEOL")
+    dat = hs.load(fname2, **hs_load_kwargs)
     assert len(dat) == 0
 
     # No SampleInfo
@@ -650,7 +672,7 @@ def test_seq_eds_files(tmp_path):
     data2[0x6E] = 0x30
     with open(fname2, "wb") as f:
         f.write(data2)
-    dat = hs.load(fname2, reader="JEOL")
+    dat = hs.load(fname2, **hs_load_kwargs)
     assert len(dat) == 0
 
     # test read for pseudo SEM eds/img data
@@ -665,7 +687,7 @@ def test_seq_eds_files(tmp_path):
         data[0x75BD] = 0x41
     with open(sub_dir / ("x" + test_files[0]), "wb") as f:
         f.write(data)
-    s = hs.load(sub_dir / ("x" + test_files[0]), reader="JEOL")
+    s = hs.load(sub_dir / ("x" + test_files[0]), **hs_load_kwargs)
     assert "SEM" in s.metadata["Acquisition_instrument"]
 
     # .eds
@@ -674,7 +696,7 @@ def test_seq_eds_files(tmp_path):
         data[0x4B13] = 0x34
     with open(sub_dir / ("x" + test_files[1]), "wb") as f:
         f.write(data)
-    s = hs.load(sub_dir / ("x" + test_files[1]), reader="JEOL")
+    s = hs.load(sub_dir / ("x" + test_files[1]), **hs_load_kwargs)
     assert s.metadata.Signal.signal_type == "EDS_SEM"
     assert isinstance(s, hs.signals.Signal1D)
     assert "SEM" in s.metadata["Acquisition_instrument"]
@@ -707,7 +729,7 @@ def test_frame_start_index(tmp_path):
         downsample=[32, 32],
         rebin_energy=512,
         SI_dtype=np.int32,
-        reader="JEOL",
+        **hs_load_kwargs,
     )
     frame_start_index = ref.original_metadata.jeol_pts_frame_start_index
     assert np.array_equal(frame_start_index, frame_start_index_ref)
@@ -718,7 +740,7 @@ def test_frame_start_index(tmp_path):
         downsample=[32, 32],
         rebin_energy=512,
         SI_dtype=np.int32,
-        reader="JEOL",
+        **hs_load_kwargs,
     )
     frame_start_index = s.original_metadata.jeol_pts_frame_start_index
     assert np.array_equal(frame_start_index[0:6], frame_start_index_ref[0:6])
@@ -731,7 +753,7 @@ def test_frame_start_index(tmp_path):
         downsample=[32, 32],
         rebin_energy=512,
         SI_dtype=np.int32,
-        reader="JEOL",
+        **hs_load_kwargs,
     )
     frame_start_index = s.original_metadata.jeol_pts_frame_start_index
     assert np.array_equal(frame_start_index[0:10], frame_start_index_ref[0:10])
@@ -745,7 +767,7 @@ def test_frame_start_index(tmp_path):
         downsample=[32, 32],
         rebin_energy=512,
         SI_dtype=np.int32,
-        reader="JEOL",
+        **hs_load_kwargs,
     )
     assert s.data.shape == (2, 16, 16, 8)
 
@@ -763,6 +785,6 @@ def test_frame_start_index(tmp_path):
             downsample=[32, 32],
             rebin_energy=512,
             SI_dtype=np.int32,
-            reader="JEOL",
+            **hs_load_kwargs,
         )
     assert s.metadata["Signal"]["signal_type"] == "EDS_SEM"

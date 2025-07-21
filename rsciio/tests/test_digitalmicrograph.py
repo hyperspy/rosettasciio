@@ -22,7 +22,9 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from packaging.version import Version
 
+import rsciio
 from rsciio.digitalmicrograph._api import (
     DigitalMicrographReader,
     ImageObject,
@@ -533,8 +535,12 @@ def test_multi_signal():
             "FileIO": {
                 "0": {
                     "operation": "load",
+                    "folder": str(DM_2D_PATH),
+                    "filename": fname.stem,
+                    "extension": ".dm3",
                     "hyperspy_version": hs.__version__,
                     "io_plugin": "rsciio.digitalmicrograph",
+                    "rosettasciio_version": rsciio.__version__,
                 }
             },
         },
@@ -580,8 +586,12 @@ def test_multi_signal():
             "FileIO": {
                 "0": {
                     "operation": "load",
+                    "folder": str(DM_2D_PATH),
+                    "filename": fname.stem,
+                    "extension": ".dm3",
                     "hyperspy_version": hs.__version__,
                     "io_plugin": "rsciio.digitalmicrograph",
+                    "rosettasciio_version": rsciio.__version__,
                 }
             },
         },
@@ -594,8 +604,14 @@ def test_multi_signal():
         },
     }
     # remove timestamps from metadata since these are runtime dependent
-    del s1.metadata.General.FileIO.Number_0.timestamp
-    del s2.metadata.General.FileIO.Number_0.timestamp
+    del s1.metadata.General.FileIO[0].timestamp
+    del s2.metadata.General.FileIO[0].timestamp
+    for md in [s1_md_truth, s2_md_truth]:
+        if Version(hs.__version__) < Version("2.4.0.dev64"):
+            del md["General"]["FileIO"]["0"]["folder"]
+            del md["General"]["FileIO"]["0"]["filename"]
+            del md["General"]["FileIO"]["0"]["extension"]
+            del md["General"]["FileIO"]["0"]["rosettasciio_version"]
 
     # make sure the metadata dictionaries are as we expect
     assert s1.metadata.as_dictionary() == s1_md_truth

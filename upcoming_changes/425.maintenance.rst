@@ -1,0 +1,1 @@
+Use ``file_format`` instead of deprecated ``reader`` in hyperspy load function. Update test suite for changes in ``FileIO`` hyperspy metadata.

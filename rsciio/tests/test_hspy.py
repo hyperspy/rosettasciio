@@ -25,8 +25,9 @@ from pathlib import Path
 import dask.array as da
 import numpy as np
 import pytest
+from packaging.version import Version
 
-from rsciio.utils.tests import assert_deep_almost_equal
+import rsciio
 from rsciio.utils.tools import get_file_handle
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
@@ -52,6 +53,11 @@ if importlib.util.find_spec("zarr") is None:
     zspy_marker = pytest.mark.parametrize("file", ["test.hspy"])
 else:
     zspy_marker = pytest.mark.parametrize("file", ["test.hspy", "test.zspy"])
+
+argument_name = (
+    "reader" if Version(hs.__version__) < Version("2.4.0.dev33") else "file_format"
+)
+hs_load_kwargs = {argument_name: "HSPY"}
 
 
 data = np.array(
@@ -145,7 +151,7 @@ class Example1:
 
 class TestExample1_12(Example1):
     def setup_method(self, method):
-        self.s = hs.load(TEST_DATA_PATH / "example1_v1.2.hdf5", reader="HSPY")
+        self.s = hs.load(TEST_DATA_PATH / "example1_v1.2.hdf5", **hs_load_kwargs)
 
     def test_date(self):
         assert self.s.metadata.General.date == "1991-10-01"
@@ -156,17 +162,17 @@ class TestExample1_12(Example1):
 
 class TestExample1_10(Example1):
     def setup_method(self, method):
-        self.s = hs.load(TEST_DATA_PATH / "example1_v1.0.hdf5", reader="HSPY")
+        self.s = hs.load(TEST_DATA_PATH / "example1_v1.0.hdf5", **hs_load_kwargs)
 
 
 class TestExample1_11(Example1):
     def setup_method(self, method):
-        self.s = hs.load(TEST_DATA_PATH / "example1_v1.1.hdf5", reader="HSPY")
+        self.s = hs.load(TEST_DATA_PATH / "example1_v1.1.hdf5", **hs_load_kwargs)
 
 
 class TestLoadingNewSavedMetadata:
     def setup_method(self, method):
-        self.s = hs.load(TEST_DATA_PATH / "with_lists_etc.hdf5", reader="HSPY")
+        self.s = hs.load(TEST_DATA_PATH / "with_lists_etc.hdf5", **hs_load_kwargs)
 
     def test_signal_inside(self):
         np.testing.assert_array_almost_equal(
@@ -386,8 +392,12 @@ class TestSavingMetadataContainers:
                 "FileIO": {
                     "0": {
                         "operation": "load",
+                        "folder": str(TEST_DATA_PATH),
+                        "filename": "example2_v3.1",
+                        "extension": ".hspy",
                         "hyperspy_version": hs.__version__,
                         "io_plugin": "rsciio.hspy",
+                        "rosettasciio_version": rsciio.__version__,
                     }
                 },
             },
@@ -409,12 +419,17 @@ class TestSavingMetadataContainers:
         }
         s = hs.load(TEST_DATA_PATH / "example2_v3.1.hspy")
         # delete timestamp from metadata since it's runtime dependent
-        del s.metadata.General.FileIO.Number_0.timestamp
-        assert_deep_almost_equal(s.metadata.as_dictionary(), md)
+        del s.metadata.General.FileIO[0].timestamp
+        if Version(hs.__version__) < Version("2.4.0.dev64"):
+            del md["General"]["FileIO"]["0"]["folder"]
+            del md["General"]["FileIO"]["0"]["filename"]
+            del md["General"]["FileIO"]["0"]["extension"]
+            del md["General"]["FileIO"]["0"]["rosettasciio_version"]
+        assert s.metadata.as_dictionary() == md
 
 
 def test_none_metadata():
-    s = hs.load(TEST_DATA_PATH / "none_metadata.hdf5", reader="HSPY")
+    s = hs.load(TEST_DATA_PATH / "none_metadata.hdf5", **hs_load_kwargs)
     assert s.metadata.should_be_None is None
 
 
@@ -422,7 +437,7 @@ def test_rgba16():
     print(TEST_DATA_PATH)  # noqa: T201
     with pytest.warns(VisibleDeprecationWarning):
         #  The binned attribute has been moved from metadata.Signal
-        s = hs.load(TEST_DATA_PATH / "test_rgba16.hdf5", reader="HSPY")
+        s = hs.load(TEST_DATA_PATH / "test_rgba16.hdf5", **hs_load_kwargs)
     data = np.load(TEST_NPZ_DATA_PATH / "test_rgba16.npz")["a"]
     assert (s.data == data).all()
 
@@ -491,7 +506,7 @@ def test_lazy_loading(tmp_path):
     s.create_dataset("data", shape=shape, dtype="float64", chunks=True)
     f.close()
 
-    s = hs.load(fname, lazy=True, reader="HSPY")
+    s = hs.load(fname, lazy=True, **hs_load_kwargs)
     assert shape == s.data.shape
     assert isinstance(s.data, da.Array)
     assert s._lazy
@@ -779,7 +794,7 @@ class TestPermanentMarkersIO:
         # where one of them has an unknown marker type and raise an error
         fname = TEST_DATA_PATH / "test_marker_bad_marker_type.hdf5"
         with pytest.raises(AttributeError):
-            _ = hs.load(fname, reader="HSPY")
+            _ = hs.load(fname, **hs_load_kwargs)
 
     def test_load_missing_y2_value(self):
         # test_marker_point_y2_data_deleted.hdf5 has 5 markers,
@@ -789,7 +804,7 @@ class TestPermanentMarkersIO:
         fname = TEST_DATA_PATH / "test_marker_point_y2_data_deleted.hdf5"
         with pytest.warns(VisibleDeprecationWarning):
             # The binned attribute has been moved from metadata.Signal
-            s = hs.load(fname, reader="HSPY")
+            s = hs.load(fname, **hs_load_kwargs)
         assert len(s.metadata.Markers) == 5
 
     def test_save_variable_length_markers(self, tmp_path):

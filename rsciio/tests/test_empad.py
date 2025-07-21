@@ -35,6 +35,11 @@ DATA_DIR = Path(__file__).parent / "data" / "empad"
 FILENAME_STACK_RAW = DATA_DIR / "series_x10.raw"
 FILENAME_MAP_RAW = DATA_DIR / "scan_x4_y4.raw"
 
+argument_name = (
+    "reader" if Version(hs.__version__) < Version("2.4.0.dev33") else "file_format"
+)
+hs_load_kwargs = {argument_name: "EMPAD"}
+
 
 def _create_raw_data(filename, shape):
     size = np.prod(shape)
@@ -61,7 +66,7 @@ def teardown_module(module):
 @pytest.mark.parametrize("lazy", (False, True))
 def test_read_stack(lazy):
     # xml file version 0.51 211118
-    s = hs.load(DATA_DIR / "stack_images.xml", lazy=lazy, reader="EMPAD")
+    s = hs.load(DATA_DIR / "stack_images.xml", lazy=lazy, **hs_load_kwargs)
     assert s.data.dtype == "float32"
     ref_data = np.arange(166400).reshape((10, 130, 128))[..., :128, :]
     np.testing.assert_allclose(s.data, ref_data.astype("float32"))
@@ -92,7 +97,7 @@ def test_read_stack(lazy):
 @pytest.mark.parametrize("lazy", (False, True))
 def test_read_map(lazy):
     # xml file version 0.51 211118
-    s = hs.load(DATA_DIR / "map4x4.xml", lazy=lazy, reader="EMPAD")
+    s = hs.load(DATA_DIR / "map4x4.xml", lazy=lazy, **hs_load_kwargs)
     assert s.data.dtype == "float32"
     ref_data = np.arange(266240).reshape((4, 4, 130, 128))[..., :128, :]
     np.testing.assert_allclose(s.data, ref_data.astype("float32"))

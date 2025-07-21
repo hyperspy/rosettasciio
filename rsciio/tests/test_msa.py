@@ -2,8 +2,9 @@ import copy
 from pathlib import Path
 
 import pytest
+from packaging.version import Version
 
-from rsciio.utils.tests import assert_deep_almost_equal
+import rsciio
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -38,8 +39,12 @@ example1_metadata = {
         "FileIO": {
             "0": {
                 "operation": "load",
+                "folder": str(TEST_DATA_PATH),
+                "filename": "example1",
+                "extension": ".msa",
                 "hyperspy_version": hs.__version__,
                 "io_plugin": "rsciio.msa",
+                "rosettasciio_version": rsciio.__version__,
             }
         },
     },
@@ -135,8 +140,12 @@ example2_metadata = {
         "FileIO": {
             "0": {
                 "operation": "load",
+                "folder": str(TEST_DATA_PATH),
+                "filename": "example2",
+                "extension": ".msa",
                 "hyperspy_version": hs.__version__,
                 "io_plugin": "rsciio.msa",
+                "rosettasciio_version": rsciio.__version__,
             }
         },
     },
@@ -233,36 +242,42 @@ class TestExample1:
         assert example1_parameters == self.s.original_metadata.as_dictionary()
 
     def test_metadata(self):
-        assert_deep_almost_equal(self.s.metadata.as_dictionary(), example1_metadata)
+        s = self.s
+        md = copy.copy(example1_metadata)
+        if Version(hs.__version__) < Version("2.4.0.dev64"):
+            del md["General"]["FileIO"]["0"]["folder"]
+            del md["General"]["FileIO"]["0"]["filename"]
+            del md["General"]["FileIO"]["0"]["extension"]
+            del md["General"]["FileIO"]["0"]["rosettasciio_version"]
+        assert s.metadata.as_dictionary() == md
 
     def test_write_load_cycle(self, tmp_path):
         fname2 = tmp_path / "example1-export.msa"
-        self.s.save(fname2)
+        s = self.s
+        s.save(fname2)
         s2 = hs.load(fname2)
-        # delete timestamp from metadata since it's runtime dependent
-        del s2.metadata.General.FileIO.Number_0.timestamp
-        del self.s.metadata.General.FileIO.Number_1
-        if "timestamp" in self.s.metadata.General.FileIO.Number_0:
-            del self.s.metadata.General.FileIO.Number_0.timestamp
+        # delete FileIO that will differ
+        del s2.metadata.General.FileIO
+        del s.metadata.General.FileIO
         assert s2.metadata.General.original_filename == "example1-export.msa"
         s2.metadata.General.original_filename = "example1.msa"
-        assert_deep_almost_equal(
-            self.s.metadata.as_dictionary(), s2.metadata.as_dictionary()
-        )
+        assert s.metadata.as_dictionary() == s2.metadata.as_dictionary()
 
 
 class TestExample1WrongDate:
     def setup_method(self, method):
         self.s = hs.load(TEST_DATA_PATH / "example1_wrong_date.msa")
         # delete timestamp from metadata since it's runtime dependent
-        del self.s.metadata.General.FileIO.Number_0.timestamp
+        del self.s.metadata.General.FileIO
 
     def test_metadata(self):
+        s = self.s
         md = copy.copy(example1_metadata)
+        md["General"]["original_filename"] = "example1_wrong_date.msa"
+        del md["General"]["FileIO"]
         del md["General"]["date"]
         del md["General"]["time"]
-        md["General"]["original_filename"] = "example1_wrong_date.msa"
-        assert_deep_almost_equal(self.s.metadata.as_dictionary(), md)
+        assert s.metadata.as_dictionary() == md
 
 
 class TestExample2:
@@ -359,20 +374,25 @@ class TestExample2:
         assert example2_parameters == self.s.original_metadata.as_dictionary()
 
     def test_metadata(self):
-        assert_deep_almost_equal(self.s.metadata.as_dictionary(), example2_metadata)
+        md = copy.copy(example2_metadata)
+        if Version(hs.__version__) < Version("2.4.0.dev64"):
+            del md["General"]["FileIO"]["0"]["folder"]
+            del md["General"]["FileIO"]["0"]["filename"]
+            del md["General"]["FileIO"]["0"]["extension"]
+            del md["General"]["FileIO"]["0"]["rosettasciio_version"]
+        assert self.s.metadata.as_dictionary() == md
 
     def test_write_load_cycle(self, tmp_path):
         fname2 = tmp_path / "example2-export.msa"
-        self.s.save(fname2)
+        s = self.s
+        s.save(fname2)
         s2 = hs.load(fname2)
         assert s2.metadata.General.original_filename == "example2-export.msa"
         s2.metadata.General.original_filename = "example2.msa"
-        # delete timestamp from metadata since it's runtime dependent
-        del s2.metadata.General.FileIO.Number_0.timestamp
-        del self.s.metadata.General.FileIO.Number_1
-        assert_deep_almost_equal(
-            self.s.metadata.as_dictionary(), s2.metadata.as_dictionary()
-        )
+        # delete FileIO that will be different
+        del s.metadata.General.FileIO
+        del s2.metadata.General.FileIO
+        assert s.metadata.as_dictionary() == s2.metadata.as_dictionary()
 
 
 def test_minimum_metadata_example():

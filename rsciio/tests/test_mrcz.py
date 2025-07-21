@@ -19,7 +19,6 @@
 import importlib
 import os
 import tempfile
-from datetime import datetime
 from time import perf_counter, sleep
 
 import numpy as np
@@ -84,20 +83,6 @@ class TestPythonMrcz:
         if lazy:
             testSignal = testSignal.as_lazy()
 
-        # Add "File" metadata to testSignal
-        testSignal.metadata.General.add_dictionary(
-            {
-                "FileIO": {
-                    "0": {
-                        "operation": "load",
-                        "hyperspy_version": hs.__version__,
-                        "io_plugin": "rsciio.mrcz",
-                        "timestamp": datetime.now().astimezone().isoformat(),
-                    }
-                }
-            }
-        )
-
         # Unfortunately one cannot iterate over axes_manager in a Pythonic way
         # for axis in testSignal.axes_manager:
         testSignal.axes_manager[0].name = "z"
@@ -147,9 +132,7 @@ class TestPythonMrcz:
             print("Warning: file {} left on disk".format(mrcName))  # noqa: T201
 
         # change file timestamp to make the metadata of both signals equal
-        testSignal.metadata.General.FileIO.Number_0.timestamp = (
-            reSignal.metadata.General.FileIO.Number_0.timestamp
-        )
+        del testSignal.metadata.General.FileIO
 
         npt.assert_array_almost_equal(testSignal.data.shape, reSignal.data.shape)
         npt.assert_array_almost_equal(testSignal.data, reSignal.data)
@@ -176,7 +159,7 @@ class TestPythonMrcz:
             assert isinstance(reSignal, hs.signals.Signal2D)
 
         # delete last load operation from reSignal metadata so we can compare
-        del reSignal.metadata.General.FileIO.Number_2
+        del reSignal.metadata.General.FileIO
         assert_deep_almost_equal(
             testSignal.axes_manager.as_dictionary(),
             reSignal.axes_manager.as_dictionary(),

@@ -123,83 +123,84 @@ def test_read_data_intensity():
 
 def test_read_data_intensity_CL():
     """Test reading data for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic", signal="cl")
+    s = hs.load(testfile_intensity_path, reader="Delmic")  # Default signal is "cl"
+    assert isinstance(s, BaseSignal)
 
+    # Expect 2x2 pixels
     x = np.array([27147, 28907])
     y = np.array([26964, 27695])
     np.testing.assert_allclose(s.data[0], x)
     np.testing.assert_allclose(s.data[1], y)
 
+    # test X axis
+    assert s.axes_manager[0].name == "X"
+    assert s.axes_manager[0].units == "nm"
+    assert s.axes_manager[0].navigate
+
+    np.testing.assert_allclose(s.axes_manager[0].scale, 200)
+    np.testing.assert_allclose(s.axes_manager[0].offset, -100)
+    np.testing.assert_allclose(s.axes_manager[0].size, 2)
+
+    # test Y axis
+    assert s.axes_manager[1].name == "Y"
+    assert s.axes_manager[1].units == "nm"
+    assert s.axes_manager[1].navigate
+
+    np.testing.assert_allclose(s.axes_manager[1].scale, -200)
+    np.testing.assert_allclose(s.axes_manager[1].offset, 100)
+    np.testing.assert_allclose(s.axes_manager[1].size, 2)
+
+    # Metadata
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+
+    # Original metadata
+    np.testing.assert_almost_equal(s.original_metadata.Magnification, 555555.55555555)
+    assert s.original_metadata.SVIData.Company == "Delmic"
+
 
 def test_read_data_intensity_SE():
     """Test reading data for a CL intensity dataset."""
     s = hs.load(testfile_intensity_path, reader="Delmic", signal="se")
+    assert isinstance(s, BaseSignal)
 
     x = np.array([27308, 28592])
     y = np.array([27851, 27958])
     np.testing.assert_allclose(s.data[0], x)
     np.testing.assert_allclose(s.data[1], y)
 
+    # test X axis
+    assert s.axes_manager[0].name == "X"
+    assert s.axes_manager[0].units == "nm"
+    assert s.axes_manager[0].navigate
+
+    np.testing.assert_allclose(s.axes_manager[0].scale, 200)
+    np.testing.assert_allclose(s.axes_manager[0].offset, -100)
+    np.testing.assert_allclose(s.axes_manager[0].size, 2)
+
+    # test Y axis
+    assert s.axes_manager[1].name == "Y"
+    assert s.axes_manager[1].units == "nm"
+    assert s.axes_manager[1].navigate
+
+    np.testing.assert_allclose(s.axes_manager[1].scale, -200)
+    np.testing.assert_allclose(s.axes_manager[1].offset, 100)
+    np.testing.assert_allclose(s.axes_manager[1].size, 2)
+
+    # Metadata
+    assert s.metadata["Signal"]["quantity"] == "Counts"
+
+    # Original metadata
+    np.testing.assert_almost_equal(s.original_metadata.Magnification, 555555.55555555)
+
 
 def test_read_data_intensity_survey():
     """Test reading data for a CL intensity dataset."""
     s = hs.load(testfile_intensity_path, reader="Delmic", signal="survey")
-    data = np.load(testfile_intensity_data_survey_path)
+    assert isinstance(s, BaseSignal)
 
-    np.testing.assert_allclose(s.data, data)
-
-
-def test_read_axes_intensity_CL():
-    """Test reading axes for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic")  # Default signal is "cl"
-    # Expect 2x2 pixels
-
-    # test X axis
-    assert s.axes_manager[0].name == "X"
-    assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate
-
-    np.testing.assert_allclose(s.axes_manager[0].scale, 200)
-    np.testing.assert_allclose(s.axes_manager[0].offset, -100)
-    np.testing.assert_allclose(s.axes_manager[0].size, 2)
-
-    # test Y axis
-    assert s.axes_manager[1].name == "Y"
-    assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate
-
-    np.testing.assert_allclose(s.axes_manager[1].scale, -200)
-    np.testing.assert_allclose(s.axes_manager[1].offset, 100)
-    np.testing.assert_allclose(s.axes_manager[1].size, 2)
-
-
-def test_read_axes_intensity_SE():
-    """Test reading axes for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic", signal="se")
-
-    # test X axis
-    assert s.axes_manager[0].name == "X"
-    assert s.axes_manager[0].units == "nm"
-    assert s.axes_manager[0].navigate
-
-    np.testing.assert_allclose(s.axes_manager[0].scale, 200)
-    np.testing.assert_allclose(s.axes_manager[0].offset, -100)
-    np.testing.assert_allclose(s.axes_manager[0].size, 2)
-
-    # test Y axis
-    assert s.axes_manager[1].name == "Y"
-    assert s.axes_manager[1].units == "nm"
-    assert s.axes_manager[1].navigate
-
-    np.testing.assert_allclose(s.axes_manager[1].scale, -200)
-    np.testing.assert_allclose(s.axes_manager[1].offset, 100)
-    np.testing.assert_allclose(s.axes_manager[1].size, 2)
-
-
-def test_read_axes_intensity_survey():
-    """Test reading axes for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic", signal="survey")
     # 256x256 px
+    data = np.load(testfile_intensity_data_survey_path)
+    np.testing.assert_allclose(s.data, data)
 
     # test X axis
     assert s.axes_manager[0].name == "X"
@@ -219,49 +220,7 @@ def test_read_axes_intensity_survey():
     np.testing.assert_allclose(s.axes_manager[1].offset, 224.121094)
     np.testing.assert_allclose(s.axes_manager[1].size, 256)
 
-
-def test_read_metadata_intensity_CL():
-    """Test reading metadata for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic", signal="cl")
-    assert isinstance(s, BaseSignal)
-
     assert s.metadata["Signal"]["quantity"] == "Counts"
-
-
-def test_read_metadata_intensity_SE():
-    """Test reading metadata for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic", signal="se")
-    assert isinstance(s, BaseSignal)
-
-    assert s.metadata["Signal"]["quantity"] == "Counts"
-
-
-def test_read_metadata_intensity_survey():
-    """Test reading metadata for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic", signal="survey")
-    assert isinstance(s, BaseSignal)
-
-    assert s.metadata["Signal"]["quantity"] == "Counts"
-
-
-def test_read_original_metadata_intensity_CL():
-    """Test reading original metadata for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic", signal="cl")
-
-    np.testing.assert_almost_equal(s.original_metadata.Magnification, 555555.55555555)
-    assert s.original_metadata.SVIData.Company == "Delmic"
-
-
-def test_read_original_metadata_intensity_SE():
-    """Test reading original metadata for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic", signal="se")
-
-    np.testing.assert_almost_equal(s.original_metadata.Magnification, 555555.55555555)
-
-
-def test_read_original_metadata_intensity_survey():
-    """Test reading original metadata for a CL intensity dataset."""
-    s = hs.load(testfile_intensity_path, reader="Delmic", signal="survey")
 
     np.testing.assert_almost_equal(s.original_metadata.Magnification, 555555.55555555)
 
@@ -288,51 +247,15 @@ def test_read_data_hyperspectral_spot():
 def test_read_data_hyperspectral_CL():
     """Test reading data for a CL hyperspectral dataset."""
     s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="cl")
+    if lumispy:
+        assert isinstance(s, lumispy.signals.CLSEMSpectrum)
+    else:
+        assert isinstance(s, Signal1D)
+
     data = np.load(testfile_hyperspectral_data_path)
-
     np.testing.assert_allclose(s.data, data)
 
-
-def test_read_data_hyperspectral_spot_CL():
-    """Test reading data for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_spot_path, reader="Delmic", signal="cl")
-
-    np.testing.assert_allclose(s.data.shape, 335)
-
-
-def test_read_data_hyperspectral_SE():
-    """Test reading data for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="se")
-
-    x = np.array([27265, 27598])
-    y = np.array([27892, 28124])
-    z = np.array([28299, 28468])
-    np.testing.assert_allclose(s.data[0], x)
-    np.testing.assert_allclose(s.data[1], y)
-    np.testing.assert_allclose(s.data[2], z)
-
-
-def test_read_data_hyperspectral_survey():
-    """Test reading data for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="survey")
-    data = np.load(testfile_hyperspectral_data_survey_path)
-
-    np.testing.assert_allclose(s.data, data)
-
-
-def test_read_axes_hyperspectral_spot_CL():
-    """Test reading axes for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_spot_path, reader="Delmic", signal="cl")
-
-    assert s.axes_manager[0].name == "Wavelength"
-    assert s.axes_manager[0].units == "nm"
-    assert not s.axes_manager[0].navigate
-    np.testing.assert_allclose(s.axes_manager[0].size, 335)
-
-
-def test_read_axes_hyperspectral_CL():
-    """Test reading axes for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="cl")
+    # Axes
     ref = np.load(testfile_hyperspectral_wavelengths_path)
 
     assert s.axes_manager[0].name == "X"
@@ -355,10 +278,36 @@ def test_read_axes_hyperspectral_CL():
     assert not s.axes_manager[2].navigate
     np.testing.assert_allclose(s.axes_manager[2].axis, ref)
 
+    # Metadata
+    assert s.metadata["Signal"]["quantity"] == "Counts"
 
-def test_read_axes_hyperspectral_SE():
-    """Test reading axes for a CL intensity dataset."""
+    # Original metadata
+    assert isinstance(s.original_metadata.AcquisitionDate, float)
+
+
+def test_read_data_hyperspectral_spot_CL():
+    """Test reading data for a CL hyperspectral dataset."""
+    s = hs.load(testfile_hyperspectral_spot_path, reader="Delmic", signal="cl")
+
+    np.testing.assert_allclose(s.data.shape, 335)
+
+    assert s.axes_manager[0].name == "Wavelength"
+    assert s.axes_manager[0].units == "nm"
+    assert not s.axes_manager[0].navigate
+    np.testing.assert_allclose(s.axes_manager[0].size, 335)
+
+
+def test_read_data_hyperspectral_SE():
+    """Test reading data for a CL hyperspectral dataset."""
     s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="se")
+    assert isinstance(s, BaseSignal)
+
+    x = np.array([27265, 27598])
+    y = np.array([27892, 28124])
+    z = np.array([28299, 28468])
+    np.testing.assert_allclose(s.data[0], x)
+    np.testing.assert_allclose(s.data[1], y)
+    np.testing.assert_allclose(s.data[2], z)
 
     # test X axis
     assert s.axes_manager[0].name == "X"
@@ -376,10 +325,20 @@ def test_read_axes_hyperspectral_SE():
     np.testing.assert_allclose(s.axes_manager[1].size, 3)
     np.testing.assert_allclose(s.axes_manager[1].size, 3)
 
+    # Metadata
+    assert s.metadata["Signal"]["quantity"] == "Counts"
 
-def test_read_axes_hyperspectral_survey():
-    """Test reading axes for a CL intensity dataset."""
+    # Original metadata
+    assert s.original_metadata.Magnification == 10000.0
+
+
+def test_read_data_hyperspectral_survey():
+    """Test reading data for a CL hyperspectral dataset."""
     s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="survey")
+    assert isinstance(s, BaseSignal)
+    data = np.load(testfile_hyperspectral_data_survey_path)
+
+    np.testing.assert_allclose(s.data, data)
 
     # test X axis
     assert s.axes_manager[0].name == "X"
@@ -397,52 +356,10 @@ def test_read_axes_hyperspectral_survey():
     np.testing.assert_allclose(s.axes_manager[1].offset, 6986.328125)
     np.testing.assert_allclose(s.axes_manager[1].size, 512)
 
-
-def test_read_metadata_hyperspectral_CL():
-    """Test reading metadata for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="cl")
-    if lumispy:
-        assert isinstance(s, lumispy.signals.CLSEMSpectrum)
-    else:
-        assert isinstance(s, Signal1D)
-
+    # Metadata
     assert s.metadata["Signal"]["quantity"] == "Counts"
 
-
-def test_read_metadata_hyperspectral_SE():
-    """Test reading metadata for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="se")
-    assert isinstance(s, BaseSignal)
-
-    assert s.metadata["Signal"]["quantity"] == "Counts"
-
-
-def test_read_metadata_hyperspectral_survey():
-    """Test reading metadata for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="survey")
-    assert isinstance(s, BaseSignal)
-
-    assert s.metadata["Signal"]["quantity"] == "Counts"
-
-
-def test_read_original_metadata_hyperspectral_CL():
-    """Test reading original metadata for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="cl")
-
-    assert isinstance(s.original_metadata.AcquisitionDate, float)
-
-
-def test_read_original_metadata_hyperspectral_SE():
-    """Test reading original metadata for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="se")
-
-    assert s.original_metadata.Magnification == 10000.0
-
-
-def test_read_original_metadata_hyperspectral_survey():
-    """Test reading original metadata for a CL hyperspectral dataset."""
-    s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="survey")
-
+    # Original metadata
     assert s.original_metadata.Magnification == 10000.0
 
 
@@ -456,14 +373,6 @@ def test_read_data_temporaltrace():
     assert s[2].metadata.General.title == "Time Correlator"
 
 
-def test_read_data_temporaltrace_CL():
-    """Test reading data for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="cl")
-    data = np.load(testfile_temporaltrace_data_path)
-
-    np.testing.assert_allclose(s.data, data)
-
-
 def test_read_data_temporaltrace_spot():
     """Test reading data for a CL decay trace or g(2) datasets."""
     s = hs.load(testfile_temporaltrace_spot_path, reader="Delmic", signal="all")
@@ -473,36 +382,17 @@ def test_read_data_temporaltrace_spot():
     assert s[2].metadata.General.title == "Time Correlator"
 
 
-def test_read_data_temporaltrace_CL_spot():
+def test_read_data_temporaltrace_CL():
     """Test reading data for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_spot_path, reader="Delmic", signal="cl")
+    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="cl")
+    if lumispy:
+        assert isinstance(s, lumispy.signals.LumiTransient)
+    else:
+        assert isinstance(s, Signal1D)
 
-    np.testing.assert_allclose(s.data.shape, 65536)
-
-
-def test_read_data_temporaltrace_SE():
-    """Test reading data for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="se")
-
-    x = np.array([32766, 32766])
-    y = np.array([32766, 32766])
-    z = np.array([32766, 32766])
-    np.testing.assert_allclose(s.data[0], x)
-    np.testing.assert_allclose(s.data[1], y)
-    np.testing.assert_allclose(s.data[2], z)
-
-
-def test_read_data_temporaltrace_survey():
-    """Test reading data for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="survey")
-    data = np.load(testfile_temporaltrace_data_survey_path)
-
+    data = np.load(testfile_temporaltrace_data_path)
     np.testing.assert_allclose(s.data, data)
 
-
-def test_read_axes_temporaltrace_CL():
-    """Test reading axes for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="cl")
     ref = np.load(testfile_temporaltrace_timelist_path)
 
     assert s.axes_manager[0].name == "X"
@@ -524,14 +414,21 @@ def test_read_axes_temporaltrace_CL():
     assert not s.axes_manager[2].navigate
     np.testing.assert_allclose(s.axes_manager[2].axis, ref)
 
+    assert s.metadata.General.title == "Time Correlator"
+    assert s.metadata["Signal"]["quantity"] == "Counts"
 
-def test_read_axes_temporaltrace_CL_spot():
-    """Test reading axes for a CL decay trace or g(2) datasets."""
+    assert isinstance(s.original_metadata.AcquisitionDate, float)
+
+
+def test_read_data_temporaltrace_CL_spot():
+    """Test reading data for a CL decay trace or g(2) datasets."""
     s = hs.load(testfile_temporaltrace_spot_path, reader="Delmic", signal="cl")
     if lumispy:
         assert isinstance(s, lumispy.signals.LumiTransient)
     else:
         assert isinstance(s, Signal1D)
+
+    np.testing.assert_allclose(s.data.shape, 65536)
 
     np.testing.assert_allclose(s.axes_manager[0].size, 65536)
     assert s.axes_manager[0].name == "Time"
@@ -539,10 +436,17 @@ def test_read_axes_temporaltrace_CL_spot():
     assert not s.axes_manager[0].navigate
 
 
-def test_read_axes_temporaltrace_SE():
-    """Test reading axes for a CL decay trace or g(2) datasets."""
+def test_read_data_temporaltrace_SE():
+    """Test reading data for a CL decay trace or g(2) datasets."""
     s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="se")
     assert isinstance(s, BaseSignal)
+
+    x = np.array([32766, 32766])
+    y = np.array([32766, 32766])
+    z = np.array([32766, 32766])
+    np.testing.assert_allclose(s.data[0], x)
+    np.testing.assert_allclose(s.data[1], y)
+    np.testing.assert_allclose(s.data[2], z)
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
@@ -558,11 +462,19 @@ def test_read_axes_temporaltrace_SE():
     np.testing.assert_allclose(s.axes_manager[1].offset, 1267.1372563964)
     np.testing.assert_allclose(s.axes_manager[1].size, 3)
 
+    assert s.metadata.General.title == "Secondary electrons concurrent"
+    assert s.metadata["Signal"]["quantity"] == "Counts"
 
-def test_read_axes_temporaltrace_survey():
-    """Test reading axes for a CL decay trace or g(2) datasets."""
+    assert s.original_metadata.Magnification == 10000.0
+
+
+def test_read_data_temporaltrace_survey():
+    """Test reading data for a CL decay trace or g(2) datasets."""
     s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="survey")
     assert isinstance(s, BaseSignal)
+
+    data = np.load(testfile_temporaltrace_data_survey_path)
+    np.testing.assert_allclose(s.data, data)
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
@@ -578,48 +490,8 @@ def test_read_axes_temporaltrace_survey():
     np.testing.assert_allclose(s.axes_manager[1].offset, 6986.328125)
     np.testing.assert_allclose(s.axes_manager[1].size, 512)
 
-
-def test_read_metadata_temporaltrace_CL():
-    """Test reading metadata for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="cl")
-
-    assert s.metadata.General.title == "Time Correlator"
-    assert s.metadata["Signal"]["quantity"] == "Counts"
-
-
-def test_read_metadata_temporaltrace_SE():
-    """Test reading metadata for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="se")
-
-    assert s.metadata.General.title == "Secondary electrons concurrent"
-    assert s.metadata["Signal"]["quantity"] == "Counts"
-
-
-def test_read_metadata_temporaltrace_survey():
-    """Test reading metadata for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="survey")
-
     assert s.metadata.General.title == "Secondary electrons survey"
     assert s.metadata["Signal"]["quantity"] == "Counts"
-
-
-def test_read_original_metadata_temporaltrace_CL():
-    """Test reading original metadata for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="cl")
-
-    assert isinstance(s.original_metadata.AcquisitionDate, float)
-
-
-def test_read_original_metadata_temporaltrace_SE():
-    """Test reading original metadata for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="se")
-
-    assert s.original_metadata.Magnification == 10000.0
-
-
-def test_read_original_metadata_temporaltrace_survey():
-    """Test reading original metadata for a CL decay trace or g(2) datasets."""
-    s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="survey")
 
     assert s.original_metadata.Magnification == 10000.0
 
@@ -646,39 +518,15 @@ def test_read_data_streakcamera_spot():
 def test_read_data_streakcamera_CL():
     """Test reading data for a CL streak camera dataset."""
     s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="cl")
+    if lumispy:
+        assert isinstance(s, lumispy.signals.LumiTransientSpectrum)
+    else:
+        assert isinstance(s, Signal2D)
+
     data = np.load(testfile_streakcamera_data_path)
-
     np.testing.assert_allclose(s.data, data)
 
-
-def test_read_data_streakcamera_CL_spot():
-    """Test reading data for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_spot_path, reader="Delmic", signal="cl")
-
-    np.testing.assert_allclose(s.data.shape, 256)
-
-
-def test_read_data_streakcamera_SE():
-    """Test reading data for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="se")
-
-    x = np.array([5443, 90, 5318])
-    y = np.array([241, 5256, 174])
-    np.testing.assert_allclose(s.data[0], x)
-    np.testing.assert_allclose(s.data[1], y)
-
-
-def test_read_data_streakcamera_survey():
-    """Test reading data for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="survey")
-    data = np.load(testfile_streakcamera_data_survey_path)
-
-    np.testing.assert_allclose(s.data, data)
-
-
-def test_read_axes_streakcamera_CL():
-    """Test reading axes for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="cl")
+    # Axes
     ref_t = np.load(testfile_streakcamera_timelist_path)
     ref_w = np.load(testfile_streakcamera_wavelengths_path)
 
@@ -706,11 +554,18 @@ def test_read_axes_streakcamera_CL():
     assert not s.axes_manager[3].navigate
     np.testing.assert_allclose(s.axes_manager[3].axis, ref_t)
 
+    assert s.metadata["Signal"]["quantity"] == "Counts"
 
-def test_read_axes_streakcamera_spot_CL():
-    """Test reading axes for a CL streak camera dataset."""
+    assert isinstance(s.original_metadata.AcquisitionDate, float)
+
+
+def test_read_data_streakcamera_CL_spot():
+    """Test reading data for a CL streak camera dataset."""
     s = hs.load(testfile_streakcamera_spot_path, reader="Delmic", signal="cl")
 
+    np.testing.assert_allclose(s.data.shape, 256)
+
+    # Axes
     np.testing.assert_allclose(s.axes_manager[0].size, 256)
     assert s.axes_manager[0].name == "Wavelength"
     assert s.axes_manager[0].units == "nm"
@@ -722,10 +577,17 @@ def test_read_axes_streakcamera_spot_CL():
     assert not s.axes_manager[1].navigate
 
 
-def test_read_axes_streakcamera_SE():
-    """Test reading axes for a CL streak camera dataset."""
+def test_read_data_streakcamera_SE():
+    """Test reading data for a CL streak camera dataset."""
     s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="se")
+    assert isinstance(s, BaseSignal)
 
+    x = np.array([5443, 90, 5318])
+    y = np.array([241, 5256, 174])
+    np.testing.assert_allclose(s.data[0], x)
+    np.testing.assert_allclose(s.data[1], y)
+
+    # Axes
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "µm"
     assert s.axes_manager[0].navigate
@@ -740,10 +602,17 @@ def test_read_axes_streakcamera_SE():
     np.testing.assert_allclose(s.axes_manager[1].offset, 2.12726981)
     np.testing.assert_allclose(s.axes_manager[1].size, 2)
 
+    assert s.metadata["Signal"]["quantity"] == "Counts"
 
-def test_read_axes_streakcamera_survey():
-    """Test reading axes for a CL streak camera dataset."""
+    assert s.original_metadata.Magnification == 10000.0
+
+
+def test_read_data_streakcamera_survey():
+    """Test reading data for a CL streak camera dataset."""
     s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="survey")
+
+    data = np.load(testfile_streakcamera_data_survey_path)
+    np.testing.assert_allclose(s.data, data)
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
@@ -759,51 +628,8 @@ def test_read_axes_streakcamera_survey():
     np.testing.assert_allclose(s.axes_manager[1].offset, 12475.585938)
     np.testing.assert_allclose(s.axes_manager[1].size, 512)
 
-
-def test_read_metadata_streakcamera_CL():
-    """Test reading metadata for a CL streack camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="cl")
-    if lumispy:
-        assert isinstance(s, lumispy.signals.LumiTransientSpectrum)
-    else:
-        assert isinstance(s, Signal2D)
-
-    assert s.metadata["Signal"]["quantity"] == "Counts"
-
-
-def test_read_metadata_streakcamera_SE():
-    """Test reading metadata for a CL streack camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="se")
-    assert isinstance(s, BaseSignal)
-
-    assert s.metadata["Signal"]["quantity"] == "Counts"
-
-
-def test_read_metadata_streakcamera_survey():
-    """Test reading metadata for a CL streack camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="survey")
-
     assert s.metadata["General"]["title"] == "Secondary electrons survey"
     assert s.metadata["Signal"]["quantity"] == "Counts"
-
-
-def test_read_original_metadata_streakcamera_CL():
-    """Test reading original metadata for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="cl")
-
-    assert isinstance(s.original_metadata.AcquisitionDate, float)
-
-
-def test_read_original_metadata_streakcamera_SE():
-    """Test reading original metadata for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="se")
-
-    assert s.original_metadata.Magnification == 10000.0
-
-
-def test_read_original_metadata_streakcamera_survey():
-    """Test reading original metadata for a CL streak camera dataset."""
-    s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="survey")
 
     assert s.original_metadata.Magnification == 10000.0
 
@@ -830,39 +656,11 @@ def test_read_data_ek_spot():
 def test_read_data_ek_CL():
     """Test reading data for a CL AR Spectrum (E-k) dataset."""
     s = hs.load(testfile_ek_path, reader="Delmic", signal="cl")
+    assert isinstance(s, Signal2D)
+
     data = np.load(testfile_ek_data_path)
-
     np.testing.assert_allclose(s.data, data)
 
-
-def test_read_data_ek_CL_spot():
-    """Test reading data for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_spot_path, reader="Delmic", signal="cl")
-
-    assert s.data.shape == (270, 320)
-
-
-def test_read_data_ek_SE():
-    """Test reading data for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic", signal="se")
-
-    x = np.array([32766, 32766, 32766])
-    y = np.array([32766, 32766, 32766])
-    np.testing.assert_allclose(s.data[0], x)
-    np.testing.assert_allclose(s.data[1], y)
-
-
-def test_read_data_ek_survey():
-    """Test reading data for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic", signal="survey")
-    data = np.load(testfile_ek_data_survey_path)
-
-    np.testing.assert_allclose(s.data, data)
-
-
-def test_read_axes_ek_CL():
-    """Test reading axes for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic", signal="cl")
     ref_a = np.load(testfile_ek_channels_path)
     ref_w = np.load(testfile_ek_wavelengths_path)
 
@@ -890,10 +688,17 @@ def test_read_axes_ek_CL():
     assert not s.axes_manager[3].navigate
     np.testing.assert_allclose(s.axes_manager[3].axis, ref_a)
 
+    assert s.metadata.General.title == "AR Spectrum"
+    assert s.metadata["Signal"]["quantity"] == "Counts"
 
-def test_read_axes_ek_spot_CL():
-    """Test reading axes for a CL AR Spectrum (E-k) dataset."""
+    assert s.original_metadata.PolePosition == [15.25, 18.125]
+
+
+def test_read_data_ek_CL_spot():
+    """Test reading data for a CL AR Spectrum (E-k) dataset."""
     s = hs.load(testfile_ek_spot_path, reader="Delmic", signal="cl")
+
+    assert s.data.shape == (270, 320)
 
     np.testing.assert_allclose(s.axes_manager[0].size, 320)
     assert s.axes_manager[0].name == "Wavelength"
@@ -906,9 +711,15 @@ def test_read_axes_ek_spot_CL():
     assert not s.axes_manager[1].navigate
 
 
-def test_read_axes_ek_SE():
-    """Test reading axes for a CL AR Spectrum (E-k) dataset."""
+def test_read_data_ek_SE():
+    """Test reading data for a CL AR Spectrum (E-k) dataset."""
     s = hs.load(testfile_ek_path, reader="Delmic", signal="se")
+    assert isinstance(s, BaseSignal)
+
+    x = np.array([32766, 32766, 32766])
+    y = np.array([32766, 32766, 32766])
+    np.testing.assert_allclose(s.data[0], x)
+    np.testing.assert_allclose(s.data[1], y)
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
@@ -924,10 +735,18 @@ def test_read_axes_ek_SE():
     np.testing.assert_allclose(s.axes_manager[1].offset, 232.865286374114)
     np.testing.assert_allclose(s.axes_manager[1].size, 2)
 
+    assert s.metadata.General.title == "Secondary electrons concurrent"
+    assert s.metadata["Signal"]["quantity"] == "Counts"
 
-def test_read_axes_ek_survey():
-    """Test reading axes for a CL AR Spectrum (E-k) dataset."""
+    assert s.original_metadata.Magnification == 10000.0
+
+
+def test_read_data_ek_survey():
+    """Test reading data for a CL AR Spectrum (E-k) dataset."""
     s = hs.load(testfile_ek_path, reader="Delmic", signal="survey")
+
+    data = np.load(testfile_ek_data_survey_path)
+    np.testing.assert_allclose(s.data, data)
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
@@ -943,50 +762,8 @@ def test_read_axes_ek_survey():
     np.testing.assert_allclose(s.axes_manager[1].offset, 12475.585938)
     np.testing.assert_allclose(s.axes_manager[1].size, 512)
 
-
-def test_read_metadata_ek_CL():
-    """Test reading metadata for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic", signal="cl")
-    assert isinstance(s, Signal2D)
-
-    assert s.metadata.General.title == "AR Spectrum"
-    assert s.metadata["Signal"]["quantity"] == "Counts"
-
-
-def test_read_metadata_ek_SE():
-    """Test reading metadata for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic", signal="se")
-    assert isinstance(s, BaseSignal)
-
-    assert s.metadata.General.title == "Secondary electrons concurrent"
-    assert s.metadata["Signal"]["quantity"] == "Counts"
-
-
-def test_read_metadata_ek_survey():
-    """Test reading metadata for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic", signal="survey")
-
     assert s.metadata.General.title == "Secondary electrons survey"
     assert s.metadata["Signal"]["quantity"] == "Counts"
-
-
-def test_read_original_metadata_ek_CL():
-    """Test reading original metadata for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic", signal="cl")
-
-    assert s.original_metadata.PolePosition == [15.25, 18.125]
-
-
-def test_read_original_metadata_ek_SE():
-    """Test reading original metadata for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic", signal="se")
-
-    assert s.original_metadata.Magnification == 10000.0
-
-
-def test_read_original_metadata_ek_survey():
-    """Test reading original metadata for a CL AR Spectrum (E-k) dataset."""
-    s = hs.load(testfile_ek_path, reader="Delmic", signal="survey")
 
     assert s.original_metadata.Magnification == 10000.0
 
@@ -1004,34 +781,11 @@ def test_read_data_AR():
 def test_read_data_AR_CL():
     """Test reading data for a CL AR dataset."""
     s = hs.load(testfile_AR_path, reader="Delmic", signal="cl")
+    assert isinstance(s, Signal2D)
+
     data = np.load(testfile_AR_data_path)
-
     np.testing.assert_allclose(s.data, data)
 
-
-def test_read_data_AR_SE():
-    """Test reading data for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic", signal="se")
-
-    x = np.array([32932, 33065])
-    y = np.array([33203, 32495])
-    z = np.array([32431, 32565])
-    np.testing.assert_allclose(s.data[0], x)
-    np.testing.assert_allclose(s.data[1], y)
-    np.testing.assert_allclose(s.data[2], z)
-
-
-def test_read_data_AR_survey():
-    """Test reading data for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic", signal="survey")
-    data = np.load(testfile_AR_data_survey_path)
-
-    np.testing.assert_allclose(s.data, data)
-
-
-def test_read_axes_AR_CL():
-    """Test reading axes for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic", signal="cl")
     ref_a = np.load(testfile_AR_angles_path)
     ref_b = np.load(testfile_AR_channels_path)
 
@@ -1059,11 +813,22 @@ def test_read_axes_AR_CL():
     assert not s.axes_manager[3].navigate
     np.testing.assert_allclose(s.axes_manager[3].axis, ref_b)
 
+    assert s.metadata["Signal"]["quantity"] == "Counts"
 
-def test_read_axes_AR_SE():
-    """Test reading axes for a CL AR dataset."""
+    assert s.original_metadata.PolePosition == [114.5, 129.75]
+
+
+def test_read_data_AR_SE():
+    """Test reading data for a CL AR dataset."""
     s = hs.load(testfile_AR_path, reader="Delmic", signal="se")
     assert isinstance(s, BaseSignal)
+
+    x = np.array([32932, 33065])
+    y = np.array([33203, 32495])
+    z = np.array([32431, 32565])
+    np.testing.assert_allclose(s.data[0], x)
+    np.testing.assert_allclose(s.data[1], y)
+    np.testing.assert_allclose(s.data[2], z)
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
@@ -1079,11 +844,18 @@ def test_read_axes_AR_SE():
     np.testing.assert_allclose(s.axes_manager[1].offset, 1356.92001)
     np.testing.assert_allclose(s.axes_manager[1].size, 3)
 
+    assert s.metadata["Signal"]["quantity"] == "Counts"
 
-def test_read_axes_AR_survey():
-    """Test reading axes for a CL AR dataset."""
+    assert s.original_metadata.Magnification == 10000.0
+
+
+def test_read_data_AR_survey():
+    """Test reading data for a CL AR dataset."""
     s = hs.load(testfile_AR_path, reader="Delmic", signal="survey")
     assert isinstance(s, BaseSignal)
+
+    data = np.load(testfile_AR_data_survey_path)
+    np.testing.assert_allclose(s.data, data)
 
     assert s.axes_manager[0].name == "X"
     assert s.axes_manager[0].units == "nm"
@@ -1099,48 +871,8 @@ def test_read_axes_AR_survey():
     np.testing.assert_allclose(s.axes_manager[1].offset, 6986.328125)
     np.testing.assert_allclose(s.axes_manager[1].size, 512)
 
-
-def test_read_metadata_CL():
-    """Test reading metadata for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic", signal="cl")
-    assert isinstance(s, Signal2D)
-
-    assert s.metadata["Signal"]["quantity"] == "Counts"
-
-
-def test_read_metadata_SE():
-    """Test reading metadata for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic", signal="se")
-    assert isinstance(s, BaseSignal)
-
-    assert s.metadata["Signal"]["quantity"] == "Counts"
-
-
-def test_read_metadata_survey():
-    """Test reading metadata for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic", signal="survey")
-
     assert s.metadata["Signal"]["quantity"] == "Counts"
     assert s.metadata["General"]["title"] == "Secondary electrons survey"
-
-
-def test_read_original_metadata_AR_CL():
-    """Test reading original metadata for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic", signal="cl")
-
-    assert s.original_metadata.PolePosition == [114.5, 129.75]
-
-
-def test_read_original_metadata_AR_SE():
-    """Test reading original metadata for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic", signal="se")
-
-    assert s.original_metadata.Magnification == 10000.0
-
-
-def test_read_original_metadata_AR_survey():
-    """Test reading original metadata for a CL AR dataset."""
-    s = hs.load(testfile_AR_path, reader="Delmic", signal="survey")
 
     assert s.original_metadata.Magnification == 10000.0
 

@@ -37,7 +37,7 @@ import json
 import logging
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 import h5py
 import numpy as np
@@ -75,15 +75,20 @@ TITLE_DRIFT = "Anchor region"
 
 
 class AcquisitionType(Enum):
-    Survey = "survey"
-    SE = "se"
-    Anchor = "anchor"
+    """
+    For internal use only: the type of acquisition data.
+    The order matters: it will be adhered to when returning data of multiple type
+    """
+
     PMT = "pmt"
     AR = "ar"
     EK1 = "ek1"
     TempSpec = "temporal spectrum"
     Temporal = "temporal"
     Spectrum = "spectrum"
+    SE = "se"
+    Survey = "survey"
+    Anchor = "anchor"
     Unknown = "__unknown__"
 
 
@@ -215,7 +220,7 @@ def make_axes(acq: h5py.Group) -> List[Dict[str, Any]]:
             # No info available about this axis (probably because this dimension is empty)
             if image.shape[i] > 1:
                 _logger.warning(
-                    "Axis %s axis_name has length %s but no scale information",
+                    "Axis %s has length %s but no scale information",
                     axis_name,
                     image.shape[i],
                 )
@@ -463,7 +468,7 @@ def guess_signal_type(data, axes, original_metadata) -> AcquisitionType:
     return AcquisitionType.Unknown
 
 
-def read_acquisition(acq: h5py.Group) -> Tuple[Dict[str, Any], AcquisitionType]:
+def read_acquisition(acq: h5py.Group) -> Dict[str, Any]:
     """
     Reads one Odemis acquisition data, with its metadata
     """
@@ -478,8 +483,9 @@ def read_acquisition(acq: h5py.Group) -> Tuple[Dict[str, Any], AcquisitionType]:
         "axes": axes,
         "metadata": metadata,
         "original_metadata": original_metadata,
+        "_acq_type": acq_type,
     }
-    return acq_dict, acq_type
+    return acq_dict
 
 
 def merge_ar_data(
@@ -550,6 +556,7 @@ def merge_ar_data(
         "axes": merged_axes,
         "metadata": ar0["metadata"],
         "original_metadata": ar0["original_metadata"],
+        "_acq_type": ar0["_acq_type"],
     }
 
     return merged_ar
@@ -662,7 +669,7 @@ def file_reader(
 
             # Load data
             try:
-                data, acq_type = read_acquisition(obj)
+                data = read_acquisition(obj)
             except Exception as ex:
                 _logger.warning("Failed to read data %s, skipping it: %s", oname, ex)
                 continue
@@ -670,17 +677,20 @@ def file_reader(
             # Skip the data which is not in one of the acquisition types the user is interested in
             if AcquisitionType.AR in filtered_acq_types:
                 # Keep the AR data apart, for merging it later
-                if acq_type == AcquisitionType.AR:
+                if data["_acq_type"] == AcquisitionType.AR:
                     # Standard AR acquisitions have no polarization, and "polarized" ones have typically
                     # 6 polarizations positions.
                     pol = data["original_metadata"].get("Polarization", "")
                     if pol not in ar_data:
                         ar_data[pol] = []
                     ar_data[pol].append(data)
-                elif acq_type == AcquisitionType.SE:
+                elif data["_acq_type"] == AcquisitionType.SE:
                     sem_concurrent_ar_data = data
 
-            if acq_type in filtered_acq_types and acq_type != AcquisitionType.AR:
+            if (
+                data["_acq_type"] in filtered_acq_types
+                and data["_acq_type"] != AcquisitionType.AR
+            ):
                 acq_data.append(data)
 
         # Merge AR data, if there is AR data
@@ -710,6 +720,10 @@ def file_reader(
         for data in acq_data:
             squeeze_dimensions(data)
             reorder_dimensions(data)
+
+        # Reorder the datasets to always be in the same (user-friendly) order:
+        # the order in which the AcquisitionType enum is defined.
+        acq_data.sort(key=lambda d: tuple(AcquisitionType).index(d["_acq_type"]))
 
         return acq_data
 

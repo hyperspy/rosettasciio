@@ -41,6 +41,7 @@ testfile_intensity_path = (testfile_dir / "sparc-intensity.h5").resolve()
 testfile_intensity_data_survey_path = (
     testfile_dir / "sparc-intensity-data-survey.npy"
 ).resolve()
+testfile_intensity_drift_path = (testfile_dir / "sparc-intensity-drift.h5").resolve()
 testfile_hyperspectral_path = (testfile_dir / "sparc-hyperspectral.h5").resolve()
 testfile_hyperspectral_data_path = (
     testfile_dir / "sparc-hyperspectral-data.npy"
@@ -116,9 +117,9 @@ def test_read_data_intensity():
     s = hs.load(testfile_intensity_path, reader="Delmic", signal="all")
 
     assert len(s) == 3
-    assert s[0].metadata.General.title == "Secondary electrons survey"
+    assert s[0].metadata.General.title == "CL intensity"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
-    assert s[2].metadata.General.title == "CL intensity"
+    assert s[2].metadata.General.title == "Secondary electrons survey"
 
 
 def test_read_data_intensity_CL():
@@ -225,23 +226,37 @@ def test_read_data_intensity_survey():
     np.testing.assert_almost_equal(s.original_metadata.Magnification, 555555.55555555)
 
 
+def test_read_data_intensity_drift():
+    """Test reading data for a CL intensity dataset with drift correction."""
+    s = hs.load(testfile_intensity_drift_path, reader="Delmic", signal="all")
+
+    assert len(s) == 4
+    assert s[0].metadata.General.title == "CL intensity"
+    assert s[1].metadata.General.title == "Secondary electrons concurrent"
+    assert s[2].metadata.General.title == "Secondary electrons survey"
+    assert s[3].metadata.General.title == "Anchor region"
+
+    anchor_data = s[3]
+    assert anchor_data.data.shape == (134, 122, 4)
+
+
 # Hyperspectral dataset
 def test_read_data_hyperspectral():
     """Test reading data for a CL hyperspectral dataset."""
     s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="all")
     assert len(s) == 3
-    assert s[0].metadata.General.title == "Secondary electrons survey"
+    assert s[0].metadata.General.title.startswith("Spectrum")
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
-    assert s[2].metadata.General.title.startswith("Spectrum")
+    assert s[2].metadata.General.title == "Secondary electrons survey"
 
 
 def test_read_data_hyperspectral_spot():
     """Test reading data for a CL hyperspectral dataset."""
     s = hs.load(testfile_hyperspectral_spot_path, reader="Delmic", signal="all")
     assert len(s) == 3
-    assert s[0].metadata.General.title == "Secondary electrons survey"
+    assert s[0].metadata.General.title.startswith("Spectrum")
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
-    assert s[2].metadata.General.title.startswith("Spectrum")
+    assert s[2].metadata.General.title == "Secondary electrons survey"
 
 
 def test_read_data_hyperspectral_CL():
@@ -368,18 +383,18 @@ def test_read_data_temporaltrace():
     """Test reading data for a CL decay trace or g(2) datasets."""
     s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="all")
     assert len(s) == 3
-    assert s[0].metadata.General.title == "Secondary electrons survey"
+    assert s[0].metadata.General.title == "Time Correlator"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
-    assert s[2].metadata.General.title == "Time Correlator"
+    assert s[2].metadata.General.title == "Secondary electrons survey"
 
 
 def test_read_data_temporaltrace_spot():
     """Test reading data for a CL decay trace or g(2) datasets."""
     s = hs.load(testfile_temporaltrace_spot_path, reader="Delmic", signal="all")
     assert len(s) == 3
-    assert s[0].metadata.General.title == "Secondary electrons survey"
+    assert s[0].metadata.General.title == "Time Correlator"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
-    assert s[2].metadata.General.title == "Time Correlator"
+    assert s[2].metadata.General.title == "Secondary electrons survey"
 
 
 def test_read_data_temporaltrace_CL():
@@ -501,18 +516,18 @@ def test_read_data_streakcamera():
     """Test reading data for a CL streak camera dataset."""
     s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="all")
     assert len(s) == 3
-    assert s[0].metadata.General.title == "Secondary electrons survey"
+    assert s[0].metadata.General.title == "Temporal Spectrum"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
-    assert s[2].metadata.General.title == "Temporal Spectrum"
+    assert s[2].metadata.General.title == "Secondary electrons survey"
 
 
 def test_read_data_streakcamera_spot():
     """Test reading data for a CL streak camera dataset."""
     s = hs.load(testfile_streakcamera_spot_path, reader="Delmic", signal="all")
     assert len(s) == 3
-    assert s[0].metadata.General.title == "Secondary electrons survey"
+    assert s[0].metadata.General.title == "Temporal Spectrum"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
-    assert s[2].metadata.General.title == "Temporal Spectrum"
+    assert s[2].metadata.General.title == "Secondary electrons survey"
 
 
 def test_read_data_streakcamera_CL():
@@ -639,18 +654,18 @@ def test_read_data_ek():
     """Test reading data for a CL AR Spectrum (E-k) dataset."""
     s = hs.load(testfile_ek_path, reader="Delmic", signal="all")
     assert len(s) == 3
-    assert s[0].metadata.General.title == "Secondary electrons survey"
+    assert s[0].metadata.General.title == "AR Spectrum"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
-    assert s[2].metadata.General.title == "AR Spectrum"
+    assert s[2].metadata.General.title == "Secondary electrons survey"
 
 
 def test_read_data_ek_spot():
     """Test reading data for a CL AR Spectrum (E-k) dataset."""
     s = hs.load(testfile_ek_spot_path, reader="Delmic", signal="all")
     assert len(s) == 3
-    assert s[0].metadata.General.title == "Secondary electrons survey"
+    assert s[0].metadata.General.title == "AR Spectrum"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
-    assert s[2].metadata.General.title == "AR Spectrum"
+    assert s[2].metadata.General.title == "Secondary electrons survey"
 
 
 def test_read_data_ek_CL():
@@ -773,9 +788,9 @@ def test_read_data_AR():
     """Test reading data for a CL AR dataset."""
     s = hs.load(testfile_AR_path, reader="Delmic", signal="all")
     assert len(s) == 3
-    assert s[0].metadata.General.title == "Secondary electrons survey"
+    assert s[0].metadata.General.title == "Angle-resolved"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
-    assert s[2].metadata.General.title == "Angle-resolved"
+    assert s[2].metadata.General.title == "Secondary electrons survey"
 
 
 def test_read_data_AR_CL():
@@ -881,18 +896,20 @@ def test_read_data_ar_pol():
     """Test reading data for a CL AR polarized dataset."""
     s = hs.load(testfile_ar_pol_spot_path, reader="Delmic", signal="all")
     assert len(s) == 8
-    assert s[0].metadata.General.title == "Secondary electrons survey"
-    assert s[1].metadata.General.title == "Secondary electrons concurrent"
 
     # We expect 6 AR images, each with a different polarizations
     polarizations = set()
-    for d in s[2:]:
+    for d in s[:6]:
         assert d.metadata.General.title == "Angle-resolved"
         assert d.data.shape == (128, 128)
         pol = d.metadata.Acquisition_instrument.Spectrometer.Filter.position
         polarizations.add(pol)
 
+    # If set is not of length 6, then some polarizations are identical
     assert len(polarizations) == 6
+
+    assert s[-2].metadata.General.title == "Secondary electrons concurrent"
+    assert s[-1].metadata.General.title == "Secondary electrons survey"
 
 
 def test_wrong_format():

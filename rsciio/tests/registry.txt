@@ -38,6 +38,7 @@
 'delmic/sparc-hyperspectral-wavelengths.npy' 4d2ca8f0e5ff81ed04edded57f2cd705dab9cd04cdaea4a68705df2afb5db4eb
 'delmic/sparc-hyperspectral.h5' 6d19275c6d38152c35cea105b125758f15ae8651dd959bec185ca8cf99aa2e17
 'delmic/sparc-intensity-data-survey.npy' 402b5bb48729f07f34ce6d613ed138f2eb6f61f1823df46914a0756193a728e8
+'delmic/sparc-intensity-drift.h5' 2e68b1a005f88c8d040b868e543e0039b0a116cdb6b3e77bd04ee6f60495501b
 'delmic/sparc-intensity.h5' 07f1077d3c311eed689c449e8a897ca2efbd985a61f1503c65b813270aab363f
 'delmic/sparc-streak-camera-angles.npy' 39552e172e7823a3b8ac3263ac5c6e0311fc6071744d37f8e47eda6d1e7b2012
 'delmic/sparc-streak-camera-data-survey.npy' 0f8f6c0b81f7d99cbd4bab6e542415ca6ad574136f0e7b9160cc5a9199f613bd

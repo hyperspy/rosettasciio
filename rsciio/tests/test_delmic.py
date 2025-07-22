@@ -912,6 +912,17 @@ def test_read_data_ar_pol():
     assert s[-1].metadata.General.title == "Secondary electrons survey"
 
 
+def test_wrong_arguments():
+    """
+    Attempt to load an HDF5 file with wrong arguments should raise a ValueError
+    """
+    with pytest.raises(ValueError):
+        hs.load(testfile_intensity_path, reader="Delmic", signal="wrong_signal")
+
+    with pytest.raises(NotImplementedError):
+        hs.load(testfile_hyperspectral_path, reader="Delmic", signal="cl", lazy=True)
+
+
 def test_wrong_format():
     """
     Attempt to load an HDF5 file not of the correct format should raise an IOError

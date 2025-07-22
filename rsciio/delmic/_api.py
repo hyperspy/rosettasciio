@@ -131,7 +131,7 @@ def read_image_title(acq: h5py.Group) -> str:
     try:
         title = acq["PhysicalData"]["Title"]
         title_str = title[()].decode("utf-8")
-    except (AttributeError, TypeError, UnicodeDecodeError) as ex:
+    except (AttributeError, TypeError, UnicodeDecodeError) as ex:  # pragma: no cover
         title_str = "__unnamed__"
         _logger.warning("Failed to read acquisition title: %s", ex)
 
@@ -210,7 +210,7 @@ def make_axes(acq: h5py.Group) -> List[Dict[str, Any]]:
 
         try:
             axis_name, scale_key, offset_key = AXIS_INFO[dim.label]
-        except KeyError as ex:
+        except KeyError as ex:  # pragma: no cover
             _logger.warning("Data %s has unknown axis %s", acq.name, ex)
             axis_dict["name"] = dim.label
             continue
@@ -269,7 +269,7 @@ def make_axes(acq: h5py.Group) -> List[Dict[str, Any]]:
                 try:
                     scale_value = float(scale)
                     prefix = get_unit_prefix(scale_value)
-                except (TypeError, ValueError) as e:
+                except (TypeError, ValueError) as e:  # pragma: no cover
                     raise TypeError(
                         f"Expected a numeric value for '{scale_key}', got {type(scale)} instead."
                     ) from e
@@ -291,7 +291,7 @@ def make_axes(acq: h5py.Group) -> List[Dict[str, Any]]:
                         "navigate": True,
                     }
                 )
-        except Exception as ex:
+        except Exception as ex:  # pragma: no cover
             _logger.warning("Failed to parse axis %s: %s", axis_name, ex)
 
     return axes
@@ -351,7 +351,7 @@ def make_metadata(
         )
     except KeyError:
         pass  # No acquisition date info, then we can skip it
-    except Exception:
+    except Exception:  # pragma: no cover
         _logger.warning("Failed to parse acquisition date")
 
     return metadata
@@ -394,7 +394,7 @@ def make_original_metadata(acq: h5py.Group) -> Dict[str, Any]:
             elif isinstance(value, (np.ndarray, np.generic)):
                 value = value.tolist()
             original_metadata[name] = value
-        except Exception as ex:
+        except Exception as ex:  # pragma: no cover
             _logger.warning("Failed to parse original metadata %s: %s", name, ex)
 
     # Add metadata from the ImageData
@@ -412,7 +412,7 @@ def make_original_metadata(acq: h5py.Group) -> Dict[str, Any]:
         try:
             value = svi_data[k][()].decode("utf-8")
             original_metadata["SVIData"][k] = value
-        except Exception as ex:
+        except Exception as ex:  # pragma: no cover
             _logger.warning("Failed to parse original metadata %s: %s", k, ex)
 
     return original_metadata
@@ -510,7 +510,7 @@ def merge_ar_data(
     # So, in theory, it should be possible to recreate it without SEM concurrent... but it's more
     # complicated.
     Y, X = se_data["data"].shape[-2:]
-    if X * Y != len(ar_data):
+    if X * Y != len(ar_data):  # pragma: no cover
         raise ValueError(f"Expected {X}x{Y} AR data, but got {len(ar_data)}")
 
     # As we know that the scan order is always the same order, the simplest is to use acquisition
@@ -522,7 +522,7 @@ def merge_ar_data(
     ar0_shape = sorted_ar[0]["data"].shape
     # Get the 2 angle dimensions from first AR data (assuming all the AR data is the same size, and
     # the other dimensions are 1)
-    if ar0_shape[:3] != (1, 1, 1):
+    if ar0_shape[:3] != (1, 1, 1):  # pragma: no cover
         logging.warning(
             "Unexpected extra dimension on AR data, with shape: %s", ar0_shape
         )
@@ -670,7 +670,7 @@ def file_reader(
             # Load data
             try:
                 data = read_acquisition(obj)
-            except Exception as ex:
+            except Exception as ex:  # pragma: no cover
                 _logger.warning("Failed to read data %s, skipping it: %s", oname, ex)
                 continue
 
@@ -695,7 +695,7 @@ def file_reader(
 
         # Merge AR data, if there is AR data
         if ar_data:
-            if sem_concurrent_ar_data is None:
+            if sem_concurrent_ar_data is None:  # pragma: no cover
                 _logger.warning(
                     "AR data present but no SEM concurrent data found to reconstruct it"
                 )
@@ -705,7 +705,7 @@ def file_reader(
                     try:
                         ar_merged = merge_ar_data(ar_polarized, sem_concurrent_ar_data)
                         acq_data.append(ar_merged)
-                    except Exception as ex:
+                    except Exception as ex:  # pragma: no cover
                         _logger.warning(
                             "Failed to merge AR data, will pass it as separate data: %s",
                             ex,

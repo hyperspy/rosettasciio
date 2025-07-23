@@ -815,22 +815,15 @@ class ElidReader:
         has_variable_real_time = self._read_bool()
         has_variable_live_time = self._read_bool()
         data = np.empty([height, width, bins], dtype=np.uint32)
-        print("bins", bins)
-        print("start read bytes")
-        # for y in range(height):
-        #     # for x in range(width):
-        #     #     # for bin in range(bins):
-        #     #     #     data[y, x, bin] = self._read_varuint32()
-        #     #     data[y, x, :] = struct.unpack(f"{bins}B", self._read(bins))
-        #     data[y, :, :] = np.array(
-        #         struct.unpack(f"{width * bins}B", self._read(width * bins))
-        #     ).reshape(width, bins)
-        data = np.array(
-            struct.unpack(
-                f"{height * width * bins}B", self._read(height * width * bins)
-            )
-        ).reshape(height, width, bins)
-        print("end read bytes")
+        for y in range(height):
+            data[y, :, :] = np.array(
+                struct.unpack(f"{width * bins}B", self._read(width * bins))
+            ).reshape(width, bins)
+        # data = np.array(
+        #     struct.unpack(
+        #         f"{height * width * bins}B", self._read(height * width * bins)
+        #     )
+        # ).reshape(height, width, bins)
         if has_variable_real_time:
             real_time_values = np.empty([height, width], dtype=float)
             for y in range(height):

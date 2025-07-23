@@ -4,10 +4,17 @@ Delmic HDF5
 -----------
 
 RosettaScIO can read cathodoluminescence ``.h5`` datasets from Delmic containing one or multiple acquisition streams.
-The supported CL data formats currently include: intensity, hyperspectral, angle-resolved, time-resolved
-decay trace, time-resolved g\ :sup:`(2)` curves, time-resolved streak camera, and energy-momentum images.
-The polarization orientation is not yet implemented in the metadata structure, as well as the
-photoluminescence metadata.
+The supported CL data formats currently include:
+
+* intensity
+* hyperspectral
+* angle-resolved
+* time-resolved decay trace
+* time-resolved g\ :sup:`(2)` curve
+* time-resolved spectrum
+* energy-momentum (angle-resolved spectrum)
+
+The photoluminescence is not yet implemented in the metadata structure.
 
 .. Note::
     To read the cathodoluminescence .h5 datasets in `HyperSpy <https://hyperspy.org>`_, use the
@@ -26,8 +33,8 @@ of datasets is returned.
 
 .. Note::
     To load the various types of datasets in the file, use the ``signal`` argument
-    with "cl", "se", "survey", "anchor", to load respectively the cathodoluminescence,
-    secondary electron concurrent, secondary electron survey, the drift anchor region.
+    with "cl", "se", "survey", or "anchor", to load respectively the cathodoluminescence,
+    secondary electron concurrent, secondary electron survey, drift anchor region.
     The special value "all" can be used to load all datasets in the file.
 
     .. code-block:: python

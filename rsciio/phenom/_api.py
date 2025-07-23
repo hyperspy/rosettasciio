@@ -813,11 +813,12 @@ class ElidReader:
         original_metadata["acquisition"]["scan"]["detectors"]["EDS"] = eds_metadata
         has_variable_real_time = self._read_bool()
         has_variable_live_time = self._read_bool()
-        data = np.empty([height, width, bins], dtype=np.uint32)
-        for y in range(height):
-            for x in range(width):
-                for bin in range(bins):
-                    data[y, x, bin] = self._read_varuint32()
+        buffer = self._read(height * width * bins)
+        data = (
+            np.frombuffer(buffer, dtype=np.uint8)
+            .reshape(height, width, bins)
+            .astype(np.uint32)
+        )
         if has_variable_real_time:
             real_time_values = np.empty([height, width], dtype=float)
             for y in range(height):

@@ -788,7 +788,6 @@ class ElidReader:
         )
 
     def _read_MapAnalysis(self, label, am):
-        print("reading map analysis")
         (om, sum_spectrum) = self._read_CommonAnalysis(am)
         # These metadata are currently not used but we still need to
         # read these to advance the position in the file
@@ -814,16 +813,12 @@ class ElidReader:
         original_metadata["acquisition"]["scan"]["detectors"]["EDS"] = eds_metadata
         has_variable_real_time = self._read_bool()
         has_variable_live_time = self._read_bool()
-        data = np.empty([height, width, bins], dtype=np.uint32)
-        for y in range(height):
-            data[y, :, :] = np.array(
-                struct.unpack(f"{width * bins}B", self._read(width * bins))
-            ).reshape(width, bins)
-        # data = np.array(
-        #     struct.unpack(
-        #         f"{height * width * bins}B", self._read(height * width * bins)
-        #     )
-        # ).reshape(height, width, bins)
+        buffer = self._read(height * width * bins)
+        data = (
+            np.frombuffer(buffer, dtype=np.uint8)
+            .reshape(height, width, bins)
+            .astype(np.uint32)
+        )
         if has_variable_real_time:
             real_time_values = np.empty([height, width], dtype=float)
             for y in range(height):

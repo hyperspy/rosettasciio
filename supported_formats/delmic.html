@@ -474,7 +474,18 @@
                   
   <section id="delmic-hdf5">
 <span id="delmic-format"></span><h1>Delmic HDF5<a class="headerlink" href="#delmic-hdf5" title="Link to this heading">#</a></h1>
-<p>RosettaScIO can only read hyperspectral cathodoluminescence .h5 datasets from Delmic. The file reading will be implemented step by step for the various Delmic data formats.</p>
+<p>RosettaScIO can read cathodoluminescence <code class="docutils literal notranslate"><span class="pre">.h5</span></code> datasets from Delmic containing one or multiple acquisition streams.
+The supported CL data formats currently include:</p>
+<ul class="simple">
+<li><p>intensity</p></li>
+<li><p>hyperspectral</p></li>
+<li><p>angle-resolved</p></li>
+<li><p>time-resolved decay trace</p></li>
+<li><p>time-resolved g<sup>(2)</sup> curve</p></li>
+<li><p>time-resolved spectrum</p></li>
+<li><p>energy-momentum (angle-resolved spectrum)</p></li>
+</ul>
+<p>The photoluminescence is not yet implemented in the metadata structure.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>To read the cathodoluminescence .h5 datasets in <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, use the
@@ -485,21 +496,39 @@ extension is not unique to this reader:</p>
 </pre></div>
 </div>
 </div>
+<p>Typically, Delmic CL data acquisitions contain three dataset types, but by default, only the
+cathodoluminescence datasets found in the acquisition files are opened with RosettaSciIO.
+Usually, this is a single dataset, but if the acquisition has multiple streams, then a list
+of datasets is returned.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To load the various types of datasets in the file, use the <code class="docutils literal notranslate"><span class="pre">signal</span></code> argument
+with “cl”, “se”, “survey”, or “anchor”, to load respectively the cathodoluminescence,
+secondary electron concurrent, secondary electron survey, drift anchor region.
+The special value “all” can be used to load all datasets in the file.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">hyperspy.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">hs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;filename.h5&quot;</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="s2">&quot;Delmic&quot;</span><span class="p">,</span> <span class="n">signal</span><span class="o">=</span><span class="s2">&quot;cl&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 <section id="module-rsciio.delmic">
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.delmic" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.delmic.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.delmic.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.delmic.file_reader" title="Link to this definition">#</a></dt>
-<dd><p>Read a Delmic hdf5 hyperspectral image.</p>
+<span class="sig-prename descclassname"><span class="pre">rsciio.delmic.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'cl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#rsciio.delmic.file_reader" title="Link to this definition">#</a></dt>
+<dd><p>Read a Delmic HDF5 hyperspectral image.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
 <dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
 </dd>
-<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not. The file will stay open
-until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/base_classes/signal/LazySignal.html#hyperspy._signals.lazy.LazySignal.compute" title="(in HyperSpy v2.3)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
-or closed manually. <a class="reference internal" href="../api/utils.html#rsciio.utils.tools.get_file_handle" title="rsciio.utils.tools.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
-can be used to access the file handler and close it manually.</p>
+<dt><strong>signal</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=”cl”</span></dt><dd><p>Specifies the type of data to load. Can be “cl” (cathodoluminescence signal), “se”
+(concurrent SEM signal), “survey” (SEM image of the whole field of view), “anchor”
+(drift correction region over time), or “all” to obtain all the data in the file.
+Convenient, as typically in Odemis, every CL acquisition automatically stores also the survey
+and concurrent SEM data.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Lazy loading is not supported.</p>
 </dd>
 </dl>
 </dd>

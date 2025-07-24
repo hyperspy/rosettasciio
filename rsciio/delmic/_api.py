@@ -87,9 +87,9 @@ class AcquisitionType(Enum):
     Temporal = "temporal"
     Spectrum = "spectrum"
     SE = "se"
-    Survey = "survey"
     Anchor = "anchor"
     Unknown = "__unknown__"
+    Survey = "survey"  # SEM survey always last, to make it easy to access with [-1]
 
 
 # All the type of data that is considered "CL" when opening a file

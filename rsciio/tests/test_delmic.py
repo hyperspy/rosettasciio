@@ -119,7 +119,7 @@ def test_read_data_intensity():
     assert len(s) == 3
     assert s[0].metadata.General.title == "CL intensity"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
-    assert s[2].metadata.General.title == "Secondary electrons survey"
+    assert s[-1].metadata.General.title == "Secondary electrons survey"
 
 
 def test_read_data_intensity_CL():
@@ -233,10 +233,10 @@ def test_read_data_intensity_drift():
     assert len(s) == 4
     assert s[0].metadata.General.title == "CL intensity"
     assert s[1].metadata.General.title == "Secondary electrons concurrent"
-    assert s[2].metadata.General.title == "Secondary electrons survey"
-    assert s[3].metadata.General.title == "Anchor region"
+    assert s[2].metadata.General.title == "Anchor region"
+    assert s[3].metadata.General.title == "Secondary electrons survey"
 
-    anchor_data = s[3]
+    anchor_data = s[2]
     assert anchor_data.data.shape == (134, 122, 4)
 
 

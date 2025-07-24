@@ -1,0 +1,1 @@
+Read .elid files faster by reading multiple bytes at once

@@ -32,8 +32,9 @@ import pytest
 h5py = pytest.importorskip("h5py", reason="h5py not installed")
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
-TEST_DATA_PATH = Path(__file__).parent / "data" / "emd"
+from rsciio.emd import file_reader  # noqa: E402
 
+TEST_DATA_PATH = Path(__file__).parent / "data" / "emd"
 
 # Reference data:
 data_signal = np.arange(27).reshape((3, 3, 3)).T
@@ -267,3 +268,23 @@ def test_chunking_saving_lazy(tmp_path):
     s.save(filename3, chunks=chunks)
     s3 = hs.load(filename3, lazy=True)
     assert tuple([c[0] for c in s3.data.chunks]) == chunks
+
+
+@pytest.mark.parametrize("filename_type", [str, Path])
+def test_file_writer_reader_filename_types(filename_type, tmp_path):
+    """Test that file_reader accepts both string and Path types for filename parameter."""
+    # Create a simple EMD file for testing
+    signal_ref = hs.signals.Signal2D(np.arange(9).reshape((3, 3)))
+    signal_ref.metadata.General.title = "test_signal"
+    temp_file = tmp_path / "test_file_reader.emd"
+
+    filename = str(temp_file) if filename_type is str else temp_file
+    signal_ref.save(filename)
+
+    # Test that file_reader works with both string and Path types
+    result = file_reader(filename)
+
+    # Verify the result is as expected
+    assert len(result) == 1
+    assert result[0]["data"].shape == (3, 3)
+    np.testing.assert_array_equal(result[0]["data"], signal_ref.data)

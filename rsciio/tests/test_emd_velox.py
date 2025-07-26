@@ -38,6 +38,7 @@ from rsciio.utils.tools import dummy_context_manager
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 pytest.importorskip("h5py", reason="h5py not installed")
 
+from rsciio.emd._api import is_EMD_Velox  # noqa: E402
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "emd"
 
@@ -577,3 +578,31 @@ class TestVeloxEMDv11:
             _ = hs.load(self.fei_files_path / "Test SI 16x16 ReducedData 215 kx.emd")
 
         assert "No spectrum stream is present" in caplog.text
+
+
+@pytest.mark.parametrize("filename_type", ["string", "Path"])
+def test_is_EMD_Velox_filename_types(filename_type):
+    """Test is_EMD_Velox function with string and Path filename parameters."""
+    # Test with a known Velox EMD file
+    velox_file = TEST_DATA_PATH / "FFTComplexEven.emd"
+
+    if filename_type == "string":
+        filename = str(velox_file)
+    elif filename_type == "Path":
+        filename = velox_file
+
+    # Test with Velox file - should return True
+    result = is_EMD_Velox(filename)
+    assert result is True
+
+    # Test with a non-Velox EMD file
+    non_velox_file = TEST_DATA_PATH / "example_image.emd"
+
+    if filename_type == "string":
+        filename = str(non_velox_file)
+    elif filename_type == "Path":
+        filename = non_velox_file
+
+    # Test with non-Velox file - should return False
+    result = is_EMD_Velox(filename)
+    assert result is False

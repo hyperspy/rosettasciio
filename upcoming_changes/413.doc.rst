@@ -1,1 +1,0 @@
-Improve pull request template, add relevant links to the contributor guide.

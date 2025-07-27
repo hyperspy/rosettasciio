@@ -1,1 +1,0 @@
-Add :ref:`numpy <numpy-format>` plugin to support distributed lazy reading of npy file.

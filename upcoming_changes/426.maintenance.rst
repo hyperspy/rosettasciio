@@ -1,1 +1,0 @@
-Add integration tests to run the test suites of software in the HyperSpy ecosystem.

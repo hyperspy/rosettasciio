@@ -1,1 +1,0 @@
-:ref:`ZSpy <zspy-format>`: Add parameter ``store_type`` to specify the zarr store used saving ``zspy`` file. File saved with :class:`zarr.storage.ZipStore` can now be loaded automatically without having to pass the store. 

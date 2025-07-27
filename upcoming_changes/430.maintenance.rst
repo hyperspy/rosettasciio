@@ -1,1 +1,0 @@
-Standardized string formatting in all specification YAML files to consistently use double quotes throughout the rsciio module for improved maintainability.

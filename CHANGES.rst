@@ -8,6 +8,37 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 
 .. towncrier release notes start
 
+0.10 (2025-07-27)
+=================
+
+New features
+------------
+
+- :ref:`Delmic <delmic-format>` format: extend Delmic HDF5 support to handle all types of cathodoluminescence datasets and read multiple datasets at once. (`#328 <https://github.com/hyperspy/rosettasciio/issues/328>`_)
+- Add :ref:`numpy <numpy-format>` plugin to support distributed lazy reading of npy file. (`#415 <https://github.com/hyperspy/rosettasciio/issues/415>`_)
+
+
+Enhancements
+------------
+
+- :ref:`ZSpy <zspy-format>`: Add parameter ``store_type`` to specify the zarr store used saving ``zspy`` file. File saved with :class:`zarr.storage.ZipStore` can now be loaded automatically without having to pass the store. (`#417 <https://github.com/hyperspy/rosettasciio/issues/417>`_)
+- :ref:`Renishaw <renishaw-format>` format: add support for reading incomplete acquisition. (`#420 <https://github.com/hyperspy/rosettasciio/issues/420>`_)
+
+
+Improved Documentation
+----------------------
+
+- Improve pull request template, add relevant links to the contributor guide. (`#413 <https://github.com/hyperspy/rosettasciio/issues/413>`_)
+- Allow 1% difference in scale of the signal axis when saving an image with the image plugin. (`#414 <https://github.com/hyperspy/rosettasciio/issues/414>`_)
+
+
+Maintenance
+-----------
+
+- Add integration tests to run the test suites of software in the HyperSpy ecosystem. (`#426 <https://github.com/hyperspy/rosettasciio/issues/426>`_)
+- Standardized string formatting in all specification YAML files to consistently use double quotes throughout the rsciio module for improved maintainability. (`#430 <https://github.com/hyperspy/rosettasciio/issues/430>`_)
+
+
 0.9.0 (2025-05-29)
 ==================
 

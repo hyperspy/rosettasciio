@@ -1,1 +1,0 @@
-:ref:`Delmic <delmic-format>` format: extend Delmic HDF5 support to handle all types of cathodoluminescence datasets and read multiple datasets at once.

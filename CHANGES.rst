@@ -15,7 +15,7 @@ New features
 ------------
 
 - :ref:`Delmic <delmic-format>` format: extend Delmic HDF5 support to handle all types of cathodoluminescence datasets and read multiple datasets at once. (`#328 <https://github.com/hyperspy/rosettasciio/issues/328>`_)
-- Add :ref:`numpy <numpy-format>` plugin to support distributed lazy reading of npy file. (`#415 <https://github.com/hyperspy/rosettasciio/issues/415>`_)
+- Add :ref:`numpy <numpy-format>` plugin to support distributed lazy reading of ``npy`` file. (`#415 <https://github.com/hyperspy/rosettasciio/issues/415>`_)
 
 
 Enhancements
@@ -36,7 +36,7 @@ Maintenance
 -----------
 
 - Add integration tests to run the test suites of software in the HyperSpy ecosystem. (`#426 <https://github.com/hyperspy/rosettasciio/issues/426>`_)
-- Standardized string formatting in all specification YAML files to consistently use double quotes throughout the rsciio module for improved maintainability. (`#430 <https://github.com/hyperspy/rosettasciio/issues/430>`_)
+- Standardized string formatting in all file format specification ``YAML`` files to consistently use double quotes throughout the ``rsciio`` module for improved maintainability. (`#430 <https://github.com/hyperspy/rosettasciio/issues/430>`_)
 
 
 0.9.0 (2025-05-29)

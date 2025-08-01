@@ -19,7 +19,7 @@
 import dask.array as da
 import numpy as np
 
-import rsciio.utils.rgb_tools as rt
+import rsciio.utils.rgb as rt
 
 
 class TestRGBTools:

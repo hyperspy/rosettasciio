@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pytest
 
-from rsciio.utils.tests import expected_is_binned
+from rsciio.utils._tests import expected_is_binned
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 imagecodecs = pytest.importorskip(

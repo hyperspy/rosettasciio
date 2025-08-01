@@ -101,6 +101,31 @@ handled by other libraries.
       msa.file_reader("your_msa_file.msa")
 
 
+.. _using-rsciio:
+
+Python packages using RosettaSciIO
+==================================
+
+The following python packages available through `PyPI <https://pypi.org/>`_ and/or
+`conda-forge <https://anaconda.org/conda-forge/>`_ use the RosettaSciIO plugins
+for reading/writing of data files:
+
+* `HyperSpy <https://hyperspy.org>`_: Multidimensional data analysis 
+
+* Any `HyperSpy extension <https://github.com/hyperspy/hyperspy-extensions-list>`_
+  that inherits the IO capabilities:
+
+  * `LumiSpy <https://lumispy.org>`_: Luminescence analysis with HyperSpy
+  * `Kikuchipy <https://kikuchipy.org>`_: Processing, simulating and analyzing
+    electron backscatter diffraction (EBSD) patterns in Python 
+  * `PyXem <https://pyxem.readthedocs.io>`_: An open-source Python library for
+    multi-dimensional diffraction microscopy.
+  * `exSpy <https://hyperspy.org/exspy/>`_: Analysis of X-ray Energy Dispersive
+    Spectroscopy (EDS) and Electron Energy Loss Spectroscopy (EELS).
+  * `holospy <https://hyperspy.org/holospy/>`_: Analysis of (off-axis) electron
+    holography data.
+
+
 Citing RosettaSciIO
 ===================
 

@@ -859,11 +859,18 @@ class FeiEMDReader(object):
         return mapping
 
     def _convert_element_list(self, d):
-        atomic_number_list = d[d.keys()[0]]["elementSelection"]
-        return [
-            atomic_number2name[int(atomic_number)]
-            for atomic_number in atomic_number_list
-        ]
+        _d = d[d.keys()[0]]
+        # "elementSelection" key is missing when no elements are selected for quantification
+        if "elementSelection" in _d.keys():
+            atomic_number_list = _d["elementSelection"]
+            element_list = [
+                atomic_number2name[int(atomic_number)]
+                for atomic_number in atomic_number_list
+            ]
+        else:
+            element_list = []
+
+        return element_list
 
     def _convert_datetime(self, unix_time):
         # Since we don't know the actual time zone of where the data have been

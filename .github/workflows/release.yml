@@ -33,7 +33,7 @@ jobs:
             CIBW_ARCHS: "arm64"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build wheels for CPython
         uses: pypa/cibuildwheel@v3.0
@@ -55,7 +55,7 @@ jobs:
     name: Make SDist
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build SDist
         run: pipx run build --sdist
@@ -74,7 +74,7 @@ jobs:
     name: Make pure python wheel
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build pure python wheel
         run: DISABLE_C_EXTENTIONS=1 pipx run build --wheel
@@ -131,7 +131,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8

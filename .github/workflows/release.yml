@@ -114,7 +114,6 @@ jobs:
 
       - name: Display structure of downloaded files
         run: ls -R
-        working-directory: dist
 
       - uses: pypa/gh-action-pypi-publish@release/v1
         if: ${{ startsWith(github.ref, 'refs/tags/') && github.repository_owner == 'hyperspy' }}

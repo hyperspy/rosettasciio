@@ -27,6 +27,8 @@ jobs:
             CIBW_ARCHS: "aarch64"
           - os: "windows-latest"
             CIBW_ARCHS: "AMD64"
+          - os: "windows-11-arm"
+            CIBW_ARCHS: "ARM64"
           - os: "macos-13"
             CIBW_ARCHS: "x86_64"
           - os: "macos-14"

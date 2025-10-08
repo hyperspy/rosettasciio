@@ -20,7 +20,7 @@ jobs:
       matrix:
         os: [ubuntu, windows, macos]
         os_version: [latest]
-        PYTHON_VERSION: ['3.9', '3.10', '3.13']
+        PYTHON_VERSION: ['3.11', '3.12', '3.13']
         HYPERSPY_VERSION: ['release']
         LABEL: ['']
         PIP_ARGS: ['']
@@ -28,47 +28,46 @@ jobs:
           # test oldest supported version of main dependencies on python 3.8
           - os: ubuntu
             os_version: latest
-            PYTHON_VERSION: '3.9'
+            PYTHON_VERSION: '3.10'
             # Set pillow and scikit-image version to be compatible with imageio and scipy
             # align matplotlib and dask dependency with hyperspy
-            DEPENDENCIES: matplotlib==3.6 numpy==1.20.0 tifffile==2022.7.28 dask[array]==2022.9.2 distributed==2022.9.2 numba==0.53 imageio==2.16 pillow==8.3.2 scikit-image==0.18.0 python-box==6.0.0
+            DEPENDENCIES: matplotlib==3.6 numpy==1.22.0 tifffile==2022.7.28 dask[array]==2022.9.2 distributed==2022.9.2 numba==0.56 imageio==2.16 pillow==9.0.1 scikit-image==0.20.0 python-box==6.0.0 h5py==3.7
             LABEL: '-oldest'
+            HYPERSPY_VERSION: 'release'
+          - os: ubuntu
+            os_version: latest
+            PYTHON_VERSION: '3.10'
+            LABEL: '-hyperspy'
             HYPERSPY_VERSION: 'release'
           # test minimum requirement
           - os: ubuntu
             os_version: latest
-            PYTHON_VERSION: '3.10'
+            PYTHON_VERSION: '3.14'
+            LABEL: '-minimum'
+            HYPERSPY_VERSION: ''
+          - os: ubuntu
+            os_version: latest
+            PYTHON_VERSION: '3.13'
             LABEL: '-hyperspy-minimum'
             HYPERSPY_VERSION: 'release'
           - os: ubuntu
             os_version: latest
-            PYTHON_VERSION: '3.12'
+            PYTHON_VERSION: '3.13'
             LABEL: '-hyperspy_dev'
             HYPERSPY_VERSION: 'dev'
           - os: ubuntu
             os_version: latest
-            PYTHON_VERSION: '3.10'
-            LABEL: ''
-          - os: ubuntu
-            os_version: latest
-            PYTHON_VERSION: '3.9'
-            LABEL: '-hyperspy'
-            HYPERSPY_VERSION: 'release'
-          - os: ubuntu
-            os_version: latest
-            PYTHON_VERSION: '3.12'
+            PYTHON_VERSION: '3.13'
             LABEL: '-hyperspy'
             HYPERSPY_VERSION: 'release'
           - os: macos
             os_version: '13'
-            PYTHON_VERSION: '3.12'
+            PYTHON_VERSION: '3.13'
             LABEL: '-hyperspy'
             HYPERSPY_VERSION: 'release'
           - os: ubuntu
             os_version: latest
             PYTHON_VERSION: '3.13t'
-            # use build isolation until cython 3.1 is released
-            PIP_ARGS: '--no-build-isolation'
             LABEL: '-hyperspy_dev-minimum'
             HYPERSPY_VERSION: 'dev'
 

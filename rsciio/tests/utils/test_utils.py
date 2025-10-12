@@ -4,9 +4,11 @@ import numpy as np
 import pytest
 from dateutil import parser, tz
 
-import rsciio.utils.date_time_tools as dtt
-from rsciio.utils.distributed import get_chunk_slice
-from rsciio.utils.tools import ET, DTBox, XmlToDict, dict2sarray, sanitize_msxml_float
+import rsciio.utils._date_time as dtt
+from rsciio.utils._array import dict2sarray
+from rsciio.utils._dictionary import DTBox
+from rsciio.utils._distributed import get_chunk_slice
+from rsciio.utils.xml import ET, XmlToDict, sanitize_msxml_float
 
 dt = [("x", np.uint8), ("y", np.uint16), ("text", (bytes, 6))]
 

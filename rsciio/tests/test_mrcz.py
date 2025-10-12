@@ -26,7 +26,7 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from rsciio.utils.tests import assert_deep_almost_equal
+from rsciio.utils._tests import assert_deep_almost_equal
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 mrcz = pytest.importorskip("mrcz", reason="mrcz not installed")

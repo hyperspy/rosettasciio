@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from rsciio.bruker import export_metadata, file_reader
-from rsciio.utils.tests import assert_deep_almost_equal
+from rsciio.utils._tests import assert_deep_almost_equal
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -273,7 +273,7 @@ def test_fast_bcf():
 
 
 def test_decimal_regex():
-    from rsciio.utils.tools import sanitize_msxml_float
+    from rsciio.utils.xml import sanitize_msxml_float
 
     dummy_xml_positive = [
         b"<dummy_tag>85,658</dummy_tag>",

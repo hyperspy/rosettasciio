@@ -10,30 +10,17 @@
 #
 # RosettaSciIO is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import importlib
 
-__all__ = [
-    "file",
-    "hdf5",
-    "path",
-    "rgb",
-    "tools",
-    "xml",
-]
+from pint import UnitRegistry
+
+_UREG = UnitRegistry()
 
 
-def __dir__():
-    return sorted(__all__)
-
-
-def __getattr__(name):
-    if name in __all__:
-        return importlib.import_module(f".{name}", "rsciio.utils")
-
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+def convert_units(value, units, to_units):
+    return (value * _UREG(units)).to(to_units).magnitude

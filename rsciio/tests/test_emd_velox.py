@@ -580,6 +580,34 @@ class TestVeloxEMDv11:
         assert "No spectrum stream is present" in caplog.text
 
 
+class TestVeloxEMDv11Empty:
+    fei_files_path = TEST_DATA_PATH / "velox_emd_v11_elementSelection"
+
+    @classmethod
+    def setup_class(cls):
+        import zipfile
+
+        zipf = TEST_DATA_PATH / "velox_emd_v11_elementSelection.zip"
+        with zipfile.ZipFile(zipf, "r") as zipped:
+            zipped.extractall(cls.fei_files_path)
+
+    @classmethod
+    def teardown_class(cls):
+        gc.collect()
+        shutil.rmtree(cls.fei_files_path)
+
+    @pytest.mark.parametrize("lazy", (True, False))
+    def test_spectrum_images(self, lazy):
+        pytest.importorskip("sparse")
+        s = hs.load(self.fei_files_path / "SI_empty selection.emd", lazy=lazy)
+        assert s[-1].metadata.Sample.elements == []
+        assert len(s) == 6
+        for i, v in enumerate(["EDS", "EDS", "EDS", "EDS", "HAADF", "EDS"]):
+            assert s[i].metadata.General.title == v
+
+        assert s[-1].data.shape == (16, 20, 4096)
+
+
 @pytest.mark.parametrize("filename_type", ["string", "Path"])
 def test_is_EMD_Velox_filename_types(filename_type):
     """Test is_EMD_Velox function with string and Path filename parameters."""

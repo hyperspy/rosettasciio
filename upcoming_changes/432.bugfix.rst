@@ -1,0 +1,1 @@
+Fix reading velox emd file when element selection is empty.

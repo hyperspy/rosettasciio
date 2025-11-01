@@ -48,37 +48,77 @@ Mapping of RGB color space names to their corresponding numpy structured dtypes.
 """
 
 
+_DOCSTRING_BASE = """Check if the array is a {} structured numpy array.
+
+    Parameters
+    ----------
+    array : numpy.ndarray
+        The array to check.
+
+    Returns
+    -------
+    bool
+        True if the array is {}, False otherwise.
+    """
+
+
 def is_rgba(array):
+    """
+    %s
+    """
     if array.dtype in (_RGBA8, _RGBA16):
         return True
     else:
         return False
 
 
+is_rgba.__doc__ %= _DOCSTRING_BASE.format("RGBA", "RGBA")
+
+
 def is_rgb(array):
+    """
+    %s
+    """
     if array.dtype in (_RGB8, _RGB16):
         return True
     else:
         return False
 
 
+is_rgb.__doc__ %= _DOCSTRING_BASE.format("RGB", "RGB")
+
+
 def is_rgbx(array):
+    """
+    %s
+    """
     if is_rgb(array) or is_rgba(array):
         return True
     else:
         return False
 
 
+is_rgbx.__doc__ %= _DOCSTRING_BASE.format("RGB or RGBA", "RGB or RGBA")
+
+
 def rgbx2regular_array(data, plot_friendly=False, show_progressbar=True):
-    """Transforms a RGBx array into a standard one
+    """
+    Transform a RGBx structured numpy array into a standard one with
+    an additional dimension for the color channel.
 
     Parameters
     ----------
-    data : numpy array of RGBx dtype
+    data : numpy.ndarray or dask.array.Array
+        The RGB array to be transformed.
     plot_friendly : bool
         If True change the dtype to float when dtype is not uint8 and
         normalize the array so that it is ready to be plotted by matplotlib.
     %s
+
+    Returns
+    -------
+    numpy.ndarray or dask.array.Array
+        The transformed array with additional dimension for the color channel.
     """
     # lazy import dask.array
     from dask.array import Array
@@ -110,10 +150,24 @@ def rgbx2regular_array(data, plot_friendly=False, show_progressbar=True):
     return data
 
 
-rgbx2regular_array.__doc__ %= (SHOW_PROGRESSBAR_DOC,)
+rgbx2regular_array.__doc__ %= SHOW_PROGRESSBAR_DOC
 
 
 def regular_array2rgbx(data):
+    """
+    Transform a regular numpy array with an additional dimension for the
+    color channel into a RGBx structured numpy array.
+
+    Parameters
+    ----------
+    data : numpy.ndarray or dask.array.Array
+        The regular array to be transformed.
+
+    Returns
+    -------
+    numpy.ndarray or dask.array.Array
+        The transformed RGBx structured array.
+    """
     # Make sure that the data is contiguous
     if data.flags["C_CONTIGUOUS"] is False:
         if np.ma.is_masked(data):

@@ -37,20 +37,28 @@ def __dir__():
 
 
 def append2pathname(filename, to_append):
-    """Append a string to a path name
+    """
+    Append a string to a path name.
 
     Parameters
     ----------
     filename : str
+        The original file name.
     to_append : str
+        The string to append to the file name.
 
+    Returns
+    -------
+    pathlib.Path
+        The new file name with the appended string.
     """
     p = Path(filename)
     return Path(p.parent, p.stem + to_append, p.suffix)
 
 
 def incremental_filename(filename, i=1):
-    """If a file with the same file name exists, returns a new filename that
+    """
+    If a file with the same file name exists, returns a new filename that
     does not exists.
 
     The new file name is created by appending `-n` (where `n` is an integer)
@@ -59,8 +67,14 @@ def incremental_filename(filename, i=1):
     Parameters
     ----------
     filename : str
+        The original file name.
     i : int
        The number to be appended.
+
+    Returns
+    -------
+    pathlib.Path
+        The new file name with the appended number.
     """
     filename = Path(filename)
 
@@ -75,7 +89,14 @@ def incremental_filename(filename, i=1):
 
 
 def ensure_directory(path):
-    """Check if the path exists and if it does not, creates the directory."""
+    """
+    Check if the path exists and if it does not, creates the directory.
+
+    Parameters
+    ----------
+    path : str or pathlib.Path
+        The path to check and create if it does not exist.
+    """
     # If it's a file path, try the parent directory instead
     p = Path(path)
     p = p.parent if p.is_file() else p
@@ -87,7 +108,8 @@ def ensure_directory(path):
 
 
 def overwrite(filename):
-    """If file 'filename' exists, ask for overwriting and return True or False,
+    """
+    If file 'filename' exists, ask for overwriting and return True or False,
     else return True.
 
     Parameters
@@ -99,7 +121,6 @@ def overwrite(filename):
     -------
     bool :
         Whether to overwrite file.
-
     """
     if Path(filename).is_file() or (
         Path(filename).is_dir() and os.path.splitext(filename)[1] == ".zspy"

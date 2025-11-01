@@ -68,7 +68,7 @@ jobs:
           - os: ubuntu
             os_version: latest
             PYTHON_VERSION: '3.13t'
-            LABEL: '-hyperspy_dev-minimum'
+            LABEL: '-hyperspy-minimum'
             HYPERSPY_VERSION: 'dev'
 
     steps:
@@ -137,36 +137,27 @@ jobs:
           # show if GIL is enable
           python -c "import sys; print('GIL enabled:', sys._is_gil_enabled())"
 
-      - name: Install build dependency (3.13t)
-        if: ${{ matrix.PYTHON_VERSION == '3.13t'}}
-        run: |
-          pip install -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple cython
-          # install build dependencies manually to be able to use `--no-build-isolation`
-          pip install setuptools-scm wheel hatchling numpy pkgconfig
-
-      - name: Install hyperspy dependencies (3.13t)
+      - name: Install hyperspy (3.13t)
         if: ${{ matrix.PYTHON_VERSION == '3.13t'}}
         run: |
           # no freethreaded build available for h5py
           # install other dependencies manually 
           pip install cloudpickle dask[array] importlib-metadata jinja2 matplotlib natsort numpy packaging pint prettytable pyyaml scikit-image scipy sympy tqdm pooch requests
-          pip install traits ${{ matrix.PIP_ARGS }}
+          pip install traits
+          # with recent version of python3.13t, there are issue with installing from a git repository or source
+          # for now, install from pypi, as this is working...
+          pip install hyperspy --no-deps
 
       - name: Install hyperspy and exspy (release)
-        if: ${{ matrix.HYPERSPY_VERSION == 'release'}}
+        if: ${{ matrix.HYPERSPY_VERSION == 'release' && matrix.PYTHON_VERSION != '3.13t'}}
         run: |
           pip install hyperspy exspy ${{ matrix.PIP_ARGS }}
 
       - name: Install hyperspy and exspy (dev)
-        if: ${{ matrix.HYPERSPY_VERSION == 'dev' && matrix.PYTHON_VERSION != '3.13t'}}
+        if: ${{ matrix.HYPERSPY_VERSION == 'dev' && matrix.PYTHON_VERSION != '3.13t' }}
         run: |
           pip install git+https://github.com/hyperspy/hyperspy.git
           pip install git+https://github.com/hyperspy/exspy.git
-
-      - name: Install hyperspy (dev & 3.13t)
-        if: ${{ matrix.HYPERSPY_VERSION == 'dev' && matrix.PYTHON_VERSION == '3.13t'}}
-        run: |
-          pip install git+https://github.com/hyperspy/hyperspy.git --no-deps
 
       - name: Install python-mrcz dev
         # for numpy 2.0 support for python >= 3.9

@@ -101,7 +101,7 @@ def file_reader(filename, lazy=False, chunks="auto", navigation_axes=None, **kwa
         all axes will be treated as signal axes.
     **kwargs : dict, optional
         Pass keyword arguments to the :func:`numpy.load`, when
-        lazy is False, otherwise to :func:`rsciio.utils.distributed.memmap_distributed`.
+        lazy is False, otherwise to :func:`rsciio.utils.file.memmap_distributed`.
 
     %s
 

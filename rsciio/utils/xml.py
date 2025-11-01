@@ -34,35 +34,113 @@ _fix_dec_patterns = re.compile(b"(>-?\\d+),(\\d*([Ee]-?\\d*)?<)")
 
 
 def sanitize_msxml_float(xml_b_string):
-    """replace comma with dot in floatng point numbers in given xml
+    """
+    Replace comma with dot in floating point numbers in given xml
     raw string.
 
     Parameters
     ----------
-    xml_b_string: raw binary string representing the xml to be parsed
+    xml_b_string : str
+        Raw binary string representing the xml to be parsed.
 
     Returns
-    ---------
-    binary string with commas used as decimal marks replaced with dots
-    to adhere to XML standard
+    -------
+    str
+        Binary string with commas used as decimal marks replaced with dots
+        to adhere to XML standard.
 
-    What, why, how?
-    ----------------------------
-    In case OEM software runs on MS Windows and directly uses system
-    built-in MSXML lib, which does not comply with XML standards,
+    Notes
+    -----
+    What, why, how? In case OEM software runs on MS Windows and directly
+    uses system built-in MSXML lib, which does not comply with XML standards,
     and OS is set to locale of some country with weird and illogical
     preferences of using comma as decimal separation;
     Software in conjunction of these above listed conditions can produce
     not-interoperable XML, which leads to wrong interpretation of context.
     This sanitizer searches and corrects that - it should be used before
-    being fed to .fromsting of element tree.
+    being fed to .fromstring of element tree.
     """
     return _fix_dec_patterns.sub(b"\\1.\\2", xml_b_string)
 
 
 class XmlToDict:
-    """Customisable XML to python dict and list based Hierarchical tree
+    """
+    Customisable XML to python dict and list based Hierarchical tree
     translator.
+
+    Parameters
+    ----------
+    dub_attr_pre_str : str
+        String to be prepended to attribute name when creating
+        dictionary tree if children element with same name is used.
+        Default is "@".
+    dub_text_str : str (default: "#text")
+        String to use as key in case element contains text and children tag.
+        Default "#text".
+    tags_to_flatten : None, str or list of str
+        Define tag names which should be flattened/skipped,
+        placing children of such tag one level shallower in constructed
+        python structure.
+        It is useful when OEM generated XML are not human designed,
+        but machine/programming language/framework generated
+        and painfully verbose. See example below.
+        Default is None, which means no tags are flattened.
+    interchild_text_parsing : str
+        Must be one of ("skip", "first", "cat", "list").
+        This considers the  behaviour when both .text and children tags are
+        presented under same element tree node:
+
+        - "skip" - will not try to retrieve any .text values from such node.
+        - "first" - only string under .text attribute will be returned.
+        - "cat" - return concatenated string from .text of node and .tail's
+          of children nodes.
+        - "list" - similar to "cat", but return the result in list
+          without concatenation.
+
+        Default is "first", which is the most common case.
+
+    Examples
+    --------
+    Consider such redundant tree structure:
+
+    .. code-block::
+
+        DetectorHeader
+        |-ClassInstances
+            |-ClassInstance
+            |-Type
+            |-Window
+            ...
+
+    It can be sanitized/simplified by setting tags_to_flatten keyword
+    with ["ClassInstances", "ClassInstance"] to eliminate redundant
+    levels of tree with such tag names:
+
+    .. code-block::
+
+        DetectorHeader
+        |-Type
+        |-Window
+        ...
+
+    Produced dict/list structures are then good enought to be
+    returned as part of original metadata without making any more
+    copies.
+
+    Setup the parser:
+
+    >>> from rsciio.utils.xml import XmlToDict
+    >>> xml_to_dict = XmlToDict(
+    ...     pre_str_dub_attr="XmlClass",
+    ...     tags_to_flatten=[
+    ...         "ClassInstance", "ChildrenClassInstance", "JustAnotherRedundantTag"
+    ...     ]
+    ... )
+
+    Use parser:
+
+    >>> pytree = xml_to_dict.dictionarize(etree_node)
+
     """
 
     def __init__(
@@ -72,73 +150,6 @@ class XmlToDict:
         tags_to_flatten=None,
         interchild_text_parsing="first",
     ):
-        """
-        Create translator for hierarchical XML etree node into
-        dict/list conversion.
-
-        Parameters
-        ----------
-        dub_attr_pre_str: string (default: "@"), which
-            is going to be prepend to attribute name when creating
-            dictionary tree if children element with same name is used
-        dub_text_str: string (default: "#text"), which is going to be
-            used for key in case element contains text and children tag
-        interchild_text_parsing: string (default: "first") one from
-            ("skip", "first", "cat", "list"). This considers the
-            behaviour when both .text and children tags are presented
-            under same element tree node:
-            "skip" - will not try to retrieve any .text values from such node.
-            "first" - only string under .text attribute will be returned
-            "cat" - return concatenated string from .text of node and .tail's
-            of children nodes.
-            "list" - similar to "cat", but return the result in list
-            without concatenation.
-        tags_to_flatten: (default: None) None, string or list of strings
-            with tag names which should be flattened/skipped,
-            placing children of such tag one level shallower in constructed
-            python structure.
-            It is useful when OEM generated XML are not human designed,
-            but machine/programming language/framework generated
-            and painfully verboise. See example below:
-
-        Examples
-        --------
-        Consider such redundant tree structure:
-
-        DetectorHeader
-        |-ClassInstances
-            |-ClassInstance
-            |-Type
-            |-Window
-            ...
-
-        it can be sanitized/simplified by setting tags_to_flatten keyword
-        with ["ClassInstances", "ClassInstance"] to eliminate redundant
-        levels of tree with such tag names:
-
-        DetectorHeader
-        |-Type
-        |-Window
-        ...
-
-        Produced dict/list structures are then good enought to be
-        returned as part of original metadata without making any more
-        copies.
-
-        Usage
-        -----
-        in target format parser:
-
-        from rsciio.utils.tools import XmlToDict
-
-        #setup the parser:
-        xml_to_dict = XmlToDict(pre_str_dub_attr="XmlClass",
-                                tags_to_flatten=["ClassInstance",
-                                                 "ChildrenClassInstance",
-                                                 "JustAnotherRedundantTag"])
-        # use parser:
-        pytree = xml_to_dict.dictionarize(etree_node)
-        """
         if tags_to_flatten is None:
             tags_to_flatten = []
         if type(tags_to_flatten) not in [str, list]:
@@ -163,20 +174,36 @@ class XmlToDict:
 
     @staticmethod
     def eval(string):
-        """interpret any string and return casted to appropriate
+        """
+        Interpret any string and return casted to appropriate
         dtype python object.
+
+        Parameters
+        ----------
+        string : str
+            String to be interpreted.
+
+        Returns
+        -------
+        string
+            Interpreted string.
+
+        Notes
+        -----
         If this does not return desired type, consider subclassing
         and reimplementing this method like this:
 
-        class SubclassedXmlToDict(XmlToDict):
-            @staticmethod
-            def eval(string):
-                if condition check to catch the case
-                ...
-                elif
-                ...
-                else:
-                    return XmlToDict.eval(string)
+        .. code-block:: python
+
+            class SubclassedXmlToDict(XmlToDict):
+                @staticmethod
+                def eval(string):
+                    if condition check to catch the case
+                    ...
+                    elif
+                    ...
+                    else:
+                        return XmlToDict.eval(string)
         """
         try:
             return literal_eval(string)
@@ -186,9 +213,21 @@ class XmlToDict:
             return string
 
     def dictionarize(self, et_node):
-        """take etree XML node and return its conversion into
+        """
+        Take etree XML node and return its conversion into
         pythonic dict/list representation of that XML tree
-        with some sanitization"""
+        with some sanitization.
+
+        Parameters
+        ----------
+        et_node : xml.etree.ElementTree.Element
+            XML node to be converted.
+
+        Returns
+        -------
+        dict
+            Dictionary representation of the XML node.
+        """
         d_node = {et_node.tag: {} if et_node.attrib else None}
         children = list(et_node)
         if children:
@@ -237,6 +276,19 @@ class XmlToDict:
 
 
 def xml2dtb(et, dictree):
+    """
+    Convert XML ElementTree node to DTBox object.
+    This is a recursive function that traverses the XML tree
+    and populates the DTBox object with the data from the XML node.
+
+    Parameters
+    ----------
+    et : xml.etree.ElementTree.Element
+        XML node to be converted.
+    dictree : DTBox
+        Box object to be populated.
+
+    """
     if et.text:
         dictree.set_item(et.tag, et.text)
         return
@@ -249,6 +301,19 @@ def xml2dtb(et, dictree):
 
 
 def convert_xml_to_dict(xml_object):
+    """
+    Convert XML object to a DTBox object.
+
+    Parameters
+    ----------
+    xml_object : str or xml.etree.ElementTree.Element
+        XML object to be converted. It can be a string or an ElementTree node.
+
+    Returns
+    -------
+    DTBox
+        A DTBox object containing the converted XML data.
+    """
     if isinstance(xml_object, str):
         xml_object = ET.fromstring(xml_object)
     op = DTBox(box_dots=True)

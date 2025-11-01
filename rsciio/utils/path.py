@@ -53,7 +53,7 @@ def append2pathname(filename, to_append):
         The new file name with the appended string.
     """
     p = Path(filename)
-    return Path(p.parent, p.stem + to_append, p.suffix)
+    return Path(p.parent, p.stem + to_append + p.suffix)
 
 
 def incremental_filename(filename, i=1):
@@ -79,7 +79,7 @@ def incremental_filename(filename, i=1):
     filename = Path(filename)
 
     if filename.is_file():
-        new_filename = append2pathname(filename, "-{i}")
+        new_filename = append2pathname(filename, f"-{i}")
         if new_filename.is_file():
             return incremental_filename(filename, i + 1)
         else:

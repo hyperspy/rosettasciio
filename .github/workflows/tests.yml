@@ -61,7 +61,7 @@ jobs:
             LABEL: '-hyperspy'
             HYPERSPY_VERSION: 'release'
           - os: macos
-            os_version: '13'
+            os_version: '15-intel'
             PYTHON_VERSION: '3.13'
             LABEL: '-hyperspy'
             HYPERSPY_VERSION: 'release'

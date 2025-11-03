@@ -1,7 +1,13 @@
 ### Requirements
-* Until `RosettaSciIO` has a contributor guide, you can read the [HyperSpy developer guide](https://hyperspy.org/hyperspy-doc/current/dev_guide/intro.html) to familiarise yourself with how to contribute.
-* Base your pull request on the correct branch (so far ``main`` branch)
-* Fill out the template; it helps the review process and it is useful to summarise the PR.
+* Be aware of relevant documentation:
+  * [Pull request documentation](https://hyperspy.org/rosettasciio/contributing.html#pull-requests)
+  * [Adding new file format](https://hyperspy.org/rosettasciio/contributing.html#defining-new-rosettasciio-plugins)
+  * [Adding and making test files](https://hyperspy.org/rosettasciio/contributing.html#making-test-data-files)
+  * RosettaSciIO follows standard practises in open-source code development. If you need more information, you can refer to the [HyperSpy developer guide](https://hyperspy.org/hyperspy-doc/current/dev_guide/intro.html) to familiarise yourself with how to contribute.
+* Base your pull request on the ``main`` branch.
+* Fill out the template; it helps the review process and it is useful to summarise the PR and its progress.
+* Ask for help in the thread of the pull request when you need.
+* Ask for review when you are ready.
 * This template can be updated during the progression of the PR to summarise its status. 
 
 *You can delete this section after you read it.*

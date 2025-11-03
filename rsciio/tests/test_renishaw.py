@@ -18,6 +18,7 @@
 
 import gc
 import importlib
+import logging
 import shutil
 from copy import deepcopy
 from pathlib import Path
@@ -1515,3 +1516,15 @@ class TestIntegrationtime:
         np.testing.assert_allclose(
             self.s_21.metadata.Acquisition_instrument.Detector.integration_time, 2
         )
+
+
+def test_interrupted_acquisition(caplog):
+    fname = testfile_dir / "interrupted_acquisition.wdf"
+    with caplog.at_level(logging.WARNING):
+        s, _ = hs.load(fname)
+
+    assert "Unfinished measurement" in caplog.text
+
+    # setup navigation shape is (3, 4)
+    # the acquisition was interrupted at the end of the 3rd line and the last line is missing
+    assert s.data.shape == (3, 4, 1010)

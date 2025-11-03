@@ -27,16 +27,18 @@ jobs:
             CIBW_ARCHS: "aarch64"
           - os: "windows-latest"
             CIBW_ARCHS: "AMD64"
+          - os: "windows-11-arm"
+            CIBW_ARCHS: "ARM64"
           - os: "macos-13"
             CIBW_ARCHS: "x86_64"
           - os: "macos-14"
             CIBW_ARCHS: "arm64"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build wheels for CPython
-        uses: pypa/cibuildwheel@v2.23
+        uses: pypa/cibuildwheel@7c619efba910c04005a835b110b057fc28fd6e93
         env:
           CIBW_ARCHS: ${{ matrix.CIBW_ARCHS }}
           CIBW_BUILD_FRONTEND: 'pip; args: --pre --extra-index-url "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple"'
@@ -55,7 +57,7 @@ jobs:
     name: Make SDist
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build SDist
         run: pipx run build --sdist
@@ -74,7 +76,7 @@ jobs:
     name: Make pure python wheel
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build pure python wheel
         run: DISABLE_C_EXTENTIONS=1 pipx run build --wheel
@@ -88,33 +90,22 @@ jobs:
           name: artifacts-${{ matrix.os }}-pure_python
           path: dist/*.whl
 
-  # Merge all disttribution files into the same directory
-  merge_artifacts:
-    runs-on: ubuntu-latest
-    needs: [ build_wheels, make_sdist, pure_python_wheel ]
-    steps:
-      - name: Merge Artifacts
-        uses: actions/upload-artifact/merge@v4
-        with:
-          name: artifacts
-          pattern:  artifacts-*
-
   upload_to_pypi:
-    needs: merge_artifacts
+    needs: [ build_wheels, make_sdist, pure_python_wheel ]
     runs-on: ubuntu-latest
     permissions:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
     steps:
       - name: Download wheels
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
-          name: artifacts
+          pattern: artifacts-*
           path: dist
+          merge-multiple: true
 
       - name: Display structure of downloaded files
         run: ls -R
-        working-directory: dist
 
       - uses: pypa/gh-action-pypi-publish@release/v1
         if: ${{ startsWith(github.ref, 'refs/tags/') && github.repository_owner == 'hyperspy' }}
@@ -131,7 +122,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Create Release
         id: create_release
-        uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631
+        uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090

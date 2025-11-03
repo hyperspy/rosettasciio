@@ -1,11 +1,11 @@
 [build-system]
-requires = ["setuptools>=64", "setuptools_scm>=8", "wheel", "cython"]
+requires = ["setuptools>=64", "setuptools_scm>=8", "wheel", "cython>=3.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "rosettasciio"
 description = "Reading and writing scientific file formats"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 readme = "README.md"
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -13,11 +13,11 @@ classifiers = [
   "Intended Audience :: Science/Research",
   "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
   "Operating System :: OS Independent",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Scientific/Engineering",
   "Topic :: Scientific/Engineering :: Physics",
   "Topic :: Software Development :: Libraries",
@@ -25,7 +25,7 @@ classifiers = [
 dependencies = [
   "dask[array] >=2022.9.2", # aligned with hyperspy for convenience
   "python-dateutil",
-  "numpy >=1.20",
+  "numpy >=1.22",
   "pint >=0.8",
   # python-box API changed on major release
   # and compatibility needs to be checked
@@ -89,14 +89,14 @@ keywords = [
 file = "COPYING.txt"
 
 [project.optional-dependencies]
-arina = ["h5py>=2.3", "hdf5plugin"]
-blockfile = ["scikit-image>=0.18"]
+arina = ["h5py>=3.7", "hdf5plugin"]
+blockfile = ["scikit-image>=0.20"]
 eds-stream = ["sparse"]
-hdf5 = ["h5py>=2.3"]
-image = ["imageio>=2.16"]
+hdf5 = ["h5py>=3.7"]
+image = ["imageio>=2.16", "pillow>=9.0.1"]
 mrcz = ["mrcz>=0.3.6"]
 scalebar_export = ["matplotlib-scalebar", "matplotlib>=3.6"]
-speed = ["numba>=0.53"]
+speed = ["numba>=0.56"]
 tiff = ["tifffile>=2022.7.28", "imagecodecs"]
 usid = ["pyUSID>=0.0.11"]
 zspy = ["zarr>=2,<3", "msgpack"]
@@ -142,13 +142,15 @@ dev = [
 ]
 
 [tool.cibuildwheel]
-build = ["cp39-*", "cp310-*", "cp311-*", "cp312-*", "cp313-*", "cp313t-*"]
+build = ["cp310-*", "cp311-*", "cp312-*", "cp313-*", "cp313t-*", "cp314-*", "cp314t-*"]
 enable = ["cpython-freethreading"]
 # No need to build wheels for pypy because the pure python wheels can be used
 # PyPy documentation recommends no to build the C extension
-skip = ["pp*", "*-musllinux*", "*win32", "*-manylinux_i686"]
+skip = ["*-musllinux*", "*-win32", "*-manylinux_i686"]
 test-command = "pytest --pyargs rsciio"
 test-extras = ["tests"]
+# dependencies not available on pypi.org for cp310
+test-skip = "*cp310-win_arm64"
 
 [tool.pytest.ini_options]
 # Note we may need to use `-n 2` argument for pytest-xdist on CI
@@ -173,7 +175,7 @@ include = ["rsciio*"]
 [tool.setuptools_scm]
 # Presence enables setuptools_scm, the version will be determine at build time from git
 # The version will be updated by the `prepare_release.py` script
-fallback_version = "0.10.dev0"
+fallback_version = "0.11.dev0"
 
 [tool.towncrier]
 directory = "upcoming_changes/"

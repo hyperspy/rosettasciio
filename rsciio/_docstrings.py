@@ -130,3 +130,10 @@ RETURNS_DOC = """Returns
 
         When the file contains several datasets, each dataset will be loaded as separate dictionary.
     """
+
+
+UNSUPPORTED_METADATA_DOC = """Notes
+    -----
+
+    This plugin does not support metadata like scale, units, etc.
+    """

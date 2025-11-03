@@ -25,6 +25,7 @@
 
 import json
 import logging
+from pathlib import Path
 
 import h5py
 
@@ -94,6 +95,9 @@ def is_EMD_Velox(file):
             if v_dict["format"] in ["Velox", "DevelopersKit"]:
                 return True
         return False
+
+    if isinstance(file, Path):
+        file = str(file)
 
     if isinstance(file, str):
         with h5py.File(file, "r") as f:
@@ -173,6 +177,9 @@ def file_reader(
     ModuleNotFoundError
         When reading spectrum image from Velox EMD file and the ``sparse`` library is missing.
     """
+    if isinstance(filename, Path):
+        filename = str(filename)
+
     file = h5py.File(filename, "r")
     dictionaries = []
     try:
@@ -230,6 +237,8 @@ def file_writer(filename, signal, chunks=None, **kwds):
         Dictionary containing metadata, which will be written as attribute
         of the root group.
     """
+    if isinstance(filename, Path):
+        filename = str(filename)
     from ._emd_ncem import EMD_NCEM
 
     EMD_NCEM().write_file(filename, signal, chunks=chunks, **kwds)

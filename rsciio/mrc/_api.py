@@ -380,10 +380,12 @@ def file_reader(
                     suffix = ""
                 if len(dir_name) == 0:
                     dir_name = "."
-                metadata = glob.glob(dir_name + "/" + unique_id + suffix + "_info.txt")
-                virtual_images = glob.glob(
-                    dir_name + "/" + unique_id + suffix + "*_[0-4]_*.mrc"
-                )
+                metadata = glob.glob(dir_name + "/" + unique_id + suffix + "*_info.txt")
+                virtual_images = [
+                    p
+                    for p in glob.glob(dir_name + "/" + unique_id + suffix + "*_[0-4]_*.mrc")
+                    if "movie" not in os.path.basename(p).lower()
+                ]
                 virtual_images_old = glob.glob(
                     dir_name + "/" + unique_id + suffix + "_virt[0-4]_*.mrc"
                 )
@@ -434,24 +436,27 @@ def file_reader(
         positions = None
     metadata["General"]["original_filename"] = os.path.split(filename)[1]
     metadata["Signal"]["signal_type"] = ""
-
+    metadata["General"]["virtual_images"] = {}
     if virtual_images is not None and len(virtual_images) > 0:
         imgs = []
-        for v in virtual_images:
-            img = file_reader(v)[0]["data"]
+        for i, v in enumerate(virtual_images):
+            signal = file_reader(v)[0]
+            img = signal["data"]
             if navigation_shape is not None and navigation_shape[::-1] != img.shape:
                 if np.prod(img.shape) == np.prod(navigation_shape[::-1]):
-                    img = img.reshape(navigation_shape[::-1])
+                    signal["data"] = img.reshape(navigation_shape[::-1])
                 else:  # pragma: no cover
                     _logger.warning(
                         f"Virtual image {v} does not match the navigation shape {navigation_shape[::-1]}"
                     )
-            imgs.append(img)
-        metadata["General"]["virtual_images"] = imgs
+            imgs.append(signal)
+            print(f"Adding virtual image _sig_image_{i}")
+            metadata["General"]["virtual_images"][f"_sig_image_{i}"] = signal
+            print(metadata["General"]["virtual_images"])
         # checking to make sure the navigator is valid
-        if navigation_shape is not None and navigation_shape[::-1] == imgs[0].shape:
+        if navigation_shape is not None and navigation_shape[::-1] == imgs[0]["data"].shape:
             metadata["_HyperSpy"] = {}
-            metadata["_HyperSpy"]["navigator"] = imgs[0]
+            metadata["_HyperSpy"]["_sig_navigator"] = imgs[0]
 
     if external_images is not None and len(external_images) > 0:
         imgs = []

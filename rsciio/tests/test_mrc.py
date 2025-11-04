@@ -139,8 +139,9 @@ def test_mrc_metadata_auto():
     assert s.metadata.Acquisition_instrument.TEM.detector == "DESim"
     assert s.metadata.Acquisition_instrument.TEM.magnification == "1000"
     assert s.metadata.Acquisition_instrument.TEM.frames_per_second == "700"
-    assert len(s.metadata.General.virtual_images) == 2
+    assert len(s.metadata.General.virtual_images.keys()) == 2
     assert len(s.metadata.General.external_detectors) == 1
+    assert isinstance(s.metadata.General.virtual_images.image_0, hs.signals.Signal2D)
 
     assert s.metadata._HyperSpy.navigator is not None
 

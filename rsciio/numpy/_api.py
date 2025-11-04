@@ -30,7 +30,7 @@ from rsciio._docstrings import (
     SIGNAL_DOC,
     UNSUPPORTED_METADATA_DOC,
 )
-from rsciio.utils.distributed import memmap_distributed
+from rsciio.utils._distributed import memmap_distributed
 
 
 def inspect_npy_file(filename):
@@ -130,7 +130,7 @@ def file_reader(filename, lazy=False, chunks="auto", navigation_axes=None, **kwa
         all axes will be treated as signal axes.
     **kwargs : dict, optional
         Pass keyword arguments to the :func:`numpy.load`, when
-        lazy is False, otherwise to :func:`rsciio.utils.distributed.memmap_distributed`.
+        lazy is False, otherwise to :func:`rsciio.utils.file.memmap_distributed`.
 
     %s
 

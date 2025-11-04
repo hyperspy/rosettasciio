@@ -26,6 +26,7 @@ import numpy as np
 import pytest
 from dask.array.core import normalize_chunks
 
+from rsciio.exceptions import VisibleDeprecationWarning
 from rsciio.quantumdetector._api import (
     MIBProperties,
     load_mib_data,
@@ -33,7 +34,6 @@ from rsciio.quantumdetector._api import (
     parse_hdr_file,
     parse_timestamps,
 )
-from rsciio.utils.exceptions import VisibleDeprecationWarning
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 zarr = pytest.importorskip("zarr", reason="zarr not installed")

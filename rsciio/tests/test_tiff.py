@@ -31,7 +31,7 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 t = pytest.importorskip("traits.api", reason="traits not installed")
 
 import rsciio.tiff  # noqa: E402
-from rsciio.utils.tests import assert_deep_almost_equal  # noqa: E402
+from rsciio.utils._tests import assert_deep_almost_equal  # noqa: E402
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "tiff"
 TEST_NPZ_DATA_PATH = Path(__file__).parent / "data" / "npz"

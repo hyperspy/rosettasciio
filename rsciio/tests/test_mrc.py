@@ -22,6 +22,12 @@ import pytest
 
 from rsciio.exceptions import VisibleDeprecationWarning
 from rsciio.mrc import file_reader
+from rsciio.mrc._api import (
+    MOVIE_RE,
+    VIRTUAL_RE,
+    find_related_de_files,
+    get_data_type,
+)
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -140,8 +146,8 @@ def test_mrc_metadata_auto():
     assert s.metadata.Acquisition_instrument.TEM.magnification == "1000"
     assert s.metadata.Acquisition_instrument.TEM.frames_per_second == "700"
     assert len(s.metadata.General.virtual_images.keys()) == 2
-    assert len(s.metadata.General.external_detectors) == 1
-    assert isinstance(s.metadata.General.virtual_images.image_0, hs.signals.Signal2D)
+    assert len(s.metadata.General.external_images.keys()) == 1
+    assert isinstance(s.metadata.General.virtual_images["Virt 0"], hs.signals.Signal2D)
 
     assert s.metadata._HyperSpy.navigator is not None
 
@@ -165,10 +171,12 @@ def test_mrc_metadata_auto_custom_shape():
     assert s.metadata.Acquisition_instrument.TEM.magnification == "1000"
     assert s.metadata.Acquisition_instrument.TEM.frames_per_second == "700"
     assert len(s.metadata.General.virtual_images) == 2
-    assert len(s.metadata.General.external_detectors) == 1
+    assert len(s.metadata.General.external_images) == 1
 
     assert s.metadata._HyperSpy.navigator is not None
-    assert s.metadata._HyperSpy.navigator.shape == navigation_shape[::-1]
+    assert s.metadata._HyperSpy.navigator.data.shape == navigation_shape[::-1]
+
+    assert isinstance(s.metadata._HyperSpy.navigator, hs.signals.BaseSignal)
 
     shape = (
         s.axes_manager._navigation_shape_in_array
@@ -238,3 +246,205 @@ def test_repeated_mrc_custom_no_scan_file():
             TEST_DATA_DIR / "Custom_movie.mrc",
             metadata_file=TEST_DATA_DIR / "Custom_info.txt",
         )
+
+
+# ---------------------------------------------------------------------------
+# Tests for new PR code: regex patterns, find_related_de_files, uint8 mode 0
+# ---------------------------------------------------------------------------
+
+
+class TestMovieRegex:
+    """Tests for the MOVIE_RE regex pattern."""
+
+    @pytest.mark.parametrize(
+        "filename, expected",
+        [
+            (
+                "20241021_00405_movie.mrc",
+                {
+                    "timestamp": "20241021",
+                    "acquisitionNumber": "00405",
+                    "optionalSuffix": None,
+                    "movieNum": None,
+                },
+            ),
+            (
+                "20241021_00405_suffix_movie.mrc",
+                {
+                    "timestamp": "20241021",
+                    "acquisitionNumber": "00405",
+                    "optionalSuffix": "suffix",
+                    "movieNum": None,
+                },
+            ),
+            (
+                "20241021_00405_suffix_extra_movie.mrc",
+                {
+                    "timestamp": "20241021",
+                    "acquisitionNumber": "00405",
+                    "optionalSuffix": "suffix_extra",
+                    "movieNum": None,
+                },
+            ),
+        ],
+    )
+    def test_movie_re_matches(self, filename, expected):
+        m = MOVIE_RE.fullmatch(filename)
+        assert m is not None
+        for key, val in expected.items():
+            assert m.group(key) == val
+
+    def test_movie_re_no_match(self):
+        assert MOVIE_RE.fullmatch("20241021_00405_info.txt") is None
+        assert MOVIE_RE.fullmatch("not_a_movie.mrc") is None
+        assert MOVIE_RE.fullmatch("20241021_00405_0_Virt 0_sum.mrc") is None
+
+
+class TestVirtualRegex:
+    """Tests for the VIRTUAL_RE regex pattern."""
+
+    @pytest.mark.parametrize(
+        "filename, expected_name, expected_calc",
+        [
+            ("20241021_00405_0_Virt 0_sum.mrc", "Virt 0", "sum"),
+            ("20241021_00405_1_Virt 1_sum.mrc", "Virt 1", "sum"),
+            (
+                "20251103_23389_3_CentroidAmp_centroid_amplitude.mrc",
+                "CentroidAmp",
+                "centroid_amplitude",
+            ),
+        ],
+    )
+    def test_virtual_re_matches(self, filename, expected_name, expected_calc):
+        m = VIRTUAL_RE.fullmatch(filename)
+        assert m is not None, f"VIRTUAL_RE should match {filename!r}"
+        assert m.group("name") == expected_name
+        assert m.group("calculationType") == expected_calc
+
+    def test_virtual_re_no_match_movie(self):
+        assert VIRTUAL_RE.fullmatch("20241021_00405_movie.mrc") is None
+
+    def test_virtual_re_virt_prefix(self):
+        # virtualImageNum with 'virt<digits>' prefix should also match
+        m = VIRTUAL_RE.fullmatch("20241021_00405_virt0_BF_sum.mrc")
+        assert m is not None
+        assert m.group("virtualImageNum") == "virt0"
+        assert m.group("name") == "BF"
+
+
+class TestGetDataType:
+    """Tests for the get_data_type function."""
+
+    def test_mode_0_is_uint8(self):
+        dtype = get_data_type(np.array([0]))
+        assert dtype == np.dtype(np.uint8)
+
+    def test_mode_1_is_int16(self):
+        assert get_data_type(np.array([1])) == np.dtype(np.int16)
+
+    def test_mode_2_is_float32(self):
+        assert get_data_type(np.array([2])) == np.dtype(np.float32)
+
+    def test_mode_6_is_uint16(self):
+        assert get_data_type(np.array([6])) == np.dtype(np.uint16)
+
+    def test_mode_12_is_float16(self):
+        assert get_data_type(np.array([12])) == np.dtype(np.float16)
+
+    def test_invalid_mode_raises(self):
+        with pytest.raises(ValueError, match="Unrecognised mode"):
+            get_data_type(np.array([99]))
+
+
+class TestFindRelatedDeFiles:
+    """Tests for find_related_de_files."""
+
+    def test_find_related_de_files_basic(self):
+        movie = str(TEST_DATA_DIR / "20241021_00405_movie.mrc")
+        result = find_related_de_files(movie)
+
+        assert result["info_file"] is not None
+        assert "20241021_00405_info.txt" in result["info_file"]
+
+        assert len(result["virtual_images"]) == 2
+        assert len(result["virtual_image_names"]) == 2
+        assert "Virt 0" in result["virtual_image_names"]
+        assert "Virt 1" in result["virtual_image_names"]
+
+        assert len(result["external_images"]) == 1
+        assert len(result["external_image_names"]) == 1
+        assert "Ext 1" in result["external_image_names"]
+
+        # scan CSV is not present for this dataset
+        assert result["scan_csv"] is None
+
+    def test_find_related_de_files_non_movie_name(self):
+        """Non-matching filenames should return empty result."""
+        result = find_related_de_files("not_a_real_movie_file.mrc")
+        assert result["info_file"] is None
+        assert result["virtual_images"] == []
+        assert result["virtual_image_names"] == []
+        assert result["external_images"] == []
+        assert result["scan_csv"] is None
+
+    def test_find_related_de_files_virtual_images_sorted(self):
+        """Virtual image list should be sorted."""
+        movie = str(TEST_DATA_DIR / "20241021_00405_movie.mrc")
+        result = find_related_de_files(movie)
+        assert result["virtual_images"] == sorted(result["virtual_images"])
+
+    def test_find_related_de_files_dedupe(self, tmp_path):
+        """_dedupe should rename duplicate virtual image names."""
+        import shutil
+
+        # Create a minimal movie file and two virtual images with the same name
+        src_movie = TEST_DATA_DIR / "20241021_00405_movie.mrc"
+        ts = "20260101"
+        acq = "99999"
+        movie = tmp_path / f"{ts}_{acq}_movie.mrc"
+        shutil.copy(src_movie, movie)
+        v0 = tmp_path / f"{ts}_{acq}_0_BF_sum.mrc"
+        v1 = tmp_path / f"{ts}_{acq}_1_BF_sum.mrc"
+        shutil.copy(src_movie, v0)
+        shutil.copy(src_movie, v1)
+        # Create a dummy info file
+        (tmp_path / f"{ts}_{acq}_info.txt").write_text("Camera Model = TestCamera\n")
+
+        result = find_related_de_files(str(movie))
+        names = result["virtual_image_names"]
+        assert len(names) == 2
+        # First occurrence keeps the name, second gets a suffix
+        assert names[0] == "BF"
+        assert names[1] != "BF"
+        assert names[1].startswith("BF")
+
+
+class TestMetadataVirtualImageNames:
+    """Test that virtual and external image names appear correctly in loaded signal metadata."""
+
+    def test_virtual_image_names_in_metadata(self):
+        s = hs.load(TEST_DATA_DIR / "20241021_00405_movie.mrc", lazy=True)
+        # HyperSpy stores _sig_* keys and exposes them without the prefix as signals
+        keys = list(s.metadata.General.virtual_images.as_dictionary().keys())
+        assert "_sig_Virt 0" in keys
+        assert "_sig_Virt 1" in keys
+        # Accessible via HyperSpy attribute (prefix stripped)
+        assert "Virt 0" in s.metadata.General.virtual_images
+
+    def test_external_image_names_in_metadata(self):
+        s = hs.load(TEST_DATA_DIR / "20241021_00405_movie.mrc", lazy=True)
+        ext_keys = list(s.metadata.General.external_images.as_dictionary().keys())
+        assert len(ext_keys) == 1
+        # Key stored with _sig_ prefix
+        assert ext_keys[0] == "_sig_Ext 1"
+        # Accessible via HyperSpy attribute (prefix stripped)
+        assert "Ext 1" in s.metadata.General.external_images
+
+    def test_navigator_is_signal(self):
+        s = hs.load(TEST_DATA_DIR / "20241021_00405_movie.mrc", lazy=True)
+        assert isinstance(s.metadata._HyperSpy.navigator, hs.signals.BaseSignal)
+
+    def test_virtual_image_is_signal2d(self):
+        s = hs.load(TEST_DATA_DIR / "20241021_00405_movie.mrc", lazy=True)
+        virt = s.metadata.General.virtual_images["Virt 0"]
+        assert isinstance(virt, hs.signals.Signal2D)

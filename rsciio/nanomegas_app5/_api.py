@@ -25,7 +25,6 @@
 # some simplification and redesign of the algorithm and some minor changes 
 # due to changes in xml functions used in python
 
-import logging
 
 import h5py
 import xml.etree.cElementTree as ET
@@ -41,7 +40,7 @@ from rsciio._docstrings import (
 
 _logger = logging.getLogger(__name__)
 
-def import_app5_to_hs(app5, which='survey', imageflip=False, metadata=True, wavelength=2.51):
+def import_app5(app5, which, imageflip):
     '''
     
     Input:
@@ -62,7 +61,7 @@ def import_app5_to_hs(app5, which='survey', imageflip=False, metadata=True, wave
         Only applies for which='survey' or 'SPED', because only this part of the data has all these.
         
     Output:
-    A suitable hyperspy object, either a BaseSignal object for survey or virtual, or a Signal2D object for SPED
+        A suitable hyperspy object, either a BaseSignal object for survey or virtual, or a Signal2D object for SPED
     '''
 
     h5file = h5py.File(app5, 'r')
@@ -70,20 +69,48 @@ def import_app5_to_hs(app5, which='survey', imageflip=False, metadata=True, wave
     metas = [g['Metadata'][()].decode() for g in groups]
     contexts = [ET.fromstring(mi).find('Context').text for mi in metas]
     
+    # Sorts out details of survey image and checks that that the file actually contains only one scan
+    # Finds the right context for the survey image
+    Area = [c.endswith('Series Area') for c in contexts]
+    # Checks that the file only has one dataset
+    number_of_datasets = sum(Area)
+    if number_of_datasets != 1:
+        h5file.close()
+        raise Exception("Expected 1 'Survey Area' dataset, but there are %d. Conversion aborted." %(number_of_datasets))
+    # Gets the index in the context list
+    seriesAreaIndex = Area.index(True)
+    # Pulls the right group for the actual data
+    seriesAreaGroup = groups[seriesAreaIndex]
+    # Gets the name of the area
+    Areaname = ET.fromstring(metas[seriesAreaIndex]).find('ProcedureData/Item/Value/Id').text
+
+    # Sorts out details of virtual image and scan
+    # Find if we have something called 'Series' in contexts, which will contain the scan data
+    series = [c.endswith('Series') for c in contexts]
+    # Get the index for the series in the short list
+    seriesIndex = series.index(True)
+    # Get the data group for this index
+    seriesGroup = groups[seriesIndex]
+    
+    #Get metadata list for the Scan
+    metas = ET.fromstring(metas[seriesIndex])
+    # Get all the names for the metadata parameters
+    names = [item.find('Name').text for item in metas.findall('ProcedureData/Item')]
+    # Get the values for the metadata parameters as binary (needed for finding the virtual image)
+    valuesbinary = [item.find('Value') for item in metas.findall('ProcedureData/Item')]
+    # Get the values of the metadata parameters as texts
+    valuestext = [item.find('Value').text for item in metas.findall('ProcedureData/Item')]
+    # Find the index in the names list for the Virtual Image
+    VirtualImageListIndex = names.index('VirtualStemImageResult')
+    # Get the binary index that actually finds the image in the seriesGroup
+    VirtualImageIndexNumber = valuesbinary[VirtualImageListIndex].find('Id').text
+    # Zip up a metadata dictionary
+    SeriesMetaData = dict(zip(names, valuestext))
+
+
+    # Now actually read the file data out
+
     if which=='survey':
-        # Finds the right context for the survey image
-        Area = [c.endswith('Series Area') for c in contexts]
-        # Checks that the file only has one dataset
-        number_of_datasets = sum(Area)
-        if number_of_datasets != 1:
-            h5file.close()
-            raise Exception("Expected 1 'Survey Area' dataset, but there are %d. Conversion aborted." %(number_of_datasets))
-        # Gets the index in the context list
-        seriesAreaIndex = Area.index(True)
-        # Pulls the right group for the actual data
-        seriesAreaGroup = groups[seriesAreaIndex]
-        # Gets the name of the area
-        Areaname = ET.fromstring(metas[seriesAreaIndex]).find('ProcedureData/Item/Value/Id').text
         # Uses the name to get the image data
         SurveyAreaImage = seriesAreaGroup[Areaname][()]
         if imageflip == True:
@@ -99,37 +126,10 @@ def import_app5_to_hs(app5, which='survey', imageflip=False, metadata=True, wave
         surv_shape = SurveyAreaImage.shape
         dicty = {'size': surv_shape[0], 'name':'y', 'units':'µm', 'scale':yScale_surv, 'offset':0}
         dictx = {'size': surv_shape[1], 'name':'x', 'units':'µm', 'scale':xScale_surv, 'offset':0}
-        SurvImage = hs.signals.BaseSignal(SurveyAreaImage[()], axes=[dicty, dictx])
+        axes=[dicty, dictx]
+        data = SurveyAreaImage[()]
         
-        return SurvImage
-    
     elif which=='virtual'or'SPED':
-        # Find if we have something called 'Series' in contexts, which will contain the scan data
-        series = [c.endswith('Series') for c in contexts]
-        # Check there is only one dataset there
-        n_series = sum(series)
-        if n_series != 1:
-            h5f.close()
-            raise Exception("Expected 1 'Series' dataset, but there are %d. Conversion aborted." %(n_series))
-        # Get the index for the series in the short list
-        seriesIndex = series.index(True)
-        # Get the data group for this index
-        seriesGroup = groups[seriesIndex]
-        
-        #Get metadata list for the Scan
-        metas = ET.fromstring(metas[seriesIndex])
-        # Get all the names for the metadata parameters
-        names = [item.find('Name').text for item in metas.findall('ProcedureData/Item')]
-        # Get the values for the metadata parameters as binary (needed for finding the virtual image)
-        valuesbinary = [item.find('Value') for item in metas.findall('ProcedureData/Item')]
-        # Get the values of the metadata parameters as texts
-        valuestext = [item.find('Value').text for item in metas.findall('ProcedureData/Item')]
-        # Find the index in the names list for the Virtual Image
-        VirtualImageListIndex = names.index('VirtualStemImageResult')
-        # Get the binary index that actually finds the image in the seriesGroup
-        VirtualImageIndexNumber = valuesbinary[VirtualImageListIndex].find('Id').text
-        # Zip up a metadata dictionary
-        SeriesMetaData = dict(zip(names, valuestext))
         
         # Load the Virtual Image from its h5 dataset and gets shape
         virtualImage = seriesGroup[VirtualImageIndexNumber][()]
@@ -146,13 +146,9 @@ def import_app5_to_hs(app5, which='survey', imageflip=False, metadata=True, wave
             # Makes the hs Virtual Image
             dicty = {'size': shape[0], 'name':'y', 'units':'nm', 'scale':yScale, 'offset':0}
             dictx = {'size': shape[1], 'name':'x', 'units':'nm', 'scale':xScale, 'offset':0}
-            VirtualImage = hs.signals.BaseSignal(virtualImage[()], axes=[dicty, dictx])
-            
-            if metadata==True:
-                return VirtualImage, SeriesMetaData
-            else:
-                return VirtualImage
-            
+            axes=[dicty, dictx]
+            data = virtualImage[()]
+                 
         if which=='SPED':
             # list out all the serializers
             serializers = [value.attrib['Serializer'] for value in valuesbinary]
@@ -183,20 +179,30 @@ def import_app5_to_hs(app5, which='survey', imageflip=False, metadata=True, wave
 
                         
             SPED_calib_metadata = ET.fromstring(SPED_dataset['0']['Metadata'][()].decode())
-            kxScale = float(SPED_calib_metadata.find('Calibration/X/Scale').text) * wavelength
-            kyScale = float(SPED_calib_metadata.find('Calibration/Y/Scale').text) * wavelength
-            kxOffset = float(SPED_calib_metadata.find('Calibration/X/Offset').text) * wavelength
-            kyOffset = float(SPED_calib_metadata.find('Calibration/Y/Offset').text) * wavelength
+            kxScale = float(SPED_calib_metadata.find('Calibration/X/Scale').text)
+            kyScale = float(SPED_calib_metadata.find('Calibration/Y/Scale').text)
+            kxOffset = float(SPED_calib_metadata.find('Calibration/X/Offset').text)
+            kyOffset = float(SPED_calib_metadata.find('Calibration/Y/Offset').text)
             
             # Makes the hs Virtual Image
             dicty = {'size': shape[0], 'name':'y', 'units':'nm', 'scale':yScale, 'offset':0}
             dictx = {'size': shape[1], 'name':'x', 'units':'nm', 'scale':xScale, 'offset':0}
-            dictky = {'size': DPshape[0], 'name':'ky', 'units':'A-1', 'scale':kyScale, 'offset':kyOffset}
-            dictkx = {'size': DPshape[1], 'name':'kx', 'units':'A-1', 'scale':kxScale, 'offset':kxOffset}
-            SPED_4DSTEM = hs.signals.Signal2D(data4D[()], axes=[dicty, dictx, dictky, dictkx])
-            del data4D
+            dictky = {'size': DPshape[0], 'name':'ky', 'units':'unknown', 'scale':kyScale, 'offset':kyOffset}
+            dictkx = {'size': DPshape[1], 'name':'kx', 'units':'unknown', 'scale':kxScale, 'offset':kxOffset}
+            axes=[dicty, dictx, dictky, dictkx]
+            data = data4D[()]
   
-            if metadata==True:
-                return SPED_4DSTEM, SeriesMetaData
-            else:
-                return SPED_4DSTEM
+    return data, axes, SeriesMetaData
+           
+            def file_reader(filename, which='survey', imageflip=False):
+                data, axes, metadata = import_app5(filename, which, imageflip)
+                imd.append(
+                {
+                    "data": data,
+                    "axes": axes,
+                    "original_metadata": deepcopy(metadata),
+                }
+            )
+
+    return imd
+

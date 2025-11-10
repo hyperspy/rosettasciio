@@ -1,14 +1,14 @@
-name: EMD
+name: app5_reader
 name_aliases: [app5]
 description: Read data from NanoMEGAS app5 files.
 full_support: False  # Hopefully?
 # Recognised file extension
-file_extensions: ['app5']
+file_extensions: ('app5')
 default_extension: 0
 # Reading capabilities
 reads_images: True
 reads_spectrum: False
 reads_spectrum_image: False
 # Writing features
-writes: True  # Survey, virtual image and 4D dataset
+writes: False  # Survey, virtual image and 4D dataset
 non_uniform_axis: False

@@ -90,6 +90,7 @@ keywords = [
 file = "COPYING.txt"
 
 [project.optional-dependencies]
+app5 = ["h5py>=3.7"]
 arina = ["h5py>=3.7", "hdf5plugin"]
 blockfile = ["scikit-image>=0.20"]
 eds-stream = ["sparse"]

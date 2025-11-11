@@ -26,11 +26,13 @@
 # due to changes in xml functions used in python
 
 
-import h5py
 import xml.etree.cElementTree as ET
-from tqdm import tqdm
-import numpy as np
 from copy import deepcopy
+
+import h5py
+import numpy as np
+from tqdm import tqdm
+
 
 def import_app5(app5, which, imageflip):
     """

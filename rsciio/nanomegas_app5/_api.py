@@ -32,15 +32,6 @@ from tqdm import tqdm
 import numpy as np
 from copy import deepcopy
 
-from rsciio._docstrings import (
-    CHUNKS_DOC,
-    FILENAME_DOC,
-    LAZY_DOC,
-    RETURNS_DOC,
-    SIGNAL_DOC,
-)
-
-
 def import_app5(app5, which, imageflip):
     """
 

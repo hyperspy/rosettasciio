@@ -29,6 +29,8 @@
 import h5py
 import xml.etree.cElementTree as ET
 from tqdm import tqdm
+import numpy as np
+from copy import deepcopy
 
 from rsciio._docstrings import (
     CHUNKS_DOC,
@@ -37,9 +39,6 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
-
-_logger = logging.getLogger(__name__)
-
 
 def import_app5(app5, which, imageflip):
     """
@@ -120,7 +119,7 @@ def import_app5(app5, which, imageflip):
     if which == "survey":
         # Uses the name to get the image data
         SurveyAreaImage = seriesAreaGroup[Areaname][()]
-        if imageflip == True:
+        if imageflip:
             SurveyAreaImage = SurveyAreaImage[:, ::-1]
 
         # Pulls the metadata to get the scales for calibration
@@ -159,7 +158,7 @@ def import_app5(app5, which, imageflip):
         shape = virtualImage[()].shape
 
         if which == "virtual":
-            if imageflip == True:
+            if imageflip:
                 virtualImage = virtualImage[:, ::-1]
             # Pulls the metadata to get the scales for calibration
             series_calibration_metadata = ET.fromstring(
@@ -221,7 +220,7 @@ def import_app5(app5, which, imageflip):
                     data3D[point, :, :] = SPED_dataset[str(point)]["Data"][()]
                     pbar.update(point)
             data4D = data3D.reshape(yPoints, xPoints, *DPshape)[::-1]
-            if imageflip == True:
+            if imageflip:
                 data4D = data4D[:, ::-1, :, :]
 
             SPED_calib_metadata = ET.fromstring(

@@ -40,6 +40,7 @@ from rsciio._docstrings import (
     SIGNAL_DOC,
 )
 
+
 def import_app5(app5, which, imageflip):
     """
 
@@ -152,7 +153,6 @@ def import_app5(app5, which, imageflip):
         data = SurveyAreaImage[()]
 
     elif which == "virtual" or "SPED":
-
         # Load the Virtual Image from its h5 dataset and gets shape
         virtualImage = seriesGroup[VirtualImageIndexNumber][()]
         shape = virtualImage[()].shape

@@ -1,0 +1,10 @@
+name: TopSpin
+name_aliases: ["nanomegas","Digistar"]
+description: "Used by Nanomegas for TopSpin software, which interfaces with their Digistar systems to collect various forms of 4D-STEM data, including precession electron diffraction"
+full_support: False
+file_extensions: [".app5"]
+default_extension: 0
+writes: False
+# if only limited dimensions are supported, the supported combinations of signal
+# dimensions (sd) and navigation dimensions (nd) are given as list [[sd, nd], ...]
+non_uniform_axis: False

@@ -61,14 +61,14 @@ mask = np.zeros([50, 500], dtype=bool)
 mask[10:12, 50:55] = True
 keeps = mask.flatten() * np.arange(50 * 500)
 keeps = keeps[keeps > 0]
-for i in keeps:
+for new_i, i in enumerate(keeps):
     old_sub_grp = old_grp[str(i)]
-    new_grp.create_group(str(i))
+    new_grp.create_group(str(new_i))
     data = np.asanyarray(old_sub_grp["Data"][::8, ::8]).copy()
-    new_grp[str(i)].create_dataset(
+    new_grp[str(new_i)].create_dataset(
         "Data", shape=(32, 32), dtype="<f4", data=data
     )
-    old_sub_grp.copy(old_sub_grp["Metadata"], new_grp[str(i)], "Metadata")
+    old_sub_grp.copy(old_sub_grp["Metadata"], new_grp[str(new_i)], "Metadata")
 
 # Metadata
 root = ET.fromstring(old_app5["Metadata"][()].decode())

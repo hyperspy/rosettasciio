@@ -23,13 +23,6 @@ import xml.etree.ElementTree as ET
 from rsciio._docstrings import FILENAME_DOC, SHOW_PROGRESSBAR_DOC, RETURNS_DOC
 
 
-old_app5e = h5py.File("/home/arg6/workspace/1750 1.app5", "r")
-meta = old_app5e["18d9446f-22bf-4fb1-8d13-338174e75d20"]["Metadata"][
-    ()
-].decode()
-root = ET.fromstring(meta)
-
-
 def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
     """
     Read .app5 file format used by NanoMegas's Topspin software. These files
@@ -71,7 +64,7 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
     if np.isin("Metadata", group_names):  # single experimental session.
         for name in h5_file.keys():
             if is_guid(name):
-                guids_to_process.append(name, "Metadata")
+                guids_to_process.append([name, "Metadata"])
     else:  # Multiple experimental sessions.
         for top_name in h5_file.keys():
             if is_guid(top_name):
@@ -97,9 +90,9 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
             axes = _get_4D_axes(h5_grp)
         else:  # 2D composite image
             axes = _get_2D_axes(metadata_string, name)
-            shape = h5_file[address]
-            axes[0]["shape"] = shape[0]
-            axes[1]["shape"] = shape[1]
+            shape = h5_file[address].shape
+            axes[0]["size"] = shape[0]
+            axes[1]["size"] = shape[1]
         datasets_list.append(
             {
                 "axes": axes,
@@ -112,8 +105,9 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
         message = "The following would be imported from " + filename + ":"
         for i, ds_dict in enumerate(datasets_list):
             shape = [x["size"] for x in ds_dict["axes"]]
-            address = guids_to_process[i][0]
-            message += "\n   - {} {}".format(address, shape)
+            guid = guids_to_process[i][0]
+            name = ds_dict["metadata"]["Title"]
+            message += "\n   - {}, {}\n      {}".format(name, shape, guid)
         print(message)
         return ()
 
@@ -169,8 +163,9 @@ def _get_4D_axes(h5_grp):
     ]
 
     # K-space axes
-    k_space = ET.fromstring(h5_grp["0/Metadata"][()].decode())[0]
-    shape = h5_grp["0/Data"].shape
+    k_space_id = [x for x in h5_grp.keys()][0]
+    k_space = ET.fromstring(h5_grp[k_space_id]["Metadata"][()].decode())[0]
+    shape = h5_grp[k_space_id]["Data"].shape
     vuyx_axes[2]["units"] = k_space[0][2][1].text
     vuyx_axes[2]["size"] = shape[0]
     vuyx_axes[2]["scale"] = k_space[0][1]

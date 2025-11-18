@@ -16,11 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import h5py
-import numpy as np
 import xml.etree.ElementTree as ET
 
-from rsciio._docstrings import FILENAME_DOC, SHOW_PROGRESSBAR_DOC, RETURNS_DOC
+import h5py
+import numpy as np
+
+from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC, SHOW_PROGRESSBAR_DOC
 
 
 def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
@@ -117,9 +118,7 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
         if len(shape) == 2:
             datasets_list[i]["data"] = np.asanyarray(h5_file[address])
         elif len(shape) == 4:
-            data = np.zeros(
-                [np.prod(shape[:2]), shape[2], shape[3]], dtype=np.uint16
-            )
+            data = np.zeros([np.prod(shape[:2]), shape[2], shape[3]], dtype=np.uint16)
             for key in h5_file[address]:
                 data[int(key)] = h5_file[address][key]["Data"]
             datasets_list[i]["data"] = np.asanyarray(h5_file[address])

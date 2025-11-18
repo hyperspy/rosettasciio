@@ -17,11 +17,12 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 from pathlib import Path
-import numpy as np
+
 import h5py
+import numpy as np
 import pytest
 
-from rsciio.topspin._api import file_reader, _parse_app5_xml
+from rsciio.topspin._api import _parse_app5_xml, file_reader
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 

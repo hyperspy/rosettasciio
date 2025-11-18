@@ -103,6 +103,7 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
         )
 
     if dryrun:
+        filename = str(filename)
         message = "The following would be imported from " + filename + ":"
         for i, ds_dict in enumerate(datasets_list):
             shape = [x["size"] for x in ds_dict["axes"]]
@@ -118,7 +119,9 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
         if len(shape) == 2:
             datasets_list[i]["data"] = np.asanyarray(h5_file[address])
         elif len(shape) == 4:
-            data = np.zeros([np.prod(shape[:2]), shape[2], shape[3]], dtype=np.uint16)
+            data = np.zeros(
+                [np.prod(shape[:2]), shape[2], shape[3]], dtype=np.uint16
+            )
             for key in h5_file[address]:
                 data[int(key)] = h5_file[address][key]["Data"]
             datasets_list[i]["data"] = np.asanyarray(h5_file[address])

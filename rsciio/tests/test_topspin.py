@@ -46,8 +46,10 @@ def test_xml_parser():
 
 
 def test_read_from_file():
+    file_reader(file_from_disk, dryrun=True)
     out = file_reader(file_from_disk)
 
 
 def test_read_from_export():
+    file_reader(file_from_export, dryrun=True)
     out = file_reader(file_from_export)

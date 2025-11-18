@@ -16,6 +16,7 @@ New features
 
 - :ref:`Delmic <delmic-format>` format: extend Delmic HDF5 support to handle all types of cathodoluminescence datasets and read multiple datasets at once. (`#328 <https://github.com/hyperspy/rosettasciio/issues/328>`_)
 - Add :ref:`numpy <numpy-format>` plugin to support distributed lazy reading of ``npy`` file. (`#415 <https://github.com/hyperspy/rosettasciio/issues/415>`_)
+- Add support for reading .app5 files from Nanomegas's Topspin software.  (`#454 <https://github.com/hyperspy/rosettasciio/issues/454>`_)
 
 
 Enhancements

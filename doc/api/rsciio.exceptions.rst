@@ -1,7 +1,7 @@
 .. _exceptions:
 
-Exceptions
-==========
+:mod:`rsciio.exceptions`
+========================
 
 The list of exceptions raised by the RosettaSciIO plugins.
 

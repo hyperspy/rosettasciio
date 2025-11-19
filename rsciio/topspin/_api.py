@@ -16,80 +16,84 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import xml.etree.ElementTree as ET
+import xml.etree.cElementTree as ET
 
 import h5py
 import numpy as np
+import sys
+from tqdm import tqdm
 
 from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC, SHOW_PROGRESSBAR_DOC
 
 
 def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
     """
-    Read .app5 file format used by NanoMegas's Topspin software. These files
-    use hdf5 to store data arrays with XML strings for logging metadata.
+    Read .app5 file format used by NanoMegas's Topspin software.
+
+    .app5 files use the hdf5 file format, with metadata stored as
+    binarized XML-style text strings.
+
 
     Parameters
     ----------
     %s
     subset: str or None
-        If given, will only import the subset of experiments matching
-        this address. If none, all datasets will be imported.
+        h5py-style address. If given, only the subset of experiments
+        located at this address will be imported. If none, all datasets
+        will be imported.
 
     dryrun : bool
-        If True, the .app5 files are scanned without being loaded, and
-        a summary of what would be returned if dryrun was False is
-        printed to the console. default is False
+        If True, the .app5 files are quickly scanned without being loaded,
+        and a summary is printed to the log. Default is False.
+
     %s
     %s
 
     Notes
     -----
-    The Metadata textstrings used in app5 files change slightly based on
-    the ProcedureName and version of Topspin used to generate them, and
-    thus the RosettaSciIo Metadata parser might fail if used on newer or
-    more obscure Topspin proceedures.
+    The Metadata textstrings used in app5 files change based on the
+    ProcedureName, Topspin version, and local microscope setup. Because
+    of this, the RosettaSciIo Metadata parser can fail when used to
+    decode newer Topspin proceedures it was not tested against.
     """
+
+    def is_guid(name):
+        """Checks if a text string matches the shape of a guid"""
+        lengths = [len(x) for x in name.split("-")]
+        return lengths == [8, 4, 4, 4, 12]
+
     datasets_list = []
-    guids_to_process = []
+    task_list = []
     h5_file = h5py.File(filename, "r")
     if subset is not None:
         h5_file = h5_file[subset]
 
-    def is_guid(name):
-        lengths = [len(x) for x in name.split("-")]
-        return lengths == [8, 4, 4, 4, 12]
-
-    # Generate job list
+    # Generate task list by searching .app5 for GUID's
     group_names = [x for x in h5_file.keys()]
-    if np.isin("Metadata", group_names):  # single experimental session.
+    if np.isin("Metadata", group_names):  # single experiment file.
         for name in h5_file.keys():
             if is_guid(name):
-                guids_to_process.append([name, "Metadata"])
-    else:  # Multiple experimental sessions.
+                task_list.append([name, "Metadata"])
+    else:  # Multi-experimental file.
         for top_name in h5_file.keys():
             if is_guid(top_name):
                 for name in h5_file[top_name].keys():
                     if is_guid(name):
                         address = top_name + "/" + name
                         meta = top_name + "/" + "Metadata"
-                        guids_to_process.append([address, meta])
+                        task_list.append([address, meta])
 
     # Parse each dataset's metadata
-    for address, meta_loc in guids_to_process:
+    for address, meta_loc in task_list:
         name = address.split("/")[-1]
         metadata_string = h5_file[meta_loc][()].decode()
-        try:
-            meta_dict = _parse_app5_xml(metadata_string)
-        except:
-            UserWarning(
-                "Unable to parse metadata for {}.".format(address)
-                + " Some axis values may be incorrect."
-            )
-        if isinstance(h5_file[address], h5py.Group):  # 4D-STEM
+        meta_dict = _parse_app5_xml(metadata_string)
+        if isinstance(h5_file[address], h5py.Group):
+            # 4D-STEM
             h5_grp = h5_file[address]
             axes = _get_4D_axes(h5_grp)
-        else:  # 2D composite image
+        else:
+            # 2D composite image
             axes = _get_2D_axes(metadata_string, name)
             shape = h5_file[address].shape
             axes[0]["size"] = shape[0]
@@ -107,24 +111,30 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
         message = "The following would be imported from " + filename + ":"
         for i, ds_dict in enumerate(datasets_list):
             shape = [x["size"] for x in ds_dict["axes"]]
-            guid = guids_to_process[i][0]
+            guid = task_list[i][0]
             name = ds_dict["metadata"]["Title"]
             message += "\n   - {}, {}\n      {}".format(name, shape, guid)
-        print(message)
-        return ()
+        sys.stdout.write(message)
+        return []
 
     for i, ds_dict in enumerate(datasets_list):
         shape = [x["size"] for x in ds_dict["axes"]]
-        address = guids_to_process[i][0]
+        address = task_list[i][0]
         if len(shape) == 2:
             datasets_list[i]["data"] = np.asanyarray(h5_file[address])
         elif len(shape) == 4:
             data = np.zeros(
                 [np.prod(shape[:2]), shape[2], shape[3]], dtype=np.uint16
             )
-            for key in h5_file[address]:
+            key_count = len(h5_file[address].keys())
+            for key in tqdm(
+                h5_file[address],
+                desc="Loading {}: ".format(address),
+                total=key_count,
+                disable=not show_progressbar,
+            ):
                 data[int(key)] = h5_file[address][key]["Data"]
-            datasets_list[i]["data"] = np.asanyarray(h5_file[address])
+            datasets_list[i]["data"] = data.reshape(shape)
 
     return datasets_list
 
@@ -178,21 +188,49 @@ def _get_4D_axes(h5_grp):
     vuyx_axes[3]["offset"] = k_space[1][0]
 
     # Image-space axes
+    # Because the experiment-level metadata files sometimes change, it's
+    # better to read information from dataset-level metadata files.
+    # however, reading all is slow, so first try a lazy hack
+    # that assumes a row-major scanning in the TEM.
     x = []
     y = []
-    for i in h5_grp.keys():
-        root = ET.fromstring(h5_grp[i]["Metadata"][()].decode())[1][0][1]
+    keys = np.sort([int(x) for x in h5_grp.keys()]).astype(str)
+    for i in keys:
+        txt = h5_grp[i]["Metadata"][()].decode()
+        root = ET.fromstring(txt)[1][0][1]
         x.append(float(root[0].text))
         y.append(float(root[1].text))
+        if y[-1] > y[0]:
+            # new row in y, meaning we have dx, dy, and ly (theoretically)
+            break
     ux = np.unique(x)
-    uy = np.unique(y)
     dx = (ux.max() - ux.min()) / (ux.size - 1)
-    dy = (uy.max() - uy.min()) / (uy.size - 1)
+    lx = len(ux)
+    uy = np.unique(y)
+    dy = uy.max() - uy.min()
+    ly = len(h5_grp.keys()) // len(ux)
+    if len(h5_grp.keys()) % len(uy) != 0:
+        # Something was wrong with the hack above, and the keys are not
+        # numbered in the expected order. As a fallback, read every
+        # metadata file.
+        x = []
+        y = []
+        for i in h5_grp.keys():
+            txt = h5_grp[i]["Metadata"][()].decode()
+            root = ET.fromstring(txt)[1][0][1]
+            x.append(float(root[0].text))
+            y.append(float(root[1].text))
+        ux = np.unique(x)
+        uy = np.unique(y)
+        dx = (ux.max() - ux.min()) / (ux.size - 1)
+        dy = (uy.max() - uy.min()) / (uy.size - 1)
+        lx = len(ux)
+        ly = len(uy)
 
-    vuyx_axes[0]["size"] = len(uy)
+    vuyx_axes[0]["size"] = ly
     vuyx_axes[0]["scale"] = np.around(dy, 12) * 1e9
     vuyx_axes[0]["offset"] = uy.min() * 1e9
-    vuyx_axes[1]["size"] = len(ux)
+    vuyx_axes[1]["size"] = lx
     vuyx_axes[1]["scale"] = np.around(dx, 12) * 1e9
     vuyx_axes[1]["offset"] = ux.min() * 1e9
     return vuyx_axes
@@ -231,13 +269,6 @@ def _get_2D_axes(metadata_string, name):
     yx_axes[1]["scale"] = float(elem.find("Y/Scale").text)
     yx_axes[1]["offset"] = float(elem.find("Y/Offset").text)
     return yx_axes
-
-
-def _find_all_ImageDataSerializer_dicts(d):
-    IDS_list = []
-    if isinstance(d, dict):
-        if "ImageDataSerializer" in d:
-            return [d]["ImageDataSerializer"]
 
 
 def _parse_app5_xml(metadata_string: str, recursion_limit: int = 6):

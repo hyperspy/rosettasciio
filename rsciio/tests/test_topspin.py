@@ -19,7 +19,6 @@
 from pathlib import Path
 
 import h5py
-import numpy as np
 import pytest
 
 from rsciio.topspin._api import _parse_app5_xml, file_reader
@@ -28,28 +27,60 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 
 data_directory = Path(__file__).parent / "data" / "topspin"
-file_from_disk = data_directory / "topspin_from_file.app5"
-file_from_export = data_directory / "topspin_from_export.app5"
+file_A = data_directory / "topspin_test_A.app5"
+file_B = data_directory / "topspin_test_B.app5"
+file_C = data_directory / "topspin_test_C.app5"
+file_Cstr = str(file_C)
 
 
 def test_xml_parser():
-    # make sure we can open a metadata file
-    f1 = h5py.File(file_from_disk, "r")
-    meta_dict_1 = _parse_app5_xml(f1["Metadata"][()].decode())
+    # Explicitly test the metadata file reader before testing the loader.
+    # this will get ran as part of the following tests, but since it is
+    # the most likely thing to break, it's worth testing verbosely at
+    # the start
+    f1 = h5py.File(file_A, "r")  # unnested
+    meta_dict = _parse_app5_xml(f1["Metadata"][()].decode())
     f1.close()
-    # make sure we can open a nested metadata file
-    f2 = h5py.File(file_from_export, "r")
+    assert len(meta_dict) == 18
+    assert isinstance(meta_dict["ProcedureData"], dict)
+    assert isinstance(meta_dict["Id"], str)
+
+    f2 = h5py.File(file_B, "r")  # nested
     for grp in [x for i, x in enumerate(f2.keys()) if i in [0, 2]]:
         metadata_string = f2[grp]["Metadata"][()].decode()
-        meta_dict_2 = _parse_app5_xml(metadata_string)
+        meta_dict = _parse_app5_xml(metadata_string)
+        assert len(meta_dict) == 18
+        assert isinstance(meta_dict["ProcedureData"], dict)
+        assert isinstance(meta_dict["Id"], str)
     f2.close()
 
 
-def test_read_from_file():
-    file_reader(file_from_disk, dryrun=True)
-    out = file_reader(file_from_disk)
+def test_file_reader():
+    out_A = file_reader(file_A)
+    out_B = file_reader(file_B)
+    out_C = file_reader(file_C)
+    assert len(out_A) == 2
+    assert len(out_B) == 4
+    assert len(out_C) == 3
+    for out in [out_A, out_B, out_C]:
+        for x in out:
+            assert isinstance(x, dict)
+            assert "axes" in x
+            assert "data" in x
+    assert out_A[0]["data"].shape == (2, 5, 32, 32)
+    assert out_A[1]["data"].shape == (2, 5)
+    assert out_B[0]["data"].shape == (3, 7, 29, 29)
+    assert out_B[1]["data"].shape == (11, 13)
+    assert out_B[2]["data"].shape == (13, 17)
+    assert out_B[3]["data"].shape == (11, 13)
+    assert out_C[0]["data"].shape == (3, 7)
+    assert out_C[1]["data"].shape == (3, 5, 8, 8)
+    assert out_C[2]["data"].shape == (13, 17)
 
 
-def test_read_from_export():
-    file_reader(file_from_export, dryrun=True)
-    out = file_reader(file_from_export)
+def test_dryrun():
+    out_A = file_reader(file_A, dryrun=True)
+    out_B = file_reader(file_B, dryrun=True)
+    out_C = file_reader(file_C, dryrun=True)
+    for out in [out_A, out_B, out_C]:
+        assert out == []

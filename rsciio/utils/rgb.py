@@ -45,6 +45,7 @@ RGB_DTYPES = {"rgb8": _RGB8, "rgb16": _RGB16, "rgba8": _RGBA8, "rgba16": _RGBA16
 """
 Mapping of RGB color space names to their corresponding numpy structured dtypes.
 
+:meta hide-value:
 """
 
 

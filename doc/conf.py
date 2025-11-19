@@ -113,7 +113,8 @@ numpydoc_xref_ignore = {"type", "optional", "default", "of", "File", "handle", "
 
 numpydoc_validation_checks = {"all", "ES01", "EX01", "GL02", "GL03", "SA01", "SS06"}
 numpydoc_validation_exclude = {
-    "rsciio.utils.rgb.RGB_DTYPES"
+    "rsciio.utils.rgb.RGB_DTYPES",
+    "rsciio.IO_PLUGINS",
 }  # doesn't play well with GL01
 
 numpydoc_show_class_members = False

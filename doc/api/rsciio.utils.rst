@@ -89,10 +89,3 @@ XML
 
 .. automodule:: rsciio.utils.xml
    :members:
-
-
-Test
-^^^^
-
-.. automodule:: rsciio.tests.registry_utils
-   :members:

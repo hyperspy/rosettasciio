@@ -5,16 +5,6 @@ API
 The RosettaSciIO Application Programming Interface allows other python packages
 to use its input/output (IO) capabilities.
 
-.. toctree::
-   :hidden:
-
-   utils
-   exceptions
-
-.. automodule:: rsciio
-   :members:
-
-
 .. _interfacing-api:
 
 Interfacing the RosettaSciIO plugins
@@ -53,3 +43,15 @@ Interfacing the writer from one of the IO plugins:
 
     from rsciio.hspy import file_writer
     file_writer("beautifulplumage.hspy", fdict)
+
+
+
+Modules
+=======
+
+.. toctree::
+
+  rsciio.rst
+  rsciio.exceptions.rst
+  rsciio.tests.rst
+  rsciio.utils.rst

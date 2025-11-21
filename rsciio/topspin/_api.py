@@ -98,6 +98,12 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
             shape = h5_file[address].shape
             axes[0]["size"] = shape[0]
             axes[1]["size"] = shape[1]
+        # TODO: meta_dict should become "original_metadata"
+        # TODO: copy empad methodology for building hspy-friendly metadata
+        # TODO: add "navigate" and "index_in_array"
+        # TODO: make sure axis ordering matches hspy defaults.
+        # TODO: town crier
+        # TODO: reorder commits, give credit to correct people, remove dead binaries.
         datasets_list.append(
             {
                 "axes": axes,

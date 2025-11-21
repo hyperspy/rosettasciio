@@ -1,9 +1,11 @@
 # declate the module as thread safe for free-threaded python
 # cython: freethreading_compatible=True
 
+import sys
+
 import cython
 import numpy as np
-import sys
+
 
 cdef int byte_order
 if sys.byteorder == 'little':

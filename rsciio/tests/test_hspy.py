@@ -32,12 +32,8 @@ from rsciio.utils.tools import get_file_handle
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 h5py = pytest.importorskip("h5py", reason="h5py not installed")
 
-from hyperspy.axes import (  # noqa: E402
-    AxesManager,
-    DataAxis,
-    FunctionalDataAxis,
-    UniformDataAxis,
-)
+from hyperspy.axes import DataAxis  # noqa: E402
+from hyperspy.axes import AxesManager, FunctionalDataAxis, UniformDataAxis
 from hyperspy.decorators import lazifyTestClass  # noqa: E402
 from hyperspy.exceptions import VisibleDeprecationWarning  # noqa: E402
 from hyperspy.misc.test_utils import sanitize_dict as san_dict  # noqa: E402

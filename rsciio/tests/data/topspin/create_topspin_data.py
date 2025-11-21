@@ -33,9 +33,10 @@ datasets themselves within the h5 file, the layout of the groups and metadata
 files changes based on the local install of TopSpin.
 """
 
-import numpy as np
-import h5py
 import xml.etree.ElementTree as ET
+
+import h5py
+import numpy as np
 
 # convenience function for consistently copying 4D STEM groups.
 
@@ -142,9 +143,7 @@ old_app5B.copy(old_app5B["Version"], new_app5B, "Version")
 # session A
 session_id = "18d9446f-22bf-4fb1-8d13-338174e75d20"
 new_app5B.create_group(session_id)
-old_app5B.copy(
-    old_app5B[session_id]["Version"], new_app5B[session_id], "Version"
-)
+old_app5B.copy(old_app5B[session_id]["Version"], new_app5B[session_id], "Version")
 # Copy '3526f008-a687-41fb-a21e-c21362241492' (4D STEM group)
 mask = np.zeros([50, 50], dtype=bool)
 mask[5:8, 4:11] = True
@@ -165,9 +164,7 @@ for guid in [
 # session B
 session_id = "b38446c6-6b25-4fee-9c62-6d8e4fcbeb5c"
 new_app5B.create_group(session_id)
-old_app5B.copy(
-    old_app5B[session_id]["Version"], new_app5B[session_id], "Version"
-)
+old_app5B.copy(old_app5B[session_id]["Version"], new_app5B[session_id], "Version")
 # Copy "5a203dd8-ddbd-4775-8786-78d456e8b877" (2D virtual STEM image)
 copy_downsampled_2D_dataset(
     old_app5B, new_app5B, session_id + "/5a203dd8-ddbd-4775-8786-78d456e8b877"
@@ -187,9 +184,7 @@ for grp in [
         + " Nanostructure Characterization Group."
     )
     txt = ET.tostring(root, xml_declaration=True)
-    new_app5B[grp].create_dataset_like(
-        "Metadata", old_app5B[grp]["Metadata"], data=txt
-    )
+    new_app5B[grp].create_dataset_like("Metadata", old_app5B[grp]["Metadata"], data=txt)
 
 old_app5B.close()
 new_app5B.close()
@@ -207,9 +202,7 @@ old_app5C.copy(old_app5C["Version"], new_app5C, "Version")
 # session A
 session_id = "030444c4-694d-4184-94be-4bb9ffeda552"
 new_app5C.create_group(session_id)
-old_app5C.copy(
-    old_app5C[session_id]["Version"], new_app5C[session_id], "Version"
-)
+old_app5C.copy(old_app5C[session_id]["Version"], new_app5C[session_id], "Version")
 # Copy 'b5b0b75e-a5ff-4cdc-95d6-cab450c49e09' (2D virtual STEM image)
 copy_downsampled_2D_dataset(
     old_app5C, new_app5C, session_id + "/b5b0b75e-a5ff-4cdc-95d6-cab450c49e09"
@@ -227,9 +220,7 @@ copy_downsampled_4D_group(
 # session B
 session_id = "9ebd1693-3de8-4294-877a-62670150b9fa"
 new_app5C.create_group(session_id)
-old_app5C.copy(
-    old_app5C[session_id]["Version"], new_app5C[session_id], "Version"
-)
+old_app5C.copy(old_app5C[session_id]["Version"], new_app5C[session_id], "Version")
 # Copy '8bc2d64f-ea0e-420c-9099-51a07131f6e1' (2D virtual STEM image)
 copy_downsampled_2D_dataset(
     old_app5C, new_app5C, session_id + "/8bc2d64f-ea0e-420c-9099-51a07131f6e1"
@@ -249,9 +240,7 @@ for grp in [
         + " paper: 10.1063/5.0292737."
     )
     txt = ET.tostring(root, xml_declaration=True)
-    new_app5C[grp].create_dataset_like(
-        "Metadata", old_app5C[grp]["Metadata"], data=txt
-    )
+    new_app5C[grp].create_dataset_like("Metadata", old_app5C[grp]["Metadata"], data=txt)
 
 old_app5C.close()
 new_app5C.close()

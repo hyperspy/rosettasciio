@@ -43,7 +43,9 @@ def test_save_load_cycle_grayscale(dtype, ext, tmp_path):
     if dtype == "int32" and ext in ["bmp", "jpg"]:
         # BMP and JPG does not support uint32.
         return
-    print(f"Saving-loading cycle for the extension `{ext}` with dtype `{dtype}`")  # noqa: T201
+    print(
+        f"Saving-loading cycle for the extension `{ext}` with dtype `{dtype}`"
+    )  # noqa: T201
     filename = tmp_path / f"test_image.{ext}"
     s.save(filename)
     hs.load(filename)
@@ -84,7 +86,9 @@ def test_save_load_cycle_kwds(dtype, ext, tmp_path):
         # BMP and JPG does not support uint32.
         return
 
-    print(f"Saving-loading cycle for the extension `{ext}` with dtype `{dtype}`")  # noqa: T201
+    print(
+        f"Saving-loading cycle for the extension `{ext}` with dtype `{dtype}`"
+    )  # noqa: T201
     filename = tmp_path / f"test_image.{ext}"
     if ext == "png":
         kwds = {"optimize": True}

@@ -29,8 +29,8 @@ from hyperspy.exceptions import VisibleDeprecationWarning  # noqa: E402
 from hyperspy.signals import BaseSignal  # noqa: E402
 
 from rsciio.nexus import file_writer  # noqa: E402
-from rsciio.nexus._api import (  # noqa: E402
-    _byte_to_string,
+from rsciio.nexus._api import _byte_to_string  # noqa: E402
+from rsciio.nexus._api import (
     _check_search_keys,
     _find_data,
     _fix_exclusion_keys,
@@ -41,10 +41,8 @@ from rsciio.nexus._api import (  # noqa: E402
     _nexus_dataset_to_signal,
     _parse_from_file,
 )
-from rsciio.utils.hdf5 import (  # noqa: E402
-    list_datasets_in_file,
-    read_metadata_from_file,
-)
+from rsciio.utils.hdf5 import list_datasets_in_file  # noqa: E402
+from rsciio.utils.hdf5 import read_metadata_from_file
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "nexus"
 

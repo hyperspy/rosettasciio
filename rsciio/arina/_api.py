@@ -25,11 +25,7 @@ import h5py
 import hdf5plugin  # noqa F401
 import numpy as np
 
-from rsciio._docstrings import (
-    FILENAME_DOC,
-    LAZY_UNSUPPORTED_DOC,
-    RETURNS_DOC,
-)
+from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
 
 _logger = logging.getLogger(__name__)
 

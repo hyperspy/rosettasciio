@@ -145,7 +145,9 @@ class TestSpcSpectrum_v061_xrf:
         ]
         sem_dict = TestSpcSpectrum_v061_xrf.spc.metadata.as_dictionary()[
             "Acquisition_instrument"
-        ]["SEM"]  # this will eventually need to
+        ][
+            "SEM"
+        ]  # this will eventually need to
         #  be changed when XRF-specific
         #  features are added
         eds_dict = sem_dict["Detector"]["EDS"]
@@ -324,46 +326,43 @@ class TestSpdMap_070_eds:
         assert np.uint16 == TestSpdMap_070_eds.spd.data.dtype
         # test d_shape
         assert (200, 256, 2500) == TestSpdMap_070_eds.spd.data.shape
-        assert (
+        assert [
             [
-                [
-                    [0, 0, 0, 0, 0],  # test random data
-                    [0, 0, 1, 0, 1],
-                    [0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0],
-                ],
-                [
-                    [0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0],
-                    [0, 0, 0, 1, 0],
-                    [0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0],
-                ],
-                [
-                    [0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 1],
-                    [0, 1, 1, 0, 0],
-                    [0, 0, 0, 0, 0],
-                ],
-                [
-                    [0, 1, 0, 0, 0],
-                    [0, 0, 0, 1, 0],
-                    [0, 0, 0, 0, 0],
-                    [0, 0, 1, 0, 0],
-                    [0, 0, 0, 1, 0],
-                ],
-                [
-                    [0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0],
-                    [0, 0, 1, 0, 1],
-                    [0, 0, 0, 1, 0],
-                    [0, 0, 0, 0, 0],
-                ],
-            ]
-            == TestSpdMap_070_eds.spd.data[15:20, 15:20, 15:20].tolist()
-        )
+                [0, 0, 0, 0, 0],  # test random data
+                [0, 0, 1, 0, 1],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+            ],
+            [
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+            ],
+            [
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1],
+                [0, 1, 1, 0, 0],
+                [0, 0, 0, 0, 0],
+            ],
+            [
+                [0, 1, 0, 0, 0],
+                [0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0],
+                [0, 0, 1, 0, 0],
+                [0, 0, 0, 1, 0],
+            ],
+            [
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+                [0, 0, 1, 0, 1],
+                [0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0],
+            ],
+        ] == TestSpdMap_070_eds.spd.data[15:20, 15:20, 15:20].tolist()
 
     def test_parameters(self):
         elements = TestSpdMap_070_eds.spd.metadata.as_dictionary()["Sample"]["elements"]

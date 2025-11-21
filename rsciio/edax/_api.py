@@ -25,12 +25,7 @@ import os
 
 import numpy as np
 
-from rsciio._docstrings import (
-    ENDIANESS_DOC,
-    FILENAME_DOC,
-    LAZY_DOC,
-    RETURNS_DOC,
-)
+from rsciio._docstrings import ENDIANESS_DOC, FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 from rsciio.utils.elements import atomic_number2name
 from rsciio.utils.tools import sarray2dict
 

@@ -81,12 +81,7 @@ from functools import partial
 
 import numpy as np
 
-from rsciio._docstrings import (
-    FILENAME_DOC,
-    LAZY_DOC,
-    RETURNS_DOC,
-    SIGNAL_DOC,
-)
+from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC, SIGNAL_DOC
 from rsciio.utils.tools import DTBox, sarray2dict
 
 _logger = logging.getLogger(__name__)
@@ -375,9 +370,9 @@ class SemperFormat(object):
             rec_length = np.fromfile(f, dtype="<i4", count=1)[0]  # length of header
             header = np.fromfile(f, dtype=cls.HEADER_DTYPES[: rec_length // 2], count=1)
             metadata.update(sarray2dict(header))
-            assert np.frombuffer(f.read(4), dtype=np.int32)[0] == rec_length, (
-                "Error while reading the header (length is not correct)!"
-            )
+            assert (
+                np.frombuffer(f.read(4), dtype=np.int32)[0] == rec_length
+            ), "Error while reading the header (length is not correct)!"
             data_format = cls.IFORM_DICT[metadata["IFORM"]]
             iversn, remain = divmod(metadata["IFLAG"], 10000)
             ilabel, ntitle = divmod(remain, 1000)

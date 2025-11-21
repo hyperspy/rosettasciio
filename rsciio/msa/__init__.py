@@ -1,8 +1,4 @@
-from ._api import (
-    file_reader,
-    file_writer,
-    parse_msa_string,
-)
+from ._api import file_reader, file_writer, parse_msa_string
 
 __all__ = [
     "file_reader",

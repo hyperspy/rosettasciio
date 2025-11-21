@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
 
 import h5py
@@ -23,7 +25,7 @@ import pytest
 
 from rsciio.topspin._api import _parse_app5_xml, file_reader
 
-hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+h5py = pytest.importorskip("h5py", reason="h5py not installed")
 
 # Notes to self: add check that all axes values are expected type
 
@@ -68,20 +70,37 @@ def test_file_reader():
             assert isinstance(x, dict)
             assert "axes" in x
             assert "data" in x
-    assert out_A[0]["data"].shape == (2, 5, 32, 32)
-    assert out_A[1]["data"].shape == (2, 5)
-    assert out_B[0]["data"].shape == (3, 7, 29, 29)
+    assert out_A[0]["data"].shape == (11, 13)
+    assert out_A[1]["data"].shape == (2, 5, 16, 16)
+    assert out_B[0]["data"].shape == (3, 7, 37, 37)
     assert out_B[1]["data"].shape == (11, 13)
-    assert out_B[2]["data"].shape == (13, 17)
+    assert out_B[2]["data"].shape == (11, 13)
     assert out_B[3]["data"].shape == (11, 13)
-    assert out_C[0]["data"].shape == (3, 7)
-    assert out_C[1]["data"].shape == (3, 5, 8, 8)
-    assert out_C[2]["data"].shape == (13, 17)
+    assert out_C[0]["data"].shape == (11, 13)
+    assert out_C[1]["data"].shape == (3, 5, 16, 16)
+    assert out_C[2]["data"].shape == (11, 13)
+    # TODO: Verify the Metadata is correct
+    # TODO: Verify the axes are correct
+
+
+# TODO: load one or all of these into hyperspy and make sure they work
+# def TODO_hs_test_function():
+#     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+#     return hs
 
 
 def test_dryrun():
-    out_A = file_reader(file_A, dryrun=True)
-    out_B = file_reader(file_B, dryrun=True)
-    out_C = file_reader(file_C, dryrun=True)
-    for out in [out_A, out_B, out_C]:
+    correct_sizes = [
+        ["11, 13", "2, 5, 16, 16"],
+        ["3, 7, 37, 37", "11, 13", "11, 13", "11, 13"],
+        ["11, 13", "3, 5, 16, 16", "11, 13"],
+    ]
+    for i, f in enumerate([file_A, file_B, file_C]):
+        buffer = StringIO()
+        with redirect_stdout(buffer):
+            out = file_reader(f, dryrun=True)
         assert out == []
+        txt = buffer.getvalue()
+        # make sure the output is correctly estimating the object shapes
+        dims_str = [x.split("]")[0] for x in txt.split("[")[1:]]
+        assert dims_str == correct_sizes[i]

@@ -123,7 +123,9 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
         if len(shape) == 2:
             datasets_list[i]["data"] = np.asanyarray(h5_file[address])
         elif len(shape) == 4:
-            data = np.zeros([np.prod(shape[:2]), shape[2], shape[3]], dtype=np.uint16)
+            data = np.zeros(
+                [np.prod(shape[:2]), shape[2], shape[3]], dtype=np.uint16
+            )
             key_count = len(h5_file[address].keys())
             for key in tqdm(
                 h5_file[address],
@@ -178,12 +180,12 @@ def _get_4D_axes(h5_grp):
     shape = h5_grp[k_space_id]["Data"].shape
     vuyx_axes[2]["units"] = k_space[0][2][1].text
     vuyx_axes[2]["size"] = shape[0]
-    vuyx_axes[2]["scale"] = k_space[0][1]
-    vuyx_axes[2]["offset"] = k_space[0][0]
+    vuyx_axes[2]["scale"] = float(k_space[0][1].text)
+    vuyx_axes[2]["offset"] = float(k_space[0][0].text)
     vuyx_axes[3]["units"] = k_space[1][2][1].text
     vuyx_axes[3]["size"] = shape[0]
-    vuyx_axes[3]["scale"] = k_space[1][1]
-    vuyx_axes[3]["offset"] = k_space[1][0]
+    vuyx_axes[3]["scale"] = float(k_space[1][1].text)
+    vuyx_axes[3]["offset"] = float(k_space[1][0].text)
 
     # Image-space axes
     # Because the experiment-level metadata files sometimes change, it's
@@ -226,11 +228,11 @@ def _get_4D_axes(h5_grp):
         ly = len(uy)
 
     vuyx_axes[0]["size"] = ly
-    vuyx_axes[0]["scale"] = np.around(dy, 12) * 1e9
-    vuyx_axes[0]["offset"] = uy.min() * 1e9
+    vuyx_axes[0]["scale"] = float(np.around(dy, 12) * 1e9)
+    vuyx_axes[0]["offset"] = float(uy.min() * 1e9)
     vuyx_axes[1]["size"] = lx
-    vuyx_axes[1]["scale"] = np.around(dx, 12) * 1e9
-    vuyx_axes[1]["offset"] = ux.min() * 1e9
+    vuyx_axes[1]["scale"] = float(np.around(dx, 12) * 1e9)
+    vuyx_axes[1]["offset"] = float(ux.min() * 1e9)
     return vuyx_axes
 
 

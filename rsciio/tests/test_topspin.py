@@ -25,6 +25,7 @@ from rsciio.topspin._api import _parse_app5_xml, file_reader
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
+# Notes to self: add check that all axes values are expected type
 
 data_directory = Path(__file__).parent / "data" / "topspin"
 file_A = data_directory / "topspin_test_A.app5"

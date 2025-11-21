@@ -127,6 +127,7 @@ def file_reader(
         read_em_image=read_em_image,
         frame_list=frame_list,
         frame_shifts=frame_shifts,
+        frame_start_index=frame_start_index,
     )
     file_ext = os.path.splitext(filename)[-1][1:].lower()
     if file_ext in extension_to_reader_mapping:

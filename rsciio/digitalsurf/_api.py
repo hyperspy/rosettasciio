@@ -1047,41 +1047,41 @@ class DigitalSurfHandler(object):
         """Populate _work_dict with the"""
 
         if not compressed:
-            self._work_dict["_01_Signature"][
-                "value"
-            ] = "DIGITAL SURF"  # DSCOMPRESSED by default
+            self._work_dict["_01_Signature"]["value"] = (
+                "DIGITAL SURF"  # DSCOMPRESSED by default
+            )
         else:
-            self._work_dict["_01_Signature"][
-                "value"
-            ] = "DSCOMPRESSED"  # DSCOMPRESSED by default
+            self._work_dict["_01_Signature"]["value"] = (
+                "DSCOMPRESSED"  # DSCOMPRESSED by default
+            )
 
         # self._work_dict['_02_Format']['value'] = 0 # Dft. other possible value is 257 for MacintoshII computers with Motorola CPUs. Obv not supported...
         self._work_dict["_03_Number_of_Objects"]["value"] = self._N_data_objects
         # self._work_dict['_04_Version']['value'] = 1 # Version number. Always default.
         self._work_dict["_05_Object_Type"]["value"] = obj_type
-        self._work_dict["_06_Object_Name"][
-            "value"
-        ] = object_name  # Obsolete, DOS-version only (Not supported)
-        self._work_dict["_07_Operator_Name"][
-            "value"
-        ] = operator_name  # Should be settable from kwargs
+        self._work_dict["_06_Object_Name"]["value"] = (
+            object_name  # Obsolete, DOS-version only (Not supported)
+        )
+        self._work_dict["_07_Operator_Name"]["value"] = (
+            operator_name  # Should be settable from kwargs
+        )
         self._work_dict["_08_P_Size"]["value"] = self._N_data_channels
 
-        self._work_dict["_09_Acquisition_Type"][
-            "value"
-        ] = 0  # AFM data only, could be inferred
-        self._work_dict["_10_Range_Type"][
-            "value"
-        ] = 0  # Only 1 for high-range (z-stage scanning), AFM data only, could be inferred
+        self._work_dict["_09_Acquisition_Type"]["value"] = (
+            0  # AFM data only, could be inferred
+        )
+        self._work_dict["_10_Range_Type"]["value"] = (
+            0  # Only 1 for high-range (z-stage scanning), AFM data only, could be inferred
+        )
 
         self._work_dict["_11_Special_Points"]["value"] = int(is_special)
 
-        self._work_dict["_12_Absolute"][
-            "value"
-        ] = absolute  # Probably irrelevant in most cases. Absolute vs rel heights (for profilometers), can be inferred
-        self._work_dict["_13_Gauge_Resolution"][
-            "value"
-        ] = 0.0  # Probably irrelevant. Only for profilometers (maybe AFM), can be inferred
+        self._work_dict["_12_Absolute"]["value"] = (
+            absolute  # Probably irrelevant in most cases. Absolute vs rel heights (for profilometers), can be inferred
+        )
+        self._work_dict["_13_Gauge_Resolution"]["value"] = (
+            0.0  # Probably irrelevant. Only for profilometers (maybe AFM), can be inferred
+        )
 
         # T-axis acts as W-axis for spectrum / hyperspectrum surfaces.
         if obj_type in [21]:
@@ -1151,9 +1151,9 @@ class DigitalSurfHandler(object):
             data_bin = data_int.ravel().astype(fmt).tobytes()
             compressed_size = 0
 
-        self._work_dict["_48_Compressed_data_size"][
-            "value"
-        ] = compressed_size  # Obsolete in case of non-compressed
+        self._work_dict["_48_Compressed_data_size"]["value"] = (
+            compressed_size  # Obsolete in case of non-compressed
+        )
 
         # _49_Obsolete
 

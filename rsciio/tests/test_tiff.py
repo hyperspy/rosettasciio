@@ -545,9 +545,9 @@ class TestReadFEIHelios:
         assert s.data.dtype == "uint8"
         # delete timestamp from metadata since it's runtime dependent
         del s.metadata.General.FileIO.Number_0.timestamp
-        self.FEI_Helios_metadata["General"][
-            "original_filename"
-        ] = "FEI-Helios-Ebeam-8bits.tif"
+        self.FEI_Helios_metadata["General"]["original_filename"] = (
+            "FEI-Helios-Ebeam-8bits.tif"
+        )
         assert_deep_almost_equal(s.metadata.as_dictionary(), self.FEI_Helios_metadata)
 
     def test_read_FEI_SEM_scale_metadata_16bits(self):
@@ -562,9 +562,9 @@ class TestReadFEIHelios:
         assert s.data.dtype == "uint16"
         # delete timestamp from metadata since it's runtime dependent
         del s.metadata.General.FileIO.Number_0.timestamp
-        self.FEI_Helios_metadata["General"][
-            "original_filename"
-        ] = "FEI-Helios-Ebeam-16bits.tif"
+        self.FEI_Helios_metadata["General"]["original_filename"] = (
+            "FEI-Helios-Ebeam-16bits.tif"
+        )
         assert_deep_almost_equal(s.metadata.as_dictionary(), self.FEI_Helios_metadata)
 
     def test_read_FEI_navcam_metadata(self):
@@ -580,9 +580,9 @@ class TestReadFEIHelios:
         # delete timestamp and version from metadata since it's runtime dependent
         del s.metadata.General.FileIO.Number_0.timestamp
         del s.metadata.General.FileIO.Number_0.hyperspy_version
-        self.FEI_navcam_metadata["General"][
-            "original_filename"
-        ] = "FEI-Helios-navcam.tif"
+        self.FEI_navcam_metadata["General"]["original_filename"] = (
+            "FEI-Helios-navcam.tif"
+        )
         assert_deep_almost_equal(s.metadata.as_dictionary(), self.FEI_navcam_metadata)
 
     def test_read_FEI_navcam_no_IRBeam_metadata(self):
@@ -598,9 +598,9 @@ class TestReadFEIHelios:
         # delete timestamp and version from metadata since it's runtime dependent
         del s.metadata.General.FileIO.Number_0.timestamp
         del s.metadata.General.FileIO.Number_0.hyperspy_version
-        self.FEI_navcam_metadata["General"][
-            "original_filename"
-        ] = "FEI-Helios-navcam-with-no-IRBeam.tif"
+        self.FEI_navcam_metadata["General"]["original_filename"] = (
+            "FEI-Helios-navcam-with-no-IRBeam.tif"
+        )
         assert_deep_almost_equal(s.metadata.as_dictionary(), self.FEI_navcam_metadata)
 
     def test_read_FEI_navcam_no_IRBeam_bad_floats_metadata(self):
@@ -611,9 +611,9 @@ class TestReadFEIHelios:
         # delete timestamp and version from metadata since it's runtime dependent
         del s.metadata.General.FileIO.Number_0.timestamp
         del s.metadata.General.FileIO.Number_0.hyperspy_version
-        self.FEI_navcam_metadata["General"][
-            "original_filename"
-        ] = "FEI-Helios-navcam-with-no-IRBeam-bad-floats.tif"
+        self.FEI_navcam_metadata["General"]["original_filename"] = (
+            "FEI-Helios-navcam-with-no-IRBeam-bad-floats.tif"
+        )
 
         # working distance in the file was a bogus value,
         # so it shouldn't be in the resulting metadata

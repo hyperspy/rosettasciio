@@ -16,6 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+
+import datetime
+import os
 import sys
 import xml.etree.cElementTree as ET
 
@@ -23,7 +26,7 @@ import h5py
 import numpy as np
 from tqdm import tqdm
 
-from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC, SHOW_PROGRESSBAR_DOC
+from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC
 
 
 def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
@@ -46,69 +49,76 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
         If True, the .app5 files are quickly scanned without being loaded,
         and a summary is printed to the log. Default is False.
 
-    %s
+    show_progressbar: bool, default=True
+        Whether to show the progressbar or not. If True, shows progress
+        bar for each individual dataset loaded from the original file.
     %s
 
     Notes
     -----
-    The Metadata textstrings used in app5 files change based on the
-    ProcedureName, Topspin version, and local microscope setup. Because
-    of this, the RosettaSciIo Metadata parser can fail when used to
-    decode newer Topspin proceedures it was not tested against.
+    The hierarchy of the Metadata objects stored in app5 files changes
+    based on Topspin Proceedure and local microscope setup. RosettaSciIo
+    is still able to import datsets without this information, but be aware
+    that for new or customized setups some metadata entrees might be missing.
     """
 
-    def is_guid(name):
+    def looks_like_a_guid(name):
         """Checks if a text string matches the shape of a guid"""
         lengths = [len(x) for x in name.split("-")]
         return lengths == [8, 4, 4, 4, 12]
 
-    datasets_list = []
-    task_list = []
+    # read dataset
     h5_file = h5py.File(filename, "r")
+    load_single_file = False
     if subset is not None:
-        h5_file = h5_file[subset]
+        if "Metadata" in h5_file[subset]:  # this is a session id
+            h5_file = h5_file[subset]
+        else:  # This is a single file of interest
+            load_single_file = True
 
     # Generate task list by searching .app5 for GUID's
+    task_list = []
     group_names = [x for x in h5_file.keys()]
     if np.isin("Metadata", group_names):  # single experiment file.
         for name in h5_file.keys():
-            if is_guid(name):
+            if looks_like_a_guid(name):
                 task_list.append([name, "Metadata"])
     else:  # Multi-experimental file.
         for top_name in h5_file.keys():
-            if is_guid(top_name):
+            if looks_like_a_guid(top_name):
                 for name in h5_file[top_name].keys():
-                    if is_guid(name):
+                    if looks_like_a_guid(name):
                         address = top_name + "/" + name
                         meta = top_name + "/" + "Metadata"
                         task_list.append([address, meta])
+    # prune list for single-file query
+    if load_single_file:
+        task_list = [x for x in task_list if x[0] == subset]
 
     # Parse each dataset's metadata
+    datasets_list = []
     for address, meta_loc in task_list:
         name = address.split("/")[-1]
-        metadata_string = h5_file[meta_loc][()].decode()
-        meta_dict = _parse_app5_xml(metadata_string)
+        xml_str = h5_file[meta_loc][()].decode()
+        original_meta = _parse_app5_xml(xml_str)
+        hspy_meta = _parse_hspy_meta(original_meta, filename)
         if isinstance(h5_file[address], h5py.Group):
             # 4D-STEM
             h5_grp = h5_file[address]
             axes = _get_4D_axes(h5_grp)
+            hspy_meta["Signal"]["signal_type"] = "electron_diffraction"
         else:
             # 2D composite image
-            axes = _get_2D_axes(metadata_string, name)
+            axes = _get_2D_axes(xml_str, name)
             shape = h5_file[address].shape
             axes[0]["size"] = shape[0]
             axes[1]["size"] = shape[1]
-        # TODO: meta_dict should become "original_metadata"
-        # TODO: copy empad methodology for building hspy-friendly metadata
-        # TODO: add "navigate" and "index_in_array"
-        # TODO: make sure axis ordering matches hspy defaults.
-        # TODO: town crier
-        # TODO: reorder commits, give credit to correct people, remove dead binaries.
+            hspy_meta["Signal"]["signal_type"] = "STEM"
         datasets_list.append(
             {
                 "axes": axes,
-                "metadata": meta_dict,
-                "original_metadata": metadata_string,
+                "metadata": hspy_meta,
+                "original_metadata": original_meta,
             }
         )
 
@@ -118,7 +128,7 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
         for i, ds_dict in enumerate(datasets_list):
             shape = [x["size"] for x in ds_dict["axes"]]
             guid = task_list[i][0]
-            name = ds_dict["metadata"]["Title"]
+            name = ds_dict["original_metadata"]["Title"]
             message += "\n   - {}, {}\n      {}".format(name, shape, guid)
         sys.stdout.write(message)
         return []
@@ -127,11 +137,17 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
         shape = [x["size"] for x in ds_dict["axes"]]
         address = task_list[i][0]
         if len(shape) == 2:
-            datasets_list[i]["data"] = np.asanyarray(h5_file[address])
+            # this progress bar is really just a "1-of-1", but it still
+            # reports load time and confirms loading succeeded
+            for dummy_iter in tqdm(
+                [1],
+                desc="Loading {}: ".format(address),
+                disable=not show_progressbar,
+            ):
+                datasets_list[i]["data"] = np.asanyarray(h5_file[address])
         elif len(shape) == 4:
-            data = np.zeros(
-                [np.prod(shape[:2]), shape[2], shape[3]], dtype=np.uint16
-            )
+            # for 4D, data is loaded as ((x*y),ky,kz), then reshaped.
+            data = np.zeros([np.prod(shape[:2]), shape[2], shape[3]], dtype=np.uint16)
             key_count = len(h5_file[address].keys())
             for key in tqdm(
                 h5_file[address],
@@ -145,7 +161,7 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
     return datasets_list
 
 
-file_reader.__doc__ %= (FILENAME_DOC, SHOW_PROGRESSBAR_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
 
 
 def _get_4D_axes(h5_grp):
@@ -156,6 +172,8 @@ def _get_4D_axes(h5_grp):
             "size": 0,
             "scale": 0,
             "offset": 0,
+            "navigate": True,
+            "index_in_array": 0,
         },
         {
             "name": "x",
@@ -163,6 +181,8 @@ def _get_4D_axes(h5_grp):
             "size": 0,
             "scale": 0,
             "offset": 0,
+            "navigate": True,
+            "index_in_array": 1,
         },
         {
             "name": "ky",
@@ -170,6 +190,8 @@ def _get_4D_axes(h5_grp):
             "size": 0,
             "scale": 0,
             "offset": 0,
+            "navigate": False,
+            "index_in_array": 2,
         },
         {
             "name": "kx",
@@ -177,6 +199,8 @@ def _get_4D_axes(h5_grp):
             "size": 0,
             "scale": 0,
             "offset": 0,
+            "navigate": False,
+            "index_in_array": 3,
         },
     ]
 
@@ -242,8 +266,8 @@ def _get_4D_axes(h5_grp):
     return vuyx_axes
 
 
-def _get_2D_axes(metadata_string, name):
-    root = ET.fromstring(metadata_string)
+def _get_2D_axes(metadata_xml_string, name):
+    root = ET.fromstring(metadata_xml_string)
     # populate with default values
     elem = None
     yx_axes = [
@@ -253,6 +277,8 @@ def _get_2D_axes(metadata_string, name):
             "size": 0,
             "scale": 0,
             "offset": 0,
+            "navigate": True,
+            "index_in_array": 0,
         },
         {
             "name": "x",
@@ -260,6 +286,8 @@ def _get_2D_axes(metadata_string, name):
             "size": 0,
             "scale": 0,
             "offset": 0,
+            "navigate": True,
+            "index_in_array": 1,
         },
     ]
     for value in root.findall(".//Value"):
@@ -267,17 +295,15 @@ def _get_2D_axes(metadata_string, name):
             if value[0].text == name:
                 elem = value.find("Calibration")
                 break
-    if elem is None:
-        raise UserWarning("Unable to parse 'ImageDataSerializer' in Metadata")
-        return yx_axes
-    yx_axes[0]["scale"] = float(elem.find("Y/Scale").text)
-    yx_axes[0]["offset"] = float(elem.find("Y/Offset").text)
-    yx_axes[1]["scale"] = float(elem.find("Y/Scale").text)
-    yx_axes[1]["offset"] = float(elem.find("Y/Offset").text)
+    if elem is not None:
+        yx_axes[0]["scale"] = float(elem.find("Y/Scale").text)
+        yx_axes[0]["offset"] = float(elem.find("Y/Offset").text)
+        yx_axes[1]["scale"] = float(elem.find("Y/Scale").text)
+        yx_axes[1]["offset"] = float(elem.find("Y/Offset").text)
     return yx_axes
 
 
-def _parse_app5_xml(metadata_string: str, recursion_limit: int = 6):
+def _parse_app5_xml(metadata_string: str, f_name: str = ""):
     """
     Converts 'MetaData' strings into nested python dictionaries.
 
@@ -287,6 +313,9 @@ def _parse_app5_xml(metadata_string: str, recursion_limit: int = 6):
         text representation of app5 metadata. Can be generated
         from an app5 file opened with `h5py` as *f* using:
             metadata_string = f['path/to/Metadata'][()].decode()
+
+    fname
+        Original filename. Used for populating the metadata.
 
     Returns
     -------
@@ -315,11 +344,7 @@ def _parse_app5_xml(metadata_string: str, recursion_limit: int = 6):
     nested dictionary will be created.
     """
 
-    def name_val_decode(element, recursion):
-        recursion += 1
-        if recursion > 6:
-            return element.tag
-
+    def name_val_decode(element):
         serializer = element.attrib["Serializer"]
         if serializer == "Boolean":
             out = {element.tag: bool(element.text)}
@@ -333,11 +358,12 @@ def _parse_app5_xml(metadata_string: str, recursion_limit: int = 6):
             out = {}
             for leaf in element:
                 if len(leaf.attrib) > 0:
-                    out.update(name_val_decode(leaf, recursion))
+                    out.update(name_val_decode(leaf))
         return out
 
     root = ET.fromstring(metadata_string)
-    metadata_dict = {}
+    # Nested dictionary of ALL metadata organized identical to the original
+    all_meta = {}
     for branch in root:
         if branch.tag in ["ProcedureData", "HardwareSettings"]:
             branch_dict = {}
@@ -352,17 +378,51 @@ def _parse_app5_xml(metadata_string: str, recursion_limit: int = 6):
                 elif serializer in ["UInt32", "Int32"]:
                     branch_dict[leaf[0].text] = int(leaf[1].text)
                 else:
-                    # everything else follows the same nested pattern
-                    try:
-                        branch_dict[leaf[0].text] = name_val_decode(leaf[1], 0)
-                    except:
-                        raise Warning(
-                            "rsciio was unable to read"
-                            + "{} from {} in the app5 metadata".format(
-                                leaf[0].text, branch.tag
-                            )
-                        )
-            metadata_dict[branch.tag] = branch_dict
+                    branch_dict[leaf[0].text] = name_val_decode(leaf[1])
+            all_meta[branch.tag] = branch_dict
         else:
-            metadata_dict[branch.tag] = branch.text
-    return metadata_dict
+            all_meta[branch.tag] = branch.text
+    return all_meta
+
+
+def _parse_hspy_meta(all_meta, f_name):
+    # Convert some of the useful user-defined metadata into a text string to
+    # save as "General/notes".
+    f_notes = ""
+    for attr in [
+        "ProcedureName",
+        "FriendlyName",
+        "Title",
+        "SystemName",
+        "Specimen",
+        "Comments",
+    ]:
+        if attr in all_meta:
+            f_notes += "{}:  {} \n".format(attr, str(all_meta[attr]))
+
+    hspy_meta = {
+        "General": {
+            "FileIO": {
+                "0": {
+                    "operation": "load",
+                    "io_plugin": "rsciio.topspin",
+                    "timestamp": datetime.datetime.now().isoformat(),
+                }
+            },
+            "original_filename": os.path.split(f_name)[-1],
+            "notes": f_notes,
+            "title": all_meta["Id"],
+        },
+        "Sample": {},
+        "Signal": {},
+    }
+    if "CreatedDateTime" in all_meta:
+        dt = all_meta["CreatedDateTime"]
+        date = "-".join(np.array(dt.split(" ")[0].split("/"))[(2, 0, 1),])
+        time = dt.split(" ")[1]
+        hspy_meta["General"]["date"] = date
+        hspy_meta["General"]["time"] = time
+    if "Specimen" in all_meta:
+        hspy_meta["Sample"]["description"] = all_meta["Specimen"]
+
+    return hspy_meta

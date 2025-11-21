@@ -131,26 +131,6 @@ def get_file_handle(data, warn=True):
     return None
 
 
-def jit_ifnumba(*decorator_args, **decorator_kwargs):
-    try:
-        import numba
-
-        decorator_kwargs.setdefault("nopython", True)
-        return numba.jit(*decorator_args, **decorator_kwargs)
-    except ImportError:
-        _logger.warning(
-            "Falling back to slow pure python code, because `numba` is not installed."
-        )
-
-        def wrap(func):
-            def wrapper_func(*args, **kwargs):
-                return func(*args, **kwargs)
-
-            return wrapper_func
-
-        return wrap
-
-
 def inspect_npy_bytes(file_: IO[bytes]) -> tuple[int, tuple[int, ...], str]:
     """
     Inspect a .npy byte stream to extract metadata such as data offset, shape, and dtype.

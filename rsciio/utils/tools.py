@@ -54,7 +54,7 @@ _import_mapping = {
     "ensure_unicode": "_tools",
     "get_file_handle": "file",
     "inspect_npy_bytes": "file",
-    "jit_ifnumba": "_tools",
+    "jit_ifnumba": "_decorator",
     "sanitize_msxml_float": "xml",
     "XmlToDict": "xml",
     "xml2dtb": "xml",

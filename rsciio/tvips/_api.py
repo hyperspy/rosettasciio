@@ -36,8 +36,8 @@ from rsciio._docstrings import (
 )
 from rsciio.utils._array import sarray2dict
 from rsciio.utils._context_manager import get_progress_bar_context_manager
+from rsciio.utils._decorator import jit_ifnumba
 from rsciio.utils._dictionary import DTBox
-from rsciio.utils._tools import jit_ifnumba
 from rsciio.utils._units import _UREG
 
 _logger = logging.getLogger(__name__)

@@ -20,7 +20,7 @@ import dask.array as da
 import numpy as np
 import sparse
 
-from rsciio.utils._tools import jit_ifnumba
+from rsciio.utils._decorator import jit_ifnumba
 
 
 class DenseSliceCOO(sparse.COO):

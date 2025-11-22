@@ -64,10 +64,10 @@ Lint
 
 .. _pre-commit.ci: https://pre-commit.ci
 
-To keep the code style consistent (and more readable), `black <https://black.readthedocs.io/>`_
+To keep the code style consistent (and more readable), `ruff <https://docs.astral.sh/ruff/>`_
 is used to check the code formatting. When the code doesn't comply with the expected formatting,
 the `pre-commit.ci build <https://results.pre-commit.ci/latest/github/hyperspy/rosettasciio/main>`_
-will fail. In practise, the code formatting can be fixed by installing ``black`` and running it on the
+will fail. In practise, the code formatting can be fixed by installing ``ruff`` and running it on the
 source code or by using :ref:`pre-commit hooks <pre-commit-hooks>`.
 Alternatively, adding the message ``pre-commit.ci autofix`` in a pull request will push a commit with 
 the fixes using `pre-commit.ci`_.
@@ -117,7 +117,7 @@ Pre-commit Hooks
 ----------------
 Two pre-commit hooks are set up:
 
-* Linting: run ``black``
+* Linting: run ``ruff``
 * Update test data registry (Unix only)
 
 These can be run locally by using `pre-commit <https://pre-commit.com>`__.

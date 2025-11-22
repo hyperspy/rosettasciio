@@ -482,10 +482,10 @@ to common standards.</p>
 in order to get started and for detailed contributing guidelines.</p>
 <section id="lint">
 <h3>Lint<a class="headerlink" href="#lint" title="Link to this heading">#</a></h3>
-<p>To keep the code style consistent (and more readable), <a class="reference external" href="https://black.readthedocs.io/">black</a>
+<p>To keep the code style consistent (and more readable), <a class="reference external" href="https://docs.astral.sh/ruff/">ruff</a>
 is used to check the code formatting. When the code doesn’t comply with the expected formatting,
 the <a class="reference external" href="https://results.pre-commit.ci/latest/github/hyperspy/rosettasciio/main">pre-commit.ci build</a>
-will fail. In practise, the code formatting can be fixed by installing <code class="docutils literal notranslate"><span class="pre">black</span></code> and running it on the
+will fail. In practise, the code formatting can be fixed by installing <code class="docutils literal notranslate"><span class="pre">ruff</span></code> and running it on the
 source code or by using <a class="reference internal" href="#pre-commit-hooks"><span class="std std-ref">pre-commit hooks</span></a>.
 Alternatively, adding the message <code class="docutils literal notranslate"><span class="pre">pre-commit.ci</span> <span class="pre">autofix</span></code> in a pull request will push a commit with
 the fixes using <a class="reference external" href="https://pre-commit.ci">pre-commit.ci</a>.</p>
@@ -528,7 +528,7 @@ other member of the development team before being merged.</p>
 <span id="id3"></span><h3>Pre-commit Hooks<a class="headerlink" href="#pre-commit-hooks" title="Link to this heading">#</a></h3>
 <p>Two pre-commit hooks are set up:</p>
 <ul class="simple">
-<li><p>Linting: run <code class="docutils literal notranslate"><span class="pre">black</span></code></p></li>
+<li><p>Linting: run <code class="docutils literal notranslate"><span class="pre">ruff</span></code></p></li>
 <li><p>Update test data registry (Unix only)</p></li>
 </ul>
 <p>These can be run locally by using <a class="reference external" href="https://pre-commit.com">pre-commit</a>.

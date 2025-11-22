@@ -1,0 +1,1 @@
+Fix linting section in the contributing guide, since ``ruff`` is now used instead of ``black``.

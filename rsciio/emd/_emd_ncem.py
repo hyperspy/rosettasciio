@@ -35,7 +35,6 @@ import numpy as np
 from rsciio._hierarchical import get_signal_chunks
 from rsciio.utils._array import is_dask_array
 from rsciio.utils._dictionary import DTBox
-from rsciio.utils._units import _UREG
 
 EMD_VERSION = "0.2"
 
@@ -349,6 +348,8 @@ class EMD_NCEM:
                 units_list = [u[1:-1].replace("_", "") for u in units_list]
                 value = " * ".join(units_list)
                 try:
+                    from rsciio.utils._units import _UREG
+
                     units = _UREG.parse_units(value)
                     value = f"{units:~}"
                 except Exception:

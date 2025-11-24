@@ -43,7 +43,6 @@ from rsciio.utils._date_time import (
 )
 from rsciio.utils._dictionary import DTBox
 from rsciio.utils._skimage_exposure import rescale_intensity
-from rsciio.utils._units import convert_units
 
 _logger = logging.getLogger(__name__)
 
@@ -112,6 +111,8 @@ def get_default_header(endianess="<"):
 
 
 def get_header_from_signal(signal, endianess="<"):
+    from rsciio.utils._units import convert_units
+
     header = get_default_header(endianess)
     if "blockfile_header" in signal["original_metadata"]:
         header = dict2sarray(

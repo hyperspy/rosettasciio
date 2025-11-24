@@ -38,7 +38,6 @@ from rsciio.utils._array import sarray2dict
 from rsciio.utils._context_manager import get_progress_bar_context_manager
 from rsciio.utils._decorator import jit_ifnumba
 from rsciio.utils._dictionary import DTBox
-from rsciio.utils._units import _UREG
 
 _logger = logging.getLogger(__name__)
 
@@ -91,6 +90,8 @@ def _guess_image_mode(signal):
     unit = signal["axes"][-2]["units"]
     mode = None
     try:
+        from rsciio.utils._units import _UREG
+
         pixel_size = scale * _UREG(unit)
     except (AttributeError, pint.UndefinedUnitError):
         pass
@@ -123,6 +124,8 @@ def _get_main_header_from_signal(signal, version=2, frame_header_extra_bytes=0):
     else:
         to_unit = ""
     if to_unit:
+        from rsciio.utils._units import _UREG
+
         scale = round((scale * _UREG(unit)).to(to_unit).magnitude)
         offsetx = round((offsetx * _UREG(unit)).to(to_unit).magnitude)
         offsety = round((offsety * _UREG(unit)).to(to_unit).magnitude)
@@ -576,6 +579,8 @@ def file_writer(
         nav_units = signal["axes"][-3]["units"]
         nav_increment = signal["axes"][-3]["scale"]
         try:
+            from rsciio.utils._units import _UREG
+
             time_increment = (nav_increment * _UREG(nav_units)).to("ms").magnitude
         except (AttributeError, pint.UndefinedUnitError, pint.DimensionalityError):
             time_increment = 1

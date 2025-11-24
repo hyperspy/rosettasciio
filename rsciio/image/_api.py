@@ -32,7 +32,6 @@ from rsciio._docstrings import (
     SIGNAL_DOC,
 )
 from rsciio.utils._image import _parse_axes_from_metadata, _parse_exif_tags
-from rsciio.utils._units import _UREG
 
 _logger = logging.getLogger(__name__)
 
@@ -195,6 +194,8 @@ def file_writer(
                 units = "px"
                 scalebar_kwds["dimension"] = "pixel-length"
             else:
+                from rsciio.utils._units import _UREG
+
                 units = _UREG.Quantity(units)
                 if units.check("1/[length]"):
                     scalebar_kwds["dimension"] = "si-length-reciprocal"

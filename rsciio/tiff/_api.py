@@ -37,7 +37,6 @@ from rsciio._docstrings import (
 )
 from rsciio.utils._date_time import get_date_time_from_metadata
 from rsciio.utils._dictionary import DTBox
-from rsciio.utils._units import _UREG
 
 _logger = logging.getLogger(__name__)
 
@@ -1100,6 +1099,8 @@ def _parse_tuple_Zeiss(tup):
 def _parse_tuple_Zeiss_with_units(tup, to_units=None):
     (value, parse_units) = tup[1:]
     if to_units is not None:
+        from rsciio.utils._units import _UREG
+
         v = value * _UREG(parse_units)
         value = float("%.6e" % v.to(to_units).magnitude)
     return value

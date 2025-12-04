@@ -18,15 +18,13 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/>.
 
 
+import json
 import logging
 import os
-import json
-
 from datetime import datetime as dt
-
-import numpy as np
 from pathlib import Path
 
+import numpy as np
 
 from rsciio._docstrings import (
     FILENAME_DOC,
@@ -34,9 +32,8 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
-from rsciio.utils.tools import DTBox
 from rsciio.pantarhei.restricted_unpickling import read_pickled_array
-
+from rsciio.utils.tools import DTBox
 
 _logger = logging.getLogger(__name__)
 

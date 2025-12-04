@@ -19,18 +19,19 @@
 """Implements an unpickler, which restricts the allowed modules which pickle can load."""
 
 import pickle
+from logging import getLogger
+
 import numpy
 from packaging.version import Version
-from logging import getLogger
 
 numpy_version = Version(numpy.__version__)
 
 if numpy_version < Version("2.3"):
     # for numpy < 2.3
-    from numpy.lib.format import _check_version, read_magic, _read_array_header
+    from numpy.lib.format import _check_version, _read_array_header, read_magic
 else:
     # for numpy >= 2.3
-    from numpy.lib._format_impl import _check_version, read_magic, _read_array_header
+    from numpy.lib._format_impl import _check_version, _read_array_header, read_magic
 
 
 class InvalidPickleError(Exception):

@@ -24,7 +24,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from rsciio.pantarhei.restricted_unpickling import (
+from rsciio.pantarhei._restricted_unpickling import (
     InvalidPickleError,
     read_pickled_array,
 )

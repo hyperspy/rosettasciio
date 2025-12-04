@@ -51,7 +51,7 @@ def file_reader(
     """
     Read a PantaRhei ``.prz`` file.
     For Panta Rhei <24.03 a restricted unpickler can be used to load the meta
-    data with `allow_restricted_pickle=True`, which raises `InvalidPickleError`
+    data with ``allow_restricted_pickle=True``, which raises ``InvalidPickleError``
     if restricted modules are detected.
 
     Parameters
@@ -61,6 +61,7 @@ def file_reader(
     allow_restricted_pickle : bool, default=False
         Allows unpickling of prz meta data for data saved with Panta Rhei <24.03.
         This poses a security risk, use only for completely trusted prz files.
+
     %s
     """
     if lazy is not False:

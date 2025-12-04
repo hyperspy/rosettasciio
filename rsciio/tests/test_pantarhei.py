@@ -31,60 +31,59 @@ exspy = pytest.importorskip("exspy", reason="exspy not installed")
 TEST_DATA_PATH = Path(__file__).parent / "data" / "pantarhei"
 
 
-class TestLoadingPrzFiles:
-    def test_metadata_prz_v5(self):
-        md = {
-            "General": {"title": "AD", "original_filename": "panta_rhei_sample_v5.prz"},
-            "Signal": {"signal_type": ""},
-            "Acquisition_instrument": {
-                "TEM": {
-                    "beam_energy": 200.0,
-                    "acquisition_mode": "STEM",
-                    "magnification": 10000000,
-                    "camera_length": 0.02,
-                }
-            },
-        }
-        am = {
-            "axis-0": {
-                "_type": "UniformDataAxis",
-                "name": "Y",
-                "units": "m",
-                "navigate": False,
-                "is_binned": False,
-                "size": 16,
-                "scale": 7.795828292907633e-09,
-                "offset": 0.0,
-            },
-            "axis-1": {
-                "_type": "UniformDataAxis",
-                "name": "X",
-                "units": "m",
-                "navigate": False,
-                "is_binned": False,
-                "size": 16,
-                "scale": 7.795828292907633e-09,
-                "offset": 0.0,
-            },
-        }
+def test_metadata_prz():
+    md = {
+        "General": {"title": "O", "original_filename": "panta_rhei_sample.prz"},
+        "Signal": {"signal_type": ""},
+        "Acquisition_instrument": {
+            "TEM": {
+                "beam_energy": 200.0,
+                "acquisition_mode": "STEM",
+                "magnification": 10000000,
+                "camera_length": 0.02,
+            }
+        },
+    }
+    am = {
+        "axis-0": {
+            "_type": "UniformDataAxis",
+            "name": "Y",
+            "units": "m",
+            "navigate": False,
+            "is_binned": False,
+            "size": 16,
+            "scale": 7.795828292907633e-09,
+            "offset": 0.0,
+        },
+        "axis-1": {
+            "_type": "UniformDataAxis",
+            "name": "X",
+            "units": "m",
+            "navigate": False,
+            "is_binned": False,
+            "size": 16,
+            "scale": 7.795828292907633e-09,
+            "offset": 0.0,
+        },
+    }
 
-        s = hs.load(TEST_DATA_PATH / "panta_rhei_sample_v5.prz")
+    s = hs.load(TEST_DATA_PATH / "panta_rhei_sample.prz")
 
-        md_file = s.metadata.as_dictionary()
-        md_file.pop("_HyperSpy")
-        md_file["General"].pop("FileIO")
-        assert_deep_almost_equal(md_file, md)
-        assert_deep_almost_equal(s.axes_manager.as_dictionary(), am)
-        assert s.data.shape == (16, 16)
-        assert s.data.max() == 40571
-        assert s.data.min() == 36193
-        np.testing.assert_almost_equal(s.data.std(), 1025.115644550)
+    md_file = s.metadata.as_dictionary()
+    md_file.pop("_HyperSpy")
+    md_file["General"].pop("FileIO")
+    assert_deep_almost_equal(md_file, md)
+    assert_deep_almost_equal(s.axes_manager.as_dictionary(), am)
+    assert s.data.shape == (16, 16)
+    assert s.data.max() == 40571
+    assert s.data.min() == 36193
+    np.testing.assert_almost_equal(s.data.std(), 1025.115644550)
 
 
 def test_save_load_cycle(tmp_path):
     fname = tmp_path / "test_file.prz"
 
-    s = hs.load(TEST_DATA_PATH / "panta_rhei_sample_v5.prz")
+    s = hs.load(TEST_DATA_PATH / "panta_rhei_sample.prz")
     s.save(fname)
     assert fname.is_file()
 
@@ -100,7 +99,7 @@ def test_save_load_cycle_new_signal_1D_nav1(tmp_path):
     s.save(fname)
     assert fname.is_file()
 
-    s2 = hs.load(fname)
+    s2 = hs.load(fname, allow_restricted_pickle=True)
     np.testing.assert_allclose(s2.data, s.data)
     assert isinstance(s2, s.__class__)
 
@@ -136,7 +135,7 @@ def test_save_load_cycle_new_signal_EELS(tmp_path):
     s.save(fname)
     assert fname.is_file()
 
-    s2 = hs.load(fname)
+    s2 = hs.load(fname, allow_restricted_pickle=True)
     np.testing.assert_allclose(s2.data, s.data)
     assert isinstance(s2, s.__class__)
 
@@ -149,7 +148,7 @@ def test_save_load_cycle_new_signal_EELS_aperture_out(tmp_path):
     s.save(fname)
     assert fname.is_file()
 
-    s2 = hs.load(fname)
+    s2 = hs.load(fname, allow_restricted_pickle=True)
     np.testing.assert_allclose(s2.data, s.data)
     assert isinstance(s2, s.__class__)
     assert s2.metadata.Acquisition_instrument.TEM.Detector.EELS.aperture == "Out"
@@ -180,7 +179,7 @@ def test_metadata_STEM(tmp_path):
     s.save(fname)
     assert fname.is_file()
 
-    s2 = hs.load(fname)
+    s2 = hs.load(fname, allow_restricted_pickle=True)
     np.testing.assert_allclose(s2.data, s.data)
     assert isinstance(s2, s.__class__)
 
@@ -214,7 +213,7 @@ def test_metadata_TEM(tmp_path):
     s.save(fname)
     assert fname.is_file()
 
-    s2 = hs.load(fname)
+    s2 = hs.load(fname, allow_restricted_pickle=True)
     np.testing.assert_allclose(s2.data, s.data)
     assert isinstance(s2, s.__class__)
 
@@ -222,3 +221,23 @@ def test_metadata_TEM(tmp_path):
         s2.metadata.Acquisition_instrument.as_dictionary(),
         s.metadata.Acquisition_instrument.as_dictionary(),
     )
+
+
+def test_legacy_prz_allow_restricted_pickle_flag():
+    """
+    For prz files saved with Panta Rhei <24.03
+    pickle must be allowed to read the meta data
+    """
+    s1 = hs.load(
+        TEST_DATA_PATH / "panta_rhei_sample_legacy.prz",
+        allow_restricted_pickle=True
+    )
+    assert 'TEM' in s1.metadata['Acquisition_instrument']
+    s2 = hs.load(
+        TEST_DATA_PATH / "panta_rhei_sample_legacy.prz",
+        allow_restricted_pickle=False
+    )
+    # signal data is the same, but without pickle
+    # the original meta data can't be loaded
+    np.testing.assert_allclose(s2.data, s1.data)
+    assert 'Acquisition_instrument' not in s2.metadata

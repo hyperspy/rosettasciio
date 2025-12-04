@@ -17,6 +17,7 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 
+import logging
 from pathlib import Path
 
 import numpy as np
@@ -223,18 +224,25 @@ def test_metadata_TEM(tmp_path):
     )
 
 
-def test_legacy_prz_allow_restricted_pickle_flag():
+def test_legacy_prz_allow_restricted_pickle_flag(caplog):
     """
     For prz files saved with Panta Rhei <24.03
     pickle must be allowed to read the meta data
     """
-    s1 = hs.load(
-        TEST_DATA_PATH / "panta_rhei_sample_legacy.prz", allow_restricted_pickle=True
-    )
+    with caplog.at_level(logging.WARNING):
+        s1 = hs.load(
+            TEST_DATA_PATH / "panta_rhei_sample_legacy.prz",
+            allow_restricted_pickle=True,
+        )
+        assert "security risk" in caplog.text
     assert "TEM" in s1.metadata["Acquisition_instrument"]
-    s2 = hs.load(
-        TEST_DATA_PATH / "panta_rhei_sample_legacy.prz", allow_restricted_pickle=False
-    )
+
+    with caplog.at_level(logging.WARNING):
+        s2 = hs.load(
+            TEST_DATA_PATH / "panta_rhei_sample_legacy.prz",
+            allow_restricted_pickle=False,
+        )
+        assert "no meta data" in caplog.text
     # signal data is the same, but without pickle
     # the original meta data can't be loaded
     np.testing.assert_allclose(s2.data, s1.data)

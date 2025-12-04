@@ -17,12 +17,17 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 
+import io
 import logging
 from pathlib import Path
 
 import numpy as np
 import pytest
 
+from rsciio.pantarhei.restricted_unpickling import (
+    InvalidPickleError,
+    read_pickled_array,
+)
 from rsciio.utils.tests import assert_deep_almost_equal
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
@@ -247,3 +252,24 @@ def test_legacy_prz_allow_restricted_pickle_flag(caplog):
     # the original meta data can't be loaded
     np.testing.assert_allclose(s2.data, s1.data)
     assert "Acquisition_instrument" not in s2.metadata
+
+
+def test_restricted_unpickler():
+    md = {
+        "some": {"thing": "ok"},
+        "forbidden": Path("/a/path"),  # Path is NOT whitelisted
+    }
+    fp = io.BytesIO()
+    # create infamous object array which needs to be unpickled
+    np.save(fp, np.array([md], dtype=object))
+    fp.seek(0)
+    # exception message contains offending class name `Path`
+    with pytest.raises(InvalidPickleError, match="Path"):
+        read_pickled_array(fp)
+
+    # non-object arrays don't need to be unpickled
+    fp2 = io.BytesIO()
+    np.save(fp2, np.arange(3))
+    fp2.seek(0)
+    with pytest.raises(ValueError, match="not contain pickled data"):
+        read_pickled_array(fp2)

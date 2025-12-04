@@ -31,6 +31,7 @@ from rsciio._docstrings import (
     UNSUPPORTED_METADATA_DOC,
 )
 from rsciio.utils.distributed import memmap_distributed
+from rsciio.utils.tools import inspect_npy_bytes
 
 
 def inspect_npy_file(filename):
@@ -58,35 +59,7 @@ def inspect_npy_file(filename):
     >>> print(f"Dtype: {dtype}")
     """
     with open(filename, "rb") as f:
-        # Read magic string and version
-        _ = f.read(6)
-        major, _ = struct.unpack("BB", f.read(2))
-
-        encoding = "latin1"  # Default encoding for .npy files version 1.0 and 2.0
-        # Read header length
-        if major == 1:
-            header_len_size = 2
-            header_len = struct.unpack("<H", f.read(header_len_size))[0]
-        elif major in (2, 3):
-            header_len_size = 4
-            header_len = struct.unpack("<I", f.read(header_len_size))[0]
-            if major == 3:
-                encoding = "utf8"  # Version 3.0 uses UTF-8 encoding
-        else:  ## pragma: no cover
-            raise ValueError("Unsupported .npy version")
-
-        header_offset = 6 + 2 + header_len_size
-
-        # Read and parse header
-        header = f.read(header_len).decode(encoding)
-        header_dict = ast.literal_eval(header)
-
-        # Extract metadata
-        shape = header_dict["shape"]
-        dtype = header_dict["descr"]
-        data_offset = header_offset + header_len
-
-        return data_offset, shape, dtype
+        return inspect_npy_bytes(f)
 
 
 def file_writer(filename, signal, **kwargs):

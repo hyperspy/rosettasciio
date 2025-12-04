@@ -46,9 +46,7 @@ _logger = logging.getLogger(__name__)
 
 
 def file_reader(
-        filename: str | Path,
-        lazy: bool = False,
-        allow_restricted_pickle: bool = False
+    filename: str | Path, lazy: bool = False, allow_restricted_pickle: bool = False
 ):
     """
     Read a PantaRhei ``.prz`` file.
@@ -72,17 +70,15 @@ def file_reader(
 
     # this is lazy, only the ZipFile meta data gets loaded as of yet!
     prz_file = np.load(filename, allow_pickle=False)
-    if 'meta_data_json' in prz_file:
-        meta_data = json.loads(prz_file['meta_data_json'][()])[0]
+    if "meta_data_json" in prz_file:
+        meta_data = json.loads(prz_file["meta_data_json"][()])[0]
     elif allow_restricted_pickle:
         _logger.warning(
             "You are unpickling a prz file, this poses a security risk! "
             "Only load prz files you completely trust."
         )
         # uses `RestrictedUnpickler`
-        meta_data = read_pickled_array(
-            prz_file.zip.open("meta_data.npy")
-            )[0]
+        meta_data = read_pickled_array(prz_file.zip.open("meta_data.npy"))[0]
     else:
         _logger.warning(
             """With `allow_restricted_pickle=False` no meta data can be loaded

@@ -229,15 +229,13 @@ def test_legacy_prz_allow_restricted_pickle_flag():
     pickle must be allowed to read the meta data
     """
     s1 = hs.load(
-        TEST_DATA_PATH / "panta_rhei_sample_legacy.prz",
-        allow_restricted_pickle=True
+        TEST_DATA_PATH / "panta_rhei_sample_legacy.prz", allow_restricted_pickle=True
     )
-    assert 'TEM' in s1.metadata['Acquisition_instrument']
+    assert "TEM" in s1.metadata["Acquisition_instrument"]
     s2 = hs.load(
-        TEST_DATA_PATH / "panta_rhei_sample_legacy.prz",
-        allow_restricted_pickle=False
+        TEST_DATA_PATH / "panta_rhei_sample_legacy.prz", allow_restricted_pickle=False
     )
     # signal data is the same, but without pickle
     # the original meta data can't be loaded
     np.testing.assert_allclose(s2.data, s1.data)
-    assert 'Acquisition_instrument' not in s2.metadata
+    assert "Acquisition_instrument" not in s2.metadata

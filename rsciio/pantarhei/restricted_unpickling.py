@@ -49,9 +49,12 @@ class RestrictedUnpickler(pickle.Unpickler):
     - _codecs.encode
     """
 
+    # The two almost identical NumPy API `core` entries cover older
+    # versions (<1.26) and were tested up to NumPy 2.3.
+    # Might need additional adaptation for later NumPy >2.3 versions.
     white_list = {
         "numpy._core.multiarray": ["_reconstruct", "scalar"],
-        "numpy.core.multiarray": ["_reconstruct", "scalar"],  # numpy <2
+        "numpy.core.multiarray": ["_reconstruct", "scalar"],  # numpy <1.26
         "numpy": ["ndarray", "dtype"],
         "_codecs": [
             "encode",

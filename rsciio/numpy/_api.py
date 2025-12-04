@@ -16,8 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import ast
-import struct
 
 import dask.array as da
 import numpy as np

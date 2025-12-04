@@ -22,16 +22,8 @@ import pickle
 from logging import getLogger
 
 import numpy
-from packaging.version import Version
 
-numpy_version = Version(numpy.__version__)
-
-if numpy_version < Version("2.3"):
-    # for numpy < 2.3
-    from numpy.lib.format import _check_version, _read_array_header, read_magic
-else:
-    # for numpy >= 2.3
-    from numpy.lib._format_impl import _check_version, _read_array_header, read_magic
+from rsciio.utils.tools import inspect_npy_bytes
 
 
 class InvalidPickleError(Exception):
@@ -90,12 +82,9 @@ def read_pickled_array(fp):
     array : ndarray
         The data read from the file.
     """
-    # Read the header in the same way numpy.lib._format_impl.read_array does.
-    max_header_size = 2**64
-    version = read_magic(fp)
-    _check_version(version)
-    _, _, dtype = _read_array_header(fp, version, max_header_size=max_header_size)
-
+    # advances the byte stream past the numpy header
+    _, _, dtype_str = inspect_npy_bytes(fp)
+    dtype = numpy.dtype(dtype_str)
     if not dtype.hasobject:
         raise ValueError("File does not contain pickled data.")
 

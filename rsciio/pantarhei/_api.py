@@ -18,9 +18,11 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/>.
 
 
+import json
 import logging
 import os
 from datetime import datetime as dt
+from pathlib import Path
 
 import numpy as np
 
@@ -30,6 +32,7 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
+from rsciio.pantarhei._restricted_unpickling import read_pickled_array
 from rsciio.utils.tools import DTBox
 
 _logger = logging.getLogger(__name__)
@@ -42,23 +45,51 @@ _logger = logging.getLogger(__name__)
 # array (containing all data) with a dictionary containing all metadata.
 
 
-def file_reader(filename, lazy=False):
+def file_reader(
+    filename: str | Path, lazy: bool = False, allow_restricted_pickle: bool = False
+):
     """
     Read a PantaRhei ``.prz`` file.
+    For Panta Rhei <24.03 a restricted unpickler can be used to load the meta
+    data with ``allow_restricted_pickle=True``, which raises ``InvalidPickleError``
+    if restricted modules are detected.
 
     Parameters
     ----------
     %s
     %s
+    allow_restricted_pickle : bool, default=False
+        Allows unpickling of prz meta data for data saved with Panta Rhei <24.03.
+        This poses a security risk, use only for completely trusted prz files.
 
     %s
     """
     if lazy is not False:
         raise NotImplementedError("Lazy loading is not supported.")
+    if Path(filename).suffix != ".prz":
+        raise ValueError("Only prz files are supported")
 
-    prz_file = np.load(filename, allow_pickle=True)
+    # this is lazy, only the ZipFile meta data gets loaded as of yet!
+    prz_file = np.load(filename, allow_pickle=False)
+    if "meta_data_json" in prz_file:
+        meta_data = json.loads(prz_file["meta_data_json"][()])[0]
+    elif allow_restricted_pickle:
+        _logger.warning(
+            "You are unpickling a prz file, this poses a security risk! "
+            "Only load prz files you completely trust."
+        )
+        # uses `RestrictedUnpickler`
+        meta_data = read_pickled_array(prz_file.zip.open("meta_data.npy"))[0]
+    else:
+        _logger.warning(
+            """With `allow_restricted_pickle=False` no meta data can be loaded
+            from a prz file. Note however, that `allow_restricted_pickle=True`
+            poses a security risk, and should only be used for completely
+            trusted files! As a fallback also consider exporting to hyperspy
+            format (.hspy) directly from Panta Rhei."""
+        )
+        meta_data = {}
     data = prz_file["data"]
-    meta_data = prz_file["meta_data"][0]
     return import_pr(data, meta_data, filename)
 
 

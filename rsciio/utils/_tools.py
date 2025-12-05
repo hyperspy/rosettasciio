@@ -161,20 +161,27 @@ def inspect_npy_bytes(file_: IO[bytes]) -> tuple[int, tuple[int, ...], str]:
     Inspect a .npy byte stream to extract metadata such as data offset, shape, and dtype.
 
     .. warning::
-       After calling this function, the `file_` stream position advanced to the
+       After calling this function, the ``file_`` stream position advanced to the
        start of the data.
 
     Parameters
     ----------
-    file_ : File like object
+    file_ : File handle
+        The .npy byte stream to inspect.
 
     Returns
     -------
     tuple
         A tuple containing:
-        - data_offset (int): The byte offset where the data starts.
-        - shape (tuple): The shape of the array stored in the file.
-        - dtype (str): The data type of the array elements.
+
+        - ``offset`` (int): The byte offset where the data starts.
+        - ``shape`` (tuple): The shape of the array stored in the file.
+        - ``dtype`` (str): The data type of the array elements.
+
+    Examples
+    --------
+    >>> with open('example.npy', 'rb') as f:
+    ...     offset, shape, dtype = inspect_npy_bytes(f)
     """
 
     # Read magic string and version
@@ -203,6 +210,6 @@ def inspect_npy_bytes(file_: IO[bytes]) -> tuple[int, tuple[int, ...], str]:
     # Extract metadata
     shape = header_dict["shape"]
     dtype = header_dict["descr"]
-    data_offset = header_offset + header_len
+    offset = header_offset + header_len
 
-    return data_offset, shape, dtype
+    return offset, shape, dtype

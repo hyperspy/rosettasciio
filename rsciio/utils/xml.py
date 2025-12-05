@@ -15,6 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
+"""Utility functions for XML handling."""
 
 import re
 import xml.etree.ElementTree as ET
@@ -22,6 +23,18 @@ from ast import literal_eval
 from collections import defaultdict
 
 from rsciio.utils._dictionary import DTBox
+
+__all__ = [
+    "XmlToDict",
+    "convert_xml_to_dict",
+    "sanitize_msxml_float",
+    "xml2dtb",
+]
+
+
+def __dir__():
+    return sorted(__all__)
+
 
 # MSXML sanitization ###
 # re pattern with two capturing groups with comma in between;

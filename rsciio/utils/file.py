@@ -15,6 +15,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
+"""Utility functions for file handling."""
+
 
 # ruff: noqa: F822
 

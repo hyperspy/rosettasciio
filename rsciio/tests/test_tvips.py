@@ -32,8 +32,8 @@ t = pytest.importorskip("traits.api", reason="traits not installed")
 
 from hyperspy.misc.utils import DictionaryTreeBrowser  # noqa: E402
 
-from rsciio.tvips._api import (  # noqa: E402
-    TVIPS_RECORDER_FRAME_HEADER,
+from rsciio.tvips._api import TVIPS_RECORDER_FRAME_HEADER  # noqa: E402
+from rsciio.tvips._api import (
     TVIPS_RECORDER_GENERAL_HEADER,
     _find_auto_scan_start_stop,
     _get_frame_record_dtype_from_signal,

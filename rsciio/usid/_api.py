@@ -27,12 +27,7 @@ import numpy as np
 import pyUSID as usid
 import sidpy
 
-from rsciio._docstrings import (
-    FILENAME_DOC,
-    LAZY_DOC,
-    RETURNS_DOC,
-    SIGNAL_DOC,
-)
+from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC, SIGNAL_DOC
 
 _logger = logging.getLogger(__name__)
 

@@ -31,11 +31,8 @@ import pytest
 pytest.importorskip("h5py")
 pytest.importorskip("sparse")
 
-from rsciio.utils.fei_stream_readers import (  # noqa: E402
-    array_to_stream,
-    stream_to_array,
-    stream_to_sparse_COO_array,
-)
+from rsciio.utils.fei_stream_readers import array_to_stream  # noqa: E402
+from rsciio.utils.fei_stream_readers import stream_to_array, stream_to_sparse_COO_array
 
 
 @pytest.mark.parametrize("lazy", (True, False))

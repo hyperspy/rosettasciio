@@ -81,12 +81,7 @@ from functools import partial
 
 import numpy as np
 
-from rsciio._docstrings import (
-    FILENAME_DOC,
-    LAZY_DOC,
-    RETURNS_DOC,
-    SIGNAL_DOC,
-)
+from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC, SIGNAL_DOC
 from rsciio.utils.tools import DTBox, sarray2dict
 
 _logger = logging.getLogger(__name__)

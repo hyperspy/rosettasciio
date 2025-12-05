@@ -1,7 +1,4 @@
-from ._api import (
-    file_reader,
-    file_writer,
-)
+from ._api import file_reader, file_writer
 
 __all__ = [
     "file_reader",

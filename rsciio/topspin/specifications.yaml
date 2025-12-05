@@ -1,0 +1,8 @@
+name: Topspin
+name_aliases: ["Nanomegas","Digistar"]
+description: "Used by Nanomegas for Topspin software, which interfaces with the Nanomegas Digistar systems to collect various forms of 4D-STEM data, including precession electron diffraction"
+full_support: False
+file_extensions: [".app5"]
+default_extension: 0
+writes: False
+non_uniform_axis: False

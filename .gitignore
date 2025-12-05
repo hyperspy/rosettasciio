@@ -10,3 +10,6 @@
 rsciio/bruker/unbcf_fast.c
 rsciio/bruker/*.so
 rsciio/bruker/*.pyd
+*.egg-info
+*.DS_Store
+*.coverage

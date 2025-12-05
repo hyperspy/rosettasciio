@@ -29,12 +29,7 @@ import tifffile
 from dateutil import parser
 from tifffile import TiffFile, TiffPage, imwrite
 
-from rsciio._docstrings import (
-    FILENAME_DOC,
-    LAZY_DOC,
-    RETURNS_DOC,
-    SIGNAL_DOC,
-)
+from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC, SIGNAL_DOC
 from rsciio.utils.date_time_tools import get_date_time_from_metadata
 from rsciio.utils.tools import _UREG, DTBox
 

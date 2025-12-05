@@ -25,12 +25,7 @@ import imageio.v3 as iio
 import numpy as np
 from PIL import Image
 
-from rsciio._docstrings import (
-    FILENAME_DOC,
-    LAZY_DOC,
-    RETURNS_DOC,
-    SIGNAL_DOC,
-)
+from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC, SIGNAL_DOC
 from rsciio.utils.image import _parse_axes_from_metadata, _parse_exif_tags
 from rsciio.utils.tools import _UREG
 

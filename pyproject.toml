@@ -113,16 +113,15 @@ tests = [
   "setuptools_scm",
 ]
 doc = [
-  "numpydoc",
+  "numpydoc>=1.6.0",
   "pooch",
   "pydata-sphinx-theme>=0.13",
   "setuptools_scm",
   "sphinx",
   "sphinx-favicon",
-  "sphinxcontrib-towncrier",
+  "sphinxcontrib-towncrier>=0.5.0a0",
   "sphinx-copybutton",
-  # unpin when sphinxcontrib-towncrier supports towncrier >=24
-  "towncrier<24",
+  "towncrier",
   "sphinx_design",
 ]
 all = [

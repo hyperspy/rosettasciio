@@ -40,7 +40,7 @@ import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 from rsciio.utils.date_time_tools import msfiletime_to_unix
-from rsciio.utils.tools import XmlToDict, sanitize_msxml_float
+from rsciio.utils.xml import XmlToDict, sanitize_msxml_float
 
 _logger = logging.getLogger(__name__)
 

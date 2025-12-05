@@ -25,7 +25,7 @@ from datetime import datetime, timedelta
 import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
-from rsciio.utils.tools import jit_ifnumba
+from rsciio.utils._tools import jit_ifnumba
 
 _logger = logging.getLogger(__name__)
 

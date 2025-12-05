@@ -36,7 +36,8 @@ from rsciio._docstrings import (
     SIGNAL_DOC,
 )
 from rsciio.utils.date_time_tools import get_date_time_from_metadata
-from rsciio.utils.tools import _UREG, DTBox
+from rsciio.utils.dictionary import DTBox
+from rsciio.utils.units import _UREG
 
 _logger = logging.getLogger(__name__)
 

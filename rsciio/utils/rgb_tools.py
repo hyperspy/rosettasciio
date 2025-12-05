@@ -17,12 +17,9 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import numpy as np
-from dask.array import Array
-from dask.diagnostics import ProgressBar
 
 from rsciio._docstrings import SHOW_PROGRESSBAR_DOC
 from rsciio.utils.array import get_numpy_kwargs
-from rsciio.utils.tools import dummy_context_manager
 
 rgba8 = np.dtype({"names": ["R", "G", "B", "A"], "formats": ["u1", "u1", "u1", "u1"]})
 rgb8 = np.dtype({"names": ["R", "G", "B"], "formats": ["u1", "u1", "u1"]})
@@ -64,6 +61,12 @@ def rgbx2regular_array(data, plot_friendly=False, show_progressbar=True):
         normalize the array so that it is ready to be plotted by matplotlib.
     %s
     """
+    # lazy import dask.array
+    from dask.array import Array
+    from dask.diagnostics import ProgressBar
+
+    from rsciio.utils.tools import dummy_context_manager
+
     # Make sure that the data is contiguous
     if isinstance(data, Array):
         cm = ProgressBar if show_progressbar else dummy_context_manager

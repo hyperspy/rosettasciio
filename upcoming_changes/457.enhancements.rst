@@ -1,1 +1,0 @@
-Add support for Panta Rhei 0.24.3. Add `allow_restricted_pickle` flag to load meta data from legacy prz files.

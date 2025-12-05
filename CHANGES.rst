@@ -8,6 +8,28 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 
 .. towncrier release notes start
 
+0.11 (2025-12-05)
+=================
+
+Enhancements
+------------
+
+- Add support for Panta Rhei 0.24.3. Add `allow_restricted_pickle` flag to load meta data from legacy prz files. (`#457 <https://github.com/hyperspy/rosettasciio/issues/457>`_)
+
+
+Bug Fixes
+---------
+
+- Fix reading velox emd file when element selection is empty. (`#432 <https://github.com/hyperspy/rosettasciio/issues/432>`_)
+- Fix linting section in the contributing guide, since ``ruff`` is now used instead of ``black``. (`#456 <https://github.com/hyperspy/rosettasciio/issues/456>`_)
+
+
+Maintenance
+-----------
+
+- Add explicit support for python 3.14 and drop support for python 3.9. Build windows arm64 wheel. (`#441 <https://github.com/hyperspy/rosettasciio/issues/441>`_)
+
+
 0.10 (2025-07-27)
 =================
 

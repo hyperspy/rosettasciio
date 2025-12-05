@@ -1,5 +1,3 @@
-"""HDF5 file inspection."""
-
 # -*- coding: utf-8 -*-
 # Copyright 2007-2025 The HyperSpy developers
 #
@@ -18,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 #
+"""Utility functions for HDF5 file inspection."""
 
 import json
 import pprint
@@ -31,6 +30,15 @@ from rsciio.nexus._api import (
     _find_search_keys_in_dict,
     _load_metadata,
 )
+
+__all__ = [
+    "list_datasets_in_file",
+    "read_metadata_from_file",
+]
+
+
+def __dir__():
+    return sorted(__all__)
 
 
 def read_metadata_from_file(
@@ -167,13 +175,3 @@ def _parse_sub_data_group_metadata(sub_data_group):
 
 def _parse_metadata(data_group, sub_group_key):
     return _parse_sub_data_group_metadata(data_group[sub_group_key])
-
-
-__all__ = [
-    "read_metadata_from_file",
-    "list_datasets_in_file",
-]
-
-
-def __dir__():
-    return sorted(__all__)

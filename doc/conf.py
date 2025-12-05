@@ -16,9 +16,6 @@
 
 from datetime import datetime
 
-import numpydoc
-from packaging.version import Version
-
 # -- Project information -----------------------------------------------------
 
 project = "RosettaSciIO"
@@ -112,10 +109,15 @@ nitpick_ignore_regex = [(r"py:.*", r"hyperspy.api.*")]
 # -- Options for numpydoc extension -----------------------------------
 
 numpydoc_xref_param_type = True
-numpydoc_xref_ignore = {"type", "optional", "default", "of", "File", "handle"}
+numpydoc_xref_ignore = {"type", "optional", "default", "of", "File", "handle", "DTBox"}
 
-if Version(numpydoc.__version__) >= Version("1.6.0rc0"):
-    numpydoc_validation_checks = {"all", "ES01", "EX01", "GL02", "GL03", "SA01", "SS06"}
+numpydoc_validation_checks = {"all", "ES01", "EX01", "GL02", "GL03", "SA01", "SS06"}
+numpydoc_validation_exclude = {
+    "rsciio.utils.rgb.RGB_DTYPES",
+    "rsciio.IO_PLUGINS",
+}  # doesn't play well with GL01
+
+numpydoc_show_class_members = False
 
 # -- Options for towncrier_draft extension -----------------------------------
 
@@ -134,6 +136,11 @@ copybutton_line_continuation_character = "\\"
 
 linkcheck_ignore = [
     "https://www.biorxiv.org",  # 403 Client Error: Forbidden for url
+]
+
+# https://github.com/sphinx-doc/sphinx/issues/12589#issuecomment-2229491106
+suppress_warnings = [
+    "autosummary.import_cycle",
 ]
 
 

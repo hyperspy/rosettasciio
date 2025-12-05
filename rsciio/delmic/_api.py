@@ -44,14 +44,6 @@ import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
 
-# LumiSpy provides extra Signal types for Cathodoluminescence, which can be nice for metadata,
-# but everything should work too without this extension being available.
-try:
-    import lumispy
-except ImportError:
-    lumispy = None
-
-
 _logger = logging.getLogger(__name__)
 
 # HDF5 SVI: State of the metadata -> how trustable is the value
@@ -316,15 +308,12 @@ def make_metadata(
         },
     }
 
-    # If LumiSpy is available => more fancy Signal classes available
-    if lumispy:
-        ACQ_TO_SIGNAL_TYPE = {
-            AcquisitionType.TempSpec: "LumiTransientSpectrum",
-            AcquisitionType.Temporal: "LumiTransient",
-            AcquisitionType.Spectrum: "CL_SEM",
-        }
-        signal_type = ACQ_TO_SIGNAL_TYPE.get(acq_type, "")
-        metadata["Signal"]["signal_type"] = signal_type
+    ACQ_TO_SIGNAL_TYPE = {
+        AcquisitionType.TempSpec: "LumiTransientSpectrum",
+        AcquisitionType.Temporal: "LumiTransient",
+        AcquisitionType.Spectrum: "CL_SEM",
+    }
+    metadata["Signal"]["signal_type"] = ACQ_TO_SIGNAL_TYPE.get(acq_type, "")
 
     # Store polarization information as a "detector filter", if present
     pol = original_md.get("Polarization")

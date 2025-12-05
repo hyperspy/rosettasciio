@@ -29,12 +29,12 @@ import math
 import os
 import re
 
-import dask.array as da
 import h5py
 import numpy as np
 
 from rsciio._hierarchical import get_signal_chunks
-from rsciio.utils.tools import _UREG, DTBox
+from rsciio.utils._array import is_dask_array
+from rsciio.utils._dictionary import DTBox
 
 EMD_VERSION = "0.2"
 
@@ -234,6 +234,8 @@ class EMD_NCEM:
         if len(dataset_list) > 1:
             # Squeeze the data only when
             if self.lazy:
+                import dask.array as da
+
                 data_list = [
                     da.from_array(*self._read_dataset(d)) for d in dataset_list
                 ]
@@ -249,6 +251,8 @@ class EMD_NCEM:
         else:
             d = dataset_list[0]
             if self.lazy:
+                import dask.array as da
+
                 data = da.from_array(*self._read_dataset(d))
             else:
                 data = self._read_dataset(d)[0]
@@ -344,6 +348,8 @@ class EMD_NCEM:
                 units_list = [u[1:-1].replace("_", "") for u in units_list]
                 value = " * ".join(units_list)
                 try:
+                    from rsciio.utils._units import _UREG
+
                     units = _UREG.parse_units(value)
                     value = f"{units:~}"
                 except Exception:
@@ -483,7 +489,7 @@ class EMD_NCEM:
             # Saving numpy unicode type is not supported in h5py
             data = data.astype(np.dtype("S"))
         if chunks is None:
-            if isinstance(data, da.Array):
+            if is_dask_array(data):
                 # For lazy dataset, by default, we use the current dask chunking
                 chunks = tuple([c[0] for c in data.chunks])
             else:

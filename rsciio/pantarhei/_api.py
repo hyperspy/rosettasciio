@@ -33,7 +33,7 @@ from rsciio._docstrings import (
     SIGNAL_DOC,
 )
 from rsciio.pantarhei._restricted_unpickling import read_pickled_array
-from rsciio.utils.tools import DTBox
+from rsciio.utils._dictionary import DTBox
 
 _logger = logging.getLogger(__name__)
 

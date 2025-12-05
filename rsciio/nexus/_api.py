@@ -21,7 +21,6 @@
 import logging
 import os
 
-import dask.array as da
 import h5py
 import numpy as np
 
@@ -35,7 +34,8 @@ from rsciio._docstrings import (
 )
 from rsciio._hierarchical import get_signal_chunks
 from rsciio.hspy._api import overwrite_dataset
-from rsciio.utils.tools import DTBox
+from rsciio.utils._array import is_dask_array
+from rsciio.utils._dictionary import DTBox
 
 _logger = logging.getLogger(__name__)
 
@@ -87,6 +87,8 @@ def _parse_from_file(value, lazy=False):
             toreturn = value[...].item()
         else:
             if lazy:
+                import dask.array as da
+
                 if value.chunks:
                     toreturn = da.from_array(value, value.chunks)
                 else:
@@ -127,7 +129,7 @@ def _parse_to_file(value):
         totest = np.array(value)
     if isinstance(totest, np.ndarray) and totest.dtype.char == "U":
         toreturn = np.array(totest).astype("S")
-    elif isinstance(totest, (np.ndarray, da.Array)):
+    elif isinstance(totest, np.ndarray) or is_dask_array(totest):
         toreturn = totest
     if isinstance(totest, str):
         toreturn = totest.encode("utf-8")
@@ -329,6 +331,8 @@ def _extract_hdf_dataset(group, dataset, lazy=False):
     nav_list = _get_nav_list(data, data.parent)
 
     if lazy:
+        import dask.array as da
+
         if "chunks" in data.attrs.keys():
             chunks = data.attrs["chunks"]
         else:
@@ -393,6 +397,8 @@ def _nexus_dataset_to_signal(group, nexus_dataset_path, lazy=False):
     nav_list = _get_nav_list(data, dataentry)
 
     if lazy:
+        import dask.array as da
+
         if "chunks" in data.attrs.keys():
             chunks = data.attrs["chunks"]
         else:
@@ -1029,7 +1035,7 @@ def _write_nexus_groups(dictionary, group, skip_keys=None, **kwds):
                 _write_nexus_groups(
                     value, group.require_group(key), skip_keys=skip_keys, **kwds
                 )
-        if isinstance(value, (list, tuple, np.ndarray, da.Array)):
+        if isinstance(value, (list, tuple, np.ndarray)) or is_dask_array(value):
             if all(isinstance(v, dict) for v in value):
                 # a list of dictionary is from the axes of HyperSpy signal
                 for i, ax_dict in enumerate(value):

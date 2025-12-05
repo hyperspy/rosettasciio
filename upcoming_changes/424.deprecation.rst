@@ -1,0 +1,17 @@
+Re-organize the ``rsciio.utils.tools`` into submodules. The following functions have been moved from ``rsciio.utils.tools`` to other submodules:
+
+- ``sanitize_msxml_float``, ``XmlToDict``, ``xml2dtb`` and ``convert_xml_to_dict`` have been moved to :mod:`rsciio.utils.xml`
+- ``append2pathname``, ``incremental_filename``, ``ensure_directory`` and ``overwrite`` have been moved to :mod:`rsciio.utils.path`
+- ``get_file_handle`` has been moved to :mod:`rsciio.utils.file`.
+
+The following functions have been privatised and will be removed in version 1.0:
+
+- ``dummy_context_manager``,
+- ``get_object_package_info``,
+- ``ensure_unicode``,
+- ``jit_ifnumba``,
+- ``dump_dictionary``,
+- ``DTBox``,
+- ``sarray2dict``,
+- ``dict2sarray``,
+- ``convert_units``.

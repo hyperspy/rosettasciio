@@ -31,17 +31,16 @@ import os
 import time
 from datetime import datetime
 
-import dask.array as da
 import numpy as np
 from dateutil import tz
 
-from rsciio.utils.elements import atomic_number2name
+from rsciio.utils._elements import atomic_number2name
+from rsciio.utils._units import _UREG, convert_units
 from rsciio.utils.hdf5 import (
     _get_keys_from_group,
     _parse_metadata,
     _parse_sub_data_group_metadata,
 )
-from rsciio.utils.tools import _UREG, convert_units
 
 _logger = logging.getLogger(__name__)
 
@@ -201,6 +200,8 @@ class FeiEMDReader(object):
         spectrum_sub_group = spectrum_group[spectrum_sub_group_key]
         dataset = spectrum_sub_group["Data"]
         if self.lazy:
+            import dask.array as da
+
             data = da.from_array(dataset, chunks=dataset.chunks).T
         else:
             data = dataset[:].T
@@ -299,6 +300,8 @@ class FeiEMDReader(object):
             real = h5data.dtype.descr[0][0]
             imag = h5data.dtype.descr[1][0]
             if self.lazy:
+                import dask.array as da
+
                 data = da.from_array(h5data, chunks=h5data.chunks)
                 data = data[real] + 1j * data[imag]
                 data = da.transpose(data, axes=[2, 0, 1])
@@ -310,6 +313,8 @@ class FeiEMDReader(object):
                 data = np.rollaxis(data, axis=2)
         else:
             if self.lazy:
+                import dask.array as da
+
                 data = da.transpose(
                     da.from_array(h5data, chunks=h5data.chunks), axes=[2, 0, 1]
                 )
@@ -954,7 +959,7 @@ class FeiSpectrumStream(object):
         return om_br["PixelSize"], om_br["Offset"], om_br["PixelUnitX"]
 
     def stream_to_sparse_array(self, stream_data):
-        import rsciio.utils.fei_stream_readers as stream_readers
+        import rsciio.utils._fei_stream_readers as stream_readers
 
         """Convert stream in sparse array
 
@@ -987,7 +992,7 @@ class FeiSpectrumStream(object):
             Otherwise it creates a new array and returns it.
 
         """
-        import rsciio.utils.fei_stream_readers as stream_readers
+        import rsciio.utils._fei_stream_readers as stream_readers
 
         spectrum_image = stream_readers.stream_to_array(
             stream=stream_data,

@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import functools
 import os
 from importlib.metadata import version
 from pathlib import Path
@@ -28,30 +29,20 @@ from ._logger import set_log_level
 set_log_level("WARNING")
 
 IO_PLUGINS = []
+"""
+List of available IO plugins. Each entry is a dictionary with the following keys:
 
-__version__ = version("rosettasciio")
+- ``'name'``: The name of the plugin.
+- ``'name_aliases'``: A list of alternative names for the plugin.
+- ``'description'``: A brief description of the plugin.
+- ``'full_support'``: A boolean indicating if the plugin has full support.
+- ``'default_extension'``: The default file extension for the plugin.
+- ``'writes'``: A boolean indicating if the plugin supports writing files.
+- ``'non_uniform_axis'``: A boolean indicating if the plugin supports non-uniform axes.
+- ``'api'``: The API module path as a string (e.g., 'rsciio.nexus').
 
-# For development version, `setuptools_scm` will be used at build time
-# to get the dev version, in case of missing vcs information (git archive,
-# shallow repository), the fallback version defined in pyproject.toml will
-# be used
-
-# if we have a editable install from a git repository try to use
-# `setuptools_scm` to find a more accurate version:
-# `importlib.metadata` will provide the version at installation
-# time and for editable version this may be different
-
-# we only do that if we have enough git history, e.g. not shallow checkout
-_root = Path(__file__).resolve().parents[1]
-if (_root / ".git").exists() and not (_root / ".git/shallow").exists():
-    try:
-        # setuptools_scm may not be installed
-        from setuptools_scm import get_version
-
-        __version__ = get_version(_root)
-    except ImportError:  # pragma: no cover
-        # setuptools_scm not install, we keep the existing __version__
-        pass
+:meta hide-value:
+"""
 
 
 for sub, _, _ in os.walk(os.path.abspath(os.path.dirname(__file__))):
@@ -69,3 +60,41 @@ __all__ = ["__version__", "IO_PLUGINS", "set_log_level"]
 
 def __dir__():
     return sorted(__all__)
+
+
+@functools.cache
+def _get_version():
+    version_ = version("rosettasciio")
+    # For development version, `setuptools_scm` will be used at build time
+    # to get the dev version, in case of missing vcs information (git archive,
+    # shallow repository), the fallback version defined in pyproject.toml will
+    # be used
+
+    # if we have a editable install from a git repository try to use
+    # `setuptools_scm` to find a more accurate version:
+    # `importlib.metadata` will provide the version at installation
+    # time and for editable version this may be different
+
+    # we only do that if we have enough git history, e.g. not shallow checkout
+    _root = Path(__file__).resolve().parents[1]
+    if (_root / ".git").exists() and not (_root / ".git/shallow").exists():
+        try:
+            # setuptools_scm may not be installed
+            from setuptools_scm import get_version
+
+            version_ = get_version(_root)
+        except ImportError:  # pragma: no cover
+            # setuptools_scm not install, we keep the existing __version__
+            pass
+
+    return version_
+
+
+def __getattr__(name):
+    if name == "__version__":
+        return _get_version()
+
+    if name in __all__:
+        return globals()[name]
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

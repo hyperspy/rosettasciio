@@ -23,7 +23,7 @@ from logging import getLogger
 
 import numpy
 
-from rsciio.utils.tools import inspect_npy_bytes
+from rsciio.utils.file import inspect_npy_bytes
 
 
 class InvalidPickleError(Exception):

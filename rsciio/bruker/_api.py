@@ -35,12 +35,11 @@ from struct import unpack as strct_unp
 from zlib import decompress as unzip_block
 
 import dask
-import dask.array as da
 import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
-from rsciio.utils.date_time_tools import msfiletime_to_unix
-from rsciio.utils.tools import XmlToDict, sanitize_msxml_float
+from rsciio.utils._date_time import msfiletime_to_unix
+from rsciio.utils.xml import XmlToDict, sanitize_msxml_float
 
 _logger = logging.getLogger(__name__)
 
@@ -990,6 +989,8 @@ class BCF_reader(SFS_reader):
                 index=index, downsample=downsample, for_numpy=True
             )
         if lazy:
+            import dask.array as da
+
             value = dask.delayed(parse_func)(
                 vrt_file_hand, shape, dtype, downsample=downsample
             )

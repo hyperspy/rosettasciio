@@ -20,11 +20,9 @@ import logging
 import zipfile
 from collections.abc import MutableMapping
 
-import dask.array as da
 import numcodecs
 import numpy as np
 import zarr
-from dask.diagnostics import ProgressBar
 
 from rsciio._docstrings import (
     CHUNKS_DOC,
@@ -35,7 +33,8 @@ from rsciio._docstrings import (
     SIGNAL_DOC,
 )
 from rsciio._hierarchical import HierarchicalReader, HierarchicalWriter, version
-from rsciio.utils._tools import dummy_context_manager
+from rsciio.utils._array import is_dask_array
+from rsciio.utils._context_manager import get_progress_bar_context_manager
 
 _logger = logging.getLogger(__name__)
 
@@ -94,14 +93,14 @@ class ZspyWriter(HierarchicalWriter):
         calculating the chunks for a ragged array is not supported. See
         https://github.com/hyperspy/rosettasciio/issues/168 for more details.
         """
-        if not isinstance(data, da.Array):
+        if not is_dask_array(data):
             chunks = data.shape
         these_kwds = kwds.copy()
         these_kwds.update(dict(dtype=object, exact=True, chunks=chunks))
 
         if dtype is None:
             test_data = data[data.ndim * (0,)]
-            if isinstance(test_data, da.Array):
+            if is_dask_array(test_data):
                 test_data = test_data.compute()
             if hasattr(test_data, "dtype"):
                 # this is a numpy array
@@ -145,16 +144,17 @@ class ZspyWriter(HierarchicalWriter):
                 dset,
             ]
         for i, (data_, dset_) in enumerate(zip(data, dset)):
-            if isinstance(data_, da.Array):
+            if is_dask_array(data_):
                 if data_.chunks != dset_.chunks:
                     data[i] = data_.rechunk(dset_.chunks)
                 # for performance reason, we write the data later, with all data
                 # at the same time in a single `da.store` call
             else:
                 dset_[:] = data_
-        if isinstance(data[0], da.Array):
-            cm = ProgressBar if show_progressbar else dummy_context_manager
-            with cm():
+        if is_dask_array(data[0]):
+            with get_progress_bar_context_manager(show_progressbar)():
+                import dask.array as da
+
                 # lock=False is necessary with the distributed scheduler
                 # da.store of tuple helps to merge task graphs and avoid computing twice
                 da.store(data, dset, lock=False)

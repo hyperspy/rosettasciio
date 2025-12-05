@@ -31,7 +31,6 @@ import os
 import time
 from datetime import datetime
 
-import dask.array as da
 import numpy as np
 from dateutil import tz
 
@@ -201,6 +200,8 @@ class FeiEMDReader(object):
         spectrum_sub_group = spectrum_group[spectrum_sub_group_key]
         dataset = spectrum_sub_group["Data"]
         if self.lazy:
+            import dask.array as da
+
             data = da.from_array(dataset, chunks=dataset.chunks).T
         else:
             data = dataset[:].T
@@ -299,6 +300,8 @@ class FeiEMDReader(object):
             real = h5data.dtype.descr[0][0]
             imag = h5data.dtype.descr[1][0]
             if self.lazy:
+                import dask.array as da
+
                 data = da.from_array(h5data, chunks=h5data.chunks)
                 data = data[real] + 1j * data[imag]
                 data = da.transpose(data, axes=[2, 0, 1])
@@ -310,6 +313,8 @@ class FeiEMDReader(object):
                 data = np.rollaxis(data, axis=2)
         else:
             if self.lazy:
+                import dask.array as da
+
                 data = da.transpose(
                     da.from_array(h5data, chunks=h5data.chunks), axes=[2, 0, 1]
                 )

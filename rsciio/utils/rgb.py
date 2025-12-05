@@ -20,7 +20,8 @@
 import numpy as np
 
 from rsciio._docstrings import SHOW_PROGRESSBAR_DOC
-from rsciio.utils._array import get_numpy_kwargs
+from rsciio.utils._array import is_dask_array
+from rsciio.utils._context_manager import get_progress_bar_context_manager
 
 __all__ = [
     "is_rgba",
@@ -121,22 +122,15 @@ def rgbx2regular_array(data, plot_friendly=False, show_progressbar=True):
     numpy.ndarray or dask.array.Array
         The transformed array with additional dimension for the color channel.
     """
-    # lazy import dask.array
-    from dask.array import Array
-    from dask.diagnostics import ProgressBar
-
-    from rsciio.utils._tools import dummy_context_manager
-
     # Make sure that the data is contiguous
-    if isinstance(data, Array):
-        cm = ProgressBar if show_progressbar else dummy_context_manager
-        with cm():
+    if is_dask_array(data):
+        with get_progress_bar_context_manager(show_progressbar)():
             data = data.compute()
     if data.flags["C_CONTIGUOUS"] is False:
         if np.ma.is_masked(data):
             data = data.copy(order="C")
         else:
-            data = np.ascontiguousarray(data, **get_numpy_kwargs(data))
+            data = np.ascontiguousarray(data)
     if is_rgba(data) is True:
         dt = data.dtype.fields["B"][0]
         data = data.view((dt, 4))
@@ -174,7 +168,7 @@ def regular_array2rgbx(data):
         if np.ma.is_masked(data):
             data = data.copy(order="C")
         else:
-            data = np.ascontiguousarray(data, **get_numpy_kwargs(data))
+            data = np.ascontiguousarray(data)
     if data.shape[-1] == 3:
         names = _RGB8.names
     elif data.shape[-1] == 4:

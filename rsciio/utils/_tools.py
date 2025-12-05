@@ -20,19 +20,12 @@ import ast
 import importlib
 import logging
 import struct
-from contextlib import contextmanager
 from typing import IO
 
-import dask
 import numpy as np
 from packaging.version import Version
 
 _logger = logging.getLogger(__name__)
-
-
-@contextmanager
-def dummy_context_manager(*args, **kwargs):
-    yield
 
 
 def get_object_package_info(obj):
@@ -116,6 +109,8 @@ def get_file_handle(data, warn=True):
                 )
     if arrkey_tifffile:
         try:
+            import dask
+
             # access the filehandle through the pages or series
             # interfaces of tifffile
             # this may be brittle and may need maintenance as

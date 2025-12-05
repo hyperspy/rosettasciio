@@ -33,7 +33,7 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SHOW_PROGRESSBAR_DOC,
 )
-from rsciio.utils.tools import dummy_context_manager
+from rsciio.utils._context_manager import dummy_context_manager
 
 _logger = logging.getLogger(__name__)
 

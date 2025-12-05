@@ -34,8 +34,8 @@ from rsciio._docstrings import (
     NAVIGATION_SHAPE,
     RETURNS_DOC,
 )
+from rsciio.utils import file
 from rsciio.utils._deprecated import distributed_keyword_deprecation
-from rsciio.utils._distributed import memmap_distributed
 
 _logger = logging.getLogger(__name__)
 
@@ -321,7 +321,7 @@ def load_mib_data(
             headers = memmap_["header"]
             data = memmap_["data"]
         else:
-            data = memmap_distributed(chunks=chunks, key="data", **memmap_kwargs)
+            data = file.memmap_distributed(chunks=chunks, key="data", **memmap_kwargs)
             if not lazy:
                 data = data.compute()
             data = data.squeeze()

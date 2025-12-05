@@ -23,10 +23,8 @@ import warnings
 from datetime import datetime, timezone
 
 import dask
-import dask.array as da
 import numpy as np
 import pint
-from dask.diagnostics import ProgressBar
 from dateutil.parser import parse as dtparse
 
 from rsciio._docstrings import (
@@ -37,8 +35,9 @@ from rsciio._docstrings import (
     SIGNAL_DOC,
 )
 from rsciio.utils._array import sarray2dict
+from rsciio.utils._context_manager import get_progress_bar_context_manager
 from rsciio.utils._dictionary import DTBox
-from rsciio.utils._tools import dummy_context_manager, jit_ifnumba
+from rsciio.utils._tools import jit_ifnumba
 from rsciio.utils._units import _UREG
 
 _logger = logging.getLogger(__name__)
@@ -334,6 +333,8 @@ def file_reader(
         all_metadata.append(records[metadata_keys])
         all_array_data.append(records["data"])
     if lazy:
+        import dask.array as da
+
         data_stack = da.concatenate(all_array_data, axis=0)
     else:
         data_stack = np.concatenate(all_array_data, axis=0)
@@ -634,8 +635,7 @@ def file_writer(
         file_memmap["rotidx"] = rotator + 1
         data = fdata[current_frame : current_frame + frames_saved]
         if signal["attributes"]["_lazy"]:
-            cm = ProgressBar if show_progressbar else dummy_context_manager
-            with cm():
+            with get_progress_bar_context_manager(show_progressbar)():
                 data.store(file_memmap["data"])
         else:
             file_memmap["data"] = data

@@ -28,7 +28,7 @@ from io import StringIO
 
 import numpy as np
 
-from rsciio import __version__
+import rsciio
 from rsciio._docstrings import (
     CHUNKS_DOC,
     ENCODING_DOC,
@@ -37,12 +37,12 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
+from rsciio.utils import file
 from rsciio.utils._deprecated import (
     distributed_keyword_deprecation,
     mmap_mode_keyword_deprecation,
 )
 from rsciio.utils._dictionary import DTBox
-from rsciio.utils._distributed import memmap_distributed
 
 _logger = logging.getLogger(__name__)
 
@@ -250,7 +250,7 @@ def read_raw(rpl_info, filename, chunks="auto"):
     elif record_by == "dont-care":  # stack of images
         shape = (height, width)
 
-    data = memmap_distributed(
+    data = file.memmap_distributed(
         filename,
         offset=offset,
         shape=shape,
@@ -630,7 +630,7 @@ file_writer.__doc__ %= (
 
 def write_rpl(filename, keys_dictionary, encoding="ascii"):
     with codecs.open(filename, "w", encoding=encoding, errors="ignore") as f:
-        f.write(f";File created by RosettaSciIO version {__version__}\n")
+        f.write(f";File created by RosettaSciIO version {rsciio.__version__}\n")
         f.write("key\tvalue\n")
         # Even if it is not necessary, we sort the keywords when writing
         # to make the rpl file more human friendly

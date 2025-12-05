@@ -49,7 +49,7 @@ __all__ = [
 
 
 _import_mapping = {
-    "dummy_context_manager": "_tools",
+    "dummy_context_manager": "_context_manager",
     "get_object_package_info": "_tools",
     "ensure_unicode": "_tools",
     "get_file_handle": "file",

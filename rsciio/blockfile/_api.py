@@ -21,11 +21,9 @@ import logging
 import os
 import warnings
 
-import dask
 import dateutil
 import numpy as np
-from dask.diagnostics import ProgressBar
-from skimage import dtype_limits
+import skimage
 
 from rsciio._docstrings import (
     CHUNKS_READ_DOC,
@@ -36,15 +34,15 @@ from rsciio._docstrings import (
     SHOW_PROGRESSBAR_DOC,
     SIGNAL_DOC,
 )
+from rsciio.utils import file
 from rsciio.utils._array import dict2sarray, sarray2dict
+from rsciio.utils._context_manager import get_progress_bar_context_manager
 from rsciio.utils._date_time import (
     datetime_to_serial_date,
     serial_date_to_ISO_format,
 )
 from rsciio.utils._dictionary import DTBox
-from rsciio.utils._distributed import memmap_distributed
 from rsciio.utils._skimage_exposure import rescale_intensity
-from rsciio.utils._tools import dummy_context_manager
 from rsciio.utils._units import convert_units
 
 _logger = logging.getLogger(__name__)
@@ -299,7 +297,7 @@ def file_reader(filename, lazy=False, chunks="auto", endianess="<"):
                 ("data", np.dtype(endianess + "u1"), signal_shape),
             ]
         )
-        data = memmap_distributed(
+        data = file.memmap_distributed(
             filename,
             chunks=chunks,
             offset=offset2,
@@ -410,13 +408,15 @@ def file_writer(
                 UserWarning,
             )
     elif intensity_scaling == "dtype":
-        original_scale = dtype_limits(signal["data"])
+        original_scale = skimage.dtype_limits(signal["data"])
         if original_scale[1] == 1.0:
             raise ValueError("Signals with float dtype can not use 'dtype'")
     elif intensity_scaling == "minmax":
         minimum = signal["data"].min()
         maximum = signal["data"].max()
         if signal["attributes"]["_lazy"]:
+            import dask
+
             minimum, maximum = dask.compute(minimum, maximum)
         original_scale = (minimum, maximum)
     elif intensity_scaling == "crop":
@@ -493,8 +493,7 @@ def file_writer(
     file_memmap["MAGIC"] = magics
     file_memmap["ID"] = ids
     if signal["attributes"]["_lazy"]:
-        cm = ProgressBar if show_progressbar else dummy_context_manager
-        with cm():
+        with get_progress_bar_context_manager(show_progressbar)():
             array_data.store(file_memmap["IMG"])
     else:
         file_memmap["IMG"] = array_data

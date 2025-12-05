@@ -35,7 +35,6 @@ from struct import unpack as strct_unp
 from zlib import decompress as unzip_block
 
 import dask
-import dask.array as da
 import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
@@ -990,6 +989,8 @@ class BCF_reader(SFS_reader):
                 index=index, downsample=downsample, for_numpy=True
             )
         if lazy:
+            import dask.array as da
+
             value = dask.delayed(parse_func)(
                 vrt_file_hand, shape, dtype, downsample=downsample
             )

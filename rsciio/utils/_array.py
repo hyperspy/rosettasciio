@@ -19,25 +19,6 @@
 from collections import OrderedDict
 
 import numpy as np
-from packaging.version import Version
-
-
-def get_numpy_kwargs(array):
-    """
-    Convenience funtion to return a dictionary containing the `like` keyword
-    if numpy>=1.20.
-
-    Note
-    ----
-    `like` keyword is an experimental feature introduced in numpy 1.20 and is
-    pending on acceptance of NEP 35
-
-    """
-    kw = {}
-    if Version(np.__version__) >= Version("1.20"):
-        kw["like"] = array
-
-    return kw
 
 
 def sarray2dict(sarray, dictionary=None):
@@ -90,3 +71,14 @@ def dict2sarray(dictionary, sarray=None, dtype=None):
         else:
             sarray[name] = dictionary[name]
     return sarray
+
+
+def is_dask_array(x):
+    """Check if x is a dask array
+
+    Parameters
+    ----------
+    x : object
+        Object to be checked.
+    """
+    return hasattr(x, "__dask_keys__")

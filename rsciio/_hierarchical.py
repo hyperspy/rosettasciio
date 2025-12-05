@@ -21,12 +21,12 @@ import datetime
 import logging
 import warnings
 
-import dask.array as da
 import h5py
 import numpy as np
 from packaging.version import Version
 
 from rsciio._docstrings import SHOW_PROGRESSBAR_DOC
+from rsciio.utils._array import is_dask_array
 from rsciio.utils._tools import ensure_unicode
 
 version = "3.3"
@@ -289,6 +289,8 @@ class HierarchicalReader:
             # rename from `ragged_shapes` to `_ragged_shapes_{key}` in v3.3
             key = "ragged_shapes"
         if key in group:
+            import dask.array as da
+
             ragged_shape = group[key]
             # Use same chunks as data so that apply_gufunc doesn't rechunk
             # Reduces the transfer of data between workers which
@@ -353,11 +355,13 @@ class HierarchicalReader:
 
         data = self._read_array(group, "data")
         if lazy:
-            if not isinstance(data, da.Array):
+            if not is_dask_array(data):
+                import dask.array as da
+
                 data = da.from_array(data, chunks=data.chunks)
             exp["attributes"]["_lazy"] = True
         else:
-            if isinstance(data, da.Array):
+            if is_dask_array(data):
                 data = data.compute()
             data = np.asanyarray(data)
             exp["attributes"]["_lazy"] = False
@@ -623,6 +627,8 @@ class HierarchicalReader:
                             # let "wrong" binary string fail somewhere else...
                             pass
                     elif lazy:
+                        import dask.array as da
+
                         ans = da.from_array(dat, chunks=dat.chunks)
                     else:
                         ans = np.array(dat)
@@ -741,7 +747,7 @@ class HierarchicalWriter:
             :py:meth:`zarr.hierarchy.Group.require_dataset` method.
         """ % SHOW_PROGRESSBAR_DOC
         if chunks is None:
-            if isinstance(data, da.Array):
+            if is_dask_array(data):
                 # For lazy dataset, by default, we use the current dask chunking
                 chunks = tuple([c[0] for c in data.chunks])
             else:
@@ -779,7 +785,9 @@ class HierarchicalWriter:
 
         _logger.info(f"Chunks used for saving: {chunks}")
         if data.dtype == np.dtype("O"):
-            if isinstance(data, da.Array):
+            if is_dask_array(data):
+                import dask.array as da
+
                 new_data, shapes = da.apply_gufunc(
                     flatten_data,
                     "()->(),()",
@@ -873,7 +881,7 @@ class HierarchicalWriter:
             _logger.debug("Saving item: {}".format(key))
             if isinstance(value, dict):
                 self.dict2group(value, group.require_group(key), **kwds)
-            elif isinstance(value, (np.ndarray, self.Dataset, da.Array)):
+            elif isinstance(value, (np.ndarray, self.Dataset)) or is_dask_array(value):
                 self.overwrite_dataset(group, value, key, **kwds)
 
             elif value is None:

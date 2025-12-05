@@ -19,9 +19,7 @@
 import logging
 from pathlib import Path
 
-import dask.array as da
 import h5py
-from dask.diagnostics import ProgressBar
 from packaging.version import Version
 
 from rsciio._docstrings import (
@@ -35,7 +33,9 @@ from rsciio._docstrings import (
     SIGNAL_DOC,
 )
 from rsciio._hierarchical import HierarchicalReader, HierarchicalWriter, version
-from rsciio.utils._tools import dummy_context_manager, get_file_handle
+from rsciio.utils import file
+from rsciio.utils._array import is_dask_array
+from rsciio.utils._context_manager import get_progress_bar_context_manager
 
 _logger = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ class HyperspyWriter(HierarchicalWriter):
     @staticmethod
     def _store_data(data, dset, group, key, chunks, show_progressbar=True):
         # Tuple of dask arrays can also be passed, in which case the task graphs
-        # are merged and the data is written in a single `da.store` call.
+        # are merged and the data is written in a single `dask.array.store` call.
         # This is useful when saving a ragged array, where we need to write
         # the data and the shape at the same time as the ragged array must have
         # only one dimension.
@@ -88,7 +88,7 @@ class HyperspyWriter(HierarchicalWriter):
             ]
 
         for i, (data_, dset_) in enumerate(zip(data, dset)):
-            if isinstance(data_, da.Array):
+            if is_dask_array(data_):
                 if data_.chunks != dset_.chunks:
                     data[i] = data_.rechunk(dset_.chunks)
                 if data_.ndim == 1 and data_.dtype == object:
@@ -98,16 +98,17 @@ class HyperspyWriter(HierarchicalWriter):
                         "Please use the .zspy extension."
                     )
                 # for performance reason, we write the data later, with all data
-                # at the same time in a single `da.store` call
+                # at the same time in a single `dask.array.store` call
             # "write_direct" doesn't play well with empty array
             elif data_.flags.c_contiguous and data_.shape != (0,):
                 dset_.write_direct(data_)
             else:
                 dset_[:] = data_
-        if isinstance(data[0], da.Array):
-            cm = ProgressBar if show_progressbar else dummy_context_manager
-            with cm():
-                # da.store of tuple helps to merge task graphs and avoid computing twice
+        if is_dask_array(data[0]):
+            import dask.array as da
+
+            with get_progress_bar_context_manager(show_progressbar)():
+                # dask.array.store of tuple helps to merge task graphs and avoid computing twice
                 da.store(data, dset)
 
     @staticmethod
@@ -118,7 +119,7 @@ class HyperspyWriter(HierarchicalWriter):
 
         if dtype is None:
             test_data = data[data.ndim * (0,)]
-            if isinstance(test_data, da.Array):
+            if is_dask_array(test_data):
                 test_data = test_data.compute()
             dtype = test_data.dtype
 
@@ -219,7 +220,7 @@ def file_writer(
 
     f = None
     if signal["attributes"]["_lazy"] and Path(filename).absolute() == original_path:
-        f = get_file_handle(signal["data"], warn=False)
+        f = file.get_file_handle(signal["data"], warn=False)
         if f is not None and f.mode == "r":
             # when the file is read only, force to reopen it in writing mode
             raise OSError(

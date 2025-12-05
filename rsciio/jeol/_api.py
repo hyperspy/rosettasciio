@@ -787,8 +787,6 @@ def _readcube(
             The shifts of the origin in the navigation dimension for each frame.
     """
 
-    import dask.array as da
-
     # In case of sum_frames, spectrum image and SEM/STEM image are summing up to the same frame number.
     # To avoid overflow on integration of SEM/STEM image, data type of np.uint32 is selected
     # for 16 frames and over. (range of image intensity in each frame is 0-4095 (0-0xfff))
@@ -976,6 +974,8 @@ def _readcube(
         ar_s = DenseSliceCOO(v[0:4], v[4], shape=data_shape)
     if sum_frames:
         em_image = em_image[0]
+
+    import dask.array as da
 
     return (
         da.from_array(ar_s, asarray=False),

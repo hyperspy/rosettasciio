@@ -34,12 +34,12 @@ from rsciio._docstrings import (
     NAVIGATION_SHAPE,
     RETURNS_DOC,
 )
+from rsciio.utils import file
 from rsciio.utils._array import sarray2dict
 from rsciio.utils._deprecated import (
     distributed_keyword_deprecation,
     mmap_mode_keyword_deprecation,
 )
-from rsciio.utils._distributed import memmap_distributed
 
 _logger = logging.getLogger(__name__)
 
@@ -473,7 +473,7 @@ def file_reader(
     if navigation_shape is not None:
         shape = shape[:2] + navigation_shape
 
-    data = memmap_distributed(
+    data = file.memmap_distributed(
         filename,
         offset=f.tell(),
         shape=shape[::-1],

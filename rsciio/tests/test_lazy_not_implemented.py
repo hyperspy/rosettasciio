@@ -28,7 +28,6 @@ PLUGIN_LAZY_NOT_IMPLEMENTED = [
     "jobinyvon",
     "msa",
     "netcdf",
-    "pantarhei",
     "phenom",
     "protochips",
     "renishaw",

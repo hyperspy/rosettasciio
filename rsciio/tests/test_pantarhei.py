@@ -21,6 +21,7 @@ import io
 import logging
 from pathlib import Path
 
+import dask.array as da
 import numpy as np
 import pytest
 
@@ -37,6 +38,30 @@ exspy = pytest.importorskip("exspy", reason="exspy not installed")
 TEST_DATA_PATH = Path(__file__).parent / "data" / "pantarhei"
 
 
+axis_manager_dictionary = {
+    "axis-0": {
+        "_type": "UniformDataAxis",
+        "name": "Y",
+        "units": "m",
+        "navigate": False,
+        "is_binned": False,
+        "size": 16,
+        "scale": 7.795828292907633e-09,
+        "offset": 0.0,
+    },
+    "axis-1": {
+        "_type": "UniformDataAxis",
+        "name": "X",
+        "units": "m",
+        "navigate": False,
+        "is_binned": False,
+        "size": 16,
+        "scale": 7.795828292907633e-09,
+        "offset": 0.0,
+    },
+}
+
+
 def test_metadata_prz():
     md = {
         "General": {"title": "O", "original_filename": "panta_rhei_sample.prz"},
@@ -50,28 +75,6 @@ def test_metadata_prz():
             }
         },
     }
-    am = {
-        "axis-0": {
-            "_type": "UniformDataAxis",
-            "name": "Y",
-            "units": "m",
-            "navigate": False,
-            "is_binned": False,
-            "size": 16,
-            "scale": 7.795828292907633e-09,
-            "offset": 0.0,
-        },
-        "axis-1": {
-            "_type": "UniformDataAxis",
-            "name": "X",
-            "units": "m",
-            "navigate": False,
-            "is_binned": False,
-            "size": 16,
-            "scale": 7.795828292907633e-09,
-            "offset": 0.0,
-        },
-    }
 
     s = hs.load(TEST_DATA_PATH / "panta_rhei_sample.prz")
 
@@ -79,7 +82,7 @@ def test_metadata_prz():
     md_file.pop("_HyperSpy")
     md_file["General"].pop("FileIO")
     assert_deep_almost_equal(md_file, md)
-    assert_deep_almost_equal(s.axes_manager.as_dictionary(), am)
+    assert_deep_almost_equal(s.axes_manager.as_dictionary(), axis_manager_dictionary)
     assert s.data.shape == (16, 16)
     assert s.data.max() == 40571
     assert s.data.min() == 36193
@@ -241,6 +244,7 @@ def test_legacy_prz_allow_restricted_pickle_flag(caplog):
         )
         assert "security risk" in caplog.text
     assert "TEM" in s1.metadata["Acquisition_instrument"]
+    assert s1.axes_manager.as_dictionary() == axis_manager_dictionary
 
     with caplog.at_level(logging.WARNING):
         s2 = hs.load(
@@ -273,3 +277,30 @@ def test_restricted_unpickler():
     fp2.seek(0)
     with pytest.raises(ValueError, match="not contain pickled data"):
         read_pickled_array(fp2)
+
+
+def test_lazy_loading():
+    """Test lazy loading of PRZ files."""
+    s1 = hs.load(TEST_DATA_PATH / "panta_rhei_sample.prz", lazy=False)
+    s2 = hs.load(TEST_DATA_PATH / "panta_rhei_sample.prz", lazy=True)
+
+    assert isinstance(s2.data, da.Array)
+    np.testing.assert_allclose(s2.data.compute(), s1.data)
+    assert s2.data.shape == s1.data.shape
+    assert (
+        s2.axes_manager.as_dictionary()
+        == s1.axes_manager.as_dictionary()
+        == axis_manager_dictionary
+    )
+
+
+def test_lazy_loading_with_chunks():
+    """Test lazy loading of PRZ files with custom chunks."""
+    s = hs.load(
+        TEST_DATA_PATH / "panta_rhei_sample.prz",
+        lazy=True,
+        chunks=(8, 8),
+    )
+    assert isinstance(s.data, da.Array)
+    assert s.data.chunksize == (8, 8)
+    assert s.data.shape == (16, 16)

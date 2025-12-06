@@ -1,0 +1,1 @@
+Add lazy support compatible with dask distributed scheduler in :ref:`pantarhei-format` reader

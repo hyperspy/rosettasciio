@@ -45,6 +45,7 @@ keywords = [
     "numpy",
     "python",
     "scipy",
+    "app5",
     "asw",
     "blo",
     "bcf",
@@ -90,6 +91,7 @@ keywords = [
 file = "COPYING.txt"
 
 [project.optional-dependencies]
+app5 = ["h5py>=3.7"]
 arina = ["h5py>=3.7", "hdf5plugin"]
 blockfile = ["scikit-image>=0.20"]
 eds-stream = ["sparse"]
@@ -127,6 +129,7 @@ all = [
   "rosettasciio[blockfile]",
   "rosettasciio[eds-stream]",
   "rosettasciio[hdf5]",
+  "rosettasciio[app5]",
   "rosettasciio[arina]",
   "rosettasciio[mrcz]",
   "rosettasciio[scalebar_export]",

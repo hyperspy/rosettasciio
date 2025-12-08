@@ -21,7 +21,7 @@ from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
 
-import h5py
+h5py = pytest.importorskip("h5py")
 import numpy as np
 import pytest
 
@@ -60,7 +60,7 @@ def test_xml_parser():
     root = ET.fromstring(f1["Metadata"][()].decode())
     f1.close()
     root[16][4][1].attrib["Serializer"] = "aaa"
-    meta_dict = _parse_app5_xml(ET.tostring(root))
+    _parse_app5_xml(ET.tostring(root))
 
 
 def test_file_reader():
@@ -134,7 +134,7 @@ def test_file_reader():
                 if ad["name"] in ["x", "y"]:
                     assert ad["navigate"] == True
                 else:
-                    assert ad["navigate"] == False
+                    assert not ad["navigate"]
             names = np.array([x["name"] for x in ad_all])
             idxs = np.array([x["index_in_array"] for x in ad_all])
             assert np.all(np.isin(np.unique(names), ["x", "y", "kx", "ky"]))

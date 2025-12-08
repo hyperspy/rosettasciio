@@ -26,7 +26,7 @@ still provided for two reasons:
 
     1) Transparency and validation.
     2) So future users can create additional test data should a future
-       Topspin version be incompatable with this reader.
+       Topspin version be incompatible with this reader.
 
 Additionally, while there is a standard method for transferring the
 datasets themselves within the h5 file, the layout of the groups and metadata

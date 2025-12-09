@@ -150,8 +150,10 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
         elif len(shape) == 4:
             # for 4D, data is loaded as ((x*y),ky,kz), then reshaped.
             first_key = [x for x in h5_file[address]][0]
-            SPED_dtype = h5_file[address][first_key]['Data'].dtype
-            data = np.zeros([np.prod(shape[:-2]), shape[-2], shape[-1]], dtype=SPED_dtype)
+            SPED_dtype = h5_file[address][first_key]["Data"].dtype
+            data = np.zeros(
+                [np.prod(shape[:-2]), shape[-2], shape[-1]], dtype=SPED_dtype
+            )
             key_count = len(h5_file[address].keys())
             for key in tqdm(
                 h5_file[address],

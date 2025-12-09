@@ -57,9 +57,10 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
     Notes
     -----
     The hierarchy of the Metadata objects stored in app5 files changes
-    based on Topspin Proceedure and local microscope setup. RosettaSciIo
-    is still able to import datsets without this information, but be aware
-    that for new or customized setups some metadata entrees might be missing.
+    based on Topspin Procedure and microscope setup. RosettaSciIO does
+    not need this information to populate the 'metadata' or 'axes'
+    results, but be aware the organization of hte 'original_metadata'
+    can change if the experimental setup changes.
     """
 
     def looks_like_a_guid(name):
@@ -145,9 +146,12 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
                 disable=not show_progressbar,
             ):
                 datasets_list[i]["data"] = np.asanyarray(h5_file[address])
+
         elif len(shape) == 4:
             # for 4D, data is loaded as ((x*y),ky,kz), then reshaped.
-            data = np.zeros([np.prod(shape[:2]), shape[2], shape[3]], dtype=np.uint16)
+            first_key = [x for x in h5_file[address]][0]
+            SPED_dtype = h5_file[address][first_key]['Data'].dtype
+            data = np.zeros([np.prod(shape[:-2]), shape[-2], shape[-1]], dtype=SPED_dtype)
             key_count = len(h5_file[address].keys())
             for key in tqdm(
                 h5_file[address],
@@ -242,7 +246,7 @@ def _get_4D_axes(h5_grp):
     if len(h5_grp.keys()) % len(uy) != 0:
         # Something was wrong with the hack above, and the keys are not
         # numbered in the expected order. As a fallback, read every
-        # metadata file.
+        # voxel-leval metadata file (these are different than the main ones.)
         x = []
         y = []
         for i in h5_grp.keys():
@@ -296,8 +300,8 @@ def _get_2D_axes(metadata_xml_string, name):
                 elem = value.find("Calibration")
                 break
     if elem is not None:
-        yx_axes[0]["scale"] = float(elem.find("Y/Scale").text)
-        yx_axes[0]["offset"] = float(elem.find("Y/Offset").text)
+        yx_axes[0]["scale"] = float(elem.find("X/Scale").text)
+        yx_axes[0]["offset"] = float(elem.find("X/Offset").text)
         yx_axes[1]["scale"] = float(elem.find("Y/Scale").text)
         yx_axes[1]["offset"] = float(elem.find("Y/Offset").text)
     return yx_axes
@@ -314,7 +318,7 @@ def _parse_app5_xml(metadata_string: str, f_name: str = ""):
         from an app5 file opened with `h5py` as *f* using:
             metadata_string = f['path/to/Metadata'][()].decode()
 
-    fname
+    f_name
         Original filename. Used for populating the metadata.
 
     Returns
@@ -334,7 +338,7 @@ def _parse_app5_xml(metadata_string: str, f_name: str = ""):
           <Value Serializer="Double" Version="1">0</Value>
         </Item>
 
-    which is equivalent to a python dictonary of the form:
+    which is equivalent to a python dictionary of the form:
 
         {'ScanRotation':float(0)}
 

@@ -21,7 +21,6 @@ from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
 
-h5py = pytest.importorskip("h5py")
 import numpy as np
 import pytest
 
@@ -91,15 +90,15 @@ def test_file_reader():
             assert isinstance(x, dict)
             assert "axes" in x
             assert "data" in x
-    assert out_A[0]["data"].shape == (11, 13)
+    assert out_A[0]["data"].shape == (8, 72)
     assert out_A[1]["data"].shape == (2, 5, 16, 16)
     assert out_B[0]["data"].shape == (3, 7, 37, 37)
-    assert out_B[1]["data"].shape == (11, 13)
-    assert out_B[2]["data"].shape == (11, 13)
-    assert out_B[3]["data"].shape == (11, 13)
-    assert out_C[0]["data"].shape == (11, 13)
+    assert out_B[1]["data"].shape == (8, 8)
+    assert out_B[2]["data"].shape == (83, 83)
+    assert out_B[3]["data"].shape == (12, 12)
+    assert out_C[0]["data"].shape == (6, 29)
     assert out_C[1]["data"].shape == (3, 5, 16, 16)
-    assert out_C[2]["data"].shape == (11, 13)
+    assert out_C[2]["data"].shape == (29, 29)
 
     # Check identical data loaded with the subset call are identical
     assert np.all(sub_b1a[0]["data"] == sub_b1[0]["data"])
@@ -144,9 +143,9 @@ def test_file_reader():
 
 def test_dryrun():
     correct_sizes = [
-        ["11, 13", "2, 5, 16, 16"],
-        ["3, 7, 37, 37", "11, 13", "11, 13", "11, 13"],
-        ["11, 13", "3, 5, 16, 16", "11, 13"],
+        ["8, 72", "2, 5, 16, 16"],
+        ["3, 7, 37, 37", "8, 8", "83, 83", "12, 12"],
+        ["6, 29", "3, 5, 16, 16", "29, 29"],
     ]
     for i, f in enumerate([file_A, file_B, file_C]):
         buffer = StringIO()

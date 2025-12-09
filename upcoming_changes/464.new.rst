@@ -1,0 +1,1 @@
+Add support for reading .app5 files from NanoMegas's Topspin software.

@@ -183,18 +183,17 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
                 h5_file[address][str(i)]["Data"].id.get_offset()
                 for i in range(key_count)
             ]
-            f = open(filename, "rb")
-            fileno = f.fileno()
-            mapping = mmap.mmap(fileno, 0, access=mmap.ACCESS_READ)
-            data = np.stack(
-                [
-                    np.frombuffer(
-                        mapping, dtype=signal_dtype, count=signal_size, offset=i
-                    ).reshape(signal_shape)
-                    for i in offsets
-                ]
-            )
-            f.close()
+            with open(filename, "rb") as f:
+                fileno = f.fileno()
+                mapping = mmap.mmap(fileno, 0, access=mmap.ACCESS_READ)
+                data = np.stack(
+                    [
+                        np.frombuffer(
+                            mapping, dtype=signal_dtype, count=signal_size, offset=i
+                        ).reshape(signal_shape)
+                        for i in offsets
+                    ]
+                )
             # check for length 1 navigation axes
             if shape[1] == 1:
                 del shape[1]

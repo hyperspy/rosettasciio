@@ -30,7 +30,7 @@ from tqdm import tqdm
 from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC
 
 
-def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
+def file_reader(filename, dataset_path=None, dryrun=False, show_progressbar=True):
     """
     Read .app5 file format both read in and exported by NanoMegas's
     Topspin software.
@@ -93,9 +93,9 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
     # read dataset
     h5_file = h5py.File(filename, "r")
     load_single_file = False
-    if subset is not None:
-        if "Metadata" in h5_file[subset]:  # this is a session id
-            h5_file = h5_file[subset]
+    if dataset_path is not None:
+        if "Metadata" in h5_file[dataset_path]:  # this is a session id
+            h5_file = h5_file[dataset_path]
         else:  # This is a single file of interest
             load_single_file = True
 
@@ -116,7 +116,7 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
                         task_list.append([address, meta])
     # prune list for single-file query
     if load_single_file:
-        task_list = [x for x in task_list if x[0] == subset]
+        task_list = [x for x in task_list if x[0] == dataset_path]
 
     # Parse each dataset's metadata
     datasets_list = []
@@ -267,7 +267,7 @@ def _get_4D_axes(h5_grp):
     vuyx_axes[2]["scale"] = float(k_space[0][1].text)
     vuyx_axes[2]["offset"] = float(k_space[0][0].text)
     vuyx_axes[3]["units"] = k_space[1][2][1].text
-    vuyx_axes[3]["size"] = shape[0]
+    vuyx_axes[3]["size"] = shape[1]
     vuyx_axes[3]["scale"] = float(k_space[1][1].text)
     vuyx_axes[3]["offset"] = float(k_space[1][0].text)
 
@@ -480,3 +480,10 @@ def _parse_hspy_meta(all_meta, f_name):
         hspy_meta["Sample"]["description"] = all_meta["Specimen"]
 
     return hspy_meta
+
+# x = file_reader(
+#     "/home/arg6/data/app5_reader_files/cb76b58d-7906-423d-b681-3af9587e9e76.app5"
+# )
+# x = file_reader(
+#     "/home/arg6/GitHub/rosettasciio/rsciio/tests/data/topspin/topspin_test_A.app5"
+# )

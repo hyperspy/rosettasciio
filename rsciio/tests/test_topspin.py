@@ -90,15 +90,15 @@ def test_file_reader():
             assert isinstance(x, dict)
             assert "axes" in x
             assert "data" in x
-    assert out_A[0]["data"].shape == (8, 72)
-    assert out_A[1]["data"].shape == (2, 5, 16, 16)
-    assert out_B[0]["data"].shape == (3, 7, 37, 37)
-    assert out_B[1]["data"].shape == (8, 8)
-    assert out_B[2]["data"].shape == (83, 83)
-    assert out_B[3]["data"].shape == (12, 12)
-    assert out_C[0]["data"].shape == (6, 29)
-    assert out_C[1]["data"].shape == (3, 5, 16, 16)
-    assert out_C[2]["data"].shape == (29, 29)
+    assert out_A[0]["data"].shape == (8, 56)
+    assert out_A[1]["data"].shape == (2, 5, 14, 12)
+    assert out_B[0]["data"].shape == (3, 7, 31, 26)
+    assert out_B[1]["data"].shape == (8, 6)
+    assert out_B[2]["data"].shape == (83, 65)
+    assert out_B[3]["data"].shape == (12, 9)
+    assert out_C[0]["data"].shape == (6, 23)
+    assert out_C[1]["data"].shape == (3, 5, 14, 12)
+    assert out_C[2]["data"].shape == (29, 23)
 
     # Check identical data loaded with the subset call are identical
     assert np.all(sub_b1a[0]["data"] == sub_b1[0]["data"])
@@ -143,9 +143,9 @@ def test_file_reader():
 
 def test_dryrun():
     correct_sizes = [
-        ["8, 72", "2, 5, 16, 16"],
-        ["3, 7, 37, 37", "8, 8", "83, 83", "12, 12"],
-        ["6, 29", "3, 5, 16, 16", "29, 29"],
+        ["8, 56", "2, 5, 14, 12"],
+        ["3, 7, 31, 26", "8, 6", "83, 65", "12, 9"],
+        ["6, 23", "3, 5, 14, 12", "29, 23"],
     ]
     for i, f in enumerate([file_A, file_B, file_C]):
         buffer = StringIO()
@@ -191,12 +191,12 @@ def test_with_hyperspy():
     assert s1.axes_manager["x"].units == "nm"
     assert s1.axes_manager["x"].scale == 2
 
-    assert s1.axes_manager["ky"].size == 16
+    assert s1.axes_manager["ky"].size == 14
     assert np.around(s1.axes_manager["ky"].offset * 1e6) == -2730
     assert s1.axes_manager["ky"].units == "Angle"
     assert np.around(s1.axes_manager["ky"].scale * 1e6) == 21
 
-    assert s1.axes_manager["kx"].size == 16
+    assert s1.axes_manager["kx"].size == 12
     assert np.around(s1.axes_manager["kx"].offset * 1e6) == -2730
     assert s1.axes_manager["kx"].units == "Angle"
     assert np.around(s1.axes_manager["kx"].scale * 1e6) == 21
@@ -207,7 +207,7 @@ def test_with_hyperspy():
     assert s2.axes_manager["y"].units == "nm"
     assert s2.axes_manager["y"].scale == 2
 
-    assert s2.axes_manager["x"].size == 72
+    assert s2.axes_manager["x"].size == 56
     assert np.around(s2.axes_manager["x"].offset) == 163
     assert s2.axes_manager["x"].units == "nm"
     assert s2.axes_manager["x"].scale == 2

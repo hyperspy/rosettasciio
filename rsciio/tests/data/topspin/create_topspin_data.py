@@ -51,7 +51,7 @@ def downsample_4D_group(group, mask):
         if gname in pxls_dict.keys():
             new_id = pxls_dict[gname]
             group.move(gname, new_id)
-            data = group[new_id]["Data"][::16, ::16].copy()
+            data = group[new_id]["Data"][::19, ::23].copy()
             del group[new_id]["Data"]
             group[new_id].create_dataset("Data", dtype="<f4", data=data)
         else:
@@ -60,7 +60,7 @@ def downsample_4D_group(group, mask):
 
 def downsample_2D_dataset(group, guid):
     """In-place reduction of 2D stem image."""
-    img = group[guid][::7, ::7]
+    img = group[guid][::7, ::9]
     del group[guid]
     group.create_dataset(guid, dtype="<f8", data=img)
 

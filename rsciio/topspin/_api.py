@@ -20,6 +20,7 @@
 import datetime
 import os
 import sys
+import mmap
 import xml.etree.cElementTree as ET
 
 import h5py
@@ -31,23 +32,44 @@ from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC
 
 def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
     """
-    Read .app5 file format used by NanoMegas's Topspin software.
+    Read .app5 file format both read in and exported by NanoMegas's
+    Topspin software.
 
     .app5 files use the hdf5 file format, with metadata stored as
-    binarized XML-style text strings.
-
+    binarized XML-style text strings. Each individual SPED (Scanning
+    Precession Electron Diffraction) or STEM result is initially
+    saved by Topspin as a simplified .app5, and groups of these files
+    can then also be exported as a single .app5 file representing a
+    larger experiment. Both methods can be read, with only the values
+    of `dataset_path` being changed.
 
     Parameters
     ----------
     %s
-    subset: str or None
-        h5py-style address. If given, only the subset of experiments
-        located at this address will be imported. If none, all datasets
-        will be imported.
+    dataset_path: None, str, default=None
+        If None, no absolute path is searched and every dataset in the
+        .app5 file is returned. If a string is given, only the STEM or
+        SPED dataset with the matching absolute path within the .app5
+        file will be returned. For example,
+
+        ```signals = rsciio.topspin.file_reader("fname.app5")```
+
+        will import every SPED and STEM dataset recorded in the file
+        `fname.app5`, whereas
+
+        ```signals = rsciio.topspin.file_reader(`fname.app5`,
+            ,dataset_path='18d9446f-22bf-4fb1-8d13-338174e75d20')
+
+        would only import the exerimental data collected in experiment
+        18d9446f-22bf-4fb1-8d13-338174e75d20. The `dryrun` variable
+        can be used to list all allowable addresses without requiring
+        loading from disk.
+
+        ```rsciio.topspin.file_reader("fname.app5", dryrun=True)```
 
     dryrun : bool
-        If True, the .app5 files are quickly scanned without being loaded,
-        and a summary is printed to the log. Default is False.
+        If True, the .app5 files are scanned without being loaded, and
+        a summary is printed to the log. Default is False.
 
     show_progressbar: bool, default=True
         Whether to show the progressbar or not. If True, shows progress
@@ -134,34 +156,60 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
         sys.stdout.write(message)
         return []
 
-    for i, ds_dict in enumerate(datasets_list):
+    for i, ds_dict in enumerate(
+        tqdm(
+            datasets_list,
+            desc="Loading Datasets...",
+            disable=not show_progressbar,
+            total=len(datasets_list),
+        )
+    ):
         shape = [x["size"] for x in ds_dict["axes"]]
         address = task_list[i][0]
         if len(shape) == 2:
-            # this progress bar is really just a "1-of-1", but it still
-            # reports load time and confirms loading succeeded
-            for dummy_iter in tqdm(
-                [1],
-                desc="Loading {}: ".format(address),
-                disable=not show_progressbar,
-            ):
-                datasets_list[i]["data"] = np.asanyarray(h5_file[address])
+            datasets_list[i]["data"] = np.asanyarray(h5_file[address])
 
         elif len(shape) == 4:
             # for 4D, data is loaded as ((x*y),ky,kz), then reshaped.
             first_key = [x for x in h5_file[address]][0]
-            SPED_dtype = h5_file[address][first_key]["Data"].dtype
-            data = np.zeros(
-                [np.prod(shape[:-2]), shape[-2], shape[-1]], dtype=SPED_dtype
-            )
+            signal_dtype = h5_file[address][first_key]["Data"].dtype
+            signal_shape = h5_file[address][first_key]["Data"].shape
+            signal_size = np.prod(signal_shape)
             key_count = len(h5_file[address].keys())
-            for key in tqdm(
-                h5_file[address],
-                desc="Loading {}: ".format(address),
-                total=key_count,
-                disable=not show_progressbar,
-            ):
-                data[int(key)] = h5_file[address][key]["Data"]
+            # develper note: it's possible to open/load/close every dataset
+            # via h5py, but it's faster to just lookup the offsets and load
+            # from memory with mmap and numpy.
+            offsets = [
+                h5_file[address][str(i)]["Data"].id.get_offset()
+                for i in range(key_count)
+            ]
+            f = open(filename, "rb")
+            fileno = f.fileno()
+            mapping = mmap.mmap(fileno, 0, access=mmap.ACCESS_READ)
+            data = np.stack(
+                [
+                    np.frombuffer(
+                        mapping, dtype=signal_dtype, count=signal_size, offset=i
+                    ).reshape(signal_shape)
+                    for i in offsets
+                ]
+            )
+            f.close()
+            # check for length 1 navigation axes
+            if shape[1] == 1:
+                del shape[1]
+                del datasets_list[i]["axes"][1]
+                datasets_list[i]["axes"][-1]['index_in_array'] = 1
+                datasets_list[i]["axes"][-2]['index_in_array'] = 2
+
+            if shape[0] == 1:
+                del shape[0]
+                del datasets_list[i]["axes"][0]
+                datasets_list[i]["axes"][0]['index_in_array'] = 0
+                datasets_list[i]["axes"][1]['index_in_array'] = 1
+                if len(shape) == 3:
+                    datasets_list[i]["axes"][2]['index_in_array'] = 2
+
             datasets_list[i]["data"] = data.reshape(shape)
 
     return datasets_list
@@ -302,10 +350,10 @@ def _get_2D_axes(metadata_xml_string, name):
                 elem = value.find("Calibration")
                 break
     if elem is not None:
-        yx_axes[0]["scale"] = float(elem.find("X/Scale").text)
-        yx_axes[0]["offset"] = float(elem.find("X/Offset").text)
-        yx_axes[1]["scale"] = float(elem.find("Y/Scale").text)
-        yx_axes[1]["offset"] = float(elem.find("Y/Offset").text)
+        yx_axes[0]["scale"] = float(elem.find("X/Scale").text) * 1e9
+        yx_axes[0]["offset"] = float(elem.find("X/Offset").text) * 1e9
+        yx_axes[1]["scale"] = float(elem.find("Y/Scale").text) * 1e9
+        yx_axes[1]["offset"] = float(elem.find("Y/Offset").text) * 1e9
     return yx_axes
 
 

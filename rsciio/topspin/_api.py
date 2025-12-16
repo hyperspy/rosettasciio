@@ -18,9 +18,9 @@
 
 
 import datetime
+import mmap
 import os
 import sys
-import mmap
 import xml.etree.cElementTree as ET
 
 import h5py
@@ -199,16 +199,16 @@ def file_reader(filename, subset=None, dryrun=False, show_progressbar=True):
             if shape[1] == 1:
                 del shape[1]
                 del datasets_list[i]["axes"][1]
-                datasets_list[i]["axes"][-1]['index_in_array'] = 1
-                datasets_list[i]["axes"][-2]['index_in_array'] = 2
+                datasets_list[i]["axes"][-1]["index_in_array"] = 1
+                datasets_list[i]["axes"][-2]["index_in_array"] = 2
 
             if shape[0] == 1:
                 del shape[0]
                 del datasets_list[i]["axes"][0]
-                datasets_list[i]["axes"][0]['index_in_array'] = 0
-                datasets_list[i]["axes"][1]['index_in_array'] = 1
+                datasets_list[i]["axes"][0]["index_in_array"] = 0
+                datasets_list[i]["axes"][1]["index_in_array"] = 1
                 if len(shape) == 3:
-                    datasets_list[i]["axes"][2]['index_in_array'] = 2
+                    datasets_list[i]["axes"][2]["index_in_array"] = 2
 
             datasets_list[i]["data"] = data.reshape(shape)
 

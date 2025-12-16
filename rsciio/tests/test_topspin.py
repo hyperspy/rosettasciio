@@ -171,43 +171,43 @@ def test_with_hyperspy():
     # for file_A, test axis values are as expected
     out = file_reader(file_A, show_progressbar=False)
     s1 = hs.signals.Signal2D(
-                data=out[1]["data"],
-                axes=out[1]["axes"],
-                metadata=out[1]["metadata"],
-            )
+        data=out[1]["data"],
+        axes=out[1]["axes"],
+        metadata=out[1]["metadata"],
+    )
     s2 = hs.signals.Signal2D(
-                data=out[0]["data"],
-                axes=out[0]["axes"],
-                metadata=out[0]["metadata"],
-            )
+        data=out[0]["data"],
+        axes=out[0]["axes"],
+        metadata=out[0]["metadata"],
+    )
     # Test 1 SPED dataset
-    assert(s1.axes_manager['y'].size == 2)
-    assert(np.around(s1.axes_manager['y'].offset) == 184)
-    assert(s1.axes_manager['y'].units == 'nm')
-    assert(s1.axes_manager['y'].scale == 2)
+    assert s1.axes_manager["y"].size == 2
+    assert np.around(s1.axes_manager["y"].offset) == 184
+    assert s1.axes_manager["y"].units == "nm"
+    assert s1.axes_manager["y"].scale == 2
 
-    assert(s1.axes_manager['x'].size == 5)
-    assert(np.around(s1.axes_manager['x'].offset) == 173)
-    assert(s1.axes_manager['x'].units == 'nm')
-    assert(s1.axes_manager['x'].scale == 2)
+    assert s1.axes_manager["x"].size == 5
+    assert np.around(s1.axes_manager["x"].offset) == 173
+    assert s1.axes_manager["x"].units == "nm"
+    assert s1.axes_manager["x"].scale == 2
 
-    assert(s1.axes_manager['ky'].size == 16)
-    assert(np.around(s1.axes_manager['ky'].offset*1e6) == -2730)
-    assert(s1.axes_manager['ky'].units == 'Angle')
-    assert(np.around(s1.axes_manager['ky'].scale*1e6) == 21)
+    assert s1.axes_manager["ky"].size == 16
+    assert np.around(s1.axes_manager["ky"].offset * 1e6) == -2730
+    assert s1.axes_manager["ky"].units == "Angle"
+    assert np.around(s1.axes_manager["ky"].scale * 1e6) == 21
 
-    assert(s1.axes_manager['kx'].size == 16)
-    assert(np.around(s1.axes_manager['kx'].offset*1e6) == -2730)
-    assert(s1.axes_manager['kx'].units == 'Angle')
-    assert(np.around(s1.axes_manager['kx'].scale*1e6) == 21)
+    assert s1.axes_manager["kx"].size == 16
+    assert np.around(s1.axes_manager["kx"].offset * 1e6) == -2730
+    assert s1.axes_manager["kx"].units == "Angle"
+    assert np.around(s1.axes_manager["kx"].scale * 1e6) == 21
 
     # Test 1 STEM dataset
-    assert(s2.axes_manager['y'].size == 8)
-    assert(np.around(s2.axes_manager['y'].offset) == 64)
-    assert(s2.axes_manager['y'].units == 'nm')
-    assert(s2.axes_manager['y'].scale == 2)
+    assert s2.axes_manager["y"].size == 8
+    assert np.around(s2.axes_manager["y"].offset) == 64
+    assert s2.axes_manager["y"].units == "nm"
+    assert s2.axes_manager["y"].scale == 2
 
-    assert(s2.axes_manager['x'].size == 72)
-    assert(np.around(s2.axes_manager['x'].offset) == 163)
-    assert(s2.axes_manager['x'].units == 'nm')
-    assert(s2.axes_manager['x'].scale == 2)
+    assert s2.axes_manager["x"].size == 72
+    assert np.around(s2.axes_manager["x"].offset) == 163
+    assert s2.axes_manager["x"].units == "nm"
+    assert s2.axes_manager["x"].scale == 2

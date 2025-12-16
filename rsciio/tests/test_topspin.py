@@ -131,7 +131,7 @@ def test_file_reader():
                 for k in ["size", "scale", "offset"]:
                     assert np.abs(ad[k]) > 0
                 if ad["name"] in ["x", "y"]:
-                    assert ad["navigate"] == True
+                    assert ad["navigate"]
                 else:
                     assert not ad["navigate"]
             names = np.array([x["name"] for x in ad_all])

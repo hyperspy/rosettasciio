@@ -479,11 +479,3 @@ def _parse_hspy_meta(all_meta, f_name):
         hspy_meta["Sample"]["description"] = all_meta["Specimen"]
 
     return hspy_meta
-
-
-# x = file_reader(
-#     "/home/arg6/data/app5_reader_files/cb76b58d-7906-423d-b681-3af9587e9e76.app5"
-# )
-# x = file_reader(
-#     "/home/arg6/GitHub/rosettasciio/rsciio/tests/data/topspin/topspin_test_A.app5"
-# )

@@ -407,6 +407,7 @@
 <li class="toctree-l1"><a class="reference internal" href="semper.html">SEMPER binary format (UNF)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tia.html">FEI TIA (SER &amp; EMI)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tiff.html">Tagged image file format (TIFF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topspin.html">TopSpin App5</a></li>
 <li class="toctree-l1"><a class="reference internal" href="trivista.html">TriVista</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tvips.html">TVIPS format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usid.html">Universal Spectroscopy and Imaging Data (h5USID)</a></li>
@@ -521,7 +522,7 @@ the file.</p>
 <dd class="field-even"><dl>
 <dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
 <ul class="simple">
-<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
 <li><p>‘axes’ – list of dictionaries describing the axes
 containing the fields ‘name’, ‘units’, ‘index_in_array’, and
 either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
@@ -556,12 +557,12 @@ containing the full axes vector</p></li>
 <li><p>‘metadata’ – dictionary containing the metadata tree</p></li>
 </ul>
 </dd>
-<dt><strong>intensity_scaling</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, 2-tuple of <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">float</span></code></a>, 2-tuple of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a></span></dt><dd><p>If the signal datatype is not <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.ubyte" title="(in NumPy v2.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ubyte</span></code></a>, casting to this
+<dt><strong>intensity_scaling</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, 2-tuple of <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">float</span></code></a>, 2-tuple of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a></span></dt><dd><p>If the signal datatype is not <a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.ubyte" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ubyte</span></code></a>, casting to this
 datatype without intensity rescaling results in overflow errors (default behavior)
 This argument provides intensity scaling strategies and the options are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">'dtype'</span></code>: the limits of the datatype of the dataset, e.g. 0-65535 for
-<a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.ushort" title="(in NumPy v2.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ushort</span></code></a>, are mapped onto 0-255, respectively. Does not work
+<a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.ushort" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ushort</span></code></a>, are mapped onto 0-255, respectively. Does not work
 for <code class="docutils literal notranslate"><span class="pre">float</span></code> data types.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">'minmax'</span></code>: the minimum and maximum in the dataset are mapped to 0-255.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">'crop'</span></code>: everything below 0 and above 255 is set to 0 and 255, respectively</p></li>
@@ -569,7 +570,7 @@ for <code class="docutils literal notranslate"><span class="pre">float</span></c
 scaled between 0-255, everything below is 0 and everything above is 255.</p></li>
 </ul>
 </dd>
-<dt><strong>navigator</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v2.3)"><span>array_like</span></a></span></dt><dd><p>A <code class="docutils literal notranslate"><span class="pre">.blo</span></code> file also saves a virtual bright field image for navigation.
+<dt><strong>navigator</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v2.4)"><span>array_like</span></a></span></dt><dd><p>A <code class="docutils literal notranslate"><span class="pre">.blo</span></code> file also saves a virtual bright field image for navigation.
 This option determines what kind of data is stored for this image.
 By default this is set to <code class="docutils literal notranslate"><span class="pre">'navigator'</span></code>, which results in using the
 <code class="xref py py-attr docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal.navigator</span></code> attribute if used with HyperSpy.

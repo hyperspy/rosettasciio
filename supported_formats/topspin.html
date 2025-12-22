@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
-    <title>Hamamatsu &#8212; RosettaSciIO  documentation</title>
+    <title>TopSpin App5 &#8212; RosettaSciIO  documentation</title>
   
   
   
@@ -47,11 +47,11 @@
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=d1c4098b"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/hamamatsu';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/topspin';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="HSpy - HyperSpy’s HDF5 Specification" href="hspy.html" />
-    <link rel="prev" title="EMPAD format (XML &amp; RAW)" href="empad.html" />
+    <link rel="next" title="TriVista" href="trivista.html" />
+    <link rel="prev" title="Tagged image file format (TIFF)" href="tiff.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -386,7 +386,7 @@
 <li class="toctree-l1"><a class="reference internal" href="edax.html">EDAX TEAM/Genesis (SPC, SPD)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="emd.html">Electron Microscopy Dataset (EMD)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="empad.html">EMPAD format (XML &amp; RAW)</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Hamamatsu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hamamatsu.html">Hamamatsu</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hspy.html">HSpy - HyperSpy’s HDF5 Specification</a></li>
 <li class="toctree-l1"><a class="reference internal" href="image.html">Image formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jeol.html">JEOL Analyst Station (ASW, …)</a></li>
@@ -407,7 +407,7 @@
 <li class="toctree-l1"><a class="reference internal" href="semper.html">SEMPER binary format (UNF)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tia.html">FEI TIA (SER &amp; EMI)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tiff.html">Tagged image file format (TIFF)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="topspin.html">TopSpin App5</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">TopSpin App5</a></li>
 <li class="toctree-l1"><a class="reference internal" href="trivista.html">TriVista</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tvips.html">TVIPS format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usid.html">Universal Spectroscopy and Imaging Data (h5USID)</a></li>
@@ -456,7 +456,7 @@
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Supported formats</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Hamamatsu</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">TopSpin App5</span></li>
   </ul>
 </nav>
 </div>
@@ -473,47 +473,60 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="hamamatsu">
-<span id="hamamatsu-format"></span><h1>Hamamatsu<a class="headerlink" href="#hamamatsu" title="Link to this heading">#</a></h1>
-<p>Reader for spectroscopy data saved in <code class="docutils literal notranslate"><span class="pre">.img</span></code> (ITEX) files from the HPD-TA
-(High Performance Digital Temporal Analyzer) or HiPic (High Performance image control)
-softwares from Hamamatsu, e.g. for images from streak cameras or high performance
-CCD cameras.</p>
-<p>If <a class="reference external" href="https://lumispy.org">LumiSpy</a> is installed, <code class="docutils literal notranslate"><span class="pre">TransientSpectrum</span></code> will be
-used as the <code class="docutils literal notranslate"><span class="pre">signal_type</span></code>, which is intended for streak camera images with
-both wavelength and time axes. Note that alternatively, Hamamatsu streak images
-saved in the <a class="reference internal" href="tiff.html#tiff-format"><span class="std std-ref">Tagged image file format (TIFF)</span></a> format can be read in.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Currently, reading files containing multiple channels or multiple images per
-channel is not implemented.</p>
+  <section id="topspin-app5">
+<span id="app5-format"></span><h1>TopSpin App5<a class="headerlink" href="#topspin-app5" title="Link to this heading">#</a></h1>
+<p>RosettaSciIO can read the app5 format used by NanoMegas in their TopSpin
+software. These files use the hdf5 file format (and thus can be read with
+h5py) to store scanning precession electron diffraction (SPED) measurements,
+as well as standard STEM images.</p>
+<p>Data for 2D images is stored as HDF5 Datasets, 4D datasets are stored as HDF5
+groups, and Metadata is stored as XML formatted binarized text strings.</p>
+<p>Each individual data collection operation is assigned a unique 32-character
+alphaneumeric ID, which is used for it’s address within the App5 file.
+Depending on how the file was exported from TopSpin, these can be further
+grouped into 32-character session ID’s, where all files within the session
+correspond to the same collection area.</p>
+<p>Additonally, as App5 files can be large, the <code class="docutils literal notranslate"><span class="pre">file_reader</span></code> can be
+ran with <code class="docutils literal notranslate"><span class="pre">dryrun=True</span></code> to quickly scan the contents of an app5 file
+without loading it in its entirety, or <code class="docutils literal notranslate"><span class="pre">subset='id'</span></code> to only load a single
+experiment from the file. see the docstring for more details.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>While App5 is supported, it is a proprietary format, and future
+versions of the format might therefore not be readable. Additionally,
+the organization of MetaData files changes based on the local hardware
+setup.</p>
 </div>
-<section id="module-rsciio.hamamatsu">
-<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.hamamatsu" title="Link to this heading">#</a></h2>
+<section id="module-rsciio.topspin">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.topspin" title="Link to this heading">#</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="rsciio.hamamatsu.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.hamamatsu.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_uniform_signal_axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.hamamatsu.file_reader" title="Link to this definition">#</a></dt>
-<dd><p>Read Hamamatsu’s <code class="docutils literal notranslate"><span class="pre">.img</span></code> file, e.g. for streak camera images. In case
-LumiSpy is installed, the signal type is automatically set to
-<code class="docutils literal notranslate"><span class="pre">TransientSpectrum</span></code>.</p>
+<dt class="sig sig-object py" id="rsciio.topspin.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.topspin.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dryrun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progressbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.topspin.file_reader" title="Link to this definition">#</a></dt>
+<dd><p>Read .app5 file format both read in and exported by NanoMegas’s
+Topspin software.</p>
+<p>.app5 files use the hdf5 file format, with metadata stored as
+binarized XML-style text strings. Each individual SPED (Scanning
+Precession Electron Diffraction) or STEM result is initially
+saved by Topspin as a simplified .app5, and groups of these files
+can then also be exported as a single .app5 file representing a
+larger experiment. Both methods can be read, with only the values
+of <code class="docutils literal notranslate"><span class="pre">dataset_path</span></code> being changed.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
 <dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
 </dd>
-<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not. The file will stay open
-until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/base_classes/signal/LazySignal.html#hyperspy._signals.lazy.LazySignal.compute" title="(in HyperSpy v2.3)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
-or closed manually. <a class="reference internal" href="../api/utils.html#rsciio.utils.tools.get_file_handle" title="rsciio.utils.tools.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
-can be used to access the file handler and close it manually.</p>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Lazy loading is not supported.</p>
 </dd>
-<dt><strong>use_uniform_signal_axes</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Can be specified to choose between non-uniform or uniform signal axis.
-If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the <code class="docutils literal notranslate"><span class="pre">scale</span></code> attribute is calculated from the average delta
-along the signal axis and a warning is raised in case the delta varies
-by more than 1 percent.  Alternatively, the non-uniform <code class="docutils literal notranslate"><span class="pre">DataAxis</span></code> can
-be subsequently converted to a <code class="docutils literal notranslate"><span class="pre">UniformDataAxis</span></code> by interpolation using
-the function <code class="docutils literal notranslate"><span class="pre">interpolate_on_axis('uniform',</span> <span class="pre">axis=1)</span></code>.</p>
+<dt><strong>dataset_path</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=None</span></dt><dd><p>If None, no absolute path is searched and every dataset in the
+.app5 file is returned. If a string is given, only the STEM or
+SPED dataset with the matching absolute path within the .app5
+file will be returned. See examples section for details.</p>
 </dd>
-<dt><strong>**kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Extra keyword argument will be ignored.</p>
+<dt><strong>dryrun</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a></span></dt><dd><p>If True, the .app5 files are scanned without being loaded, and
+a summary is printed to the log. Default is False.</p>
+</dd>
+<dt><strong>show_progressbar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Whether to show the progressbar or not.</p>
 </dd>
 </dl>
 </dd>
@@ -534,6 +547,30 @@ containing the full axes vector</p></li>
 </dl>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>The hierarchy of the Metadata objects stored in app5 files changes
+based on Topspin Procedure and microscope setup. RosettaSciIO does
+not need this information to populate the  <code class="docutils literal notranslate"><span class="pre">metadata</span></code> or <code class="docutils literal notranslate"><span class="pre">axes</span></code>
+results, but be aware the organization of the <code class="docutils literal notranslate"><span class="pre">original_metadata</span></code>
+can change if the experimental setup changes.</p>
+<p class="rubric">Examples</p>
+<p>Load all datasets from an .app5 file:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">rsciio.topspin</span><span class="w"> </span><span class="kn">import</span> <span class="n">file_reader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">signals</span> <span class="o">=</span> <span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;fname.app5&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Load a single dataset from an .app5 file by specifying the
+<code class="docutils literal notranslate"><span class="pre">dataset_path</span></code>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">signals</span> <span class="o">=</span> <span class="n">rsciio</span><span class="o">.</span><span class="n">topspin</span><span class="o">.</span><span class="n">file_reader</span><span class="p">(</span>
+<span class="go">        &quot;fname.app5&quot;, dataset_path=&quot;18d9446f-22bf-4fb1-8d13-338174e75d20&quot;</span>
+<span class="go">    )</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">dryrun</span></code> argument ble can be used to list all allowable
+addresses without requiring loading from disk.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">file_reader</span><span class="p">(</span><span class="s2">&quot;fname.app5&quot;</span><span class="p">,</span> <span class="n">dryrun</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
@@ -550,20 +587,20 @@ containing the full axes vector</p></li>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="empad.html"
+       href="tiff.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">EMPAD format (XML &amp; RAW)</p>
+        <p class="prev-next-title">Tagged image file format (TIFF)</p>
       </div>
     </a>
     <a class="right-next"
-       href="hspy.html"
+       href="trivista.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">HSpy - HyperSpy’s HDF5 Specification</p>
+        <p class="prev-next-title">TriVista</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -586,8 +623,8 @@ containing the full axes vector</p></li>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.hamamatsu">API functions</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.hamamatsu.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.topspin">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.topspin.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -597,7 +634,7 @@ containing the full axes vector</p></li>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/supported_formats/hamamatsu.rst.txt"
+      <li><a href="../_sources/supported_formats/topspin.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>

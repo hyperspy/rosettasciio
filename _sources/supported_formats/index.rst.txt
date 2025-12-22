@@ -49,6 +49,7 @@ big datasets is supported.
    semper
    tia
    tiff
+   topspin
    trivista
    tvips
    usid

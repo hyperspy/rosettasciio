@@ -1,7 +1,7 @@
 .. _app5-format:
 
 TopSpin App5
----------
+------------
 
 RosettaSciIO can read the app5 format used by NanoMegas in their TopSpin
 software. These files use the hdf5 file format (and thus can be read with

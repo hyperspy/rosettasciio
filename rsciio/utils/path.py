@@ -59,7 +59,7 @@ def append2pathname(filename, to_append):
 def incremental_filename(filename, i=1):
     """
     If a file with the same file name exists, returns a new filename that
-    does not exists.
+    does not exist.
 
     The new file name is created by appending `-n` (where `n` is an integer)
     to path name

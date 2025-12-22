@@ -113,7 +113,7 @@ def rgbx2regular_array(data, plot_friendly=False, show_progressbar=True):
     data : numpy.ndarray or dask.array.Array
         The RGB array to be transformed.
     plot_friendly : bool
-        If True change the dtype to float when dtype is not uint8 and
+        If True, change the dtype to float when dtype is not uint8 and
         normalize the array so that it is ready to be plotted by matplotlib.
     %s
 

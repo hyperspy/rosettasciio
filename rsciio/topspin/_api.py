@@ -18,6 +18,7 @@
 
 
 import datetime
+import logging
 import mmap
 import os
 import sys
@@ -25,7 +26,6 @@ import xml.etree.cElementTree as ET
 
 import h5py
 import numpy as np
-from tqdm import tqdm
 
 from rsciio._docstrings import (
     FILENAME_DOC,
@@ -33,6 +33,9 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SHOW_PROGRESSBAR_DOC,
 )
+from rsciio.utils.tools import dummy_context_manager
+
+_logger = logging.getLogger(__name__)
 
 
 def file_reader(
@@ -165,60 +168,70 @@ def file_reader(
             sys.stdout.write(message)
             return []
 
-        for i, ds_dict in enumerate(
-            tqdm(
-                datasets_list,
-                desc="Loading Datasets...",
-                disable=not show_progressbar,
-                total=len(datasets_list),
-            )
-        ):
-            shape = [x["size"] for x in ds_dict["axes"]]
-            address = task_list[i][0]
-            if len(shape) == 2:
-                datasets_list[i]["data"] = np.asanyarray(h5_file[address])
+        cm = dummy_context_manager
+        if show_progressbar:
+            try:
+                from tqdm import tqdm
 
-            elif len(shape) == 4:
-                # for 4D, data is loaded as ((x*y),ky,kz), then reshaped.
-                first_key = [x for x in h5_file[address]][0]
-                signal_dtype = h5_file[address][first_key]["Data"].dtype
-                signal_shape = h5_file[address][first_key]["Data"].shape
-                signal_size = np.prod(signal_shape)
-                key_count = len(h5_file[address].keys())
-                # develper note: it's possible to open/load/close every dataset
-                # via h5py, but it's faster to just lookup the offsets and load
-                # from memory with mmap and numpy.
-                offsets = [
-                    h5_file[address][str(i)]["Data"].id.get_offset()
-                    for i in range(key_count)
-                ]
-                with open(filename, "rb") as f:
-                    fileno = f.fileno()
-                    mapping = mmap.mmap(fileno, 0, access=mmap.ACCESS_READ)
-                    data = np.stack(
-                        [
-                            np.frombuffer(
-                                mapping, dtype=signal_dtype, count=signal_size, offset=i
-                            ).reshape(signal_shape)
-                            for i in offsets
-                        ]
-                    )
-                # check for length 1 navigation axes
-                if shape[1] == 1:
-                    del shape[1]
-                    del datasets_list[i]["axes"][1]
-                    datasets_list[i]["axes"][-1]["index_in_array"] = 1
-                    datasets_list[i]["axes"][-2]["index_in_array"] = 2
+                cm = tqdm
+            except ImportError:
+                show_progressbar = False
+                _logger.warning("tqdm module not found, progress bars disabled.")
 
-                if shape[0] == 1:
-                    del shape[0]
-                    del datasets_list[i]["axes"][0]
-                    datasets_list[i]["axes"][0]["index_in_array"] = 0
-                    datasets_list[i]["axes"][1]["index_in_array"] = 1
-                    if len(shape) == 3:
-                        datasets_list[i]["axes"][2]["index_in_array"] = 2
+        with cm(total=len(datasets_list), desc="Loading Datasets...") as pbar:
+            for i, ds_dict in enumerate(datasets_list):
+                shape = [x["size"] for x in ds_dict["axes"]]
+                address = task_list[i][0]
+                if len(shape) == 2:
+                    datasets_list[i]["data"] = np.asanyarray(h5_file[address])
 
-                datasets_list[i]["data"] = data.reshape(shape)
+                elif len(shape) == 4:
+                    # for 4D, data is loaded as ((x*y),ky,kz), then reshaped.
+                    first_key = [x for x in h5_file[address]][0]
+                    signal_dtype = h5_file[address][first_key]["Data"].dtype
+                    signal_shape = h5_file[address][first_key]["Data"].shape
+                    signal_size = np.prod(signal_shape)
+                    key_count = len(h5_file[address].keys())
+                    # develper note: it's possible to open/load/close every dataset
+                    # via h5py, but it's faster to just lookup the offsets and load
+                    # from memory with mmap and numpy.
+                    offsets = [
+                        h5_file[address][str(i)]["Data"].id.get_offset()
+                        for i in range(key_count)
+                    ]
+                    with open(filename, "rb") as f:
+                        fileno = f.fileno()
+                        mapping = mmap.mmap(fileno, 0, access=mmap.ACCESS_READ)
+                        data = np.stack(
+                            [
+                                np.frombuffer(
+                                    mapping,
+                                    dtype=signal_dtype,
+                                    count=signal_size,
+                                    offset=i,
+                                ).reshape(signal_shape)
+                                for i in offsets
+                            ]
+                        )
+                    # check for length 1 navigation axes
+                    if shape[1] == 1:
+                        del shape[1]
+                        del datasets_list[i]["axes"][1]
+                        datasets_list[i]["axes"][-1]["index_in_array"] = 1
+                        datasets_list[i]["axes"][-2]["index_in_array"] = 2
+
+                    if shape[0] == 1:
+                        del shape[0]
+                        del datasets_list[i]["axes"][0]
+                        datasets_list[i]["axes"][0]["index_in_array"] = 0
+                        datasets_list[i]["axes"][1]["index_in_array"] = 1
+                        if len(shape) == 3:
+                            datasets_list[i]["axes"][2]["index_in_array"] = 2
+
+                    datasets_list[i]["data"] = data.reshape(shape)
+
+                if show_progressbar:
+                    pbar.update(i)
 
     return datasets_list
 

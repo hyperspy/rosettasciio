@@ -1,4 +1,4 @@
-# declate the module as thread safe for free-threaded python
+# declare the module as thread safe for free-threaded python
 # cython: freethreading_compatible=True
 
 import cython

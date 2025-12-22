@@ -27,10 +27,17 @@ import h5py
 import numpy as np
 from tqdm import tqdm
 
-from rsciio._docstrings import FILENAME_DOC, RETURNS_DOC
+from rsciio._docstrings import (
+    FILENAME_DOC,
+    LAZY_UNSUPPORTED_DOC,
+    RETURNS_DOC,
+    SHOW_PROGRESSBAR_DOC,
+)
 
 
-def file_reader(filename, dataset_path=None, dryrun=False, show_progressbar=True):
+def file_reader(
+    filename, lazy=False, dataset_path=None, dryrun=False, show_progressbar=True
+):
     """
     Read .app5 file format both read in and exported by NanoMegas's
     Topspin software.
@@ -41,48 +48,50 @@ def file_reader(filename, dataset_path=None, dryrun=False, show_progressbar=True
     saved by Topspin as a simplified .app5, and groups of these files
     can then also be exported as a single .app5 file representing a
     larger experiment. Both methods can be read, with only the values
-    of `dataset_path` being changed.
+    of ``dataset_path`` being changed.
 
     Parameters
     ----------
     %s
-    dataset_path: None, str, default=None
+    %s
+    dataset_path : None, str, default=None
         If None, no absolute path is searched and every dataset in the
         .app5 file is returned. If a string is given, only the STEM or
         SPED dataset with the matching absolute path within the .app5
-        file will be returned. For example,
-
-        ```signals = rsciio.topspin.file_reader("fname.app5")```
-
-        will import every SPED and STEM dataset recorded in the file
-        `fname.app5`, whereas
-
-        ```signals = rsciio.topspin.file_reader(`fname.app5`,
-            ,dataset_path='18d9446f-22bf-4fb1-8d13-338174e75d20')
-
-        would only import the exerimental data collected in experiment
-        18d9446f-22bf-4fb1-8d13-338174e75d20. The `dryrun` variable
-        can be used to list all allowable addresses without requiring
-        loading from disk.
-
-        ```rsciio.topspin.file_reader("fname.app5", dryrun=True)```
-
+        file will be returned. See examples section for details.
     dryrun : bool
         If True, the .app5 files are scanned without being loaded, and
         a summary is printed to the log. Default is False.
+    %s
 
-    show_progressbar: bool, default=True
-        Whether to show the progressbar or not. If True, shows progress
-        bar for each individual dataset loaded from the original file.
     %s
 
     Notes
     -----
     The hierarchy of the Metadata objects stored in app5 files changes
     based on Topspin Procedure and microscope setup. RosettaSciIO does
-    not need this information to populate the 'metadata' or 'axes'
-    results, but be aware the organization of hte 'original_metadata'
+    not need this information to populate the  ``metadata`` or ``axes``
+    results, but be aware the organization of the ``original_metadata``
     can change if the experimental setup changes.
+
+    Examples
+    --------
+    Load all datasets from an .app5 file:
+
+    >>> from rsciio.topspin import file_reader
+    >>> signals = file_reader("fname.app5")
+
+    Load a single dataset from an .app5 file by specifying the
+    ``dataset_path``:
+
+    >>> signals = rsciio.topspin.file_reader(
+            "fname.app5", dataset_path="18d9446f-22bf-4fb1-8d13-338174e75d20"
+        )
+
+    The ``dryrun`` argument ble can be used to list all allowable
+    addresses without requiring loading from disk.
+
+    >>> file_reader("fname.app5", dryrun=True)
     """
 
     def looks_like_a_guid(name):
@@ -91,130 +100,135 @@ def file_reader(filename, dataset_path=None, dryrun=False, show_progressbar=True
         return lengths == [8, 4, 4, 4, 12]
 
     # read dataset
-    h5_file = h5py.File(filename, "r")
-    load_single_file = False
-    if dataset_path is not None:
-        if "Metadata" in h5_file[dataset_path]:  # this is a session id
-            h5_file = h5_file[dataset_path]
-        else:  # This is a single file of interest
-            load_single_file = True
+    with h5py.File(filename, "r") as h5_file:
+        load_single_file = False
+        if dataset_path is not None:
+            if "Metadata" in h5_file[dataset_path]:  # this is a session id
+                h5_file = h5_file[dataset_path]
+            else:  # This is a single file of interest
+                load_single_file = True
 
-    # Generate task list by searching .app5 for GUID's
-    task_list = []
-    group_names = [x for x in h5_file.keys()]
-    if np.isin("Metadata", group_names):  # single experiment file.
-        for name in h5_file.keys():
-            if looks_like_a_guid(name):
-                task_list.append([name, "Metadata"])
-    else:  # Multi-experimental file.
-        for top_name in h5_file.keys():
-            if looks_like_a_guid(top_name):
-                for name in h5_file[top_name].keys():
-                    if looks_like_a_guid(name):
-                        address = top_name + "/" + name
-                        meta = top_name + "/" + "Metadata"
-                        task_list.append([address, meta])
-    # prune list for single-file query
-    if load_single_file:
-        task_list = [x for x in task_list if x[0] == dataset_path]
+        # Generate task list by searching .app5 for GUID's
+        task_list = []
+        group_names = [x for x in h5_file.keys()]
+        if np.isin("Metadata", group_names):  # single experiment file.
+            for name in h5_file.keys():
+                if looks_like_a_guid(name):
+                    task_list.append([name, "Metadata"])
+        else:  # Multi-experimental file.
+            for top_name in h5_file.keys():
+                if looks_like_a_guid(top_name):
+                    for name in h5_file[top_name].keys():
+                        if looks_like_a_guid(name):
+                            address = top_name + "/" + name
+                            meta = top_name + "/" + "Metadata"
+                            task_list.append([address, meta])
+        # prune list for single-file query
+        if load_single_file:
+            task_list = [x for x in task_list if x[0] == dataset_path]
 
-    # Parse each dataset's metadata
-    datasets_list = []
-    for address, meta_loc in task_list:
-        name = address.split("/")[-1]
-        xml_str = h5_file[meta_loc][()].decode()
-        original_meta = _parse_app5_xml(xml_str)
-        hspy_meta = _parse_hspy_meta(original_meta, filename)
-        if isinstance(h5_file[address], h5py.Group):
-            # 4D-STEM
-            h5_grp = h5_file[address]
-            axes = _get_4D_axes(h5_grp)
-            hspy_meta["Signal"]["signal_type"] = "electron_diffraction"
-        else:
-            # 2D composite image
-            axes = _get_2D_axes(xml_str, name)
-            shape = h5_file[address].shape
-            axes[0]["size"] = shape[0]
-            axes[1]["size"] = shape[1]
-            hspy_meta["Signal"]["signal_type"] = "STEM"
-        datasets_list.append(
-            {
-                "axes": axes,
-                "metadata": hspy_meta,
-                "original_metadata": original_meta,
-            }
-        )
+        # Parse each dataset's metadata
+        datasets_list = []
+        for address, meta_loc in task_list:
+            name = address.split("/")[-1]
+            xml_str = h5_file[meta_loc][()].decode()
+            original_meta = _parse_app5_xml(xml_str)
+            hspy_meta = _parse_hspy_meta(original_meta, filename)
+            if isinstance(h5_file[address], h5py.Group):
+                # 4D-STEM
+                h5_grp = h5_file[address]
+                axes = _get_4D_axes(h5_grp)
+                hspy_meta["Signal"]["signal_type"] = "electron_diffraction"
+            else:
+                # 2D composite image
+                axes = _get_2D_axes(xml_str, name)
+                shape = h5_file[address].shape
+                axes[0]["size"] = shape[0]
+                axes[1]["size"] = shape[1]
+                hspy_meta["Signal"]["signal_type"] = ""
+            datasets_list.append(
+                {
+                    "axes": axes,
+                    "metadata": hspy_meta,
+                    "original_metadata": original_meta,
+                }
+            )
 
-    if dryrun:
-        filename = str(filename)
-        message = "The following would be imported from " + filename + ":"
-        for i, ds_dict in enumerate(datasets_list):
+        if dryrun:
+            filename = str(filename)
+            message = "The following would be imported from " + filename + ":"
+            for i, ds_dict in enumerate(datasets_list):
+                shape = [x["size"] for x in ds_dict["axes"]]
+                guid = task_list[i][0]
+                name = ds_dict["original_metadata"]["Title"]
+                message += "\n   - {}, {}\n      {}".format(name, shape, guid)
+            sys.stdout.write(message)
+            return []
+
+        for i, ds_dict in enumerate(
+            tqdm(
+                datasets_list,
+                desc="Loading Datasets...",
+                disable=not show_progressbar,
+                total=len(datasets_list),
+            )
+        ):
             shape = [x["size"] for x in ds_dict["axes"]]
-            guid = task_list[i][0]
-            name = ds_dict["original_metadata"]["Title"]
-            message += "\n   - {}, {}\n      {}".format(name, shape, guid)
-        sys.stdout.write(message)
-        return []
+            address = task_list[i][0]
+            if len(shape) == 2:
+                datasets_list[i]["data"] = np.asanyarray(h5_file[address])
 
-    for i, ds_dict in enumerate(
-        tqdm(
-            datasets_list,
-            desc="Loading Datasets...",
-            disable=not show_progressbar,
-            total=len(datasets_list),
-        )
-    ):
-        shape = [x["size"] for x in ds_dict["axes"]]
-        address = task_list[i][0]
-        if len(shape) == 2:
-            datasets_list[i]["data"] = np.asanyarray(h5_file[address])
+            elif len(shape) == 4:
+                # for 4D, data is loaded as ((x*y),ky,kz), then reshaped.
+                first_key = [x for x in h5_file[address]][0]
+                signal_dtype = h5_file[address][first_key]["Data"].dtype
+                signal_shape = h5_file[address][first_key]["Data"].shape
+                signal_size = np.prod(signal_shape)
+                key_count = len(h5_file[address].keys())
+                # develper note: it's possible to open/load/close every dataset
+                # via h5py, but it's faster to just lookup the offsets and load
+                # from memory with mmap and numpy.
+                offsets = [
+                    h5_file[address][str(i)]["Data"].id.get_offset()
+                    for i in range(key_count)
+                ]
+                with open(filename, "rb") as f:
+                    fileno = f.fileno()
+                    mapping = mmap.mmap(fileno, 0, access=mmap.ACCESS_READ)
+                    data = np.stack(
+                        [
+                            np.frombuffer(
+                                mapping, dtype=signal_dtype, count=signal_size, offset=i
+                            ).reshape(signal_shape)
+                            for i in offsets
+                        ]
+                    )
+                # check for length 1 navigation axes
+                if shape[1] == 1:
+                    del shape[1]
+                    del datasets_list[i]["axes"][1]
+                    datasets_list[i]["axes"][-1]["index_in_array"] = 1
+                    datasets_list[i]["axes"][-2]["index_in_array"] = 2
 
-        elif len(shape) == 4:
-            # for 4D, data is loaded as ((x*y),ky,kz), then reshaped.
-            first_key = [x for x in h5_file[address]][0]
-            signal_dtype = h5_file[address][first_key]["Data"].dtype
-            signal_shape = h5_file[address][first_key]["Data"].shape
-            signal_size = np.prod(signal_shape)
-            key_count = len(h5_file[address].keys())
-            # develper note: it's possible to open/load/close every dataset
-            # via h5py, but it's faster to just lookup the offsets and load
-            # from memory with mmap and numpy.
-            offsets = [
-                h5_file[address][str(i)]["Data"].id.get_offset()
-                for i in range(key_count)
-            ]
-            with open(filename, "rb") as f:
-                fileno = f.fileno()
-                mapping = mmap.mmap(fileno, 0, access=mmap.ACCESS_READ)
-                data = np.stack(
-                    [
-                        np.frombuffer(
-                            mapping, dtype=signal_dtype, count=signal_size, offset=i
-                        ).reshape(signal_shape)
-                        for i in offsets
-                    ]
-                )
-            # check for length 1 navigation axes
-            if shape[1] == 1:
-                del shape[1]
-                del datasets_list[i]["axes"][1]
-                datasets_list[i]["axes"][-1]["index_in_array"] = 1
-                datasets_list[i]["axes"][-2]["index_in_array"] = 2
+                if shape[0] == 1:
+                    del shape[0]
+                    del datasets_list[i]["axes"][0]
+                    datasets_list[i]["axes"][0]["index_in_array"] = 0
+                    datasets_list[i]["axes"][1]["index_in_array"] = 1
+                    if len(shape) == 3:
+                        datasets_list[i]["axes"][2]["index_in_array"] = 2
 
-            if shape[0] == 1:
-                del shape[0]
-                del datasets_list[i]["axes"][0]
-                datasets_list[i]["axes"][0]["index_in_array"] = 0
-                datasets_list[i]["axes"][1]["index_in_array"] = 1
-                if len(shape) == 3:
-                    datasets_list[i]["axes"][2]["index_in_array"] = 2
-
-            datasets_list[i]["data"] = data.reshape(shape)
+                datasets_list[i]["data"] = data.reshape(shape)
 
     return datasets_list
 
 
-file_reader.__doc__ %= (FILENAME_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (
+    FILENAME_DOC,
+    LAZY_UNSUPPORTED_DOC,
+    SHOW_PROGRESSBAR_DOC,
+    RETURNS_DOC,
+)
 
 
 def _get_4D_axes(h5_grp):
@@ -330,7 +344,7 @@ def _get_2D_axes(metadata_xml_string, name):
             "size": 0,
             "scale": 0,
             "offset": 0,
-            "navigate": True,
+            "navigate": False,
             "index_in_array": 0,
         },
         {
@@ -339,7 +353,7 @@ def _get_2D_axes(metadata_xml_string, name):
             "size": 0,
             "scale": 0,
             "offset": 0,
-            "navigate": True,
+            "navigate": False,
             "index_in_array": 1,
         },
     ]

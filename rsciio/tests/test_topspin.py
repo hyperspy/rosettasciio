@@ -24,10 +24,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from rsciio.topspin._api import _parse_app5_xml, file_reader
-
 h5py = pytest.importorskip("h5py", reason="h5py not installed")
 
+from rsciio.topspin._api import _parse_app5_xml, file_reader  # noqa: E402
 
 # locations for test data, both in path and str format
 data_directory = Path(__file__).parent / "data" / "topspin"

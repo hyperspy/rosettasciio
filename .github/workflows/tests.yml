@@ -15,6 +15,7 @@ jobs:
     timeout-minutes: 30
     env:
       MPLBACKEND: agg
+      PIP_ARGS: --upgrade --prefer-binary -e
     strategy:
       fail-fast: false
       matrix:
@@ -23,7 +24,6 @@ jobs:
         PYTHON_VERSION: ['3.11', '3.12', '3.13']
         HYPERSPY_VERSION: ['release']
         LABEL: ['']
-        PIP_ARGS: ['']
         include:
           # test oldest supported version of main dependencies on python 3.8
           - os: ubuntu
@@ -151,7 +151,7 @@ jobs:
       - name: Install hyperspy and exspy (release)
         if: ${{ matrix.HYPERSPY_VERSION == 'release' && matrix.PYTHON_VERSION != '3.13t'}}
         run: |
-          pip install hyperspy exspy ${{ matrix.PIP_ARGS }}
+          pip install hyperspy exspy
 
       - name: Install hyperspy and exspy (dev)
         if: ${{ matrix.HYPERSPY_VERSION == 'dev' && matrix.PYTHON_VERSION != '3.13t' }}
@@ -169,7 +169,7 @@ jobs:
       - name: Install
         shell: bash
         run: |
-          pip install --upgrade -e .'${{ env.PIP_SELECTOR }}' ${{ matrix.PIP_ARGS }}
+          pip install ${{ env.PIP_ARGS }} .'${{ env.PIP_SELECTOR }}'
 
       - name: Uninstall pyUSID
         # remove when pyUSID supports numpy 2 

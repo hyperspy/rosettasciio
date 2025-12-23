@@ -32,8 +32,8 @@ def get_chunk_slice(
     Get chunk slices for the :func:`rsciio.utils.distributed.slice_memmap` function.
 
     Takes a shape and chunks and returns a dask array of the slices to be used with the
-    :func:`rsciio.utils.distributed.slice_memmap` function. This is useful for loading data from a memmaped file in a
-    distributed manner.
+    :func:`rsciio.utils.distributed.slice_memmap` function. This is useful for loading data
+    from a memmaped file in a distributed manner.
 
     Parameters
     ----------
@@ -139,9 +139,9 @@ def slice_memmap(slices, file, dtypes, shape, key=None, positions=False, **kwarg
     Parameters
     ----------
     slices : array-like of int
-        An array of the slices to use. The dimensions of the array should be
-        (n,2) where n is the number of dimensions of the data. The first column
-        is the start of the slice and the second column is the stop of the slice.
+        An array of the slices to use. The shape of the array should be (n, 2)
+        where n is the number of dimensions of the data. The first column is
+        the start of the slice and the second column is the stop of the slice.
     file : str
         Path to the file.
     dtypes : numpy.dtype
@@ -174,7 +174,11 @@ def slice_memmap(slices, file, dtypes, shape, key=None, positions=False, **kwarg
         else:
             return data[slices_]
     else:
-        slices_ = tuple([slice(s[0], s[1]) for s in slices_])
+        if slices_.ndim == 1:
+            # Special case data with single axis
+            slices_ = slice(*tuple(slices_))
+        else:
+            slices_ = tuple([slice(s[0], s[1]) for s in slices_])
         return data[slices_]
 
 

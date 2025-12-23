@@ -217,9 +217,19 @@ def test_load_chunks(tmp_path):
     assert tuple([c[0] for c in s2.data.chunks]) == chunks
 
 
+def test_load_chunks_1D(tmp_path):
+    s = _create_signal(shape=(20,), dim=1, dtype="uint16")
+    fname = tmp_path / "test_chunks_1D.rpl"
+    s.save(fname)
+
+    chunks = (8,)
+    s2 = hs.load(fname, lazy=True, chunks=chunks)
+    assert s2.data.chunks == ((8, 8, 4),)
+
+
 def test_load_not_lazy(tmp_path):
     s = _create_signal(shape=(20, 30, 40), dim=1, dtype="uint16")
-    fname = tmp_path / "test_chunks.rpl"
+    fname = tmp_path / "test_chunks_not_lazy.rpl"
     s.save(fname)
 
     chunks = (10, 15, 40)

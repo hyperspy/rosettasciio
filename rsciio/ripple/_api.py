@@ -250,6 +250,9 @@ def read_raw(rpl_info, filename, chunks="auto"):
     elif record_by == "dont-care":  # stack of images
         shape = (height, width)
 
+    # "squeeze" shape
+    shape = tuple(s for s in shape if s > 1)
+
     data = file.memmap_distributed(
         filename,
         offset=offset,
@@ -258,7 +261,7 @@ def read_raw(rpl_info, filename, chunks="auto"):
         chunks=chunks,
     )
 
-    return data.squeeze()
+    return data
 
 
 @distributed_keyword_deprecation

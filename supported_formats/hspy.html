@@ -562,7 +562,7 @@ writing and performance of many HyperSpy algorithms. See the
 <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/big_data.html#big-data-chunking" title="(in HyperSpy v2.3)"><span class="xref std std-ref">HyperSpy chunking section</span></a> for more information.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Also see the <a class="reference internal" href="../api/utils.html#hdf5-utils"><span class="std std-ref">HDF5 utility functions</span></a> for inspecting HDF5 files.</p>
+<p>Also see the <a class="reference internal" href="../api/rsciio.utils.html#hdf5-utils"><span class="std std-ref">HDF5</span></a> for inspecting HDF5 files.</p>
 </div>
 </section>
 <section id="format-description">
@@ -659,7 +659,7 @@ specification (<code class="docutils literal notranslate"><span class="pre">.hsp
 </dd>
 <dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not. The file will stay open
 until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/base_classes/signal/LazySignal.html#hyperspy._signals.lazy.LazySignal.compute" title="(in HyperSpy v2.3)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
-or closed manually. <a class="reference internal" href="../api/utils.html#rsciio.utils.tools.get_file_handle" title="rsciio.utils.tools.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
+or closed manually. <a class="reference internal" href="../api/rsciio.utils.html#rsciio.utils.file.get_file_handle" title="rsciio.utils.file.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
 can be used to access the file handler and close it manually.</p>
 </dd>
 <dt><strong>**kwds</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>The keyword arguments are passed to <a class="reference external" href="https://docs.h5py.org/en/stable/high/file.html#h5py.File" title="(in h5py v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">h5py.File</span></code></a>.</p>

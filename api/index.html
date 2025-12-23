@@ -50,7 +50,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'api/index';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Utility functions" href="utils.html" />
+    <link rel="next" title="rsciio" href="rsciio.html" />
     <link rel="prev" title="Supporting Your File Format" href="../supported_formats/supporting_your_file_format.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -375,7 +375,10 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="utils.html">Utility functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rsciio.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="rsciio.exceptions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.exceptions</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="rsciio.tests.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.tests.registry_utils</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="rsciio.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.utils</span></code></a></li>
 </ul>
 </div>
 </nav></div>
@@ -437,8 +440,6 @@
 <h1>API<a class="headerlink" href="#api" title="Link to this heading">#</a></h1>
 <p>The RosettaSciIO Application Programming Interface allows other python packages
 to use its input/output (IO) capabilities.</p>
-<div class="toctree-wrapper compound">
-</div>
 <section id="interfacing-the-rosettasciio-plugins">
 <span id="interfacing-api"></span><h2>Interfacing the RosettaSciIO plugins<a class="headerlink" href="#interfacing-the-rosettasciio-plugins" title="Link to this heading">#</a></h2>
 <p>RosettaSciIO is designed as library offering file reading and writing capabilities
@@ -471,29 +472,77 @@ input file</p></li>
 <span class="n">file_writer</span><span class="p">(</span><span class="s2">&quot;beautifulplumage.hspy&quot;</span><span class="p">,</span> <span class="n">fdict</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="python-packages-using-rosettasciio">
-<span id="using-rsciio"></span><h3>Python packages using RosettaSciIO<a class="headerlink" href="#python-packages-using-rosettasciio" title="Link to this heading">#</a></h3>
-<p>The following python packages available through <a class="reference external" href="https://pypi.org/">PyPI</a> and/or
-<a class="reference external" href="https://anaconda.org/conda-forge/">conda-forge</a> use the RosettaSciIO plugins
-for reading/writing of data files:</p>
-<ul class="simple">
-<li><p><a class="reference external" href="https://hyperspy.org">HyperSpy</a>: Multidimensional data analysis</p></li>
-<li><p>Any <a class="reference external" href="https://github.com/hyperspy/hyperspy-extensions-list">HyperSpy extension</a>
-that inherits the IO capabilities:</p>
+</section>
+<section id="modules">
+<h2>Modules<a class="headerlink" href="#modules" title="Link to this heading">#</a></h2>
+<div class="toctree-wrapper compound">
 <ul>
-<li><p><a class="reference external" href="https://lumispy.org">LumiSpy</a>: Luminescence analysis with HyperSpy</p></li>
-<li><p><a class="reference external" href="https://kikuchipy.org">Kikuchipy</a>: Processing, simulating and analyzing
-electron backscatter diffraction (EBSD) patterns in Python</p></li>
-<li><p><a class="reference external" href="https://pyxem.readthedocs.io">PyXem</a>: An open-source Python library for
-multi-dimensional diffraction microscopy.</p></li>
-<li><p><a class="reference external" href="https://hyperspy.org/exspy/">exSpy</a>: Analysis of X-ray Energy Dispersive
-Spectroscopy (EDS) and Electron Energy Loss Spectroscopy (EELS).</p></li>
-<li><p><a class="reference external" href="https://hyperspy.org/holospy/">holospy</a>: Analysis of (off-axis) electron
-holography data.</p></li>
+<li class="toctree-l1"><a class="reference internal" href="rsciio.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.html#rsciio.IO_PLUGINS"><code class="docutils literal notranslate"><span class="pre">IO_PLUGINS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.html#rsciio.set_log_level"><code class="docutils literal notranslate"><span class="pre">set_log_level()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rsciio.exceptions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.exceptions</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.exceptions.html#rsciio.exceptions.ByteOrderError"><code class="docutils literal notranslate"><span class="pre">ByteOrderError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.exceptions.html#rsciio.exceptions.DM3DataTypeError"><code class="docutils literal notranslate"><span class="pre">DM3DataTypeError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.exceptions.html#rsciio.exceptions.DM3FileVersionError"><code class="docutils literal notranslate"><span class="pre">DM3FileVersionError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.exceptions.html#rsciio.exceptions.DM3TagError"><code class="docutils literal notranslate"><span class="pre">DM3TagError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.exceptions.html#rsciio.exceptions.DM3TagIDError"><code class="docutils literal notranslate"><span class="pre">DM3TagIDError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.exceptions.html#rsciio.exceptions.DM3TagTypeError"><code class="docutils literal notranslate"><span class="pre">DM3TagTypeError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.exceptions.html#rsciio.exceptions.LazyCupyConversion"><code class="docutils literal notranslate"><span class="pre">LazyCupyConversion</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.exceptions.html#rsciio.exceptions.MountainsMapFileError"><code class="docutils literal notranslate"><span class="pre">MountainsMapFileError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.exceptions.html#rsciio.exceptions.VisibleDeprecationWarning"><code class="docutils literal notranslate"><span class="pre">VisibleDeprecationWarning</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rsciio.tests.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.tests.registry_utils</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.tests.html#rsciio.tests.registry_utils.download_all"><code class="docutils literal notranslate"><span class="pre">download_all()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.tests.html#rsciio.tests.registry_utils.make_registry"><code class="docutils literal notranslate"><span class="pre">make_registry()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.tests.html#rsciio.tests.registry_utils.update_registry"><code class="docutils literal notranslate"><span class="pre">update_registry()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rsciio.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.utils</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.utils.html#file">File</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.file.get_file_handle"><code class="docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.file.inspect_npy_bytes"><code class="docutils literal notranslate"><span class="pre">inspect_npy_bytes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.file.memmap_distributed"><code class="docutils literal notranslate"><span class="pre">memmap_distributed()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.utils.html#hdf5">HDF5</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.hdf5.list_datasets_in_file"><code class="docutils literal notranslate"><span class="pre">list_datasets_in_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.hdf5.read_metadata_from_file"><code class="docutils literal notranslate"><span class="pre">read_metadata_from_file()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.utils.html#path">Path</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.path.append2pathname"><code class="docutils literal notranslate"><span class="pre">append2pathname()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.path.ensure_directory"><code class="docutils literal notranslate"><span class="pre">ensure_directory()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.path.incremental_filename"><code class="docutils literal notranslate"><span class="pre">incremental_filename()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.path.overwrite"><code class="docutils literal notranslate"><span class="pre">overwrite()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.utils.html#rgb">RGB</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.rgb.RGB_DTYPES"><code class="docutils literal notranslate"><span class="pre">RGB_DTYPES</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.rgb.is_rgb"><code class="docutils literal notranslate"><span class="pre">is_rgb()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.rgb.is_rgba"><code class="docutils literal notranslate"><span class="pre">is_rgba()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.rgb.is_rgbx"><code class="docutils literal notranslate"><span class="pre">is_rgbx()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.rgb.regular_array2rgbx"><code class="docutils literal notranslate"><span class="pre">regular_array2rgbx()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.rgb.rgbx2regular_array"><code class="docutils literal notranslate"><span class="pre">rgbx2regular_array()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="rsciio.utils.html#xml">XML</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.xml.XmlToDict"><code class="docutils literal notranslate"><span class="pre">XmlToDict</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.xml.XmlToDict.dictionarize"><code class="docutils literal notranslate"><span class="pre">XmlToDict.dictionarize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.xml.XmlToDict.eval"><code class="docutils literal notranslate"><span class="pre">XmlToDict.eval()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.xml.convert_xml_to_dict"><code class="docutils literal notranslate"><span class="pre">convert_xml_to_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.xml.sanitize_msxml_float"><code class="docutils literal notranslate"><span class="pre">sanitize_msxml_float()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="rsciio.utils.html#rsciio.utils.xml.xml2dtb"><code class="docutils literal notranslate"><span class="pre">xml2dtb()</span></code></a></li>
 </ul>
 </li>
 </ul>
-</section>
+</li>
+</ul>
+</div>
 </section>
 </section>
 
@@ -517,11 +566,11 @@ holography data.</p></li>
       </div>
     </a>
     <a class="right-next"
-       href="utils.html"
+       href="rsciio.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Utility functions</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio</span></code></p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -544,10 +593,8 @@ holography data.</p></li>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#interfacing-the-rosettasciio-plugins">Interfacing the RosettaSciIO plugins</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#python-packages-using-rosettasciio">Python packages using RosettaSciIO</a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#interfacing-the-rosettasciio-plugins">Interfacing the RosettaSciIO plugins</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#modules">Modules</a></li>
 </ul>
   </nav></div>
 

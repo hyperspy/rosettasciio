@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
-    <title>EMPAD format (XML &amp; RAW) &#8212; RosettaSciIO  documentation</title>
+    <title>rsciio.tests.registry_utils &#8212; RosettaSciIO  documentation</title>
   
   
   
@@ -47,11 +47,11 @@
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=d1c4098b"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/empad';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/rsciio.tests';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Hamamatsu" href="hamamatsu.html" />
-    <link rel="prev" title="Electron Microscopy Dataset (EMD)" href="emd.html" />
+    <link rel="next" title="rsciio.utils" href="rsciio.utils.html" />
+    <link rel="prev" title="rsciio.exceptions" href="rsciio.exceptions.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -150,15 +150,15 @@
 </li>
 
 
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../supported_formats/index.html">
     Supported formats
   </a>
 </li>
 
 
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../api/index.html">
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
     API
   </a>
 </li>
@@ -292,15 +292,15 @@
 </li>
 
 
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="index.html">
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../supported_formats/index.html">
     Supported formats
   </a>
 </li>
 
 
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../api/index.html">
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
     API
   </a>
 </li>
@@ -375,44 +375,10 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="arina.html">Arina</a></li>
-<li class="toctree-l1"><a class="reference internal" href="blockfile.html">Blockfile</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bruker.html">Bruker</a></li>
-<li class="toctree-l1"><a class="reference internal" href="de5.html">Direct Electron EMD (DE5)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="delmic.html">Delmic HDF5</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dens.html">DENSsolutions formats</a></li>
-<li class="toctree-l1"><a class="reference internal" href="digitalmicrograph.html">Gatan Digital Micrograph</a></li>
-<li class="toctree-l1"><a class="reference internal" href="digitalsurf.html">DigitalSurf format (SUR &amp; PRO)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="edax.html">EDAX TEAM/Genesis (SPC, SPD)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="emd.html">Electron Microscopy Dataset (EMD)</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">EMPAD format (XML &amp; RAW)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hamamatsu.html">Hamamatsu</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hspy.html">HSpy - HyperSpy’s HDF5 Specification</a></li>
-<li class="toctree-l1"><a class="reference internal" href="image.html">Image formats</a></li>
-<li class="toctree-l1"><a class="reference internal" href="jeol.html">JEOL Analyst Station (ASW, …)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="jobinyvon.html">Horiba Jobin Yvon LabSpec</a></li>
-<li class="toctree-l1"><a class="reference internal" href="mrc.html">MRC format</a></li>
-
-<li class="toctree-l1"><a class="reference internal" href="mrcz.html">MRCZ format</a></li>
-<li class="toctree-l1"><a class="reference internal" href="msa.html">EMSA/MSA format</a></li>
-<li class="toctree-l1"><a class="reference internal" href="netcdf.html">NetCDF (EELSlab) format</a></li>
-<li class="toctree-l1"><a class="reference internal" href="nexus.html">NeXus data format</a></li>
-<li class="toctree-l1"><a class="reference internal" href="numpy.html">NumPy (NPY)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pantarhei.html">CEOS Panta Rhei (PRZ)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="phenom.html">Phenom ELID format</a></li>
-<li class="toctree-l1"><a class="reference internal" href="protochips.html">Protochips logfile</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quantumdetector.html">Quantum Detector</a></li>
-<li class="toctree-l1"><a class="reference internal" href="renishaw.html">Renishaw</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ripple.html">Ripple format</a></li>
-<li class="toctree-l1"><a class="reference internal" href="semper.html">SEMPER binary format (UNF)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tia.html">FEI TIA (SER &amp; EMI)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tiff.html">Tagged image file format (TIFF)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="topspin.html">TopSpin App5</a></li>
-<li class="toctree-l1"><a class="reference internal" href="trivista.html">TriVista</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tvips.html">TVIPS format</a></li>
-<li class="toctree-l1"><a class="reference internal" href="usid.html">Universal Spectroscopy and Imaging Data (h5USID)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="zspy.html">ZSpy - HyperSpy’s Zarr Specification</a></li>
-<li class="toctree-l1"><a class="reference internal" href="supporting_your_file_format.html">Supporting Your File Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rsciio.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="rsciio.exceptions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.exceptions</span></code></a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.tests.registry_utils</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="rsciio.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.utils</span></code></a></li>
 </ul>
 </div>
 </nav></div>
@@ -454,9 +420,9 @@
       </a>
     </li>
     
-    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Supported formats</a></li>
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">API</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">EMPAD format (XML &amp; RAW)</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.tests.registry_utils</span></code></span></li>
   </ul>
 </nav>
 </div>
@@ -473,64 +439,82 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="empad-format-xml-raw">
-<span id="empad-format"></span><h1>EMPAD format (XML &amp; RAW)<a class="headerlink" href="#empad-format-xml-raw" title="Link to this heading">#</a></h1>
-<p>This is the file format used by the Electron Microscope Pixel Array
-Detector (EMPAD). It is used to store a series of diffraction patterns from
-scanning transmission electron diffraction measurements, with a limited set of
-metadata. Similarly, to the <a class="reference internal" href="ripple.html#ripple-format"><span class="std std-ref">ripple format</span></a>, the raw data
-and metadata are saved in two different files and for the EMPAD reader, these
-are saved in the <code class="docutils literal notranslate"><span class="pre">.raw</span></code> and <code class="docutils literal notranslate"><span class="pre">.xml</span></code> files, respectively. To read EMPAD data,
-use the <code class="docutils literal notranslate"><span class="pre">.xml</span></code> file, which will automatically read the raw data from the <code class="docutils literal notranslate"><span class="pre">.raw</span></code>
-file too. The filename of the <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file is defined in the <code class="docutils literal notranslate"><span class="pre">.xml</span></code> file, which
-implies changing the file name of the <code class="docutils literal notranslate"><span class="pre">.raw</span></code> file will break reading the file.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>When using <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, you need to specify the correct
-<code class="docutils literal notranslate"><span class="pre">reader</span></code> plugin, as different <code class="docutils literal notranslate"><span class="pre">.xml</span></code> formats are supported:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">hyperspy.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">hs</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sig</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;file.xml&quot;</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="s2">&quot;EMPAD&quot;</span><span class="p">)</span>
-</pre></div>
+  <section id="rsciio-tests-registry-utils">
+<span id="tests"></span><h1><a class="reference internal" href="#module-rsciio.tests.registry_utils" title="rsciio.tests.registry_utils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.tests.registry_utils</span></code></a><a class="headerlink" href="#rsciio-tests-registry-utils" title="Link to this heading">#</a></h1>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rsciio.tests.registry_utils.download_all" title="rsciio.tests.registry_utils.download_all"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.tests.registry_utils.download_all</span></code></a>([...])</p></td>
+<td><p>Download all test data if they are not already locally available in <code class="docutils literal notranslate"><span class="pre">rsciio.tests.data</span></code> folder.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#rsciio.tests.registry_utils.make_registry" title="rsciio.tests.registry_utils.make_registry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.tests.registry_utils.make_registry</span></code></a>(...)</p></td>
+<td><p>Make a registry of files and hashes for the given directory.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rsciio.tests.registry_utils.update_registry" title="rsciio.tests.registry_utils.update_registry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.tests.registry_utils.update_registry</span></code></a>()</p></td>
+<td><p>Update the <code class="docutils literal notranslate"><span class="pre">rsciio.tests.registry.txt</span></code> file, which is required after adding or updating test data files.</p></td>
+</tr>
+</tbody>
+</table>
 </div>
-</div>
-<section id="module-rsciio.empad">
-<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.empad" title="Link to this heading">#</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="rsciio.empad.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.empad.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.empad.file_reader" title="Link to this definition">#</a></dt>
-<dd><p>Read file format used by the Electron Microscope Pixel Array Detector (EMPAD).</p>
+<span class="target" id="module-rsciio.tests.registry_utils"></span><dl class="py function">
+<dt class="sig sig-object py" id="rsciio.tests.registry_utils.download_all">
+<span class="sig-prename descclassname"><span class="pre">rsciio.tests.registry_utils.</span></span><span class="sig-name descname"><span class="pre">download_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pooch_object</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_hash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progressbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.tests.registry_utils.download_all" title="Link to this definition">#</a></dt>
+<dd><p>Download all test data if they are not already locally available in
+<code class="docutils literal notranslate"><span class="pre">rsciio.tests.data</span></code> folder.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
-<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+<dt><strong>pooch_object</strong><span class="classifier"><a class="reference external" href="https://www.fatiando.org/pooch/latest/api/generated/pooch.Pooch.html#pooch.Pooch" title="(in Pooch vv1.8.2)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pooch.Pooch</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>The registry to be used. If None, a RosettaSciIO registry will
+be used.</p>
 </dd>
-<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not. The file will stay open
-until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/base_classes/signal/LazySignal.html#hyperspy._signals.lazy.LazySignal.compute" title="(in HyperSpy v2.3)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
-or closed manually. <a class="reference internal" href="../api/rsciio.utils.html#rsciio.utils.file.get_file_handle" title="rsciio.utils.file.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
-can be used to access the file handler and close it manually.</p>
+<dt><strong>ignore_hash</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>Don’t compare the hash of the downloaded file with the corresponding
+hash in the registry. On windows, the hash comparison will fail for
+non-binary file, because of difference in line ending. If None, the
+comparision will only be used on unix system.</p>
 </dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl>
-<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
-<ul class="simple">
-<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
-<li><p>‘axes’ – list of dictionaries describing the axes
-containing the fields ‘name’, ‘units’, ‘index_in_array’, and
-either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
-containing the full axes vector</p></li>
-<li><p>‘metadata’ – dictionary containing the parsed metadata</p></li>
-<li><p>‘original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
-</ul>
-<p>When the file contains several datasets, each dataset will be loaded as separate dictionary.</p>
+<dt><strong>show_progressbar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Whether to show the progressbar or not.</p>
 </dd>
 </dl>
 </dd>
 </dl>
 </dd></dl>
 
-</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.tests.registry_utils.make_registry">
+<span class="sig-prename descclassname"><span class="pre">rsciio.tests.registry_utils.</span></span><span class="sig-name descname"><span class="pre">make_registry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.tests.registry_utils.make_registry" title="Link to this definition">#</a></dt>
+<dd><p>Make a registry of files and hashes for the given directory.</p>
+<p>This is helpful if you have many files in your test dataset as it keeps you
+from needing to manually update the registry.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>directory</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Directory of the test data to put in the registry. All file names in
+the registry will be relative to this directory.</p>
+</dd>
+<dt><strong>output</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Name of the output registry file.</p>
+</dd>
+<dt><strong>recursive</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a></span></dt><dd><p>If True, will recursively look for files in subdirectories of
+<em>directory</em>.</p>
+</dd>
+<dt><strong>exclude_pattern</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a></span></dt><dd><p>List of pattern to exclude.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Adapted from <a class="github reference external" href="https://github.com/fatiando/pooch/blob/main/pooch/hashes.py">fatiando/pooch</a>
+BSD-3-Clause</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.tests.registry_utils.update_registry">
+<span class="sig-prename descclassname"><span class="pre">rsciio.tests.registry_utils.</span></span><span class="sig-name descname"><span class="pre">update_registry</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.tests.registry_utils.update_registry" title="Link to this definition">#</a></dt>
+<dd><p>Update the <code class="docutils literal notranslate"><span class="pre">rsciio.tests.registry.txt</span></code> file, which is required after
+adding or updating test data files.</p>
+<p>Unix system only. This is not supported on windows, because the hash
+comparison will fail for non-binary file, because of difference in line
+ending.</p>
+</dd></dl>
+
 </section>
 
 
@@ -544,20 +528,20 @@ containing the full axes vector</p></li>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="emd.html"
+       href="rsciio.exceptions.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Electron Microscopy Dataset (EMD)</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.exceptions</span></code></p>
       </div>
     </a>
     <a class="right-next"
-       href="hamamatsu.html"
+       href="rsciio.utils.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Hamamatsu</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.utils</span></code></p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -580,10 +564,9 @@ containing the full axes vector</p></li>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.empad">API functions</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.empad.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tests.registry_utils.download_all"><code class="docutils literal notranslate"><span class="pre">download_all()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tests.registry_utils.make_registry"><code class="docutils literal notranslate"><span class="pre">make_registry()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tests.registry_utils.update_registry"><code class="docutils literal notranslate"><span class="pre">update_registry()</span></code></a></li>
 </ul>
   </nav></div>
 
@@ -591,7 +574,7 @@ containing the full axes vector</p></li>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/supported_formats/empad.rst.txt"
+      <li><a href="../_sources/api/rsciio.tests.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>

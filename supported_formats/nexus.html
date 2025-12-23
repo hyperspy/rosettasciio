@@ -593,7 +593,7 @@ restored when a signal is loaded from a previously saved NeXus file.</p>
 <p>Altering the standard metadata structure of a signal
 using <code class="docutils literal notranslate"><span class="pre">attrs</span></code> or <code class="docutils literal notranslate"><span class="pre">value</span></code> keywords is not recommended.</p>
 </div>
-<p>Also see the <a class="reference internal" href="../api/utils.html#hdf5-utils"><span class="std std-ref">HDF5 utility functions</span></a> for inspecting HDF5 files.</p>
+<p>Also see the <a class="reference internal" href="../api/rsciio.utils.html#hdf5-utils"><span class="std std-ref">HDF5</span></a> for inspecting HDF5 files.</p>
 </section>
 <section id="module-rsciio.nexus">
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.nexus" title="Link to this heading">#</a></h2>
@@ -608,7 +608,7 @@ using <code class="docutils literal notranslate"><span class="pre">attrs</span><
 </dd>
 <dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not. The file will stay open
 until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/base_classes/signal/LazySignal.html#hyperspy._signals.lazy.LazySignal.compute" title="(in HyperSpy v2.3)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
-or closed manually. <a class="reference internal" href="../api/utils.html#rsciio.utils.tools.get_file_handle" title="rsciio.utils.tools.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
+or closed manually. <a class="reference internal" href="../api/rsciio.utils.html#rsciio.utils.file.get_file_handle" title="rsciio.utils.file.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
 can be used to access the file handler and close it manually.</p>
 </dd>
 <dt><strong>dataset_key</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=None</span></dt><dd><p>If None all datasets are returned.
@@ -667,9 +667,9 @@ containing the full axes vector</p></li>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><a class="reference internal" href="../api/utils.html#rsciio.utils.hdf5.list_datasets_in_file" title="rsciio.utils.hdf5.list_datasets_in_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5.list_datasets_in_file</span></code></a></dt><dd><p>Convenience function to list datasets present in a file.</p>
+<dt><a class="reference internal" href="../api/rsciio.utils.html#rsciio.utils.hdf5.list_datasets_in_file" title="rsciio.utils.hdf5.list_datasets_in_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5.list_datasets_in_file</span></code></a></dt><dd><p>Convenience function to list datasets present in a file.</p>
 </dd>
-<dt><a class="reference internal" href="../api/utils.html#rsciio.utils.hdf5.read_metadata_from_file" title="rsciio.utils.hdf5.read_metadata_from_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5.read_metadata_from_file</span></code></a></dt><dd><p>Convenience function to read metadata present in a file.</p>
+<dt><a class="reference internal" href="../api/rsciio.utils.html#rsciio.utils.hdf5.read_metadata_from_file" title="rsciio.utils.hdf5.read_metadata_from_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5.read_metadata_from_file</span></code></a></dt><dd><p>Convenience function to read metadata present in a file.</p>
 </dd>
 </dl>
 </div>
@@ -728,9 +728,9 @@ The default is <code class="docutils literal notranslate"><span class="pre">'gzi
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><a class="reference internal" href="../api/utils.html#rsciio.utils.hdf5.list_datasets_in_file" title="rsciio.utils.hdf5.list_datasets_in_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5.list_datasets_in_file</span></code></a></dt><dd><p>Convenience function to list datasets present in a file.</p>
+<dt><a class="reference internal" href="../api/rsciio.utils.html#rsciio.utils.hdf5.list_datasets_in_file" title="rsciio.utils.hdf5.list_datasets_in_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5.list_datasets_in_file</span></code></a></dt><dd><p>Convenience function to list datasets present in a file.</p>
 </dd>
-<dt><a class="reference internal" href="../api/utils.html#rsciio.utils.hdf5.read_metadata_from_file" title="rsciio.utils.hdf5.read_metadata_from_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5.read_metadata_from_file</span></code></a></dt><dd><p>Convenience function to read metadata present in a file.</p>
+<dt><a class="reference internal" href="../api/rsciio.utils.html#rsciio.utils.hdf5.read_metadata_from_file" title="rsciio.utils.hdf5.read_metadata_from_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5.read_metadata_from_file</span></code></a></dt><dd><p>Convenience function to read metadata present in a file.</p>
 </dd>
 </dl>
 </div>

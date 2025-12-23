@@ -1,0 +1,1322 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
+    <title>rsciio.utils &#8212; RosettaSciIO  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=d1c4098b"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/rsciio.utils';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Contributing" href="../contributing.html" />
+    <link rel="prev" title="rsciio.tests.registry_utils" href="rsciio.tests.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo_rec_oct22.svg" class="logo__image only-light" alt="RosettaSciIO  documentation - Home"/>
+    <img src="../_static/logo_rec_dark_oct22.svg" class="logo__image only-dark pst-js-only" alt="RosettaSciIO  documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../file_specification/index.html">
+    File Specifications
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../supported_formats/index.html">
+    Supported formats
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../changes.html">
+    Release Notes
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/hyperspy/rosettasciio" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://gitter.im/hyperspy/hyperspy" title="Gitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-gitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Gitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../file_specification/index.html">
+    File Specifications
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../supported_formats/index.html">
+    Supported formats
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../changes.html">
+    Release Notes
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/hyperspy/rosettasciio" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://gitter.im/hyperspy/hyperspy" title="Gitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-gitter fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Gitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="rsciio.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="rsciio.exceptions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.exceptions</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="rsciio.tests.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.tests.registry_utils</span></code></a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.utils</span></code></a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">API</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.utils</span></code></span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="rsciio-utils">
+<span id="utils"></span><h1><a class="reference internal" href="#module-rsciio.utils" title="rsciio.utils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.utils</span></code></a><a class="headerlink" href="#rsciio-utils" title="Link to this heading">#</a></h1>
+<p>RosettaSciIO provides certain utility functions that are applicable for multiple
+formats, e.g. for the HDF5-format on which a number of plugins are based.</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#module-rsciio.utils.file" title="rsciio.utils.file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.file</span></code></a></p></td>
+<td><p>Utility functions for file handling.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#module-rsciio.utils.hdf5" title="rsciio.utils.hdf5"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5</span></code></a></p></td>
+<td><p>Utility functions for HDF5 file inspection.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#module-rsciio.utils.path" title="rsciio.utils.path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.path</span></code></a></p></td>
+<td><p>Utility functions for path handling.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#module-rsciio.utils.rgb" title="rsciio.utils.rgb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.rgb</span></code></a></p></td>
+<td><p>Utility functions for RGB array handling.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#module-rsciio.utils.xml" title="rsciio.utils.xml"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.xml</span></code></a></p></td>
+<td><p>Utility functions for XML handling.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<span class="target" id="module-rsciio.utils"></span><section id="file">
+<span id="file-utils"></span><h2>File<a class="headerlink" href="#file" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rsciio.utils.file.get_file_handle" title="rsciio.utils.file.get_file_handle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.file.get_file_handle</span></code></a>(data[, warn])</p></td>
+<td><p>Return file handle of a dask array when possible.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#rsciio.utils.file.inspect_npy_bytes" title="rsciio.utils.file.inspect_npy_bytes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.file.inspect_npy_bytes</span></code></a>(file_)</p></td>
+<td><p>Inspect a .npy byte stream to extract metadata such as data offset, shape, and dtype.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rsciio.utils.file.memmap_distributed" title="rsciio.utils.file.memmap_distributed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.file.memmap_distributed</span></code></a>(...[, ...])</p></td>
+<td><p>Drop in replacement for <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html#numpy.memmap" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.memmap</span></code></a> allowing for distributed loading of data.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p id="module-rsciio.utils.file">Utility functions for file handling.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.file.get_file_handle">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.file.</span></span><span class="sig-name descname"><span class="pre">get_file_handle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.file.get_file_handle" title="Link to this definition">#</a></dt>
+<dd><p>Return file handle of a dask array when possible.
+Currently only hdf5 and tiff file are supported.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>data</strong><span class="classifier"><a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></span></dt><dd><p>The dask array from which the file handle
+will be retrieved.</p>
+</dd>
+<dt><strong>warn</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a></span></dt><dd><p>Whether to warn or not when the file handle
+can’t be retrieved. Default is True.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>File handle or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a></dt><dd><p>The file handle of the file when possible.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.file.inspect_npy_bytes">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.file.</span></span><span class="sig-name descname"><span class="pre">inspect_npy_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.IO" title="(in Python v3.14)"><span class="pre">IO</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><span class="pre">bytes</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#rsciio.utils.file.inspect_npy_bytes" title="Link to this definition">#</a></dt>
+<dd><p>Inspect a .npy byte stream to extract metadata such as data offset, shape, and dtype.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>After calling this function, the <code class="docutils literal notranslate"><span class="pre">file_</span></code> stream position advanced to the
+start of the data.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_</strong><span class="classifier">File handle</span></dt><dd><p>The .npy byte stream to inspect.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a></dt><dd><p>A tuple containing:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">offset</span></code> (int): The byte offset where the data starts.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">shape</span></code> (tuple): The shape of the array stored in the file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dtype</span></code> (str): The data type of the array elements.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;example.npy&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">offset</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">inspect_npy_bytes</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.file.memmap_distributed">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.file.</span></span><span class="sig-name descname"><span class="pre">memmap_distributed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'C'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size_limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.file.memmap_distributed" title="Link to this definition">#</a></dt>
+<dd><p>Drop in replacement for <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html#numpy.memmap" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.memmap</span></code></a> allowing for distributed
+loading of data.</p>
+<p>This always loads the data using dask which can be beneficial in many
+cases, but may not be ideal in others. The <code class="docutils literal notranslate"><span class="pre">chunks</span></code> and <code class="docutils literal notranslate"><span class="pre">block_size_limit</span></code>
+are for describing an ideal chunk shape and size as defined using the
+<a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.core.normalize_chunks.html#dask.array.core.normalize_chunks" title="(in Dask)"><code class="xref py py-func docutils literal notranslate"><span class="pre">dask.array.core.normalize_chunks()</span></code></a> function.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Path to the file.</p>
+</dd>
+<dt><strong>dtype</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.dtype</span></code></a></span></dt><dd><p>Data type of the data for memmap function.</p>
+</dd>
+<dt><strong>positions</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v2.4)"><span>array_like</span></a>, optional</span></dt><dd><p>A numpy array in the form [[x1, y1], [x2, y2], …] where x, y map the frame to the
+real space coordinate of the data. The default is None.</p>
+</dd>
+<dt><strong>offset</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, optional</span></dt><dd><p>Offset in bytes. The default is 0.</p>
+</dd>
+<dt><strong>shape</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a>, optional</span></dt><dd><p>Shape of the data to be read. The default is None.</p>
+</dd>
+<dt><strong>order</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, optional</span></dt><dd><p>Order of the data. The default is “C” see <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.memmap.html#numpy.memmap" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.memmap</span></code></a> for more details.</p>
+</dd>
+<dt><strong>chunks</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a>, optional</span></dt><dd><p>Chunk shape. The default is “auto”.</p>
+</dd>
+<dt><strong>block_size_limit</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, optional</span></dt><dd><p>Maximum size of a block in bytes. The default is None.</p>
+</dd>
+<dt><strong>key</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>For structured dtype only. Specify the key of the structured dtype to use.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></dt><dd><p>Dask array of the data from the memmaped file and with the specified chunks.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Currently <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.map_blocks.html#dask.array.map_blocks" title="(in Dask)"><code class="xref py py-func docutils literal notranslate"><span class="pre">dask.array.map_blocks()</span></code></a> does not allow for multiple outputs.
+As a result, in case of structured dtype, the key of the structured dtype need
+to be specified.
+For example: with dtype = ((“data”, int, (128, 128)), (“sec”, “&lt;u4”, 512)),
+“data” or “sec” will need to be specified.</p>
+</dd></dl>
+
+</section>
+<section id="hdf5">
+<span id="hdf5-utils"></span><h2>HDF5<a class="headerlink" href="#hdf5" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rsciio.utils.hdf5.list_datasets_in_file" title="rsciio.utils.hdf5.list_datasets_in_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5.list_datasets_in_file</span></code></a>(filename)</p></td>
+<td><p>Read from a NeXus or <code class="docutils literal notranslate"><span class="pre">.hdf</span></code> file and return a list of the dataset paths.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#rsciio.utils.hdf5.read_metadata_from_file" title="rsciio.utils.hdf5.read_metadata_from_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5.read_metadata_from_file</span></code></a>(...)</p></td>
+<td><p>Read the metadata from a NeXus or <code class="docutils literal notranslate"><span class="pre">.hdf</span></code> file.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p id="module-rsciio.utils.hdf5">Utility functions for HDF5 file inspection.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.hdf5.list_datasets_in_file">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.hdf5.</span></span><span class="sig-name descname"><span class="pre">list_datasets_in_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hardlinks_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.hdf5.list_datasets_in_file" title="Link to this definition">#</a></dt>
+<dd><p>Read from a NeXus or <code class="docutils literal notranslate"><span class="pre">.hdf</span></code> file and return a list of the dataset paths.</p>
+<p>This method is used to inspect the contents of an hdf5 file.
+The method iterates through group attributes and returns NXdata or
+hdf datasets of size &gt;=2 if they’re not already NXdata blocks
+and returns a list of the entries.
+This is a convenience method to inspect a file to list datasets
+present rather than loading all the datasets in the file as signals.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>dataset_key</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a> , default=None</span></dt><dd><p>If a str or list of strings is provided only return items whose
+path contain the strings.
+For example, dataset_key = [“instrument”, “Fe”] will only return
+hdf entries with “instrument” or “Fe” somewhere in their hdf path.</p>
+</dd>
+<dt><strong>hardlinks_only</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>If true any links (soft or External) will be ignored when loading.</p>
+</dd>
+<dt><strong>verbose</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Prints the results to screen.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a></dt><dd><p>List of paths to datasets.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#rsciio.utils.hdf5.read_metadata_from_file" title="rsciio.utils.hdf5.read_metadata_from_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5.read_metadata_from_file</span></code></a></dt><dd><p>Convenience function to read metadata present in a file.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.hdf5.read_metadata_from_file">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.hdf5.</span></span><span class="sig-name descname"><span class="pre">read_metadata_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_array_metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.hdf5.read_metadata_from_file" title="Link to this definition">#</a></dt>
+<dd><p>Read the metadata from a NeXus or <code class="docutils literal notranslate"><span class="pre">.hdf</span></code> file.</p>
+<p>This method iterates through the hdf5 file and returns a dictionary of
+the entries.
+This is a convenience method to inspect a file for a value
+rather than loading the file as a signal.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not. The file will stay open
+until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/base_classes/signal/LazySignal.html#hyperspy._signals.lazy.LazySignal.compute" title="(in HyperSpy v2.3)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
+or closed manually. <a class="reference internal" href="#rsciio.utils.file.get_file_handle" title="rsciio.utils.file.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
+can be used to access the file handler and close it manually.</p>
+</dd>
+<dt><strong>metadata_key</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=None</span></dt><dd><p>None will return all datasets found including linked data.
+Providing a string or list of strings will only return items
+which contain the string(s).
+For example, search_keys = [“instrument”,”Fe”] will return
+hdf entries with “instrument” or “Fe” in their hdf path.</p>
+</dd>
+<dt><strong>verbose</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Pretty print the results to screen.</p>
+</dd>
+<dt><strong>skip_array_metadata</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to skip loading array metadata. This is useful as a lot of
+large array may be present in the metadata and it is redundant with
+dataset itself.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>Metadata dictionary.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#rsciio.utils.hdf5.list_datasets_in_file" title="rsciio.utils.hdf5.list_datasets_in_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.hdf5.list_datasets_in_file</span></code></a></dt><dd><p>Convenience function to list datasets present in a file.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+</section>
+<section id="path">
+<span id="path-utils"></span><h2>Path<a class="headerlink" href="#path" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rsciio.utils.path.append2pathname" title="rsciio.utils.path.append2pathname"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.path.append2pathname</span></code></a>(filename, ...)</p></td>
+<td><p>Append a string to a path name.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#rsciio.utils.path.ensure_directory" title="rsciio.utils.path.ensure_directory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.path.ensure_directory</span></code></a>(path)</p></td>
+<td><p>Check if the path exists and if it does not, creates the directory.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rsciio.utils.path.incremental_filename" title="rsciio.utils.path.incremental_filename"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.path.incremental_filename</span></code></a>(filename)</p></td>
+<td><p>If a file with the same file name exists, returns a new filename that does not exist.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#rsciio.utils.path.overwrite" title="rsciio.utils.path.overwrite"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.path.overwrite</span></code></a>(filename)</p></td>
+<td><p>If file 'filename' exists, ask for overwriting and return True or False, else return True.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p id="module-rsciio.utils.path">Utility functions for path handling.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.path.append2pathname">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.path.</span></span><span class="sig-name descname"><span class="pre">append2pathname</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_append</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.path.append2pathname" title="Link to this definition">#</a></dt>
+<dd><p>Append a string to a path name.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>The original file name.</p>
+</dd>
+<dt><strong>to_append</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>The string to append to the file name.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></dt><dd><p>The new file name with the appended string.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.path.ensure_directory">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.path.</span></span><span class="sig-name descname"><span class="pre">ensure_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.path.ensure_directory" title="Link to this definition">#</a></dt>
+<dd><p>Check if the path exists and if it does not, creates the directory.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>path</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>The path to check and create if it does not exist.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.path.incremental_filename">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.path.</span></span><span class="sig-name descname"><span class="pre">incremental_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.path.incremental_filename" title="Link to this definition">#</a></dt>
+<dd><p>If a file with the same file name exists, returns a new filename that
+does not exist.</p>
+<p>The new file name is created by appending <cite>-n</cite> (where <cite>n</cite> is an integer)
+to path name</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>The original file name.</p>
+</dd>
+<dt><strong>i</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a></span></dt><dd><p>The number to be appended.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></dt><dd><p>The new file name with the appended number.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.path.overwrite">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.path.</span></span><span class="sig-name descname"><span class="pre">overwrite</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.path.overwrite" title="Link to this definition">#</a></dt>
+<dd><p>If file ‘filename’ exists, ask for overwriting and return True or False,
+else return True.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>File to check for overwriting.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a></dt><dd><p>Whether to overwrite file.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="rgb">
+<span id="rgb-utils"></span><h2>RGB<a class="headerlink" href="#rgb" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rsciio.utils.rgb.is_rgb" title="rsciio.utils.rgb.is_rgb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.rgb.is_rgb</span></code></a>(array)</p></td>
+<td><p>Check if the array is a RGB structured numpy array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#rsciio.utils.rgb.is_rgba" title="rsciio.utils.rgb.is_rgba"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.rgb.is_rgba</span></code></a>(array)</p></td>
+<td><p>Check if the array is a RGBA structured numpy array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rsciio.utils.rgb.is_rgbx" title="rsciio.utils.rgb.is_rgbx"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.rgb.is_rgbx</span></code></a>(array)</p></td>
+<td><p>Check if the array is a RGB or RGBA structured numpy array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#rsciio.utils.rgb.regular_array2rgbx" title="rsciio.utils.rgb.regular_array2rgbx"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.rgb.regular_array2rgbx</span></code></a>(data)</p></td>
+<td><p>Transform a regular numpy array with an additional dimension for the color channel into a RGBx structured numpy array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rsciio.utils.rgb.rgbx2regular_array" title="rsciio.utils.rgb.rgbx2regular_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.rgb.rgbx2regular_array</span></code></a>(data[, ...])</p></td>
+<td><p>Transform a RGBx structured numpy array into a standard one with an additional dimension for the color channel.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#rsciio.utils.rgb.RGB_DTYPES" title="rsciio.utils.rgb.RGB_DTYPES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.rgb.RGB_DTYPES</span></code></a></p></td>
+<td><p>Mapping of RGB color space names to their corresponding numpy structured dtypes.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p id="module-rsciio.utils.rgb">Utility functions for RGB array handling.</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="rsciio.utils.rgb.RGB_DTYPES">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.rgb.</span></span><span class="sig-name descname"><span class="pre">RGB_DTYPES</span></span><a class="headerlink" href="#rsciio.utils.rgb.RGB_DTYPES" title="Link to this definition">#</a></dt>
+<dd><p>Mapping of RGB color space names to their corresponding numpy structured dtypes.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.rgb.is_rgb">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.rgb.</span></span><span class="sig-name descname"><span class="pre">is_rgb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.rgb.is_rgb" title="Link to this definition">#</a></dt>
+<dd><p>Check if the array is a RGB structured numpy array.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>array</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a></span></dt><dd><p>The array to check.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a></dt><dd><p>True if the array is RGB, False otherwise.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.rgb.is_rgba">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.rgb.</span></span><span class="sig-name descname"><span class="pre">is_rgba</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.rgb.is_rgba" title="Link to this definition">#</a></dt>
+<dd><p>Check if the array is a RGBA structured numpy array.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>array</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a></span></dt><dd><p>The array to check.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a></dt><dd><p>True if the array is RGBA, False otherwise.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.rgb.is_rgbx">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.rgb.</span></span><span class="sig-name descname"><span class="pre">is_rgbx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.rgb.is_rgbx" title="Link to this definition">#</a></dt>
+<dd><p>Check if the array is a RGB or RGBA structured numpy array.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>array</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a></span></dt><dd><p>The array to check.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a></dt><dd><p>True if the array is RGB or RGBA, False otherwise.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.rgb.regular_array2rgbx">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.rgb.</span></span><span class="sig-name descname"><span class="pre">regular_array2rgbx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.rgb.regular_array2rgbx" title="Link to this definition">#</a></dt>
+<dd><p>Transform a regular numpy array with an additional dimension for the
+color channel into a RGBx structured numpy array.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>data</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></span></dt><dd><p>The regular array to be transformed.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></dt><dd><p>The transformed RGBx structured array.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.rgb.rgbx2regular_array">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.rgb.</span></span><span class="sig-name descname"><span class="pre">rgbx2regular_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_friendly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progressbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.rgb.rgbx2regular_array" title="Link to this definition">#</a></dt>
+<dd><p>Transform a RGBx structured numpy array into a standard one with
+an additional dimension for the color channel.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>data</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></span></dt><dd><p>The RGB array to be transformed.</p>
+</dd>
+<dt><strong>plot_friendly</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a></span></dt><dd><p>If True, change the dtype to float when dtype is not uint8 and
+normalize the array so that it is ready to be plotted by matplotlib.</p>
+</dd>
+<dt><strong>show_progressbar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Whether to show the progressbar or not.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></dt><dd><p>The transformed array with additional dimension for the color channel.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="xml">
+<span id="xml-utils"></span><h2>XML<a class="headerlink" href="#xml" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rsciio.utils.xml.XmlToDict" title="rsciio.utils.xml.XmlToDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.xml.XmlToDict</span></code></a>([...])</p></td>
+<td><p>Customisable XML to python dict and list based Hierarchical tree translator.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#rsciio.utils.xml.convert_xml_to_dict" title="rsciio.utils.xml.convert_xml_to_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.xml.convert_xml_to_dict</span></code></a>(xml_object)</p></td>
+<td><p>Convert XML object to a DTBox object.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rsciio.utils.xml.sanitize_msxml_float" title="rsciio.utils.xml.sanitize_msxml_float"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.xml.sanitize_msxml_float</span></code></a>(...)</p></td>
+<td><p>Replace comma with dot in floating point numbers in given xml raw string.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#rsciio.utils.xml.xml2dtb" title="rsciio.utils.xml.xml2dtb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rsciio.utils.xml.xml2dtb</span></code></a>(et, dictree)</p></td>
+<td><p>Convert XML ElementTree node to DTBox object.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p id="module-rsciio.utils.xml">Utility functions for XML handling.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="rsciio.utils.xml.XmlToDict">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">rsciio.utils.xml.</span></span><span class="sig-name descname"><span class="pre">XmlToDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dub_attr_pre_str</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&#64;'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dub_text_str</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#value'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags_to_flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interchild_text_parsing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'first'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.xml.XmlToDict" title="Link to this definition">#</a></dt>
+<dd><p>Customisable XML to python dict and list based Hierarchical tree
+translator.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>dub_attr_pre_str</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>String to be prepended to attribute name when creating
+dictionary tree if children element with same name is used.
+Default is “&#64;”.</p>
+</dd>
+<dt><strong>dub_text_str</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> (default: “#text”)</span></dt><dd><p>String to use as key in case element contains text and children tag.
+Default “#text”.</p>
+</dd>
+<dt><strong>tags_to_flatten</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Define tag names which should be flattened/skipped,
+placing children of such tag one level shallower in constructed
+python structure.
+It is useful when OEM generated XML are not human designed,
+but machine/programming language/framework generated
+and painfully verbose. See example below.
+Default is None, which means no tags are flattened.</p>
+</dd>
+<dt><strong>interchild_text_parsing</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Must be one of (“skip”, “first”, “cat”, “list”).
+This considers the  behaviour when both .text and children tags are
+presented under same element tree node:</p>
+<ul class="simple">
+<li><p>“skip” - will not try to retrieve any .text values from such node.</p></li>
+<li><p>“first” - only string under .text attribute will be returned.</p></li>
+<li><p>“cat” - return concatenated string from .text of node and .tail’s
+of children nodes.</p></li>
+<li><p>“list” - similar to “cat”, but return the result in list
+without concatenation.</p></li>
+</ul>
+<p>Default is “first”, which is the most common case.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Consider such redundant tree structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DetectorHeader</span>
+<span class="o">|-</span><span class="n">ClassInstances</span>
+    <span class="o">|-</span><span class="n">ClassInstance</span>
+    <span class="o">|-</span><span class="n">Type</span>
+    <span class="o">|-</span><span class="n">Window</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>It can be sanitized/simplified by setting tags_to_flatten keyword
+with [“ClassInstances”, “ClassInstance”] to eliminate redundant
+levels of tree with such tag names:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DetectorHeader</span>
+<span class="o">|-</span><span class="n">Type</span>
+<span class="o">|-</span><span class="n">Window</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>Produced dict/list structures are then good enought to be
+returned as part of original metadata without making any more
+copies.</p>
+<p>Setup the parser:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">rsciio.utils.xml</span><span class="w"> </span><span class="kn">import</span> <span class="n">XmlToDict</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xml_to_dict</span> <span class="o">=</span> <span class="n">XmlToDict</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">pre_str_dub_attr</span><span class="o">=</span><span class="s2">&quot;XmlClass&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">tags_to_flatten</span><span class="o">=</span><span class="p">[</span>
+<span class="gp">... </span>        <span class="s2">&quot;ClassInstance&quot;</span><span class="p">,</span> <span class="s2">&quot;ChildrenClassInstance&quot;</span><span class="p">,</span> <span class="s2">&quot;JustAnotherRedundantTag&quot;</span>
+<span class="gp">... </span>    <span class="p">]</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Use parser:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pytree</span> <span class="o">=</span> <span class="n">xml_to_dict</span><span class="o">.</span><span class="n">dictionarize</span><span class="p">(</span><span class="n">etree_node</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="rsciio.utils.xml.XmlToDict.dictionarize">
+<span class="sig-name descname"><span class="pre">dictionarize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">et_node</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.xml.XmlToDict.dictionarize" title="Link to this definition">#</a></dt>
+<dd><p>Take etree XML node and return its conversion into
+pythonic dict/list representation of that XML tree
+with some sanitization.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>et_node</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">xml.etree.ElementTree.Element</span></code></a></span></dt><dd><p>XML node to be converted.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>Dictionary representation of the XML node.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="rsciio.utils.xml.XmlToDict.eval">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.xml.XmlToDict.eval" title="Link to this definition">#</a></dt>
+<dd><p>Interpret any string and return casted to appropriate
+dtype python object.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>string</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>String to be interpreted.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></dt><dd><p>Interpreted string.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>If this does not return desired type, consider subclassing
+and reimplementing this method like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">SubclassedXmlToDict</span><span class="p">(</span><span class="n">XmlToDict</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">eval</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">condition</span> <span class="n">check</span> <span class="n">to</span> <span class="n">catch</span> <span class="n">the</span> <span class="n">case</span>
+        <span class="o">...</span>
+        <span class="k">elif</span>
+        <span class="o">...</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">XmlToDict</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.xml.convert_xml_to_dict">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.xml.</span></span><span class="sig-name descname"><span class="pre">convert_xml_to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml_object</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.xml.convert_xml_to_dict" title="Link to this definition">#</a></dt>
+<dd><p>Convert XML object to a DTBox object.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>xml_object</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">xml.etree.ElementTree.Element</span></code></a></span></dt><dd><p>XML object to be converted. It can be a string or an ElementTree node.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>DTBox</dt><dd><p>A DTBox object containing the converted XML data.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.xml.sanitize_msxml_float">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.xml.</span></span><span class="sig-name descname"><span class="pre">sanitize_msxml_float</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml_b_string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.xml.sanitize_msxml_float" title="Link to this definition">#</a></dt>
+<dd><p>Replace comma with dot in floating point numbers in given xml
+raw string.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>xml_b_string</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Raw binary string representing the xml to be parsed.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></dt><dd><p>Binary string with commas used as decimal marks replaced with dots
+to adhere to XML standard.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>What, why, how? In case OEM software runs on MS Windows and directly
+uses system built-in MSXML lib, which does not comply with XML standards,
+and OS is set to locale of some country with weird and illogical
+preferences of using comma as decimal separation;
+Software in conjunction of these above listed conditions can produce
+not-interoperable XML, which leads to wrong interpretation of context.
+This sanitizer searches and corrects that - it should be used before
+being fed to .fromstring of element tree.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.utils.xml.xml2dtb">
+<span class="sig-prename descclassname"><span class="pre">rsciio.utils.xml.</span></span><span class="sig-name descname"><span class="pre">xml2dtb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">et</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dictree</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.xml.xml2dtb" title="Link to this definition">#</a></dt>
+<dd><p>Convert XML ElementTree node to DTBox object.
+This is a recursive function that traverses the XML tree
+and populates the DTBox object with the data from the XML node.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>et</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.Element" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">xml.etree.ElementTree.Element</span></code></a></span></dt><dd><p>XML node to be converted.</p>
+</dd>
+<dt><strong>dictree</strong><span class="classifier">DTBox</span></dt><dd><p>Box object to be populated.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="rsciio.tests.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rsciio.tests.registry_utils</span></code></p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../contributing.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Contributing</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#file">File</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.file.get_file_handle"><code class="docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.file.inspect_npy_bytes"><code class="docutils literal notranslate"><span class="pre">inspect_npy_bytes()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.file.memmap_distributed"><code class="docutils literal notranslate"><span class="pre">memmap_distributed()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hdf5">HDF5</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.hdf5.list_datasets_in_file"><code class="docutils literal notranslate"><span class="pre">list_datasets_in_file()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.hdf5.read_metadata_from_file"><code class="docutils literal notranslate"><span class="pre">read_metadata_from_file()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#path">Path</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.path.append2pathname"><code class="docutils literal notranslate"><span class="pre">append2pathname()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.path.ensure_directory"><code class="docutils literal notranslate"><span class="pre">ensure_directory()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.path.incremental_filename"><code class="docutils literal notranslate"><span class="pre">incremental_filename()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.path.overwrite"><code class="docutils literal notranslate"><span class="pre">overwrite()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rgb">RGB</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.rgb.RGB_DTYPES"><code class="docutils literal notranslate"><span class="pre">RGB_DTYPES</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.rgb.is_rgb"><code class="docutils literal notranslate"><span class="pre">is_rgb()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.rgb.is_rgba"><code class="docutils literal notranslate"><span class="pre">is_rgba()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.rgb.is_rgbx"><code class="docutils literal notranslate"><span class="pre">is_rgbx()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.rgb.regular_array2rgbx"><code class="docutils literal notranslate"><span class="pre">regular_array2rgbx()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.rgb.rgbx2regular_array"><code class="docutils literal notranslate"><span class="pre">rgbx2regular_array()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#xml">XML</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.xml.XmlToDict"><code class="docutils literal notranslate"><span class="pre">XmlToDict</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.xml.XmlToDict.dictionarize"><code class="docutils literal notranslate"><span class="pre">XmlToDict.dictionarize()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.xml.XmlToDict.eval"><code class="docutils literal notranslate"><span class="pre">XmlToDict.eval()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.xml.convert_xml_to_dict"><code class="docutils literal notranslate"><span class="pre">convert_xml_to_dict()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.xml.sanitize_msxml_float"><code class="docutils literal notranslate"><span class="pre">sanitize_msxml_float()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.utils.xml.xml2dtb"><code class="docutils literal notranslate"><span class="pre">xml2dtb()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/rsciio.utils.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023-2025, HyperSpy Developers.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

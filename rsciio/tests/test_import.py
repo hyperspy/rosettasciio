@@ -155,3 +155,49 @@ def test_dir_plugins(plugin):
         assert dir(plugin_module) == ["file_reader"]
     else:
         assert dir(plugin_module) == ["file_reader", "file_writer"]
+
+
+def test_utils():
+    pytest.importorskip("h5py")
+    for obj_name in rsciio.utils.__all__:
+        getattr(rsciio.utils, obj_name)
+
+
+def test_tools():
+    from rsciio.exceptions import VisibleDeprecationWarning
+
+    for obj_name in rsciio.utils.tools.__all__:
+        # tools functions have been privatised or moved to different submodules
+        with pytest.warns(VisibleDeprecationWarning):
+            getattr(rsciio.utils.tools, obj_name)
+
+
+def test_deprecated_distributed_module():
+    from rsciio.exceptions import VisibleDeprecationWarning
+
+    with pytest.warns(VisibleDeprecationWarning):
+        import rsciio.utils.distributed as utils_distributed
+
+    for obj_name in utils_distributed.__all__:
+        with pytest.warns(VisibleDeprecationWarning):
+            getattr(utils_distributed, obj_name)
+
+
+def test_deprecated_rgb_tools_module():
+    import rsciio.utils.rgb_tools as utils_rgb_tools
+    from rsciio.exceptions import VisibleDeprecationWarning
+
+    for obj_name in utils_rgb_tools.__all__:
+        with pytest.warns(VisibleDeprecationWarning):
+            getattr(utils_rgb_tools, obj_name)
+
+
+def test_deprecated_utils_exception_module():
+    from rsciio.exceptions import VisibleDeprecationWarning
+
+    with pytest.warns(VisibleDeprecationWarning):
+        import rsciio.utils.exceptions as utils_exceptions
+
+    for obj_name in utils_exceptions.__all__:
+        with pytest.warns(VisibleDeprecationWarning):
+            getattr(utils_exceptions, obj_name)

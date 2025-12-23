@@ -19,7 +19,7 @@
 import xml.etree.ElementTree as ET
 
 from rsciio._docstrings import FILENAME_DOC
-from rsciio.utils.tools import sanitize_msxml_float
+from rsciio.utils.xml import sanitize_msxml_float
 
 from ._api import SFS_reader
 

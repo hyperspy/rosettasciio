@@ -16,23 +16,26 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import numpy as np
-from packaging.version import Version
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
-def get_numpy_kwargs(array):
-    """
-    Convenience funtion to return a dictionary containing the `like` keyword
-    if numpy>=1.20.
+def jit_ifnumba(*decorator_args, **decorator_kwargs):
+    try:
+        import numba
 
-    Note
-    ----
-    `like` keyword is an experimental feature introduced in numpy 1.20 and is
-    pending on acceptance of NEP 35
+        decorator_kwargs.setdefault("nopython", True)
+        return numba.jit(*decorator_args, **decorator_kwargs)
+    except ImportError:
+        _logger.warning(
+            "Falling back to slow pure python code, because `numba` is not installed."
+        )
 
-    """
-    kw = {}
-    if Version(np.__version__) >= Version("1.20"):
-        kw["like"] = array
+        def wrap(func):
+            def wrapper_func(*args, **kwargs):
+                return func(*args, **kwargs)
 
-    return kw
+            return wrapper_func
+
+        return wrap

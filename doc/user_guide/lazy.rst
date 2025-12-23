@@ -34,7 +34,7 @@ Memory mapping
 
 Binary file formats are loaded lazily using `memory mapping`_ and are compatible with the `dask distributed`_
 scheduler. This implementation uses an approach similar to that described in the dask documentation on
-`memory mapping`_ - see the :func:`~.utils.distributed.memmap_distributed` function for more information.
+`memory mapping`_ - see the :func:`~.utils.file.memmap_distributed` function for more information.
 
 
 Distributed Loading
@@ -43,7 +43,7 @@ Distributed Loading
 Not all formats are compatible with the `dask distributed`_ scheduler. See the last columns of the 
 :ref:`supported formats <supported-formats>` table to know which reader are supported.
 
-In almost all cases the :func:`~.utils.distributed.memmap_distributed` function can be dropped in-place of the
+In almost all cases the :func:`~.utils.file.memmap_distributed` function can be dropped in-place of the
 :class:`numpy.memmap` function. It also now supports the ``positions`` parameter which is different from the equivalent
 numpy function.  The ``positions`` parameter is a numpy array of positions which maps some arbitrary scan positions
 to a grid.  This is useful for loading arbitrary scan positions from a file.  The ``positions`` parameter does require

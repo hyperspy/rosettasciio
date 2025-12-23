@@ -17,7 +17,6 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 
-import dask.array as da
 import numpy as np
 
 from rsciio._docstrings import (
@@ -28,8 +27,8 @@ from rsciio._docstrings import (
     SIGNAL_DOC,
     UNSUPPORTED_METADATA_DOC,
 )
-from rsciio.utils.distributed import memmap_distributed
-from rsciio.utils.tools import inspect_npy_bytes
+from rsciio.utils import file
+from rsciio.utils._array import is_dask_array
 
 
 def inspect_npy_file(filename):
@@ -57,7 +56,7 @@ def inspect_npy_file(filename):
     >>> print(f"Dtype: {dtype}")
     """
     with open(filename, "rb") as f:
-        return inspect_npy_bytes(f)
+        return file.inspect_npy_bytes(f)
 
 
 def file_writer(filename, signal, **kwargs):
@@ -74,7 +73,7 @@ def file_writer(filename, signal, **kwargs):
     %s
     """
     array = signal["data"]
-    if isinstance(array, da.Array):
+    if is_dask_array(array):
         raise TypeError("Lazy signal are not supported for writing to npy files.")
 
     np.save(filename, array, **kwargs)
@@ -101,7 +100,7 @@ def file_reader(filename, lazy=False, chunks="auto", navigation_axes=None, **kwa
         all axes will be treated as signal axes.
     **kwargs : dict, optional
         Pass keyword arguments to the :func:`numpy.load`, when
-        lazy is False, otherwise to :func:`rsciio.utils.distributed.memmap_distributed`.
+        lazy is False, otherwise to :func:`rsciio.utils.file.memmap_distributed`.
 
     %s
 
@@ -118,7 +117,7 @@ def file_reader(filename, lazy=False, chunks="auto", navigation_axes=None, **kwa
     """
     if lazy:
         offset, shape, dtype = inspect_npy_file(filename)
-        data = memmap_distributed(
+        data = file.memmap_distributed(
             filename,
             offset=offset,
             shape=shape,

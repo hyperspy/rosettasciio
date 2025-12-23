@@ -10,86 +10,52 @@
 #
 # RosettaSciIO is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+# ruff: noqa: F822
 
-class MountainsMapFileError(Exception):
-    def __init__(self, msg="Corrupt Mountainsmap file"):
-        self.error = msg
+import importlib
+import warnings
 
-    def __str__(self):
-        return repr(self.error)
+import rsciio.exceptions
 
+# This module is deprecated and will be removed in version 1.0.
 
-class ByteOrderError(Exception):
-    def __init__(self, order=""):
-        self.byte_order = order
-
-    def __str__(self):
-        return repr(self.byte_order)
-
-
-class DM3FileVersionError(Exception):
-    def __init__(self, value=""):
-        self.dm3_version = value
-
-    def __str__(self):
-        return repr(self.dm3_version)
+__all__ = [
+    "MountainsMapFileError",
+    "ByteOrderError",
+    "DM3FileVersionError",
+    "DM3TagError",
+    "DM3DataTypeError",
+    "DM3TagTypeError",
+    "DM3TagIDError",
+    "VisibleDeprecationWarning",
+    "LazyCupyConversion",
+]
 
 
-class DM3TagError(Exception):
-    def __init__(self, value=""):
-        self.dm3_tag = value
-
-    def __str__(self):
-        return repr(self.dm3_tag)
+def __dir__():
+    return sorted(__all__)
 
 
-class DM3DataTypeError(Exception):
-    def __init__(self, value=""):
-        self.dm3_dtype = value
-
-    def __str__(self):
-        return repr(self.dm3_dtype)
-
-
-class DM3TagTypeError(Exception):
-    def __init__(self, value=""):
-        self.dm3_tagtype = value
-
-    def __str__(self):
-        return repr(self.dm3_tagtype)
+warnings.warn(
+    "The module `rsciio.utils.exceptions` has been moved to `rsciio.exceptions` "
+    "and it will be removed in version 1.0.",
+    rsciio.exceptions.VisibleDeprecationWarning,
+)
 
 
-class DM3TagIDError(Exception):
-    def __init__(self, value=""):
-        self.dm3_tagID = value
+def __getattr__(name):
+    if name in __all__:
+        warnings.warn(
+            f"{name} has been moved to `rsciio.exceptions` and it will be removed from "
+            "`rsciio.utils.exceptions` in version 1.0.",
+            rsciio.exceptions.VisibleDeprecationWarning,
+        )  # pragma: no cover
+        return getattr(importlib.import_module("rsciio.exceptions"), name)
 
-    def __str__(self):
-        return repr(self.dm3_tagID)
-
-
-class VisibleDeprecationWarning(UserWarning):
-    """Visible deprecation warning.
-    By default, python will not show deprecation warnings, so this class
-    provides a visible one.
-
-    """
-
-    pass
-
-
-class LazyCupyConversion(Exception):
-    def __init__(self):
-        self.error = (
-            "Automatically converting data to cupy array is not supported "
-            "for lazy signals. Read the corresponding section in the user "
-            "guide for more information on how to use GPU with lazy signals."
-        )
-
-    def __str__(self):
-        return repr(self.error)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

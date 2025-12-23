@@ -29,7 +29,7 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
-from rsciio.utils.tools import DTBox
+from rsciio.utils._dictionary import DTBox
 
 _logger = logging.getLogger(__name__)
 

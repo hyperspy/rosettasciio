@@ -72,7 +72,7 @@ import numpy as np
 from numpy.polynomial.polynomial import polyfit
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
-from rsciio.utils import rgb_tools
+from rsciio.utils import rgb
 
 _logger = logging.getLogger(__name__)
 
@@ -1268,11 +1268,11 @@ class WDFReader(object):
 
         ## extract and parse EXIF tags
         if PIL_installed:
-            from rsciio.utils.image import _parse_axes_from_metadata, _parse_exif_tags
+            from rsciio.utils._image import _parse_axes_from_metadata, _parse_exif_tags
 
             pil_img = Image.open(img)
             original_metadata = {}
-            data = rgb_tools.regular_array2rgbx(np.array(pil_img))
+            data = rgb.regular_array2rgbx(np.array(pil_img))
             original_metadata["exif_tags"] = _parse_exif_tags(pil_img)
             axes = _parse_axes_from_metadata(original_metadata["exif_tags"], data.shape)
             metadata = {

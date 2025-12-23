@@ -222,6 +222,7 @@ def file_reader(filename, lazy=False, chunks="auto", endianess="<"):
     %s
     %s
     %s
+
     %s
     """
 

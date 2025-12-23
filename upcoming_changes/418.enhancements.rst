@@ -1,0 +1,1 @@
+:ref:`digitalmicrograph-format`: implement :ref:`distributed lazy loading <lazy>` for digitalmicrograph files.

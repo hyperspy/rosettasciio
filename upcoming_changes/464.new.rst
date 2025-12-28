@@ -1,1 +1,0 @@
-Add support for reading :ref:`app5 <app5-format>` files from NanoMegas's Topspin software.

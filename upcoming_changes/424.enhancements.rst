@@ -1,1 +1,0 @@
-Use lazy import in :ref:`rsciio.utils <utils>` to avoid slowing down import. Defer import of ``dask.array``. Improve API documentation.

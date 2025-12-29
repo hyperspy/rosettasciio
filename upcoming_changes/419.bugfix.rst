@@ -1,1 +1,0 @@
-:ref:`Ripple <ripple-format>` reader: fix specifying chunks when reading 1D datasets.

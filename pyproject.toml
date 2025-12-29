@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64", "setuptools_scm>=8", "wheel", "cython>=3.1"]
+requires = ["setuptools>=77.0.3", "setuptools_scm>=8", "wheel", "cython>=3.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -11,7 +11,6 @@ classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -81,14 +80,13 @@ keywords = [
     "wdf",
     "zspy",
 ]
+license = "GPL-3.0-or-later"
+license-files = ["COPYING.txt"]
 
 [project.urls]
 "Homepage" = "https://hyperspy.org/rosettasciio"
 "Bug Reports" = "https://github.com/hyperspy/rosettasciio/issues"
 "Source" = "https://github.com/hyperspy/rosettasciio"
-
-[project.license]
-file = "COPYING.txt"
 
 [project.optional-dependencies]
 app5 = ["h5py>=3.7"]
@@ -152,8 +150,8 @@ enable = ["cpython-freethreading"]
 skip = ["*-musllinux*", "*-win32", "*-manylinux_i686"]
 test-command = "pytest --pyargs rsciio"
 test-extras = ["tests"]
-# dependencies not available on pypi.org for cp310
-test-skip = "*cp310-win_arm64"
+# dependencies not available on pypi.org for cp310, hanging on macosx_x86_64
+test-skip = "*cp310-win_arm64 *-macosx_x86_64"
 
 [tool.pytest.ini_options]
 # Note we may need to use `-n 2` argument for pytest-xdist on CI
@@ -178,7 +176,7 @@ include = ["rsciio*"]
 [tool.setuptools_scm]
 # Presence enables setuptools_scm, the version will be determine at build time from git
 # The version will be updated by the `prepare_release.py` script
-fallback_version = "0.12.dev0"
+fallback_version = "0.13.dev0"
 
 [tool.towncrier]
 directory = "upcoming_changes/"

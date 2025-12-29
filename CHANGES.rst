@@ -8,6 +8,51 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 
 .. towncrier release notes start
 
+0.12 (2025-12-29)
+=================
+
+New features
+------------
+
+- Add support for reading :ref:`app5 <app5-format>` files from NanoMegas's Topspin software. (`#464 <https://github.com/hyperspy/rosettasciio/issues/464>`_)
+
+
+Enhancements
+------------
+
+- :ref:`digitalmicrograph-format`: implement :ref:`distributed lazy loading <lazy>` for digitalmicrograph files. (`#418 <https://github.com/hyperspy/rosettasciio/issues/418>`_)
+- Use lazy import in :ref:`rsciio.utils <utils>` to avoid slowing down import. Defer import of ``dask.array``. Improve API documentation. (`#424 <https://github.com/hyperspy/rosettasciio/issues/424>`_)
+
+
+Bug Fixes
+---------
+
+- :ref:`Ripple <ripple-format>` reader: fix specifying chunks when reading 1D datasets. (`#419 <https://github.com/hyperspy/rosettasciio/issues/419>`_)
+- Fix bug in the :func:`~rsciio.utils.path.incremental_filename` and :func:`~rsciio.utils.path.append2pathname` functions. (`#424 <https://github.com/hyperspy/rosettasciio/issues/424>`_)
+
+
+Deprecations
+------------
+
+- Re-organize the ``rsciio.utils.tools`` into submodules. The following functions have been moved from ``rsciio.utils.tools`` to other submodules:
+
+  - ``sanitize_msxml_float``, ``XmlToDict``, ``xml2dtb`` and ``convert_xml_to_dict`` have been moved to :mod:`rsciio.utils.xml`
+  - ``append2pathname``, ``incremental_filename``, ``ensure_directory`` and ``overwrite`` have been moved to :mod:`rsciio.utils.path`
+  - ``get_file_handle`` has been moved to :mod:`rsciio.utils.file`.
+
+  The following functions have been privatised and will be removed in version 1.0:
+
+  - ``dummy_context_manager``,
+  - ``get_object_package_info``,
+  - ``ensure_unicode``,
+  - ``jit_ifnumba``,
+  - ``dump_dictionary``,
+  - ``DTBox``,
+  - ``sarray2dict``,
+  - ``dict2sarray``,
+  - ``convert_units``. (`#424 <https://github.com/hyperspy/rosettasciio/issues/424>`_)
+
+
 0.11 (2025-12-05)
 =================
 

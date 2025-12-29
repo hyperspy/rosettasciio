@@ -1,1 +1,0 @@
-Fix bug in the :func:`~rsciio.utils.path.incremental_filename` and :func:`~rsciio.utils.path.append2pathname` functions.

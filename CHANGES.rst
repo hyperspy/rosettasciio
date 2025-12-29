@@ -471,7 +471,7 @@ Maintenance
 - Fix minimum install, add corresponding tests build and tidy up leftover code (`#13 <https://github.com/hyperspy/rosettasciio/issues/13>`_)
 - Fixes and code consistency improvements based on analysis provided by lgtm.org (`#23 <https://github.com/hyperspy/rosettasciio/issues/23>`_)
 - Added github action for code scanning using the codeQL engine. (`#26 <https://github.com/hyperspy/rosettasciio/issues/26>`_)
-- Following the deprecation cycle announced in `HyperSpy <https://hyperspy.org/hyperspy-doc/v2.0/changes.html>`_,
+- Following the deprecation cycle announced in `HyperSpy <https://hyperspy.org/hyperspy-doc/v2.0.1/changes.html>`_,
   the following keywords and attributes have been removed:
 
   - :ref:`Bruker composite file (BCF) <bruker-format>`: The ``'spectrum'`` option for the

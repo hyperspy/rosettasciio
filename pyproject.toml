@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64", "setuptools_scm>=8", "wheel", "cython>=3.1"]
+requires = ["setuptools>=77.0.3", "setuptools_scm>=8", "wheel", "cython>=3.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -11,7 +11,6 @@ classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -81,14 +80,13 @@ keywords = [
     "wdf",
     "zspy",
 ]
+license = "GPL-3.0-or-later"
+license-files = ["COPYING.txt"]
 
 [project.urls]
 "Homepage" = "https://hyperspy.org/rosettasciio"
 "Bug Reports" = "https://github.com/hyperspy/rosettasciio/issues"
 "Source" = "https://github.com/hyperspy/rosettasciio"
-
-[project.license]
-file = "COPYING.txt"
 
 [project.optional-dependencies]
 app5 = ["h5py>=3.7"]

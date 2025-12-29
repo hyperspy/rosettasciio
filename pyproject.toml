@@ -152,8 +152,8 @@ enable = ["cpython-freethreading"]
 skip = ["*-musllinux*", "*-win32", "*-manylinux_i686"]
 test-command = "pytest --pyargs rsciio"
 test-extras = ["tests"]
-# dependencies not available on pypi.org for cp310
-test-skip = "*cp310-win_arm64"
+# dependencies not available on pypi.org for cp310, hanging on macosx_x86_64
+test-skip = "*cp310-win_arm64 *-macosx_x86_64"
 
 [tool.pytest.ini_options]
 # Note we may need to use `-n 2` argument for pytest-xdist on CI

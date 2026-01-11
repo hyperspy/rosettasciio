@@ -142,6 +142,13 @@ dev = [
   "rosettasciio[tests]"
 ]
 
+[tool.codespell]
+# pre-commit doesn't seem to skip correctly: need to specify test to skip...
+skip = "*.py[cod],./doc/_build,*.txt,*.ipynb,./rsciio/tests,*.spx,*.tvf,*test_*.py"
+ignore-words = "./.codespellignore"
+check-filenames = true
+check-hidden = false
+
 [tool.cibuildwheel]
 build = ["cp310-*", "cp311-*", "cp312-*", "cp313-*", "cp313t-*", "cp314-*", "cp314t-*"]
 enable = ["cpython-freethreading"]

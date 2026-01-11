@@ -29,7 +29,7 @@ def sarray2dict(sarray, dictionary=None):
     sarray: struct array
     dictionary: None or dict
         If dictionary is not None the content of sarray will be appended to the
-        given dictonary
+        given dictionary
 
     Returns
     -------

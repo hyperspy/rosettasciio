@@ -54,7 +54,7 @@ def cythonize_extensions(extensions):
         warnings.warn(
             """WARNING: The compilation of the C-extension failed.
             Only slow pure python alternative functions will be available.
-            To use fast implementation of some functions writen in cython/c either:
+            To use fast implementation of some functions written in cython/c either:
             a) check that you have compatible compiler installed,
             b) cython is installed.
             b) use binary distribution of hyperspy (i.e. wheels, conda packages).

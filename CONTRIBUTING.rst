@@ -31,7 +31,7 @@ with a repository that contains GBs of test data. Indeed, the test suite is made
 test data files and this number of files will keep growing as new features and formats are added
 to RosettaSciIO.
 
-Users can contribute by generating these files on softwares they have access to and by making these
+Users can contribute by generating these files on software they have access to and by making these
 files available openly; then a RosettaSciIO developer will help with adding these data to the test suite.
 
 What characterizes good test data files:
@@ -161,7 +161,7 @@ directory should contain the following files:
       default_extension: <Int>	# Index of the extension that will be used by default
       writes: <Bool>/[Nested list]  # Writing capabilities
       # if only limited dimensions are supported, the supported combinations of signal
-      # dimensions (sd) and navigation dimensions (nd) are given as list [[sd, nd], ...]
+      # dimensions (SD) and navigation dimensions (ND) are given as list [[SD, ND], ...]
       non_uniform_axis: <Bool>  # Support for non-uniform axis
 
 * ``_api.py`` -- Python file that implements the actual reader. The IO functionality
@@ -173,7 +173,7 @@ directory should contain the following files:
     ``filename`` and ``signal`` (a python dictionary) in that order.
 
 **Tests** covering the functionality of the plugin should be added to the
-``tests`` directory with the naming ``test_spamandeggs.py`` corresponsing to
+``tests`` directory with the naming ``test_spamandeggs.py`` corresponding to
 the plugin residing in the directory ``spamandeggs``. Data files for the tests
 should be placed in a corresponding subdirectory - see the
 :ref:`Adding and Updating Test Data <adding-and-updating-test-data>` section for more

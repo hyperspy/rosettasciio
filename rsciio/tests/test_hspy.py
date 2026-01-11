@@ -326,7 +326,7 @@ class TestSavingMetadataContainers:
         fname = tmp_path / file
         s.save(fname)
         s2 = hs.load(fname)
-        # strange becuase you need the encoding...
+        # strange because you need the encoding...
         assert isinstance(s2.metadata.test, AxesManager)
 
     @zspy_marker
@@ -345,7 +345,7 @@ class TestSavingMetadataContainers:
         fname = tmp_path / file
         s.save(fname)
         s2 = hs.load(fname)
-        # strange becuase you need the encoding...
+        # strange because you need the encoding...
         assert s2.metadata.test == s.metadata.test
 
     @zspy_marker

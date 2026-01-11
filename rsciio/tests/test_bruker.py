@@ -29,7 +29,7 @@ TEST_DATA_DIR = Path(__file__).parent / "data" / "bruker"
 def test_load_16bit():
     # test bcf from hyperspy hs.load function level
     # some of functions can be not covered
-    # it cant use cython parsing implementation, as it is not compiled
+    # it can't use cython parsing implementation, as it is not compiled
     filename = TEST_DATA_DIR / test_files[0]
     print("testing bcf instructively packed 16bit...")  # noqa: T201
     s = hs.load(filename)
@@ -164,7 +164,7 @@ def test_hyperspy_wrap():
                 "K",
                 "Mg",
                 "Na",
-                "Nd",
+                "Nd",  # codespell:ignore
                 "O",
                 "P",
                 "Si",

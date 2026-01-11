@@ -104,7 +104,7 @@ class JobinYvonXMLReader:
         if len(lsx_tree_list) > 1:
             _logger.critical(
                 "File contains multiple positions to read metadata from.\n"
-                "The first location is choosen."
+                "The first location is chosen."
             )  # pragma: no cover
         elif len(lsx_tree_list) == 0:
             _logger.critical("No metadata found.")  # pragma: no cover
@@ -114,7 +114,7 @@ class JobinYvonXMLReader:
         if len(lsx_matrix_list) > 1:
             _logger.critical(
                 "File contains multiple positions to read data from.\n"
-                "The first location is choosen."
+                "The first location is chosen."
             )  # pragma: no cover
         elif len(lsx_matrix_list) == 0:
             _logger.critical("No data found.")  # pragma: no cover
@@ -314,7 +314,7 @@ class JobinYvonXMLReader:
     def _set_signal_type(self, xml_element):
         """Sets signal type and units based on metadata from file.
 
-        Extra method, because this information is stored seperate from the rest of the metadata.
+        Extra method, because this information is stored separate from the rest of the metadata.
 
         Parameters
         ----------

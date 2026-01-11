@@ -115,7 +115,7 @@ def download_all(pooch_object=None, ignore_hash=None, show_progressbar=True):
         Don't compare the hash of the downloaded file with the corresponding
         hash in the registry. On windows, the hash comparison will fail for
         non-binary file, because of difference in line ending. If None, the
-        comparision will only be used on unix system.
+        comparison will only be used on unix system.
     show_progressbar : bool, default=True
         Whether to show the progressbar or not.
     """

@@ -171,7 +171,7 @@ v2.1
 """"
 - Store the ``navigate`` attribute
 - ``record_by`` is stored only for backward compatibility but the axes ``navigate``
-  attribute takes precendence over ``record_by`` for files with version >= 2.1
+  attribute takes precedence over ``record_by`` for files with version >= 2.1
 
 v1.3
 """"

@@ -71,7 +71,7 @@ jobs:
           path: dist/*.tar.gz
 
   pure_python_wheel:
-    # Build pure python without C extention to be used by pyodide
+    # Build pure python without C extension to be used by pyodide
     name: Make pure python wheel
     runs-on: ubuntu-latest
     steps:

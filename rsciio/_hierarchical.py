@@ -607,20 +607,20 @@ class HierarchicalReader:
                 elif key.startswith("_sig_"):
                     dictionary[key] = self.group2signaldict(group[key])
                 elif isinstance(group[key], self.Dataset):
-                    dat = self._read_array(group, key)
+                    data_ = self._read_array(group, key)
                     kn = key
                     if key.startswith("_list_"):
-                        ans = self._parse_iterable(dat)
-                        ans = ans.tolist()
+                        data_ = self._parse_iterable(data_)
+                        data_ = data_.tolist()
                         kn = key[6:]
                     elif key.startswith("_tuple_"):
-                        ans = self._parse_iterable(dat)
-                        ans = tuple(ans.tolist())
+                        data_ = self._parse_iterable(data_)
+                        data_ = tuple(data_.tolist())
                         kn = key[7:]
-                    elif dat.dtype.char == "S":
-                        ans = np.array(dat)
+                    elif data_.dtype.char == "S":
+                        data_ = np.array(data_)
                         try:
-                            ans = ans.astype("U")
+                            data_ = data_.astype("U")
                         except UnicodeDecodeError:
                             # There are some strings that must stay in binary,
                             # for example dill pickles. This will obviously also
@@ -629,10 +629,10 @@ class HierarchicalReader:
                     elif lazy:
                         import dask.array as da
 
-                        ans = da.from_array(dat, chunks=dat.chunks)
+                        data_ = da.from_array(data_, chunks=data_.chunks)
                     else:
-                        ans = np.array(dat)
-                    dictionary[kn] = ans
+                        data_ = np.array(data_)
+                    dictionary[kn] = data_
                 elif key.startswith("_hspy_AxesManager_"):
                     dictionary[key] = [
                         i
@@ -682,7 +682,7 @@ class HierarchicalWriter:
     _is_hdf5 = False
 
     def __init__(self, file, signal, group, **kwds):
-        """Initialize a generic file writer for hierachical data storage types.
+        """Initialize a generic file writer for hierarchical data storage types.
 
         Parameters
         ----------

@@ -244,7 +244,7 @@ def load_mib_data(
             "To use `return_headers=True`, `return_mmap=True` is required."
         )
 
-    # As we save the dtype name, we don't have the endianess and we
+    # As we save the dtype name, we don't have the endianness and we
     # need to specify it here
     data_dtype = np.dtype(mib_prop.dtype).newbyteorder(">")
     merlin_frame_dtype = np.dtype(
@@ -566,7 +566,7 @@ def file_reader(
 
             times_diff = np.diff(times).astype(float)
             if len(times_diff) > 0:
-                # Substract the mean and take the first position above 0
+                # Subtract the mean and take the first position above 0
                 indices = np.argwhere(times_diff - np.mean(times_diff) > 0)
                 if len(indices) > 0 and len(indices[0]) > 0:
                     frame_per_trigger = indices[0][0] + 1

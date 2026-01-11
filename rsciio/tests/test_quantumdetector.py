@@ -132,7 +132,7 @@ def test_quad_chip(fname):
     s = hs.load(TEST_DATA_DIR_UNZIPPED / fname)
     if "9_Frame" in fname:
         if "24_Rows_256" in fname:
-            # Unknow why the timestamps of this file are not consistent
+            # Unknown why the timestamps of this file are not consistent
             # with others
             navigation_shape = (3, 3)
         else:

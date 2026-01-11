@@ -350,7 +350,7 @@ class IMGReader:
                     )
                     break
             else:
-                _logger.warning("Unknown date format, cannot transfrom to ISO.")
+                _logger.warning("Unknown date format, cannot transform to ISO.")
                 general["date"] = date
             general["time"] = time.split(".")[0]
         return general

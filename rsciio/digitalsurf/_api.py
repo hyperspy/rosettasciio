@@ -44,7 +44,7 @@ import numpy as np
 # import rsciio.utils.readfile as iou
 # This module will prove useful when we write the export function
 # import rsciio.utils.tools
-# DictionaryTreeBrowser class handles the fancy metadata dictionnaries
+# DictionaryTreeBrowser class handles the fancy metadata dictionaries
 # from hyperspy.misc.utils import DictionaryTreeBrowser
 from rsciio._docstrings import (
     FILENAME_DOC,
@@ -80,9 +80,9 @@ def parse_metadata(cmt: str, prefix: str = "$", delimiter: str = "=") -> dict:
     Returns
     -------
     dict
-        Nested dictionnary of the metadata.
+        Nested dictionary of the metadata.
     """
-    # dict_ms is created as an empty dictionnary
+    # dict_ms is created as an empty dictionary
     dict_md = {}
     # Title lines start with an underscore
     titlestart = "{:s}_".format(prefix)
@@ -174,7 +174,7 @@ class DigitalSurfHandler(object):
         # io module implements it in the load function
         self.filename = filename
 
-        # The signal_dict dictionnary has to be returned by the
+        # The signal_dict dictionary has to be returned by the
         # file_reader function. By default, we return the minimal
         # mandatory fields
         self.signal_dict = {
@@ -598,7 +598,7 @@ class DigitalSurfHandler(object):
         comment_str = self._stringify_dict(comment_dict)
 
         # A _work_dict is created for each of the data arrays and object
-        # that have splitted from the main object. In most cases, only a
+        # that have split from the main object. In most cases, only a
         # single object is present in the split.
         for data, objtype in zip(self.data_split, self.objtype_split):
             self._build_workdict(
@@ -1321,7 +1321,7 @@ class DigitalSurfHandler(object):
 
         # The T axis is somewhat special because it is only defined on series
         # and is thus only navigation. It is only defined on the first object
-        # in a serie.
+        # in a series.
         # Here it needs to be checked that the T axis scale is not 0 Otherwise
         # it raises hyperspy errors
         scale = unpacked_dict["_56_T_Spacing"]
@@ -1636,7 +1636,7 @@ class DigitalSurfHandler(object):
 
         Returns
         -------
-        metadict: dictionnary in the hyperspy metadata format
+        metadict: dictionary in the hyperspy metadata format
 
         """
 
@@ -2151,7 +2151,7 @@ class DigitalSurfHandler(object):
     def _is_data_int(
         self,
     ):
-        """Determine wether data consists of unscaled int values.
+        """Determine whether data consists of unscaled int values.
         This is not the case for all objects. Surface and surface series can admit
         this logic. In theory, hyperspectral studiables as well but it is more convenient
         to use them as floats due to typical data treatment in hyperspy (scaling etc)"""
@@ -2396,7 +2396,7 @@ def file_writer(
         If True, compress the data in the export file using zlib. Can help dramatically
         reduce the file size.
     comments : dict, default = {}
-        Set a custom dictionnary in the comments field of the exported file.
+        Set a custom dictionary in the comments field of the exported file.
         Ignored if set_comments is not set to 'custom'.
     object_name : str, default = ''
         Set the object name field in the output file.

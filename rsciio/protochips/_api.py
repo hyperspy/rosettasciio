@@ -29,7 +29,7 @@ from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
 _logger = logging.getLogger(__name__)
 
 
-# At some point, if there is another readerw, whith also use csv file, it will
+# At some point, if there is another reader, which also use csv file, it will
 # be necessary to mention the other reader in this message (and to add an
 # argument in the load function to specify the correct reader)
 invalid_file_error = (
@@ -172,7 +172,7 @@ class ProtochipsCSV(object):
         return np.compress(arr[1] != "", arr, axis=1)
 
     def _parse_calibration_filepath(self):
-        # for the gas cell, the calibration is saved in the notes colunm
+        # for the gas cell, the calibration is saved in the notes column
         if hasattr(self, "calibration_file"):
             calibration_file = self.calibration_file
         else:

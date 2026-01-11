@@ -192,7 +192,7 @@ def file_reader(
                     signal_shape = h5_file[address][first_key]["Data"].shape
                     signal_size = np.prod(signal_shape)
                     key_count = len(h5_file[address].keys())
-                    # develper note: it's possible to open/load/close every dataset
+                    # developer note: it's possible to open/load/close every dataset
                     # via h5py, but it's faster to just lookup the offsets and load
                     # from memory with mmap and numpy.
                     offsets = [

@@ -138,17 +138,17 @@ def _parse_to_file(value):
 
 
 def _text_split(s, sep):
-    """Split a string based of list of seperators.
+    """Split a string based of list of separators.
 
     Parameters
     ----------
     s   : str
-    sep : str  - seperator or list of seperators e.g. '.' or ['_','/']
+    sep : str  - separator or list of separators e.g. '.' or ['_','/']
 
     Returns
     -------
     list
-       String sections split based on the seperators
+       String sections split based on the separators
 
     """
     stack = [s]
@@ -995,7 +995,7 @@ def _find_search_keys_in_dict(tree, search_keys=None):
 
 
 def _write_nexus_groups(dictionary, group, skip_keys=None, **kwds):
-    """Recursively iterate throuh dictionary and write groups to nexus.
+    """Recursively iterate through dictionary and write groups to nexus.
 
     Parameters
     ----------

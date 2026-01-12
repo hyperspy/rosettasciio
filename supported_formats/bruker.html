@@ -479,9 +479,17 @@
 <p>RosettaSciIO can read <code class="docutils literal notranslate"><span class="pre">.spx</span></code> single spectrum and <code class="docutils literal notranslate"><span class="pre">.bcf</span></code> “hypermaps” file
 formats saved with Bruker’s Esprit v1.x or v2.x in <code class="docutils literal notranslate"><span class="pre">.bcf</span></code>
 hybrid (virtual file system/container with xml and binary data, optionally
-compressed) format. Most <code class="docutils literal notranslate"><span class="pre">.bcf</span></code> import functionality is implemented. Both
-high-resolution 16-bit SEM images and hyperspectral EDX data can be retrieved
+compressed) format or Bruker Quantax. Most <code class="docutils literal notranslate"><span class="pre">.bcf</span></code> import functionality is implemented.
+Both high-resolution 16-bit SEM images and hyperspectral EDX data can be retrieved
 simultaneously.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Micro-XRF instruments, such as Bruker M4 Tornado or Bruker M6 Jetstream are
+also supported, but these systems are currently poorly documented and tested.
+Please report any issues you may encounter at <a class="github reference external" href="https://github.com/hyperspy/rosettasciio/issues">hyperspy/rosettasciio#issues</a>
+and try to provide a test file as small as possible to reproduce the issue - see
+the corresponding <a class="reference internal" href="../contributing.html#making-test-files"><span class="std std-ref">section of the Contributor guide</span></a>.</p>
+</div>
 <p>BCF can look as all inclusive format, however it does not save some key EDS
 parameters: any of dead/live/real times, full width at half maximum (FWHM)
 at <span class="math notranslate nohighlight">\(Mn_{K\alpha}\)</span> line. However, real time for whole map is calculated from metadata
@@ -685,7 +693,7 @@ images for navigation in the plotting.</p>
 
   <p class="copyright">
     
-      © Copyright 2023-2025, HyperSpy Developers.
+      © Copyright 2023-2026, HyperSpy Developers.
       <br/>
     
   </p>

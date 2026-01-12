@@ -65,8 +65,10 @@ Lint
 .. _pre-commit.ci: https://pre-commit.ci
 
 To keep the code style consistent (and more readable), `ruff <https://docs.astral.sh/ruff/>`_
-is used to check the code formatting. When the code doesn't comply with the expected formatting,
-the `pre-commit.ci build <https://results.pre-commit.ci/latest/github/hyperspy/rosettasciio/main>`_
+is used to check the code formatting. `codespell <https://github.com/codespell-project/codespell>`_
+is used to check for common spelling mistakes in the source code and documentation.
+When the code doesn't comply with the expected formatting, the
+`pre-commit.ci build <https://results.pre-commit.ci/latest/github/hyperspy/rosettasciio/main>`_
 will fail. In practise, the code formatting can be fixed by installing ``ruff`` and running it on the
 source code or by using :ref:`pre-commit hooks <pre-commit-hooks>`.
 Alternatively, adding the message ``pre-commit.ci autofix`` in a pull request will push a commit with 
@@ -115,9 +117,10 @@ other member of the development team before being merged.
 
 Pre-commit Hooks
 ----------------
-Two pre-commit hooks are set up:
+Three pre-commit hooks are set up:
 
 * Linting: run ``ruff``
+* Check spelling using ``codespell``
 * Update test data registry (Unix only)
 
 These can be run locally by using `pre-commit <https://pre-commit.com>`__.

@@ -500,6 +500,9 @@ class EDXSpectrum:
         # USED:
         self.hv = self.esma_metadata.get("PrimaryEnergy", None)
         if self.hv is None:  # pragma: no cover
+            # User has reported missing PrimaryEnergy in metadata in Quantax70
+            # however, this wasn't possible to reproduce in smaller test files
+            # could it be an acquisition setup issue?
             _logger.warning(
                 "The beam energy could not be found in the file's metadata."
             )

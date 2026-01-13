@@ -44,6 +44,7 @@ What characterizes good test data files:
     (e.g. "x" and "y" have different lengths).
   - If possible, generate data that contains no signal (e.g. zeros) as files containing only very few values will compress very well.
 
+.. _pull_requests:
 
 Pull Requests
 =============

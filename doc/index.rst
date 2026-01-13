@@ -125,14 +125,28 @@ for reading/writing of data files:
   * `holospy <https://hyperspy.org/holospy/>`_: Analysis of (off-axis) electron
     holography data.
 
-* `quantem <https://github.com/electronmicroscopy/quantem>`_: Quantitative electron microscopy data analysis toolkit
-* `Fitspy <https://github.com/CEA-MetroCarac/fitspy>`_: Fit spectra in python with GUIs
-* `pynxtools-em <https://fairmat-nfdi.github.io/pynxtools-em/>`_: Parse and normalize electron microscopy data to the nexus metadata format
+* `quantem <https://github.com/electronmicroscopy/quantem>`_: Quantitative electron
+  microscopy data analysis toolkit
+* `Fitspy <https://github.com/CEA-MetroCarac/fitspy>`_: Fit spectra in python with
+  GUIs
+* `pynxtools-em <https://fairmat-nfdi.github.io/pynxtools-em/>`_: Parse and normalize
+  electron microscopy data to the nexus metadata format
 
-The following python packages available only via `GitHub <https://github.com>`_ use the RosettaSciIO plugins
-for reading/writing of data files:
+The following python packages available only via `GitHub <https://github.com>`_ use
+the RosettaSciIO plugins for reading/writing of data files:
 
-* `TemCompanion <https://github.com/matao1984/temcompanion>`_: View, edit, and convert TEM micrographs to common image formats
+* `TemCompanion <https://github.com/matao1984/temcompanion>`_: View, edit, and convert
+  TEM micrographs to common image formats
+
+In addition, any package depending on the above may make use of the I/O capacities of RosettaSciIO.
+
+.. note::
+
+   If you think a certain package should be added to the above list, feel free 
+   to open an `issue <https://github.com/hyperspy/rosettasciio/issues>`_ or make
+   a :ref:`pull request <pull_requests>`. Packages depending on RosettaSciIO can
+   be also found on `GitHub <https://github.com/hyperspy/rosettasciio/network/dependents?dependent_type=PACKAGE>`_
+   or via `Wheelodex <https://www.wheelodex.org/projects/rosettasciio/rdepends/>`_.
 
 
 Citing RosettaSciIO

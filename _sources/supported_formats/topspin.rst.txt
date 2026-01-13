@@ -17,7 +17,7 @@ Depending on how the file was exported from TopSpin, these can be further
 grouped into 32-character session ID's, where all files within the session
 correspond to the same collection area.
 
-Additonally, as App5 files can be large, the ``file_reader`` can be
+Additionally, as App5 files can be large, the ``file_reader`` can be
 ran with ``dryrun=True`` to quickly scan the contents of an app5 file
 without loading it in its entirety, or ``subset='id'`` to only load a single
 experiment from the file. see the docstring for more details.

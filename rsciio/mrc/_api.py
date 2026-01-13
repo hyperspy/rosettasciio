@@ -38,14 +38,15 @@ from rsciio.utils import file
 from rsciio.utils._array import sarray2dict
 from rsciio.utils._deprecated import (
     distributed_keyword_deprecation,
+    endianess_keyword_deprecation,
     mmap_mode_keyword_deprecation,
 )
 
 _logger = logging.getLogger(__name__)
 
 
-def get_std_dtype_list(endianess="<"):
-    end = endianess
+def get_std_dtype_list(endianness="<"):
+    end = endianness
     dtype_list = [
         ("NX", end + "u4"),
         ("NY", end + "u4"),
@@ -97,8 +98,8 @@ def get_std_dtype_list(endianess="<"):
     return dtype_list
 
 
-def get_fei_dtype_list(endianess="<"):
-    end = endianess
+def get_fei_dtype_list(endianness="<"):
+    end = endianness
     dtype_list = [
         ("a_tilt", end + "f4"),  # Alpha tilt (deg)
         ("b_tilt", end + "f4"),  # Beta tilt (deg)
@@ -327,12 +328,13 @@ def read_de_metadata_file(filename, nav_shape=None, scan_pos_file=None):
     return original_metadata, metadata, axes, nav_shape, positions
 
 
+@endianess_keyword_deprecation
 @distributed_keyword_deprecation
 @mmap_mode_keyword_deprecation
 def file_reader(
     filename,
     lazy=False,
-    endianess="<",
+    endianness="<",
     navigation_shape=None,
     chunks="auto",
     metadata_file="auto",
@@ -458,11 +460,11 @@ def file_reader(
         metadata["General"]["external_detectors"] = imgs
 
     f = open(filename, "rb")
-    std_header = np.fromfile(f, dtype=get_std_dtype_list(endianess), count=1)
+    std_header = np.fromfile(f, dtype=get_std_dtype_list(endianness), count=1)
     fei_header = None
     if std_header["NEXT"] / 1024 == 128:
         _logger.info(f"{filename} seems to contain an extended FEI header")
-        fei_header = np.fromfile(f, dtype=get_fei_dtype_list(endianess), count=1024)
+        fei_header = np.fromfile(f, dtype=get_fei_dtype_list(endianness), count=1024)
     if f.tell() == 1024 + std_header["NEXT"]:
         _logger.debug("The FEI header was correctly loaded")
     else:

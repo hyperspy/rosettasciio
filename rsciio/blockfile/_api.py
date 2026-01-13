@@ -41,6 +41,7 @@ from rsciio.utils._date_time import (
     datetime_to_serial_date,
     serial_date_to_ISO_format,
 )
+from rsciio.utils._deprecated import endianess_keyword_deprecation
 from rsciio.utils._dictionary import DTBox
 from rsciio.utils._skimage_exposure import rescale_intensity
 
@@ -66,8 +67,8 @@ mapping = {
 }
 
 
-def get_header_dtype_list(endianess="<"):
-    end = endianess
+def get_header_dtype_list(endianness="<"):
+    end = endianness
     dtype_list = (
         [
             ("ID", (bytes, 6)),
@@ -94,7 +95,7 @@ def get_header_dtype_list(endianess="<"):
     return dtype_list
 
 
-def get_default_header(endianess="<"):
+def get_default_header(endianness="<"):
     """Returns a header pre-populated with default values."""
     dt = np.dtype(get_header_dtype_list())
     header = np.zeros((1,), dtype=dt)
@@ -110,10 +111,10 @@ def get_default_header(endianess="<"):
     return header
 
 
-def get_header_from_signal(signal, endianess="<"):
+def get_header_from_signal(signal, endianness="<"):
     from rsciio.utils._units import convert_units
 
-    header = get_default_header(endianess)
+    header = get_default_header(endianness)
     if "blockfile_header" in signal["original_metadata"]:
         header = dict2sarray(
             signal["original_metadata"]["blockfile_header"], sarray=header
@@ -212,7 +213,8 @@ def get_header_from_signal(signal, endianess="<"):
     return header, note
 
 
-def file_reader(filename, lazy=False, chunks="auto", endianess="<"):
+@endianess_keyword_deprecation
+def file_reader(filename, lazy=False, chunks="auto", endianness="<"):
     """
     Read a blockfile.
 
@@ -232,11 +234,11 @@ def file_reader(filename, lazy=False, chunks="auto", endianess="<"):
     _logger.debug("File opened")
 
     # Get header
-    header = np.fromfile(f, dtype=get_header_dtype_list(endianess), count=1)
+    header = np.fromfile(f, dtype=get_header_dtype_list(endianness), count=1)
     if header["MAGIC"][0] not in magics:
         warnings.warn(
             "Blockfile has unrecognized header signature. "
-            "Will attempt to read, but correcteness not guaranteed!",
+            "Will attempt to read, but correctness not guaranteed!",
             UserWarning,
         )
     header = sarray2dict(header)
@@ -266,17 +268,17 @@ def file_reader(filename, lazy=False, chunks="auto", endianess="<"):
     # TODO A Virtual BF/DF is stored first, may be loaded as navigator in future
     # offset1 = header['Data_offset_1']
     # f.seek(offset1)
-    # navigator = np.fromfile(f, dtype=endianess+"u1", shape=(NX, NY)).T
+    # navigator = np.fromfile(f, dtype=endianness+"u1", shape=(NX, NY)).T
 
     # Then comes actual blockfile
     offset2 = header["Data_offset_2"]
-    # Every frame is preceeded by a 6 byte sequence
+    # Every frame is preceded by a 6 byte sequence
     # (AA 55, and then a 4 byte integer specifying frame number)
     if not lazy:
         frame_dtype = np.dtype(
             [
-                ("header", np.dtype(endianess + "u1"), 6),
-                ("data", np.dtype(endianess + "u1"), np.prod(signal_shape)),
+                ("header", np.dtype(endianness + "u1"), 6),
+                ("data", np.dtype(endianness + "u1"), np.prod(signal_shape)),
             ]
         )
         f.seek(offset2)
@@ -295,8 +297,8 @@ def file_reader(filename, lazy=False, chunks="auto", endianess="<"):
     else:
         frame_dtype = np.dtype(
             [
-                ("header", np.dtype(endianess + "u1"), 6),
-                ("data", np.dtype(endianess + "u1"), signal_shape),
+                ("header", np.dtype(endianness + "u1"), 6),
+                ("data", np.dtype(endianness + "u1"), signal_shape),
             ]
         )
         data = file.memmap_distributed(
@@ -367,7 +369,7 @@ def file_writer(
     intensity_scaling=None,
     navigator="navigator",
     show_progressbar=True,
-    endianess="<",
+    endianness="<",
 ):
     """
     Write signal to blockfile.
@@ -427,7 +429,7 @@ def file_writer(
         # we leave the error checking for incorrect tuples to skimage
         original_scale = intensity_scaling
 
-    header, note = get_header_from_signal(signal, endianess=endianess)
+    header, note = get_header_from_signal(signal, endianness=endianness)
     with open(filename, "wb") as f:
         # Write header
         header.tofile(f)
@@ -460,7 +462,7 @@ def file_writer(
             navigator = rescale_intensity(
                 navigator, in_range=original_scale, out_range=np.uint8
             )
-        navigator = navigator.astype(endianess + "u1")
+        navigator = navigator.astype(endianness + "u1")
         np.asanyarray(navigator).tofile(f)
         # Zero pad until next data block
         if f.tell() > int(header["Data_offset_2"][0]):
@@ -477,18 +479,18 @@ def file_writer(
         )
     else:
         array_data = signal["data"]
-    array_data = array_data.astype(endianess + "u1")
+    array_data = array_data.astype(endianness + "u1")
     # Write full data stack:
     # We need to pad each image with magic 'AA55', then a u32 serial
     pixels = array_data.shape[-2:]
     records = array_data.shape[:-2]
     record_dtype = [
-        ("MAGIC", endianess + "u2"),
-        ("ID", endianess + "u4"),
-        ("IMG", endianess + "u1", pixels),
+        ("MAGIC", endianness + "u2"),
+        ("ID", endianness + "u4"),
+        ("IMG", endianness + "u1", pixels),
     ]
-    magics = np.full(records, 0x55AA, dtype=endianess + "u2")
-    ids = np.arange(np.prod(records), dtype=endianess + "u4").reshape(records)
+    magics = np.full(records, 0x55AA, dtype=endianness + "u2")
+    ids = np.arange(np.prod(records), dtype=endianness + "u4").reshape(records)
     file_memmap = np.memmap(
         filename, dtype=record_dtype, mode="r+", offset=file_location, shape=records
     )

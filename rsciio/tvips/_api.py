@@ -189,14 +189,14 @@ def _is_valid_first_tvips_file(filename):
 def _find_auto_scan_start_stop(rotidxs):
     """Find the start and stop index in a rotator index array"""
     diff = rotidxs[1:] - rotidxs[:-1]
-    indx = np.where(diff > 0)[0]
-    if indx.size == 0:
+    index = np.where(diff > 0)[0]
+    if index.size == 0:
         return None, None
     else:
-        startx = indx[0]
+        startx = index[0]
         if rotidxs[startx] == 0:
             startx += 1
-        return startx, indx[-1] + 1
+        return startx, index[-1] + 1
 
 
 @jit_ifnumba()

@@ -70,7 +70,7 @@ ENCODING_DOC = """encoding : str, default="latin-1"
     """
 
 
-ENDIANESS_DOC = """endianess : str, default="<"
+ENDIANESS_DOC = """endianness : str, default="<"
         ``"<"`` or ``">"``, depending on how the bits are written to
         the file.
     """

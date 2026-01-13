@@ -137,7 +137,9 @@ class TrivistaTVFReader:
             unfiltered_original_metadata,
         ) = self.parse_file_structure(filter_original_metadata)
 
-        self._num_datasets = int(data_head.findall("Childs")[0].attrib["Count"])
+        self._num_datasets = int(
+            data_head.findall("Childs")[0].attrib["Count"]  # codespell:ignore
+        )
         data, time, signal_axis = self.get_data_and_signal(data_head=data_head)
 
         self.axes = self.set_axes(
@@ -683,7 +685,7 @@ class TrivistaTVFReader:
         return data, time
 
     def _load_glued_data_stack(self, data_head):
-        num_datasets_list = data_head.findall("Childs")
+        num_datasets_list = data_head.findall("Childs")  # codespell:ignore
         _error_handling_find_location(
             len(num_datasets_list), "glued datasets"
         )  # pragma: no cover

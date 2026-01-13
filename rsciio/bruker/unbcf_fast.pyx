@@ -13,7 +13,7 @@ else:
 
 from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t
 
-# fused unsigned integer type for generalised programing:
+# fused unsigned integer type for generalised programming:
 
 ctypedef fused channel_t:
     uint8_t
@@ -27,7 +27,7 @@ cdef packed struct Bunch_head:  # size 2bytes
     uint8_t size
     uint8_t channels
 
-# endianess agnostic reading functions... probably very slow:
+# endianness agnostic reading functions... probably very slow:
 
 @cython.boundscheck(False)
 cdef uint16_t read_16(unsigned char *pointer):
@@ -44,8 +44,8 @@ cdef uint32_t read_32(unsigned char *pointer):
 
 @cython.boundscheck(False)
 cdef uint64_t read_64(unsigned char *pointer):
-    # skiping the most high bits, as such a huge values is impossible
-    # for present bruker technology. If it would change - uncomment bellow and recompile.
+    # skipping the most high bits, as such a huge values is impossible
+    # for present bruker technology. If it would change - uncomment below and recompile.
     #return ((<uint64_t>pointer[7]<<56) & <uint64_t>0xff00000000000000) |\
     #       ((<uint64_t>pointer[6]<<48) & <uint64_t>0xff000000000000) |\
     #       ((<uint64_t>pointer[5]<<40) & <uint64_t>0xff0000000000) |\
@@ -100,14 +100,14 @@ cdef class DataStream:
         if (self.offset + 2) > self.size:
             self.load_next_block()
         self.offset += 2
-        # endianess agnostic way... probably very slow:
+        # endianness agnostic way... probably very slow:
         return read_16(&self.buffer2[self.offset-2])
 
     cdef uint32_t read_32(self):
         if (self.offset + 4) > self.size:
             self.load_next_block()
         self.offset += 4
-        # endianess agnostic way... probably very slow:
+        # endianness agnostic way... probably very slow:
         return read_32(&self.buffer2[self.offset-4])
 
     cdef uint64_t read_64(self):
@@ -137,7 +137,7 @@ cdef class DataStream:
         self.buffer2 = <bytes>self.raw_bytes
 
 
-# function for looping throught the bcf pixels:
+# function for looping through the bcf pixels:
 
 @cython.cdivision(True)
 @cython.boundscheck(False)
@@ -153,7 +153,7 @@ cdef bin_to_numpy(DataStream data_stream,
 
     height = data_stream.read_32()
     width = data_stream.read_32()
-    data_stream.seek(<int>0x1A0) #the begining of the array
+    data_stream.seek(<int>0x1A0) #the beginning of the array
     for line_cnt in range(height):
         pix_in_line = data_stream.read_32()
         for dummy1 in range(pix_in_line):

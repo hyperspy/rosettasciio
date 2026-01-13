@@ -908,7 +908,7 @@ class WDFReader(object):
         origin_count = self.__read_numeric("uint32")
         if origin_count != header_orgn_count:
             _logger.warning(
-                "Ambiguous number of entrys for ORGN block."
+                "Ambiguous number of entries for ORGN block."
                 "This may lead to incorrect metadata and axes."
             )
         self._check_block_size(
@@ -1310,7 +1310,7 @@ class WDFReader(object):
                 "original_metadata": original_metadata,
             }
         else:  # pragma: no cover
-            # Explicit return for readibility
+            # Explicit return for readability
             return None
 
 

@@ -44,7 +44,7 @@ to the appropriate signal type. Following the NeXus data rules, if a ``default``
 dataset is not defined, the loader will load NXdata
 and HDF datasets according to the keyword options in the reader.
 A number of the `NeXus examples <https://github.com/nexusformat/exampledata>`_
-from large facilties do not use NXdata or use older versions of the NeXus
+from large facilities do not use NXdata or use older versions of the NeXus
 implementation. Data can still be loaded from these files but information or
 associations may be missing. However, this missing information can be recovered
 from within the  ``original_metadata`` which contains the overall structure of

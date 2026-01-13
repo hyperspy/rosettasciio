@@ -247,7 +247,7 @@ def gen_2pos_2spec(s2f_aux=True, mode=None):
 
     ndim_shape = (7, 2, 5, 3)
     if mode is None:
-        # Typcial floating point dataset
+        # Typical floating point dataset
         ndata = np.random.rand(*ndim_shape)
     elif mode == "complex":
         ndata = np.random.rand(*ndim_shape) + 1j * np.random.rand(*ndim_shape)

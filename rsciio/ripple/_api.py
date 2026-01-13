@@ -48,7 +48,7 @@ _logger = logging.getLogger(__name__)
 
 
 file_extensions = ("rpl", "RPL")
-# The format only support the followng data types
+# The format only support the following data types
 newline = ("\n", "\r\n")
 comment = ";"
 sep = "\t"

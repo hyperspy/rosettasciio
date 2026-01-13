@@ -29,6 +29,7 @@ from rsciio._docstrings import (
     RETURNS_DOC,
     SIGNAL_DOC,
 )
+from rsciio.utils._deprecated import endianess_keyword_deprecation
 from rsciio.utils._dictionary import DTBox
 
 _logger = logging.getLogger(__name__)
@@ -76,7 +77,8 @@ mapping = {
 }
 
 
-def file_reader(filename, lazy=False, mmap_mode="c", endianess="<", **kwds):
+@endianess_keyword_deprecation
+def file_reader(filename, lazy=False, mmap_mode="c", endianness="<", **kwds):
     """
     File reader for the MRCZ format for tomographic data.
 
@@ -103,7 +105,7 @@ def file_reader(filename, lazy=False, mmap_mode="c", endianess="<", **kwds):
         # Perhaps we could use the zarr package for that
         raise ValueError("MRCZ supports only C-ordering memory-maps")
 
-    mrcz_endian = "le" if endianess == "<" else "be"
+    mrcz_endian = "le" if endianness == "<" else "be"
     data, mrcz_header = _mrcz.readMRC(
         filename, endian=mrcz_endian, useMemmap=lazy, pixelunits="nm", **kwds
     )
@@ -158,7 +160,7 @@ file_reader.__doc__ %= (
 def file_writer(
     filename,
     signal,
-    endianess="<",
+    endianness="<",
     do_async=False,
     compressor=None,
     clevel=1,
@@ -176,7 +178,7 @@ def file_writer(
         Currently supported within RosettaSciIO for writing only, this will
         save the file in a background thread and return immediately.
         Warning: there is no method currently implemented within RosettaSciIO
-        to tell if an asychronous write has finished.
+        to tell if an asynchronous write has finished.
     compressor : {None, "zlib", "zstd", "lz4"}, Default=None
         The compression codec.
     clevel : int, Default=1
@@ -205,7 +207,7 @@ def file_writer(
     >>> from rsciio.mrcz import file_writer
     >>> file_writer('file.mrcz', signal, do_async=True, compressor='zstd', clevel=1)
     """
-    mrcz_endian = "le" if endianess == "<" else "be"
+    mrcz_endian = "le" if endianness == "<" else "be"
 
     md = DTBox(signal["metadata"], box_dots=True)
 

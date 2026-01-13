@@ -372,7 +372,7 @@ class FeiEMDReader(object):
             pix_scale["width"], original_units, data.shape[i + 1]
         )
         # to avoid mismatching units between x and y axis, use the same unit as x
-        # x is chosen as reference, because scalebar used (usually) the horizonal axis
+        # x is chosen as reference, because scalebar used (usually) the horizontal axis
         # and the units conversion is tuned to get decent scale bar
         scale_y = convert_units(float(pix_scale["height"]), original_units, x_unit)
         # Because "axes" only allows one common unit for offset and scale,
@@ -630,7 +630,7 @@ class FeiEMDReader(object):
             pixel_size["width"], original_units, spectrum_image_shape[1]
         )
         # to avoid mismatching units between x and y axis, use the same unit as x
-        # x is chosen as reference, because scalebar used (usually) the horizonal axis
+        # x is chosen as reference, because scalebar used (usually) the horizontal axis
         # and the units conversion is tuned to get decent scale bar
         scale_y = convert_units(float(pixel_size["height"]), original_units, x_unit)
         # Because "axes" only allows one common unit for offset and scale,
@@ -640,7 +640,7 @@ class FeiEMDReader(object):
 
         i = 0
         axes = []
-        # add a supplementary axes when we import all frames individualy
+        # add a supplementary axes when we import all frames individually
         if not self.sum_frames:
             frame_time, time_unit = self._parse_frame_time(
                 original_metadata, spectrum_image_shape[i]

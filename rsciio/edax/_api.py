@@ -32,12 +32,13 @@ from rsciio._docstrings import (
     RETURNS_DOC,
 )
 from rsciio.utils._array import sarray2dict
+from rsciio.utils._deprecated import endianess_keyword_deprecation
 from rsciio.utils._elements import atomic_number2name
 
 _logger = logging.getLogger(__name__)
 
 
-def get_spd_dtype_list(endianess="<"):
+def get_spd_dtype_list(endianness="<"):
     """
     Get the data type list for an SPD map.
     Further information about the file format is available `here
@@ -58,7 +59,7 @@ def get_spd_dtype_list(endianess="<"):
 
     Parameters
     ----------
-    endianess : char
+    endianness : char
         Byte-order used to read the data.
 
     Returns
@@ -67,7 +68,7 @@ def get_spd_dtype_list(endianess="<"):
         List of the data tags and data types that will be used by numpy to
         read an SPD file header.
     """
-    end = endianess
+    end = endianness
     dtype_list = [
         ("tag", "16i1"),
         ("version", end + "i4"),
@@ -84,7 +85,7 @@ def get_spd_dtype_list(endianess="<"):
     return dtype_list
 
 
-def __get_spc_header(f, endianess, load_all_spc):
+def __get_spc_header(f, endianness, load_all_spc):
     """
     Get the header of an spc file, checking for the file version as necessary
 
@@ -93,7 +94,7 @@ def __get_spc_header(f, endianess, load_all_spc):
     f : file
         A file object for the .spc file to be read (i.e. file should be
         already opened with ``open()``)
-    endianess : char
+    endianness : char
         Byte-order of data to read
     load_all_spc : bool, Default=False
         Switch to control whether the complete .spc header is read, or just the
@@ -104,14 +105,14 @@ def __get_spc_header(f, endianess, load_all_spc):
     spc_header : np.ndarray
         Array containing the binary information read from the .spc file
     """
-    version = np.fromfile(f, dtype=[("version", "{}f4".format(endianess))], count=1)
+    version = np.fromfile(f, dtype=[("version", "{}f4".format(endianness))], count=1)
     version = round(float(version.item()[0]), 2)  # convert to scalar
     f.seek(0)
 
     spc_header = np.fromfile(
         f,
         dtype=get_spc_dtype_list(
-            load_all=load_all_spc, endianess=endianess, version=version
+            load_all=load_all_spc, endianness=endianness, version=version
         ),
         count=1,
     )
@@ -121,7 +122,7 @@ def __get_spc_header(f, endianess, load_all_spc):
     return spc_header
 
 
-def get_spc_dtype_list(load_all=False, endianess="<", version=0.61):
+def get_spc_dtype_list(load_all=False, endianness="<", version=0.61):
     """
     Get the data type list for an SPC spectrum.
     Further information about the file format is available `here
@@ -132,7 +133,7 @@ def get_spc_dtype_list(load_all=False, endianess="<", version=0.61):
     load_all : bool
         Switch to control if all the data is loaded, or if just the
         important pieces of the signal will be read (speeds up loading time)
-    endianess : char
+    endianness : char
         byte-order used to read the data
     version : float
         version of spc file to read (only 0.61 and 0.70 have been tested)
@@ -314,7 +315,7 @@ def get_spc_dtype_list(load_all=False, endianess="<", version=0.61):
         List of the data tags and data types that will be used by numpy to
         read an SPC file header.
     """
-    end = endianess
+    end = endianness
     # important parameters are marked by "**" in comment
     if load_all:
         dtype_list = [  # data offset (bytes)
@@ -493,7 +494,7 @@ def get_spc_dtype_list(load_all=False, endianess="<", version=0.61):
     return dtype_list
 
 
-def __get_ipr_header(f, endianess):
+def __get_ipr_header(f, endianness):
     """
     Get the header of an spc file, checking for the file version as necessary
 
@@ -502,7 +503,7 @@ def __get_ipr_header(f, endianess):
     f : file
         A file object for the .spc file to be read (i.e. file should be
         already opened with ``open()``)
-    endianess : char
+    endianness : char
         Byte-order of data to read
 
     Returns
@@ -510,19 +511,19 @@ def __get_ipr_header(f, endianess):
     ipr_header : np.ndarray
         Array containing the binary information read from the .ipr file
     """
-    version = np.fromfile(f, dtype=[("version", "{}i2".format(endianess))], count=1)
+    version = np.fromfile(f, dtype=[("version", "{}i2".format(endianness))], count=1)
     version = version.item()[0]  # convert to scalar
     f.seek(0)
     _logger.debug(" .ipr version is {}".format(version))
 
     ipr_header = np.fromfile(
-        f, dtype=get_ipr_dtype_list(endianess=endianess, version=version), count=1
+        f, dtype=get_ipr_dtype_list(endianness=endianness, version=version), count=1
     )
 
     return ipr_header
 
 
-def get_ipr_dtype_list(endianess="<", version=333):
+def get_ipr_dtype_list(endianness="<", version=333):
     """
     Get the data type list for an IPR image description file.
     Further information about the file format is available `here
@@ -573,7 +574,7 @@ def get_ipr_dtype_list(endianess="<", version=333):
 
     Parameters
     ----------
-    endianess : char
+    endianness : char
         byte-order used to read the data
     version : float
         version of .ipr file to read (only 333 and 334 have been tested)
@@ -587,7 +588,7 @@ def get_ipr_dtype_list(endianess="<", version=333):
         List of the data tags and data types that will be used by numpy to
         read an IPR file.
     """
-    end = endianess
+    end = endianness
     dtype_list = [
         ("version", end + "u2"),
         ("imageType", end + "u2"),
@@ -684,7 +685,7 @@ def _add_spc_metadata(metadata, spc_header):
     return metadata
 
 
-def spc_reader(filename, lazy=False, endianess="<", load_all_spc=False, **kwds):
+def spc_reader(filename, lazy=False, endianness="<", load_all_spc=False, **kwds):
     """
     Read data from an SPC spectrum specified by filename.
 
@@ -703,7 +704,7 @@ def spc_reader(filename, lazy=False, endianess="<", load_all_spc=False, **kwds):
     """
     with open(filename, "rb") as f:
         _logger.debug(" Reading {}".format(filename))
-        spc_header = __get_spc_header(f, endianess, load_all_spc)
+        spc_header = __get_spc_header(f, endianness, load_all_spc)
 
         spc_dict = sarray2dict(spc_header)
         original_metadata = {"spc_header": spc_dict}
@@ -761,7 +762,7 @@ spc_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, RETURNS_DOC)
 def spd_reader(
     filename,
     lazy=False,
-    endianess="<",
+    endianness="<",
     spc_fname=None,
     ipr_fname=None,
     load_all_spc=False,
@@ -798,7 +799,7 @@ def spd_reader(
     %s
     """
     with open(filename, "rb") as f:
-        spd_header = np.fromfile(f, dtype=get_spd_dtype_list(endianess), count=1)
+        spd_header = np.fromfile(f, dtype=get_spd_dtype_list(endianness), count=1)
 
         original_metadata = {"spd_header": sarray2dict(spd_header)}
 
@@ -852,7 +853,7 @@ def spd_reader(
     if read_ipr:
         with open(ipr_fname, "rb") as f:
             _logger.debug(" From .spd reader - reading .ipr {}".format(ipr_fname))
-            ipr_header = __get_ipr_header(f, endianess)
+            ipr_header = __get_ipr_header(f, endianness)
             original_metadata["ipr_header"] = sarray2dict(ipr_header)
 
             # Workaround for type error when saving hdf5:
@@ -873,7 +874,7 @@ def spd_reader(
     if read_spc:
         with open(spc_fname, "rb") as f:
             _logger.debug(" From .spd reader - reading .spc {}".format(spc_fname))
-            spc_header = __get_spc_header(f, endianess, load_all_spc)
+            spc_header = __get_spc_header(f, endianness, load_all_spc)
             spc_dict = sarray2dict(spc_header)
             original_metadata["spc_header"] = spc_dict
     else:
@@ -951,13 +952,14 @@ def spd_reader(
 spd_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, RETURNS_DOC)
 
 
+@endianess_keyword_deprecation
 def file_reader(
     filename,
     lazy=False,
     load_all_spc=False,
     spc_fname=None,
     ipr_fname=None,
-    endianess="<",
+    endianness="<",
     **kwds,
 ):
     """
@@ -1003,14 +1005,14 @@ def file_reader(
         return spd_reader(
             filename,
             lazy,
-            endianess,
+            endianness,
             spc_fname=spc_fname,
             ipr_fname=ipr_fname,
             load_all_spc=load_all_spc,
             **kwds,
         )
     elif ext == "spc":
-        return spc_reader(filename, lazy, endianess, load_all_spc=load_all_spc, **kwds)
+        return spc_reader(filename, lazy, endianness, load_all_spc=load_all_spc, **kwds)
     else:
         raise ValueError(f"'{ext}' is not a supported extension for the edax reader.")
 

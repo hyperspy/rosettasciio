@@ -170,3 +170,11 @@ def mmap_mode_keyword_deprecation(func):
         "0.8.0",
         additional_msg=" `mmap_mode` is deprecated because it is not used anymore.",
     )(func)
+
+
+def endianess_keyword_deprecation(func):
+    return deprecated_argument(
+        "endianess",  # codespell:ignore
+        "0.13.0",
+        alternative="endianness",
+    )(func)

@@ -1,6 +1,6 @@
 name: "Protochips"
 name_aliases: []
-description: "Reads Protochips log files (heating/baising and gas cell)."
+description: "Reads Protochips log files (heating/biasing and gas cell)."
 full_support: False
 file_extensions: ["csv", "CSV"]
 default_extension: 0

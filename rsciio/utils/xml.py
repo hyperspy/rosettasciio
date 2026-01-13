@@ -136,7 +136,7 @@ class XmlToDict:
         |-Window
         ...
 
-    Produced dict/list structures are then good enought to be
+    Produced dict/list structures are then good enough to be
     returned as part of original metadata without making any more
     copies.
 

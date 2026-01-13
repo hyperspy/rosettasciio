@@ -15,6 +15,13 @@ repos:
       name: Update registry
       entry: python update_registry.py
       language: python
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1
+    hooks:
+    - id: codespell
+      args: [ "-w" ]
+      additional_dependencies:
+        - tomli
 ci:
     # Don't run automatically on PRs, instead add the comment
     # "pre-commit.ci autofix" on a pull request to manually trigger auto-fixing 

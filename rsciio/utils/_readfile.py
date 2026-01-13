@@ -206,7 +206,7 @@ def read_double(f, endian):
 
 
 def read_boolean(f, endian):
-    """Read a 1-Byte charater from file f
+    """Read a 1-Byte character from file f
     with a given endianness (byte order).
     endian can be either 'big' or 'little'.
     """
@@ -223,7 +223,7 @@ def read_boolean(f, endian):
 
 
 def read_byte(f, endian):
-    """Read a 1-Byte charater from file f
+    """Read a 1-Byte character from file f
     with a given endianness (byte order).
     endian can be either 'big' or 'little'.
     """
@@ -240,7 +240,7 @@ def read_byte(f, endian):
 
 
 def read_char(f, endian):
-    """Read a 1-Byte charater from file f
+    """Read a 1-Byte character from file f
     with a given endianness (byte order).
     endian can be either 'big' or 'little'.
     """

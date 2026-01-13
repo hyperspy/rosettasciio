@@ -174,7 +174,7 @@ Improved Documentation
 Maintenance
 -----------
 
-- Specfiy python-box!=7.3.1 from dependency requirement as a workaround for https://github.com/cdgriffith/Box/issues/288. (`#357 <https://github.com/hyperspy/rosettasciio/issues/357>`_)
+- Specify python-box!=7.3.1 from dependency requirement as a workaround for https://github.com/cdgriffith/Box/issues/288. (`#357 <https://github.com/hyperspy/rosettasciio/issues/357>`_)
 - Build and tests linux-arm wheels natively. (`#358 <https://github.com/hyperspy/rosettasciio/issues/358>`_)
 - Bump dask version requirement to 2022.9.2. (`#374 <https://github.com/hyperspy/rosettasciio/issues/374>`_)
 - Add T20 rules (flake8-print) to ruff configuration. (`#378 <https://github.com/hyperspy/rosettasciio/issues/378>`_)
@@ -241,7 +241,7 @@ Enhancements
 Bug Fixes
 ---------
 
-- Fixes axes for JPG with no exif_tags. Return of axes while loading isn't emty anymore. (`#283 <https://github.com/hyperspy/rosettasciio/issues/283>`_)
+- Fixes axes for JPG with no exif_tags. Return of axes while loading isn't empty anymore. (`#283 <https://github.com/hyperspy/rosettasciio/issues/283>`_)
 - :ref:`EMD Velox <emd_fei-format>` fixes for reading files containing multiple EDS streams:
 
   - fix reading multiple EDS streams lazily with ``sum_EDS_detectors=True``,
@@ -276,7 +276,7 @@ Bug Fixes
 Maintenance
 -----------
 
-- Use ``ruff`` for code formating and linting. (`#250 <https://github.com/hyperspy/rosettasciio/issues/250>`_)
+- Use ``ruff`` for code formatting and linting. (`#250 <https://github.com/hyperspy/rosettasciio/issues/250>`_)
 - Fix ``tifffile`` deprecation. (`#262 <https://github.com/hyperspy/rosettasciio/issues/262>`_)
 - Add support for ``python-box`` 7. (`#263 <https://github.com/hyperspy/rosettasciio/issues/263>`_)
 
@@ -485,7 +485,7 @@ Maintenance
 - Add drone CI to test on ``arm64``/``aarch64`` platform (`#42 <https://github.com/hyperspy/rosettasciio/issues/42>`_)
 - Unify naming of folders/submodules to match documented format ``name`` (`#81 <https://github.com/hyperspy/rosettasciio/issues/81>`_)
 - Add black as a development dependency.
-  Add pre-commit configuration file with black code style check, which when installed will require changes to pass a style check before commiting. (`#86 <https://github.com/hyperspy/rosettasciio/issues/86>`_)
+  Add pre-commit configuration file with black code style check, which when installed will require changes to pass a style check before committing. (`#86 <https://github.com/hyperspy/rosettasciio/issues/86>`_)
 - Add support for python-box 7 (`#100 <https://github.com/hyperspy/rosettasciio/issues/100>`_)
 - Migrate to API v3 of ``imageio.v3`` (`#106 <https://github.com/hyperspy/rosettasciio/issues/106>`_)
 - Add explicit support for python 3.11 and drop support for python 3.6, 3.7 (`#109 <https://github.com/hyperspy/rosettasciio/issues/109>`_)

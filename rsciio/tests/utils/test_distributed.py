@@ -12,7 +12,7 @@ def test_get_chunk_slice(shape):
     assert chunk == tuple([(i,) for i in shape])
 
     chunks = (1,) * (len(shape) - 2) + (-1, -1)
-    # Eveything is 1 chunk
+    # Everything is 1 chunk
     chunk_arr, chunk = get_chunk_slice(shape=shape, chunks=chunks)
     assert chunk_arr.shape == shape[:-2] + (1, 1) + (len(shape), 2)
     assert chunk == (

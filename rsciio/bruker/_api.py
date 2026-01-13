@@ -69,7 +69,7 @@ class SFSTreeItem:
     """Class to manage one internal sfs file.
 
     Reading, reading in chunks, reading and extracting, reading without
-    extracting even if compression is pressent.
+    extracting even if compression is present.
 
     Attributes:
     item_raw_string -- the bytes from sfs file table describing the file
@@ -114,7 +114,7 @@ class SFSTreeItem:
         self.pointer is the sfs pointer table containing addresses of
         every chunk of the file.
 
-        The pointer table if the file is big can extend throught many
+        The pointer table if the file is big can extend through many
         sfs chunks. Differently than files, the pointer table of file have no
         table of pointers to the chunks. Instead if pointer table is larger
         than sfs chunk, the chunk header contains next chunk number (address
@@ -293,7 +293,7 @@ class SFS_reader:
     It is also not able to read encrypted sfs containers.
 
     This class can be used stand alone or inherited in construction of
-    file readers using sfs technolgy.
+    file readers using sfs technology.
 
     Attributes
     ----------
@@ -367,7 +367,7 @@ class SFS_reader:
                     c.setup_compression_metadata()
         # convert the items to virtual file system tree
         dict_tree = self._flat_items_to_dict(paths, temp_item_list)
-        # and finaly set the Virtual file system:
+        # and finally set the Virtual file system:
         self.vfs = dict_tree["root"]
 
     def _flat_items_to_dict(self, paths, temp_item_list):
@@ -412,7 +412,7 @@ class SFS_reader:
                         self.compression = "zlib"
                     else:
                         self.compression = "None"
-                    # compression is global, can't be diferent per file in sfs
+                    # compression is global, can't be different per file in sfs
                     break
 
     def get_file(self, path):
@@ -472,7 +472,7 @@ class EDXSpectrum:
         spectrum_header = spectrum.find("./ClassInstance[@Type='TRTSpectrumHeader']")
         xrf_header = TRTHeader.find("./ClassInstance[@Type='TRTXrfHeader']")
 
-        # map stuff from harware xml branch:
+        # map stuff from hardware xml branch:
         self.hardware_metadata = x2d.dictionarize(hardware_header)
         self.amplification = self.hardware_metadata["Amplification"]  # USED
 
@@ -547,9 +547,9 @@ class HyperHeader:
     If Bcf is version 2, the bcf can contain stacks
     of hypermaps - thus header part  can contain multiply sum eds spectras
     and it's metadata per hypermap slice which can be selected using index.
-    Bcf can record number of images from different single dimentional value
+    Bcf can record number of images from different single dimensional value
     detectors (BSE, SEI, ARGUS, etc...). images representing signals are
-    internaly ordered and right signal image can be accessed using image
+    internally ordered and right signal image can be accessed using image
     index (do not confuse with dataset index).
     """
 
@@ -581,8 +581,8 @@ class HyperHeader:
         """set microscope metadata from objectified xml part (TRTSEMData,
         TRTSEMStageData, TRTDSPConfiguration).
 
-        BCF can contain basic parameters of SEM column, and optionaly
-        the stage. This metadata can be not fully or at all availbale to
+        BCF can contain basic parameters of SEM column, and optionally
+        the stage. This metadata can be not fully or at all available to
         Esprit and saved into bcf file as it depends from license and
         the link and implementation state between the microscope's
         software and Bruker system.
@@ -613,7 +613,7 @@ class HyperHeader:
             self.mode = guess_mode(self.hv)
 
     def get_acq_instrument_dict(self, detector=False, **kwargs):
-        """return python dictionary with aquisition instrument
+        """return python dictionary with acquisition instrument
         mandatory data
         """
         acq_inst = {}
@@ -791,7 +791,7 @@ class HyperHeader:
         Returns
         -------
         depth : numpy.dtype
-            numpy dtype large enought to use in final hypermap numpy array.
+            numpy dtype large enough to use in final hypermap numpy array.
 
         """
         sum_eds = self.spectra_data[index].data
@@ -804,7 +804,7 @@ class HyperHeader:
             * downsample
             * downsample
         )
-        # this complicated nonsence bellow is due to numpy regression in adding
+        # this complicated nonsense below is due to numpy regression in adding
         # integer inplace to unsigned integer array. (python integers is
         # signed)
         if roof > 0xFF:
@@ -903,7 +903,7 @@ class BCF_reader(SFS_reader):
         header_file = self.get_file("EDSDatabase/HeaderData")
         self.available_indexes = []
         # get list of presented indexes from file tree of binary sfs container
-        # while looking for file names containg the hypercube data:
+        # while looking for file names containing the hypercube data:
         for i in self.vfs["EDSDatabase"].keys():
             if "SpectrumData" in i:
                 self.available_indexes.append(int(i[-1]))
@@ -933,7 +933,7 @@ class BCF_reader(SFS_reader):
         numpy array in memory efficient way.
 
         Pure python/numpy implementation -- slow, or
-        cython/memoryview/numpy implimentation if compilied and present
+        cython/memoryview/numpy implementation if compiled and present
         (fast) is used.
 
         Parameters
@@ -1175,7 +1175,7 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
                 mask[0::6] = mask[5::6] = False
                 # Reinterpret expanded as 16-bit:
                 # string representation of array after switch will have
-                # always BE independently from endianess of machine
+                # always BE independently from endianness of machine
                 exp16 = np.frombuffer(
                     data2[mask].tobytes(), dtype=">u2", count=n_of_pulses
                 ).copy()
@@ -1243,7 +1243,7 @@ def py_parse_hypermap(virtual_file, shape, dtype, downsample=1):
                     offset += 4
             # if no downsampling is needed, or if it is first
             # pixel encountered with downsampling on, then
-            # use assigment, which is ~4 times faster, than inplace add
+            # use assignment, which is ~4 times faster, than inplace add
             if max_chan < chan1:  # if pixel have more channels than we need
                 chan1 = max_chan
             if dwn_factor == 1:
@@ -1529,7 +1529,7 @@ def gen_elem_list(the_dict):
 
 
 def parse_line(line_string):
-    """standardize line describtion.
+    """standardize line description.
 
     Bruker saves line description in all caps
     and omits the type if only one exists instead of

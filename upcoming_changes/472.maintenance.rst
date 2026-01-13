@@ -1,0 +1,1 @@
+Add `codespell <https://github.com/codespell-project/codespell>`_ to pre-commit hooks to catch common misspellings.

@@ -6,7 +6,7 @@ RosettaSciIO can be installed with `pip <https://pip.pypa.io/>`_,
 :ref:`hyperspy:hyperspy-bundle`, or from source, and supports Python >= 3.8.
 All alternatives are available on Windows, macOS and Linux.
 
-For using HyperSpy, it is not necessary to install RosettaSciIO separetely, as it would
+For using HyperSpy, it is not necessary to install RosettaSciIO separately, as it would
 be installed automatically when installing HyperSpy.
 
 .. _install-with-pip:
@@ -14,7 +14,7 @@ be installed automatically when installing HyperSpy.
 With pip
 --------
 
-RosettaSciIO is availabe from the Python Package Index (PyPI), and can therefore be
+RosettaSciIO is available from the Python Package Index (PyPI), and can therefore be
 installed with `pip <https://pip.pypa.io/en/stable>`__.
 To install with all optional dependencies::
 
@@ -59,7 +59,7 @@ The list of *extras*:
 +---------------------+-------------------------+------------------------------------------------------------------------------+
 | ``image``           | ``imageio``             | Reading images, other than tiff format.                                      |
 +---------------------+-------------------------+------------------------------------------------------------------------------+
-| ``mrcz``            | ``mrcz``                | Readding ``mrc`` and ``mrcz`` format.                                        |
+| ``mrcz``            | ``mrcz``                | Reading ``mrc`` and ``mrcz`` format.                                         |
 +---------------------+-------------------------+------------------------------------------------------------------------------+
 | ``scalebar_export`` | ``matplotlib-scalebar`` | Exporting image with scalebar.                                               |
 +---------------------+-------------------------+------------------------------------------------------------------------------+
@@ -109,7 +109,7 @@ To install a specific version of RosettaSciIO (say version 0.1)::
 
 .. note::
 
-    Conda used to be slow to install dependencies in large enviroment and mamba could be
+    Conda used to be slow to install dependencies in large environment and mamba could be
     used as a fast drop-in replacement. However, since conda release 23.10, mamba and conda
     use the same "solver" and therefore takes similar time to "solve environment".
     See the `conda blog <https://conda.org/blog/2023-11-06-conda-23-10-0-release>`_ for more information.

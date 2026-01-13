@@ -48,7 +48,7 @@ atomic_number2name = {
     7: "N",
     11: "Na",
     41: "Nb",
-    60: "Nd",
+    60: "Nd",  # codespell:ignore
     10: "Ne",
     28: "Ni",
     8: "O",
@@ -78,7 +78,7 @@ atomic_number2name = {
     73: "Ta",
     65: "Tb",
     43: "Tc",
-    52: "Te",
+    52: "Te",  # codespell:ignore
     90: "Th",
     22: "Ti",
     81: "Tl",

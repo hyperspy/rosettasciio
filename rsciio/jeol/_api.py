@@ -90,7 +90,7 @@ def file_reader(
     downsample : int, default=1
         The downsample ratio of the navigation dimension of an EDS
         dataset. It can be an integer or a tuple of length 2 to define ``x`` and ``y``
-        separetely and it must be a divisor of the size of the navigation dimension.
+        separately and it must be a divisor of the size of the navigation dimension.
     only_valid_data : bool, default=True
         For ``.pts`` files only. Ignore incomplete and partly
         acquired last frame, which typically occurs when the acquisition was
@@ -305,7 +305,7 @@ def _read_pts(
         Value must be 2^n. Default is 1 (no downsampling).
     only_valid_data : bool, default True
         Read incomplete frame if only_valid_data == False
-        (usually interrupting mesurement makes incomplete frame)
+        (usually interrupting measurement makes incomplete frame)
     read_em_image : bool, default False
         Read SEM/STEM image from pts file if read_em_image == True
     frame_list : list of int, default None
@@ -471,7 +471,7 @@ def _read_pts(
         else:
             frame_start_index = np.asarray(frame_start_index)
 
-        # fill with -1 as invaid index (not loaded)
+        # fill with -1 as invalid index (not loaded)
         if frame_start_index.size < max_frame:
             fi = np.full(max_frame, -1, dtype=np.int32)
             fi[0 : frame_start_index.size] = frame_start_index
@@ -1229,7 +1229,7 @@ def _read_eds(filename, **kwargs):
     Returns
     -------
     image_list : list of 1D signal (dict)
-        list of dictionarys used to create the signals
+        list of dictionaries used to create the signals
         Always len(image_list) == 1
         None on read error
     """
@@ -1377,7 +1377,7 @@ def _read_eds(filename, **kwargs):
             "AccNA": np.fromfile(fd, "<d", 1)[0],
             "skip": np.fromfile(fd, "<b", 38),
             "MnKaRES": np.fromfile(fd, "d", 1)[0],
-            "WorkD": np.fromfile(fd, "d", 1)[0],
+            "WorkD": np.fromfile(fd, "d", 1)[0],  # codespell:ignore
             "InsD": np.fromfile(fd, "d", 1)[0],
             "XtiltAng": np.fromfile(fd, "d", 1)[0],
             "TakeAng": np.fromfile(fd, "d", 1)[0],

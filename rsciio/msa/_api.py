@@ -214,7 +214,7 @@ def parse_msa_string(string, filename=None):
 
     # Convert the parameters to the right type and map some
     # TODO: the msa format seems to support specifying the units of some
-    # parametes. We should add this feature here
+    # parameters. We should add this feature here
     for parameter, value in parameters.items():
         # Some parameters names can contain the units information
         # e.g. #AZIMANGLE-dg: 90.

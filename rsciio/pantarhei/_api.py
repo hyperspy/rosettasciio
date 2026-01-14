@@ -21,19 +21,23 @@
 import json
 import logging
 import os
+import struct
+import zipfile
 from datetime import datetime as dt
 from pathlib import Path
 
 import numpy as np
 
 from rsciio._docstrings import (
+    CHUNKS_DOC,
     FILENAME_DOC,
-    LAZY_UNSUPPORTED_DOC,
+    LAZY_DOC,
     RETURNS_DOC,
     SIGNAL_DOC,
 )
 from rsciio.pantarhei._restricted_unpickling import read_pickled_array
 from rsciio.utils._dictionary import DTBox
+from rsciio.utils.file import inspect_npy_bytes, memmap_distributed
 
 _logger = logging.getLogger(__name__)
 
@@ -46,7 +50,11 @@ _logger = logging.getLogger(__name__)
 
 
 def file_reader(
-    filename: str | Path, lazy: bool = False, allow_restricted_pickle: bool = False
+    filename: str | Path,
+    lazy: bool = False,
+    chunks="auto",
+    allow_restricted_pickle: bool = False,
+    **kwargs,
 ):
     """
     Read a PantaRhei ``.prz`` file.
@@ -58,17 +66,20 @@ def file_reader(
     ----------
     %s
     %s
+    %s
     allow_restricted_pickle : bool, default=False
         Allows unpickling of prz meta data for data saved with Panta Rhei <24.03.
         This poses a security risk, use only for completely trusted prz files.
+    **kwargs : dict, optional
+        Additional keyword arguments passed to :func:`rsciio.utils.file.memmap_distributed`
+        when ``lazy=True``.
 
     %s
     """
-    if lazy is not False:
-        raise NotImplementedError("Lazy loading is not supported.")
     if Path(filename).suffix != ".prz":
         raise ValueError("Only prz files are supported")
 
+    # Load metadata
     # this is lazy, only the ZipFile meta data gets loaded as of yet!
     prz_file = np.load(filename, allow_pickle=False)
     if "meta_data_json" in prz_file:
@@ -89,11 +100,44 @@ def file_reader(
             format (.hspy) directly from Panta Rhei."""
         )
         meta_data = {}
-    data = prz_file["data"]
+
+    if lazy:
+        # Extract offset, shape, and dtype from the data.npy within the .prz archive
+        with zipfile.ZipFile(filename, "r") as zf:
+            # Get info about the 'data.npy' file within the archive
+            data_info = zf.getinfo("data.npy")
+            # Open the data.npy file within the archive
+            with zf.open("data.npy") as f:
+                offset_in_npy, shape, dtype = inspect_npy_bytes(f)
+
+        with open(filename, "rb") as f:
+            # data_info.header_offset points to the local file header
+            f.seek(data_info.header_offset)
+            # Read local file header (30 bytes minimum)
+            local_header = f.read(30)
+            # Extract filename length and extra field length (bytes 26-30)
+            filename_len, extra_len = struct.unpack("<HH", local_header[26:30])
+            # The actual file data starts after: header (30) + filename + extra + npy_header
+            zip_data_offset = data_info.header_offset + 30 + filename_len + extra_len
+            # Add the offset within the .npy file itself
+            offset = zip_data_offset + offset_in_npy
+
+        data = memmap_distributed(
+            filename,
+            offset=offset,
+            shape=shape,
+            dtype=np.dtype(dtype),
+            chunks=chunks,
+            **kwargs,
+        )
+    else:
+        data = prz_file["data"]
+
+    prz_file.close()
     return import_pr(data, meta_data, filename)
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, CHUNKS_DOC, RETURNS_DOC)
 
 
 def file_writer(filename, signal):

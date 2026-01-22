@@ -1,0 +1,1 @@
+Allow saving image with scalebar when the scales have opposite signs.

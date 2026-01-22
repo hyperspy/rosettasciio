@@ -145,8 +145,9 @@ In addition, any package depending on the above may make use of the I/O capaciti
    If you think a certain package should be added to the above list, feel free 
    to open an `issue <https://github.com/hyperspy/rosettasciio/issues>`_ or make
    a :ref:`pull request <pull_requests>`. Packages depending on RosettaSciIO can
-   be also found on `GitHub <https://github.com/hyperspy/rosettasciio/network/dependents?dependent_type=PACKAGE>`_
-   or via `Wheelodex <https://www.wheelodex.org/projects/rosettasciio/rdepends/>`_.
+   be also found on the `Insights tap <https://github.com/hyperspy/rosettasciio/network/dependents?dependent_type=PACKAGE>`_
+   of the RosettaSciIO repository on GitHub, or via
+   `Wheelodex <https://www.wheelodex.org/projects/rosettasciio/rdepends/>`_.
 
 
 Citing RosettaSciIO

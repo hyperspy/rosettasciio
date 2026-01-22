@@ -115,6 +115,7 @@ numpydoc_validation_checks = {"all", "ES01", "EX01", "GL02", "GL03", "SA01", "SS
 numpydoc_validation_exclude = {
     "rsciio.utils.rgb.RGB_DTYPES",
     "rsciio.IO_PLUGINS",
+    "rsciio.tests.registry_utils.Path",  # unclear why Path is picked up, related to recent sphinx release?
 }  # doesn't play well with GL01
 
 numpydoc_show_class_members = False
@@ -136,6 +137,7 @@ copybutton_line_continuation_character = "\\"
 
 linkcheck_ignore = [
     "https://www.biorxiv.org",  # 403 Client Error: Forbidden for url
+    "https://www.wheelodex.org",  # Time out, server slow to respond
 ]
 
 # https://github.com/sphinx-doc/sphinx/issues/12589#issuecomment-2229491106

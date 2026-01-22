@@ -37,12 +37,13 @@ testfile_dir = (Path(__file__).parent / "data" / "image").resolve()
 @pytest.mark.parametrize(("dtype"), ["uint8", "int32", bool])
 @pytest.mark.parametrize(("ext"), ["png", "bmp", "gif", "jpg"])
 def test_save_load_cycle_grayscale(dtype, ext, tmp_path):
+    if dtype == "int32" and ext in ["png", "bmp", "jpg"]:
+        # PNG, BMP and JPG do not support int32.
+        return
+
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     s = hs.signals.Signal2D(np.arange(128 * 128).reshape(128, 128).astype(dtype))
 
-    if dtype == "int32" and ext in ["bmp", "jpg"]:
-        # BMP and JPG does not support uint32.
-        return
     print(f"Saving-loading cycle for the extension `{ext}` with dtype `{dtype}`")  # noqa: T201
     filename = tmp_path / f"test_image.{ext}"
     s.save(filename)
@@ -58,6 +59,7 @@ def test_save_load_cycle_color(color, ext, tmp_path):
     if dim == 4 and ext == "jpeg":
         # JPEG does not support alpha channel.
         return
+
     print("color:", color, "; dim:", dim, "; dtype:", dtype)  # noqa: T201
     s = hs.signals.Signal1D(
         np.arange(128 * 128 * dim).reshape(128, 128, dim).astype(dtype)
@@ -77,12 +79,12 @@ def test_save_load_cycle_color(color, ext, tmp_path):
 @pytest.mark.parametrize(("dtype"), ["uint8", "int32"])
 @pytest.mark.parametrize(("ext"), ["png", "bmp", "gif", "jpg"])
 def test_save_load_cycle_kwds(dtype, ext, tmp_path):
+    if dtype == "int32" and ext in ["png", "bmp", "jpg"]:
+        # PNG, BMP and JPG do not support int32.
+        return
+
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
     s = hs.signals.Signal2D(np.arange(128 * 128).reshape(128, 128).astype(dtype))
-
-    if dtype == "int32" and ext in ["bmp", "jpg"]:
-        # BMP and JPG does not support uint32.
-        return
 
     print(f"Saving-loading cycle for the extension `{ext}` with dtype `{dtype}`")  # noqa: T201
     filename = tmp_path / f"test_image.{ext}"
@@ -269,7 +271,11 @@ def test_export_output_size_aspect(aspect, output_size, tmp_path):
 
     fname = tmp_path / "test_export_size_non_square_aspect.jpg"
     s.save(
-        fname, scalebar=True, output_size=output_size, imshow_kwds=dict(aspect=aspect)
+        fname,
+        scalebar=True,
+        output_size=output_size,
+        imshow_kwds={"aspect": aspect},
+        scalebar_kwds={"rotation": "horizontal-only"},
     )
     s_reload = hs.load(fname)
 

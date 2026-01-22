@@ -42,8 +42,8 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
     <script src="../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../_static/doctools.js?v=9bcbadda"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=d1c4098b"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
@@ -961,7 +961,7 @@ normalize the array so that it is ready to be plotted by matplotlib.</p>
 <p id="module-rsciio.utils.xml">Utility functions for XML handling.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="rsciio.utils.xml.XmlToDict">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">rsciio.utils.xml.</span></span><span class="sig-name descname"><span class="pre">XmlToDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dub_attr_pre_str</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&#64;'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dub_text_str</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#value'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags_to_flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interchild_text_parsing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'first'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.xml.XmlToDict" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">rsciio.utils.xml.</span></span><span class="sig-name descname"><span class="pre">XmlToDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dub_attr_pre_str</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&#64;'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dub_text_str</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#value'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags_to_flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interchild_text_parsing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'first'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.xml.XmlToDict" title="Link to this definition">#</a></dt>
 <dd><p>Customisable XML to python dict and list based Hierarchical tree
 translator.</p>
 <dl class="field-list">
@@ -1017,7 +1017,7 @@ levels of tree with such tag names:</p>
 <span class="o">...</span>
 </pre></div>
 </div>
-<p>Produced dict/list structures are then good enough to be
+<p>Produced dict/list structures are then good enought to be
 returned as part of original metadata without making any more
 copies.</p>
 <p>Setup the parser:</p>
@@ -1058,7 +1058,7 @@ with some sanitization.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="rsciio.utils.xml.XmlToDict.eval">
-<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.xml.XmlToDict.eval" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.utils.xml.XmlToDict.eval" title="Link to this definition">#</a></dt>
 <dd><p>Interpret any string and return casted to appropriate
 dtype python object.</p>
 <dl class="field-list">
@@ -1296,7 +1296,7 @@ and populates the DTBox object with the data from the XML node.</p>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     <br/>
   </p>
 </div>

@@ -42,8 +42,8 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="_static/doctools.js?v=9bcbadda"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="_static/copybutton.js?v=d1c4098b"></script>
     <script src="_static/design-tabs.js?v=f930bc37"></script>
@@ -454,7 +454,7 @@ regressions. It is important that the test data files area as small as possible 
 with a repository that contains GBs of test data. Indeed, the test suite is made of severals hundreds of
 test data files and this number of files will keep growing as new features and formats are added
 to RosettaSciIO.</p>
-<p>Users can contribute by generating these files on software they have access to and by making these
+<p>Users can contribute by generating these files on softwares they have access to and by making these
 files available openly; then a RosettaSciIO developer will help with adding these data to the test suite.</p>
 <p>What characterizes good test data files:</p>
 <ul class="simple">
@@ -470,7 +470,7 @@ cover as much as possible of the format functionalities.</p></li>
 </ul>
 </section>
 <section id="pull-requests">
-<h2>Pull Requests<a class="headerlink" href="#pull-requests" title="Link to this heading">#</a></h2>
+<span id="id2"></span><h2>Pull Requests<a class="headerlink" href="#pull-requests" title="Link to this heading">#</a></h2>
 <p>If you want to contribute to the RosettaSciIO source code, you can send us a
 <a class="reference external" href="https://github.com/hyperspy/rosettasciio/pulls">pull request</a> against the <code class="docutils literal notranslate"><span class="pre">main</span></code>
 branch. Small bug fixes are corrections to the user guide are typically a good
@@ -483,17 +483,15 @@ in order to get started and for detailed contributing guidelines.</p>
 <section id="lint">
 <h3>Lint<a class="headerlink" href="#lint" title="Link to this heading">#</a></h3>
 <p>To keep the code style consistent (and more readable), <a class="reference external" href="https://docs.astral.sh/ruff/">ruff</a>
-is used to check the code formatting. <a class="reference external" href="https://github.com/codespell-project/codespell">codespell</a>
-is used to check for common spelling mistakes in the source code and documentation.
-When the code doesn’t comply with the expected formatting, the
-<a class="reference external" href="https://results.pre-commit.ci/latest/github/hyperspy/rosettasciio/main">pre-commit.ci build</a>
+is used to check the code formatting. When the code doesn’t comply with the expected formatting,
+the <a class="reference external" href="https://results.pre-commit.ci/latest/github/hyperspy/rosettasciio/main">pre-commit.ci build</a>
 will fail. In practise, the code formatting can be fixed by installing <code class="docutils literal notranslate"><span class="pre">ruff</span></code> and running it on the
 source code or by using <a class="reference internal" href="#pre-commit-hooks"><span class="std std-ref">pre-commit hooks</span></a>.
 Alternatively, adding the message <code class="docutils literal notranslate"><span class="pre">pre-commit.ci</span> <span class="pre">autofix</span></code> in a pull request will push a commit with
 the fixes using <a class="reference external" href="https://pre-commit.ci">pre-commit.ci</a>.</p>
 </section>
 <section id="adding-and-updating-test-data">
-<span id="id2"></span><h3>Adding and Updating Test Data<a class="headerlink" href="#adding-and-updating-test-data" title="Link to this heading">#</a></h3>
+<span id="id3"></span><h3>Adding and Updating Test Data<a class="headerlink" href="#adding-and-updating-test-data" title="Link to this heading">#</a></h3>
 <p>The test data are located in the corresponding subfolder of the <code class="docutils literal notranslate"><span class="pre">rsciio/tests/data</span></code> folder.
 The test data are not packaged in the distribution files (wheel, sdist) to keep the packages
 as small as possible in size. When running the test suite, the test data will be downloaded
@@ -527,11 +525,10 @@ functionality, pull requests need to be thoroughly reviewed by at least one
 other member of the development team before being merged.</p>
 </section>
 <section id="pre-commit-hooks">
-<span id="id3"></span><h3>Pre-commit Hooks<a class="headerlink" href="#pre-commit-hooks" title="Link to this heading">#</a></h3>
-<p>Three pre-commit hooks are set up:</p>
+<span id="id4"></span><h3>Pre-commit Hooks<a class="headerlink" href="#pre-commit-hooks" title="Link to this heading">#</a></h3>
+<p>Two pre-commit hooks are set up:</p>
 <ul class="simple">
 <li><p>Linting: run <code class="docutils literal notranslate"><span class="pre">ruff</span></code></p></li>
-<li><p>Check spelling using <code class="docutils literal notranslate"><span class="pre">codespell</span></code></p></li>
 <li><p>Update test data registry (Unix only)</p></li>
 </ul>
 <p>These can be run locally by using <a class="reference external" href="https://pre-commit.com">pre-commit</a>.
@@ -569,7 +566,7 @@ directory should contain the following files:</p>
 <span class="nt">default_extension</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;Int&gt;</span><span class="w">  </span><span class="c1"># Index of the extension that will be used by default</span>
 <span class="nt">writes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;Bool&gt;/[Nested list]</span><span class="w">  </span><span class="c1"># Writing capabilities</span>
 <span class="c1"># if only limited dimensions are supported, the supported combinations of signal</span>
-<span class="c1"># dimensions (SD) and navigation dimensions (ND) are given as list [[SD, ND], ...]</span>
+<span class="c1"># dimensions (sd) and navigation dimensions (nd) are given as list [[sd, nd], ...]</span>
 <span class="nt">non_uniform_axis</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;Bool&gt;</span><span class="w">  </span><span class="c1"># Support for non-uniform axis</span>
 </pre></div>
 </div>
@@ -585,7 +582,7 @@ that returns the <a class="reference internal" href="api/index.html#interfacing-
 </li>
 </ul>
 <p><strong>Tests</strong> covering the functionality of the plugin should be added to the
-<code class="docutils literal notranslate"><span class="pre">tests</span></code> directory with the naming <code class="docutils literal notranslate"><span class="pre">test_spamandeggs.py</span></code> corresponding to
+<code class="docutils literal notranslate"><span class="pre">tests</span></code> directory with the naming <code class="docutils literal notranslate"><span class="pre">test_spamandeggs.py</span></code> corresponsing to
 the plugin residing in the directory <code class="docutils literal notranslate"><span class="pre">spamandeggs</span></code>. Data files for the tests
 should be placed in a corresponding subdirectory - see the
 <a class="reference internal" href="#adding-and-updating-test-data"><span class="std std-ref">Adding and Updating Test Data</span></a> section for more
@@ -784,7 +781,7 @@ with a possible alternative to be used.</p>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     <br/>
   </p>
 </div>

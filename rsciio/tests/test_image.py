@@ -214,6 +214,19 @@ def test_export_scalebar_scale_close_enough(tmp_path, pixels_below_above):
         s.save(filename, scalebar=True)
 
 
+def test_save_image_scalebar_scale_opposite_signs(tmp_path):
+    hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+    pixels = 16
+    s = hs.signals.Signal2D(
+        np.arange(pixels**2).reshape((pixels, pixels)).astype("int32")
+    )
+    s.axes_manager[0].scale = -1.0
+    s.axes_manager[1].scale = 1.0
+
+    fname = tmp_path / "test_save_image_scalebar_scale_opposite_signs.png"
+    s.save(fname, scalebar=True)
+
+
 @pytest.mark.parametrize("output_size", (512, [512, 512]))
 def test_export_output_size(output_size, tmp_path):
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")

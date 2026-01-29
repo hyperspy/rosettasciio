@@ -36,7 +36,7 @@ SIGNAL_DOC = """signal : dict
 
 LAZY_DOC = """lazy : bool, default=False
         Whether to open the file lazily or not. The file will stay open
-        until closed in :meth:`~hyperspy._signals.lazy.LazySignal.compute`
+        until closed in :meth:`~hyperspy.api.signals.LazySignal.compute`
         or closed manually. :func:`~.utils.file.get_file_handle`
         can be used to access the file handler and close it manually.
     """

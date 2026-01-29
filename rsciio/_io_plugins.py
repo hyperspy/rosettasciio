@@ -49,11 +49,14 @@ class IOPLUGINS(list):
 
 IO_PLUGINS = IOPLUGINS()
 
+# libyaml C bindings may be missing
+loader = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
+
 for sub, _, _ in os.walk(os.path.abspath(os.path.dirname(__file__))):
-    _specsf = os.path.join(sub, "specifications.yaml")
-    if os.path.isfile(_specsf):
-        with open(_specsf, "r") as stream:
-            _specs = yaml.safe_load(stream)
+    _specs_file = os.path.join(sub, "specifications.yaml")
+    if os.path.isfile(_specs_file):
+        with open(_specs_file, "r") as stream:
+            _specs = yaml.load(stream, Loader=loader)
             # for testing purposes
             _specs["api"] = "rsciio.%s" % os.path.split(sub)[1]
             IO_PLUGINS.append(_specs)

@@ -37,6 +37,7 @@ import os
 import shutil
 import subprocess
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 import h5py
 import numpy as np
@@ -65,6 +66,8 @@ def downsample_2D_dataset(group, guid):
     group.create_dataset(guid, dtype="<f8", data=img)
 
 
+out_dname = Path(__file__).parent / "data" / "topspin"
+
 # %% Test file 1: Colorado School of Mines single-run file.
 # hdf5 layout:
 # | cb76b58d-7906-423d-b681-3af9587e9e76.app5
@@ -80,7 +83,7 @@ def downsample_2D_dataset(group, guid):
 # Copy 6.6 GB app5 file
 old_fname = "/home/arg6/data/app5/cb76b58d-7906-423d-b681-3af9587e9e76.app5"
 temp_fname = "A.temp"
-final_fname = "topspin_test_A.app5"
+final_fname = out_dname / "topspin_test_A.app5"
 if os.path.exists(temp_fname):
     os.remove(temp_fname)
 if os.path.exists(final_fname):
@@ -140,7 +143,7 @@ subprocess.run(["rm", temp_fname])
 # Copy 1.7 GB app5 file.
 old_fname = "/home/arg6/data/app5/1750 1.app5"
 temp_fname = "B.app5"
-final_fname = "topspin_test_B.app5"
+final_fname = out_dname / "topspin_test_B.app5"
 if os.path.exists(temp_fname):
     os.remove(temp_fname)
 if os.path.exists(final_fname):
@@ -193,7 +196,7 @@ subprocess.run(["rm", temp_fname])
 # copy 2.1Gb app5 file.
 old_fname = "/home/arg6/data/app5/IM452.app5"
 temp_fname = "C.app5"
-final_fname = "topspin_test_C.app5"
+final_fname = out_dname / "topspin_test_C.app5"
 if os.path.exists(temp_fname):
     os.remove(temp_fname)
 if os.path.exists(final_fname):

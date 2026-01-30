@@ -479,7 +479,7 @@
 in HyperSpy, it is the only format that guarantees that no
 information will be lost in the writing process and that supports saving data
 of arbitrary dimensions. It is based on the <a class="reference external" href="https://www.hdfgroup.org/solutions/hdf5/">HDF5 open standard</a>.
-Parts of the specifications are documented in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/metadata.html#metadata-structure" title="(in HyperSpy v2.3)"><span>Metadata structure</span></a>.</p>
+Parts of the specifications are documented in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/metadata.html#metadata-structure" title="(in HyperSpy v2.4)"><span>Metadata structure</span></a>.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">Added in version HyperSpy_v1.2: </span>Enable saving HSpy files with the <code class="docutils literal notranslate"><span class="pre">.hspy</span></code> extension. Previously only the
 <code class="docutils literal notranslate"><span class="pre">.hdf5</span></code> extension was recognised.</p>
@@ -506,7 +506,7 @@ filename e.g.:</p>
 <p>To read this format, the optional dependency <code class="docutils literal notranslate"><span class="pre">h5py</span></code> is required.</p>
 </div>
 <p>When saving to <code class="docutils literal notranslate"><span class="pre">.hspy</span></code>, all supported objects in the signal’s
-<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.signals/BaseSignal.html#hyperspy.api.signals.BaseSignal.metadata" title="(in HyperSpy v2.3)"><code class="xref py py-attr docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal.metadata</span></code></a> are stored. This includes lists, tuples
+<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.signals/BaseSignal.html#hyperspy.api.signals.BaseSignal.metadata" title="(in HyperSpy v2.4)"><code class="xref py py-attr docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal.metadata</span></code></a> are stored. This includes lists, tuples
 and signals. Please note that in order to increase saving efficiency and speed,
 if possible, the inner-most structures are converted to numpy arrays when saved.
 This procedure homogenizes any types of the objects inside, most notably casting
@@ -559,7 +559,7 @@ constrain of storing at least one signal per chunk. For example, for the signal 
 passing <code class="docutils literal notranslate"><span class="pre">chunks=True</span></code> results in chunks of <code class="docutils literal notranslate"><span class="pre">(7,</span> <span class="pre">7,</span> <span class="pre">256)</span></code>.</p>
 <p>Choosing the correct chunk-size can significantly affect the speed of reading,
 writing and performance of many HyperSpy algorithms. See the
-<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/big_data.html#big-data-chunking" title="(in HyperSpy v2.3)"><span class="xref std std-ref">HyperSpy chunking section</span></a> for more information.</p>
+<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/user_guide/big_data.html#big-data-chunking" title="(in HyperSpy v2.4)"><span class="xref std std-ref">HyperSpy chunking section</span></a> for more information.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Also see the <a class="reference internal" href="../api/rsciio.utils.html#hdf5-utils"><span class="std std-ref">HDF5</span></a> for inspecting HDF5 files.</p>
@@ -585,11 +585,11 @@ followed by a number must exist with the following attributes:</p>
 contain an <code class="docutils literal notranslate"><span class="pre">'axis'</span></code> vector attribute defining the axis points.
 The experiment group contains a number of attributes that will be
 directly assigned as class attributes of the
-<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.signals/BaseSignal.html#hyperspy.api.signals.BaseSignal" title="(in HyperSpy v2.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal</span></code></a> instance. In
+<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.signals/BaseSignal.html#hyperspy.api.signals.BaseSignal" title="(in HyperSpy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal</span></code></a> instance. In
 addition the experiment groups may contain <code class="docutils literal notranslate"><span class="pre">'original_metadata'</span></code> and
 <code class="docutils literal notranslate"><span class="pre">'metadata'</span></code>-subgroup that will be assigned to the same name attributes
-of the <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.signals/BaseSignal.html#hyperspy.api.signals.BaseSignal" title="(in HyperSpy v2.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal</span></code></a> instance as a
-<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/utils/index.html#hyperspy.misc.utils.DictionaryTreeBrowser" title="(in HyperSpy v2.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">hyperspy.misc.utils.DictionaryTreeBrowser</span></code></a>.
+of the <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.signals/BaseSignal.html#hyperspy.api.signals.BaseSignal" title="(in HyperSpy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">hyperspy.api.signals.BaseSignal</span></code></a> instance as a
+<a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/utils/index.html#hyperspy.misc.utils.DictionaryTreeBrowser" title="(in HyperSpy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">hyperspy.misc.utils.DictionaryTreeBrowser</span></code></a>.
 The <code class="docutils literal notranslate"><span class="pre">Experiments</span></code> group can contain attributes that may be common to all
 the experiments and that will be accessible as attributes of the
 <code class="docutils literal notranslate"><span class="pre">Experiments</span></code> instance.</p>
@@ -658,7 +658,7 @@ specification (<code class="docutils literal notranslate"><span class="pre">.hsp
 <dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
 </dd>
 <dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not. The file will stay open
-until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/base_classes/signal/LazySignal.html#hyperspy._signals.lazy.LazySignal.compute" title="(in HyperSpy v2.3)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
+until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.signals/LazySignal.html#hyperspy.api.signals.LazySignal.compute" title="(in HyperSpy v2.4)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
 or closed manually. <a class="reference internal" href="../api/rsciio.utils.html#rsciio.utils.file.get_file_handle" title="rsciio.utils.file.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
 can be used to access the file handler and close it manually.</p>
 </dd>

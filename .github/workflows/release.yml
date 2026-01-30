@@ -35,10 +35,10 @@ jobs:
             CIBW_ARCHS: "arm64"
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Build wheels for CPython
-        uses: pypa/cibuildwheel@63fd63b352a9a8bdcc24791c9dbee952ee9a8abc
+        uses: pypa/cibuildwheel@298ed2fb2c105540f5ed055e8a6ad78d82dd3a7e
         env:
           CIBW_ARCHS: ${{ matrix.CIBW_ARCHS }}
 
@@ -46,7 +46,7 @@ jobs:
         run: |
           ls ./wheelhouse
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: artifacts-${{ matrix.os }}-${{ matrix.CIBW_ARCHS }}
           path: ./wheelhouse/*.whl
@@ -56,7 +56,7 @@ jobs:
     name: Make SDist
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Build SDist
         run: pipx run build --sdist
@@ -65,7 +65,7 @@ jobs:
         run: |
           ls ./dist
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: artifacts-${{ matrix.os }}-sdist
           path: dist/*.tar.gz
@@ -75,7 +75,7 @@ jobs:
     name: Make pure python wheel
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Build pure python wheel
         run: DISABLE_C_EXTENTIONS=1 pipx run build --wheel
@@ -84,7 +84,7 @@ jobs:
         run: |
           ls ./dist
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: artifacts-${{ matrix.os }}-pure_python
           path: dist/*.whl
@@ -97,7 +97,7 @@ jobs:
       id-token: write
     steps:
       - name: Download wheels
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           pattern: artifacts-*
           path: dist
@@ -119,7 +119,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Create Release
         id: create_release
-        uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b

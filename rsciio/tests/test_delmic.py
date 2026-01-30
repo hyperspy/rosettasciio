@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2024-2025 Delmic
+# Copyright 2024-2026 Delmic
 #
 # This file is part of RosettaSciIO.
 #

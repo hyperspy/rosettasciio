@@ -21,27 +21,33 @@ import os
 import yaml
 
 __all__ = ["IO_PLUGINS"]
-"""
-List of available IO plugins. Each entry is a dictionary with the following keys:
-
-- ``'name'``: The name of the plugin.
-- ``'name_aliases'``: A list of alternative names for the plugin.
-- ``'description'``: A brief description of the plugin.
-- ``'full_support'``: A boolean indicating if the plugin has full support.
-- ``'default_extension'``: The default file extension for the plugin.
-- ``'writes'``: A boolean indicating if the plugin supports writing files.
-- ``'non_uniform_axis'``: A boolean indicating if the plugin supports non-uniform axes.
-- ``'api'``: The API module path as a string (e.g., 'rsciio.nexus').
-
-:meta hide-value:
-"""
 
 
 def __dir__():
     return sorted(__all__)
 
 
-IO_PLUGINS = []
+class IOPLUGINS(list):
+    # Use a class to allow for docstring
+    """
+    List of available IO plugins.
+
+    Each entry is a dictionary with the following keys:
+
+    - ``'name'``: The name of the plugin.
+    - ``'name_aliases'``: A list of alternative names for the plugin.
+    - ``'description'``: A brief description of the plugin.
+    - ``'full_support'``: A boolean indicating if the plugin has full support.
+    - ``'default_extension'``: The default file extension for the plugin.
+    - ``'writes'``: A boolean indicating if the plugin supports writing files.
+    - ``'non_uniform_axis'``: A boolean indicating if the plugin supports non-uniform axes.
+    - ``'api'``: The API module path as a string (e.g., 'rsciio.nexus').
+
+    :meta hide-value:
+    """
+
+
+IO_PLUGINS = IOPLUGINS()
 
 for sub, _, _ in os.walk(os.path.abspath(os.path.dirname(__file__))):
     _specsf = os.path.join(sub, "specifications.yaml")

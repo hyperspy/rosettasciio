@@ -43,7 +43,7 @@ extensions = [
 ]
 
 intersphinx_mapping = {
-    "conda": ("https://conda.io/projects/conda/en/latest", None),
+    "conda": ("https://docs.conda.io/projects/conda/en/latest", None),
     "dask": ("https://docs.dask.org/en/latest", None),
     "exspy": ("https://hyperspy.org/exspy", None),
     "hyperspy": ("https://hyperspy.org/hyperspy-doc/current/", None),
@@ -114,8 +114,8 @@ numpydoc_xref_ignore = {"type", "optional", "default", "of", "File", "handle", "
 numpydoc_validation_checks = {"all", "ES01", "EX01", "GL02", "GL03", "SA01", "SS06"}
 numpydoc_validation_exclude = {
     "rsciio.utils.rgb.RGB_DTYPES",
-    "rsciio.IO_PLUGINS",
     "rsciio.tests.registry_utils.Path",  # unclear why Path is picked up, related to recent sphinx release?
+    "rsciio.__version__",
 }  # doesn't play well with GL01
 
 numpydoc_show_class_members = False

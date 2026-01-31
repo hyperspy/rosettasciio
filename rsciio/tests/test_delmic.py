@@ -23,9 +23,6 @@ import pytest
 
 try:
     import hyperspy.api as hs
-    from hyperspy._signals.signal1d import Signal1D
-    from hyperspy._signals.signal2d import Signal2D
-    from hyperspy.signal import BaseSignal
 except ImportError:
     pytest.skip("hyperspy not installed", allow_module_level=True)
 
@@ -125,7 +122,7 @@ def test_read_data_intensity():
 def test_read_data_intensity_CL():
     """Test reading data for a CL intensity dataset."""
     s = hs.load(testfile_intensity_path, reader="Delmic")  # Default signal is "cl"
-    assert isinstance(s, BaseSignal)
+    assert isinstance(s, hs.signals.BaseSignal)
 
     # Expect 2x2 pixels
     x = np.array([27147, 28907])
@@ -162,7 +159,7 @@ def test_read_data_intensity_CL():
 def test_read_data_intensity_SE():
     """Test reading data for a CL intensity dataset."""
     s = hs.load(testfile_intensity_path, reader="Delmic", signal="se")
-    assert isinstance(s, BaseSignal)
+    assert isinstance(s, hs.signals.BaseSignal)
 
     x = np.array([27308, 28592])
     y = np.array([27851, 27958])
@@ -197,7 +194,7 @@ def test_read_data_intensity_SE():
 def test_read_data_intensity_survey():
     """Test reading data for a CL intensity dataset."""
     s = hs.load(testfile_intensity_path, reader="Delmic", signal="survey")
-    assert isinstance(s, BaseSignal)
+    assert isinstance(s, hs.signals.BaseSignal)
 
     # 256x256 px
     data = np.load(testfile_intensity_data_survey_path)
@@ -265,7 +262,7 @@ def test_read_data_hyperspectral_CL():
     if lumispy:
         assert isinstance(s, lumispy.signals.CLSEMSpectrum)
     else:
-        assert isinstance(s, Signal1D)
+        assert isinstance(s, hs.signals.Signal1D)
 
     data = np.load(testfile_hyperspectral_data_path)
     np.testing.assert_allclose(s.data, data)
@@ -315,7 +312,7 @@ def test_read_data_hyperspectral_spot_CL():
 def test_read_data_hyperspectral_SE():
     """Test reading data for a CL hyperspectral dataset."""
     s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="se")
-    assert isinstance(s, BaseSignal)
+    assert isinstance(s, hs.signals.BaseSignal)
 
     x = np.array([27265, 27598])
     y = np.array([27892, 28124])
@@ -350,7 +347,7 @@ def test_read_data_hyperspectral_SE():
 def test_read_data_hyperspectral_survey():
     """Test reading data for a CL hyperspectral dataset."""
     s = hs.load(testfile_hyperspectral_path, reader="Delmic", signal="survey")
-    assert isinstance(s, BaseSignal)
+    assert isinstance(s, hs.signals.BaseSignal)
     data = np.load(testfile_hyperspectral_data_survey_path)
 
     np.testing.assert_allclose(s.data, data)
@@ -403,7 +400,7 @@ def test_read_data_temporaltrace_CL():
     if lumispy:
         assert isinstance(s, lumispy.signals.LumiTransient)
     else:
-        assert isinstance(s, Signal1D)
+        assert isinstance(s, hs.signals.Signal1D)
 
     data = np.load(testfile_temporaltrace_data_path)
     np.testing.assert_allclose(s.data, data)
@@ -441,7 +438,7 @@ def test_read_data_temporaltrace_CL_spot():
     if lumispy:
         assert isinstance(s, lumispy.signals.LumiTransient)
     else:
-        assert isinstance(s, Signal1D)
+        assert isinstance(s, hs.signals.Signal1D)
 
     np.testing.assert_allclose(s.data.shape, 65536)
 
@@ -454,7 +451,7 @@ def test_read_data_temporaltrace_CL_spot():
 def test_read_data_temporaltrace_SE():
     """Test reading data for a CL decay trace or g(2) datasets."""
     s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="se")
-    assert isinstance(s, BaseSignal)
+    assert isinstance(s, hs.signals.BaseSignal)
 
     x = np.array([32766, 32766])
     y = np.array([32766, 32766])
@@ -486,7 +483,7 @@ def test_read_data_temporaltrace_SE():
 def test_read_data_temporaltrace_survey():
     """Test reading data for a CL decay trace or g(2) datasets."""
     s = hs.load(testfile_temporaltrace_path, reader="Delmic", signal="survey")
-    assert isinstance(s, BaseSignal)
+    assert isinstance(s, hs.signals.BaseSignal)
 
     data = np.load(testfile_temporaltrace_data_survey_path)
     np.testing.assert_allclose(s.data, data)
@@ -536,7 +533,7 @@ def test_read_data_streakcamera_CL():
     if lumispy:
         assert isinstance(s, lumispy.signals.LumiTransientSpectrum)
     else:
-        assert isinstance(s, Signal2D)
+        assert isinstance(s, hs.signals.Signal2D)
 
     data = np.load(testfile_streakcamera_data_path)
     np.testing.assert_allclose(s.data, data)
@@ -595,7 +592,7 @@ def test_read_data_streakcamera_CL_spot():
 def test_read_data_streakcamera_SE():
     """Test reading data for a CL streak camera dataset."""
     s = hs.load(testfile_streakcamera_path, reader="Delmic", signal="se")
-    assert isinstance(s, BaseSignal)
+    assert isinstance(s, hs.signals.BaseSignal)
 
     x = np.array([5443, 90, 5318])
     y = np.array([241, 5256, 174])
@@ -671,7 +668,7 @@ def test_read_data_ek_spot():
 def test_read_data_ek_CL():
     """Test reading data for a CL AR Spectrum (E-k) dataset."""
     s = hs.load(testfile_ek_path, reader="Delmic", signal="cl")
-    assert isinstance(s, Signal2D)
+    assert isinstance(s, hs.signals.Signal2D)
 
     data = np.load(testfile_ek_data_path)
     np.testing.assert_allclose(s.data, data)
@@ -729,7 +726,7 @@ def test_read_data_ek_CL_spot():
 def test_read_data_ek_SE():
     """Test reading data for a CL AR Spectrum (E-k) dataset."""
     s = hs.load(testfile_ek_path, reader="Delmic", signal="se")
-    assert isinstance(s, BaseSignal)
+    assert isinstance(s, hs.signals.BaseSignal)
 
     x = np.array([32766, 32766, 32766])
     y = np.array([32766, 32766, 32766])
@@ -796,7 +793,7 @@ def test_read_data_AR():
 def test_read_data_AR_CL():
     """Test reading data for a CL AR dataset."""
     s = hs.load(testfile_AR_path, reader="Delmic", signal="cl")
-    assert isinstance(s, Signal2D)
+    assert isinstance(s, hs.signals.Signal2D)
 
     data = np.load(testfile_AR_data_path)
     np.testing.assert_allclose(s.data, data)
@@ -836,7 +833,7 @@ def test_read_data_AR_CL():
 def test_read_data_AR_SE():
     """Test reading data for a CL AR dataset."""
     s = hs.load(testfile_AR_path, reader="Delmic", signal="se")
-    assert isinstance(s, BaseSignal)
+    assert isinstance(s, hs.signals.BaseSignal)
 
     x = np.array([32932, 33065])
     y = np.array([33203, 32495])
@@ -867,7 +864,7 @@ def test_read_data_AR_SE():
 def test_read_data_AR_survey():
     """Test reading data for a CL AR dataset."""
     s = hs.load(testfile_AR_path, reader="Delmic", signal="survey")
-    assert isinstance(s, BaseSignal)
+    assert isinstance(s, hs.signals.BaseSignal)
 
     data = np.load(testfile_AR_data_survey_path)
     np.testing.assert_allclose(s.data, data)

@@ -26,6 +26,7 @@ import os
 import numpy as np
 
 from rsciio._docstrings import (
+    CHUNKS_DOC,
     ENDIANESS_DOC,
     FILENAME_DOC,
     LAZY_DOC,
@@ -34,8 +35,14 @@ from rsciio._docstrings import (
 from rsciio.utils._array import sarray2dict
 from rsciio.utils._deprecated import endianess_keyword_deprecation
 from rsciio.utils._elements import atomic_number2name
+from rsciio.utils.file import memmap_distributed
 
 _logger = logging.getLogger(__name__)
+
+
+KWARGS_DOC = """**kwargs : dict, optional
+        Additional keyword arguments passed to :func:`rsciio.utils.file.memmap_distributed`
+        when ``lazy=True``."""
 
 
 def get_spd_dtype_list(endianness="<"):
@@ -685,7 +692,7 @@ def _add_spc_metadata(metadata, spc_header):
     return metadata
 
 
-def spc_reader(filename, lazy=False, endianness="<", load_all_spc=False, **kwds):
+def spc_reader(filename, lazy=False, endianness="<", load_all_spc=False, **kwargs):
     """
     Read data from an SPC spectrum specified by filename.
 
@@ -697,8 +704,7 @@ def spc_reader(filename, lazy=False, endianness="<", load_all_spc=False, **kwds)
     load_all_spc : bool, Default=False
         Switch to control whether the complete .spc header is read, or just the
         important parts for import into RosettaSciIO.
-    **kwds
-        Remaining arguments are passed to the Numpy ``memmap`` function
+    %s
 
     %s
     """
@@ -710,16 +716,22 @@ def spc_reader(filename, lazy=False, endianness="<", load_all_spc=False, **kwds)
         original_metadata = {"spc_header": spc_dict}
 
         nz = original_metadata["spc_header"]["numPts"]
-        data_offset = original_metadata["spc_header"]["dataStart"]
+        # need to convert from np.uint32 to int to avoid type error when passing to memmap
+        data_offset = int(original_metadata["spc_header"]["dataStart"])
 
-        mode = kwds.pop("mode", "c")
-        if lazy:
-            mode = "r"
-
-        # Read data from file into a numpy memmap object
-        data = np.memmap(
-            f, mode=mode, offset=data_offset, dtype="u4", shape=(1, nz), **kwds
-        ).squeeze()
+    if lazy:
+        data = memmap_distributed(
+            filename,
+            dtype=np.dtype(f"{endianness}u4"),
+            offset=data_offset,
+            shape=nz,
+            **kwargs,
+        )
+    else:
+        with open(filename, "rb") as f:
+            data = np.fromfile(
+                f, dtype=np.dtype(f"{endianness}u4"), offset=data_offset, count=nz
+            )
 
     # create the energy axis dictionary:
     energy_axis = {
@@ -756,17 +768,18 @@ def spc_reader(filename, lazy=False, endianness="<", load_all_spc=False, **kwds)
     ]
 
 
-spc_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, RETURNS_DOC)
+spc_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, KWARGS_DOC, RETURNS_DOC)
 
 
 def spd_reader(
     filename,
     lazy=False,
+    chunks="auto",
     endianness="<",
     spc_fname=None,
     ipr_fname=None,
     load_all_spc=False,
-    **kwds,
+    **kwargs,
 ):
     """
     Read data from an SPD spectral map specified by filename.
@@ -793,8 +806,7 @@ def spd_reader(
     load_all_spc : bool, Default=False
         Switch to control whether the complete .spc header is read, or just the
         important parts for import into HyperSpy.
-    **kwds
-        Remaining arguments are passed to the Numpy ``memmap`` function.
+    %s
 
     %s
     """
@@ -807,21 +819,27 @@ def spd_reader(
         nx = original_metadata["spd_header"]["nPoints"]
         ny = original_metadata["spd_header"]["nLines"]
         nz = original_metadata["spd_header"]["nChannels"]
-        data_offset = original_metadata["spd_header"]["dataOffset"]
+        # need to convert from np.uint32 to int to avoid type error when passing to memmap
+        data_offset = int(original_metadata["spd_header"]["dataOffset"])
         data_type = {"1": "u1", "2": "u2", "4": "u4"}[
             str(original_metadata["spd_header"]["countBytes"])
         ]
-        mode = kwds.pop("mode", "c")
-        if lazy:
-            mode = "r"
 
-        # Read data from file into a numpy memmap object
-        data = (
-            np.memmap(f, mode=mode, offset=data_offset, dtype=data_type, **kwds)
-            .squeeze()
-            .reshape((nz, nx, ny), order="F")
-            .T
+    if lazy:
+        data = memmap_distributed(
+            filename,
+            dtype=np.dtype(f"{endianness}{data_type}"),
+            offset=data_offset,
+            shape=tuple((ny, nx, nz)),
+            chunks=chunks,
+            **kwargs,
         )
+    else:
+        with open(filename, "rb") as f:
+            data = np.fromfile(
+                f, dtype=data_type, offset=data_offset, count=nx * ny * nz
+            )
+            data = data.reshape((ny, nx, nz))
 
     # Convert char arrays to strings:
     original_metadata["spd_header"]["tag"] = spd_header["tag"][0].view("S16")[0]
@@ -949,18 +967,19 @@ def spd_reader(
     ]
 
 
-spd_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, RETURNS_DOC)
+spd_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, KWARGS_DOC, RETURNS_DOC)
 
 
 @endianess_keyword_deprecation
 def file_reader(
     filename,
     lazy=False,
+    chunks="auto",
     load_all_spc=False,
     spc_fname=None,
     ipr_fname=None,
     endianness="<",
-    **kwds,
+    **kwargs,
 ):
     """
     Read ``.spc`` (spectrum) or ``.spd`` (spectrum image) files from EDAX
@@ -968,6 +987,7 @@ def file_reader(
 
     Parameters
     ----------
+    %s
     %s
     %s
     load_all_spc : bool, default=False
@@ -990,8 +1010,7 @@ def file_reader(
         Otherwise, the name of the .ipr file to use for spatial calibration
         can be explicitly given as a string.
     %s
-    **kwds : dict, optional
-        Remaining arguments are passed to :py:class:`numpy.memmap`.
+    %s
 
     %s
 
@@ -1004,17 +1023,32 @@ def file_reader(
     if ext == "spd":
         return spd_reader(
             filename,
-            lazy,
-            endianness,
+            lazy=lazy,
+            chunks=chunks,
+            endianness=endianness,
             spc_fname=spc_fname,
             ipr_fname=ipr_fname,
             load_all_spc=load_all_spc,
-            **kwds,
+            **kwargs,
         )
     elif ext == "spc":
-        return spc_reader(filename, lazy, endianness, load_all_spc=load_all_spc, **kwds)
+        return spc_reader(
+            filename,
+            lazy=lazy,
+            chunks=chunks,
+            endianness=endianness,
+            load_all_spc=load_all_spc,
+            **kwargs,
+        )
     else:
         raise ValueError(f"'{ext}' is not a supported extension for the edax reader.")
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (
+    FILENAME_DOC,
+    LAZY_DOC,
+    CHUNKS_DOC,
+    ENDIANESS_DOC,
+    KWARGS_DOC,
+    RETURNS_DOC,
+)

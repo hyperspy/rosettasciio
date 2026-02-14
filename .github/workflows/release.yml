@@ -102,14 +102,12 @@ jobs:
       id-token: write
     steps:
       - name: Download wheels
-        uses: actions/download-artifact@v7
+        uses: hyperspy/.github/.github/actions/download-artifact@main
         with:
+          name: ""
           pattern: artifacts-*
           path: dist
           merge-multiple: true
-
-      - name: Display structure of downloaded files
-        run: ls -R
 
       - uses: pypa/gh-action-pypi-publish@release/v1
         if: ${{ startsWith(github.ref, 'refs/tags/') && github.repository_owner == 'hyperspy' }}
@@ -123,8 +121,10 @@ jobs:
     name: Create Release
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-      - name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
+      - name: Create GitHub Release
+        uses: hyperspy/.github/.github/actions/create-github-release@main
+        with:
+          changelog: CHANGES.rst
+          heading-level: '='
+          artifact-name: ""
+          artifact-pattern: artifacts-*

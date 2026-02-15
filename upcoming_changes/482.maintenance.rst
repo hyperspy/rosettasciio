@@ -1,0 +1,4 @@
+Improve release workflow:
+
+- Speed up release workflow by avoiding downloading tests data when testing wheels.
+- Add release notes and distribution files to GitHub release.

@@ -16,7 +16,12 @@ jobs:
     name: Build wheels on ${{ matrix.os }} ${{ matrix.CIBW_ARCHS }}
     runs-on: ${{ matrix.os }}
     env:
-      CIBW_ENVIRONMENT: POOCH_BASE_URL=https://github.com/${{ github.repository }}/raw/${{ github.ref_name }}/rsciio/tests/data/
+      # Copy the test data from the repository to the current folder of the 
+      # cibuildwheel test environment
+      CIBW_TEST_SOURCES: rsciio/tests/data
+      # When getting the test data, rsciio will use this environment variable
+      # to determine the source of the test data.
+      CIBW_TEST_ENVIRONMENT: RSCIIO_TEST_DATA_SOURCE=rsciio/tests/data
     strategy:
       fail-fast: false
       matrix:

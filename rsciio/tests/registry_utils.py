@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import os
 import sys
 import warnings
 from pathlib import Path
@@ -106,6 +107,10 @@ def download_all(pooch_object=None, ignore_hash=None, show_progressbar=True):
     Download all test data if they are not already locally available in
     ``rsciio.tests.data`` folder.
 
+    When the environment variable `RSCIIO_TEST_DATA_SOURCE` is set,
+    the test data will be copied from the specified directory instead of downloading.
+    This is useful for CI when the test data is cached as an artifact in a previous step.
+
     Parameters
     ----------
     pooch_object : pooch.Pooch or None, default=None
@@ -119,6 +124,17 @@ def download_all(pooch_object=None, ignore_hash=None, show_progressbar=True):
     show_progressbar : bool, default=True
         Whether to show the progressbar or not.
     """
+
+    src = os.environ.get("RSCIIO_TEST_DATA_SOURCE", "")
+    if src:
+        import shutil
+
+        src = Path(src)
+        dest = PATH / "data"
+        print(f"Copying test data from {src} to {dest}")  # noqa: T201
+        shutil.copytree(str(src), str(dest), dirs_exist_ok=True)
+        n = len(list(dest.rglob("*")))
+        print(f"Copied {n} entries to {dest}")  # noqa: T201
 
     from rsciio.tests.registry import TEST_DATA_REGISTRY
 

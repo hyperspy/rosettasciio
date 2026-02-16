@@ -11,14 +11,28 @@ on:
   workflow_dispatch:
 
 jobs:
-  integration_test:
+  download_exspy_GOS:
     if: ${{ contains(github.event.pull_request.labels.*.name, 'run-integration-tests') || github.event_name == 'workflow_dispatch' }}
+    # Use the "reusable workflow" from the hyperspy organisation
+    uses: hyperspy/.github/.github/workflows/download_exspy_GOS.yml@main
+
+  integration_test:
     name: hs_${{ matrix.HYPERSPY_VERSION }}-ext_${{ matrix.EXTENSION_VERSION }}
+    needs: [download_exspy_GOS]  
     strategy:
       fail-fast: false
       matrix:
+        LABEL: ['']
         EXTENSION_VERSION: ['release', 'dev']
         HYPERSPY_VERSION: ['release', 'RnM', 'RnP']
+        USE_CONDA: [false]
+        ADDITIONAL_PACKAGES: ['numpy-quaternion']
+        include:
+          - LABEL: Conda MKL
+            HYPERSPY_VERSION: release
+            EXTENSION_VERSION: release
+            USE_CONDA: true
+            ADDITIONAL_PACKAGES: 'libblas=*=*mkl'
     # Use the "reusable workflow" from the hyperspy organisation
     uses: hyperspy/.github/.github/workflows/integration_tests.yml@main
     with:
@@ -27,9 +41,7 @@ jobs:
       EXTENSIONS: 'exspy holospy lumispy pyxem atomap kikuchipy hyperspy-gui-ipywidgets hyperspy-gui-traitsui'
       EXTENSION_VERSION: ${{ matrix.EXTENSION_VERSION }}
       HYPERSPY_VERSION: ${{ matrix.HYPERSPY_VERSION }}
-      # Use `numpy-quaternion` orix optional dependency as a workaround to fix
-      # segmentation fault issue in orix, which occurs when numpy-quaternion is
-      # not installed - reason unknown.
-      ADDITIONAL_PACKAGES: 'numpy-quaternion'
+      ADDITIONAL_PACKAGES: ${{ matrix.ADDITIONAL_PACKAGES }}
       PIP_EXTRAS: '[all,tests]'
-      USE_CONDA: false
+      USE_CONDA: ${{ matrix.USE_CONDA }}
+      LABEL: ${{ matrix.LABEL }}

@@ -138,6 +138,7 @@ copybutton_line_continuation_character = "\\"
 linkcheck_ignore = [
     "https://www.biorxiv.org",  # 403 Client Error: Forbidden for url
     "https://www.wheelodex.org",  # Time out, server slow to respond
+    "https://www.iso.org/standard/78268.html",  # 403 Client Error: Forbidden for url
 ]
 
 # https://github.com/sphinx-doc/sphinx/issues/12589#issuecomment-2229491106

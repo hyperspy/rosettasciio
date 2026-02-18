@@ -460,6 +460,9 @@
 <span class="sig-prename descclassname"><span class="pre">rsciio.tests.registry_utils.</span></span><span class="sig-name descname"><span class="pre">download_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pooch_object</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_hash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progressbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.tests.registry_utils.download_all" title="Link to this definition">#</a></dt>
 <dd><p>Download all test data if they are not already locally available in
 <code class="docutils literal notranslate"><span class="pre">rsciio.tests.data</span></code> folder.</p>
+<p>When the environment variable <cite>RSCIIO_TEST_DATA_SOURCE</cite> is set,
+the test data will be copied from the specified directory instead of downloading.
+This is useful for CI when the test data is cached as an artifact in a previous step.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>

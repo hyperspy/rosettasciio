@@ -16,83 +16,31 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import functools
-import os
-from importlib.metadata import version
-from pathlib import Path
-
-import yaml
+import importlib
 
 from ._logger import set_log_level
 
 # Default to warning
 set_log_level("WARNING")
 
-IO_PLUGINS = []
-"""
-List of available IO plugins. Each entry is a dictionary with the following keys:
-
-- ``'name'``: The name of the plugin.
-- ``'name_aliases'``: A list of alternative names for the plugin.
-- ``'description'``: A brief description of the plugin.
-- ``'full_support'``: A boolean indicating if the plugin has full support.
-- ``'default_extension'``: The default file extension for the plugin.
-- ``'writes'``: A boolean indicating if the plugin supports writing files.
-- ``'non_uniform_axis'``: A boolean indicating if the plugin supports non-uniform axes.
-- ``'api'``: The API module path as a string (e.g., 'rsciio.nexus').
-
-:meta hide-value:
-"""
-
-
-for sub, _, _ in os.walk(os.path.abspath(os.path.dirname(__file__))):
-    _specsf = os.path.join(sub, "specifications.yaml")
-    if os.path.isfile(_specsf):
-        with open(_specsf, "r") as stream:
-            _specs = yaml.safe_load(stream)
-            # for testing purposes
-            _specs["api"] = "rsciio.%s" % os.path.split(sub)[1]
-            IO_PLUGINS.append(_specs)
-
 
 __all__ = ["__version__", "IO_PLUGINS", "set_log_level"]
+
+
+_import_mapping = {
+    "__version__": "._version",
+    "IO_PLUGINS": "._io_plugins",
+}
 
 
 def __dir__():
     return sorted(__all__)
 
 
-@functools.cache
-def _get_version():
-    version_ = version("rosettasciio")
-    # For development version, `setuptools_scm` will be used at build time
-    # to get the dev version, in case of missing vcs information (git archive,
-    # shallow repository), the fallback version defined in pyproject.toml will
-    # be used
-
-    # if we have a editable install from a git repository try to use
-    # `setuptools_scm` to find a more accurate version:
-    # `importlib.metadata` will provide the version at installation
-    # time and for editable version this may be different
-
-    # we only do that if we have enough git history, e.g. not shallow checkout
-    _root = Path(__file__).resolve().parents[1]
-    if (_root / ".git").exists() and not (_root / ".git/shallow").exists():
-        try:
-            # setuptools_scm may not be installed
-            from setuptools_scm import get_version
-
-            version_ = get_version(_root)
-        except ImportError:  # pragma: no cover
-            # setuptools_scm not install, we keep the existing __version__
-            pass
-
-    return version_
-
-
 def __getattr__(name):
-    if name == "__version__":
-        return _get_version()
+    if name in _import_mapping.keys():
+        import_path = "rsciio" + _import_mapping.get(name)
+        return getattr(importlib.import_module(import_path), name)
 
     if name in __all__:
         return globals()[name]

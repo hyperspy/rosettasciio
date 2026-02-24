@@ -602,6 +602,109 @@ class TestSpdMap_061_xrf:
         np.testing.assert_allclose(spc_header.numElem, len(elements))
 
 
+class TestLsdLineScan:
+    @classmethod
+    def setup_class(cls):
+        cls.lsd = hs.load(
+            os.path.join(TMP_DIR.name, "line_scan.lsd"), convert_units=True
+        )
+
+    @classmethod
+    def teardown_class(cls):
+        del cls.lsd
+        gc.collect()
+
+    def test_data(self):
+        # test d_type
+        assert np.uint32 == TestLsdLineScan.lsd.data.dtype
+        # test d_shape
+        assert (3, 4096) == TestLsdLineScan.lsd.data.shape
+        assert [
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+        ] == TestLsdLineScan.lsd.data[:, 15:20].tolist()
+
+    def test_parameters(self):
+        elements = TestLsdLineScan.lsd.metadata.as_dictionary()["Sample"]["elements"]
+        sem_dict = TestLsdLineScan.lsd.metadata.as_dictionary()[
+            "Acquisition_instrument"
+        ]["SEM"]
+        eds_dict = sem_dict["Detector"]["EDS"]
+        signal_dict = TestLsdLineScan.lsd.metadata.as_dictionary()["Signal"]
+
+        # Testing SEM parameters
+        np.testing.assert_allclose(300, sem_dict["beam_energy"])
+        np.testing.assert_allclose(15, sem_dict["Stage"]["tilt_alpha"])
+
+        # Testing EDS parameters
+        np.testing.assert_allclose(0, eds_dict["azimuth_angle"])
+        np.testing.assert_allclose(0, eds_dict["elevation_angle"])
+        np.testing.assert_allclose(
+            127.8103, eds_dict["energy_resolution_MnKa"], atol=1e-5
+        )
+        np.testing.assert_allclose(0.06, eds_dict["live_time"], atol=1e-4)
+
+        # Testing elements
+        assert {"C", "Co", "Cu", "Fe", "Ga"} == set(elements)
+
+        # Testing HyperSpy parameters
+        assert "EDS_SEM" == signal_dict["signal_type"]
+        assert isinstance(TestLsdLineScan.lsd, hs.signals.Signal1D)
+
+    def test_axes(self):
+        lsd_ax_manager = {
+            "axis-0": {
+                "_type": "UniformDataAxis",
+                "name": "x",
+                "navigate": True,
+                "is_binned": False,
+                "offset": 0.0,
+                "scale": 212.0,
+                "size": 3,
+                "units": "µm",
+            },
+            "axis-1": {
+                "_type": "UniformDataAxis",
+                "name": "Energy",
+                "navigate": False,
+                "is_binned": expected_is_binned(),
+                "offset": 0.0,
+                "scale": 0.01,
+                "size": 4096,
+                "units": "keV",
+            },
+        }
+        assert lsd_ax_manager == TestLsdLineScan.lsd.axes_manager.as_dictionary()
+
+    def test_csv_reading(self):
+        csv_header = TestLsdLineScan.lsd.original_metadata["csv_header"]
+        np.testing.assert_allclose(7.68, float(csv_header["Amp Time"]))
+        np.testing.assert_allclose(40000.0, float(csv_header["Mag"]))
+
+    def test_spc_reading(self):
+        # Test to make sure that spc metadata matches spd metadata
+        spc_header = TestLsdLineScan.lsd.original_metadata["spc_header"]
+
+        elements = TestLsdLineScan.lsd.metadata.as_dictionary()["Sample"]["elements"]
+        sem_dict = TestLsdLineScan.lsd.metadata.as_dictionary()[
+            "Acquisition_instrument"
+        ]["SEM"]
+        eds_dict = sem_dict["Detector"]["EDS"]
+
+        np.testing.assert_allclose(spc_header.azimuth, eds_dict["azimuth_angle"])
+        np.testing.assert_allclose(
+            spc_header.detReso, eds_dict["energy_resolution_MnKa"]
+        )
+        np.testing.assert_allclose(spc_header.elevation, eds_dict["elevation_angle"])
+        np.testing.assert_allclose(spc_header.liveTime, eds_dict["live_time"])
+        np.testing.assert_allclose(
+            spc_header.evPerChan, TestLsdLineScan.lsd.axes_manager[1].scale * 1000
+        )
+        np.testing.assert_allclose(spc_header.kV, sem_dict["beam_energy"])
+        np.testing.assert_allclose(spc_header.numElem, len(elements))
+
+
 def test_unsupported_extension():
     with pytest.raises(ValueError):
         file_reader("fname.unsupported_extension")

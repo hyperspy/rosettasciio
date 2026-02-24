@@ -1162,6 +1162,7 @@ def file_reader(
     load_all_spc=False,
     spc_fname=None,
     ipr_fname=None,
+    csv_fname=None,
     endianness="<",
     **kwds,
 ):

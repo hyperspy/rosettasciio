@@ -1031,12 +1031,7 @@ def lsd_reader(
 
     # Get name of .ipr file from bitmap image (if not explicitly given):
     if csv_fname is None:
-        csv_basename = (
-            os.path.splitext(
-                os.path.basename(original_metadata["spd_header"]["fName"])
-            )[0].decode()
-            + ".csv"
-        )
+        csv_basename = os.path.splitext(filename)[0] + ".csv"
         csv_path = os.path.dirname(filename)
         csv_fname = os.path.join(csv_path, csv_basename)
 
@@ -1067,15 +1062,8 @@ def lsd_reader(
             spatial_axis_offset = spatial_axis[0]
             spatial_axis_calibration = spatial_axis[1] - spatial_axis[0]
 
-        original_metadata["csv_header"] = sarray2dict(csv_header)
+        original_metadata["csv_header"] = csv_header
 
-        # Workaround for type error when saving hdf5:
-        # save as list of strings instead of numpy unicode array
-        # see https://github.com/hyperspy/hyperspy/pull/2007 and
-        #     https://github.com/h5py/h5py/issues/289 for context
-        original_metadata["csv_header"]["charText"] = [
-            np.bytes_(i) for i in original_metadata["csv_header"]["charText"]
-        ]
     else:
         _logger.warning(
             "Could not find .csv file named {}.\n"
@@ -1221,6 +1209,7 @@ def file_reader(
             lazy,
             endianness,
             spc_fname=spc_fname,
+            csv_fname=csv_fname,
             load_all_spc=load_all_spc,
             **kwds,
         )

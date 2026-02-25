@@ -970,6 +970,18 @@ def lsd_reader(
     %s
     %s
     %s
+    fileaname : str
+        Name of the .lsd file to read. If spectral calibration is required, spc_fname must
+        be specified. If spatial calibration is required, csv_fname must be specified.  These
+        files must be present in the same path as the .lsd file and must have the same root
+        filename as the .lsd file.
+    lazy : bool, Default=False
+        Switch to control whether the data is read lazily as a numpy memmap object, or fully
+        into memory as a numpy array. If `True`, data will be read lazily. If `False`, data
+        will be read fully into memory. Default is `False`.
+    endianness : char, Default='<'
+        Byte-order of data to read. Default is little-endian ('<'), but can be set to big-endian
+        ('>') if necessary.
     spc_fname : None or str
         Name of file from which to read the spectral calibration. If data
         was exported fully from EDAX TEAM software, an .spc file with the
@@ -1155,8 +1167,8 @@ def file_reader(
     **kwds,
 ):
     """
-    Read ``.spc`` (spectrum) or ``.spd`` (spectrum image) files from EDAX
-    Genesis or TEAMS software.
+    Read ``.spc`` (spectrum), ``.spd`` (spectrum image), or ``.lsd`` (line scan) files
+    from EDAX Genesis or TEAM software.
 
     Parameters
     ----------

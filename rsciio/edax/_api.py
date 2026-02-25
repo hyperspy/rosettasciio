@@ -1187,11 +1187,18 @@ def file_reader(
         be explicitly given as a string.
     ipr_fname : None or str
         For spd files only.
-        Name of file from which to read the spatial calibration. If data
-        was exported fully from EDAX TEAM software, an .ipr file with the
+        Name of file from which to read the spatial calibration for mapping data.
+        If data was exported fully from EDAX TEAM software, an .ipr file with the
         same name as the .spd (plus a "_Img" suffix) should be present.
         If `None`, the default filename will be searched for.
         Otherwise, the name of the .ipr file to use for spatial calibration
+        can be explicitly given as a string.
+    csv_fname : None or str
+        Name of file from which to read the spatial calibration for line scan data.
+        If data was exported fully from EDAX TEAM software, a .csv file with the
+        same name as the .lsd should be present.
+        If `None`, the default filename will be searched for.
+        Otherwise, the name of the .csv file to use for spatial calibration
         can be explicitly given as a string.
     %s
     **kwds : dict, optional

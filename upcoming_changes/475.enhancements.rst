@@ -1,1 +1,1 @@
-Allow saving image with scalebar when the scales have opposite signs.
+Enable EDAX file reader to support line scan (`.lsd`) data.

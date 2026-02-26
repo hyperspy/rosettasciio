@@ -587,7 +587,7 @@ def _axes_jeol_sightx(tiff, op, shape, names):
 
     from box import Box
 
-    from rsciio.utils.tools import XmlToDict
+    from rsciio.utils.xml import XmlToDict
 
     scales, offsets, units = _axes_defaults()
     jeol_xml = "".join(

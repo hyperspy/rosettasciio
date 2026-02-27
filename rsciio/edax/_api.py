@@ -23,6 +23,7 @@
 import csv
 import logging
 import os
+from collections import OrderedDict
 
 import numpy as np
 
@@ -1052,8 +1053,10 @@ def lsd_reader(
     read_csv = os.path.isfile(csv_fname)
 
     # Read the .csv header (if possible)
-    csv_header = {}
+    csv_header = OrderedDict()
     spatial_axis = []
+    spatial_axis_calibration = 1
+    spatial_axis_offset = 0
     if read_csv:
         with open(csv_fname, mode="r", encoding="utf-8-sig") as f:
             _logger.debug(" From .lsd reader - reading .csv {}".format(csv_fname))
@@ -1116,8 +1119,8 @@ def lsd_reader(
         "size": data.shape[0],
         "index_in_array": 1,
         "name": "x",
-        "scale": spatial_axis_calibration if read_csv else 1,
-        "offset": spatial_axis_offset if read_csv else 0,
+        "scale": spatial_axis_calibration,
+        "offset": spatial_axis_offset,
         "units": nav_units if read_csv else None,
         "navigate": True,
     }

@@ -188,13 +188,17 @@ def parse_msa_string(string, filename=None):
             if line[0] == "#":
                 try:
                     key, value = line.split(": ")
-                    value = value.strip()
+                    value = value.rstrip()
                 except ValueError:
                     key = line
                     value = None
                 key = key.strip("#").strip()
 
-                if key != "SPECTRUM":
+                # Support multiple lines in the TITLE and COMMENT fields,
+                # which are the only fields that can be multiline according to the standard.
+                if key in ["TITLE", "COMMENT"] and key in parameters.keys():
+                    parameters[key] += value
+                elif key != "SPECTRUM":
                     parameters[key] = value
                 else:
                     data_section = True
@@ -309,11 +313,11 @@ def parse_msa_string(string, filename=None):
         # Defaults to empty signal type, which is Signal1D for HyperSpy
         mapped.set_item("Signal.signal_type", "")
     if "YUNITS" in parameters.keys():
-        yunits = "(%s)" % parameters["YUNITS"]
+        yunits = f"({parameters['YUNITS']})"
     else:
         yunits = ""
     if "YLABEL" in parameters.keys():
-        quantity = "%s" % parameters["YLABEL"]
+        quantity = f"{parameters['YLABEL']}"
     else:
         if mapped.Signal.signal_type == "EELS":
             quantity = "Electrons"
@@ -326,7 +330,7 @@ def parse_msa_string(string, filename=None):
         else:
             quantity = ""
     if quantity or yunits:
-        quantity_units = "%s %s" % (quantity, yunits)
+        quantity_units = f"{quantity} {yunits}"
         mapped.set_item("Signal.quantity", quantity_units.strip())
 
     dictionary = {
@@ -431,7 +435,7 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
         # Required parameters
         "FORMAT": FORMAT,
         "VERSION": "1.0",
-        # 'TITLE' : signal.title[:64] if hasattr(signal, "title") else '',
+        "TITLE": getattr(md, "General.title", ""),
         "DATE": "",
         "TIME": "",
         "OWNER": "",
@@ -443,10 +447,12 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
         "OFFSET": signal["axes"][0]["offset"],
         # Signal1D characteristics
         "XLABEL": signal["axes"][0]["name"],
-        #        'YLABEL' : '',
+        # "YLABEL" : getattr(md, "Signal.quantity", ""),
         "XUNITS": signal["axes"][0]["units"],
         #        'YUNITS' : '',
-        "COMMENT": "File created by RosettaSciIO version {__version__}",
+    }
+    if "COMMENT" not in loc_kwds:
+        loc_kwds["COMMENT"] = "File created by RosettaSciIO version {__version__}"
         # Microscope
         #        'BEAMKV' : ,
         #        'EMISSION' : ,
@@ -468,7 +474,6 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
         # 'DWELLTIME' : , # in ms
         #        'COLLANGLE' : ,
         #        'ELSDET' :  ,
-    }
 
     # Update the loc_kwds with the information retrieved from the signal class
     for key, value in keys_from_signal.items():
@@ -492,7 +497,16 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
         f.write("#%-12s: %s\u000d\u000a" % ("FORMAT", loc_kwds.pop("FORMAT")))
         f.write("#%-12s: %s\u000d\u000a" % ("VERSION", loc_kwds.pop("VERSION")))
         for keyword, value in loc_kwds.items():
-            f.write("#%-12s: %s\u000d\u000a" % (keyword, value))
+            if (
+                isinstance(value, str)
+                and keyword in ["TITLE", "COMMENT"]
+                and len(value) > 0
+            ):
+                # Split the value into multiple lines if it is too long, and write each line with the same keyword
+                for i in range(0, len(value), 64):
+                    f.write("#%-12s: %s\u000d\u000a" % (keyword, value[i : i + 64]))
+            else:
+                f.write("#%-12s: %s\u000d\u000a" % (keyword, value))
 
         f.write("#%-12s: Spectral Data Starts Here\u000d\u000a" % "SPECTRUM")
 

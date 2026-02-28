@@ -14,8 +14,8 @@
 #OFFSET      : 520.13
 #CHOFFSET    : -168
 #SIGNALTYPE  : ELS
-#XLABEL      :  Energy
-#YLABEL      :  Counts
+#XLABEL      : Energy
+#YLABEL      : Counts
 #BEAMKV   -kV: 120.0
 #EMISSION -uA: 5.5
 #PROBECUR -nA: 12.345

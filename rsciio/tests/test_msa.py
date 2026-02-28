@@ -1,6 +1,7 @@
 import copy
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from rsciio.utils._tests import assert_deep_almost_equal
@@ -44,7 +45,7 @@ example1_metadata = {
         },
     },
     "Sample": {"thickness": 50.0, "thickness_units": "nm"},
-    "Signal": {"quantity": "Counts (Intensity)", "signal_type": "EELS"},  # bit silly...
+    "Signal": {"quantity": "Counts (Intensity)", "signal_type": "EELS"},
     "_HyperSpy": {
         "Folding": {
             "original_axes_manager": None,
@@ -422,3 +423,52 @@ class TestSignalType:
                 "CLS",
                 "GAM",
             ]
+
+
+def test_iso_compliance(tmp_path):
+    # Example file from the 2022 revision: https://www.iso.org/standard/78268.html
+    s = hs.load(TEST_DATA_PATH / "ISO_22029_2022_compliance.msa")
+    assert s.original_metadata.as_dictionary() == {
+        "FORMAT": "EMSA/MAS Spectral Data File",
+        "VERSION": "TC202v2.0",
+        "TITLE": "NIO EELS OK SHELL",
+        "DATE": "01-OCT-1991",
+        "TIME": "12:00",
+        "OWNER": "EMSA/MAS TASK FORCE",
+        "NPOINTS": 21.0,
+        "NCOLUMNS": 1.0,
+        "XUNITS": "Energy Loss (eV)",
+        "YUNITS": "Intensity",
+        "DATATYPE": "XY",
+        "XPERCHAN": 3.1,
+        "OFFSET": 520.13,
+        "CHOFFSET": -168.0,
+        "SIGNALTYPE": "ELS",
+        "XLABEL": "Energy",
+        "YLABEL": "Counts",
+        "BEAMKV": 120.0,
+        "EMISSION": 5.5,
+        "PROBECUR": 12.345,
+        "BEAMDIAM": 100.0,
+        "MAGCAM": 100.0,
+        "CONVANGLE": 1.5,
+        "COLLANGLE": 3.4,
+        "OPERMODE": "IMAG",
+        "THICKNESS": 50.0,
+        "DWELLTIME": 100.0,
+        "ELSDET": "SERIAL",
+    }
+    assert s.metadata.Signal.signal_type == "EELS"
+    assert s.metadata.General.title == "NIO EELS OK SHELL"
+
+    s2 = hs.load(TEST_DATA_PATH / "ISO_22029_2022_compliance_scientific_notation.msa")
+    np.testing.assert_allclose(s.data, s2.data)
+
+    s3 = hs.load(TEST_DATA_PATH / "ISO_22029_2022_compliance_title_multiple_line.msa")
+    s3.metadata.General.title == "NIO EELS OK SHELL - Second line of the title - Third line of the title"
+    # Title is longer than 64 characters, multiple TITLE keywords will be used to store the full title.
+
+    fname = tmp_path / "ISO_22029_2022_compliance_title_multiple_line_export.msa"
+    s3.save(fname)
+    s4 = hs.load(fname)
+    assert s4.metadata.General.title == s3.metadata.General.title

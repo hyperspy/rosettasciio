@@ -21,7 +21,6 @@
 #  and
 #  https://www.nist.gov/services-resources/software/lispixdoc/image-file-formats/raw-file-format.htm
 
-import codecs
 import logging
 import os.path
 from io import StringIO
@@ -294,7 +293,7 @@ def file_reader(
     """
     if not rpl_info:
         if filename[-3:] in file_extensions:
-            with codecs.open(filename, encoding=encoding, errors="replace") as f:
+            with open(filename, encoding=encoding, errors="replace") as f:
                 rpl_info = parse_ripple(f)
         else:
             raise IOError('File has wrong extension: "%s"' % filename[-3:])
@@ -632,7 +631,7 @@ file_writer.__doc__ %= (
 
 
 def write_rpl(filename, keys_dictionary, encoding="ascii"):
-    with codecs.open(filename, "w", encoding=encoding, errors="ignore") as f:
+    with open(filename, "w", encoding=encoding, errors="ignore") as f:
         f.write(f";File created by RosettaSciIO version {rsciio.__version__}\n")
         f.write("key\tvalue\n")
         # Even if it is not necessary, we sort the keywords when writing

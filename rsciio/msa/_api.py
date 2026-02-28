@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import codecs
 import logging
 import os
 import warnings
@@ -357,7 +356,7 @@ def file_reader(filename, lazy=False, encoding="latin-1"):
     if lazy is not False:
         raise NotImplementedError("Lazy loading is not supported.")
 
-    with codecs.open(filename, encoding=encoding, errors="replace") as spectrum_file:
+    with open(filename, encoding=encoding, errors="replace") as spectrum_file:
         return parse_msa_string(string=spectrum_file, filename=filename)
 
 
@@ -483,7 +482,7 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
             if dic["mapped_to"] in md:
                 loc_kwds[key] = eval("md.%s" % dic["mapped_to"])
 
-    with codecs.open(filename, "w", encoding=encoding, errors="ignore") as f:
+    with open(filename, "w", encoding=encoding, errors="ignore") as f:
         # Remove the following keys from loc_kwds if they are in
         # (although they shouldn't)
         for key in ["SPECTRUM", "ENDOFDATA"]:

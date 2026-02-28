@@ -168,7 +168,7 @@ example2_parameters = {
     "FORMAT": "EMSA/MAS Spectral Data File",
     "LIVETIME  -s": 100.0,
     "MAGCAM": 100.0,
-    "NCOLUMNS": 5.0,
+    "NCOLUMNS": 1.0,
     "NPOINTS": 80.0,
     "OFFSET": 200.0,
     "OPERMODE": "IMAG",
@@ -374,6 +374,18 @@ class TestExample2:
         assert_deep_almost_equal(
             self.s.metadata.as_dictionary(), s2.metadata.as_dictionary()
         )
+        np.testing.assert_allclose(self.s.data, s2.data)
+
+
+def test_DATATYPE_Y_NCOLUMNS5():
+    s = hs.load(TEST_DATA_PATH / "example2.msa")
+    assert s.original_metadata["DATATYPE"] == "Y"
+    assert s.original_metadata["NCOLUMNS"] == 1.0
+
+    s2 = hs.load(TEST_DATA_PATH / "example2_NCOLUMNS5.msa")
+    assert s2.original_metadata["DATATYPE"] == "Y"
+    assert s2.original_metadata["NCOLUMNS"] == 5.0
+    np.testing.assert_allclose(s.data, s2.data)
 
 
 def test_minimum_metadata_example():
@@ -472,3 +484,6 @@ def test_iso_compliance(tmp_path):
     s3.save(fname)
     s4 = hs.load(fname)
     assert s4.metadata.General.title == s3.metadata.General.title
+
+    s5 = hs.load(TEST_DATA_PATH / "ISO_22029_2022_compliance_XY_NCOLUMNS2.msa")
+    np.testing.assert_allclose(s5.data, s.data)

@@ -205,11 +205,14 @@ def parse_msa_string(string, filename=None):
         else:
             # Read the data
             if line[0] != "#" and line.strip():
+                line_ = line.replace(",", " ").strip().split()
                 if parameters["DATATYPE"] == "XY":
-                    xy = line.replace(",", " ").strip().split()
-                    y.append(float(xy[1]))
+                    y.append(float(line_[1]))
+                    if len(line_) > 2:
+                        # NCOLUMNS is 2
+                        y.append(float(line_[3]))
                 elif parameters["DATATYPE"] == "Y":
-                    data = [float(i) for i in line.replace(",", " ").strip().split()]
+                    data = [float(i) for i in line_]
                     y.extend(data)
     # We rewrite the format value to be sure that it complies with the
     # standard, because it will be used by the writer routine

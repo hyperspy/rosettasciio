@@ -257,7 +257,12 @@ def parse_msa_string(string, filename=None):
                     mapped.set_item(keywords[clean_par]["mapped_to"] + "_units", units)
     if "TIME" in parameters and parameters["TIME"]:
         try:
-            time = dt.strptime(parameters["TIME"], "%H:%M")
+            if len(parameters["TIME"].split(":")) == 2:
+                time = dt.strptime(parameters["TIME"], "%H:%M")
+            elif len(parameters["TIME"].split(":")) == 3:
+                # Some files may have seconds in the time field,
+                # even though the standard does not include seconds
+                time = dt.strptime(parameters["TIME"], "%H:%M:%S")
             mapped.set_item("General.time", time.time().isoformat())
         except ValueError as e:
             _logger.warning(

@@ -487,3 +487,10 @@ def test_iso_compliance(tmp_path):
 
     s5 = hs.load(TEST_DATA_PATH / "ISO_22029_2022_compliance_XY_NCOLUMNS2.msa")
     np.testing.assert_allclose(s5.data, s.data)
+
+
+def test_time_with_seconds():
+    # Example file with time including seconds, which is not compliant with ISO standard,
+    # but it is found in some files.
+    s = hs.load(TEST_DATA_PATH / "example1_wtih_seconds.msa")
+    assert s.metadata.General.time == "12:00:00"

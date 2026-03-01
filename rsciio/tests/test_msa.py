@@ -254,7 +254,7 @@ class TestExample1:
 
 class TestExample1WrongDate:
     def setup_method(self, method):
-        self.s = hs.load(TEST_DATA_PATH / "example1_wrong_date.msa")
+        self.s = hs.load(TEST_DATA_PATH / "example1_wrong_date_empty_field.msa")
         # delete timestamp from metadata since it's runtime dependent
         del self.s.metadata.General.FileIO.Number_0.timestamp
 
@@ -262,7 +262,7 @@ class TestExample1WrongDate:
         md = copy.copy(example1_metadata)
         del md["General"]["date"]
         del md["General"]["time"]
-        md["General"]["original_filename"] = "example1_wrong_date.msa"
+        md["General"]["original_filename"] = "example1_wrong_date_empty_field.msa"
         assert_deep_almost_equal(self.s.metadata.as_dictionary(), md)
 
 

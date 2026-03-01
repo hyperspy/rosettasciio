@@ -229,7 +229,7 @@ def parse_msa_string(string, filename=None):
             clean_par, units = clean_par.strip(), units.strip()
         else:
             clean_par, units = parameter, None
-        if clean_par in keywords:
+        if value and clean_par in keywords:
             type_ = keywords[clean_par]["dtype"]
             try:
                 parameters[parameter] = type_(value)

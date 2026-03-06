@@ -144,8 +144,13 @@ def import_pr(data, meta_data, filename=None):
     content_type = meta_data.get("content.types")
     calibrations = []
     for axis in range(data_dimensions):
+        calib_key = "device.calib"
+        if "user.calib" in meta_data:
+            calib_key = "user.calib"
+        elif "inherited.calib" in meta_data:
+            calib_key = "inherited.calib"
         try:
-            calib = meta_data["device.calib"][axis]
+            calib = meta_data[calib_key][axis]
         except (IndexError, KeyError):
             calib = None
         calibrations.append(calib)

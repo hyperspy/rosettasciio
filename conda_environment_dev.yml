@@ -15,5 +15,5 @@ dependencies:
 - hyperspy-base >=2.0
 - setuptools-scm
 - sparse
-- tifffile>=2022.7.28
+- tifffile>=2022.7.28,!=2026.2.24
 - zarr <3

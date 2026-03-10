@@ -1,0 +1,12 @@
+name: "Tofwerk"
+name_aliases: ["TofDAQ", "fibTOF", "Tofwerk HDF5", "FIB-SIMS Tofwerk"]
+description: >
+  Read data from Tofwerk HDF5 files (.h5) written by TofDAQ acquisition software.
+  Supports fibTOF FIB-SIMS instruments (Tescan plasma-FIB + Tofwerk ToF-SIMS detector).
+  Handles both raw files (FullSpectra/EventList) and files opened by Tofwerk software
+  (PeakData/PeakData present).
+full_support: False
+file_extensions: ["h5", "H5"]
+default_extension: 0
+writes: False
+non_uniform_axis: False

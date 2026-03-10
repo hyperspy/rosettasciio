@@ -13,5 +13,6 @@ rsciio/bruker/*.pyd
 *.egg-info
 *.DS_Store
 *.coverage
+coverage.xml
 .vscode/*
 .zed

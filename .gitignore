@@ -13,3 +13,5 @@ rsciio/bruker/*.pyd
 *.egg-info
 *.DS_Store
 *.coverage
+.zed
+.DS_Store

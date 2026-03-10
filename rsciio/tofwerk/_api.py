@@ -100,7 +100,10 @@ def _parse_creation_time(file):
             date_str = dt.date().isoformat()
             time_str = dt.strftime("%H:%M:%S")
         except Exception:
-            pass
+            # Neither datetime source is available; return empty strings
+            _logger.warning(
+                "Could not parse acquisition time; date/time fields omitted."
+            )
     return date_str, time_str, tz_str
 
 
@@ -236,7 +239,8 @@ def _build_metadata(file, filename, has_peak_data):
             "pixel_size_um": pixel_size_um,
         }
     except Exception:
-        pass
+        # FIBParams group absent in non-FIB-SIMS TofDAQ files; FIB metadata omitted
+        _logger.warning("FIBParams not found; FIB metadata will not be populated.")
 
     # Mass range: use peak table for opened files, raw spectrum axis for raw files
     try:
@@ -311,6 +315,7 @@ def _build_metadata(file, filename, has_peak_data):
         },
         "Signal": {
             "signal_type": "FIB-SIMS",
+            "binned": True,
         },
         "Acquisition_instrument": {
             "FIB_SIMS": fib_sims_meta,
@@ -343,7 +348,10 @@ def _build_original_metadata(file):
     try:
         orig["SaturationWarning"] = np.asarray(file["FullSpectra/SaturationWarning"])
     except Exception:
-        pass
+        # SaturationWarning dataset is optional; omit if absent
+        _logger.warning(
+            "FullSpectra/SaturationWarning not found; omitting from metadata."
+        )
 
     return orig
 
@@ -505,7 +513,7 @@ def file_reader(filename, lazy=False, compute_peak_data=False):
 
     Parameters
     ----------
-    filename : str or Path
+    filename : str or pathlib.Path
         Path to the ``.h5`` file.
     lazy : bool, optional
         If True, data arrays are returned as :class:`dask.array.Array` objects
@@ -575,11 +583,11 @@ def file_reader(filename, lazy=False, compute_peak_data=False):
     sum_ds = f["FullSpectra/SumSpectrum"]
     mass_axis_ds = np.asarray(f["FullSpectra/MassAxis"])
 
-    # Real TofDAQ files often have a flat zero prefix at the start of the
+    # Real TofDAQ files may have a negative-mass prefix at the start of the
     # mass axis (low ToF flight times where the calibration is not valid).
     # HyperSpy requires non-uniform axes to be strictly increasing, so trim
-    # any leading samples where the mass is not yet positive.
-    first_valid = int(np.argmax(mass_axis_ds > 0))
+    # any leading samples where the mass is negative.
+    first_valid = int(np.argmax(mass_axis_ds >= 0))
     mass_axis_ds = mass_axis_ds[first_valid:]
 
     sum_axes = _build_axes_raw_sum(mass_axis_ds)

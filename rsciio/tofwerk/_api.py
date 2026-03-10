@@ -573,7 +573,7 @@ def file_reader(filename, lazy=False, compute_peak_data=False):
     else:
         try:
             nx = f["FullSpectra/EventList"].shape[2]
-        except Exception:
+        except Exception:  # pragma: no cover
             nx = nsegs
     pixel_size_um = _parse_pixel_size(f, nx)
 

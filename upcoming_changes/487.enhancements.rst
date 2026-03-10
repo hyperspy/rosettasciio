@@ -1,0 +1,5 @@
+:ref:`msa-format` enhancements:
+
+- support reading files with empty fields.
+- support reading files with multiple line titles and comments.
+- support reading files with multiple columns and datatype xy.

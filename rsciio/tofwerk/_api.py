@@ -20,12 +20,61 @@
 Reader for Tofwerk HDF5 files (.h5) written by TofDAQ acquisition software.
 
 Supports fibTOF FIB-SIMS instruments (Tescan plasma-FIB + Tofwerk ToF-SIMS
-detector).  Two file states are handled:
+detector).
 
-* **Opened** files (``PeakData/PeakData`` present) — returns a 4-D
-  ``(depth, y, x, m/z)`` peak-integrated signal.
-* **Raw** files (``FullSpectra/EventList`` only) — returns the sum spectrum
-  and a 2-D TIC map.
+Data dimensions
+---------------
+A fibTOF acquisition produces a 4-D dataset with the following axes:
+
+* **depth** (``nwrites``, ``NbrWrites`` in HDF5 root attributes) — one entry
+  per FIB milling + SIMS acquisition cycle.  Each write mills a thin layer
+  from the sample surface and then rasters the FIB beam across the exposed
+  face to collect SIMS spectra.  This is the depth-profiling axis.
+
+* **y** (``nsegs``, ``NbrSegments``) — rows of the 2-D SIMS raster scan.
+
+* **x** (``nx``, third dimension of ``PeakData/PeakData`` or
+  ``FullSpectra/EventList``) — columns of the 2-D SIMS raster scan.
+
+* **m/z** (``npeaks``) — mass-to-charge axis, one bin per peak defined in
+  ``PeakData/PeakTable``.
+
+Note that the SIMS ion data is acquired at a lower spatial resolution than
+the simultaneously recorded FIB secondary-electron (SE) images.  For
+example, a dataset described as "256×256 2×2" has FIB SE images of
+256×256 pixels, while the SIMS ion data is 128×128 pixels — the "2×2"
+denotes 2×2 SIMS pixel binning relative to the FIB scan grid.  The
+``FIBParams.ViewField`` attribute (in mm) is divided by the SIMS pixel
+count (128 in this example) to obtain the SIMS pixel size, not by the
+FIB SE image resolution.
+
+Example dimensions for a typical acquisition
+("256×256 2×2, 1301 frames, 217 peaks")::
+
+    PeakData/PeakData  shape: (1301, 128, 128, 217)
+                              depth × y × x × m/z
+    FullSpectra/EventList     shape: ( 1302,  128, 128)   [ragged]
+                                     (depth,    y,   x)
+                              each element:
+                                  variable/ragged-length uint32 array of
+                                  raw time-to-digital converter (TDC) timestamps, one
+                                  per ion detection event.
+                              len(EventList[w, s, x]) == ion count for that pixel.
+    FIBImages/<slice>         shape: (256, 256)          [SE image, full FIB resolution]
+
+File states
+-----------
+Two file states are handled:
+
+* **Opened** files (``PeakData/PeakData`` present) — the Tofwerk software
+  has already integrated the raw events into per-peak counts.  Returns a
+  4-D ``(depth, y, x, m/z)`` peak-integrated signal and a 1-D sum spectrum.
+
+* **Raw** files (``FullSpectra/EventList`` only) — the raw TDC timestamp
+  data has not yet been peak-integrated.  Returns only the 1-D sum spectrum.
+  Pass ``compute_peak_data=True`` to reconstruct the 4-D peak array from
+  the EventList using the integration windows defined in
+  ``PeakData/PeakTable``.
 """
 
 import logging
@@ -322,7 +371,6 @@ def _build_metadata(file, filename, has_peak_data):
         },
         "Signal": {
             "signal_type": "FIB-SIMS",
-            "binned": True,
         },
         "Acquisition_instrument": {
             "FIB_SIMS": fib_sims_meta,
@@ -763,6 +811,99 @@ def file_reader(filename, lazy=False, compute_peak_data=False):
     )
 
     # ------------------------------------------------------------------
+    # Signal 2: 4D peak-integrated array
+    #   Opened files: read PeakData/PeakData directly
+    #   Raw files with compute_peak_data=True: reconstruct from EventList
+    # ------------------------------------------------------------------
+    can_compute = (
+        not has_peak_data
+        and compute_peak_data
+        and "PeakData/PeakTable" in f
+        and "FullSpectra/EventList" in f
+    )
+
+    # peak_data_array holds the eagerly loaded array when not lazy and
+    # has_peak_data, so the TIC map can be derived from it without a
+    # second read of the (potentially large) PeakData dataset.
+    peak_data_array = None
+    # tic_from_batches is set when TIC is accumulated during batch loading,
+    # avoiding a second full pass through the array.
+    tic_from_batches = None
+
+    if has_peak_data or can_compute:
+        if has_peak_data:
+            peak_ds = f["PeakData/PeakData"]
+            nwrites, nsegs, nx, npeaks = peak_ds.shape
+            peak_table = np.asarray(f["PeakData/PeakTable"])
+        else:
+            peak_table = np.asarray(f["PeakData/PeakTable"])
+
+        peak_masses = peak_table["mass"].astype(float)
+        sort_idx = np.argsort(peak_masses)
+        already_sorted = np.array_equal(sort_idx, np.arange(len(sort_idx)))
+        peak_masses = peak_masses[sort_idx]
+        peak_axes = _build_axes_opened(nwrites, nsegs, nx, peak_masses, pixel_size_um)
+
+        peak_meta = dict(metadata)
+        peak_meta["General"] = dict(metadata["General"])
+        peak_meta["General"]["title"] = stem + " (peak data)"
+
+        if has_peak_data:
+            if lazy:
+                import dask.array as da
+
+                peak_data = da.from_array(peak_ds, chunks="auto")
+                if not already_sorted:
+                    peak_data = peak_data[:, :, :, sort_idx]
+            else:
+                nbytes = peak_ds.size * peak_ds.dtype.itemsize
+                if nbytes > 1e9:
+                    _logger.warning(
+                        f"Loading {nbytes / 1e9:.1f} GB of PeakData into memory "
+                        f"(lazy=True is recommended for large files)."
+                    )
+                if already_sorted:
+                    peak_data_array = np.asarray(peak_ds)
+                else:
+                    # Apply sort_idx in write-batches so each batch fits in
+                    # cache.  Avoids cache-thrashing column permutation across
+                    # the full array (which is O(n_cycle × dataset_size)).
+                    _BATCH = 64
+                    nw_ds = peak_ds.shape[0]
+                    peak_data_array = np.empty(peak_ds.shape, dtype=peak_ds.dtype)
+                    _tic_accum = np.zeros((nsegs, nx), dtype=np.float64)
+                    for _w0 in range(0, nw_ds, _BATCH):
+                        _w1 = min(_w0 + _BATCH, nw_ds)
+                        _batch = np.asarray(peak_ds[_w0:_w1])[:, :, :, sort_idx]
+                        peak_data_array[_w0:_w1] = _batch
+                        _tic_accum += _batch.sum(axis=(0, 3))
+                    tic_from_batches = _tic_accum.astype(np.float32)
+                peak_data = peak_data_array
+        else:
+            # compute_peak_data=True: always eager (EventList is variable-length)
+            peak_data_array = _compute_peak_data_from_eventlist(f)
+            if not already_sorted:
+                _BATCH = 64
+                nw_ev = peak_data_array.shape[0]
+                sorted_array = np.empty(
+                    peak_data_array.shape, dtype=peak_data_array.dtype
+                )
+                for _w0 in range(0, nw_ev, _BATCH):
+                    _w1 = min(_w0 + _BATCH, nw_ev)
+                    sorted_array[_w0:_w1] = peak_data_array[_w0:_w1][:, :, :, sort_idx]
+                peak_data_array = sorted_array
+            peak_data = peak_data_array
+
+        signals.append(
+            {
+                "data": peak_data,
+                "axes": peak_axes,
+                "metadata": peak_meta,
+                "original_metadata": original_metadata,
+            }
+        )
+
+    # ------------------------------------------------------------------
     # Signal 1: TIC map
     #   Raw files:    computed from EventList (always eager)
     #   Opened files: sum PeakData over depth and mass axes
@@ -790,68 +931,29 @@ def file_reader(filename, lazy=False, compute_peak_data=False):
                 shape=(nsegs, nx),
                 dtype=np.int32,
             )
+    elif tic_from_batches is not None:
+        # TIC was accumulated during batch loading; no second pass needed
+        tic_map = tic_from_batches
+    elif peak_data_array is not None:
+        # derive TIC from the already-loaded peak array; avoids a second read
+        tic_map = peak_data_array.sum(axis=(0, 3)).astype(np.float32)
     elif has_peak_data:
-        # eagerly sum pre-integrated peaks over writes and mass axis
+        # lazy=False, has_peak_data, but no peak signal requested — read directly
         tic_map = np.asarray(f["PeakData/PeakData"]).sum(axis=(0, 3)).astype(np.float32)
     else:
         # eagerly walk the variable-length EventList to count ions per pixel
         tic_map = _compute_tic_map(f, nwrites, nsegs, nx)
 
-    signals.append(
+    # Insert TIC map at index 1 (after sum spectrum, before peak data)
+    signals.insert(
+        1,
         {
             "data": tic_map,
             "axes": tic_axes,
             "metadata": tic_meta,
             "original_metadata": original_metadata,
-        }
+        },
     )
-
-    # ------------------------------------------------------------------
-    # Signal 2: 4D peak-integrated array
-    #   Opened files: read PeakData/PeakData directly
-    #   Raw files with compute_peak_data=True: reconstruct from EventList
-    # ------------------------------------------------------------------
-    can_compute = (
-        not has_peak_data
-        and compute_peak_data
-        and "PeakData/PeakTable" in f
-        and "FullSpectra/EventList" in f
-    )
-
-    if has_peak_data or can_compute:
-        if has_peak_data:
-            peak_ds = f["PeakData/PeakData"]
-            nwrites, nsegs, nx, npeaks = peak_ds.shape
-            peak_table = np.asarray(f["PeakData/PeakTable"])
-        else:
-            peak_table = np.asarray(f["PeakData/PeakTable"])
-
-        peak_masses = peak_table["mass"].astype(float)
-        peak_axes = _build_axes_opened(nwrites, nsegs, nx, peak_masses, pixel_size_um)
-
-        peak_meta = dict(metadata)
-        peak_meta["General"] = dict(metadata["General"])
-        peak_meta["General"]["title"] = stem + " (peak data)"
-
-        if has_peak_data:
-            if lazy:
-                import dask.array as da
-
-                peak_data = da.from_array(peak_ds, chunks="auto")
-            else:
-                peak_data = np.asarray(peak_ds)
-        else:
-            # compute_peak_data=True: always eager (EventList is variable-length)
-            peak_data = _compute_peak_data_from_eventlist(f)
-
-        signals.append(
-            {
-                "data": peak_data,
-                "axes": peak_axes,
-                "metadata": peak_meta,
-                "original_metadata": original_metadata,
-            }
-        )
 
     if not lazy:
         f.close()

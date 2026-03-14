@@ -343,6 +343,74 @@ class TestComputePeakData:
         np.testing.assert_array_equal(sigs_default[2]["data"], sigs_flag[2]["data"])
 
 
+class TestComputePeakDataNumpyFallback:
+    """
+    Covers the NumPy fallback path in ``_compute_peak_data_from_eventlist``
+    (the ``else`` branch reached when numba is not installed).
+
+    numba is mocked out via ``sys.modules`` so the ImportError branch and the
+    vectorised-NumPy loop are exercised even in environments that have numba.
+    """
+
+    @staticmethod
+    def _run_no_numba(path):
+        """Call _compute_peak_data_from_eventlist with numba blocked."""
+        import sys
+        from unittest.mock import patch
+
+        import h5py
+
+        from rsciio.tofwerk._api import _compute_peak_data_from_eventlist
+
+        with h5py.File(path, "r") as f:
+            with patch.dict(sys.modules, {"numba": None}):
+                return _compute_peak_data_from_eventlist(f)
+
+    def test_numpy_fallback_shape(self, tmp_path):
+        """NumPy fallback returns the correct (nwrites, nsegs, nx, npeaks) shape."""
+        p = tmp_path / "fallback.h5"
+        _make_minimal_tofdaq(p)
+        result = self._run_no_numba(p)
+        assert result.shape == (1, 2, 2, 2)  # nwrites=1, nsegs=2, nx=2, npeaks=2
+
+    def test_numpy_fallback_dtype(self, tmp_path):
+        """NumPy fallback returns float32."""
+        p = tmp_path / "fallback_dtype.h5"
+        _make_minimal_tofdaq(p)
+        result = self._run_no_numba(p)
+        assert result.dtype == np.float32
+
+    def test_numpy_fallback_matches_numba(self, tmp_path):
+        """NumPy fallback produces the same counts as the numba path."""
+
+        import h5py
+
+        from rsciio.tofwerk._api import _compute_peak_data_from_eventlist
+
+        p = tmp_path / "fallback_match.h5"
+        _make_minimal_tofdaq(p)
+
+        with h5py.File(p, "r") as f:
+            numba_result = _compute_peak_data_from_eventlist(f)
+
+        numpy_result = self._run_no_numba(p)
+        np.testing.assert_array_equal(numpy_result, numba_result)
+
+    def test_numpy_fallback_empty_pixel(self, tmp_path):
+        """Empty-pixel EventList entries are skipped without error (numpy path)."""
+        p = tmp_path / "fallback_empty.h5"
+        _make_minimal_tofdaq(p, empty_pixel=True)
+        result = self._run_no_numba(p)
+        assert result.shape[-1] == 2  # npeaks
+
+    def test_numpy_fallback_out_of_range_events(self, tmp_path):
+        """Out-of-range events are discarded without error (numpy path)."""
+        p = tmp_path / "fallback_oor.h5"
+        _make_minimal_tofdaq(p, out_of_range_pixel=True)
+        result = self._run_no_numba(p)
+        assert result.shape[-1] == 2  # npeaks
+
+
 class TestDetection:
     """Tests for format detection and IOError on non-Tofwerk files."""
 

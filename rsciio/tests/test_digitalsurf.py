@@ -964,7 +964,8 @@ def test_writegeneric_surfaceseries(tmp_path, dtype, compressed):
 
     gen2 = hs.load(fgen)
 
-    assert np.allclose(gen.data, gen2.data)
+    # increase tolerance for float64, which fails randomly, most likely due to compression losses
+    np.testing.assert_allclose(gen.data, gen2.data, rtol=1e-05)
 
 
 def test_writegeneric_datetime(tmp_path):

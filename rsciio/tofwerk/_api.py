@@ -113,13 +113,7 @@ def _parse_pixel_size(file, nx):
     """
     Return pixel size in µm.
 
-    Source: ``FIBParams.ViewField`` (in m, converted to µm) divided by *nx*.
-
-    Note: ``ViewField`` in TofDAQ reflects the FIB deflector range set by the
-    operator at the time of acquisition.  It may represent the full-range
-    maximum rather than the actual scan area, in which case the returned value
-    will be an overestimate.  No higher-accuracy spatial calibration is stored
-    in the raw HDF5 file.
+    Source: ``FIBParams.ViewField`` (in mm, converted to µm) divided by *nx*.
 
     Note: the ``[TOFParameter]`` section of ``Configuration File Contents``
     contains ``Ch1FullScale``–``Ch4FullScale`` values which are ADC input
@@ -127,11 +121,14 @@ def _parse_pixel_size(file, nx):
     size calculation.
     """
     try:
-        view_field_m = float(np.asarray(file["FIBParams"].attrs["ViewField"]).flat[0])
-        return (view_field_m * 1e6) / nx
+        view_field_mm = float(np.asarray(file["FIBParams"].attrs["ViewField"]).flat[0])
+        view_field_um = view_field_mm * 1e3
+        return view_field_um / nx
     except Exception:
-        _logger.warning("Could not determine pixel size; defaulting to 1 µm/pixel.")
-        return 1.0
+        _logger.warning(
+            "Could not read FIBParams.ViewField metadata parameter; spatial axes will be uncalibrated."
+        )
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -153,17 +150,21 @@ def _build_axes_opened(nwrites, nsegs, nx, peak_masses, pixel_size_um):
         {
             "name": "y",
             "size": nsegs,
-            "offset": 0,
-            "scale": pixel_size_um,
-            "units": "µm",
+            **(
+                {"offset": 0, "scale": pixel_size_um, "units": "µm"}
+                if pixel_size_um is not None
+                else {}
+            ),
             "navigate": True,
         },
         {
             "name": "x",
             "size": nx,
-            "offset": 0,
-            "scale": pixel_size_um,
-            "units": "µm",
+            **(
+                {"offset": 0, "scale": pixel_size_um, "units": "µm"}
+                if pixel_size_um is not None
+                else {}
+            ),
             "navigate": True,
         },
         {
@@ -195,17 +196,21 @@ def _build_axes_raw_tic(nsegs, nx, pixel_size_um):
         {
             "name": "y",
             "size": nsegs,
-            "offset": 0,
-            "scale": pixel_size_um,
-            "units": "µm",
+            **(
+                {"offset": 0, "scale": pixel_size_um, "units": "µm"}
+                if pixel_size_um is not None
+                else {}
+            ),
             "navigate": False,
         },
         {
             "name": "x",
             "size": nx,
-            "offset": 0,
-            "scale": pixel_size_um,
-            "units": "µm",
+            **(
+                {"offset": 0, "scale": pixel_size_um, "units": "µm"}
+                if pixel_size_um is not None
+                else {}
+            ),
             "navigate": False,
         },
     ]
@@ -723,11 +728,16 @@ def file_reader(filename, lazy=False, compute_peak_data=False):
     sum_ds = f["FullSpectra/SumSpectrum"]
     mass_axis_ds = np.asarray(f["FullSpectra/MassAxis"])
 
-    # Real TofDAQ files may have a negative-mass prefix at the start of the
-    # mass axis (low ToF flight times where the calibration is not valid).
-    # HyperSpy requires non-uniform axes to be strictly increasing, so trim
-    # any leading samples where the mass is negative.
+    # TofDAQ mass calibrations may have an invalid prefix at low flight times
+    # (negative values or a non-monotonically increasing region).
+    # HyperSpy requires non-uniform axes to be strictly increasing, so advance
+    # past any leading samples where the calibration has not yet become valid.
     first_valid = int(np.argmax(mass_axis_ds >= 0))
+    while (
+        first_valid < len(mass_axis_ds) - 1
+        and mass_axis_ds[first_valid] >= mass_axis_ds[first_valid + 1]
+    ):
+        first_valid += 1
     mass_axis_ds = mass_axis_ds[first_valid:]
 
     sum_axes = _build_axes_raw_sum(mass_axis_ds)
@@ -762,16 +772,29 @@ def file_reader(filename, lazy=False, compute_peak_data=False):
     tic_meta["General"] = dict(metadata["General"])
     tic_meta["General"]["title"] = stem + " (TIC map)"
 
-    if has_peak_data:
-        if lazy:
-            import dask.array as da
+    if lazy:
+        import dask
+        import dask.array as da
 
-            peak_ds_lazy = da.from_array(f["PeakData/PeakData"], chunks="auto")
-            tic_map = peak_ds_lazy.sum(axis=(0, 3)).compute()
+        if has_peak_data:
+            # sum pre-integrated peaks over writes and mass axis without loading
+            tic_map = (
+                da.from_array(f["PeakData/PeakData"], chunks="auto")
+                .sum(axis=(0, 3))
+                .astype(np.float32)
+            )
         else:
-            tic_map = np.asarray(f["PeakData/PeakData"]).sum(axis=(0, 3))
-        tic_map = tic_map.astype(np.float32)
+            # defer the expensive EventList walk until the signal is computed
+            tic_map = da.from_delayed(
+                dask.delayed(_compute_tic_map)(f, nwrites, nsegs, nx),
+                shape=(nsegs, nx),
+                dtype=np.int32,
+            )
+    elif has_peak_data:
+        # eagerly sum pre-integrated peaks over writes and mass axis
+        tic_map = np.asarray(f["PeakData/PeakData"]).sum(axis=(0, 3)).astype(np.float32)
     else:
+        # eagerly walk the variable-length EventList to count ions per pixel
         tic_map = _compute_tic_map(f, nwrites, nsegs, nx)
 
     signals.append(

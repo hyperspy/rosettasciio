@@ -129,7 +129,7 @@ def test_dir_plugins(plugin):
         pytest.importorskip("pyUSID")
     elif plugin["name"] == "ZSPY":
         pytest.importorskip("zarr")
-    elif plugin["name"] in ["Delmic", "EMD", "HSPY", "NeXus", "Topspin"]:
+    elif plugin["name"] in ["Delmic", "EMD", "HSPY", "NeXus", "Tofwerk", "Topspin"]:
         pytest.importorskip("h5py")
     plugin_module = importlib.import_module(plugin_string)
 

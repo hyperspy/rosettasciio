@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import gc
 from pathlib import Path
 
 import numpy as np
@@ -23,11 +24,28 @@ import pytest
 
 h5py = pytest.importorskip("h5py", reason="h5py not installed")
 
+from rsciio.tests.data.tofwerk.generate_test_signals import (  # noqa: E402
+    make_opened_fixture,
+    make_raw_fixture,
+)
 from rsciio.tofwerk import file_reader  # noqa: E402
 
 TEST_DATA = Path(__file__).parent / "data" / "tofwerk"
 OPENED_FILE = TEST_DATA / "fib_sims_opened.h5"
 RAW_FILE = TEST_DATA / "fib_sims_raw.h5"
+
+
+def setup_module():
+    make_raw_fixture(RAW_FILE)
+    make_opened_fixture(OPENED_FILE)
+
+
+def teardown_module():
+    gc.collect()
+    for f in [OPENED_FILE, RAW_FILE]:
+        if f.exists():
+            f.unlink()
+
 
 # Fixture parameters (must match generate_fixtures.py)
 NWRITES = 5
@@ -499,9 +517,9 @@ def _make_minimal_tofdaq(path, **kwargs):
 
 class TestModuleDir:
     def test_dir_contains_file_reader(self):
-        import rsciio.tofwerk
+        import sys
 
-        assert "file_reader" in dir(rsciio.tofwerk)
+        assert "file_reader" in dir(sys.modules["rsciio.tofwerk"])
 
 
 # ---------------------------------------------------------------------------

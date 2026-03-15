@@ -67,16 +67,26 @@ File states
 Two file states are handled:
 
 * **Opened** files (``PeakData/PeakData`` present) — the Tofwerk software
-  has already integrated the raw events into per-peak counts.  Returns a
-  4-D ``(depth, y, x, m/z)`` peak-integrated signal and a 1-D sum spectrum.
+  has already integrated the raw events into per-peak counts.  The
+  ``"sum_spectrum"`` signal (default) returns the 1-D cumulative spectrum.
+  The ``"peak_data"`` signal returns the 4-D ``(depth, y, x, m/z)``
+  peak-integrated array.  EventList is absent in opened files.
 
 * **Raw** files (``FullSpectra/EventList`` only) — the raw TDC timestamp
-  data has not yet been peak-integrated.  Returns only the 1-D sum spectrum.
-  Pass ``compute_peak_data=True`` to reconstruct the 4-D peak array from
-  the EventList using the integration windows defined in
-  ``PeakData/PeakTable``.
+  data has not yet been peak-integrated.  The ``"sum_spectrum"`` signal
+  (default) returns the 1-D cumulative spectrum.  Pass
+  ``signal="peak_data"`` to reconstruct the 4-D peak array from the
+  EventList using the integration windows in ``PeakData/PeakTable``.
+  Pass ``signal="event_list"`` to retrieve the raw ragged TDC timestamps.
+
+The ``signal`` parameter controls which signals are returned.  Pass a
+string or list of strings from ``{"sum_spectrum", "peak_data",
+"event_list", "all"}``.  The default ``signal="sum_spectrum"`` is fast and
+always available; ``"peak_data"`` on a raw file triggers full EventList
+reconstruction.
 """
 
+import enum
 import logging
 import re
 from datetime import datetime
@@ -87,6 +97,20 @@ import numpy as np
 from rsciio.utils._decorator import jit_ifnumba
 
 _logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Signal parameter enum
+# ---------------------------------------------------------------------------
+
+
+class TofwerkSignal(str, enum.Enum):
+    """Valid values for the ``signal`` parameter of :func:`file_reader`."""
+
+    SUM_SPECTRUM = "sum_spectrum"
+    PEAK_DATA = "peak_data"
+    EVENT_LIST = "event_list"
+    ALL = "all"
 
 
 # ---------------------------------------------------------------------------
@@ -239,9 +263,17 @@ def _build_axes_raw_sum(mass_axis):
     ]
 
 
-def _build_axes_raw_tic(nsegs, nx, pixel_size_um):
-    """Return 2 axis dicts for the raw TIC map."""
+def _build_axes_event_list(nwrites, nsegs, nx, pixel_size_um):
+    """Return 3 navigation axis dicts for the ragged EventList signal."""
     return [
+        {
+            "name": "depth",
+            "size": nwrites,
+            "offset": 0,
+            "scale": 1,
+            "units": "slice",
+            "navigate": True,
+        },
         {
             "name": "y",
             "size": nsegs,
@@ -250,7 +282,7 @@ def _build_axes_raw_tic(nsegs, nx, pixel_size_um):
                 if pixel_size_um is not None
                 else {}
             ),
-            "navigate": False,
+            "navigate": True,
         },
         {
             "name": "x",
@@ -260,7 +292,7 @@ def _build_axes_raw_tic(nsegs, nx, pixel_size_um):
                 if pixel_size_um is not None
                 else {}
             ),
-            "navigate": False,
+            "navigate": True,
         },
     ]
 
@@ -291,7 +323,7 @@ def _build_metadata(file, filename, has_peak_data):
             "hardware": _decode(fibparams_attrs.get("FibHardware", b"")),
             "voltage_kV": float(np.asarray(fibparams_attrs["Voltage"]).flat[0]) / 1000,
             "current_A": float(np.asarray(fibparams_attrs["Current"]).flat[0]),
-            "view_field_m": float(np.asarray(fibparams_attrs["ViewField"]).flat[0]),
+            "view_field_mm": float(np.asarray(fibparams_attrs["ViewField"]).flat[0]),
             "pixel_size_um": pixel_size_um,
         }
     except Exception:
@@ -399,42 +431,17 @@ def _build_original_metadata(file):
     if "FIBImages" in file:
         orig["FIBImages"] = list(file["FIBImages"].keys())
 
-    # Arrays too large for metadata
-    try:
-        orig["SaturationWarning"] = np.asarray(file["FullSpectra/SaturationWarning"])
-    except Exception:
-        # SaturationWarning dataset is optional; omit if absent
-        _logger.warning(
-            "FullSpectra/SaturationWarning not found; omitting from metadata."
-        )
+    # SaturationWarning is a per-pixel flag array — store only shape/dtype, not data
+    if "FullSpectra/SaturationWarning" in file:
+        ds = file["FullSpectra/SaturationWarning"]
+        orig["SaturationWarning"] = {"shape": list(ds.shape), "dtype": str(ds.dtype)}
 
     return orig
 
 
 # ---------------------------------------------------------------------------
-# TIC map computation for raw files
+# EventList / peak data reconstruction helpers
 # ---------------------------------------------------------------------------
-
-
-def _compute_tic_map(file, nwrites, nsegs, nx):
-    """
-    Compute the TIC (total ion count) map from the variable-length EventList.
-
-    Returns a (nsegs, nx) int32 array.
-    """
-    el = file["FullSpectra/EventList"]
-    tic_map = np.zeros((nsegs, nx), dtype=np.int32)
-    for w in range(nwrites):
-        for s in range(nsegs):
-            # Read one (write, segment) row at once — each element is a
-            # variable-length array of raw TDC timestamps for that pixel.
-            # Counting the length of each element gives the per-pixel ion count
-            # for this write/segment pair, accumulated across all writes.
-            # Reading per row instead of per pixel reduces HDF5 read calls by
-            # a factor of nx (benchmarked as ~28× faster on a large 2.2GB dataset).
-            row = el[w, s, :]
-            tic_map[s, :] += np.array([len(r) for r in row], dtype=np.int32)
-    return tic_map
 
 
 def _count_active_channels(file):
@@ -602,6 +609,13 @@ def _compute_peak_data_from_eventlist(file):
 
     result = np.zeros((nwrites, nsegs, nx, npeaks), dtype=np.float32)
 
+    _logger.warning(
+        f"Reconstructing peak data from EventList "
+        f"({nwrites} depth slices × {nsegs} × {nx} pixels × {npeaks} peaks). "
+        f"This may take several minutes. "
+        f"Consider opening the file with Tofwerk software first for instant lazy loading."
+    )
+
     # Prefer the numba JIT path when numba is installed: events are packed into a
     # flat contiguous buffer per row and processed in a single compiled loop,
     # avoiding per-pixel Python object overhead entirely.  Falls back to a
@@ -613,6 +627,16 @@ def _compute_peak_data_from_eventlist(file):
     except ImportError:
         _use_numba = False
 
+    try:
+        from tqdm.auto import tqdm as _tqdm
+    except ImportError:
+        _tqdm = None
+
+    def _make_pbar(n, desc="Reconstructing peak data"):
+        if _tqdm is not None:
+            return _tqdm(total=n, desc=desc, unit=" slices")
+        return None
+
     if _use_numba:
         # numba path: flatten each (write, segment) row into a contiguous int64
         # buffer and dispatch to the JIT-compiled _accumulate_peak_counts kernel.
@@ -620,6 +644,7 @@ def _compute_peak_data_from_eventlist(file):
         # Avoids ~6 intermediate per-pixel arrays; benchmarked as ~19× faster than a
         # per-pixel HDF5 read loop on a 2.2GB dataset.
         result_sx = np.zeros((nx, npeaks), dtype=np.float32)
+        pbar = _make_pbar(nwrites)
         for w in range(nwrites):
             for s in range(nsegs):
                 flat, offsets = _flatten_event_row(el[w, s, :])
@@ -637,12 +662,17 @@ def _compute_peak_data_from_eventlist(file):
                     result_sx,
                 )
                 result[w, s] = result_sx[:, inv_sort_idx]
+            if pbar is not None:
+                pbar.update(1)
+        if pbar is not None:
+            pbar.close()
     else:
         # NumPy fallback path: iterate over pixels explicitly, converting each
         # pixel's variable-length event array to masses and binning with
         # searchsorted + bincount.  Slower than the numba path but avoids any
         # compiled dependency.  Reading per row rather than per pixel is still
         # Benchmarked as ~3× faster than a per-pixel HDF5 read loop on a 2.2GB dataset.
+        pbar = _make_pbar(nwrites)
         for w in range(nwrites):
             for s in range(nsegs):
                 row = el[w, s, :]
@@ -665,8 +695,18 @@ def _compute_peak_data_from_eventlist(file):
                     )
                     counts = np.bincount(bin_idx[in_peak], minlength=npeaks)
                     result[w, s, x, sort_idx] = counts
+            if pbar is not None:
+                pbar.update(1)
+        if pbar is not None:
+            pbar.close()
 
-    result /= normalization
+    pbar = _make_pbar(nwrites, desc="Normalising")
+    for w in range(nwrites):
+        result[w] /= normalization
+        if pbar is not None:
+            pbar.update(1)
+    if pbar is not None:
+        pbar.close()
     return result
 
 
@@ -696,11 +736,28 @@ def _decode_attr(value):
 
 
 # ---------------------------------------------------------------------------
+# EventList post-processing
+# ---------------------------------------------------------------------------
+
+
+def _mark_event_list_ragged(signal):
+    """Mark EventList signals as ragged so HyperSpy handles them correctly.
+
+    Setting ``signal.ragged = True`` registers the variable-length TDC
+    timestamp arrays as HyperSpy's native ragged signal type.  The signal
+    repr becomes ``(depth, y, x | ragged)`` and ``plot()`` raises HyperSpy's
+    standard ``RuntimeError("Plotting ragged signal is not supported.")``.
+    """
+    signal.ragged = True
+    return signal
+
+
+# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
 
-def file_reader(filename, lazy=False, compute_peak_data=False):
+def file_reader(filename, lazy=False, signal="sum_spectrum"):
     """
     Read a Tofwerk TofDAQ HDF5 file.
 
@@ -710,15 +767,30 @@ def file_reader(filename, lazy=False, compute_peak_data=False):
         Path to the ``.h5`` file.
     lazy : bool, optional
         If True, data arrays are returned as :class:`dask.array.Array` objects
-        and the file handle is kept open.  Default is False.
-    compute_peak_data : bool, optional
-        If True and the file is a raw (unopened) file that contains a
-        ``PeakData/PeakTable`` dataset, reconstruct the 4-D peak-integrated
-        array from ``FullSpectra/EventList`` by applying the mass calibration
-        and integrating within each peak's defined window.  The result is
-        identical in structure to the ``PeakData/PeakData`` dataset written by
-        the Tofwerk proprietary software.  This option has no effect on opened
-        files (which already contain ``PeakData/PeakData``).  Default is False.
+        and the file handle is kept open.  Does not apply to the
+        ``"event_list"`` signal, which is always loaded eagerly.
+        Default is False.
+    signal : str or list of str, optional
+        Which signal(s) to return.  Valid values:
+
+        ``"sum_spectrum"`` (default)
+            1-D cumulative spectrum from ``FullSpectra/SumSpectrum``.
+            Always available.
+        ``"peak_data"``
+            4-D array ``(depth, y, x, m/z)``.  For opened files, reads
+            ``PeakData/PeakData`` directly.  For raw files, reconstructs
+            from ``FullSpectra/EventList`` using the windows in
+            ``PeakData/PeakTable``.
+        ``"event_list"``
+            Ragged object array ``(depth, y, x)`` of raw uint16 TDC
+            timestamps.  Available only in raw files.  Always eager.
+        ``"all"``
+            All signals available for the file (2 for opened files,
+            3 for raw files).
+
+        Pass a list to request multiple specific signals, e.g.
+        ``signal=["sum_spectrum", "peak_data"]``.  The returned list has
+        one entry per requested signal (or all available for ``"all"``).
 
     Returns
     -------
@@ -726,16 +798,12 @@ def file_reader(filename, lazy=False, compute_peak_data=False):
         Each element is a signal dictionary with keys ``data``, ``axes``,
         ``metadata``, and ``original_metadata``.
 
-        * **Opened files** (``PeakData/PeakData`` present): three signals —
-          a 1-D sum spectrum, a 2-D TIC map, and a 4-D peak array
-          ``(depth, y, x, m/z)``.
-        * **Raw files**: two signals — a 1-D sum spectrum and a 2-D TIC map.
-          If ``compute_peak_data=True`` a third 4-D signal is also returned.
-
     Raises
     ------
     IOError
         If the file is not a Tofwerk TofDAQ HDF5 file.
+    ValueError
+        If ``signal`` contains an unrecognised value.
     """
     import h5py
 
@@ -749,91 +817,136 @@ def file_reader(filename, lazy=False, compute_peak_data=False):
             "Missing required groups or 'TofDAQ Version' root attribute."
         )
 
+    # ------------------------------------------------------------------
+    # Parse and validate the signal parameter
+    # ------------------------------------------------------------------
+    if isinstance(signal, str):
+        signal_list = [signal]
+    else:
+        signal_list = list(signal)
+
+    try:
+        signal_list = [TofwerkSignal(s) for s in signal_list]
+    except ValueError:
+        f.close()
+        valid = [s.value for s in TofwerkSignal]
+        raise ValueError(
+            f"Invalid signal value(s) in {signal!r}. Must be one or more of {valid}."
+        )
+
+    want_all = TofwerkSignal.ALL in signal_list
+    want_sum = want_all or TofwerkSignal.SUM_SPECTRUM in signal_list
+    want_peak = want_all or TofwerkSignal.PEAK_DATA in signal_list
+    want_evl = want_all or TofwerkSignal.EVENT_LIST in signal_list
+
+    # ------------------------------------------------------------------
+    # File state and metadata
+    # ------------------------------------------------------------------
     has_peak_data = _has_peak_data(f)
     metadata = _build_metadata(f, filename, has_peak_data)
     original_metadata = _build_original_metadata(f)
-
     stem = metadata["General"]["title"]
-    signals = []
 
     # ------------------------------------------------------------------
     # Determine spatial dimensions
     # ------------------------------------------------------------------
     nwrites = int(np.asarray(f.attrs.get("NbrWrites", 1)).flat[0])
     nsegs = int(np.asarray(f.attrs.get("NbrSegments", 1)).flat[0])
+    has_event_list = "FullSpectra/EventList" in f
     if has_peak_data:
         nx = f["PeakData/PeakData"].shape[2]
+    elif has_event_list:
+        nx = f["FullSpectra/EventList"].shape[2]
     else:
-        try:
-            nx = f["FullSpectra/EventList"].shape[2]
-        except Exception:  # pragma: no cover
-            nx = nsegs
+        nx = nsegs
     pixel_size_um = _parse_pixel_size(f, nx)
 
     # ------------------------------------------------------------------
-    # Signal 0: sum spectrum (present in both raw and opened files)
+    # Availability checks
     # ------------------------------------------------------------------
-    sum_ds = f["FullSpectra/SumSpectrum"]
-    mass_axis_ds = np.asarray(f["FullSpectra/MassAxis"])
+    has_peak_table = "PeakData/PeakTable" in f
+    can_peak = has_peak_data or (has_event_list and has_peak_table)
+    can_evl = has_event_list
 
-    # TofDAQ mass calibrations may have an invalid prefix at low flight times
-    # (negative values or a non-monotonically increasing region).
-    # HyperSpy requires non-uniform axes to be strictly increasing, so advance
-    # past any leading samples where the calibration has not yet become valid.
-    first_valid = int(np.argmax(mass_axis_ds >= 0))
-    while (
-        first_valid < len(mass_axis_ds) - 1
-        and mass_axis_ds[first_valid] >= mass_axis_ds[first_valid + 1]
-    ):
-        first_valid += 1
-    mass_axis_ds = mass_axis_ds[first_valid:]
+    if want_peak and not can_peak:
+        _logger.warning(
+            "signal='peak_data' requested but not available "
+            "(no PeakData/PeakData and no EventList+PeakTable). Skipping."
+        )
+    if want_evl and not can_evl:
+        _logger.warning(
+            "signal='event_list' requested but FullSpectra/EventList not present. Skipping."
+        )
 
-    sum_axes = _build_axes_raw_sum(mass_axis_ds)
+    produce_sum = want_sum
+    produce_peak = want_peak and can_peak
+    produce_evl = want_evl and can_evl
 
-    sum_meta = dict(metadata)
-    sum_meta["General"] = dict(metadata["General"])
-    sum_meta["General"]["title"] = stem + " (sum spectrum)"
+    # Log available-but-not-requested signals
+    if not want_all:
+        available = ["sum_spectrum"]
+        if can_peak:
+            available.append("peak_data")
+        if can_evl:
+            available.append("event_list")
+        requested = {s.value for s in signal_list}
+        not_requested = [s for s in available if s not in requested]
+        if not_requested:
+            _logger.info(
+                f"Other signals available: {not_requested}. "
+                f"Pass signal={available!r} to load them."
+            )
 
-    if lazy:
-        import dask.array as da
-
-        sum_data = da.from_array(sum_ds, chunks=-1)[first_valid:]
-    else:
-        sum_data = np.asarray(sum_ds)[first_valid:]
-
-    signals.append(
-        {
-            "data": sum_data,
-            "axes": sum_axes,
-            "metadata": sum_meta,
-            "original_metadata": original_metadata,
-        }
-    )
+    signals = []
 
     # ------------------------------------------------------------------
-    # Signal 2: 4D peak-integrated array
+    # Sum spectrum (present in both raw and opened files)
+    # ------------------------------------------------------------------
+    if produce_sum:
+        sum_ds = f["FullSpectra/SumSpectrum"]
+        mass_axis_ds = np.asarray(f["FullSpectra/MassAxis"])
+
+        # TofDAQ mass calibrations may have an invalid prefix at low flight times
+        # (negative values or a non-monotonically increasing region).
+        # HyperSpy requires non-uniform axes to be strictly increasing, so advance
+        # past any leading samples where the calibration has not yet become valid.
+        first_valid = int(np.argmax(mass_axis_ds >= 0))
+        while (
+            first_valid < len(mass_axis_ds) - 1
+            and mass_axis_ds[first_valid] >= mass_axis_ds[first_valid + 1]
+        ):
+            first_valid += 1
+        mass_axis_ds = mass_axis_ds[first_valid:]
+
+        sum_axes = _build_axes_raw_sum(mass_axis_ds)
+        sum_meta = dict(metadata)
+        sum_meta["General"] = dict(metadata["General"])
+        sum_meta["General"]["title"] = stem + " (sum spectrum)"
+
+        if lazy:
+            import dask.array as da
+
+            sum_data = da.from_array(sum_ds, chunks=-1)[first_valid:]
+        else:
+            sum_data = np.asarray(sum_ds)[first_valid:]
+
+        signals.append(
+            {
+                "data": sum_data,
+                "axes": sum_axes,
+                "metadata": sum_meta,
+                "original_metadata": original_metadata,
+            }
+        )
+
+    # ------------------------------------------------------------------
+    # 4D peak-integrated array
     #   Opened files: read PeakData/PeakData directly
-    #   Raw files with compute_peak_data=True: reconstruct from EventList
+    #   Raw files: reconstruct from EventList
     # ------------------------------------------------------------------
-    can_compute = (
-        not has_peak_data
-        and compute_peak_data
-        and "PeakData/PeakTable" in f
-        and "FullSpectra/EventList" in f
-    )
-
-    # peak_data_array holds the eagerly loaded array when not lazy and
-    # has_peak_data, so the TIC map can be derived from it without a
-    # second read of the (potentially large) PeakData dataset.
-    peak_data_array = None
-    # tic_from_batches is set when TIC is accumulated during batch loading,
-    # avoiding a second full pass through the array.
-    tic_from_batches = None
-
-    if has_peak_data or can_compute:
+    if produce_peak:
         if has_peak_data:
             peak_ds = f["PeakData/PeakData"]
-            nwrites, nsegs, nx, npeaks = peak_ds.shape
             peak_table = np.asarray(f["PeakData/PeakTable"])
         else:
             peak_table = np.asarray(f["PeakData/PeakTable"])
@@ -847,12 +960,15 @@ def file_reader(filename, lazy=False, compute_peak_data=False):
         peak_meta = dict(metadata)
         peak_meta["General"] = dict(metadata["General"])
         peak_meta["General"]["title"] = stem + " (peak data)"
+        peak_meta["Signal"] = {"signal_type": "FIB-SIMS"}
 
         if has_peak_data:
             if lazy:
                 import dask.array as da
 
-                peak_data = da.from_array(peak_ds, chunks="auto")
+                # One chunk per depth slice: avoids tiny native HDF5 chunks creating
+                # huge dask task graphs, and matches the natural access pattern.
+                peak_data = da.from_array(peak_ds, chunks=(1, nsegs, nx, -1))
                 if not already_sorted:
                     peak_data = peak_data[:, :, :, sort_idx]
             else:
@@ -863,36 +979,43 @@ def file_reader(filename, lazy=False, compute_peak_data=False):
                         f"(lazy=True is recommended for large files)."
                     )
                 if already_sorted:
-                    peak_data_array = np.asarray(peak_ds)
+                    peak_data = np.asarray(peak_ds)
                 else:
                     # Apply sort_idx in write-batches so each batch fits in
                     # cache.  Avoids cache-thrashing column permutation across
                     # the full array (which is O(n_cycle × dataset_size)).
                     _BATCH = 64
                     nw_ds = peak_ds.shape[0]
-                    peak_data_array = np.empty(peak_ds.shape, dtype=peak_ds.dtype)
-                    _tic_accum = np.zeros((nsegs, nx), dtype=np.float64)
+                    peak_data = np.empty(peak_ds.shape, dtype=peak_ds.dtype)
                     for _w0 in range(0, nw_ds, _BATCH):
                         _w1 = min(_w0 + _BATCH, nw_ds)
-                        _batch = np.asarray(peak_ds[_w0:_w1])[:, :, :, sort_idx]
-                        peak_data_array[_w0:_w1] = _batch
-                        _tic_accum += _batch.sum(axis=(0, 3))
-                    tic_from_batches = _tic_accum.astype(np.float32)
-                peak_data = peak_data_array
+                        peak_data[_w0:_w1] = np.asarray(peak_ds[_w0:_w1])[
+                            :, :, :, sort_idx
+                        ]
         else:
-            # compute_peak_data=True: always eager (EventList is variable-length)
-            peak_data_array = _compute_peak_data_from_eventlist(f)
+            # Raw file: always eager (EventList is variable-length)
+            peak_data = _compute_peak_data_from_eventlist(f)
             if not already_sorted:
+                try:
+                    from tqdm.auto import tqdm as _tqdm_sort
+                except ImportError:
+                    _tqdm_sort = None
                 _BATCH = 64
-                nw_ev = peak_data_array.shape[0]
-                sorted_array = np.empty(
-                    peak_data_array.shape, dtype=peak_data_array.dtype
+                nw_ev = peak_data.shape[0]
+                sorted_array = np.empty(peak_data.shape, dtype=peak_data.dtype)
+                pbar = (
+                    _tqdm_sort(total=nw_ev, desc="Sorting m/z axis", unit=" slices")
+                    if _tqdm_sort is not None
+                    else None
                 )
                 for _w0 in range(0, nw_ev, _BATCH):
                     _w1 = min(_w0 + _BATCH, nw_ev)
-                    sorted_array[_w0:_w1] = peak_data_array[_w0:_w1][:, :, :, sort_idx]
-                peak_data_array = sorted_array
-            peak_data = peak_data_array
+                    sorted_array[_w0:_w1] = peak_data[_w0:_w1][:, :, :, sort_idx]
+                    if pbar is not None:
+                        pbar.update(_w1 - _w0)
+                if pbar is not None:
+                    pbar.close()
+                peak_data = sorted_array
 
         signals.append(
             {
@@ -904,58 +1027,66 @@ def file_reader(filename, lazy=False, compute_peak_data=False):
         )
 
     # ------------------------------------------------------------------
-    # Signal 1: TIC map
-    #   Raw files:    computed from EventList (always eager)
-    #   Opened files: sum PeakData over depth and mass axes
+    # EventList: ragged TDC timestamps (raw files only)
     # ------------------------------------------------------------------
-    tic_axes = _build_axes_raw_tic(nsegs, nx, pixel_size_um)
-    tic_meta = dict(metadata)
-    tic_meta["General"] = dict(metadata["General"])
-    tic_meta["General"]["title"] = stem + " (TIC map)"
+    if produce_evl:
+        el_ds = f["FullSpectra/EventList"]
+        if lazy:
+            # Lazy path: wrap the open h5py VL dataset directly in dask.
+            # Each chunk is one depth slice; elements are fetched from the
+            # file on .compute().  The file must remain open (see
+            # has_lazy_array below).
+            import dask.array as da
 
-    if lazy:
-        import dask
-        import dask.array as da
-
-        if has_peak_data:
-            # sum pre-integrated peaks over writes and mass axis without loading
-            tic_map = (
-                da.from_array(f["PeakData/PeakData"], chunks="auto")
-                .sum(axis=(0, 3))
-                .astype(np.float32)
-            )
+            el_data = da.from_array(el_ds, chunks=(1, nsegs, nx))
         else:
-            # defer the expensive EventList walk until the signal is computed
-            tic_map = da.from_delayed(
-                dask.delayed(_compute_tic_map)(f, nwrites, nsegs, nx),
-                shape=(nsegs, nx),
-                dtype=np.int32,
+            # Eager path: load all depth slices into an object array now.
+            _logger.warning(
+                f"Loading EventList ({nwrites} depth slices × {nsegs} × {nx} pixels). "
+                f"Pass lazy=True to defer reading to .compute() calls."
             )
-    elif tic_from_batches is not None:
-        # TIC was accumulated during batch loading; no second pass needed
-        tic_map = tic_from_batches
-    elif peak_data_array is not None:
-        # derive TIC from the already-loaded peak array; avoids a second read
-        tic_map = peak_data_array.sum(axis=(0, 3)).astype(np.float32)
-    elif has_peak_data:
-        # lazy=False, has_peak_data, but no peak signal requested — read directly
-        tic_map = np.asarray(f["PeakData/PeakData"]).sum(axis=(0, 3)).astype(np.float32)
-    else:
-        # eagerly walk the variable-length EventList to count ions per pixel
-        tic_map = _compute_tic_map(f, nwrites, nsegs, nx)
-
-    # Insert TIC map at index 1 (after sum spectrum, before peak data)
-    signals.insert(
-        1,
-        {
-            "data": tic_map,
-            "axes": tic_axes,
-            "metadata": tic_meta,
+            try:
+                from tqdm.auto import tqdm as _tqdm_el
+            except ImportError:
+                _tqdm_el = None
+            el_data = np.empty((nwrites, nsegs, nx), dtype=object)
+            pbar = (
+                _tqdm_el(total=nwrites, desc="Loading EventList", unit=" slices")
+                if _tqdm_el is not None
+                else None
+            )
+            for w in range(nwrites):
+                el_data[w] = el_ds[w]
+                if pbar is not None:
+                    pbar.update(1)
+            if pbar is not None:
+                pbar.close()
+        el_axes = _build_axes_event_list(nwrites, nsegs, nx, pixel_size_um)
+        el_meta = dict(metadata)
+        el_meta["General"] = dict(metadata["General"])
+        el_meta["General"]["title"] = stem + " (event list)"
+        el_meta["Signal"] = {"signal_type": ""}
+        sig_dict = {
+            "data": el_data,
+            "axes": el_axes,
+            "metadata": el_meta,
             "original_metadata": original_metadata,
-        },
-    )
+            # Mark as ragged so HyperSpy represents it as (depth, y, x | ragged)
+            # and raises its standard RuntimeError when .plot() is called.
+            "post_process": [_mark_event_list_ragged],
+        }
+        if not lazy:
+            # HyperSpy's lazy data wrapping hangs on object-dtype numpy arrays
+            # (dask cannot auto-chunk object dtype).  Since the data is already
+            # in memory, force a non-lazy signal regardless of the caller's flag.
+            sig_dict["attributes"] = {"_lazy": False}
+        signals.append(sig_dict)
 
-    if not lazy:
+    # Keep the file open if any lazy dask arrays still reference it
+    has_lazy_array = lazy and (
+        produce_sum or (produce_peak and has_peak_data) or produce_evl
+    )
+    if not has_lazy_array:
         f.close()
 
     return signals

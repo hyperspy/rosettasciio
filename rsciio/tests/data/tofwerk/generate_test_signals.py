@@ -35,7 +35,7 @@ Instrument metadata (same in both files):
   Ion mode:           positive
   DAQ hardware:       Cronologic xTDC4
   TofDAQ version:     1.99
-  Field of view:      10 µm  (FIBParams.ViewField = 1e-5 m)
+  Field of view:      10 µm  (FIBParams.ViewField = 0.01 mm)
   Pixel size:         0.625 µm/pixel  (10 µm / 16 pixels)
   Chamber pressure:   1.7e-4 Pa  (constant across all writes)
   Acquisition time:   2025-01-01T12:00:00-05:00  (UTC-5, Eastern Standard Time)
@@ -251,7 +251,7 @@ All attributes are stored on the FIBParams group object, not as datasets.
                                   (e.g. 30000.0 → 30 kV).  Divide by 1000 for kV.
   Current               float64   Ion beam current in A at time of acquisition.
                                   Zero if not measured by the hardware.
-  ViewField             float64   Field of view in m (e.g. 1e-5 = 10 µm).
+  ViewField             float64   Field of view in mm (e.g. 0.01 = 10 µm).
                                   Used as fallback for pixel size when
                                   Configuration File Contents is unavailable.
   ScanSpeed             float64   FIB scan speed parameter (instrument-specific).
@@ -462,7 +462,7 @@ def _write_common(f, nwrites, nsegs, nx, npeaks, nsamples):
     fibparams.attrs["FibInterfaceVersion"] = b"3.2.24"
     fibparams.attrs["Voltage"] = np.float64(30000.0)
     fibparams.attrs["Current"] = np.float64(0.0)
-    fibparams.attrs["ViewField"] = np.float64(1e-5)
+    fibparams.attrs["ViewField"] = np.float64(0.01)  # 10 µm = 0.01 mm
     fibparams.attrs["ScanSpeed"] = np.float64(10.0)
 
     # FullSpectra

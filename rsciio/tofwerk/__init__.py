@@ -1,6 +1,8 @@
-from ._api import file_reader
+from ._api import available_signals, compute_peak_data_from_eventlist, file_reader
 
 __all__ = [
+    "available_signals",
+    "compute_peak_data_from_eventlist",
     "file_reader",
 ]
 

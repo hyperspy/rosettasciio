@@ -29,7 +29,7 @@ from rsciio.tests.data.tofwerk.generate_test_signals import (  # noqa: E402
     make_opened_fixture,
     make_raw_fixture,
 )
-from rsciio.tofwerk import file_reader  # noqa: E402
+from rsciio.tofwerk import available_signals, file_reader  # noqa: E402
 
 TEST_DATA = Path(__file__).parent / "data" / "tofwerk"
 OPENED_FILE = TEST_DATA / "fib_sims_opened.h5"
@@ -167,7 +167,9 @@ class TestOpenedFile:
 
     def test_file_type_flag(self):
         meta = file_reader(OPENED_FILE, signal="peak_data")[0]["metadata"]
-        assert meta["Acquisition_instrument"]["FIB_SIMS"]["file_type"] == "opened"
+        assert (
+            meta["Acquisition_instrument"]["FIB_SIMS"]["file_type"] == "pre-processed"
+        )
 
     def test_voltage_kv(self):
         fib = file_reader(OPENED_FILE, signal="peak_data")[0]["metadata"][
@@ -305,13 +307,13 @@ class TestSignalPeakData:
         assert (data >= 0).all()
 
     def test_peak_data_values_match_algorithm(self):
-        """Verify plumbing: reader output matches _compute_peak_data_from_eventlist."""
+        """Verify plumbing: reader output matches _compute_peak_data_from_file."""
         import h5py
 
-        from rsciio.tofwerk._api import _compute_peak_data_from_eventlist
+        from rsciio.tofwerk._api import _compute_peak_data_from_file
 
         with h5py.File(RAW_FILE, "r") as f:
-            expected = _compute_peak_data_from_eventlist(f)
+            expected = _compute_peak_data_from_file(f)
         result = file_reader(RAW_FILE, signal="peak_data")[0]["data"]
         np.testing.assert_array_equal(result, expected)
 
@@ -324,7 +326,7 @@ class TestSignalPeakData:
 
 class TestComputePeakDataNumpyFallback:
     """
-    Covers the NumPy fallback path in ``_compute_peak_data_from_eventlist``
+    Covers the NumPy fallback path in ``compute_peak_data_from_eventlist``
     (the ``else`` branch reached when numba is not installed).
 
     numba is mocked out via ``sys.modules`` so the ImportError branch and the
@@ -333,17 +335,17 @@ class TestComputePeakDataNumpyFallback:
 
     @staticmethod
     def _run_no_numba(path):
-        """Call _compute_peak_data_from_eventlist with numba blocked."""
+        """Call compute_peak_data_from_eventlist with numba blocked."""
         import sys
         from unittest.mock import patch
 
         import h5py
 
-        from rsciio.tofwerk._api import _compute_peak_data_from_eventlist
+        from rsciio.tofwerk._api import _compute_peak_data_from_file
 
         with h5py.File(path, "r") as f:
             with patch.dict(sys.modules, {"numba": None}):
-                return _compute_peak_data_from_eventlist(f)
+                return _compute_peak_data_from_file(f)
 
     def test_numpy_fallback_shape(self, tmp_path):
         """NumPy fallback returns the correct (nwrites, nsegs, nx, npeaks) shape."""
@@ -364,13 +366,13 @@ class TestComputePeakDataNumpyFallback:
 
         import h5py
 
-        from rsciio.tofwerk._api import _compute_peak_data_from_eventlist
+        from rsciio.tofwerk._api import _compute_peak_data_from_file
 
         p = tmp_path / "fallback_match.h5"
         _make_minimal_tofdaq(p)
 
         with h5py.File(p, "r") as f:
-            numba_result = _compute_peak_data_from_eventlist(f)
+            numba_result = _compute_peak_data_from_file(f)
 
         numpy_result = self._run_no_numba(p)
         np.testing.assert_array_equal(numpy_result, numba_result)
@@ -471,13 +473,13 @@ class TestSignalEventList:
 class TestSignalAll:
     """Tests for signal='all'."""
 
-    def test_opened_file_returns_two_signals(self):
-        # Opened files have sum_spectrum + peak_data (no EventList)
-        assert len(file_reader(OPENED_FILE, signal="all")) == 2
+    def test_opened_file_returns_three_signals(self):
+        # Opened files have sum_spectrum + peak_data + fib_images (no EventList)
+        assert len(file_reader(OPENED_FILE, signal="all")) == 3
 
-    def test_raw_file_returns_three_signals(self):
-        # Raw files have sum_spectrum + peak_data (reconstructed) + event_list
-        assert len(file_reader(RAW_FILE, signal="all")) == 3
+    def test_raw_file_returns_four_signals(self):
+        # Raw files have sum_spectrum + peak_data (reconstructed) + event_list + fib_images
+        assert len(file_reader(RAW_FILE, signal="all")) == 4
 
     def test_sum_and_event_list_only(self):
         sigs = file_reader(RAW_FILE, signal=["sum_spectrum", "event_list"])
@@ -487,12 +489,102 @@ class TestSignalAll:
         sigs = file_reader(OPENED_FILE, signal="all")
         assert "sum spectrum" in sigs[0]["metadata"]["General"]["title"]
         assert "peak data" in sigs[1]["metadata"]["General"]["title"]
+        assert "FIB SE images" in sigs[2]["metadata"]["General"]["title"]
 
     def test_all_raw_signal_order(self):
         sigs = file_reader(RAW_FILE, signal="all")
         assert "sum spectrum" in sigs[0]["metadata"]["General"]["title"]
         assert "peak data" in sigs[1]["metadata"]["General"]["title"]
         assert "event list" in sigs[2]["metadata"]["General"]["title"]
+        assert "FIB SE images" in sigs[3]["metadata"]["General"]["title"]
+
+
+class TestAvailableSignals:
+    """Tests for the available_signals() helper."""
+
+    def test_opened_file(self):
+        sigs = available_signals(OPENED_FILE)
+        assert sigs == ["sum_spectrum", "peak_data", "fib_images"]
+
+    def test_raw_file(self):
+        sigs = available_signals(RAW_FILE)
+        assert sigs == ["sum_spectrum", "peak_data", "event_list", "fib_images"]
+
+    def test_non_tofwerk_raises(self, tmp_path):
+        p = tmp_path / "plain.h5"
+        h5py.File(p, "w").close()
+        with pytest.raises(IOError):
+            available_signals(p)
+
+
+FIB_IMG_SIZE = 128  # fixture creates 128×128 SE images
+N_FIB_IMAGES = 3  # fixture creates Image0000, Image0001, Image0002
+# FIBParams.ViewField = 0.01 mm = 10 µm; FIB pixel size = 10 / 128
+FIB_PIXEL_SIZE_UM = 10.0 / FIB_IMG_SIZE
+
+
+class TestFIBImages:
+    """Tests for signal='fib_images'."""
+
+    def test_returns_one_signal(self):
+        assert len(file_reader(OPENED_FILE, signal="fib_images")) == 1
+
+    def test_data_shape(self):
+        sig = file_reader(OPENED_FILE, signal="fib_images")[0]
+        assert sig["data"].shape == (N_FIB_IMAGES, FIB_IMG_SIZE, FIB_IMG_SIZE)
+
+    def test_axes(self):
+        sig = file_reader(OPENED_FILE, signal="fib_images")[0]
+        axes = sig["axes"]
+        assert len(axes) == 3
+        depth, y, x = axes
+        assert depth["name"] == "depth"
+        assert depth["size"] == N_FIB_IMAGES
+        assert depth["navigate"] is True
+        assert y["name"] == "y"
+        assert y["size"] == FIB_IMG_SIZE
+        assert y["navigate"] is False
+        assert pytest.approx(y["scale"]) == FIB_PIXEL_SIZE_UM
+        assert x["name"] == "x"
+        assert x["size"] == FIB_IMG_SIZE
+        assert x["navigate"] is False
+        assert pytest.approx(x["scale"]) == FIB_PIXEL_SIZE_UM
+
+    def test_title(self):
+        sig = file_reader(OPENED_FILE, signal="fib_images")[0]
+        assert "FIB SE images" in sig["metadata"]["General"]["title"]
+
+    def test_also_works_on_raw_file(self):
+        sig = file_reader(RAW_FILE, signal="fib_images")[0]
+        assert sig["data"].shape == (N_FIB_IMAGES, FIB_IMG_SIZE, FIB_IMG_SIZE)
+
+    def test_lazy(self):
+        import dask.array as da
+
+        sig = file_reader(OPENED_FILE, signal="fib_images", lazy=True)[0]
+        assert isinstance(sig["data"], da.Array)
+        assert sig["data"].shape == (N_FIB_IMAGES, FIB_IMG_SIZE, FIB_IMG_SIZE)
+
+    def test_mixed_shape_images_are_filtered(self, tmp_path, caplog):
+        """Images with a non-dominant shape (e.g. truncated last frame) are skipped."""
+        import shutil
+
+        p = tmp_path / "mixed_shape.h5"
+        shutil.copy(OPENED_FILE, p)
+        # Overwrite Image0002/Data with a smaller (truncated) image
+        with h5py.File(p, "a") as f:
+            del f["FIBImages/Image0002/Data"]
+            f["FIBImages/Image0002"].create_dataset(
+                "Data",
+                data=np.zeros((FIB_IMG_SIZE - 2, FIB_IMG_SIZE), dtype=np.float64),
+            )
+        with caplog.at_level(logging.WARNING, logger="rsciio.tofwerk._api"):
+            sig = file_reader(p, signal="fib_images")[0]
+        # Only the 2 full-size images should be returned
+        assert sig["data"].shape == (N_FIB_IMAGES - 1, FIB_IMG_SIZE, FIB_IMG_SIZE)
+        assert any(
+            "skipped" in r.message and "Image0002" in r.message for r in caplog.records
+        )
 
 
 class TestSignalValidation:
@@ -528,7 +620,9 @@ class TestDetection:
 
     def test_opened_file_detected(self):
         meta = file_reader(OPENED_FILE, signal="peak_data")[0]["metadata"]
-        assert meta["Acquisition_instrument"]["FIB_SIMS"]["file_type"] == "opened"
+        assert (
+            meta["Acquisition_instrument"]["FIB_SIMS"]["file_type"] == "pre-processed"
+        )
 
     def test_raw_file_detected(self):
         meta = file_reader(RAW_FILE)[0]["metadata"]

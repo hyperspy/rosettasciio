@@ -17,6 +17,7 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import gc
+import logging
 from pathlib import Path
 
 import numpy as np
@@ -59,16 +60,20 @@ PIXEL_SIZE_UM = 10.0 / NX
 
 class TestOpenedFile:
     """
-    Opened file returns 3 signals:
-      [0] sum spectrum  (1D, from FullSpectra/SumSpectrum)
-      [1] TIC map       (2D, summed from PeakData over depth and mass)
-      [2] peak data     (4D, depth × y × x × m/z)
+    Opened file default returns 1 signal (sum spectrum).
+    Pass signal="peak_data" or signal=["sum_spectrum", "peak_data"] for more.
     """
 
-    def test_returns_three_signals(self):
-        assert len(file_reader(OPENED_FILE)) == 3
+    def test_returns_one_signal_by_default(self):
+        assert len(file_reader(OPENED_FILE)) == 1
 
-    # ── Signal [0]: sum spectrum ──────────────────────────────────────────
+    def test_returns_one_signal_with_peak_data(self):
+        assert len(file_reader(OPENED_FILE, signal="peak_data")) == 1
+
+    def test_returns_two_signals_with_list(self):
+        assert len(file_reader(OPENED_FILE, signal=["sum_spectrum", "peak_data"])) == 2
+
+    # ── Signal [0] default: sum spectrum ─────────────────────────────────
 
     def test_sum_spectrum_shape(self):
         assert file_reader(OPENED_FILE)[0]["data"].shape == (NSAMPLES,)
@@ -84,47 +89,36 @@ class TestOpenedFile:
         assert "axis" in ax
         assert len(ax["axis"]) == NSAMPLES
 
-    # ── Signal [1]: TIC map ───────────────────────────────────────────────
-
-    def test_tic_map_shape(self):
-        assert file_reader(OPENED_FILE)[1]["data"].shape == (NSEGS, NX)
-
-    def test_tic_map_title(self):
-        meta = file_reader(OPENED_FILE)[1]["metadata"]
-        assert "TIC" in meta["General"]["title"]
-
-    def test_tic_map_axes(self):
-        axes = file_reader(OPENED_FILE)[1]["axes"]
-        assert len(axes) == 2
-        assert axes[0]["name"] == "y"
-        assert axes[1]["name"] == "x"
-
-    def test_tic_map_pixel_size(self):
-        axes = file_reader(OPENED_FILE)[1]["axes"]
-        np.testing.assert_allclose(axes[0]["scale"], PIXEL_SIZE_UM)
-        np.testing.assert_allclose(axes[1]["scale"], PIXEL_SIZE_UM)
-
-    # ── Signal [2]: 4D peak data ──────────────────────────────────────────
+    # ── Signal [0] with signal="peak_data": 4D peak data ─────────────────
 
     def test_peak_data_shape(self):
-        assert file_reader(OPENED_FILE)[2]["data"].shape == (NWRITES, NSEGS, NX, NPEAKS)
+        assert file_reader(OPENED_FILE, signal="peak_data")[0]["data"].shape == (
+            NWRITES,
+            NSEGS,
+            NX,
+            NPEAKS,
+        )
 
     def test_peak_data_dtype(self):
-        assert file_reader(OPENED_FILE)[2]["data"].dtype == np.float32
+        assert (
+            file_reader(OPENED_FILE, signal="peak_data")[0]["data"].dtype == np.float32
+        )
 
     def test_peak_data_title(self):
-        meta = file_reader(OPENED_FILE)[2]["metadata"]
+        meta = file_reader(OPENED_FILE, signal="peak_data")[0]["metadata"]
         assert "peak data" in meta["General"]["title"]
 
     def test_four_axes(self):
-        assert len(file_reader(OPENED_FILE)[2]["axes"]) == 4
+        assert len(file_reader(OPENED_FILE, signal="peak_data")[0]["axes"]) == 4
 
     def test_axis_names(self):
-        names = [ax["name"] for ax in file_reader(OPENED_FILE)[2]["axes"]]
+        names = [
+            ax["name"] for ax in file_reader(OPENED_FILE, signal="peak_data")[0]["axes"]
+        ]
         assert names == ["depth", "y", "x", "m/z"]
 
     def test_depth_axis(self):
-        ax = file_reader(OPENED_FILE)[2]["axes"][0]
+        ax = file_reader(OPENED_FILE, signal="peak_data")[0]["axes"][0]
         assert ax["units"] == "slice"
         assert ax["navigate"] is True
         assert ax["size"] == NWRITES
@@ -132,64 +126,65 @@ class TestOpenedFile:
         assert ax["offset"] == 0
 
     def test_spatial_axes_units(self):
-        axes = file_reader(OPENED_FILE)[2]["axes"]
+        axes = file_reader(OPENED_FILE, signal="peak_data")[0]["axes"]
         assert axes[1]["units"] == "µm"
         assert axes[2]["units"] == "µm"
 
     def test_spatial_axes_navigate(self):
-        axes = file_reader(OPENED_FILE)[2]["axes"]
+        axes = file_reader(OPENED_FILE, signal="peak_data")[0]["axes"]
         assert axes[1]["navigate"] is True
         assert axes[2]["navigate"] is True
 
     def test_pixel_size_from_viewfield(self):
         # FIBParams.ViewField = 1e-5 m = 10 µm; 10 / 16 = 0.625 µm/pixel
-        axes = file_reader(OPENED_FILE)[2]["axes"]
+        axes = file_reader(OPENED_FILE, signal="peak_data")[0]["axes"]
         np.testing.assert_allclose(axes[1]["scale"], PIXEL_SIZE_UM)
         np.testing.assert_allclose(axes[2]["scale"], PIXEL_SIZE_UM)
 
     def test_mass_axis_units(self):
-        ax = file_reader(OPENED_FILE)[2]["axes"][3]
+        ax = file_reader(OPENED_FILE, signal="peak_data")[0]["axes"][3]
         assert ax["units"] == "Da"
 
     def test_mass_axis_navigate(self):
-        ax = file_reader(OPENED_FILE)[2]["axes"][3]
+        ax = file_reader(OPENED_FILE, signal="peak_data")[0]["axes"][3]
         assert ax["navigate"] is False
 
     def test_mass_axis_values(self):
-        ax = file_reader(OPENED_FILE)[2]["axes"][3]
+        ax = file_reader(OPENED_FILE, signal="peak_data")[0]["axes"][3]
         assert "axis" in ax
         np.testing.assert_allclose(ax["axis"], np.arange(1, NPEAKS + 1, dtype=float))
 
-    # ── Metadata (shared across all signals) ─────────────────────────────
+    # ── Metadata ─────────────────────────────────────────────────────────
 
     def test_signal_type(self):
-        meta = file_reader(OPENED_FILE)[2]["metadata"]
+        meta = file_reader(OPENED_FILE, signal="peak_data")[0]["metadata"]
         assert meta["Signal"]["signal_type"] == "FIB-SIMS"
 
     def test_binned_flag(self):
-        meta = file_reader(OPENED_FILE)[2]["metadata"]
-        assert meta["Signal"]["binned"] is True
+        # is_binned is set on the m/z signal axis, not in metadata.Signal
+        ax = file_reader(OPENED_FILE, signal="peak_data")[0]["axes"][3]
+        assert ax["is_binned"] is True
 
     def test_file_type_flag(self):
-        meta = file_reader(OPENED_FILE)[2]["metadata"]
+        meta = file_reader(OPENED_FILE, signal="peak_data")[0]["metadata"]
         assert meta["Acquisition_instrument"]["FIB_SIMS"]["file_type"] == "opened"
 
     def test_voltage_kv(self):
-        fib = file_reader(OPENED_FILE)[2]["metadata"]["Acquisition_instrument"][
-            "FIB_SIMS"
-        ]["FIB"]
+        fib = file_reader(OPENED_FILE, signal="peak_data")[0]["metadata"][
+            "Acquisition_instrument"
+        ]["FIB_SIMS"]["FIB"]
         np.testing.assert_allclose(fib["voltage_kV"], 30.0)
 
     def test_fib_hardware(self):
-        fib = file_reader(OPENED_FILE)[2]["metadata"]["Acquisition_instrument"][
-            "FIB_SIMS"
-        ]["FIB"]
+        fib = file_reader(OPENED_FILE, signal="peak_data")[0]["metadata"][
+            "Acquisition_instrument"
+        ]["FIB_SIMS"]["FIB"]
         assert fib["hardware"] == "Tescan"
 
     def test_ion_mode(self):
-        tof = file_reader(OPENED_FILE)[2]["metadata"]["Acquisition_instrument"][
-            "FIB_SIMS"
-        ]["ToF"]
+        tof = file_reader(OPENED_FILE, signal="peak_data")[0]["metadata"][
+            "Acquisition_instrument"
+        ]["FIB_SIMS"]["ToF"]
         assert tof["ion_mode"] == "positive"
 
     def test_creation_date(self):
@@ -212,7 +207,9 @@ class TestOpenedFile:
     def test_lazy_loading(self, lazy):
         import dask.array as da
 
-        result = file_reader(OPENED_FILE, lazy=lazy)
+        result = file_reader(
+            OPENED_FILE, lazy=lazy, signal=["sum_spectrum", "peak_data"]
+        )
         # Sum spectrum: lazy when requested
         sum_data = result[0]["data"]
         if lazy:
@@ -220,7 +217,7 @@ class TestOpenedFile:
         else:
             assert isinstance(sum_data, np.ndarray)
         # Peak data: lazy when requested
-        peak_data = result[2]["data"]
+        peak_data = result[1]["data"]
         if lazy:
             assert isinstance(peak_data, da.Array)
             np.testing.assert_array_equal(peak_data.shape, (NWRITES, NSEGS, NX, NPEAKS))
@@ -231,22 +228,14 @@ class TestOpenedFile:
 
 class TestRawFile:
     """
-    Raw file returns 2 signals:
-      [0] sum spectrum  (1D)
-      [1] TIC map       (2D, computed from EventList)
+    Raw file default returns 1 signal (sum spectrum).
     """
 
-    def test_returns_two_signals(self):
-        assert len(file_reader(RAW_FILE)) == 2
+    def test_returns_one_signal_by_default(self):
+        assert len(file_reader(RAW_FILE)) == 1
 
     def test_sum_spectrum_shape(self):
         assert file_reader(RAW_FILE)[0]["data"].shape == (NSAMPLES,)
-
-    def test_tic_map_shape(self):
-        assert file_reader(RAW_FILE)[1]["data"].shape == (NSEGS, NX)
-
-    def test_tic_map_dtype(self):
-        assert file_reader(RAW_FILE)[1]["data"].dtype == np.int32
 
     def test_sum_spectrum_mass_axis(self):
         ax = file_reader(RAW_FILE)[0]["axes"][0]
@@ -254,12 +243,6 @@ class TestRawFile:
         assert ax["units"] == "Da"
         assert "axis" in ax
         assert len(ax["axis"]) == NSAMPLES
-
-    def test_tic_map_axes(self):
-        axes = file_reader(RAW_FILE)[1]["axes"]
-        assert len(axes) == 2
-        assert axes[0]["name"] == "y"
-        assert axes[1]["name"] == "x"
 
     def test_file_type_flag(self):
         meta = file_reader(RAW_FILE)[0]["metadata"]
@@ -269,9 +252,6 @@ class TestRawFile:
         assert (
             "sum spectrum" in file_reader(RAW_FILE)[0]["metadata"]["General"]["title"]
         )
-
-    def test_tic_map_title(self):
-        assert "TIC" in file_reader(RAW_FILE)[1]["metadata"]["General"]["title"]
 
     @pytest.mark.parametrize("lazy", [True, False])
     def test_sum_spectrum_lazy(self, lazy):
@@ -284,44 +264,44 @@ class TestRawFile:
             assert isinstance(data, np.ndarray)
 
 
-class TestComputePeakData:
+class TestSignalPeakData:
     """
-    Tests for the ``compute_peak_data=True`` option on raw files.
+    Tests for signal="peak_data" on both raw and opened files.
 
     With ClockPeriod = SampleInterval in the fixture, clock_ratio = 1 and
     NbrWaveforms = 1, NActiveChannels = 1 → normalization = 1.  EventList
     values are direct ADC sample indices in [0, NSAMPLES).
     """
 
-    def test_raw_default_returns_two_signals(self):
-        assert len(file_reader(RAW_FILE)) == 2
+    def test_raw_default_returns_one_signal(self):
+        assert len(file_reader(RAW_FILE)) == 1
 
-    def test_raw_compute_returns_three_signals(self):
-        assert len(file_reader(RAW_FILE, compute_peak_data=True)) == 3
+    def test_raw_peak_data_returns_one_signal(self):
+        assert len(file_reader(RAW_FILE, signal="peak_data")) == 1
 
     def test_peak_data_shape(self):
-        sig = file_reader(RAW_FILE, compute_peak_data=True)[2]
+        sig = file_reader(RAW_FILE, signal="peak_data")[0]
         assert sig["data"].shape == (NWRITES, NSEGS, NX, NPEAKS)
 
     def test_peak_data_dtype(self):
-        sig = file_reader(RAW_FILE, compute_peak_data=True)[2]
+        sig = file_reader(RAW_FILE, signal="peak_data")[0]
         assert sig["data"].dtype == np.float32
 
     def test_peak_data_title(self):
-        sig = file_reader(RAW_FILE, compute_peak_data=True)[2]
+        sig = file_reader(RAW_FILE, signal="peak_data")[0]
         assert "peak data" in sig["metadata"]["General"]["title"]
 
     def test_peak_data_axes(self):
-        axes = file_reader(RAW_FILE, compute_peak_data=True)[2]["axes"]
+        axes = file_reader(RAW_FILE, signal="peak_data")[0]["axes"]
         assert len(axes) == 4
         assert [ax["name"] for ax in axes] == ["depth", "y", "x", "m/z"]
 
     def test_peak_data_mass_axis_values(self):
-        ax = file_reader(RAW_FILE, compute_peak_data=True)[2]["axes"][3]
+        ax = file_reader(RAW_FILE, signal="peak_data")[0]["axes"][3]
         np.testing.assert_allclose(ax["axis"], np.arange(1, NPEAKS + 1, dtype=float))
 
     def test_peak_data_non_negative(self):
-        data = file_reader(RAW_FILE, compute_peak_data=True)[2]["data"]
+        data = file_reader(RAW_FILE, signal="peak_data")[0]["data"]
         assert (data >= 0).all()
 
     def test_peak_data_values_match_algorithm(self):
@@ -332,15 +312,14 @@ class TestComputePeakData:
 
         with h5py.File(RAW_FILE, "r") as f:
             expected = _compute_peak_data_from_eventlist(f)
-        result = file_reader(RAW_FILE, compute_peak_data=True)[2]["data"]
+        result = file_reader(RAW_FILE, signal="peak_data")[0]["data"]
         np.testing.assert_array_equal(result, expected)
 
-    def test_compute_peak_data_no_effect_on_opened_file(self):
-        """compute_peak_data=True is a no-op on already-opened files."""
-        sigs_default = file_reader(OPENED_FILE)
-        sigs_flag = file_reader(OPENED_FILE, compute_peak_data=True)
-        assert len(sigs_default) == len(sigs_flag) == 3
-        np.testing.assert_array_equal(sigs_default[2]["data"], sigs_flag[2]["data"])
+    def test_signal_peak_data_on_opened_file(self):
+        """signal='peak_data' on opened file returns 1 signal (reads PeakData directly)."""
+        sigs = file_reader(OPENED_FILE, signal="peak_data")
+        assert len(sigs) == 1
+        assert sigs[0]["data"].shape == (NWRITES, NSEGS, NX, NPEAKS)
 
 
 class TestComputePeakDataNumpyFallback:
@@ -411,6 +390,130 @@ class TestComputePeakDataNumpyFallback:
         assert result.shape[-1] == 2  # npeaks
 
 
+class TestSignalEventList:
+    """Tests for signal='event_list' on raw files."""
+
+    def test_returns_one_signal(self):
+        assert len(file_reader(RAW_FILE, signal="event_list")) == 1
+
+    def test_shape(self):
+        sig = file_reader(RAW_FILE, signal="event_list")[0]
+        assert sig["data"].shape == (NWRITES, NSEGS, NX)
+
+    def test_dtype_object(self):
+        sig = file_reader(RAW_FILE, signal="event_list")[0]
+        assert sig["data"].dtype == object
+
+    def test_elements_are_arrays(self):
+        # Eager path: each element is a numpy array of TDC timestamps
+        sig = file_reader(RAW_FILE, signal="event_list", lazy=False)[0]
+        el = sig["data"]
+        assert isinstance(el[0, 0, 0], np.ndarray)
+
+    def test_three_axes(self):
+        sig = file_reader(RAW_FILE, signal="event_list")[0]
+        assert len(sig["axes"]) == 3
+
+    def test_axis_names(self):
+        axes = file_reader(RAW_FILE, signal="event_list")[0]["axes"]
+        assert [ax["name"] for ax in axes] == ["depth", "y", "x"]
+
+    def test_all_axes_navigate(self):
+        axes = file_reader(RAW_FILE, signal="event_list")[0]["axes"]
+        assert all(ax["navigate"] is True for ax in axes)
+
+    def test_spatial_axes_units(self):
+        axes = file_reader(RAW_FILE, signal="event_list")[0]["axes"]
+        assert axes[1]["units"] == "µm"
+        assert axes[2]["units"] == "µm"
+
+    def test_spatial_axes_scale(self):
+        axes = file_reader(RAW_FILE, signal="event_list")[0]["axes"]
+        np.testing.assert_allclose(axes[1]["scale"], PIXEL_SIZE_UM)
+        np.testing.assert_allclose(axes[2]["scale"], PIXEL_SIZE_UM)
+
+    def test_title_contains_event_list(self):
+        meta = file_reader(RAW_FILE, signal="event_list")[0]["metadata"]
+        assert "event list" in meta["General"]["title"]
+
+    def test_eager_data_is_ndarray(self):
+        # Default (lazy=False): data is a numpy object array
+        sig = file_reader(RAW_FILE, signal="event_list")[0]
+        assert isinstance(sig["data"], np.ndarray)
+        assert not sig.get("attributes", {}).get("_lazy", True)
+
+    def test_lazy_data_is_dask_array(self):
+        import dask.array as da
+
+        sig = file_reader(RAW_FILE, signal="event_list", lazy=True)[0]
+        assert isinstance(sig["data"], da.Array)
+        assert sig["data"].dtype == object
+        assert sig["data"].shape == (NWRITES, NSEGS, NX)
+
+    def test_lazy_computed_element_is_array(self):
+        # A single lazily computed pixel should be a numpy array of uint32
+
+        sig = file_reader(RAW_FILE, signal="event_list", lazy=True)[0]
+        val = sig["data"][0, 0, 0].compute()
+        assert isinstance(val, np.ndarray)
+
+    def test_not_available_on_opened_file(self, caplog):
+        # Opened fixture has no EventList — should warn and return empty list
+        with caplog.at_level(logging.WARNING, logger="rsciio.tofwerk._api"):
+            result = file_reader(OPENED_FILE, signal="event_list")
+        assert len(result) == 0
+        assert any(
+            "event_list" in r.message or "EventList" in r.message
+            for r in caplog.records
+        )
+
+
+class TestSignalAll:
+    """Tests for signal='all'."""
+
+    def test_opened_file_returns_two_signals(self):
+        # Opened files have sum_spectrum + peak_data (no EventList)
+        assert len(file_reader(OPENED_FILE, signal="all")) == 2
+
+    def test_raw_file_returns_three_signals(self):
+        # Raw files have sum_spectrum + peak_data (reconstructed) + event_list
+        assert len(file_reader(RAW_FILE, signal="all")) == 3
+
+    def test_sum_and_event_list_only(self):
+        sigs = file_reader(RAW_FILE, signal=["sum_spectrum", "event_list"])
+        assert len(sigs) == 2
+
+    def test_all_opened_signal_order(self):
+        sigs = file_reader(OPENED_FILE, signal="all")
+        assert "sum spectrum" in sigs[0]["metadata"]["General"]["title"]
+        assert "peak data" in sigs[1]["metadata"]["General"]["title"]
+
+    def test_all_raw_signal_order(self):
+        sigs = file_reader(RAW_FILE, signal="all")
+        assert "sum spectrum" in sigs[0]["metadata"]["General"]["title"]
+        assert "peak data" in sigs[1]["metadata"]["General"]["title"]
+        assert "event list" in sigs[2]["metadata"]["General"]["title"]
+
+
+class TestSignalValidation:
+    """Tests for invalid signal parameter values."""
+
+    def test_invalid_string_raises(self):
+        with pytest.raises(ValueError, match="Invalid signal"):
+            file_reader(OPENED_FILE, signal="bad_value")
+
+    def test_invalid_in_list_raises(self):
+        with pytest.raises(ValueError, match="Invalid signal"):
+            file_reader(OPENED_FILE, signal=["sum_spectrum", "bad_value"])
+
+    def test_valid_enum_member_accepted(self):
+        from rsciio.tofwerk._api import TofwerkSignal
+
+        # Enum members are str subclasses and must work directly
+        result = file_reader(OPENED_FILE, signal=TofwerkSignal.SUM_SPECTRUM)
+        assert len(result) == 1
+
+
 class TestDetection:
     """Tests for format detection and IOError on non-Tofwerk files."""
 
@@ -424,7 +527,7 @@ class TestDetection:
             file_reader(plain_h5)
 
     def test_opened_file_detected(self):
-        meta = file_reader(OPENED_FILE)[2]["metadata"]
+        meta = file_reader(OPENED_FILE, signal="peak_data")[0]["metadata"]
         assert meta["Acquisition_instrument"]["FIB_SIMS"]["file_type"] == "opened"
 
     def test_raw_file_detected(self):
@@ -568,7 +671,7 @@ def _make_minimal_tofdaq(path, **kwargs):
             fibparams.attrs["Voltage"] = np.float64(30000.0)
             fibparams.attrs["Current"] = np.float64(0.0)
             if kwargs.get("include_viewfield", True):
-                fibparams.attrs["ViewField"] = np.float64(1e-5)
+                fibparams.attrs["ViewField"] = np.float64(0.01)  # 10 µm = 0.01 mm
 
         # FibParams/FibPressure
         if kwargs.get("include_fibpressure", True):
@@ -727,11 +830,15 @@ class TestEdgeCases:
         assert "time" not in general
 
     def test_pixel_size_fallback_when_viewfield_absent(self, tmp_path):
-        """ViewField attr missing → pixel size defaults to 1.0 µm/pixel."""
+        """ViewField attr missing → spatial axes are uncalibrated (no scale/units)."""
         p = tmp_path / "no_viewfield.h5"
         _make_minimal_tofdaq(p, include_viewfield=False)
-        axes = file_reader(p)[1]["axes"]
+        axes = file_reader(p, signal="event_list")[0]["axes"]
+        # depth axis always has scale=1
         assert axes[0]["scale"] == pytest.approx(1.0)
+        # spatial axes have no calibration when ViewField is absent
+        assert "scale" not in axes[1]
+        assert "scale" not in axes[2]
 
     def test_fibparams_absent(self, tmp_path):
         """FIBParams group absent → warning logged, no FIB key in metadata."""
@@ -783,23 +890,23 @@ class TestEdgeCases:
         p = tmp_path / "no_clock.h5"
         # _make_minimal_tofdaq does not write ClockPeriod unless kwarg provided
         _make_minimal_tofdaq(p)
-        result = file_reader(p, compute_peak_data=True)
-        assert len(result) == 3
-        assert result[2]["data"].shape[-1] == 2  # npeaks
+        result = file_reader(p, signal="peak_data")
+        assert len(result) == 1
+        assert result[0]["data"].shape[-1] == 2  # npeaks
 
     def test_empty_pixel_in_eventlist(self, tmp_path):
-        """Pixel with empty EventList → skipped in compute_peak_data without error."""
+        """Pixel with empty EventList → skipped in peak_data reconstruction without error."""
         p = tmp_path / "empty_pixel.h5"
         _make_minimal_tofdaq(p, empty_pixel=True)
-        result = file_reader(p, compute_peak_data=True)
-        assert len(result) == 3
+        result = file_reader(p, signal="peak_data")
+        assert len(result) == 1
 
     def test_out_of_range_events_discarded(self, tmp_path):
-        """Events outside [0, nsamples) → discarded in compute_peak_data."""
+        """Events outside [0, nsamples) → discarded in peak_data reconstruction."""
         p = tmp_path / "oor_events.h5"
         _make_minimal_tofdaq(p, out_of_range_pixel=True)
-        result = file_reader(p, compute_peak_data=True)
-        assert len(result) == 3
+        result = file_reader(p, signal="peak_data")
+        assert len(result) == 1
 
     def test_original_metadata_no_fibimages(self, tmp_path):
         """FIBImages group absent → not included in original_metadata."""

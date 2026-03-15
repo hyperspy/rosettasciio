@@ -1,4 +1,5 @@
 import copy
+import importlib
 from pathlib import Path
 
 import numpy as np
@@ -113,6 +114,7 @@ example2_TEM = {
             "azimuth_angle_units": "dg",
             "elevation_angle": 20.0,
             "elevation_angle_units": "dg",
+            "energy_resolution_MnKa": 130.0,
             "live_time": 100.0,
             "live_time_units": "s",
             "real_time": 150.0,
@@ -142,7 +144,7 @@ example2_metadata = {
         },
     },
     "Sample": {"thickness": 50.0, "thickness_units": "nm"},
-    "Signal": {"quantity": "X-RAY INTENSITY (Intensity)", "signal_type": "EDS"},
+    "Signal": {"quantity": "X-RAY INTENSITY (Intensity)", "signal_type": "EDS_TEM"},
     "_HyperSpy": {
         "Folding": {
             "original_axes_manager": None,
@@ -360,7 +362,12 @@ class TestExample2:
         assert example2_parameters == self.s.original_metadata.as_dictionary()
 
     def test_metadata(self):
-        assert_deep_almost_equal(self.s.metadata.as_dictionary(), example2_metadata)
+        expected_TEM = copy.deepcopy(example2_TEM)
+        if importlib.util.find_spec("exspy") is None:
+            del expected_TEM["Detector"]["EDS"]["energy_resolution_MnKa"]
+        assert (
+            self.s.metadata.Acquisition_instrument.TEM.as_dictionary() == expected_TEM
+        )
 
     def test_write_load_cycle(self, tmp_path):
         fname2 = tmp_path / "example2-export.msa"
@@ -477,7 +484,10 @@ def test_iso_compliance(tmp_path):
     np.testing.assert_allclose(s.data, s2.data)
 
     s3 = hs.load(TEST_DATA_PATH / "ISO_22029_2022_compliance_title_multiple_line.msa")
-    s3.metadata.General.title == "NIO EELS OK SHELL - Second line of the title - Third line of the title"
+    assert (
+        s3.metadata.General.title
+        == "NIO EELS OK SHELL - Second line of the title - Third line of the title"
+    )
     # Title is longer than 64 characters, multiple TITLE keywords will be used to store the full title.
 
     fname = tmp_path / "ISO_22029_2022_compliance_title_multiple_line_export.msa"
@@ -492,5 +502,5 @@ def test_iso_compliance(tmp_path):
 def test_time_with_seconds():
     # Example file with time including seconds, which is not compliant with ISO standard,
     # but it is found in some files.
-    s = hs.load(TEST_DATA_PATH / "example1_wtih_seconds.msa")
+    s = hs.load(TEST_DATA_PATH / "example1_with_seconds.msa")
     assert s.metadata.General.time == "12:00:00"

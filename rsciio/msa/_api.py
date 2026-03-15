@@ -298,12 +298,15 @@ def parse_msa_string(string, filename=None):
     ]
     if filename is not None:
         mapped.set_item("General.original_filename", os.path.split(filename)[1])
+
+    # Defaults to empty signal type, which is Signal1D for HyperSpy
+    signal_type = ""
     if "SIGNALTYPE" in parameters and parameters["SIGNALTYPE"]:
         if parameters["SIGNALTYPE"] == "ELS":
-            mapped.set_item("Signal.signal_type", "EELS")
+            signal_type = "EELS"
         elif parameters["SIGNALTYPE"] == "CLS":
-            mapped.set_item("Signal.signal_type", "CL")
-        else:  # pragma: no cover
+            signal_type = "CL"
+        else:
             if parameters["SIGNALTYPE"] not in [
                 "EDS",
                 "WDS",
@@ -311,15 +314,29 @@ def parse_msa_string(string, filename=None):
                 "PES",
                 "XRF",
                 "GAM",
-            ]:
+            ]:  # pragma: no cover
                 warnings.warn(
-                    """SIGNALTYPE does not correspond to any of the valid strings
-                    according to the MSA file format definition."""
+                    f"SIGNALTYPE {parameters['SIGNALTYPE']} does not correspond "
+                    "to any of the valid strings according to the MSA file "
+                    "format definition."
                 )
-            mapped.set_item("Signal.signal_type", parameters["SIGNALTYPE"])
-    else:
-        # Defaults to empty signal type, which is Signal1D for HyperSpy
-        mapped.set_item("Signal.signal_type", "")
+        if parameters["SIGNALTYPE"] == "EDS":
+            # get the beam energy key
+            beam_energy = None
+            for key in parameters.keys():
+                if key.startswith("BEAMKV"):
+                    beam_energy = float(parameters[key])
+                    break
+            signal_type = "EDS"
+            if beam_energy is not None and beam_energy > 30:
+                # The MSA format does not specify the microscope type,
+                # but EDS spectra acquired above 30 kV will most likely follow
+                # TEM type analysis methods
+                signal_type += "_TEM"
+            else:
+                signal_type += "_SEM"
+
+    mapped.set_item("Signal.signal_type", signal_type)
     if "YUNITS" in parameters.keys():
         yunits = f"({parameters['YUNITS']})"
     else:

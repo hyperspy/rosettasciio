@@ -66,11 +66,13 @@ File states
 -----------
 Two file states are handled:
 
-* **Opened** files (``PeakData/PeakData`` present) — the Tofwerk software
+* **Pre-processed** files (``PeakData/PeakData`` present) — the Tofwerk software
   has already integrated the raw events into per-peak counts.  The
   ``"sum_spectrum"`` signal (default) returns the 1-D cumulative spectrum.
   The ``"peak_data"`` signal returns the 4-D ``(depth, y, x, m/z)``
-  peak-integrated array.  EventList is absent in opened files.
+  peak-integrated array.  The Tofwerk software typically removes the
+  EventList when opening a file, but if it is still present
+  ``signal="event_list"`` will return it for reprocessing.
 
 * **Raw** files (``FullSpectra/EventList`` only) — the raw TDC timestamp
   data has not yet been peak-integrated.  The ``"sum_spectrum"`` signal
@@ -81,9 +83,10 @@ Two file states are handled:
 
 The ``signal`` parameter controls which signals are returned.  Pass a
 string or list of strings from ``{"sum_spectrum", "peak_data",
-"event_list", "all"}``.  The default ``signal="sum_spectrum"`` is fast and
-always available; ``"peak_data"`` on a raw file triggers full EventList
-reconstruction.
+"event_list", "fib_images", "all"}``.  The default
+``signal="sum_spectrum"`` is fast and always available; ``"peak_data"``
+on a raw file triggers full EventList reconstruction; ``"fib_images"``
+returns the stack of secondary-electron images at full FIB resolution.
 """
 
 import enum
@@ -110,6 +113,7 @@ class TofwerkSignal(str, enum.Enum):
     SUM_SPECTRUM = "sum_spectrum"
     PEAK_DATA = "peak_data"
     EVENT_LIST = "event_list"
+    FIB_IMAGES = "fib_images"
     ALL = "all"
 
 
@@ -134,7 +138,7 @@ def _is_fib_sims(file):
 
 
 def _has_peak_data(file):
-    """Return True if Tofwerk software has processed the file (opened mode)."""
+    """Return True if Tofwerk software has pre-processed the file."""
     return "PeakData/PeakData" in file
 
 
@@ -209,8 +213,8 @@ def _parse_pixel_size(file, nx):
 # ---------------------------------------------------------------------------
 
 
-def _build_axes_opened(nwrites, nsegs, nx, peak_masses, pixel_size_um):
-    """Return the list of 4 axis dicts for an opened (PeakData) file."""
+def _build_axes_preprocessed(nwrites, nsegs, nx, peak_masses, pixel_size_um):
+    """Return the list of 4 axis dicts for a pre-processed (PeakData) file."""
     return [
         {
             "name": "depth",
@@ -297,6 +301,40 @@ def _build_axes_event_list(nwrites, nsegs, nx, pixel_size_um):
     ]
 
 
+def _build_axes_fib_images(n_images, fib_ny, fib_nx, fib_pixel_size_um):
+    """Return 3 axis dicts for a FIB SE image stack (depth, y, x)."""
+    return [
+        {
+            "name": "depth",
+            "size": n_images,
+            "offset": 0,
+            "scale": 1,
+            "units": "slice",
+            "navigate": True,
+        },
+        {
+            "name": "y",
+            "size": fib_ny,
+            **(
+                {"offset": 0, "scale": fib_pixel_size_um, "units": "µm"}
+                if fib_pixel_size_um is not None
+                else {}
+            ),
+            "navigate": False,
+        },
+        {
+            "name": "x",
+            "size": fib_nx,
+            **(
+                {"offset": 0, "scale": fib_pixel_size_um, "units": "µm"}
+                if fib_pixel_size_um is not None
+                else {}
+            ),
+            "navigate": False,
+        },
+    ]
+
+
 # ---------------------------------------------------------------------------
 # Metadata builder
 # ---------------------------------------------------------------------------
@@ -330,7 +368,7 @@ def _build_metadata(file, filename, has_peak_data):
         # FIBParams group absent in non-FIB-SIMS TofDAQ files; FIB metadata omitted
         _logger.warning("FIBParams not found; FIB metadata will not be populated.")
 
-    # Mass range: use peak table for opened files, raw spectrum axis for raw files
+    # Mass range: use peak table for pre-processed files, raw spectrum axis for raw files
     try:
         if has_peak_data:
             peak_masses = np.asarray(file["PeakData/PeakTable"]["mass"]).astype(float)
@@ -391,19 +429,26 @@ def _build_metadata(file, filename, has_peak_data):
         "DAQ": daq_meta,
         "n_depth_slices": int(np.asarray(root_attrs.get("NbrWrites", 0)).flat[0]),
         "n_segments": int(np.asarray(root_attrs.get("NbrSegments", 0)).flat[0]),
-        "file_type": "opened" if has_peak_data else "raw",
+        "file_type": "pre-processed" if has_peak_data else "raw",
     }
     if chamber_pressure is not None:
         fib_sims_meta["chamber_pressure_Pa"] = chamber_pressure
+
+    # PeakTable: stored in Signal so users can modify integration windows and reintegrate
+    peak_table_list = None
+    if "PeakData/PeakTable" in file:
+        peak_table_list = _peak_table_to_list(np.asarray(file["PeakData/PeakTable"]))
+
+    signal_meta = {"signal_type": "FIB-SIMS"}
+    if peak_table_list is not None:
+        signal_meta["peak_table"] = peak_table_list
 
     metadata = {
         "General": {
             "title": stem,
             "original_filename": str(filename),
         },
-        "Signal": {
-            "signal_type": "FIB-SIMS",
-        },
+        "Signal": signal_meta,
         "Acquisition_instrument": {
             "FIB_SIMS": fib_sims_meta,
         },
@@ -427,6 +472,10 @@ def _build_original_metadata(file):
     for k, v in file.attrs.items():
         orig[k] = _decode_attr(v)
 
+    # PeakTable: store as a list of dicts (raw record of what was in the file)
+    if "PeakData/PeakTable" in file:
+        orig["PeakTable"] = _peak_table_to_list(np.asarray(file["PeakData/PeakTable"]))
+
     # Capture FIBImages as a list of image names (not data — avoid embedding large arrays)
     if "FIBImages" in file:
         orig["FIBImages"] = list(file["FIBImages"].keys())
@@ -436,7 +485,78 @@ def _build_original_metadata(file):
         ds = file["FullSpectra/SaturationWarning"]
         orig["SaturationWarning"] = {"shape": list(ds.shape), "dtype": str(ds.dtype)}
 
+    # MassAxis and FullSpectra timing attributes — needed to reintegrate EventList
+    # data without re-opening the file (see FIBSIMSSpectrum.reintegrate_peaks).
+    if "FullSpectra/MassAxis" in file:
+        orig["MassAxis"] = np.asarray(file["FullSpectra/MassAxis"]).tolist()
+    if "FullSpectra" in file:
+        fs_attrs = {}
+        for key in ("ClockPeriod", "SampleInterval"):
+            if key in file["FullSpectra"].attrs:
+                fs_attrs[key] = float(
+                    np.asarray(file["FullSpectra"].attrs[key]).flat[0]
+                )
+        if fs_attrs:
+            orig["FullSpectra"] = fs_attrs
+
     return orig
+
+
+# ---------------------------------------------------------------------------
+# PeakTable helpers
+# ---------------------------------------------------------------------------
+
+
+def _peak_table_to_list(pt):
+    """
+    Convert a PeakTable structured array to a JSON-serialisable list of dicts.
+
+    Parameters
+    ----------
+    pt : numpy.ndarray
+        Structured array with fields ``label``, ``mass``,
+        ``lower integration limit``, ``upper integration limit``.
+
+    Returns
+    -------
+    list of dict
+        Each dict has keys ``label`` (str), ``mass`` (float),
+        ``lower_integration_limit`` (float), ``upper_integration_limit`` (float).
+    """
+    return [
+        {
+            "label": _decode(row["label"]),
+            "mass": float(row["mass"]),
+            "lower_integration_limit": float(row["lower integration limit"]),
+            "upper_integration_limit": float(row["upper integration limit"]),
+        }
+        for row in pt
+    ]
+
+
+def _peak_table_from_list(peak_table_list):
+    """
+    Convert a peak table list of dicts back to arrays suitable for integration.
+
+    Parameters
+    ----------
+    peak_table_list : list of dict
+        As returned by :func:`_peak_table_to_list`.
+
+    Returns
+    -------
+    masses : numpy.ndarray, float64
+    peak_low : numpy.ndarray, float64
+    peak_high : numpy.ndarray, float64
+    """
+    masses = np.array([p["mass"] for p in peak_table_list], dtype=float)
+    peak_low = np.array(
+        [p["lower_integration_limit"] for p in peak_table_list], dtype=float
+    )
+    peak_high = np.array(
+        [p["upper_integration_limit"] for p in peak_table_list], dtype=float
+    )
+    return masses, peak_low, peak_high
 
 
 # ---------------------------------------------------------------------------
@@ -444,16 +564,20 @@ def _build_original_metadata(file):
 # ---------------------------------------------------------------------------
 
 
-def _count_active_channels(file):
+def _count_active_channels(ini):
     """
-    Return the number of active TDC recording channels from the INI config.
+    Return the number of active TDC recording channels from the INI config string.
 
     TofDAQ records events from multiple ADC/TDC channels simultaneously
     (e.g. Ch1 and Ch3 in a typical fibTOF setup).  Each active channel
     contributes an independent copy of every ion event to the EventList,
     so the raw event count per pixel is multiplied by this factor.
+
+    Parameters
+    ----------
+    ini : str
+        Contents of the ``Configuration File Contents`` root attribute.
     """
-    ini = _decode(file.attrs.get("Configuration File Contents", b""))
     matches = re.findall(r"Ch\dRecord=(\d)", ini)
     return max(sum(int(m) for m in matches), 1)
 
@@ -537,7 +661,9 @@ def _accumulate_peak_counts(
                 result_sx[x, bin_idx] += 1
 
 
-def _compute_peak_data_from_eventlist(file):
+def compute_peak_data_from_eventlist(
+    event_list, mass_axis, nbr_samples, clock_ratio, normalization, peak_table
+):
     """
     Reconstruct the 4-D peak-integrated array from raw EventList data.
 
@@ -548,8 +674,7 @@ def _compute_peak_data_from_eventlist(file):
        convert timestamps to ADC sample indices by integer division with the
        TDC-to-ADC clock ratio (``SampleInterval / ClockPeriod``, typically 64).
     2. Look up the calibrated mass for each sample index via ``MassAxis``.
-    3. Count events that fall within each peak's integration window as defined
-       in ``PeakData/PeakTable``.
+    3. Count events that fall within each peak's integration window.
     4. Divide by ``NbrWaveforms × NActiveChannels`` — the number of times each
        physical ion is recorded in the EventList (once per ToF cycle per active
        recording channel).
@@ -561,44 +686,39 @@ def _compute_peak_data_from_eventlist(file):
 
     Parameters
     ----------
-    file : h5py.File
-        Open HDF5 file handle (raw, not yet opened by Tofwerk software).
+    event_list : array-like, shape (nwrites, nsegs, nx)
+        Ragged object array of uint16 TDC timestamps, one variable-length
+        array per pixel.  Accepts h5py variable-length datasets or
+        numpy object arrays (as loaded by ``signal="event_list"``).
+    mass_axis : numpy.ndarray, shape (nbr_samples,)
+        Calibrated mass (Da) for each ADC sample index, from
+        ``FullSpectra/MassAxis``.
+    nbr_samples : int
+        Length of ``mass_axis``; events outside ``[0, nbr_samples)`` are
+        discarded.
+    clock_ratio : int
+        TDC-to-ADC sample index divisor (``SampleInterval / ClockPeriod``).
+        Pass 1 if ``ClockPeriod`` is not available.
+    normalization : int
+        ``NbrWaveforms × NActiveChannels`` — the divisor used to convert raw
+        event counts to per-waveform ion counts.
+    peak_table : list of dict
+        Integration windows.  Each dict must have keys
+        ``lower_integration_limit`` and ``upper_integration_limit`` (Da).
 
     Returns
     -------
     numpy.ndarray
         Shape ``(nwrites, nsegs, nx, npeaks)``, dtype float32.
-        Identical in structure to ``PeakData/PeakData`` in an opened file.
+        Identical in structure to ``PeakData/PeakData`` in a pre-processed file.
     """
-    el = file["FullSpectra/EventList"]
-    mass_axis = np.asarray(file["FullSpectra/MassAxis"])
-    pt = np.asarray(file["PeakData/PeakTable"])
-
+    el = event_list
+    mass_axis = np.asarray(mass_axis, dtype=np.float64)
+    _, peak_low, peak_high = _peak_table_from_list(peak_table)
+    npeaks = len(peak_table)
     nwrites, nsegs, nx = el.shape
-    npeaks = len(pt)
-    nbr_samples = int(np.asarray(file.attrs["NbrSamples"]).flat[0])
-
-    # TDC-to-ADC sample index conversion factor.  If ClockPeriod is absent
-    # (uncommon), assume events are already in ADC sample units (ratio = 1).
-    try:
-        clock_period = float(
-            np.asarray(file["FullSpectra"].attrs["ClockPeriod"]).flat[0]
-        )
-        sample_interval = float(
-            np.asarray(file["FullSpectra"].attrs["SampleInterval"]).flat[0]
-        )
-        clock_ratio = round(sample_interval / clock_period)
-    except KeyError:
-        clock_ratio = 1
-
-    # Normalisation: each ion appears once per waveform per active channel
-    nbr_waveforms = int(np.asarray(file.attrs.get("NbrWaveforms", 1)).flat[0])
-    n_channels = _count_active_channels(file)
-    normalization = nbr_waveforms * n_channels
 
     # Sort peak windows for O(log n) assignment via searchsorted
-    peak_low = pt["lower integration limit"].astype(float)
-    peak_high = pt["upper integration limit"].astype(float)
     sort_idx = np.argsort(peak_low)
     sorted_low = peak_low[sort_idx]
     sorted_high = peak_high[sort_idx]
@@ -612,7 +732,7 @@ def _compute_peak_data_from_eventlist(file):
     _logger.warning(
         f"Reconstructing peak data from EventList "
         f"({nwrites} depth slices × {nsegs} × {nx} pixels × {npeaks} peaks). "
-        f"This may take several minutes. "
+        f"This may take considerable time depending on the size of the file. "
         f"Consider opening the file with Tofwerk software first for instant lazy loading."
     )
 
@@ -711,6 +831,58 @@ def _compute_peak_data_from_eventlist(file):
 
 
 # ---------------------------------------------------------------------------
+# Private file-level EventList reconstruction helper
+# ---------------------------------------------------------------------------
+
+
+def _compute_peak_data_from_file(file, peak_table=None):
+    """
+    Extract all required arrays from an open HDF5 file and call
+    :func:`compute_peak_data_from_eventlist`.
+
+    This is the internal entry point used by :func:`file_reader`.  External
+    callers should use the public API via a loaded EventList signal and
+    :func:`compute_peak_data_from_eventlist` directly.
+
+    Parameters
+    ----------
+    file : h5py.File
+        Open Tofwerk TofDAQ HDF5 file (must contain ``FullSpectra/EventList``).
+    peak_table : list of dict or None
+        Integration windows.  If None, read from ``PeakData/PeakTable`` in
+        the file.
+
+    Returns
+    -------
+    numpy.ndarray
+        Shape ``(nwrites, nsegs, nx, npeaks)``, dtype float32.
+    """
+    if peak_table is None:
+        peak_table = _peak_table_to_list(np.asarray(file["PeakData/PeakTable"]))
+
+    mass_axis = np.asarray(file["FullSpectra/MassAxis"], dtype=np.float64)
+    nbr_samples = len(mass_axis)
+
+    fs_attrs = file["FullSpectra"].attrs
+    if "ClockPeriod" in fs_attrs:
+        sample_interval = float(np.asarray(fs_attrs.get("SampleInterval", 1.0)).flat[0])
+        clock_period = float(np.asarray(fs_attrs["ClockPeriod"]).flat[0])
+        clock_ratio = int(round(sample_interval / clock_period)) if clock_period else 1
+    else:
+        clock_ratio = 1
+
+    nbr_waveforms = int(np.asarray(file.attrs.get("NbrWaveforms", 1)).flat[0])
+    ini = _decode(file.attrs.get("Configuration File Contents", b""))
+    n_active = _count_active_channels(ini)
+    normalization = nbr_waveforms * n_active
+
+    event_list = file["FullSpectra/EventList"]
+    return compute_peak_data_from_eventlist(
+        event_list, mass_axis, nbr_samples, clock_ratio, normalization, peak_table
+    )
+
+
+# ---------------------------------------------------------------------------
 # Utility
 # ---------------------------------------------------------------------------
 
@@ -757,6 +929,55 @@ def _mark_event_list_ragged(signal):
 # ---------------------------------------------------------------------------
 
 
+def available_signals(filename):
+    """
+    Return the list of signal names available in a Tofwerk TofDAQ HDF5 file.
+
+    This is a fast, read-only inspection call — no data arrays are loaded.
+
+    Parameters
+    ----------
+    filename : str or pathlib.Path
+        Path to the ``.h5`` file.
+
+    Returns
+    -------
+    list of str
+        Subset of ``["sum_spectrum", "peak_data", "event_list", "fib_images"]``
+        depending on what is present in the file.
+
+    Raises
+    ------
+    IOError
+        If the file is not a Tofwerk TofDAQ HDF5 file.
+
+    Examples
+    --------
+    >>> from rsciio.tofwerk import available_signals
+    >>> available_signals("my_acquisition.h5")
+    ['sum_spectrum', 'peak_data', 'fib_images']
+    """
+    import h5py
+
+    with h5py.File(str(filename), "r") as f:
+        if not _is_tofwerk_file(f):
+            raise IOError(
+                f"{filename!r} is not a Tofwerk TofDAQ HDF5 file. "
+                "Missing required groups or 'TofDAQ Version' root attribute."
+            )
+        signals = ["sum_spectrum"]
+        has_peak_data = _has_peak_data(f)
+        has_event_list = "FullSpectra/EventList" in f
+        has_peak_table = "PeakData/PeakTable" in f
+        if has_peak_data or (has_event_list and has_peak_table):
+            signals.append("peak_data")
+        if has_event_list:
+            signals.append("event_list")
+        if "FIBImages" in f and len(f["FIBImages"]) > 0:
+            signals.append("fib_images")
+    return signals
+
+
 def file_reader(filename, lazy=False, signal="sum_spectrum"):
     """
     Read a Tofwerk TofDAQ HDF5 file.
@@ -777,16 +998,20 @@ def file_reader(filename, lazy=False, signal="sum_spectrum"):
             1-D cumulative spectrum from ``FullSpectra/SumSpectrum``.
             Always available.
         ``"peak_data"``
-            4-D array ``(depth, y, x, m/z)``.  For opened files, reads
+            4-D array ``(depth, y, x, m/z)``.  For pre-processed files, reads
             ``PeakData/PeakData`` directly.  For raw files, reconstructs
             from ``FullSpectra/EventList`` using the windows in
             ``PeakData/PeakTable``.
         ``"event_list"``
             Ragged object array ``(depth, y, x)`` of raw uint16 TDC
-            timestamps.  Available only in raw files.  Always eager.
+            timestamps.  Present in all raw files; also available in
+            pre-processed files if the Tofwerk software did not remove it.
+        ``"fib_images"``
+            3-D array ``(depth, y, x)`` of secondary-electron images at
+            full FIB scan resolution (e.g. 256×256).  Available only in
+            FIB-SIMS files that contain a ``FIBImages`` group.
         ``"all"``
-            All signals available for the file (2 for opened files,
-            3 for raw files).
+            All signals available for the file.
 
         Pass a list to request multiple specific signals, e.g.
         ``signal=["sum_spectrum", "peak_data"]``.  The returned list has
@@ -838,6 +1063,7 @@ def file_reader(filename, lazy=False, signal="sum_spectrum"):
     want_sum = want_all or TofwerkSignal.SUM_SPECTRUM in signal_list
     want_peak = want_all or TofwerkSignal.PEAK_DATA in signal_list
     want_evl = want_all or TofwerkSignal.EVENT_LIST in signal_list
+    want_fib = want_all or TofwerkSignal.FIB_IMAGES in signal_list
 
     # ------------------------------------------------------------------
     # File state and metadata
@@ -867,6 +1093,7 @@ def file_reader(filename, lazy=False, signal="sum_spectrum"):
     has_peak_table = "PeakData/PeakTable" in f
     can_peak = has_peak_data or (has_event_list and has_peak_table)
     can_evl = has_event_list
+    can_fib = "FIBImages" in f and len(f["FIBImages"]) > 0
 
     if want_peak and not can_peak:
         _logger.warning(
@@ -875,12 +1102,18 @@ def file_reader(filename, lazy=False, signal="sum_spectrum"):
         )
     if want_evl and not can_evl:
         _logger.warning(
-            "signal='event_list' requested but FullSpectra/EventList not present. Skipping."
+            "signal='event_list' requested but FullSpectra/EventList is not present "
+            "(the Tofwerk software may have removed it when opening the file). Skipping."
+        )
+    if want_fib and not can_fib:
+        _logger.warning(
+            "signal='fib_images' requested but FIBImages group is absent or empty. Skipping."
         )
 
     produce_sum = want_sum
     produce_peak = want_peak and can_peak
     produce_evl = want_evl and can_evl
+    produce_fib = want_fib and can_fib
 
     # Log available-but-not-requested signals
     if not want_all:
@@ -889,6 +1122,8 @@ def file_reader(filename, lazy=False, signal="sum_spectrum"):
             available.append("peak_data")
         if can_evl:
             available.append("event_list")
+        if can_fib:
+            available.append("fib_images")
         requested = {s.value for s in signal_list}
         not_requested = [s for s in available if s not in requested]
         if not_requested:
@@ -900,7 +1135,7 @@ def file_reader(filename, lazy=False, signal="sum_spectrum"):
     signals = []
 
     # ------------------------------------------------------------------
-    # Sum spectrum (present in both raw and opened files)
+    # Sum spectrum (present in both raw and pre-processed files)
     # ------------------------------------------------------------------
     if produce_sum:
         sum_ds = f["FullSpectra/SumSpectrum"]
@@ -941,7 +1176,7 @@ def file_reader(filename, lazy=False, signal="sum_spectrum"):
 
     # ------------------------------------------------------------------
     # 4D peak-integrated array
-    #   Opened files: read PeakData/PeakData directly
+    #   Pre-processed files: read PeakData/PeakData directly
     #   Raw files: reconstruct from EventList
     # ------------------------------------------------------------------
     if produce_peak:
@@ -955,12 +1190,14 @@ def file_reader(filename, lazy=False, signal="sum_spectrum"):
         sort_idx = np.argsort(peak_masses)
         already_sorted = np.array_equal(sort_idx, np.arange(len(sort_idx)))
         peak_masses = peak_masses[sort_idx]
-        peak_axes = _build_axes_opened(nwrites, nsegs, nx, peak_masses, pixel_size_um)
+        peak_axes = _build_axes_preprocessed(
+            nwrites, nsegs, nx, peak_masses, pixel_size_um
+        )
 
         peak_meta = dict(metadata)
         peak_meta["General"] = dict(metadata["General"])
         peak_meta["General"]["title"] = stem + " (peak data)"
-        peak_meta["Signal"] = {"signal_type": "FIB-SIMS"}
+        peak_meta["Signal"] = {**metadata.get("Signal", {}), "signal_type": "FIB-SIMS"}
 
         if has_peak_data:
             if lazy:
@@ -993,8 +1230,11 @@ def file_reader(filename, lazy=False, signal="sum_spectrum"):
                             :, :, :, sort_idx
                         ]
         else:
-            # Raw file: always eager (EventList is variable-length)
-            peak_data = _compute_peak_data_from_eventlist(f)
+            # Raw file: always eager (EventList is variable-length).
+            # Pass the active peak_table from metadata so users can reintegrate
+            # with modified windows by reloading with signal="peak_data".
+            active_peak_table = peak_meta.get("Signal", {}).get("peak_table")
+            peak_data = _compute_peak_data_from_file(f, peak_table=active_peak_table)
             if not already_sorted:
                 try:
                     from tqdm.auto import tqdm as _tqdm_sort
@@ -1082,9 +1322,70 @@ def file_reader(filename, lazy=False, signal="sum_spectrum"):
             sig_dict["attributes"] = {"_lazy": False}
         signals.append(sig_dict)
 
+    # ------------------------------------------------------------------
+    # FIB SE image stack  (FIBImages/<slice_name>, shape: fib_ny × fib_nx)
+    # ------------------------------------------------------------------
+    if produce_fib:
+        fib_grp = f["FIBImages"]
+        all_names = sorted(fib_grp.keys())
+        # Each entry is a subgroup with a "Data" dataset: FIBImages/Image000N/Data
+        # Images are usually the same size, but truncated acquisitions can produce
+        # one or more images with a different shape (typically the last image).
+        # Keep only images that match the most common shape.
+        shape_counts: dict = {}
+        for name in all_names:
+            s = fib_grp[name]["Data"].shape
+            shape_counts[s] = shape_counts.get(s, 0) + 1
+        dominant_shape = max(shape_counts, key=lambda s: (shape_counts[s], s))
+        slice_names = [
+            n for n in all_names if fib_grp[n]["Data"].shape == dominant_shape
+        ]
+        skipped = [
+            (n, fib_grp[n]["Data"].shape)
+            for n in all_names
+            if fib_grp[n]["Data"].shape != dominant_shape
+        ]
+        if skipped:
+            details = ", ".join(f"{name} {shape}" for name, shape in skipped)
+            _logger.warning(
+                f"FIBImages: {len(skipped)} image(s) skipped — shape differs from "
+                f"dominant {dominant_shape}: {details}"
+            )
+        n_fib = len(slice_names)
+        fib_ny, fib_nx = dominant_shape
+        fib_pixel_size_um = _parse_pixel_size(f, fib_nx)
+        fib_axes = _build_axes_fib_images(n_fib, fib_ny, fib_nx, fib_pixel_size_um)
+        fib_meta = dict(metadata)
+        fib_meta["General"] = dict(metadata["General"])
+        fib_meta["General"]["title"] = stem + " (FIB SE images)"
+        fib_meta["Signal"] = {"signal_type": ""}
+
+        if lazy:
+            import dask.array as da
+
+            fib_data = da.stack(
+                [
+                    da.from_array(fib_grp[name]["Data"], chunks=-1)
+                    for name in slice_names
+                ]
+            )
+        else:
+            fib_data = np.stack(
+                [np.asarray(fib_grp[name]["Data"]) for name in slice_names]
+            )
+
+        signals.append(
+            {
+                "data": fib_data,
+                "axes": fib_axes,
+                "metadata": fib_meta,
+                "original_metadata": original_metadata,
+            }
+        )
+
     # Keep the file open if any lazy dask arrays still reference it
     has_lazy_array = lazy and (
-        produce_sum or (produce_peak and has_peak_data) or produce_evl
+        produce_sum or (produce_peak and has_peak_data) or produce_evl or produce_fib
     )
     if not has_lazy_array:
         f.close()

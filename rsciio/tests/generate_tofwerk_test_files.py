@@ -1,15 +1,8 @@
 """
 Generate synthetic Tofwerk TofDAQ HDF5 fixture files for testing.
 
-Run once from this directory:
-
-    cd rsciio/tests/data/tofwerk
-    python generate_fixtures.py
-
-Then update the test registry:
-
-    python -c "from rsciio.tests.registry_utils import update_registry; update_registry()"
-
+Used as fixtures in the Tofwerk tests to dynamically create test data for
+the Tofwerk reader.
 
 ==============================================================================
 Fixture File Contents
@@ -519,30 +512,34 @@ def _write_common(f, nwrites, nsegs, nx, npeaks, nsamples):
     )
 
 
-def make_raw_fixture(path):
+def make_raw_fixture(
+    path, nwrites=NWRITES, nsegs=NSEGS, nx=NX, npeaks=NPEAKS, nsamples=NSAMPLES
+):
     """Create fib_sims_raw.h5 — no PeakData/PeakData, has EventList."""
     with h5py.File(path, "w") as f:
-        _write_common(f, NWRITES, NSEGS, NX, NPEAKS, NSAMPLES)
+        _write_common(f, nwrites, nsegs, nx, npeaks, nsamples)
         vlen = h5py.vlen_dtype(np.uint16)
         el = f["FullSpectra"].create_dataset(
-            "EventList", shape=(NWRITES, NSEGS, NX), dtype=vlen
+            "EventList", shape=(nwrites, nsegs, nx), dtype=vlen
         )
         rng = np.random.default_rng(42)
-        for w in range(NWRITES):
-            for s in range(NSEGS):
-                for x in range(NX):
+        for w in range(nwrites):
+            for s in range(nsegs):
+                for x in range(nx):
                     n_events = int(rng.poisson(20))
-                    # Values in [0, NSAMPLES) so they are valid ADC sample indices
+                    # Values in [0, nsamples) so they are valid ADC sample indices
                     # (ClockPeriod = SampleInterval → clock_ratio = 1 in the fixture)
-                    el[w, s, x] = rng.integers(0, NSAMPLES, n_events, dtype=np.uint16)
+                    el[w, s, x] = rng.integers(0, nsamples, n_events, dtype=np.uint16)
 
 
-def make_opened_fixture(path):
+def make_opened_fixture(
+    path, nwrites=NWRITES, nsegs=NSEGS, nx=NX, npeaks=NPEAKS, nsamples=NSAMPLES
+):
     """Create fib_sims_opened.h5 — has PeakData/PeakData."""
     with h5py.File(path, "w") as f:
-        _write_common(f, NWRITES, NSEGS, NX, NPEAKS, NSAMPLES)
+        _write_common(f, nwrites, nsegs, nx, npeaks, nsamples)
         rng = np.random.default_rng(7)
-        peak_data = rng.exponential(50, (NWRITES, NSEGS, NX, NPEAKS)).astype(np.float32)
+        peak_data = rng.exponential(50, (nwrites, nsegs, nx, npeaks)).astype(np.float32)
         f["PeakData"].create_dataset("PeakData", data=peak_data, compression="gzip")
 
 

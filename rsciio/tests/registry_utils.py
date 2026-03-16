@@ -43,7 +43,7 @@ def update_registry():
         PATH / "data",
         PATH / "registry.txt",
         recursive=True,
-        exclude_pattern=[".git", ".DS_Store", "__pycache__"],
+        exclude_pattern=[".git", ".DS_Store"],
     )
 
 

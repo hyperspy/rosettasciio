@@ -25,7 +25,12 @@ import pytest
 
 h5py = pytest.importorskip("h5py", reason="h5py not installed")
 
-from rsciio.tests.data.tofwerk.generate_test_signals import (  # noqa: E402
+from rsciio.tests.generate_tofwerk_test_files import (  # noqa: E402
+    NPEAKS,
+    NSAMPLES,
+    NSEGS,
+    NWRITES,
+    NX,
     make_opened_fixture,
     make_raw_fixture,
 )
@@ -37,8 +42,18 @@ RAW_FILE = TEST_DATA / "fib_sims_raw.h5"
 
 
 def setup_module():
-    make_raw_fixture(RAW_FILE)
-    make_opened_fixture(OPENED_FILE)
+    TEST_DATA.mkdir(parents=True, exist_ok=True)
+    make_raw_fixture(
+        RAW_FILE, nwrites=NWRITES, nsegs=NSEGS, nx=NX, npeaks=NPEAKS, nsamples=NSAMPLES
+    )
+    make_opened_fixture(
+        OPENED_FILE,
+        nwrites=NWRITES,
+        nsegs=NSEGS,
+        nx=NX,
+        npeaks=NPEAKS,
+        nsamples=NSAMPLES,
+    )
 
 
 def teardown_module():
@@ -48,12 +63,6 @@ def teardown_module():
             f.unlink()
 
 
-# Fixture parameters (must match generate_fixtures.py)
-NWRITES = 5
-NSEGS = 16
-NX = 16
-NPEAKS = 10
-NSAMPLES = 512
 # FIBParams.ViewField = 1e-5 m = 10 µm; pixel_size = 10 µm / 16 = 0.625 µm
 PIXEL_SIZE_UM = 10.0 / NX
 
@@ -460,7 +469,7 @@ class TestSignalEventList:
         assert isinstance(val, np.ndarray)
 
     def test_not_available_on_opened_file(self, caplog):
-        # Opened fixture has no EventList — should warn and return empty list
+        # Opened test file has no EventList — should warn and return empty list
         with caplog.at_level(logging.WARNING, logger="rsciio.tofwerk._api"):
             result = file_reader(OPENED_FILE, signal="event_list")
         assert len(result) == 0
@@ -517,8 +526,8 @@ class TestAvailableSignals:
             available_signals(p)
 
 
-FIB_IMG_SIZE = 128  # fixture creates 128×128 SE images
-N_FIB_IMAGES = 3  # fixture creates Image0000, Image0001, Image0002
+FIB_IMG_SIZE = 128  # test file has 128×128 SE images
+N_FIB_IMAGES = 3  # test file has Image0000, Image0001, Image0002
 # FIBParams.ViewField = 0.01 mm = 10 µm; FIB pixel size = 10 / 128
 FIB_PIXEL_SIZE_UM = 10.0 / FIB_IMG_SIZE
 

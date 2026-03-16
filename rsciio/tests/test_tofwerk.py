@@ -525,6 +525,29 @@ class TestAvailableSignals:
         with pytest.raises(IOError):
             available_signals(p)
 
+    def test_no_peak_capability(self, tmp_path):
+        """File with no EventList and no PeakData: 'peak_data' absent from result.
+
+        Covers the False branch of:
+          993->995  (has_peak_data or (has_event_list and has_peak_table) is False)
+        """
+        p = tmp_path / "no_peak_cap.h5"
+        _make_minimal_tofdaq(p, include_eventlist=False)
+        sigs = available_signals(p)
+        assert "peak_data" not in sigs
+        assert "sum_spectrum" in sigs
+
+    def test_no_fib_images(self, tmp_path):
+        """File without FIBImages group: 'fib_images' absent from result.
+
+        Covers the False branch of:
+          997->999  ("FIBImages" not in f or empty)
+        """
+        p = tmp_path / "no_fib.h5"
+        _make_minimal_tofdaq(p, include_fibimages=False)
+        sigs = available_signals(p)
+        assert "fib_images" not in sigs
+
 
 FIB_IMG_SIZE = 128  # test file has 128×128 SE images
 N_FIB_IMAGES = 3  # test file has Image0000, Image0001, Image0002
@@ -1017,3 +1040,524 @@ class TestEdgeCases:
         _make_minimal_tofdaq(p, include_fibimages=False, include_fibparams=False)
         orig = file_reader(p)[0]["original_metadata"]
         assert "FIBImages" not in orig
+
+    def test_no_peak_table_in_metadata(self, tmp_path):
+        """File without PeakData/PeakTable: peak_table absent from metadata and original_metadata.
+
+        Covers the False branches of:
+          443->446  (_build_metadata: 'PeakData/PeakTable' not in file)
+          447->450  (_build_metadata: peak_table_list is None)
+          480->484  (_build_original_metadata: 'PeakData/PeakTable' not in file)
+        """
+        p = tmp_path / "no_pt.h5"
+        _make_minimal_tofdaq(p)
+        with h5py.File(p, "a") as f:
+            del f["PeakData/PeakTable"]
+        result = file_reader(p)
+        meta = result[0]["metadata"]
+        assert "peak_table" not in meta.get("Signal", {})
+        assert "PeakTable" not in result[0]["original_metadata"]
+
+    def test_no_mass_axis_in_original_metadata(self, tmp_path):
+        """File without FullSpectra/MassAxis: MassAxis absent from original_metadata.
+
+        Covers the False branch of:
+          494->496  (_build_original_metadata: 'FullSpectra/MassAxis' not in file)
+        Calls _build_original_metadata directly because the public file_reader also
+        reads MassAxis for the sum_spectrum signal, which would KeyError first.
+        """
+        from rsciio.tofwerk._api import _build_original_metadata
+
+        p = tmp_path / "no_massaxis.h5"
+        _make_minimal_tofdaq(p)
+        with h5py.File(p, "r") as f:
+            # Wrap the file so "FullSpectra/MassAxis" membership check returns False
+            class _NoMassAxis:
+                def __init__(self, real):
+                    self._f = real
+
+                @property
+                def attrs(self):
+                    return self._f.attrs
+
+                def __contains__(self, key):
+                    if key == "FullSpectra/MassAxis":
+                        return False
+                    return key in self._f
+
+                def __getitem__(self, key):
+                    return self._f[key]
+
+            result = _build_original_metadata(_NoMassAxis(f))
+        assert "MassAxis" not in result
+
+    def test_no_fullspectra_timing_attrs_in_original_metadata(self, tmp_path):
+        """FullSpectra has no SampleInterval or ClockPeriod: FullSpectra key absent.
+
+        Covers the False branch of:
+          503->506  (_build_original_metadata: fs_attrs is empty dict)
+        """
+        p = tmp_path / "no_timing.h5"
+        _make_minimal_tofdaq(p)
+        with h5py.File(p, "a") as f:
+            del f["FullSpectra"].attrs["SampleInterval"]
+        result = file_reader(p)
+        assert "FullSpectra" not in result[0]["original_metadata"]
+
+    def test_build_original_metadata_no_fullspectra(self):
+        """_build_original_metadata with no FullSpectra group skips timing block.
+
+        Covers the False branch of:
+          496->506  (_build_original_metadata: 'FullSpectra' not in file)
+        This path is unreachable via file_reader (blocked by _is_tofwerk_file),
+        so the internal function is called directly with a mock.
+        """
+        from rsciio.tofwerk._api import _build_original_metadata
+
+        class _MinimalFile:
+            attrs = {}
+
+            def __contains__(self, key):
+                return False
+
+        result = _build_original_metadata(_MinimalFile())
+        assert "FullSpectra" not in result
+        assert "MassAxis" not in result
+
+    def test_nx_fallback_to_nsegs(self, tmp_path):
+        """nx falls back to NbrSegments when neither PeakData/PeakData nor EventList exists."""
+        p = tmp_path / "nx_fallback.h5"
+        _make_minimal_tofdaq(p, include_eventlist=False)
+        result = file_reader(p)
+        assert len(result) == 1
+
+    def test_want_peak_not_available_warns(self, tmp_path, caplog):
+        """signal='peak_data' on file with no EventList and no PeakData fires warning."""
+        p = tmp_path / "no_peak.h5"
+        _make_minimal_tofdaq(p, include_eventlist=False)
+        with caplog.at_level(logging.WARNING, logger="rsciio.tofwerk._api"):
+            result = file_reader(p, signal="peak_data")
+        assert len(result) == 0
+        assert any("peak_data" in r.message for r in caplog.records)
+
+    def test_want_fib_not_available_warns(self, tmp_path, caplog):
+        """signal='fib_images' on file with empty FIBImages group fires warning."""
+        p = tmp_path / "no_fib.h5"
+        _make_minimal_tofdaq(p, include_fibimages=False)
+        with caplog.at_level(logging.WARNING, logger="rsciio.tofwerk._api"):
+            result = file_reader(p, signal="fib_images")
+        assert len(result) == 0
+        assert any(
+            "fib_images" in r.message or "FIBImages" in r.message
+            for r in caplog.records
+        )
+
+    def test_available_signals_info_logged(self, caplog):
+        """Loading only sum_spectrum from opened file logs available signals at INFO."""
+        with caplog.at_level(logging.INFO, logger="rsciio.tofwerk._api"):
+            file_reader(OPENED_FILE, signal="sum_spectrum")
+        assert any(
+            "peak_data" in r.message and r.levelname == "INFO" for r in caplog.records
+        )
+
+
+# ---------------------------------------------------------------------------
+# Helper: minimal file with peaks in non-ascending mass order
+# ---------------------------------------------------------------------------
+
+
+def _make_unsorted_peaks_tofdaq(path, with_peak_data=True):
+    """
+    Write a minimal TofDAQ HDF5 file with peaks stored in reverse mass order.
+
+    Peaks: [(b"p1", 2.0, 1.5, 2.5), (b"p0", 1.0, 0.5, 1.5)]  — mass 2.0 first.
+
+    Parameters
+    ----------
+    path : pathlib.Path or str
+    with_peak_data : bool
+        If True, include PeakData/PeakData (pre-processed file).
+        If False, include FullSpectra/EventList (raw file).
+    """
+    nwrites, nsegs, nx, nsamples, npeaks = 2, 2, 2, 8, 2
+    sample_interval = 8.333e-10
+    peak_dtype = np.dtype(
+        [
+            ("label", "S64"),
+            ("mass", np.float32),
+            ("lower integration limit", np.float32),
+            ("upper integration limit", np.float32),
+        ]
+    )
+    # Masses stored in DESCENDING order to trigger the sort path
+    peaks = np.array([(b"p1", 2.0, 1.5, 2.5), (b"p0", 1.0, 0.5, 1.5)], dtype=peak_dtype)
+    with h5py.File(path, "w") as f:
+        f.attrs["TofDAQ Version"] = np.float32(1.99)
+        f.attrs["NbrWrites"] = np.int32(nwrites)
+        f.attrs["NbrSegments"] = np.int32(nsegs)
+        f.attrs["NbrPeaks"] = np.int32(npeaks)
+        f.attrs["NbrWaveforms"] = np.int32(1)
+        f.attrs["IonMode"] = b"positive"
+        f.attrs["DAQ Hardware"] = b"TestDAQ"
+        f.attrs["Computer ID"] = b"test"
+        f.attrs["FiblysGUIVersion"] = b"1.0"
+        f.attrs["Configuration File Contents"] = b"[TOFParameter]\nCh1Record=1\n"
+        log_dtype = np.dtype(
+            [("timestamp", np.uint64), ("timestring", "S26"), ("logtext", "S256")]
+        )
+        log = np.array([(0, b"2025-06-01T08:00:00+00:00", b"start")], dtype=log_dtype)
+        f.create_group("AcquisitionLog").create_dataset("Log", data=log)
+        td = f.create_group("TimingData")
+        td.attrs["TofPeriod"] = np.int32(9500)
+        td.create_dataset("BufTimes", data=np.zeros((nwrites, nsegs), dtype=np.float64))
+        fs = f.create_group("FullSpectra")
+        fs.attrs["MassCalibMode"] = np.int32(0)
+        fs.attrs["MassCalibration p1"] = np.float64(812.2415)
+        fs.attrs["MassCalibration p2"] = np.float64(222.0153)
+        fs.attrs["SampleInterval"] = np.float64(sample_interval)
+        fs.attrs["Single Ion Signal"] = np.float64(1.0)
+        mass_axis = np.linspace(0.0, 10.0, nsamples, dtype=np.float32)
+        fs.create_dataset("MassAxis", data=mass_axis)
+        fs.create_dataset("SumSpectrum", data=np.ones(nsamples, dtype=np.float64))
+        if not with_peak_data:
+            vlen = h5py.vlen_dtype(np.uint16)
+            el = fs.create_dataset("EventList", shape=(nwrites, nsegs, nx), dtype=vlen)
+            rng = np.random.default_rng(42)
+            for w in range(nwrites):
+                for s in range(nsegs):
+                    for x in range(nx):
+                        el[w, s, x] = rng.integers(0, nsamples, 3, dtype=np.uint16)
+        pd_group = f.create_group("PeakData")
+        pd_group.create_dataset("PeakTable", data=peaks)
+        if with_peak_data:
+            rng = np.random.default_rng(42)
+            data = rng.random((nwrites, nsegs, nx, npeaks)).astype(np.float32)
+            pd_group.create_dataset("PeakData", data=data)
+        f.create_group("FIBImages")
+        fibparams = f.create_group("FIBParams")
+        fibparams.attrs["FibHardware"] = b"TestFIB"
+        fibparams.attrs["Voltage"] = np.float64(30000.0)
+        fibparams.attrs["Current"] = np.float64(0.0)
+        fibparams.attrs["ViewField"] = np.float64(0.01)
+
+
+# ---------------------------------------------------------------------------
+# Tests: _mark_event_list_ragged
+# ---------------------------------------------------------------------------
+
+
+class TestMarkEventListRagged:
+    def test_sets_ragged_and_returns_signal(self):
+        from rsciio.tofwerk._api import _mark_event_list_ragged
+
+        class _Stub:
+            pass
+
+        sig = _Stub()
+        result = _mark_event_list_ragged(sig)
+        assert result is sig
+        assert sig.ragged is True
+
+
+# ---------------------------------------------------------------------------
+# Tests: mz_range parameter
+# ---------------------------------------------------------------------------
+
+
+class TestMzRange:
+    def test_invalid_raises(self):
+        with pytest.raises(ValueError, match="mz_range"):
+            file_reader(OPENED_FILE, signal="peak_data", mz_range=(5.0, 2.0))
+
+    def test_empty_range_warns_and_no_signal(self, caplog):
+        with caplog.at_level(logging.WARNING, logger="rsciio.tofwerk._api"):
+            result = file_reader(
+                OPENED_FILE, signal="peak_data", mz_range=(100.0, 200.0)
+            )
+        assert len(result) == 0
+        assert any("mz_range" in r.message for r in caplog.records)
+
+    def test_filters_peaks_opened_eager(self):
+        result = file_reader(OPENED_FILE, signal="peak_data", mz_range=(1.0, 5.0))
+        data = result[0]["data"]
+        assert data.shape == (NWRITES, NSEGS, NX, 5)
+        np.testing.assert_allclose(
+            result[0]["axes"][3]["axis"], [1.0, 2.0, 3.0, 4.0, 5.0]
+        )
+
+    def test_filters_peaks_opened_lazy(self):
+        import dask.array as da
+
+        result = file_reader(
+            OPENED_FILE, signal="peak_data", mz_range=(1.0, 5.0), lazy=True
+        )
+        data = result[0]["data"]
+        assert isinstance(data, da.Array)
+        assert data.shape == (NWRITES, NSEGS, NX, 5)
+
+    def test_filters_peaks_raw(self):
+        result = file_reader(RAW_FILE, signal="peak_data", mz_range=(1.0, 5.0))
+        data = result[0]["data"]
+        assert data.shape == (NWRITES, NSEGS, NX, 5)
+        np.testing.assert_allclose(
+            result[0]["axes"][3]["axis"], [1.0, 2.0, 3.0, 4.0, 5.0]
+        )
+
+    def test_unsorted_opened_selects_correct_peaks(self, tmp_path):
+        """mz_range on unsorted pre-processed file: result in ascending mass order."""
+        p = tmp_path / "unsorted_mz_opened.h5"
+        _make_unsorted_peaks_tofdaq(p, with_peak_data=True)
+        result = file_reader(p, signal="peak_data", mz_range=(1.0, 1.5))
+        assert result[0]["data"].shape[-1] == 1
+        np.testing.assert_allclose(result[0]["axes"][3]["axis"], [1.0])
+
+    def test_unsorted_raw_selects_correct_peaks(self, tmp_path):
+        """mz_range on unsorted raw file: reconstructs only selected peaks."""
+        p = tmp_path / "unsorted_mz_raw.h5"
+        _make_unsorted_peaks_tofdaq(p, with_peak_data=False)
+        result = file_reader(p, signal="peak_data", mz_range=(1.0, 1.5))
+        assert result[0]["data"].shape[-1] == 1
+        np.testing.assert_allclose(result[0]["axes"][3]["axis"], [1.0])
+
+
+# ---------------------------------------------------------------------------
+# Tests: depth_range parameter
+# ---------------------------------------------------------------------------
+
+
+class TestDepthRange:
+    def test_invalid_stop_raises(self):
+        with pytest.raises(ValueError, match="depth_range"):
+            file_reader(OPENED_FILE, depth_range=(0, NWRITES + 1))
+
+    def test_invalid_order_raises(self):
+        with pytest.raises(ValueError, match="depth_range"):
+            file_reader(OPENED_FILE, depth_range=(3, 2))
+
+    def test_opened_eager(self):
+        result = file_reader(OPENED_FILE, signal="peak_data", depth_range=(1, 3))
+        data = result[0]["data"]
+        assert data.shape == (2, NSEGS, NX, NPEAKS)
+        assert result[0]["axes"][0]["size"] == 2
+
+    def test_opened_lazy(self):
+        import dask.array as da
+
+        result = file_reader(
+            OPENED_FILE, signal="peak_data", depth_range=(0, 2), lazy=True
+        )
+        assert isinstance(result[0]["data"], da.Array)
+        assert result[0]["data"].shape == (2, NSEGS, NX, NPEAKS)
+
+    def test_raw_peak_data(self):
+        # Also exercises _compute_peak_data_from_file with depth_start/depth_stop (line 897)
+        result = file_reader(RAW_FILE, signal="peak_data", depth_range=(1, 3))
+        assert result[0]["data"].shape == (2, NSEGS, NX, NPEAKS)
+
+    def test_event_list_eager(self):
+        result = file_reader(RAW_FILE, signal="event_list", depth_range=(1, 3))
+        assert result[0]["data"].shape == (2, NSEGS, NX)
+        assert result[0]["axes"][0]["size"] == 2
+
+    def test_event_list_lazy(self):
+        import dask.array as da
+
+        result = file_reader(
+            RAW_FILE, signal="event_list", depth_range=(1, 3), lazy=True
+        )
+        assert isinstance(result[0]["data"], da.Array)
+        assert result[0]["data"].shape == (2, NSEGS, NX)
+
+    def test_fib_images(self):
+        result = file_reader(OPENED_FILE, signal="fib_images", depth_range=(0, 2))
+        assert result[0]["data"].shape == (2, FIB_IMG_SIZE, FIB_IMG_SIZE)
+        assert result[0]["axes"][0]["size"] == 2
+
+
+# ---------------------------------------------------------------------------
+# Tests: dtype parameter
+# ---------------------------------------------------------------------------
+
+
+class TestDtype:
+    def test_opened_eager(self):
+        result = file_reader(OPENED_FILE, signal="peak_data", dtype=np.float16)
+        assert result[0]["data"].dtype == np.float16
+
+    def test_opened_lazy(self):
+        result = file_reader(
+            OPENED_FILE, signal="peak_data", dtype=np.float16, lazy=True
+        )
+        assert result[0]["data"].dtype == np.float16
+
+    def test_raw(self):
+        result = file_reader(RAW_FILE, signal="peak_data", dtype=np.float16)
+        assert result[0]["data"].dtype == np.float16
+
+    def test_string_dtype_accepted(self):
+        result = file_reader(OPENED_FILE, signal="peak_data", dtype="float16")
+        assert result[0]["data"].dtype == np.float16
+
+
+# ---------------------------------------------------------------------------
+# Tests: unsorted peak table (exercises batch-sort and lazy-sort paths)
+# ---------------------------------------------------------------------------
+
+
+class TestUnsortedPeaks:
+    """
+    Peaks stored in non-ascending mass order exercise the batch-sort and lazy-sort
+    code paths (lines 1309, 1330–1337, 1373–1397).
+    """
+
+    def test_opened_eager_output_ascending(self, tmp_path):
+        """Unsorted pre-processed file: reader still returns masses in ascending order."""
+        p = tmp_path / "unsorted_opened.h5"
+        _make_unsorted_peaks_tofdaq(p, with_peak_data=True)
+        result = file_reader(p, signal="peak_data")
+        ax = result[0]["axes"][3]
+        np.testing.assert_allclose(ax["axis"], [1.0, 2.0])
+
+    def test_opened_lazy_output_ascending(self, tmp_path):
+        """Unsorted pre-processed file lazy: masses in ascending order after compute."""
+        import dask.array as da
+
+        p = tmp_path / "unsorted_opened_lazy.h5"
+        _make_unsorted_peaks_tofdaq(p, with_peak_data=True)
+        result = file_reader(p, signal="peak_data", lazy=True)
+        assert isinstance(result[0]["data"], da.Array)
+        np.testing.assert_allclose(result[0]["axes"][3]["axis"], [1.0, 2.0])
+
+    def test_raw_output_ascending(self, tmp_path):
+        """Unsorted raw file: reconstructed peak_data has masses in ascending order."""
+        p = tmp_path / "unsorted_raw.h5"
+        _make_unsorted_peaks_tofdaq(p, with_peak_data=False)
+        result = file_reader(p, signal="peak_data")
+        ax = result[0]["axes"][3]
+        np.testing.assert_allclose(ax["axis"], [1.0, 2.0])
+
+    def test_raw_with_dtype(self, tmp_path):
+        """dtype cast applies after sort on raw unsorted file."""
+        p = tmp_path / "unsorted_raw_dtype.h5"
+        _make_unsorted_peaks_tofdaq(p, with_peak_data=False)
+        result = file_reader(p, signal="peak_data", dtype=np.float16)
+        assert result[0]["data"].dtype == np.float16
+
+
+# ---------------------------------------------------------------------------
+# Tests: nbytes > threshold warning (monkeypatched threshold)
+# ---------------------------------------------------------------------------
+
+
+class TestLargeDataWarning:
+    def test_nbytes_warning_via_patched_threshold(self, tmp_path, monkeypatch, caplog):
+        """Lowering _LARGE_PEAK_DATA_WARN_BYTES to 0 triggers the size warning."""
+        import rsciio.tofwerk._api as _api
+
+        p = tmp_path / "big.h5"
+        _make_minimal_tofdaq(p, include_peakdata=True)
+        monkeypatch.setattr(_api, "_LARGE_PEAK_DATA_WARN_BYTES", 0)
+        with caplog.at_level(logging.WARNING, logger="rsciio.tofwerk._api"):
+            file_reader(p, signal="peak_data")
+        assert any("GB" in r.message for r in caplog.records)
+
+
+# ---------------------------------------------------------------------------
+# Tests: tqdm progress bar branches
+# ---------------------------------------------------------------------------
+
+
+def _make_mock_tqdm():
+    """Return (mock_tqdm_module, mock_pbar) with tqdm.auto.tqdm pre-wired."""
+    from unittest.mock import MagicMock
+
+    mock_pbar = MagicMock()
+    mock_tqdm_auto = MagicMock()
+    mock_tqdm_auto.tqdm = MagicMock(return_value=mock_pbar)
+    return mock_tqdm_auto, mock_pbar
+
+
+class TestTqdmPbar:
+    """
+    Verify that tqdm progress bars are created and updated when tqdm is available.
+
+    The functions under test import tqdm lazily (``from tqdm.auto import tqdm``),
+    so patching ``sys.modules["tqdm.auto"]`` before calling them is sufficient.
+    """
+
+    def test_pbar_numba_path(self, tmp_path):
+        """tqdm pbar is created and closed in the numba reconstruction path."""
+        import sys
+        from unittest.mock import patch
+
+        from rsciio.tofwerk._api import _compute_peak_data_from_file
+
+        p = tmp_path / "tqdm_numba.h5"
+        _make_minimal_tofdaq(p)
+        mock_tqdm_auto, mock_pbar = _make_mock_tqdm()
+        with h5py.File(p, "r") as f:
+            with patch.dict(
+                sys.modules, {"tqdm": mock_tqdm_auto, "tqdm.auto": mock_tqdm_auto}
+            ):
+                _compute_peak_data_from_file(f)
+        # _make_pbar was called at least twice (reconstruction + normalisation)
+        assert mock_tqdm_auto.tqdm.call_count >= 2
+        assert mock_pbar.update.called
+        assert mock_pbar.close.called
+
+    def test_pbar_numpy_path(self, tmp_path):
+        """tqdm pbar is created and closed in the NumPy fallback path."""
+        import sys
+        from unittest.mock import patch
+
+        from rsciio.tofwerk._api import _compute_peak_data_from_file
+
+        p = tmp_path / "tqdm_numpy.h5"
+        _make_minimal_tofdaq(p)
+        mock_tqdm_auto, mock_pbar = _make_mock_tqdm()
+        with h5py.File(p, "r") as f:
+            with patch.dict(
+                sys.modules,
+                {
+                    "numba": None,
+                    "tqdm": mock_tqdm_auto,
+                    "tqdm.auto": mock_tqdm_auto,
+                },
+            ):
+                _compute_peak_data_from_file(f)
+        assert mock_tqdm_auto.tqdm.call_count >= 2
+        assert mock_pbar.update.called
+        assert mock_pbar.close.called
+
+    def test_pbar_unsorted_raw_sort(self, tmp_path):
+        """tqdm pbar is created during the post-reconstruction sort on raw unsorted files."""
+        import sys
+        from unittest.mock import patch
+
+        p = tmp_path / "tqdm_sort.h5"
+        _make_unsorted_peaks_tofdaq(p, with_peak_data=False)
+        mock_tqdm_auto, mock_pbar = _make_mock_tqdm()
+        with patch.dict(
+            sys.modules, {"tqdm": mock_tqdm_auto, "tqdm.auto": mock_tqdm_auto}
+        ):
+            file_reader(p, signal="peak_data")
+        # The sort pbar is a separate call; at least one tqdm call must have occurred
+        assert mock_tqdm_auto.tqdm.called
+        assert mock_pbar.update.called
+        assert mock_pbar.close.called
+
+    def test_pbar_event_list_eager(self, tmp_path):
+        """tqdm pbar is created and closed in the EventList eager-load path."""
+        import sys
+        from unittest.mock import patch
+
+        p = tmp_path / "tqdm_el.h5"
+        _make_minimal_tofdaq(p)
+        mock_tqdm_auto, mock_pbar = _make_mock_tqdm()
+        with patch.dict(
+            sys.modules, {"tqdm": mock_tqdm_auto, "tqdm.auto": mock_tqdm_auto}
+        ):
+            file_reader(p, signal="event_list", lazy=False)
+        assert mock_tqdm_auto.tqdm.called
+        assert mock_pbar.update.called
+        assert mock_pbar.close.called

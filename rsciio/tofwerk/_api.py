@@ -102,6 +102,9 @@ from rsciio.utils._decorator import jit_ifnumba
 
 _logger = logging.getLogger(__name__)
 
+# Threshold (bytes) above which a warning is emitted when loading PeakData eagerly.
+# Exposed as a module constant so it can be patched in tests.
+_LARGE_PEAK_DATA_WARN_BYTES = 1e9
 
 # ---------------------------------------------------------------------------
 # Signal parameter enum
@@ -840,7 +843,7 @@ def compute_peak_data_from_eventlist(
 # ---------------------------------------------------------------------------
 
 
-def _compute_peak_data_from_file(file, peak_table=None):
+def _compute_peak_data_from_file(file, peak_table=None, depth_start=0, depth_stop=None):
     """
     Extract all required arrays from an open HDF5 file and call
     :func:`compute_peak_data_from_eventlist`.
@@ -856,6 +859,10 @@ def _compute_peak_data_from_file(file, peak_table=None):
     peak_table : list of dict or None
         Integration windows.  If None, read from ``PeakData/PeakTable`` in
         the file.
+    depth_start : int, optional
+        First depth slice index (inclusive).  Default 0.
+    depth_stop : int or None, optional
+        Last depth slice index (exclusive).  Default None (all slices).
 
     Returns
     -------
@@ -881,7 +888,16 @@ def _compute_peak_data_from_file(file, peak_table=None):
     n_active = _count_active_channels(ini)
     normalization = nbr_waveforms * n_active
 
-    event_list = file["FullSpectra/EventList"]
+    el_ds = file["FullSpectra/EventList"]
+    el_total = el_ds.shape[0]
+    if depth_stop is None:
+        depth_stop = el_total
+    if depth_start == 0 and depth_stop == el_total:
+        event_list = el_ds
+    else:
+        # Slice the VL dataset into a numpy object array for the reconstruction.
+        # This reads only the requested depth slices from disk.
+        event_list = el_ds[depth_start:depth_stop]
     return compute_peak_data_from_eventlist(
         event_list, mass_axis, nbr_samples, clock_ratio, normalization, peak_table
     )
@@ -994,7 +1010,15 @@ _CHUNKS_READ_DOC = """chunks : tuple, int, dict, str or None, default=None
     """
 
 
-def file_reader(filename, lazy=False, signal="sum_spectrum", chunks=None):
+def file_reader(
+    filename,
+    lazy=False,
+    signal="sum_spectrum",
+    chunks=None,
+    mz_range=None,
+    depth_range=None,
+    dtype=None,
+):
     """
     Read a Tofwerk TofDAQ HDF5 file.
 
@@ -1028,13 +1052,33 @@ def file_reader(filename, lazy=False, signal="sum_spectrum", chunks=None):
         ``signal=["sum_spectrum", "peak_data"]``.  The returned list has
         one entry per requested signal (or all available for ``"all"``).
     %s
+    mz_range : tuple of (float, float) or None, optional
+        Restrict the m/z axis of ``"peak_data"`` to peaks whose nominal
+        mass falls within ``[mz_range[0], mz_range[1]]`` (inclusive, Da).
+        For pre-processed files only the selected columns are retained after
+        reading; for raw files only the selected peaks are reconstructed from
+        the EventList, so the reconstruction cost scales with the number of
+        selected peaks.  If ``None`` (default), all peaks are returned.
+    depth_range : tuple of (int, int) or None, optional
+        Restrict the depth axis to slices ``[depth_range[0], depth_range[1])``
+        (0-indexed, exclusive upper bound).  Applies to ``"peak_data"``,
+        ``"event_list"``, and ``"fib_images"``.  For pre-processed files the
+        HDF5 dataset is sliced before loading, so only the requested depth
+        slices are read from disk.  If ``None`` (default), all depth slices
+        are returned.
+    dtype : numpy dtype or None, optional
+        Cast the ``"peak_data"`` array to this dtype after loading.  Useful to
+        reduce memory usage, e.g. ``dtype=np.float16`` or ``dtype=np.uint16``
+        for low-count data.  If ``None`` (default), the on-disk dtype
+        (``float32``) is preserved.
 
     Raises
     ------
     IOError
         If the file is not a Tofwerk TofDAQ HDF5 file.
     ValueError
-        If ``signal`` contains an unrecognised value.
+        If ``signal`` contains an unrecognised value, or if ``mz_range`` or
+        ``depth_range`` are out of bounds.
 
     %s
     """
@@ -1094,6 +1138,32 @@ def file_reader(filename, lazy=False, signal="sum_spectrum", chunks=None):
     else:
         nx = nsegs
     pixel_size_um = _parse_pixel_size(f, nx)
+
+    # ------------------------------------------------------------------
+    # depth_range / mz_range / dtype validation
+    # ------------------------------------------------------------------
+    if depth_range is not None:
+        depth_start = int(depth_range[0])
+        depth_stop = int(depth_range[1])
+        if depth_start < 0 or depth_stop > nwrites or depth_start >= depth_stop:
+            f.close()
+            raise ValueError(
+                f"depth_range={depth_range!r} is out of bounds for a file with "
+                f"{nwrites} depth slices.  Valid range: [0, {nwrites})."
+            )
+    else:
+        depth_start, depth_stop = 0, nwrites
+    nwrites_loaded = depth_stop - depth_start
+
+    if mz_range is not None:
+        if len(mz_range) != 2 or mz_range[0] >= mz_range[1]:
+            f.close()
+            raise ValueError(
+                f"mz_range={mz_range!r} must be a (min, max) tuple with min < max."
+            )
+
+    if dtype is not None:
+        dtype = np.dtype(dtype)
 
     # ------------------------------------------------------------------
     # Availability checks
@@ -1200,8 +1270,26 @@ def file_reader(filename, lazy=False, signal="sum_spectrum", chunks=None):
         sort_idx = np.argsort(peak_masses)
         already_sorted = np.array_equal(sort_idx, np.arange(len(sort_idx)))
         peak_masses = peak_masses[sort_idx]
+
+        # mz_range: compute boolean mask on the sorted peak_masses array.
+        # mz_sel holds the indices (into sorted order) of the selected peaks.
+        if mz_range is not None:
+            mz_mask = (peak_masses >= mz_range[0]) & (peak_masses <= mz_range[1])
+            mz_sel = np.where(mz_mask)[0]
+            if len(mz_sel) == 0:
+                _logger.warning(
+                    f"mz_range={mz_range!r} excludes all {len(peak_masses)} peaks "
+                    "in PeakTable; skipping peak_data signal."
+                )
+                produce_peak = False
+            else:
+                peak_masses = peak_masses[mz_mask]
+        else:
+            mz_sel = None
+
+    if produce_peak:
         peak_axes = _build_axes_preprocessed(
-            nwrites, nsegs, nx, peak_masses, pixel_size_um
+            nwrites_loaded, nsegs, nx, peak_masses, pixel_size_um
         )
 
         peak_meta = dict(metadata)
@@ -1219,57 +1307,94 @@ def file_reader(filename, lazy=False, signal="sum_spectrum", chunks=None):
                 peak_data = da.from_array(
                     peak_ds,
                     chunks=chunks if chunks is not None else (1, nsegs, nx, -1),
-                )
+                )[depth_start:depth_stop]
                 if not already_sorted:
                     peak_data = peak_data[:, :, :, sort_idx]
+                if mz_sel is not None:
+                    peak_data = peak_data[:, :, :, mz_sel]
+                if dtype is not None:
+                    peak_data = peak_data.astype(dtype)
             else:
-                nbytes = peak_ds.size * peak_ds.dtype.itemsize
-                if nbytes > 1e9:
+                npeaks_sel = len(peak_masses)
+                nbytes = (
+                    nwrites_loaded * nsegs * nx * npeaks_sel * peak_ds.dtype.itemsize
+                )
+                if nbytes > _LARGE_PEAK_DATA_WARN_BYTES:
                     _logger.warning(
                         f"Loading {nbytes / 1e9:.1f} GB of PeakData into memory "
                         f"(lazy=True is recommended for large files)."
                     )
                 if already_sorted:
-                    peak_data = np.asarray(peak_ds)
+                    peak_data = np.asarray(peak_ds[depth_start:depth_stop])
                 else:
                     # Apply sort_idx in write-batches so each batch fits in
                     # cache.  Avoids cache-thrashing column permutation across
                     # the full array (which is O(n_cycle × dataset_size)).
                     _BATCH = 64
-                    nw_ds = peak_ds.shape[0]
-                    peak_data = np.empty(peak_ds.shape, dtype=peak_ds.dtype)
-                    for _w0 in range(0, nw_ds, _BATCH):
-                        _w1 = min(_w0 + _BATCH, nw_ds)
-                        peak_data[_w0:_w1] = np.asarray(peak_ds[_w0:_w1])[
-                            :, :, :, sort_idx
-                        ]
+                    peak_data = np.empty(
+                        (nwrites_loaded, nsegs, nx, peak_ds.shape[3]),
+                        dtype=peak_ds.dtype,
+                    )
+                    for _w0 in range(0, nwrites_loaded, _BATCH):
+                        _w1 = min(_w0 + _BATCH, nwrites_loaded)
+                        peak_data[_w0:_w1] = np.asarray(
+                            peak_ds[depth_start + _w0 : depth_start + _w1]
+                        )[:, :, :, sort_idx]
+                if mz_sel is not None:
+                    peak_data = peak_data[:, :, :, mz_sel]
+                if dtype is not None:
+                    peak_data = peak_data.astype(dtype)
         else:
             # Raw file: always eager (EventList is variable-length).
             # Pass the active peak_table from metadata so users can reintegrate
             # with modified windows by reloading with signal="peak_data".
-            active_peak_table = peak_meta.get("Signal", {}).get("peak_table")
-            peak_data = _compute_peak_data_from_file(f, peak_table=active_peak_table)
-            if not already_sorted:
-                try:
-                    from tqdm.auto import tqdm as _tqdm_sort
-                except ImportError:
-                    _tqdm_sort = None
-                _BATCH = 64
-                nw_ev = peak_data.shape[0]
-                sorted_array = np.empty(peak_data.shape, dtype=peak_data.dtype)
-                pbar = (
-                    _tqdm_sort(total=nw_ev, desc="Sorting m/z axis", unit=" slices")
-                    if _tqdm_sort is not None
-                    else None
+            active_peak_table = peak_meta["Signal"]["peak_table"]
+
+            if mz_sel is not None:
+                # orig_sel: original peak_table indices for the selected peaks.
+                # Because mz_sel indexes into sorted peak_masses, the resulting
+                # filtered peak_table has peaks in ascending mass order.
+                orig_sel = sort_idx[mz_sel]
+                active_peak_table = [active_peak_table[i] for i in orig_sel]
+                # Reconstruction returns peaks in the input peak_table order,
+                # which is already ascending mass order here — no sort needed.
+                peak_data = _compute_peak_data_from_file(
+                    f,
+                    peak_table=active_peak_table,
+                    depth_start=depth_start,
+                    depth_stop=depth_stop,
                 )
-                for _w0 in range(0, nw_ev, _BATCH):
-                    _w1 = min(_w0 + _BATCH, nw_ev)
-                    sorted_array[_w0:_w1] = peak_data[_w0:_w1][:, :, :, sort_idx]
+            else:
+                peak_data = _compute_peak_data_from_file(
+                    f,
+                    peak_table=active_peak_table,
+                    depth_start=depth_start,
+                    depth_stop=depth_stop,
+                )
+                if not already_sorted:
+                    try:
+                        from tqdm.auto import tqdm as _tqdm_sort
+                    except ImportError:
+                        _tqdm_sort = None
+                    _BATCH = 64
+                    nw_ev = peak_data.shape[0]
+                    sorted_array = np.empty(peak_data.shape, dtype=peak_data.dtype)
+                    pbar = (
+                        _tqdm_sort(total=nw_ev, desc="Sorting m/z axis", unit=" slices")
+                        if _tqdm_sort is not None
+                        else None
+                    )
+                    for _w0 in range(0, nw_ev, _BATCH):
+                        _w1 = min(_w0 + _BATCH, nw_ev)
+                        sorted_array[_w0:_w1] = peak_data[_w0:_w1][:, :, :, sort_idx]
+                        if pbar is not None:
+                            pbar.update(_w1 - _w0)
                     if pbar is not None:
-                        pbar.update(_w1 - _w0)
-                if pbar is not None:
-                    pbar.close()
-                peak_data = sorted_array
+                        pbar.close()
+                    peak_data = sorted_array
+
+            if dtype is not None:
+                peak_data = peak_data.astype(dtype)
 
         signals.append(
             {
@@ -1294,30 +1419,30 @@ def file_reader(filename, lazy=False, signal="sum_spectrum", chunks=None):
 
             el_data = da.from_array(
                 el_ds, chunks=chunks if chunks is not None else (1, nsegs, nx)
-            )
+            )[depth_start:depth_stop]
         else:
-            # Eager path: load all depth slices into an object array now.
+            # Eager path: load requested depth slices into an object array now.
             _logger.warning(
-                f"Loading EventList ({nwrites} depth slices × {nsegs} × {nx} pixels). "
+                f"Loading EventList ({nwrites_loaded} depth slices × {nsegs} × {nx} pixels). "
                 f"Pass lazy=True to defer reading to .compute() calls."
             )
             try:
                 from tqdm.auto import tqdm as _tqdm_el
             except ImportError:
                 _tqdm_el = None
-            el_data = np.empty((nwrites, nsegs, nx), dtype=object)
+            el_data = np.empty((nwrites_loaded, nsegs, nx), dtype=object)
             pbar = (
-                _tqdm_el(total=nwrites, desc="Loading EventList", unit=" slices")
+                _tqdm_el(total=nwrites_loaded, desc="Loading EventList", unit=" slices")
                 if _tqdm_el is not None
                 else None
             )
-            for w in range(nwrites):
-                el_data[w] = el_ds[w]
+            for i, w in enumerate(range(depth_start, depth_stop)):
+                el_data[i] = el_ds[w]
                 if pbar is not None:
                     pbar.update(1)
             if pbar is not None:
                 pbar.close()
-        el_axes = _build_axes_event_list(nwrites, nsegs, nx, pixel_size_um)
+        el_axes = _build_axes_event_list(nwrites_loaded, nsegs, nx, pixel_size_um)
         el_meta = dict(metadata)
         el_meta["General"] = dict(metadata["General"])
         el_meta["General"]["title"] = stem + " (event list)"
@@ -1355,7 +1480,7 @@ def file_reader(filename, lazy=False, signal="sum_spectrum", chunks=None):
         dominant_shape = max(shape_counts, key=lambda s: (shape_counts[s], s))
         slice_names = [
             n for n in all_names if fib_grp[n]["Data"].shape == dominant_shape
-        ]
+        ][depth_start:depth_stop]
         skipped = [
             (n, fib_grp[n]["Data"].shape)
             for n in all_names

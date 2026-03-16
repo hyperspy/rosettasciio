@@ -97,6 +97,7 @@ from pathlib import Path
 
 import numpy as np
 
+from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
 from rsciio.utils._decorator import jit_ifnumba
 
 _logger = logging.getLogger(__name__)
@@ -767,6 +768,10 @@ def compute_peak_data_from_eventlist(
         pbar = _make_pbar(nwrites)
         for w in range(nwrites):
             for s in range(nsegs):
+                # event_list (el) shape is (depth, y, x); w=depth slice, s=y row, :=all x
+                # pixels. Each pixel holds variable-length ToF clock ticks, so we
+                # flatten into a contiguous int64 buffer (flat) + per-pixel
+                # slice boundaries (offsets) for the Numba kernel.
                 flat, offsets = _flatten_event_row(el[w, s, :])
                 result_sx[:] = 0
                 _accumulate_peak_counts(
@@ -978,19 +983,25 @@ def available_signals(filename):
     return signals
 
 
-def file_reader(filename, lazy=False, signal="sum_spectrum"):
+# our custom chunks API requires a different docstring than the one in
+# rosettasciio/rsciio/_docstrings.py:
+_CHUNKS_READ_DOC = """chunks : tuple, int, dict, str or None, default=None
+        The chunks used when reading the data lazily. This argument is passed
+        to :func:`dask.array.from_array`. Only has an effect when ``lazy=True``.
+        If ``None``, a signal-appropriate default is used: one chunk per depth
+        slice for ``"peak_data"`` and ``"event_list"``, and a single chunk for
+        ``"sum_spectrum"`` and ``"fib_images"``.
+    """
+
+
+def file_reader(filename, lazy=False, signal="sum_spectrum", chunks=None):
     """
     Read a Tofwerk TofDAQ HDF5 file.
 
     Parameters
     ----------
-    filename : str or pathlib.Path
-        Path to the ``.h5`` file.
-    lazy : bool, optional
-        If True, data arrays are returned as :class:`dask.array.Array` objects
-        and the file handle is kept open.  Does not apply to the
-        ``"event_list"`` signal, which is always loaded eagerly.
-        Default is False.
+    %s
+    %s
     signal : str or list of str, optional
         Which signal(s) to return.  Valid values:
 
@@ -1016,12 +1027,7 @@ def file_reader(filename, lazy=False, signal="sum_spectrum"):
         Pass a list to request multiple specific signals, e.g.
         ``signal=["sum_spectrum", "peak_data"]``.  The returned list has
         one entry per requested signal (or all available for ``"all"``).
-
-    Returns
-    -------
-    list of dict
-        Each element is a signal dictionary with keys ``data``, ``axes``,
-        ``metadata``, and ``original_metadata``.
+    %s
 
     Raises
     ------
@@ -1029,6 +1035,8 @@ def file_reader(filename, lazy=False, signal="sum_spectrum"):
         If the file is not a Tofwerk TofDAQ HDF5 file.
     ValueError
         If ``signal`` contains an unrecognised value.
+
+    %s
     """
     import h5py
 
@@ -1161,7 +1169,9 @@ def file_reader(filename, lazy=False, signal="sum_spectrum"):
         if lazy:
             import dask.array as da
 
-            sum_data = da.from_array(sum_ds, chunks=-1)[first_valid:]
+            sum_data = da.from_array(
+                sum_ds, chunks=chunks if chunks is not None else -1
+            )[first_valid:]
         else:
             sum_data = np.asarray(sum_ds)[first_valid:]
 
@@ -1203,9 +1213,13 @@ def file_reader(filename, lazy=False, signal="sum_spectrum"):
             if lazy:
                 import dask.array as da
 
-                # One chunk per depth slice: avoids tiny native HDF5 chunks creating
-                # huge dask task graphs, and matches the natural access pattern.
-                peak_data = da.from_array(peak_ds, chunks=(1, nsegs, nx, -1))
+                # One chunk per depth slice by default: avoids tiny native HDF5
+                # chunks creating huge dask task graphs, and matches the natural
+                # access pattern.
+                peak_data = da.from_array(
+                    peak_ds,
+                    chunks=chunks if chunks is not None else (1, nsegs, nx, -1),
+                )
                 if not already_sorted:
                     peak_data = peak_data[:, :, :, sort_idx]
             else:
@@ -1278,7 +1292,9 @@ def file_reader(filename, lazy=False, signal="sum_spectrum"):
             # has_lazy_array below).
             import dask.array as da
 
-            el_data = da.from_array(el_ds, chunks=(1, nsegs, nx))
+            el_data = da.from_array(
+                el_ds, chunks=chunks if chunks is not None else (1, nsegs, nx)
+            )
         else:
             # Eager path: load all depth slices into an object array now.
             _logger.warning(
@@ -1365,7 +1381,10 @@ def file_reader(filename, lazy=False, signal="sum_spectrum"):
 
             fib_data = da.stack(
                 [
-                    da.from_array(fib_grp[name]["Data"], chunks=-1)
+                    da.from_array(
+                        fib_grp[name]["Data"],
+                        chunks=chunks if chunks is not None else -1,
+                    )
                     for name in slice_names
                 ]
             )
@@ -1391,3 +1410,6 @@ def file_reader(filename, lazy=False, signal="sum_spectrum"):
         f.close()
 
     return signals
+
+
+file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, _CHUNKS_READ_DOC, RETURNS_DOC)

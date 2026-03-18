@@ -150,7 +150,12 @@ def test_dir_plugins(plugin):
         ]
     elif plugin["name"] == "DigitalSurf":
         assert dir(plugin_module) == ["file_reader", "file_writer", "parse_metadata"]
-
+    elif plugin["name"] == "Tofwerk":
+        assert dir(plugin_module) == [
+            "available_signals",
+            "compute_peak_data_from_eventlist",
+            "file_reader",
+        ]
     elif plugin["writes"] is False:
         assert dir(plugin_module) == ["file_reader"]
     else:

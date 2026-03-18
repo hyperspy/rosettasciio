@@ -690,13 +690,14 @@ def compute_peak_data_from_eventlist(
 
     Parameters
     ----------
-    event_list : array-like, shape (nwrites, nsegs, nx)
-        Ragged object array of uint16 TDC timestamps, one variable-length
-        array per pixel.  Accepts h5py variable-length datasets or
-        numpy object arrays (as loaded by ``signal="event_list"``).
-    mass_axis : numpy.ndarray, shape (nbr_samples,)
-        Calibrated mass (Da) for each ADC sample index, from
-        ``FullSpectra/MassAxis``.
+    event_list : array-like
+        Ragged object array of shape ``(nwrites, nsegs, nx)`` of uint16 TDC
+        timestamps, one variable-length array per pixel.  Accepts h5py
+        variable-length datasets or numpy object arrays (as loaded by
+        ``signal="event_list"``).
+    mass_axis : numpy.ndarray
+        1-D array of shape ``(nbr_samples,)`` with calibrated mass (Da) for
+        each ADC sample index, from ``FullSpectra/MassAxis``.
     nbr_samples : int
         Length of ``mass_axis``; events outside ``[0, nbr_samples)`` are
         discarded.
@@ -1052,25 +1053,27 @@ def file_reader(
         ``signal=["sum_spectrum", "peak_data"]``.  The returned list has
         one entry per requested signal (or all available for ``"all"``).
     %s
-    mz_range : tuple of (float, float) or None, optional
+    mz_range : tuple, optional
         Restrict the m/z axis of ``"peak_data"`` to peaks whose nominal
         mass falls within ``[mz_range[0], mz_range[1]]`` (inclusive, Da).
         For pre-processed files only the selected columns are retained after
         reading; for raw files only the selected peaks are reconstructed from
         the EventList, so the reconstruction cost scales with the number of
         selected peaks.  If ``None`` (default), all peaks are returned.
-    depth_range : tuple of (int, int) or None, optional
+    depth_range : tuple, optional
         Restrict the depth axis to slices ``[depth_range[0], depth_range[1])``
         (0-indexed, exclusive upper bound).  Applies to ``"peak_data"``,
         ``"event_list"``, and ``"fib_images"``.  For pre-processed files the
         HDF5 dataset is sliced before loading, so only the requested depth
         slices are read from disk.  If ``None`` (default), all depth slices
         are returned.
-    dtype : numpy dtype or None, optional
+    dtype : numpy.dtype, optional
         Cast the ``"peak_data"`` array to this dtype after loading.  Useful to
         reduce memory usage, e.g. ``dtype=np.float16`` or ``dtype=np.uint16``
         for low-count data.  If ``None`` (default), the on-disk dtype
         (``float32``) is preserved.
+
+    %s
 
     Raises
     ------
@@ -1079,8 +1082,6 @@ def file_reader(
     ValueError
         If ``signal`` contains an unrecognised value, or if ``mz_range`` or
         ``depth_range`` are out of bounds.
-
-    %s
     """
     import h5py
 

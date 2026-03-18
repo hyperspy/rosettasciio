@@ -1452,7 +1452,7 @@ class TestUnsortedPeaks:
 class TestLargeDataWarning:
     def test_nbytes_warning_via_patched_threshold(self, tmp_path, monkeypatch, caplog):
         """Lowering _LARGE_PEAK_DATA_WARN_BYTES to 0 triggers the size warning."""
-        import rsciio.tofwerk._api as _api
+        from rsciio.tofwerk import _api
 
         p = tmp_path / "big.h5"
         _make_minimal_tofdaq(p, include_peakdata=True)

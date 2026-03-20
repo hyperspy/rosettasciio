@@ -8,6 +8,36 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 
 .. towncrier release notes start
 
+0.12.1.dev53+g78f528481.d20260225 (2026-02-25)
+==============================================
+
+Enhancements
+------------
+
+- Enable EDAX file reader to support line scan (`.lsd`) data.
+
+  This includes support for reading the spatial calibration from the appropriate `.csv` file for line scan data.
+  Additionally, update documentation to reflect this new functionality. (`#475 <https://github.com/hyperspy/rosettasciio/issues/475>`_)
+- Lazify import of ``rsciio`` and improve documentation. (`#477 <https://github.com/hyperspy/rosettasciio/issues/477>`_)
+
+
+Improved Documentation
+----------------------
+
+- :ref:`bruker-format`: add documentation about support of micro-XRF bcf files. (`#471 <https://github.com/hyperspy/rosettasciio/issues/471>`_)
+
+
+Maintenance
+-----------
+
+- Add `codespell <https://github.com/codespell-project/codespell>`_ to pre-commit hooks to catch common misspellings. (`#472 <https://github.com/hyperspy/rosettasciio/issues/472>`_)
+- Improve release workflow:
+
+  - Speed up release workflow by avoiding downloading tests data when testing wheels.
+  - Add release notes and distribution files to GitHub release. (`#482 <https://github.com/hyperspy/rosettasciio/issues/482>`_)
+- Update integration tests workflow to use caching shared in CI matrix. (`#483 <https://github.com/hyperspy/rosettasciio/issues/483>`_)
+
+
 0.12 (2025-12-29)
 =================
 

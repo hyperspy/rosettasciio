@@ -19,6 +19,7 @@ available publicly available from EDAX:
 
 - :download:`spc <edax/SPECTRUM-V70.pdf>`
 - :download:`spd <edax/SpcMap-spd.file.format.pdf>`
+- :download:`lsd <edax/SpcMap-spd.file.format.pdf>`
 - :download:`ipr <edax/ImageIPR.pdf>`
 
 

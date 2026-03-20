@@ -1,6 +1,8 @@
 import copy
+import importlib
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from rsciio.utils._tests import assert_deep_almost_equal
@@ -44,7 +46,7 @@ example1_metadata = {
         },
     },
     "Sample": {"thickness": 50.0, "thickness_units": "nm"},
-    "Signal": {"quantity": "Counts (Intensity)", "signal_type": "EELS"},  # bit silly...
+    "Signal": {"quantity": "Counts (Intensity)", "signal_type": "EELS"},
     "_HyperSpy": {
         "Folding": {
             "original_axes_manager": None,
@@ -112,6 +114,7 @@ example2_TEM = {
             "azimuth_angle_units": "dg",
             "elevation_angle": 20.0,
             "elevation_angle_units": "dg",
+            "energy_resolution_MnKa": 130.0,
             "live_time": 100.0,
             "live_time_units": "s",
             "real_time": 150.0,
@@ -141,7 +144,7 @@ example2_metadata = {
         },
     },
     "Sample": {"thickness": 50.0, "thickness_units": "nm"},
-    "Signal": {"quantity": "X-RAY INTENSITY (Intensity)", "signal_type": "EDS"},
+    "Signal": {"quantity": "X-RAY INTENSITY (Intensity)", "signal_type": "EDS_TEM"},
     "_HyperSpy": {
         "Folding": {
             "original_axes_manager": None,
@@ -167,7 +170,7 @@ example2_parameters = {
     "FORMAT": "EMSA/MAS Spectral Data File",
     "LIVETIME  -s": 100.0,
     "MAGCAM": 100.0,
-    "NCOLUMNS": 5.0,
+    "NCOLUMNS": 1.0,
     "NPOINTS": 80.0,
     "OFFSET": 200.0,
     "OPERMODE": "IMAG",
@@ -253,7 +256,7 @@ class TestExample1:
 
 class TestExample1WrongDate:
     def setup_method(self, method):
-        self.s = hs.load(TEST_DATA_PATH / "example1_wrong_date.msa")
+        self.s = hs.load(TEST_DATA_PATH / "example1_wrong_date_empty_field.msa")
         # delete timestamp from metadata since it's runtime dependent
         del self.s.metadata.General.FileIO.Number_0.timestamp
 
@@ -261,7 +264,7 @@ class TestExample1WrongDate:
         md = copy.copy(example1_metadata)
         del md["General"]["date"]
         del md["General"]["time"]
-        md["General"]["original_filename"] = "example1_wrong_date.msa"
+        md["General"]["original_filename"] = "example1_wrong_date_empty_field.msa"
         assert_deep_almost_equal(self.s.metadata.as_dictionary(), md)
 
 
@@ -359,7 +362,12 @@ class TestExample2:
         assert example2_parameters == self.s.original_metadata.as_dictionary()
 
     def test_metadata(self):
-        assert_deep_almost_equal(self.s.metadata.as_dictionary(), example2_metadata)
+        expected_TEM = copy.deepcopy(example2_TEM)
+        if importlib.util.find_spec("exspy") is None:
+            del expected_TEM["Detector"]["EDS"]["energy_resolution_MnKa"]
+        assert (
+            self.s.metadata.Acquisition_instrument.TEM.as_dictionary() == expected_TEM
+        )
 
     def test_write_load_cycle(self, tmp_path):
         fname2 = tmp_path / "example2-export.msa"
@@ -373,6 +381,18 @@ class TestExample2:
         assert_deep_almost_equal(
             self.s.metadata.as_dictionary(), s2.metadata.as_dictionary()
         )
+        np.testing.assert_allclose(self.s.data, s2.data)
+
+
+def test_DATATYPE_Y_NCOLUMNS5():
+    s = hs.load(TEST_DATA_PATH / "example2.msa")
+    assert s.original_metadata["DATATYPE"] == "Y"
+    assert s.original_metadata["NCOLUMNS"] == 1.0
+
+    s2 = hs.load(TEST_DATA_PATH / "example2_NCOLUMNS5.msa")
+    assert s2.original_metadata["DATATYPE"] == "Y"
+    assert s2.original_metadata["NCOLUMNS"] == 5.0
+    np.testing.assert_allclose(s.data, s2.data)
 
 
 def test_minimum_metadata_example():
@@ -422,3 +442,65 @@ class TestSignalType:
                 "CLS",
                 "GAM",
             ]
+
+
+def test_iso_compliance(tmp_path):
+    # Example file from the 2022 revision: https://www.iso.org/standard/78268.html
+    s = hs.load(TEST_DATA_PATH / "ISO_22029_2022_compliance.msa")
+    assert s.original_metadata.as_dictionary() == {
+        "FORMAT": "EMSA/MAS Spectral Data File",
+        "VERSION": "TC202v2.0",
+        "TITLE": "NIO EELS OK SHELL",
+        "DATE": "01-OCT-1991",
+        "TIME": "12:00",
+        "OWNER": "EMSA/MAS TASK FORCE",
+        "NPOINTS": 21.0,
+        "NCOLUMNS": 1.0,
+        "XUNITS": "Energy Loss (eV)",
+        "YUNITS": "Intensity",
+        "DATATYPE": "XY",
+        "XPERCHAN": 3.1,
+        "OFFSET": 520.13,
+        "CHOFFSET": -168.0,
+        "SIGNALTYPE": "ELS",
+        "XLABEL": "Energy",
+        "YLABEL": "Counts",
+        "BEAMKV": 120.0,
+        "EMISSION": 5.5,
+        "PROBECUR": 12.345,
+        "BEAMDIAM": 100.0,
+        "MAGCAM": 100.0,
+        "CONVANGLE": 1.5,
+        "COLLANGLE": 3.4,
+        "OPERMODE": "IMAG",
+        "THICKNESS": 50.0,
+        "DWELLTIME": 100.0,
+        "ELSDET": "SERIAL",
+    }
+    assert s.metadata.Signal.signal_type == "EELS"
+    assert s.metadata.General.title == "NIO EELS OK SHELL"
+
+    s2 = hs.load(TEST_DATA_PATH / "ISO_22029_2022_compliance_scientific_notation.msa")
+    np.testing.assert_allclose(s.data, s2.data)
+
+    s3 = hs.load(TEST_DATA_PATH / "ISO_22029_2022_compliance_title_multiple_line.msa")
+    assert (
+        s3.metadata.General.title
+        == "NIO EELS OK SHELL - Second line of the title - Third line of the title"
+    )
+    # Title is longer than 64 characters, multiple TITLE keywords will be used to store the full title.
+
+    fname = tmp_path / "ISO_22029_2022_compliance_title_multiple_line_export.msa"
+    s3.save(fname)
+    s4 = hs.load(fname)
+    assert s4.metadata.General.title == s3.metadata.General.title
+
+    s5 = hs.load(TEST_DATA_PATH / "ISO_22029_2022_compliance_XY_NCOLUMNS2.msa")
+    np.testing.assert_allclose(s5.data, s.data)
+
+
+def test_time_with_seconds():
+    # Example file with time including seconds, which is not compliant with ISO standard,
+    # but it is found in some files.
+    s = hs.load(TEST_DATA_PATH / "example1_with_seconds.msa")
+    assert s.metadata.General.time == "12:00:00"

@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import codecs
 import logging
 import os
 import warnings
@@ -189,24 +188,31 @@ def parse_msa_string(string, filename=None):
             if line[0] == "#":
                 try:
                     key, value = line.split(": ")
-                    value = value.strip()
+                    value = value.rstrip()
                 except ValueError:
                     key = line
                     value = None
                 key = key.strip("#").strip()
 
-                if key != "SPECTRUM":
+                # Support multiple lines in the TITLE and COMMENT fields,
+                # which are the only fields that can be multiline according to the standard.
+                if key in ["TITLE", "COMMENT"] and key in parameters.keys():
+                    parameters[key] += value
+                elif key != "SPECTRUM":
                     parameters[key] = value
                 else:
                     data_section = True
         else:
             # Read the data
             if line[0] != "#" and line.strip():
+                line_ = line.replace(",", " ").strip().split()
                 if parameters["DATATYPE"] == "XY":
-                    xy = line.replace(",", " ").strip().split()
-                    y.append(float(xy[1]))
+                    y.append(float(line_[1]))
+                    if len(line_) > 2:
+                        # NCOLUMNS is 2
+                        y.append(float(line_[3]))
                 elif parameters["DATATYPE"] == "Y":
-                    data = [float(i) for i in line.replace(",", " ").strip().split()]
+                    data = [float(i) for i in line_]
                     y.extend(data)
     # We rewrite the format value to be sure that it complies with the
     # standard, because it will be used by the writer routine
@@ -223,7 +229,7 @@ def parse_msa_string(string, filename=None):
             clean_par, units = clean_par.strip(), units.strip()
         else:
             clean_par, units = parameter, None
-        if clean_par in keywords:
+        if value and clean_par in keywords:
             type_ = keywords[clean_par]["dtype"]
             try:
                 parameters[parameter] = type_(value)
@@ -251,7 +257,12 @@ def parse_msa_string(string, filename=None):
                     mapped.set_item(keywords[clean_par]["mapped_to"] + "_units", units)
     if "TIME" in parameters and parameters["TIME"]:
         try:
-            time = dt.strptime(parameters["TIME"], "%H:%M")
+            if len(parameters["TIME"].split(":")) == 2:
+                time = dt.strptime(parameters["TIME"], "%H:%M")
+            elif len(parameters["TIME"].split(":")) == 3:
+                # Some files may have seconds in the time field,
+                # even though the standard does not include seconds
+                time = dt.strptime(parameters["TIME"], "%H:%M:%S")
             mapped.set_item("General.time", time.time().isoformat())
         except ValueError as e:
             _logger.warning(
@@ -287,12 +298,15 @@ def parse_msa_string(string, filename=None):
     ]
     if filename is not None:
         mapped.set_item("General.original_filename", os.path.split(filename)[1])
+
+    # Defaults to empty signal type, which is Signal1D for HyperSpy
+    signal_type = ""
     if "SIGNALTYPE" in parameters and parameters["SIGNALTYPE"]:
         if parameters["SIGNALTYPE"] == "ELS":
-            mapped.set_item("Signal.signal_type", "EELS")
+            signal_type = "EELS"
         elif parameters["SIGNALTYPE"] == "CLS":
-            mapped.set_item("Signal.signal_type", "CL")
-        else:  # pragma: no cover
+            signal_type = "CL"
+        else:
             if parameters["SIGNALTYPE"] not in [
                 "EDS",
                 "WDS",
@@ -300,21 +314,35 @@ def parse_msa_string(string, filename=None):
                 "PES",
                 "XRF",
                 "GAM",
-            ]:
+            ]:  # pragma: no cover
                 warnings.warn(
-                    """SIGNALTYPE does not correspond to any of the valid strings
-                    according to the MSA file format definition."""
+                    f"SIGNALTYPE {parameters['SIGNALTYPE']} does not correspond "
+                    "to any of the valid strings according to the MSA file "
+                    "format definition."
                 )
-            mapped.set_item("Signal.signal_type", parameters["SIGNALTYPE"])
-    else:
-        # Defaults to empty signal type, which is Signal1D for HyperSpy
-        mapped.set_item("Signal.signal_type", "")
+        if parameters["SIGNALTYPE"] == "EDS":
+            # get the beam energy key
+            beam_energy = None
+            for key in parameters.keys():
+                if key.startswith("BEAMKV"):
+                    beam_energy = float(parameters[key])
+                    break
+            signal_type = "EDS"
+            if beam_energy is not None and beam_energy > 30:
+                # The MSA format does not specify the microscope type,
+                # but EDS spectra acquired above 30 kV will most likely follow
+                # TEM type analysis methods
+                signal_type += "_TEM"
+            else:
+                signal_type += "_SEM"
+
+    mapped.set_item("Signal.signal_type", signal_type)
     if "YUNITS" in parameters.keys():
-        yunits = "(%s)" % parameters["YUNITS"]
+        yunits = f"({parameters['YUNITS']})"
     else:
         yunits = ""
     if "YLABEL" in parameters.keys():
-        quantity = "%s" % parameters["YLABEL"]
+        quantity = f"{parameters['YLABEL']}"
     else:
         if mapped.Signal.signal_type == "EELS":
             quantity = "Electrons"
@@ -327,7 +355,7 @@ def parse_msa_string(string, filename=None):
         else:
             quantity = ""
     if quantity or yunits:
-        quantity_units = "%s %s" % (quantity, yunits)
+        quantity_units = f"{quantity} {yunits}"
         mapped.set_item("Signal.quantity", quantity_units.strip())
 
     dictionary = {
@@ -357,7 +385,7 @@ def file_reader(filename, lazy=False, encoding="latin-1"):
     if lazy is not False:
         raise NotImplementedError("Lazy loading is not supported.")
 
-    with codecs.open(filename, encoding=encoding, errors="replace") as spectrum_file:
+    with open(filename, encoding=encoding, errors="replace") as spectrum_file:
         return parse_msa_string(string=spectrum_file, filename=filename)
 
 
@@ -432,7 +460,7 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
         # Required parameters
         "FORMAT": FORMAT,
         "VERSION": "1.0",
-        # 'TITLE' : signal.title[:64] if hasattr(signal, "title") else '',
+        "TITLE": getattr(md, "General.title", ""),
         "DATE": "",
         "TIME": "",
         "OWNER": "",
@@ -444,10 +472,12 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
         "OFFSET": signal["axes"][0]["offset"],
         # Signal1D characteristics
         "XLABEL": signal["axes"][0]["name"],
-        #        'YLABEL' : '',
+        # "YLABEL" : getattr(md, "Signal.quantity", ""),
         "XUNITS": signal["axes"][0]["units"],
         #        'YUNITS' : '',
-        "COMMENT": "File created by RosettaSciIO version {__version__}",
+    }
+    if "COMMENT" not in loc_kwds:
+        loc_kwds["COMMENT"] = "File created by RosettaSciIO version {__version__}"
         # Microscope
         #        'BEAMKV' : ,
         #        'EMISSION' : ,
@@ -469,7 +499,6 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
         # 'DWELLTIME' : , # in ms
         #        'COLLANGLE' : ,
         #        'ELSDET' :  ,
-    }
 
     # Update the loc_kwds with the information retrieved from the signal class
     for key, value in keys_from_signal.items():
@@ -483,7 +512,7 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
             if dic["mapped_to"] in md:
                 loc_kwds[key] = eval("md.%s" % dic["mapped_to"])
 
-    with codecs.open(filename, "w", encoding=encoding, errors="ignore") as f:
+    with open(filename, "w", encoding=encoding, errors="ignore") as f:
         # Remove the following keys from loc_kwds if they are in
         # (although they shouldn't)
         for key in ["SPECTRUM", "ENDOFDATA"]:
@@ -493,7 +522,16 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
         f.write("#%-12s: %s\u000d\u000a" % ("FORMAT", loc_kwds.pop("FORMAT")))
         f.write("#%-12s: %s\u000d\u000a" % ("VERSION", loc_kwds.pop("VERSION")))
         for keyword, value in loc_kwds.items():
-            f.write("#%-12s: %s\u000d\u000a" % (keyword, value))
+            if (
+                isinstance(value, str)
+                and keyword in ["TITLE", "COMMENT"]
+                and len(value) > 0
+            ):
+                # Split the value into multiple lines if it is too long, and write each line with the same keyword
+                for i in range(0, len(value), 64):
+                    f.write("#%-12s: %s\u000d\u000a" % (keyword, value[i : i + 64]))
+            else:
+                f.write("#%-12s: %s\u000d\u000a" % (keyword, value))
 
         f.write("#%-12s: Spectral Data Starts Here\u000d\u000a" % "SPECTRUM")
 

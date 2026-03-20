@@ -597,8 +597,8 @@ def test_writetestobjects(tmp_path, test_object):
     d2.save(fn, is_special=False)
     d3 = hs.load(fn)
 
-    assert np.allclose(d2.data, d.data)
-    assert np.allclose(d2.data, d3.data)
+    np.testing.assert_allclose(d2.data, d.data, rtol=1e-6)
+    np.testing.assert_allclose(d2.data, d3.data)
     assert d.metadata.Signal.quantity == d2.metadata.Signal.quantity
     assert d.metadata.Signal.quantity == d3.metadata.Signal.quantity
 
@@ -607,8 +607,8 @@ def test_writetestobjects(tmp_path, test_object):
     c = d3.axes_manager.navigation_axes
 
     for ax, ax2, ax3 in zip(a, b, c):
-        assert np.allclose(ax.axis, ax2.axis)
-        assert np.allclose(ax.axis, ax3.axis)
+        np.testing.assert_allclose(ax.axis, ax2.axis)
+        np.testing.assert_allclose(ax.axis, ax3.axis)
         assert ax.name == ax2.name
         assert ax.name == ax3.name
         assert ax.units == ax2.units
@@ -619,8 +619,8 @@ def test_writetestobjects(tmp_path, test_object):
     c = d3.axes_manager.signal_axes
 
     for ax, ax2, ax3 in zip(a, b, c):
-        assert np.allclose(ax.axis, ax2.axis)
-        assert np.allclose(ax.axis, ax3.axis)
+        np.testing.assert_allclose(ax.axis, ax2.axis)
+        np.testing.assert_allclose(ax.axis, ax3.axis)
         assert ax.name == ax2.name
         assert ax.name == ax3.name
         assert ax.units == ax2.units
@@ -689,7 +689,7 @@ def test_norm_int_data(dtype, special, fullscale):
 
     assert np.isclose(Zscale, 1.0)
     assert np.isclose(Zoffset, off)
-    assert np.allclose(data_int, dat)
+    np.testing.assert_allclose(data_int, dat)
     assert Zmin == off
     assert Zmax == maxval
 
@@ -715,24 +715,24 @@ def test_writetestobjects_rgb(tmp_path, transpose):
     d3 = hs.load(fn)
 
     for k in ["R", "G", "B"]:
-        assert np.allclose(d2.data[k], d.data[k])
-        assert np.allclose(d3.data[k], d.data[k])
+        np.testing.assert_allclose(d2.data[k], d.data[k])
+        np.testing.assert_allclose(d3.data[k], d.data[k])
 
     a = d.axes_manager.navigation_axes
     b = d2.axes_manager.navigation_axes
     c = d3.axes_manager.navigation_axes
 
     for ax, ax2, ax3 in zip(a, b, c):
-        assert np.allclose(ax.axis, ax2.axis)
-        assert np.allclose(ax.axis, ax3.axis)
+        np.testing.assert_allclose(ax.axis, ax2.axis)
+        np.testing.assert_allclose(ax.axis, ax3.axis)
 
     a = d.axes_manager.signal_axes
     b = d2.axes_manager.signal_axes
     c = d3.axes_manager.signal_axes
 
     for ax, ax2, ax3 in zip(a, b, c):
-        assert np.allclose(ax.axis, ax2.axis)
-        assert np.allclose(ax.axis, ax3.axis)
+        np.testing.assert_allclose(ax.axis, ax2.axis)
+        np.testing.assert_allclose(ax.axis, ax3.axis)
 
 
 @pytest.mark.parametrize(
@@ -752,7 +752,7 @@ def test_writegeneric_validtypes(tmp_path, dtype, compressed):
         gen.save(fgen, compressed=compressed, overwrite=True)
 
     gen2 = hs.load(fgen)
-    assert np.allclose(gen2.data, gen.data)
+    np.testing.assert_allclose(gen2.data, gen.data)
 
 
 @pytest.mark.parametrize("compressed", [True, False])
@@ -769,7 +769,7 @@ def test_writegeneric_nans(tmp_path, compressed):
     gen.save(fgen, compressed=compressed, is_special=True, overwrite=True)
 
     gen2 = hs.load(fgen)
-    assert np.allclose(gen2.data, gen.data, equal_nan=True)
+    np.testing.assert_allclose(gen2.data, gen.data, equal_nan=True)
 
 
 def test_writegeneric_transposedprofile(tmp_path):
@@ -784,7 +784,7 @@ def test_writegeneric_transposedprofile(tmp_path):
         gen.save(fgen, overwrite=True)
 
     gen2 = hs.load(fgen)
-    assert np.allclose(gen2.data, gen.data)
+    np.testing.assert_allclose(gen2.data, gen.data)
 
 
 def test_writegeneric_transposedsurface(
@@ -804,7 +804,7 @@ def test_writegeneric_transposedsurface(
 
     gen2 = hs.load(fgen)
 
-    assert np.allclose(gen.data, gen2.data)
+    np.testing.assert_allclose(gen.data, gen2.data, rtol=1e-6)
 
 
 @pytest.mark.parametrize(
@@ -855,8 +855,7 @@ def test_writegeneric_rgba(tmp_path, dtype, compressed, transpose):
     gen2 = hs.load(fgen)
 
     for k in ["R", "G", "B"]:
-        assert np.allclose(gen.data[k], gen2.data[k])
-        assert np.allclose(gen.data[k], gen2.data[k])
+        np.testing.assert_allclose(gen.data[k], gen2.data[k])
 
 
 @pytest.mark.parametrize("compressed", [True, False])
@@ -877,7 +876,7 @@ def test_writegeneric_binaryimg(tmp_path, compressed, transpose):
 
     gen2 = hs.load(fgen)
 
-    assert np.allclose(gen.data, gen2.data)
+    np.testing.assert_allclose(gen.data, gen2.data)
 
 
 @pytest.mark.parametrize("compressed", [True, False])
@@ -891,7 +890,7 @@ def test_writegeneric_profileseries(tmp_path, compressed):
 
     gen2 = hs.load(fgen)
 
-    assert np.allclose(gen.data, gen2.data)
+    np.testing.assert_allclose(gen.data, gen2.data)
 
 
 @pytest.mark.parametrize("dtype", [(np.uint8, "rgb8"), (np.uint16, "rgb16")])
@@ -914,7 +913,7 @@ def test_writegeneric_rgbseries(tmp_path, dtype, compressed):
     gen2 = hs.load(fgen)
 
     for k in ["R", "G", "B"]:
-        assert np.allclose(gen.data[k], gen2.data[k])
+        np.testing.assert_allclose(gen.data[k], gen2.data[k])
 
 
 @pytest.mark.parametrize("dtype", [(np.uint8, "rgba8"), (np.uint16, "rgba16")])
@@ -939,7 +938,7 @@ def test_writegeneric_rgbaseries(tmp_path, dtype, compressed):
     gen2 = hs.load(fgen)
 
     for k in ["R", "G", "B"]:
-        assert np.allclose(gen.data[k], gen2.data[k])
+        np.testing.assert_allclose(gen.data[k], gen2.data[k])
 
 
 @pytest.mark.parametrize("dtype", [np.int16, np.int32, np.float64])
@@ -964,7 +963,8 @@ def test_writegeneric_surfaceseries(tmp_path, dtype, compressed):
 
     gen2 = hs.load(fgen)
 
-    assert np.allclose(gen.data, gen2.data)
+    # increase tolerance for float64, which fails randomly, most likely due to compression losses
+    np.testing.assert_allclose(gen.data, gen2.data, rtol=1e-05)
 
 
 def test_writegeneric_datetime(tmp_path):

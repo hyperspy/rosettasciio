@@ -44,7 +44,7 @@ def _read_raw(info, fp, lazy=False):
         data = data.reshape(size)[..., :height, :]
 
     else:  # 2D x 2D
-        size = (info["scan_x"], info["scan_y"], raw_height, width)
+        size = (info["scan_y"], info["scan_x"], raw_height, width)
         data = data.reshape(size)[..., :height, :]
     return data
 
@@ -62,6 +62,7 @@ def _parse_xml(filename):
     if om.has_item("root.scan_parameters.series_count"):
         # Stack of images
         info.update({"series_count": int(om.root.scan_parameters.series_count)})
+    # The pix_x and pix_y are no longer used in the new EMPAD versions, but keep this line for backward compatibility
     elif om.has_item("root.pix_x") and om.has_item("root.pix_y"):
         # 2D x 2D
         info.update({"scan_x": int(om.root.pix_x), "scan_y": int(om.root.pix_y)})
@@ -92,14 +93,19 @@ def _convert_scale_units(value, units, factor=1):
     return converted_value, converted_units
 
 
-def file_reader(filename, lazy=False):
+def file_reader(filename, lazy=False, q_calibration=None, remove_nans=False):
     """
-    Read file format used by the Electron Microscope Pixel Array Detector (EMPAD).
+    Read file format used by the Electron Microscope Pixel Array Detector (EMPAD) version 1.2 or newer.
 
     Parameters
     ----------
     %s
     %s
+    q_calibration : None or float, optional
+        Specifies the calibration for the diffraction patterns in 1/nm. If None, the data will be in pixel scales.
+    remove_nans : bool, optional
+        Sometimes the EMPAD data contains NaN values that cause issues in downstream processing. If True, these NaN values will be replaced with zeros. Default is False.
+
     %s
     """
     om, info = _parse_xml(filename)
@@ -138,7 +144,7 @@ def file_reader(filename, lazy=False):
         origins.insert(0, 0)
         navigate.insert(0, True)
     else:
-        names = ["scan_x", "scan_y"] + names
+        names = ["scan_y", "scan_x"] + names
         units.insert(0, "")
         units.insert(0, "")
         scales.insert(0, 1)
@@ -152,22 +158,42 @@ def file_reader(filename, lazy=False):
 
     if "series_count" not in info.keys():
         try:
+            # The fov is stored under iom_measurements.full_scan_field_of_view.x and y,
+            # but x and y are always the same, representing the larger dimension of the scan
             fov = ast.literal_eval(
-                om.root.iom_measurements.optics.get_full_scan_field_of_view
+                om.root.iom_measurements.full_scan_field_of_view.x
             )
-            for i in range(2):
-                value = fov[i] / sizes[i]
-                scales[i], units[i] = _convert_scale_units(value, "m", sizes[i])
+            # The scale factor is to match the EMPAD fov to the internal scan, usually 0.72.
+            # The fov is mistakenly stored as the internal fov * scale_factor
+            scale_factor = ast.literal_eval(
+                om.root.iom_measurements.full_scan_field_of_view.scale_factor
+            )
+            # In new EMPAD versions, the EMPAD scan can be set to 0.2, 0.4, 0.6, 0.8 or 1 times of the internal fov
+            scan_size = ast.literal_eval(
+                om.root.scan_parameters.scan_size
+            )
+            # Again, the fov is for the larger dimension of the scan
+            n_pixels = max(sizes[0], sizes[1])
+            value = fov / scale_factor * scan_size / n_pixels
+            scale, unit = _convert_scale_units(value, "m")
+            for i in [0, 1]:
+                scales[i] = scale
+                units[i] = unit
+
         except Exception:
             _logger.warning("The scale of the navigation axes cannot be read.")
 
-    try:
-        pixel_size = float(om.root.iom_measurements.calibrated_pixelsize) * 1e9
+    # try:
+    #     pixel_size = float(om.root.iom_measurements.calibrated_pixelsize) * 1e9
+    #     for i in [-1, -2]:
+    #         scales[i] = pixel_size
+    #         units[i] = "1/nm"
+    if q_calibration is not None:
         for i in [-1, -2]:
-            scales[i] = pixel_size
+            scales[i] = q_calibration
             units[i] = "1/nm"
-    except Exception:
-        _logger.warning("The scale of the signal axes cannot be read.")
+    else:
+        _logger.warning("The scale of the diffraction axes is not set.")
 
     for i in range(len(names)):
         if sizes[i] > 1:
@@ -185,6 +211,9 @@ def file_reader(filename, lazy=False):
             index_in_array += 1
 
     data = _read_raw(info, os.path.join(dname, info["raw_filename"]), lazy=lazy)
+
+    if remove_nans:
+        data = np.nan_to_num(data)
 
     dictionary = {
         "data": data.squeeze(),

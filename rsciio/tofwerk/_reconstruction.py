@@ -31,6 +31,7 @@ compute_peak_data_from_eventlist
 
 import logging
 import re
+from typing import Any
 
 import numpy as np
 
@@ -44,7 +45,9 @@ _logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-def _peak_table_from_list(peak_table_list):
+def _peak_table_from_list(
+    peak_table_list: list[dict[str, Any]],
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Convert a peak table list of dicts back to arrays suitable for integration.
 
@@ -74,7 +77,7 @@ def _peak_table_from_list(peak_table_list):
 # ---------------------------------------------------------------------------
 
 
-def _count_active_channels(ini):
+def _count_active_channels(ini: str) -> int:
     """
     Return the number of active TDC recording channels from the INI config string.
 
@@ -92,7 +95,7 @@ def _count_active_channels(ini):
     return max(sum(int(m) for m in matches), 1)
 
 
-def _flatten_event_row(row):
+def _flatten_event_row(row: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
     Pack a row of variable-length event arrays into a flat contiguous buffer.
 
@@ -123,17 +126,17 @@ def _flatten_event_row(row):
 
 @jit_ifnumba(cache=True)
 def _accumulate_peak_counts(
-    flat,
-    offsets,
-    nx,
-    clock_ratio,
-    nbr_samples,
-    mass_axis,
-    sorted_low,
-    sorted_high,
-    npeaks,
-    result_sx,
-):  # pragma: no cover
+    flat: np.ndarray,
+    offsets: np.ndarray,
+    nx: int,
+    clock_ratio: int,
+    nbr_samples: int,
+    mass_axis: np.ndarray,
+    sorted_low: np.ndarray,
+    sorted_high: np.ndarray,
+    npeaks: int,
+    result_sx: np.ndarray,
+) -> None:  # pragma: no cover
     """
     Accumulate per-pixel peak counts into *result_sx* (sorted-peak order).
 
@@ -172,14 +175,14 @@ def _accumulate_peak_counts(
 
 
 def compute_peak_data_from_eventlist(
-    event_list,
-    mass_axis,
-    nbr_samples,
-    clock_ratio,
-    normalization,
-    peak_table,
-    show_progressbar=True,
-):
+    event_list: np.ndarray,
+    mass_axis: np.ndarray,
+    nbr_samples: int,
+    clock_ratio: int,
+    normalization: int,
+    peak_table: list[dict[str, Any]],
+    show_progressbar: bool = True,
+) -> np.ndarray:
     """
     Reconstruct the 4-D peak-integrated array from raw EventList data.
 
@@ -268,7 +271,7 @@ def compute_peak_data_from_eventlist(
     try:
         from tqdm.auto import tqdm as _tqdm
     except ImportError:
-        _tqdm = None
+        _tqdm = None  # type: ignore[assignment]
 
     def _make_pbar(n, desc="Reconstructing peak data"):
         if _tqdm is not None and show_progressbar:

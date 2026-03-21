@@ -88,12 +88,18 @@ on a raw file triggers full EventList reconstruction; ``"fib_images"``
 returns the stack of secondary-electron images at full FIB resolution.
 """
 
+from __future__ import annotations
+
 import enum
 import logging
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, Protocol, TypeVar, cast
 
 import numpy as np
+
+if TYPE_CHECKING:
+    import h5py
 
 from rsciio._docstrings import (
     CHUNKS_READ_DOC,
@@ -108,6 +114,13 @@ from rsciio.tofwerk._reconstruction import (
 )
 
 _logger = logging.getLogger(__name__)
+
+
+class _RaggedSignal(Protocol):
+    ragged: bool
+
+
+_SignalT = TypeVar("_SignalT", bound=_RaggedSignal)
 
 # ---------------------------------------------------------------------------
 # Signal parameter enum
@@ -129,7 +142,7 @@ class TofwerkSignal(str, enum.Enum):
 # ---------------------------------------------------------------------------
 
 
-def _is_tofwerk_file(file):
+def _is_tofwerk_file(file: h5py.File) -> bool:
     """Return True if the HDF5 file was written by TofDAQ."""
     return (
         "FullSpectra" in file
@@ -139,12 +152,12 @@ def _is_tofwerk_file(file):
     )
 
 
-def _is_fib_sims(file):
+def _is_fib_sims(file: h5py.File) -> bool:
     """Return True if this is a fibTOF FIB-SIMS file."""
     return _is_tofwerk_file(file) and "FIBImages" in file and "FIBParams" in file
 
 
-def _has_peak_data(file):
+def _has_peak_data(file: h5py.File) -> bool:
     """Return True if Tofwerk software has pre-processed the file."""
     return "PeakData/PeakData" in file
 
@@ -154,7 +167,7 @@ def _has_peak_data(file):
 # ---------------------------------------------------------------------------
 
 
-def _parse_creation_time(file):
+def _parse_creation_time(file: h5py.File) -> tuple[str, str, str]:
     """
     Return (date_str, time_str, tz_str) from the acquisition log.
 
@@ -172,8 +185,9 @@ def _parse_creation_time(file):
         dt = datetime.fromisoformat(timestring)
         date_str = dt.date().isoformat()
         time_str = dt.strftime("%H:%M:%S")
-        if dt.tzinfo is not None:
-            total_seconds = int(dt.utcoffset().total_seconds())
+        utcoffset = dt.utcoffset() if dt.tzinfo is not None else None
+        if utcoffset is not None:
+            total_seconds = int(utcoffset.total_seconds())
             sign = "+" if total_seconds >= 0 else "-"
             h, m = divmod(abs(total_seconds) // 60, 60)
             tz_str = f"{sign}{h:02d}:{m:02d}"
@@ -193,7 +207,7 @@ def _parse_creation_time(file):
     return date_str, time_str, tz_str
 
 
-def _parse_pixel_size(file, nx):
+def _parse_pixel_size(file: h5py.File, nx: int) -> float | None:
     """
     Return pixel size in µm.
 
@@ -220,7 +234,13 @@ def _parse_pixel_size(file, nx):
 # ---------------------------------------------------------------------------
 
 
-def _build_axes_preprocessed(nwrites, nsegs, nx, peak_masses, pixel_size_um):
+def _build_axes_preprocessed(
+    nwrites: int,
+    nsegs: int,
+    nx: int,
+    peak_masses: np.ndarray,
+    pixel_size_um: float | None,
+) -> list[dict[str, Any]]:
     """Return the list of 4 axis dicts for a pre-processed (PeakData) file."""
     return [
         {
@@ -261,7 +281,7 @@ def _build_axes_preprocessed(nwrites, nsegs, nx, peak_masses, pixel_size_um):
     ]
 
 
-def _build_axes_raw_sum(mass_axis):
+def _build_axes_raw_sum(mass_axis: np.ndarray) -> list[dict[str, Any]]:
     """Return a 1-D axis dict for the raw sum spectrum."""
     return [
         {
@@ -274,7 +294,12 @@ def _build_axes_raw_sum(mass_axis):
     ]
 
 
-def _build_axes_event_list(nwrites, nsegs, nx, pixel_size_um):
+def _build_axes_event_list(
+    nwrites: int,
+    nsegs: int,
+    nx: int,
+    pixel_size_um: float | None,
+) -> list[dict[str, Any]]:
     """Return 3 navigation axis dicts for the ragged EventList signal."""
     return [
         {
@@ -308,7 +333,12 @@ def _build_axes_event_list(nwrites, nsegs, nx, pixel_size_um):
     ]
 
 
-def _build_axes_fib_images(n_images, fib_ny, fib_nx, fib_pixel_size_um):
+def _build_axes_fib_images(
+    n_images: int,
+    fib_ny: int,
+    fib_nx: int,
+    fib_pixel_size_um: float | None,
+) -> list[dict[str, Any]]:
     """Return 3 axis dicts for a FIB SE image stack (depth, y, x)."""
     return [
         {
@@ -347,7 +377,9 @@ def _build_axes_fib_images(n_images, fib_ny, fib_nx, fib_pixel_size_um):
 # ---------------------------------------------------------------------------
 
 
-def _build_metadata(file, filename, has_peak_data):
+def _build_metadata(
+    file: h5py.File, filename: str, has_peak_data: bool
+) -> dict[str, Any]:
     """Construct the HyperSpy metadata dict from TofDAQ HDF5 attributes."""
     date_str, time_str, tz_str = _parse_creation_time(file)
     stem = Path(filename).stem
@@ -446,7 +478,7 @@ def _build_metadata(file, filename, has_peak_data):
     if "PeakData/PeakTable" in file:
         peak_table_list = _peak_table_to_list(np.asarray(file["PeakData/PeakTable"]))
 
-    signal_meta = {"signal_type": "FIB-SIMS"}
+    signal_meta: dict[str, Any] = {"signal_type": "FIB-SIMS"}
     if peak_table_list is not None:
         signal_meta["peak_table"] = peak_table_list
 
@@ -470,7 +502,7 @@ def _build_metadata(file, filename, has_peak_data):
     return metadata
 
 
-def _build_original_metadata(file):
+def _build_original_metadata(file: h5py.File) -> dict[str, Any]:
     """
     Return a dict of raw HDF5 root attributes and key group attributes,
     decoded for JSON serialisability.
@@ -514,7 +546,7 @@ def _build_original_metadata(file):
 # ---------------------------------------------------------------------------
 
 
-def _peak_table_to_list(pt):
+def _peak_table_to_list(pt: np.ndarray) -> list[dict[str, Any]]:
     """
     Convert a PeakTable structured array to a JSON-serialisable list of dicts.
 
@@ -547,8 +579,12 @@ def _peak_table_to_list(pt):
 
 
 def _compute_peak_data_from_file(
-    file, peak_table=None, depth_start=0, depth_stop=None, show_progressbar=True
-):
+    file: h5py.File,
+    peak_table: list[dict[str, Any]] | None = None,
+    depth_start: int = 0,
+    depth_stop: int | None = None,
+    show_progressbar: bool = True,
+) -> np.ndarray:
     """
     Extract all required arrays from an open HDF5 file and call
     :func:`compute_peak_data_from_eventlist`.
@@ -619,14 +655,14 @@ def _compute_peak_data_from_file(
 # ---------------------------------------------------------------------------
 
 
-def _decode(value):
+def _decode(value: object) -> str:
     """Decode bytes to str; pass through strings unchanged."""
     if isinstance(value, (bytes, np.bytes_)):
         return value.decode("utf-8", errors="replace")
     return str(value)
 
 
-def _decode_attr(value):
+def _decode_attr(value: object) -> str | int | float | list | object:
     """Make an HDF5 attribute JSON-serialisable."""
     if isinstance(value, (bytes, np.bytes_)):
         return value.decode("utf-8", errors="replace")
@@ -635,7 +671,7 @@ def _decode_attr(value):
     if isinstance(value, np.ndarray):
         if value.dtype.kind in ("S", "U", "O"):
             return [_decode(v) for v in value.flat]
-        return value.tolist()
+        return value.tolist()  # type: ignore[no-matching-overload]
     return value
 
 
@@ -644,7 +680,7 @@ def _decode_attr(value):
 # ---------------------------------------------------------------------------
 
 
-def _mark_event_list_ragged(signal):
+def _mark_event_list_ragged(signal: _SignalT) -> _SignalT:
     """Mark EventList signals as ragged so HyperSpy handles them correctly.
 
     Setting ``signal.ragged = True`` registers the variable-length TDC
@@ -661,7 +697,7 @@ def _mark_event_list_ragged(signal):
 # ---------------------------------------------------------------------------
 
 
-def available_signals(filename):
+def available_signals(filename: str | Path) -> list[str]:
     """
     Return the list of signal names available in a Tofwerk TofDAQ HDF5 file.
 
@@ -711,15 +747,15 @@ def available_signals(filename):
 
 
 def file_reader(
-    filename,
-    lazy=False,
-    signal="sum_spectrum",
-    chunks=None,
-    mz_range=None,
-    depth_range=None,
-    dtype=None,
-    show_progressbar=True,
-):
+    filename: str | Path,
+    lazy: bool = False,
+    signal: str | list[str] = "sum_spectrum",
+    chunks: tuple | int | dict | str | None = None,
+    mz_range: tuple[float, float] | None = None,
+    depth_range: tuple[int, int] | None = None,
+    dtype: np.dtype | None = None,
+    show_progressbar: bool = True,
+) -> list[dict[str, Any]]:
     """
     Read a Tofwerk TofDAQ HDF5 file.
 
@@ -1059,7 +1095,9 @@ def file_reader(
                 )
             # Pass the active peak_table from metadata so users can reintegrate
             # with modified windows by reloading with signal="peak_data".
-            active_peak_table = peak_meta["Signal"]["peak_table"]
+            active_peak_table = cast(
+                list[dict[str, Any]], peak_meta["Signal"]["peak_table"]
+            )
 
             if mz_sel is not None:
                 # orig_sel: original peak_table indices for the selected peaks.
@@ -1088,7 +1126,7 @@ def file_reader(
                     try:
                         from tqdm.auto import tqdm as _tqdm_sort
                     except ImportError:
-                        _tqdm_sort = None
+                        _tqdm_sort = None  # type: ignore[assignment]
                     _BATCH = 64
                     nw_ev = peak_data.shape[0]
                     sorted_array = np.empty(peak_data.shape, dtype=peak_data.dtype)
@@ -1144,7 +1182,7 @@ def file_reader(
             try:
                 from tqdm.auto import tqdm as _tqdm_el
             except ImportError:
-                _tqdm_el = None
+                _tqdm_el = None  # type: ignore[assignment]
             el_data = np.empty((nwrites_loaded, nsegs, nx), dtype=object)
             pbar = (
                 _tqdm_el(total=nwrites_loaded, desc="Loading EventList", unit=" slices")
@@ -1252,7 +1290,7 @@ def file_reader(
     return signals
 
 
-file_reader.__doc__ %= (
+file_reader.__doc__ %= (  # type: ignore[operator]
     FILENAME_DOC,
     LAZY_DOC,
     CHUNKS_READ_DOC,

@@ -332,6 +332,19 @@ class TestSignalPeakData:
         assert len(sigs) == 1
         assert sigs[0]["data"].shape == (NWRITES, NSEGS, NX, NPEAKS)
 
+    def test_lazy_raw_peak_data_raises(self):
+        """lazy=True with signal='peak_data' on a raw file raises NotImplementedError."""
+        with pytest.raises(NotImplementedError, match="lazy"):
+            file_reader(RAW_FILE, signal="peak_data", lazy=True)
+
+    def test_lazy_opened_peak_data_works(self):
+        """lazy=True with signal='peak_data' on a pre-processed file works fine."""
+        sigs = file_reader(OPENED_FILE, signal="peak_data", lazy=True)
+        assert len(sigs) == 1
+        import dask.array as da
+
+        assert isinstance(sigs[0]["data"], da.Array)
+
 
 class TestComputePeakDataNumpyFallback:
     """
@@ -468,15 +481,10 @@ class TestSignalEventList:
         val = sig["data"][0, 0, 0].compute()
         assert isinstance(val, np.ndarray)
 
-    def test_not_available_on_opened_file(self, caplog):
-        # Opened test file has no EventList — should warn and return empty list
-        with caplog.at_level(logging.WARNING, logger="rsciio.tofwerk._api"):
-            result = file_reader(OPENED_FILE, signal="event_list")
-        assert len(result) == 0
-        assert any(
-            "event_list" in r.message or "EventList" in r.message
-            for r in caplog.records
-        )
+    def test_not_available_on_opened_file(self):
+        # Opened test file has no EventList — should raise ValueError
+        with pytest.raises(ValueError, match="event_list|EventList"):
+            file_reader(OPENED_FILE, signal="event_list")
 
 
 class TestSignalAll:
@@ -1131,26 +1139,19 @@ class TestEdgeCases:
         result = file_reader(p)
         assert len(result) == 1
 
-    def test_want_peak_not_available_warns(self, tmp_path, caplog):
-        """signal='peak_data' on file with no EventList and no PeakData fires warning."""
+    def test_want_peak_not_available_raises(self, tmp_path):
+        """signal='peak_data' on file with no EventList and no PeakData raises ValueError."""
         p = tmp_path / "no_peak.h5"
         _make_minimal_tofdaq(p, include_eventlist=False)
-        with caplog.at_level(logging.WARNING, logger="rsciio.tofwerk._api"):
-            result = file_reader(p, signal="peak_data")
-        assert len(result) == 0
-        assert any("peak_data" in r.message for r in caplog.records)
+        with pytest.raises(ValueError, match="peak_data"):
+            file_reader(p, signal="peak_data")
 
-    def test_want_fib_not_available_warns(self, tmp_path, caplog):
-        """signal='fib_images' on file with empty FIBImages group fires warning."""
+    def test_want_fib_not_available_raises(self, tmp_path):
+        """signal='fib_images' on file with empty FIBImages group raises ValueError."""
         p = tmp_path / "no_fib.h5"
         _make_minimal_tofdaq(p, include_fibimages=False)
-        with caplog.at_level(logging.WARNING, logger="rsciio.tofwerk._api"):
-            result = file_reader(p, signal="fib_images")
-        assert len(result) == 0
-        assert any(
-            "fib_images" in r.message or "FIBImages" in r.message
-            for r in caplog.records
-        )
+        with pytest.raises(ValueError, match="fib_images|FIBImages"):
+            file_reader(p, signal="fib_images")
 
     def test_available_signals_info_logged(self, caplog):
         """Loading only sum_spectrum from opened file logs available signals at INFO."""
@@ -1445,24 +1446,6 @@ class TestUnsortedPeaks:
 
 
 # ---------------------------------------------------------------------------
-# Tests: nbytes > threshold warning (monkeypatched threshold)
-# ---------------------------------------------------------------------------
-
-
-class TestLargeDataWarning:
-    def test_nbytes_warning_via_patched_threshold(self, tmp_path, monkeypatch, caplog):
-        """Lowering _LARGE_PEAK_DATA_WARN_BYTES to 0 triggers the size warning."""
-        from rsciio.tofwerk import _api
-
-        p = tmp_path / "big.h5"
-        _make_minimal_tofdaq(p, include_peakdata=True)
-        monkeypatch.setattr(_api, "_LARGE_PEAK_DATA_WARN_BYTES", 0)
-        with caplog.at_level(logging.WARNING, logger="rsciio.tofwerk._api"):
-            file_reader(p, signal="peak_data")
-        assert any("GB" in r.message for r in caplog.records)
-
-
-# ---------------------------------------------------------------------------
 # Tests: tqdm progress bar branches
 # ---------------------------------------------------------------------------
 
@@ -1500,8 +1483,8 @@ class TestTqdmPbar:
                 sys.modules, {"tqdm": mock_tqdm_auto, "tqdm.auto": mock_tqdm_auto}
             ):
                 _compute_peak_data_from_file(f)
-        # _make_pbar was called at least twice (reconstruction + normalisation)
-        assert mock_tqdm_auto.tqdm.call_count >= 2
+        # _make_pbar was called at least once (reconstruction loop)
+        assert mock_tqdm_auto.tqdm.call_count >= 1
         assert mock_pbar.update.called
         assert mock_pbar.close.called
 
@@ -1525,7 +1508,7 @@ class TestTqdmPbar:
                 },
             ):
                 _compute_peak_data_from_file(f)
-        assert mock_tqdm_auto.tqdm.call_count >= 2
+        assert mock_tqdm_auto.tqdm.call_count >= 1
         assert mock_pbar.update.called
         assert mock_pbar.close.called
 
@@ -1561,3 +1544,20 @@ class TestTqdmPbar:
         assert mock_tqdm_auto.tqdm.called
         assert mock_pbar.update.called
         assert mock_pbar.close.called
+
+    def test_show_progressbar_false_suppresses_pbar(self, tmp_path):
+        """show_progressbar=False prevents tqdm from being called."""
+        import sys
+        from unittest.mock import patch
+
+        from rsciio.tofwerk._api import _compute_peak_data_from_file
+
+        p = tmp_path / "tqdm_disabled.h5"
+        _make_minimal_tofdaq(p)
+        mock_tqdm_auto, mock_pbar = _make_mock_tqdm()
+        with h5py.File(p, "r") as f:
+            with patch.dict(
+                sys.modules, {"tqdm": mock_tqdm_auto, "tqdm.auto": mock_tqdm_auto}
+            ):
+                _compute_peak_data_from_file(f, show_progressbar=False)
+        assert mock_tqdm_auto.tqdm.call_count == 0

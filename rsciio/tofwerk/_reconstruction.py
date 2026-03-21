@@ -345,11 +345,5 @@ def compute_peak_data_from_eventlist(
         if pbar is not None:
             pbar.close()
 
-    pbar = _make_pbar(nwrites, desc="Normalising")
-    for w in range(nwrites):
-        result[w] /= normalization
-        if pbar is not None:
-            pbar.update(1)
-    if pbar is not None:
-        pbar.close()
+    result /= normalization
     return result

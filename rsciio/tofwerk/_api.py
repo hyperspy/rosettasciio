@@ -70,8 +70,7 @@ Two file states are handled:
   has already integrated the raw events into per-peak counts.  The
   ``"sum_spectrum"`` signal (default) returns the 1-D cumulative spectrum.
   The ``"peak_data"`` signal returns the 4-D ``(depth, y, x, m/z)``
-  peak-integrated array.  The Tofwerk software typically removes the
-  EventList when opening a file, but if it is still present
+  peak-integrated array.  If the EventList is still present,
   ``signal="event_list"`` will return it for reprocessing.
 
 * **Raw** files (``FullSpectra/EventList`` only) — the raw TDC timestamp
@@ -97,14 +96,16 @@ from pathlib import Path
 
 import numpy as np
 
-from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio._docstrings import (
+    CHUNKS_READ_DOC,
+    FILENAME_DOC,
+    LAZY_DOC,
+    RETURNS_DOC,
+    SHOW_PROGRESSBAR_DOC,
+)
 from rsciio.utils._decorator import jit_ifnumba
 
 _logger = logging.getLogger(__name__)
-
-# Threshold (bytes) above which a warning is emitted when loading PeakData eagerly.
-# Exposed as a module constant so it can be patched in tests.
-_LARGE_PEAK_DATA_WARN_BYTES = 1e9
 
 # ---------------------------------------------------------------------------
 # Signal parameter enum
@@ -666,7 +667,13 @@ def _accumulate_peak_counts(
 
 
 def compute_peak_data_from_eventlist(
-    event_list, mass_axis, nbr_samples, clock_ratio, normalization, peak_table
+    event_list,
+    mass_axis,
+    nbr_samples,
+    clock_ratio,
+    normalization,
+    peak_table,
+    show_progressbar=True,
 ):
     """
     Reconstruct the 4-D peak-integrated array from raw EventList data.
@@ -683,10 +690,11 @@ def compute_peak_data_from_eventlist(
        physical ion is recorded in the EventList (once per ToF cycle per active
        recording channel).
 
-    If ``numba`` is installed, events are processed via a JIT-compiled loop
-    over a flat event buffer (no intermediate arrays per pixel).  Otherwise
-    falls back to a vectorised NumPy path that allocates per-pixel arrays but
-    is still significantly faster than a pure-Python triple loop.
+    .. note::
+        If ``numba`` is installed, events are processed via a JIT-compiled loop
+        over a flat event buffer (no intermediate arrays per pixel).  Otherwise
+        falls back to a vectorised NumPy path that allocates per-pixel arrays but
+        is still significantly faster than a pure-Python triple loop.
 
     Parameters
     ----------
@@ -710,6 +718,8 @@ def compute_peak_data_from_eventlist(
     peak_table : list of dict
         Integration windows.  Each dict must have keys
         ``lower_integration_limit`` and ``upper_integration_limit`` (Da).
+    show_progressbar : bool, default=True
+        Whether to show tqdm progress bars during reconstruction.
 
     Returns
     -------
@@ -734,11 +744,9 @@ def compute_peak_data_from_eventlist(
 
     result = np.zeros((nwrites, nsegs, nx, npeaks), dtype=np.float32)
 
-    _logger.warning(
+    _logger.info(
         f"Reconstructing peak data from EventList "
-        f"({nwrites} depth slices × {nsegs} × {nx} pixels × {npeaks} peaks). "
-        f"This may take considerable time depending on the size of the file. "
-        f"Consider opening the file with Tofwerk software first for instant lazy loading."
+        f"({nwrites} depth slices × {nsegs} × {nx} pixels × {npeaks} peaks)."
     )
 
     # Prefer the numba JIT path when numba is installed: events are packed into a
@@ -758,7 +766,7 @@ def compute_peak_data_from_eventlist(
         _tqdm = None
 
     def _make_pbar(n, desc="Reconstructing peak data"):
-        if _tqdm is not None:
+        if _tqdm is not None and show_progressbar:
             return _tqdm(total=n, desc=desc, unit=" slices")
         return None
 
@@ -844,7 +852,9 @@ def compute_peak_data_from_eventlist(
 # ---------------------------------------------------------------------------
 
 
-def _compute_peak_data_from_file(file, peak_table=None, depth_start=0, depth_stop=None):
+def _compute_peak_data_from_file(
+    file, peak_table=None, depth_start=0, depth_stop=None, show_progressbar=True
+):
     """
     Extract all required arrays from an open HDF5 file and call
     :func:`compute_peak_data_from_eventlist`.
@@ -896,11 +906,17 @@ def _compute_peak_data_from_file(file, peak_table=None, depth_start=0, depth_sto
     if depth_start == 0 and depth_stop == el_total:
         event_list = el_ds
     else:
-        # Slice the VL dataset into a numpy object array for the reconstruction.
-        # This reads only the requested depth slices from disk.
+        # Slice the variable-length (VL) HDF5 dataset into a numpy object array
+        # for the reconstruction. This reads only the requested depth slices from disk.
         event_list = el_ds[depth_start:depth_stop]
     return compute_peak_data_from_eventlist(
-        event_list, mass_axis, nbr_samples, clock_ratio, normalization, peak_table
+        event_list,
+        mass_axis,
+        nbr_samples,
+        clock_ratio,
+        normalization,
+        peak_table,
+        show_progressbar=show_progressbar,
     )
 
 
@@ -1000,17 +1016,6 @@ def available_signals(filename):
     return signals
 
 
-# our custom chunks API requires a different docstring than the one in
-# rosettasciio/rsciio/_docstrings.py:
-_CHUNKS_READ_DOC = """chunks : tuple, int, dict, str or None, default=None
-        The chunks used when reading the data lazily. This argument is passed
-        to :func:`dask.array.from_array`. Only has an effect when ``lazy=True``.
-        If ``None``, a signal-appropriate default is used: one chunk per depth
-        slice for ``"peak_data"`` and ``"event_list"``, and a single chunk for
-        ``"sum_spectrum"`` and ``"fib_images"``.
-    """
-
-
 def file_reader(
     filename,
     lazy=False,
@@ -1019,6 +1024,7 @@ def file_reader(
     mz_range=None,
     depth_range=None,
     dtype=None,
+    show_progressbar=True,
 ):
     """
     Read a Tofwerk TofDAQ HDF5 file.
@@ -1040,8 +1046,8 @@ def file_reader(
             ``PeakData/PeakTable``.
         ``"event_list"``
             Ragged object array ``(depth, y, x)`` of raw uint16 TDC
-            timestamps.  Present in all raw files; also available in
-            pre-processed files if the Tofwerk software did not remove it.
+            timestamps.  Present in raw files; may also be present in
+            pre-processed files.
         ``"fib_images"``
             3-D array ``(depth, y, x)`` of secondary-electron images at
             full FIB scan resolution (e.g. 256×256).  Available only in
@@ -1072,6 +1078,7 @@ def file_reader(
         reduce memory usage, e.g. ``dtype=np.float16`` or ``dtype=np.uint16``
         for low-count data.  If ``None`` (default), the on-disk dtype
         (``float32``) is preserved.
+    %s
 
     %s
 
@@ -1081,7 +1088,11 @@ def file_reader(
         If the file is not a Tofwerk TofDAQ HDF5 file.
     ValueError
         If ``signal`` contains an unrecognised value, or if ``mz_range`` or
-        ``depth_range`` are out of bounds.
+        ``depth_range`` are out of bounds, or if an explicitly requested signal
+        is not available in the file.
+    NotImplementedError
+        If ``lazy=True`` and ``signal="peak_data"`` on a raw file that requires
+        EventList reconstruction.
     """
     import h5py
 
@@ -1174,19 +1185,22 @@ def file_reader(
     can_evl = has_event_list
     can_fib = "FIBImages" in f and len(f["FIBImages"]) > 0
 
-    if want_peak and not can_peak:
-        _logger.warning(
+    if want_peak and not can_peak and not want_all:
+        f.close()
+        raise ValueError(
             "signal='peak_data' requested but not available "
-            "(no PeakData/PeakData and no EventList+PeakTable). Skipping."
+            "(no PeakData/PeakData and no EventList+PeakTable)."
         )
-    if want_evl and not can_evl:
-        _logger.warning(
+    if want_evl and not can_evl and not want_all:
+        f.close()
+        raise ValueError(
             "signal='event_list' requested but FullSpectra/EventList is not present "
-            "(the Tofwerk software may have removed it when opening the file). Skipping."
+            "(FullSpectra/EventList group not found in this file)."
         )
-    if want_fib and not can_fib:
-        _logger.warning(
-            "signal='fib_images' requested but FIBImages group is absent or empty. Skipping."
+    if want_fib and not can_fib and not want_all:
+        f.close()
+        raise ValueError(
+            "signal='fib_images' requested but FIBImages group is absent or empty."
         )
 
     produce_sum = want_sum
@@ -1241,7 +1255,7 @@ def file_reader(
             import dask.array as da
 
             sum_data = da.from_array(
-                sum_ds, chunks=chunks if chunks is not None else -1
+                sum_ds, chunks=chunks if chunks is not None else "auto"
             )[first_valid:]
         else:
             sum_data = np.asarray(sum_ds)[first_valid:]
@@ -1302,12 +1316,9 @@ def file_reader(
             if lazy:
                 import dask.array as da
 
-                # One chunk per depth slice by default: avoids tiny native HDF5
-                # chunks creating huge dask task graphs, and matches the natural
-                # access pattern.
                 peak_data = da.from_array(
                     peak_ds,
-                    chunks=chunks if chunks is not None else (1, nsegs, nx, -1),
+                    chunks=chunks if chunks is not None else "auto",
                 )[depth_start:depth_stop]
                 if not already_sorted:
                     peak_data = peak_data[:, :, :, sort_idx]
@@ -1316,15 +1327,6 @@ def file_reader(
                 if dtype is not None:
                     peak_data = peak_data.astype(dtype)
             else:
-                npeaks_sel = len(peak_masses)
-                nbytes = (
-                    nwrites_loaded * nsegs * nx * npeaks_sel * peak_ds.dtype.itemsize
-                )
-                if nbytes > _LARGE_PEAK_DATA_WARN_BYTES:
-                    _logger.warning(
-                        f"Loading {nbytes / 1e9:.1f} GB of PeakData into memory "
-                        f"(lazy=True is recommended for large files)."
-                    )
                 if already_sorted:
                     peak_data = np.asarray(peak_ds[depth_start:depth_stop])
                 else:
@@ -1346,7 +1348,21 @@ def file_reader(
                 if dtype is not None:
                     peak_data = peak_data.astype(dtype)
         else:
-            # Raw file: always eager (EventList is variable-length).
+            # Raw file: reconstruction from EventList is inherently eager because
+            # compute_peak_data_from_eventlist materialises the full array.
+            # Silently falling through to eager loading when the caller passed
+            # lazy=True is misleading (the data lands in RAM before the signal
+            # is returned), so we raise explicitly instead.
+            if lazy:
+                f.close()
+                raise NotImplementedError(
+                    "lazy=True is not supported when requesting signal='peak_data', "
+                    "since it requires eagerly integrating the raw EventList data. "
+                    "To compute the peak_data signal, either load the dataset eagerly "
+                    "(lazy=False) or open the file with the Tofwerk software first "
+                    "to produce PeakData/PeakData, which will enable lazy loading in "
+                    "rsciio."
+                )
             # Pass the active peak_table from metadata so users can reintegrate
             # with modified windows by reloading with signal="peak_data".
             active_peak_table = peak_meta["Signal"]["peak_table"]
@@ -1364,6 +1380,7 @@ def file_reader(
                     peak_table=active_peak_table,
                     depth_start=depth_start,
                     depth_stop=depth_stop,
+                    show_progressbar=show_progressbar,
                 )
             else:
                 peak_data = _compute_peak_data_from_file(
@@ -1371,6 +1388,7 @@ def file_reader(
                     peak_table=active_peak_table,
                     depth_start=depth_start,
                     depth_stop=depth_stop,
+                    show_progressbar=show_progressbar,
                 )
                 if not already_sorted:
                     try:
@@ -1382,7 +1400,7 @@ def file_reader(
                     sorted_array = np.empty(peak_data.shape, dtype=peak_data.dtype)
                     pbar = (
                         _tqdm_sort(total=nw_ev, desc="Sorting m/z axis", unit=" slices")
-                        if _tqdm_sort is not None
+                        if _tqdm_sort is not None and show_progressbar
                         else None
                     )
                     for _w0 in range(0, nw_ev, _BATCH):
@@ -1416,6 +1434,8 @@ def file_reader(
             # Each chunk is one depth slice; elements are fetched from the
             # file on .compute().  The file must remain open (see
             # has_lazy_array below).
+            # Note: dask cannot auto-chunk object-dtype arrays, so one depth
+            # slice per chunk is used as the default for the EventList.
             import dask.array as da
 
             el_data = da.from_array(
@@ -1434,7 +1454,7 @@ def file_reader(
             el_data = np.empty((nwrites_loaded, nsegs, nx), dtype=object)
             pbar = (
                 _tqdm_el(total=nwrites_loaded, desc="Loading EventList", unit=" slices")
-                if _tqdm_el is not None
+                if _tqdm_el is not None and show_progressbar
                 else None
             )
             for i, w in enumerate(range(depth_start, depth_stop)):
@@ -1509,7 +1529,7 @@ def file_reader(
                 [
                     da.from_array(
                         fib_grp[name]["Data"],
-                        chunks=chunks if chunks is not None else -1,
+                        chunks=chunks if chunks is not None else "auto",
                     )
                     for name in slice_names
                 ]
@@ -1538,4 +1558,10 @@ def file_reader(
     return signals
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, _CHUNKS_READ_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (
+    FILENAME_DOC,
+    LAZY_DOC,
+    CHUNKS_READ_DOC,
+    SHOW_PROGRESSBAR_DOC,
+    RETURNS_DOC,
+)

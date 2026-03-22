@@ -1012,7 +1012,10 @@ def file_reader(
             peak_table = np.asarray(f["PeakData/PeakTable"])
 
         peak_masses = peak_table["mass"].astype(float)
+        # Sort peaks by mass so the m/z signal axis is monotonically increasing
+        # (required by HyperSpy non-uniform axes).
         sort_idx = np.argsort(peak_masses)
+        # Skip the reorder step on the data array when peaks are already sorted.
         already_sorted = np.array_equal(sort_idx, np.arange(len(sort_idx)))
         peak_masses = peak_masses[sort_idx]
 

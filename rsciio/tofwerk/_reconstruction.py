@@ -95,38 +95,30 @@ def _count_active_channels(ini: str) -> int:
     return max(sum(int(m) for m in matches), 1)
 
 
-def _flatten_depth_slice(slice_2d: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def _flatten_event_row(row: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
-    Pack all events from a depth slice into a flat contiguous buffer.
+    Pack all events from one row of pixels into a flat contiguous buffer.
 
     Parameters
     ----------
-    slice_2d : numpy.ndarray
-        Object array of shape ``(nsegs, nx)`` for one depth slice, as
-        returned by ``el[w]``.
+    row : numpy.ndarray
+        1-D object array of shape ``(nx,)`` for one (depth, y) row, as
+        returned by ``el[w][s]`` or ``el[w, s, :]``.
 
     Returns
     -------
     flat : numpy.ndarray, dtype int64
-        All events concatenated in row-major pixel order (s varies slowest,
-        x varies fastest).
-    offsets : numpy.ndarray, shape (nsegs * nx + 1,), dtype int64
-        ``flat[offsets[p]:offsets[p+1]]`` are the events for pixel
-        ``p = s * nx + x``.
+        All events concatenated in pixel order (x varies).
+    offsets : numpy.ndarray, shape (nx + 1,), dtype int64
+        ``flat[offsets[x]:offsets[x+1]]`` are the events for pixel ``x``.
     """
-    nsegs, nx = slice_2d.shape
-    total_pixels = nsegs * nx
-    lengths = np.array(
-        [len(slice_2d[s, x]) for s in range(nsegs) for x in range(nx)],
-        dtype=np.int64,
-    )
-    offsets = np.empty(total_pixels + 1, dtype=np.int64)
+    _nx = len(row)
+    lengths = np.array([len(row[x]) for x in range(_nx)], dtype=np.int64)
+    offsets = np.empty(_nx + 1, dtype=np.int64)
     offsets[0] = 0
     np.cumsum(lengths, out=offsets[1:])
     flat = (
-        np.concatenate(
-            [slice_2d[s, x] for s in range(nsegs) for x in range(nx)]
-        ).astype(np.int64)
+        np.concatenate(list(row)).astype(np.int64)
         if offsets[-1] > 0
         else np.empty(0, dtype=np.int64)
     )
@@ -134,10 +126,9 @@ def _flatten_depth_slice(slice_2d: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 
 
 @jit_ifnumba(cache=True)
-def _accumulate_slice_counts(
+def _accumulate_peak_counts(
     flat: np.ndarray,
     offsets: np.ndarray,
-    nsegs: int,
     nx: int,
     clock_ratio: int,
     nbr_samples: int,
@@ -145,24 +136,19 @@ def _accumulate_slice_counts(
     sorted_low: np.ndarray,
     sorted_high: np.ndarray,
     npeaks: int,
-    result_ws: np.ndarray,
+    result_sx: np.ndarray,
 ) -> None:  # pragma: no cover
     """
-    Accumulate per-pixel peak counts for an entire depth slice into *result_ws*.
-
-    Pixels are laid out in row-major order (s varies slowest, x varies fastest),
-    matching the ordering used by :func:`_flatten_depth_slice`.
+    Accumulate per-pixel peak counts for one row into *result_sx*.
 
     Parameters
     ----------
     flat : int64 array
-        Flat event buffer from :func:`_flatten_depth_slice`.
-    offsets : int64 array, shape (nsegs * nx + 1,)
+        Flat event buffer from :func:`_flatten_event_row`.
+    offsets : int64 array, shape (nx + 1,)
         Pixel start/end indices into *flat*.
-    nsegs : int
-        Number of y segments (rows) in this depth slice.
     nx : int
-        Number of x pixels per row.
+        Number of x pixels in the row.
     clock_ratio : int
         TDC-to-ADC sample index divisor.
     nbr_samples : int
@@ -173,15 +159,12 @@ def _accumulate_slice_counts(
         Integration window bounds in ascending mass order.
     npeaks : int
         Number of peaks.
-    result_ws : float32 array, shape (nsegs, nx, npeaks)
+    result_sx : float32 array, shape (nx, npeaks)
         Output accumulator, pre-zeroed by caller.  Indexed by sorted peak order.
     """
-    total_pixels = nsegs * nx
-    for px in range(total_pixels):
-        s = px // nx
-        x = px % nx
-        start = offsets[px]
-        end = offsets[px + 1]
+    for x in range(nx):
+        start = offsets[x]
+        end = offsets[x + 1]
         for i in range(start, end):
             sample = flat[i] // clock_ratio
             if sample < 0 or sample >= nbr_samples:
@@ -189,7 +172,7 @@ def _accumulate_slice_counts(
             mass = mass_axis[sample]
             bin_idx = np.searchsorted(sorted_low, mass, side="right") - 1
             if bin_idx >= 0 and mass <= sorted_high[bin_idx]:
-                result_ws[s, x, bin_idx] += 1
+                result_sx[x, bin_idx] += 1
 
 
 def compute_peak_data_from_eventlist(
@@ -218,10 +201,10 @@ def compute_peak_data_from_eventlist(
 
     .. note::
         If ``numba`` is installed, each depth slice is read in a single h5py
-        call, all ``nsegs × nx`` pixels are packed into one flat int64 buffer,
-        and the entire slice is processed in a single JIT-compiled kernel call.
-        Otherwise falls back to a vectorised NumPy path that allocates per-pixel
-        arrays but is still significantly faster than a pure-Python triple loop.
+        call (instead of one call per row), then each row is packed into a flat
+        int64 buffer and processed by a JIT-compiled kernel.  Otherwise falls
+        back to a vectorised NumPy path that allocates per-pixel arrays but is
+        still significantly faster than a pure-Python triple loop.
 
     Parameters
     ----------
@@ -298,32 +281,29 @@ def compute_peak_data_from_eventlist(
         return None
 
     if _use_numba:
-        # numba path: read one depth slice at a time (one h5py call per depth
-        # slice instead of one per row), flatten all nsegs*nx pixels into a
-        # single contiguous int64 buffer, and dispatch to the JIT-compiled
-        # _accumulate_slice_counts kernel in one call per depth slice.
-        # The inv_sort_idx permutation is applied once per depth slice rather
-        # than once per row, reducing fancy-index operations by nsegs×.
-        result_ws = np.zeros((nsegs, nx, npeaks), dtype=np.float32)
+        # numba path: read one depth slice per h5py call, then process one row
+        # at a time -- flatten the row into a contiguous int64 buffer and
+        # dispatch the JIT-compiled kernel per row.
+        result_sx = np.zeros((nx, npeaks), dtype=np.float32)
         pbar = _make_pbar(nwrites)
         for w in range(nwrites):
-            slice_data = el[w]  # one read covers all nsegs rows for this depth slice
-            flat, offsets = _flatten_depth_slice(slice_data)
-            result_ws[:] = 0
-            _accumulate_slice_counts(
-                flat,
-                offsets,
-                nsegs,
-                nx,
-                clock_ratio,
-                nbr_samples,
-                mass_axis,
-                sorted_low,
-                sorted_high,
-                npeaks,
-                result_ws,
-            )
-            result[w] = result_ws[:, :, inv_sort_idx]
+            slice_data = el[w]  # one h5py read covers all nsegs rows
+            for s in range(nsegs):
+                flat, offsets = _flatten_event_row(slice_data[s])
+                result_sx[:] = 0
+                _accumulate_peak_counts(
+                    flat,
+                    offsets,
+                    nx,
+                    clock_ratio,
+                    nbr_samples,
+                    mass_axis,
+                    sorted_low,
+                    sorted_high,
+                    npeaks,
+                    result_sx,
+                )
+                result[w, s] = result_sx[:, inv_sort_idx]
             if pbar is not None:
                 pbar.update(1)
         if pbar is not None:

@@ -755,6 +755,7 @@ def file_reader(
     depth_range: tuple[int, int] | None = None,
     dtype: np.dtype | None = None,
     show_progressbar: bool = True,
+    peak_data_batch_size: int = 1,
 ) -> list[dict[str, Any]]:
     """
     Read a Tofwerk TofDAQ HDF5 file.
@@ -808,6 +809,13 @@ def file_reader(
         reduce memory usage, e.g. ``dtype=np.float16`` or ``dtype=np.uint16``
         for low-count data.  If ``None`` (default), the on-disk dtype
         (``float32``) is preserved.
+    peak_data_batch_size : int, optional
+        Number of depth slices to read and permute per iteration when loading
+        ``"peak_data"`` from a pre-processed file whose peaks are not already
+        in ascending mass order.  Smaller batches keep the sort permutation
+        working on arrays that fit in CPU cache, which is faster for large
+        datasets.  Default is 1 (one slice at a time).  Has no effect when
+        peaks are already sorted or when ``lazy=True``.
     %s
 
     %s
@@ -1063,16 +1071,15 @@ def file_reader(
                 if already_sorted:
                     peak_data = np.asarray(peak_ds[depth_start:depth_stop])
                 else:
-                    # Apply sort_idx in write-batches so each batch fits in
-                    # cache.  Avoids cache-thrashing column permutation across
-                    # the full array (which is O(n_cycle × dataset_size)).
-                    _BATCH = 64
+                    # Apply sort_idx in batches so each batch fits in CPU cache.
+                    # Avoids cache-thrashing column permutation across the full
+                    # array.  Batch size is tunable via peak_data_batch_size.
                     peak_data = np.empty(
                         (nwrites_loaded, nsegs, nx, peak_ds.shape[3]),
                         dtype=peak_ds.dtype,
                     )
-                    for _w0 in range(0, nwrites_loaded, _BATCH):
-                        _w1 = min(_w0 + _BATCH, nwrites_loaded)
+                    for _w0 in range(0, nwrites_loaded, peak_data_batch_size):
+                        _w1 = min(_w0 + peak_data_batch_size, nwrites_loaded)
                         peak_data[_w0:_w1] = np.asarray(
                             peak_ds[depth_start + _w0 : depth_start + _w1]
                         )[:, :, :, sort_idx]

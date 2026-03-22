@@ -1068,7 +1068,25 @@ def file_reader(
                 if dtype is not None:
                     peak_data = peak_data.astype(dtype)
             else:
-                if already_sorted:
+                if mz_sel is not None:
+                    # When mz_range is active, read only the selected columns
+                    # directly from HDF5 so we never materialise the full mass
+                    # axis in memory.  final_idx maps each selected sorted-mass
+                    # position back to its original column index in the file.
+                    # h5py requires fancy indices to be in strictly ascending
+                    # order, so we sort them, read, then undo the reorder.
+                    final_idx = sort_idx[mz_sel]
+                    _asc_order = np.argsort(final_idx)
+                    _undo = np.argsort(_asc_order)
+                    peak_data = np.asarray(
+                        peak_ds[
+                            depth_start:depth_stop,
+                            :,
+                            :,
+                            final_idx[_asc_order].tolist(),
+                        ]
+                    )[:, :, :, _undo]
+                elif already_sorted:
                     peak_data = np.asarray(peak_ds[depth_start:depth_stop])
                 else:
                     # Apply sort_idx in batches so each batch fits in CPU cache.
@@ -1083,8 +1101,6 @@ def file_reader(
                         peak_data[_w0:_w1] = np.asarray(
                             peak_ds[depth_start + _w0 : depth_start + _w1]
                         )[:, :, :, sort_idx]
-                if mz_sel is not None:
-                    peak_data = peak_data[:, :, :, mz_sel]
                 if dtype is not None:
                     peak_data = peak_data.astype(dtype)
         else:

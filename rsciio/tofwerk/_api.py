@@ -1125,50 +1125,18 @@ def file_reader(
                 list[dict[str, Any]], peak_meta["Signal"]["peak_table"]
             )
 
-            if mz_sel is not None:
-                # orig_sel: original peak_table indices for the selected peaks.
-                # Because mz_sel indexes into sorted peak_masses, the resulting
-                # filtered peak_table has peaks in ascending mass order.
-                orig_sel = sort_idx[mz_sel]
-                active_peak_table = [active_peak_table[i] for i in orig_sel]
-                # Reconstruction returns peaks in the input peak_table order,
-                # which is already ascending mass order here — no sort needed.
-                peak_data = _compute_peak_data_from_file(
-                    f,
-                    peak_table=active_peak_table,
-                    depth_start=depth_start,
-                    depth_stop=depth_stop,
-                    show_progressbar=show_progressbar,
-                )
-            else:
-                peak_data = _compute_peak_data_from_file(
-                    f,
-                    peak_table=active_peak_table,
-                    depth_start=depth_start,
-                    depth_stop=depth_stop,
-                    show_progressbar=show_progressbar,
-                )
-                if not already_sorted:
-                    try:
-                        from tqdm.auto import tqdm as _tqdm_sort
-                    except ImportError:
-                        _tqdm_sort = None  # type: ignore[assignment]
-                    _BATCH = 64
-                    nw_ev = peak_data.shape[0]
-                    sorted_array = np.empty(peak_data.shape, dtype=peak_data.dtype)
-                    pbar = (
-                        _tqdm_sort(total=nw_ev, desc="Sorting m/z axis", unit=" slices")
-                        if _tqdm_sort is not None and show_progressbar
-                        else None
-                    )
-                    for _w0 in range(0, nw_ev, _BATCH):
-                        _w1 = min(_w0 + _BATCH, nw_ev)
-                        sorted_array[_w0:_w1] = peak_data[_w0:_w1][:, :, :, sort_idx]
-                        if pbar is not None:
-                            pbar.update(_w1 - _w0)
-                    if pbar is not None:
-                        pbar.close()
-                    peak_data = sorted_array
+            # Pre-sort peak_table into ascending mass order (full or filtered).
+            # Reconstruction emits one column per peak_table entry in input
+            # order, so pre-sorting here avoids a separate post-hoc sort pass.
+            sel = sort_idx[mz_sel] if mz_sel is not None else sort_idx
+            active_peak_table = [active_peak_table[i] for i in sel]
+            peak_data = _compute_peak_data_from_file(
+                f,
+                peak_table=active_peak_table,
+                depth_start=depth_start,
+                depth_stop=depth_stop,
+                show_progressbar=show_progressbar,
+            )
 
             if dtype is not None:
                 peak_data = peak_data.astype(dtype)

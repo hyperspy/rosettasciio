@@ -94,12 +94,13 @@ import enum
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Protocol, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 import numpy as np
 
 if TYPE_CHECKING:
     import h5py
+    from hyperspy.signals import BaseSignal  # type: ignore[import-unresolved]
 
 from rsciio._docstrings import (
     CHUNKS_READ_DOC,
@@ -116,11 +117,7 @@ from rsciio.tofwerk._reconstruction import (
 _logger = logging.getLogger(__name__)
 
 
-class _RaggedSignal(Protocol):
-    ragged: bool
-
-
-_SignalT = TypeVar("_SignalT", bound=_RaggedSignal)
+_SignalT = TypeVar("_SignalT", bound="BaseSignal")
 
 # ---------------------------------------------------------------------------
 # Signal parameter enum

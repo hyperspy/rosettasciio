@@ -806,6 +806,7 @@ def file_reader(
         reduce memory usage, e.g. ``dtype=np.float16`` or ``dtype=np.uint16``
         for low-count data.  If ``None`` (default), the on-disk dtype
         (``float32``) is preserved.
+    %s
     peak_data_batch_size : int, optional
         Number of depth slices to read and permute per iteration when loading
         ``"peak_data"`` from a pre-processed file whose peaks are not already
@@ -813,7 +814,6 @@ def file_reader(
         working on arrays that fit in CPU cache, which is faster for large
         datasets.  Default is 1 (one slice at a time).  Has no effect when
         peaks are already sorted or when ``lazy=True``.
-    %s
 
     %s
 

@@ -95,17 +95,16 @@ def _convert_scale_units(value, units, factor=1):
 
 def file_reader(filename, lazy=False, q_calibration=None, remove_nans=False):
     """
-    Read file format used by the Electron Microscope Pixel Array Detector (EMPAD) version 1.2 or newer.
+    Read file format used by the Electron Microscope Pixel Array Detector (EMPAD).
 
     Parameters
     ----------
     %s
     %s
     q_calibration : None or float, optional
-        Specifies the calibration for the diffraction patterns in 1/nm. If None, the data will be in pixel scales.
+        Specifies the calibration for the diffraction patterns in 1/nm. In EMPAD version v1.2.2 (default version shipped with most of the TFS TEMs), diffraction space calibration is no longer stored in the XML. Use this option to calibrate the diffraction patterns in 1/nm. If None, the data will be in pixel scales.
     remove_nans : bool, optional
         Sometimes the EMPAD data contains NaN values that cause issues in downstream processing. If True, these NaN values will be replaced with zeros. Default is False.
-
     %s
     """
     om, info = _parse_xml(filename)
@@ -157,7 +156,20 @@ def file_reader(filename, lazy=False, q_calibration=None, remove_nans=False):
     sizes = [info[name] for name in names]
 
     if "series_count" not in info.keys():
-        try:
+        # Try to read the scan size from the xml
+        if om.has_item("root.iom_measurements.calibrated_pixelsize"):
+            # Keep this for backward compatibility
+            pixel_size = float(om.root.iom_measurements.calibrated_pixelsize) * 1e9
+            for i in [-1, -2]:
+                scales[i] = pixel_size
+                units[i] = "1/nm"
+
+        elif om.has_item(
+            "root.iom_measurements.full_scan_field_of_view.x"
+            ) and om.has_item(
+            "root.iom_measurements.full_scan_field_of_view.scale_factor"
+            ) and om.has_item("root.scan_parameters.scan_size"):
+
             # The fov is stored under iom_measurements.full_scan_field_of_view.x and y,
             # but x and y are always the same, representing the larger dimension of the scan
             fov = ast.literal_eval(
@@ -179,22 +191,27 @@ def file_reader(filename, lazy=False, q_calibration=None, remove_nans=False):
             for i in [0, 1]:
                 scales[i] = scale
                 units[i] = unit
-
-        except Exception:
+        
+        else:
             _logger.warning("The scale of the navigation axes cannot be read.")
 
-    # try:
-    #     pixel_size = float(om.root.iom_measurements.calibrated_pixelsize) * 1e9
-    #     for i in [-1, -2]:
-    #         scales[i] = pixel_size
-    #         units[i] = "1/nm"
+    # Try to set the pixel size for the diffraction patterns. 
+    # In newer EMPAD versions, the diffraction scale is no longer recorded in the xml. We provide the option to set the scale by providing a q_calibration value. 
     if q_calibration is not None:
-        for i in [-1, -2]:
-            scales[i] = q_calibration
-            units[i] = "1/nm"
+        dp_pixel_size = q_calibration
+        dp_unit = "1/nm"
+    # If q_calibration is not provided, check if the calibrated_pixelsize is available in the xml for backward compatibility.
+    elif om.has_item("root.iom_measurements.calibrated_pixelsize"):
+        dp_pixel_size = float(om.root.iom_measurements.calibrated_pixelsize) * 1e9
+        dp_unit = "1/nm"
     else:
-        _logger.warning("The scale of the diffraction axes is not set.")
-
+        dp_pixel_size = 1
+        dp_unit = None
+        _logger.warning("The scale of the diffraction axes is not set. The calibration can be set using the `q_calibration` parameter.")
+    # Write the scale and unit for the axes.    
+    for i in [-1, -2]:
+            scales[i] = dp_pixel_size
+            units[i] = dp_unit
     for i in range(len(names)):
         if sizes[i] > 1:
             axes.append(
@@ -212,6 +229,7 @@ def file_reader(filename, lazy=False, q_calibration=None, remove_nans=False):
 
     data = _read_raw(info, os.path.join(dname, info["raw_filename"]), lazy=lazy)
 
+    # Remove NaN values if requested. Will add a few seconds for the loading time.
     if remove_nans:
         data = np.nan_to_num(data)
 

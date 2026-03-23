@@ -750,7 +750,7 @@ def file_reader(
     filename: str | Path,
     lazy: bool = False,
     signal: str | list[str] = "sum_spectrum",
-    chunks: tuple | int | dict | str | None = None,
+    chunks: tuple | int | dict | str = "auto",
     mz_range: tuple[float, float] | None = None,
     depth_range: tuple[int, int] | None = None,
     dtype: np.dtype | None = None,
@@ -992,9 +992,7 @@ def file_reader(
         if lazy:
             import dask.array as da
 
-            sum_data = da.from_array(
-                sum_ds, chunks=chunks if chunks is not None else "auto"
-            )[first_valid:]
+            sum_data = da.from_array(sum_ds, chunks=chunks)[first_valid:]
         else:
             sum_data = np.asarray(sum_ds)[first_valid:]
 
@@ -1057,10 +1055,9 @@ def file_reader(
             if lazy:
                 import dask.array as da
 
-                peak_data = da.from_array(
-                    peak_ds,
-                    chunks=chunks if chunks is not None else "auto",
-                )[depth_start:depth_stop]
+                peak_data = da.from_array(peak_ds, chunks=chunks)[
+                    depth_start:depth_stop
+                ]
                 if not already_sorted:
                     peak_data = peak_data[:, :, :, sort_idx]
                 if mz_sel is not None:
@@ -1160,12 +1157,13 @@ def file_reader(
             # Each chunk is one depth slice; elements are fetched from the
             # file on .compute().  The file must remain open (see
             # has_lazy_array below).
-            # Note: dask cannot auto-chunk object-dtype arrays, so one depth
-            # slice per chunk is used as the default for the EventList.
+            # Note: dask cannot auto-chunk object-dtype arrays (raises
+            # NotImplementedError), so one depth slice per chunk is used
+            # as the default for the EventList.
             import dask.array as da
 
             el_data = da.from_array(
-                el_ds, chunks=chunks if chunks is not None else (1, nsegs, nx)
+                el_ds, chunks=(1, nsegs, nx) if chunks == "auto" else chunks
             )[depth_start:depth_stop]
         else:
             # Eager path: load requested depth slices into an object array now.
@@ -1253,10 +1251,7 @@ def file_reader(
 
             fib_data = da.stack(
                 [
-                    da.from_array(
-                        fib_grp[name]["Data"],
-                        chunks=chunks if chunks is not None else "auto",
-                    )
+                    da.from_array(fib_grp[name]["Data"], chunks=chunks)
                     for name in slice_names
                 ]
             )

@@ -1561,3 +1561,25 @@ class TestTqdmPbar:
             ):
                 _compute_peak_data_from_file(f, show_progressbar=False)
         assert mock_tqdm_auto.tqdm.call_count == 0
+
+    def test_tqdm_absent_event_list_eager(self, tmp_path):
+        """EventList eager load works when tqdm is not installed (pbar=None path)."""
+        import sys
+        from unittest.mock import patch
+
+        p = tmp_path / "tqdm_absent_el.h5"
+        _make_minimal_tofdaq(p)
+        with patch.dict(sys.modules, {"tqdm": None, "tqdm.auto": None}):
+            result = file_reader(p, signal="event_list", lazy=False)
+        assert len(result) == 1
+
+    def test_tqdm_absent_numpy_path(self, tmp_path):
+        """EventList reconstruction works when tqdm is not installed (pbar=None path)."""
+        import sys
+        from unittest.mock import patch
+
+        p = tmp_path / "tqdm_absent_numpy.h5"
+        _make_minimal_tofdaq(p)
+        with patch.dict(sys.modules, {"numba": None, "tqdm": None, "tqdm.auto": None}):
+            result = file_reader(p, signal="peak_data")
+        assert len(result) == 1

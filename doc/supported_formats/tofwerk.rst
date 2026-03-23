@@ -256,6 +256,30 @@ Valid values for ``signal``:
     All signals available for the file.  Use
     :func:`~rsciio.tofwerk.available_signals` to see the list in advance.
 
+Subsetting
+^^^^^^^^^^
+
+Use ``mz_range`` and ``depth_range`` to read only a portion of the data:
+
+.. code-block:: python
+
+    # Load only peaks between 20 and 100 Da
+    s = hs.load("acquisition.h5", file_format="Tofwerk",
+                signal="peak_data", mz_range=(20.0, 100.0))
+
+    # Load only depth slices 10–19 (exclusive upper bound)
+    s = hs.load("acquisition.h5", file_format="Tofwerk",
+                signal="peak_data", depth_range=(10, 20))
+
+Both parameters work for pre-processed files by slicing the HDF5 dataset
+before reading.  For raw files, ``mz_range`` also reduces reconstruction cost
+because only the selected peaks need to be counted.  ``depth_range`` applies
+to ``"peak_data"``, ``"event_list"``, and ``"fib_images"``.
+
+Use ``dtype`` to cast ``"peak_data"`` after loading, e.g.
+``dtype=np.uint16`` for low-count integer data or ``dtype=np.float16`` to
+halve memory use at reduced precision.
+
 Lazy loading
 ^^^^^^^^^^^^
 
@@ -268,6 +292,7 @@ Pass ``lazy=True`` to defer reading large arrays until ``.compute()`` is called:
         file_format="Tofwerk",
         lazy=True,
         signal="peak_data",
+        chunks="auto",   # or a tuple / dict for manual chunking
     )
     # s.data is a dask array; inspect size before computing:
     print(s.data.nbytes / 1e9, "GB")
@@ -280,10 +305,24 @@ Lazy loading is supported for ``"sum_spectrum"``, ``"peak_data"``
 Optional dependencies
 ^^^^^^^^^^^^^^^^^^^^^
 
-* ``tqdm`` — progress bars during EventList reconstruction (``signal="peak_data"``
-  on a raw file) and during eager ``"event_list"`` loading.
 * ``numba`` — JIT-accelerates EventList reconstruction (~19× faster than the
   NumPy fallback on large datasets).
+
+Pass ``show_progressbar=False`` to suppress progress output entirely.
+
+Performance tips
+^^^^^^^^^^^^^^^^
+
+* **EventList reconstruction** (raw files, ``signal="peak_data"``) can be slow
+  on large datasets.  Install ``numba`` for a large speed-up, and use
+  ``mz_range`` to limit reconstruction to the peaks of interest.  Adjust
+  ``peak_data_batch_size`` to process multiple depth slices per batch
+  (trades memory for fewer Python iterations).
+
+* **Pre-processed files with unsorted peaks**: if ``PeakData/PeakTable``
+  peaks are not in ascending m/z order, the reader sorts them in place.
+  ``peak_data_batch_size`` controls how many depth slices are sorted per
+  iteration; smaller values keep working arrays in CPU cache.
 
 Metadata
 ^^^^^^^^

@@ -56,7 +56,7 @@ Example dimensions for a typical acquisition
     FullSpectra/EventList     shape: ( 1302,  128, 128)   [ragged]
                                      (depth,    y,   x)
                               each element:
-                                  variable/ragged-length uint32 array of
+                                  variable/ragged-length uint16 array of
                                   raw time-to-digital converter (TDC) timestamps, one
                                   per ion detection event.
                               len(EventList[w, s, x]) == ion count for that pixel.

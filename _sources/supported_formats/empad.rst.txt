@@ -15,13 +15,15 @@ implies changing the file name of the ``.raw`` file will break reading the file.
 
 .. Note::
 
-    When using `HyperSpy <https://hyperspy.org>`_, you need to specify the correct
-    ``reader`` plugin, as different ``.xml`` formats are supported:
+    When using :func:`hyperspy.api.load`, the correct reader needs to be
+    specified using the ``file_format`` parameter, because different ``.xml``
+    formats are supported in ``rosettasciio`` and the reader will not be
+    selected automatically. For example:
 
     .. code-block:: python
 
         >>> import hyperspy.api as hs
-        >>> sig = hs.load("file.xml", reader="EMPAD")
+        >>> sig = hs.load("file.xml", file_format="EMPAD")
 
 
 API functions

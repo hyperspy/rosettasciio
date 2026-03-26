@@ -1,0 +1,4 @@
+:ref:`EMPAD <empad-format>`:
+
+- Add ``q_calibration`` parameter to set the diffraction space calibration in 1/nm. 
+- Add ``remove_nans`` parameter to remove NaN values in the data by replacing them with zeros.

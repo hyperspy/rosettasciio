@@ -25,8 +25,6 @@ import numpy as np
 import pytest
 from packaging.version import Version
 
-from rsciio.empad._api import _parse_xml
-
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 t = pytest.importorskip("traits.api", reason="traits not installed")
 
@@ -34,7 +32,15 @@ t = pytest.importorskip("traits.api", reason="traits not installed")
 DATA_DIR = Path(__file__).parent / "data" / "empad"
 FILENAME_STACK_RAW = DATA_DIR / "series_x10.raw"
 FILENAME_MAP_RAW = DATA_DIR / "scan_x4_y4.raw"
+# Version 1.2.0 and 1.2.2 xml files are identical
+# keep 1.2.2 version with non-square scan dimensions for testing
 FILENAME_MAP_RAW_VERSION_1_2_2 = DATA_DIR / "scan_x32_y64.raw"
+
+
+if importlib.util.find_spec("pyxem") and Version(version("pyxem")) >= Version("0.19"):
+    EXPECTED_UNSPECIFIED_UNITS = "px"
+else:
+    EXPECTED_UNSPECIFIED_UNITS = t.Undefined
 
 
 def _create_raw_data(filename, shape):
@@ -49,12 +55,15 @@ def setup_module(module):
     _create_raw_data(FILENAME_MAP_RAW_VERSION_1_2_2, (64 * 32 * 130 * 128))
 
 
-
 def teardown_module(module):
     # run garbage collection to release file on windows
     gc.collect()
 
-    fs = [f for f in [FILENAME_STACK_RAW, FILENAME_MAP_RAW, FILENAME_MAP_RAW_VERSION_1_2_2] if f.exists()]
+    fs = [
+        f
+        for f in [FILENAME_STACK_RAW, FILENAME_MAP_RAW, FILENAME_MAP_RAW_VERSION_1_2_2]
+        if f.exists()
+    ]
 
     for f in fs:
         # remove file
@@ -72,12 +81,7 @@ def test_read_stack(lazy):
     assert signal_axes[0].name == "width"
     assert signal_axes[1].name == "height"
     for axis in signal_axes:
-        if importlib.util.find_spec("pyxem") and Version(version("pyxem")) >= Version(
-            "0.19"
-        ):
-            units = "px"
-        else:
-            units = t.Undefined
+        units = EXPECTED_UNSPECIFIED_UNITS
         assert axis.units == units
         assert axis.scale == 1.0
         assert axis.offset == -64
@@ -119,18 +123,10 @@ def test_read_map(lazy):
     assert s.metadata.Signal.signal_type == "electron_diffraction"
 
 
-def test_parse_xml_1_2_0():
-    # xml file version 1.2.0 (2020-10-29)
-    filename = DATA_DIR / "map128x128_version1.2.0.xml"
-    om, info = _parse_xml(filename)
-    assert info["scan_x"] == 128
-    assert info["scan_y"] == 128
-    assert info["raw_filename"] == "scan_x128_y128.raw"
-
 @pytest.mark.parametrize("lazy", (False, True))
 @pytest.mark.parametrize("q_calibration", [None, 0.3315])
 def test_read_map_1_2_2(lazy, q_calibration):
-    # xml file version 1.2.2 (2021-08-20)
+    # xml file version 1.2.2 (2021-08-20))
     filename = DATA_DIR / "EMPAD_v1.2.2_x32_y64_size0.8.xml"
     s = hs.load(filename, lazy=lazy, q_calibration=q_calibration, file_format="EMPAD")
     assert s.data.dtype == "float32"
@@ -141,21 +137,16 @@ def test_read_map_1_2_2(lazy, q_calibration):
     assert signal_axes[0].index_in_array == 3
     assert signal_axes[1].name == "height"
     assert signal_axes[1].index_in_array == 2
+
     for axis in signal_axes:
         if q_calibration is not None:
             assert axis.units == "1/nm"
             np.testing.assert_allclose(axis.scale, q_calibration)
             np.testing.assert_allclose(axis.offset, -64 * q_calibration)
         else:
-            assert axis.units == 'px'
             np.testing.assert_allclose(axis.scale, 1)
             np.testing.assert_allclose(axis.offset, -64)
-            if importlib.util.find_spec("pyxem") and Version(version("pyxem")) >= Version(
-            "0.19"
-            ):
-                assert axis.units == "px"
-            else:
-                assert axis.units == t.Undefined
+            assert axis.units == EXPECTED_UNSPECIFIED_UNITS
     navigation_axes = s.axes_manager.navigation_axes
     assert navigation_axes[0].name == "scan_x"
     assert navigation_axes[0].index_in_array == 1
@@ -169,3 +160,11 @@ def test_read_map_1_2_2(lazy, q_calibration):
     assert s.metadata.General.date == "2026-03-25"
     assert s.metadata.General.time == "16:47:52.586728"
     assert s.metadata.Signal.signal_type == "electron_diffraction"
+
+
+@pytest.mark.parametrize("lazy", (False, True))
+def test_remove_nans(lazy):
+    # xml file version 1.2.2 (2021-08-20))
+    filename = DATA_DIR / "EMPAD_v1.2.2_x32_y64_size0.8.xml"
+    s = hs.load(filename, lazy=lazy, remove_nans=True, file_format="EMPAD")
+    assert np.isnan(s.data).sum() == 0

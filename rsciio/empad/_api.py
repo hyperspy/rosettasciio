@@ -157,18 +157,20 @@ def file_reader(filename, lazy=False, q_calibration=None, remove_nans=False):
 
     if "series_count" not in info.keys():
         # Try to read the scan size from the xml
-        if om.has_item("root.iom_measurements.calibrated_pixelsize"):
+        if om.has_item("root.iom_measurements.optics.get_full_scan_field_of_view"):
             # Keep this for backward compatibility
-            pixel_size = float(om.root.iom_measurements.calibrated_pixelsize) * 1e9
-            for i in [-1, -2]:
-                scales[i] = pixel_size
-                units[i] = "1/nm"
+            fov = ast.literal_eval(
+                om.root.iom_measurements.optics.get_full_scan_field_of_view
+            )
+            for i in range(2):
+                value = fov[i] / sizes[i]
+                scales[i], units[i] = _convert_scale_units(value, "m", sizes[i])
 
         elif om.has_item(
             "root.iom_measurements.full_scan_field_of_view.x"
             ) and om.has_item(
             "root.iom_measurements.full_scan_field_of_view.scale_factor"
-            ) and om.has_item("root.scan_parameters.scan_size"):
+            ):
 
             # The fov is stored under iom_measurements.full_scan_field_of_view.x and y,
             # but x and y are always the same, representing the larger dimension of the scan
@@ -180,13 +182,10 @@ def file_reader(filename, lazy=False, q_calibration=None, remove_nans=False):
             scale_factor = ast.literal_eval(
                 om.root.iom_measurements.full_scan_field_of_view.scale_factor
             )
-            # In new EMPAD versions, the EMPAD scan can be set to 0.2, 0.4, 0.6, 0.8 or 1 times of the internal fov
-            scan_size = ast.literal_eval(
-                om.root.scan_parameters.scan_size
-            )
+            
             # Again, the fov is for the larger dimension of the scan
             n_pixels = max(sizes[0], sizes[1])
-            value = fov / scale_factor * scan_size / n_pixels
+            value = fov / scale_factor / n_pixels
             scale, unit = _convert_scale_units(value, "m")
             for i in [0, 1]:
                 scales[i] = scale
@@ -205,9 +204,10 @@ def file_reader(filename, lazy=False, q_calibration=None, remove_nans=False):
         dp_pixel_size = float(om.root.iom_measurements.calibrated_pixelsize) * 1e9
         dp_unit = "1/nm"
     else:
+    # Fall back to pixel units if the diffraction scale cannot be read from the xml and q_calibration is not provided.
         dp_pixel_size = 1
         dp_unit = None
-        _logger.warning("The scale of the diffraction axes is not set. The calibration can be set using the `q_calibration` parameter.")
+        _logger.info("The scale of the diffraction axes is not set. The calibration can be set using the `q_calibration` parameter.")
     # Write the scale and unit for the axes.    
     for i in [-1, -2]:
             scales[i] = dp_pixel_size

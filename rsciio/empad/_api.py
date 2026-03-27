@@ -24,34 +24,48 @@ import xml.etree.ElementTree as ET
 import numpy as np
 
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
-from rsciio.utils.xml import convert_xml_to_dict
+from rsciio.utils import file, xml
 
 _logger = logging.getLogger(__name__)
 
 
-def _read_raw(info, fp, lazy=False):
-    raw_height = info["raw_height"]
+def _read_raw(info, filename, lazy=False):
     width = info["width"]
     height = info["height"]
 
-    if lazy:
-        data = np.memmap(fp, dtype="<f4", mode="r")
-    else:
-        data = np.fromfile(fp, dtype="<f4")
+    # Make custom dtype to skip the 2 lines footer
+    dtype = np.dtype(
+        [
+            ("data", "<f4", (height, width)),
+            ("footer", "<f4", (info["raw_height"] - height, width)),
+        ]
+    )
 
     if "series_count" in info.keys():  # stack of images
-        size = (info["series_count"], raw_height, width)
-        data = data.reshape(size)[..., :height, :]
-
+        navigation_shape = (info["series_count"],)
     else:  # 2D x 2D
-        size = (info["scan_y"], info["scan_x"], raw_height, width)
-        data = data.reshape(size)[..., :height, :]
+        navigation_shape = (info["scan_y"], info["scan_x"])
+
+    if lazy:
+        data = file.memmap_distributed(
+            filename,
+            dtype=dtype,
+            shape=navigation_shape,
+            key="data",
+        )
+    else:
+        data = np.fromfile(
+            filename,
+            dtype=dtype,
+            count=np.prod(navigation_shape),
+        ).reshape(navigation_shape)["data"]
+
     return data
 
 
 def _parse_xml(filename):
     tree = ET.parse(filename)
-    om = convert_xml_to_dict(tree.getroot())
+    om = xml.convert_xml_to_dict(tree.getroot())
 
     info = {
         "raw_filename": om.root.raw_file.filename,

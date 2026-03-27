@@ -101,9 +101,10 @@ jobs:
           num_cpus = os.cpu_count()
           print(f"Number of CPU: {num_cpus}")
           print(f"Architecture: {platform.machine()}")
+          print(f"{num_cpus-1} CPU will be used for testing.")
           output_file = os.environ["GITHUB_OUTPUT"]
           with open(output_file, "a", encoding="utf-8") as output_stream:
-              output_stream.write(f"count={num_cpus}\n")
+              output_stream.write(f"count={num_cpus-1}\n")
         shell: python
 
       - name: Set Environment Variable

@@ -129,7 +129,7 @@ def test_dir_plugins(plugin):
         pytest.importorskip("pyUSID")
     elif plugin["name"] == "ZSPY":
         pytest.importorskip("zarr")
-    elif plugin["name"] in ["Delmic", "EMD", "HSPY", "NeXus", "Topspin"]:
+    elif plugin["name"] in ["Delmic", "EMD", "HSPY", "NeXus", "Tofwerk", "Topspin"]:
         pytest.importorskip("h5py")
     plugin_module = importlib.import_module(plugin_string)
 
@@ -150,7 +150,12 @@ def test_dir_plugins(plugin):
         ]
     elif plugin["name"] == "DigitalSurf":
         assert dir(plugin_module) == ["file_reader", "file_writer", "parse_metadata"]
-
+    elif plugin["name"] == "Tofwerk":
+        assert dir(plugin_module) == [
+            "available_signals",
+            "compute_peak_data_from_eventlist",
+            "file_reader",
+        ]
     elif plugin["writes"] is False:
         assert dir(plugin_module) == ["file_reader"]
     else:

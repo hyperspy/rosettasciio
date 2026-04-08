@@ -1,1 +1,0 @@
-:ref:`EMPAD <empad-format>`: fix ordering of axes and array shape when reading non-square scan data.

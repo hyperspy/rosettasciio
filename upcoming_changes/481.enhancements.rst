@@ -1,1 +1,0 @@
-:ref:`EDAX TEAM/Genesis <edax-format>`: add support for distributed lazy loading.

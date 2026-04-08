@@ -1,1 +1,0 @@
-:ref:`bruker-format`: add documentation about support of micro-XRF bcf files.

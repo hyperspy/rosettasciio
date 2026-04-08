@@ -1,1 +1,0 @@
-Consistently use :func:`numpy.testing.assert_allclose` in favour of :func:`numpy.allclose`, because the failure message is more useful, as it shows the relative and absolute error. Specify tolerance where needed.

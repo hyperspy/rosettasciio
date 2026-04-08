@@ -181,7 +181,8 @@ jobs:
       - name: Install oldest supported version
         if: contains(matrix.LABEL, 'oldest')
         run: |
-          pip install ${{ matrix.DEPENDENCIES }}
+          # pyusid install sidpy 0.12.9, which is incompatible with oldest supported version
+          pip install ${{ matrix.DEPENDENCIES }} "sidpy<0.12.9"
 
       - name: Pip list
         run: |

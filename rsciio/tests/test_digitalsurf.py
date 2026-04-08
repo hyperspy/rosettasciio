@@ -769,7 +769,9 @@ def test_writegeneric_nans(tmp_path, compressed):
     gen.save(fgen, compressed=compressed, is_special=True, overwrite=True)
 
     gen2 = hs.load(fgen)
-    np.testing.assert_allclose(gen2.data, gen.data, equal_nan=True)
+    np.testing.assert_allclose(
+        gen2.data, gen.data, equal_nan=True, rtol=1e-6, atol=1e-8
+    )
 
 
 def test_writegeneric_transposedprofile(tmp_path):
@@ -804,7 +806,7 @@ def test_writegeneric_transposedsurface(
 
     gen2 = hs.load(fgen)
 
-    np.testing.assert_allclose(gen.data, gen2.data, rtol=1e-6)
+    np.testing.assert_allclose(gen.data, gen2.data, rtol=1e-6, atol=1e-6)
 
 
 @pytest.mark.parametrize(

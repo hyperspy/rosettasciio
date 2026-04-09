@@ -4,8 +4,7 @@ MRC format
 ----------
 
 The ``.mrc`` format is widely used for tomographic data. The implementation of this plugin
-is based on `this specification
-<https://www2.mrc-lmb.cam.ac.uk/research/locally-developed-software/image-processing-software/>`_
+is based on `this specification <https://www2.mrc-lmb.cam.ac.uk/groups/rh15/mrc-image-processing.html>`_
 and has partial support for FEI's custom header.
 
 .. Note::

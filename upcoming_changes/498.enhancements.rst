@@ -1,1 +1,0 @@
-:ref:`EMPAD <empad-format>`: add support for :ref:`distributed lazy loading <lazy>` using :func:`~rsciio.utils.file.memmap_distributed`.

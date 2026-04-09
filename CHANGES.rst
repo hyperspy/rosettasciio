@@ -8,6 +8,53 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 
 .. towncrier release notes start
 
+0.13.0 (2026-04-08)
+===================
+
+Enhancements
+------------
+
+- Add lazy support compatible with dask distributed scheduler in :ref:`pantarhei-format` reader (`#462 <https://github.com/hyperspy/rosettasciio/issues/462>`_)
+- Allow saving image with scalebar when the scales have opposite signs. (`#475 <https://github.com/hyperspy/rosettasciio/issues/475>`_)
+- Lazify import of ``rsciio`` and improve documentation. (`#477 <https://github.com/hyperspy/rosettasciio/issues/477>`_)
+- :ref:`EDAX TEAM/Genesis <edax-format>`: add support for distributed lazy loading. (`#481 <https://github.com/hyperspy/rosettasciio/issues/481>`_)
+- :ref:`msa-format` enhancements:
+
+  - support reading files with empty fields.
+  - support reading files with multiple line titles and comments.
+  - support reading files with multiple columns and datatype xy. (`#487 <https://github.com/hyperspy/rosettasciio/issues/487>`_)
+- :ref:`EMPAD <empad-format>`:
+
+  - Add ``q_calibration`` parameter to set the diffraction space calibration in 1/nm. 
+  - Add ``remove_nans`` parameter to remove NaN values in the data by replacing them with zeros. (`#495 <https://github.com/hyperspy/rosettasciio/issues/495>`_)
+- :ref:`EMPAD <empad-format>`: add support for :ref:`distributed lazy loading <lazy>` using :func:`~rsciio.utils.file.memmap_distributed`. (`#498 <https://github.com/hyperspy/rosettasciio/issues/498>`_)
+
+
+Bug Fixes
+---------
+
+- :ref:`EDAX TEAM/Genesis <edax-format>`: fix OverflowError: Python integer out of bounds when loading some spd files. (`#481 <https://github.com/hyperspy/rosettasciio/issues/481>`_)
+- :ref:`EMPAD <empad-format>`: fix ordering of axes and array shape when reading non-square scan data. (`#493 <https://github.com/hyperspy/rosettasciio/issues/493>`_)
+
+
+Improved Documentation
+----------------------
+
+- :ref:`bruker-format`: add documentation about support of micro-XRF bcf files. (`#471 <https://github.com/hyperspy/rosettasciio/issues/471>`_)
+
+
+Maintenance
+-----------
+
+- Add `codespell <https://github.com/codespell-project/codespell>`_ to pre-commit hooks to catch common misspellings. (`#472 <https://github.com/hyperspy/rosettasciio/issues/472>`_)
+- Improve release workflow:
+
+  - Speed up release workflow by avoiding downloading tests data when testing wheels.
+  - Add release notes and distribution files to GitHub release. (`#482 <https://github.com/hyperspy/rosettasciio/issues/482>`_)
+- Update integration tests workflow to use caching shared in CI matrix. (`#483 <https://github.com/hyperspy/rosettasciio/issues/483>`_)
+- Consistently use :func:`numpy.testing.assert_allclose` in favour of :func:`numpy.allclose`, because the failure message is more useful, as it shows the relative and absolute error. Specify tolerance where needed. (`#492 <https://github.com/hyperspy/rosettasciio/issues/492>`_)
+
+
 0.12 (2025-12-29)
 =================
 

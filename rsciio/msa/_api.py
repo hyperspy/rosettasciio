@@ -23,6 +23,7 @@ from datetime import datetime as dt
 
 import numpy as np
 
+from rsciio import __version__
 from rsciio._docstrings import (
     ENCODING_DOC,
     FILENAME_DOC,
@@ -477,7 +478,7 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
         #        'YUNITS' : '',
     }
     if "COMMENT" not in loc_kwds:
-        loc_kwds["COMMENT"] = "File created by RosettaSciIO version {__version__}"
+        loc_kwds["COMMENT"] = f"File created by RosettaSciIO version {__version__}"
         # Microscope
         #        'BEAMKV' : ,
         #        'EMISSION' : ,

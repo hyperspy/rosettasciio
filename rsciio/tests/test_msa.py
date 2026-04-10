@@ -5,8 +5,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from rsciio import __version__, msa
 from rsciio.utils._tests import assert_deep_almost_equal
-from rsciio import msa, __version__
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -509,14 +509,14 @@ def test_time_with_seconds():
 
 def test_parsed_version(tmp_path):
     s = msa.file_reader(TEST_DATA_PATH / "minimum_metadata.msa")[0]
-    fname = tmp_path / 'example_with_version.msa'
-    _ = s['original_metadata'].pop('COMMENT')
+    fname = tmp_path / "example_with_version.msa"
+    _ = s["original_metadata"].pop("COMMENT")
     msa.file_writer(fname, s)
 
     # drop the revision hash from the setuptools_scm version if its there
     # as it's long enough to split across lines.
-    version_parts = __version__.split('.')
+    version_parts = __version__.split(".")
     nv = 3 if len(version_parts) == 3 else 4
-    v = '.'.join(version_parts[:nv])
-    with open(fname, 'r') as fi: 
+    v = ".".join(version_parts[:nv])
+    with open(fname, "r") as fi:
         assert v in fi.read()

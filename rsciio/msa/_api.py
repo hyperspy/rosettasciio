@@ -23,6 +23,7 @@ from datetime import datetime as dt
 
 import numpy as np
 
+from rsciio import __version__
 from rsciio._docstrings import (
     ENCODING_DOC,
     FILENAME_DOC,
@@ -31,7 +32,6 @@ from rsciio._docstrings import (
     SIGNAL_DOC,
 )
 from rsciio.utils._dictionary import DTBox
-from rsciio import __version__
 
 _logger = logging.getLogger(__name__)
 

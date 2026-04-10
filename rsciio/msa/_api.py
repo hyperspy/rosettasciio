@@ -31,6 +31,7 @@ from rsciio._docstrings import (
     SIGNAL_DOC,
 )
 from rsciio.utils._dictionary import DTBox
+from rsciio import __version__
 
 _logger = logging.getLogger(__name__)
 
@@ -477,7 +478,7 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
         #        'YUNITS' : '',
     }
     if "COMMENT" not in loc_kwds:
-        loc_kwds["COMMENT"] = "File created by RosettaSciIO version {__version__}"
+        loc_kwds["COMMENT"] = f"File created by RosettaSciIO version {__version__}"
         # Microscope
         #        'BEAMKV' : ,
         #        'EMISSION' : ,

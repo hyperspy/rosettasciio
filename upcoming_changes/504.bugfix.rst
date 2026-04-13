@@ -1,0 +1,1 @@
+Parse and write the rsciio version when using the :ref:`msa-format` writer.

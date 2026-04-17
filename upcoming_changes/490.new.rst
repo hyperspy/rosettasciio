@@ -1,0 +1,4 @@
+Add support for reading Tofwerk TofDAQ HDF5 files (``.h5``) from fibTOF
+FIB-SIMS instruments, returning peak-integrated 4D data ``(depth, y, x, m/z)``
+for opened files or a sum spectrum + TIC map for raw files.
+See :ref:`tofwerk-format`.

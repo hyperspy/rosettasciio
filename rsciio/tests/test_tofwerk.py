@@ -70,17 +70,21 @@ PIXEL_SIZE_UM = 10.0 / NX
 class TestOpenedFile:
     """
     Opened file default returns 1 signal (sum spectrum).
-    Pass signal="peak_data" or signal=["sum_spectrum", "peak_data"] for more.
+    Pass signal="nominal_peak_data" or signal=["sum_spectrum", "nominal_peak_data"]
+    for more.
     """
 
     def test_returns_one_signal_by_default(self):
         assert len(file_reader(OPENED_FILE)) == 1
 
-    def test_returns_one_signal_with_peak_data(self):
-        assert len(file_reader(OPENED_FILE, signal="peak_data")) == 1
+    def test_returns_one_signal_with_nominal_peak_data(self):
+        assert len(file_reader(OPENED_FILE, signal="nominal_peak_data")) == 1
 
     def test_returns_two_signals_with_list(self):
-        assert len(file_reader(OPENED_FILE, signal=["sum_spectrum", "peak_data"])) == 2
+        assert (
+            len(file_reader(OPENED_FILE, signal=["sum_spectrum", "nominal_peak_data"]))
+            == 2
+        )
 
     # ── Signal [0] default: sum spectrum ─────────────────────────────────
 
@@ -98,10 +102,12 @@ class TestOpenedFile:
         assert "axis" in ax
         assert len(ax["axis"]) == NSAMPLES
 
-    # ── Signal [0] with signal="peak_data": 4D peak data ─────────────────
+    # ── Signal [0] with signal="nominal_peak_data": 4D peak data ─────────
 
     def test_peak_data_shape(self):
-        assert file_reader(OPENED_FILE, signal="peak_data")[0]["data"].shape == (
+        assert file_reader(OPENED_FILE, signal="nominal_peak_data")[0][
+            "data"
+        ].shape == (
             NWRITES,
             NSEGS,
             NX,
@@ -110,24 +116,26 @@ class TestOpenedFile:
 
     def test_peak_data_dtype(self):
         assert (
-            file_reader(OPENED_FILE, signal="peak_data")[0]["data"].dtype == np.float32
+            file_reader(OPENED_FILE, signal="nominal_peak_data")[0]["data"].dtype
+            == np.float32
         )
 
     def test_peak_data_title(self):
-        meta = file_reader(OPENED_FILE, signal="peak_data")[0]["metadata"]
-        assert "peak data" in meta["General"]["title"]
+        meta = file_reader(OPENED_FILE, signal="nominal_peak_data")[0]["metadata"]
+        assert "nominal peak data" in meta["General"]["title"]
 
     def test_four_axes(self):
-        assert len(file_reader(OPENED_FILE, signal="peak_data")[0]["axes"]) == 4
+        assert len(file_reader(OPENED_FILE, signal="nominal_peak_data")[0]["axes"]) == 4
 
     def test_axis_names(self):
         names = [
-            ax["name"] for ax in file_reader(OPENED_FILE, signal="peak_data")[0]["axes"]
+            ax["name"]
+            for ax in file_reader(OPENED_FILE, signal="nominal_peak_data")[0]["axes"]
         ]
         assert names == ["depth", "y", "x", "m/z"]
 
     def test_depth_axis(self):
-        ax = file_reader(OPENED_FILE, signal="peak_data")[0]["axes"][0]
+        ax = file_reader(OPENED_FILE, signal="nominal_peak_data")[0]["axes"][0]
         assert ax["units"] == "slice"
         assert ax["navigate"] is True
         assert ax["size"] == NWRITES
@@ -135,65 +143,65 @@ class TestOpenedFile:
         assert ax["offset"] == 0
 
     def test_spatial_axes_units(self):
-        axes = file_reader(OPENED_FILE, signal="peak_data")[0]["axes"]
+        axes = file_reader(OPENED_FILE, signal="nominal_peak_data")[0]["axes"]
         assert axes[1]["units"] == "µm"
         assert axes[2]["units"] == "µm"
 
     def test_spatial_axes_navigate(self):
-        axes = file_reader(OPENED_FILE, signal="peak_data")[0]["axes"]
+        axes = file_reader(OPENED_FILE, signal="nominal_peak_data")[0]["axes"]
         assert axes[1]["navigate"] is True
         assert axes[2]["navigate"] is True
 
     def test_pixel_size_from_viewfield(self):
         # FIBParams.ViewField = 1e-5 m = 10 µm; 10 / 16 = 0.625 µm/pixel
-        axes = file_reader(OPENED_FILE, signal="peak_data")[0]["axes"]
+        axes = file_reader(OPENED_FILE, signal="nominal_peak_data")[0]["axes"]
         np.testing.assert_allclose(axes[1]["scale"], PIXEL_SIZE_UM)
         np.testing.assert_allclose(axes[2]["scale"], PIXEL_SIZE_UM)
 
     def test_mass_axis_units(self):
-        ax = file_reader(OPENED_FILE, signal="peak_data")[0]["axes"][3]
+        ax = file_reader(OPENED_FILE, signal="nominal_peak_data")[0]["axes"][3]
         assert ax["units"] == "Da"
 
     def test_mass_axis_navigate(self):
-        ax = file_reader(OPENED_FILE, signal="peak_data")[0]["axes"][3]
+        ax = file_reader(OPENED_FILE, signal="nominal_peak_data")[0]["axes"][3]
         assert ax["navigate"] is False
 
     def test_mass_axis_values(self):
-        ax = file_reader(OPENED_FILE, signal="peak_data")[0]["axes"][3]
+        ax = file_reader(OPENED_FILE, signal="nominal_peak_data")[0]["axes"][3]
         assert "axis" in ax
         np.testing.assert_allclose(ax["axis"], np.arange(1, NPEAKS + 1, dtype=float))
 
     # ── Metadata ─────────────────────────────────────────────────────────
 
     def test_signal_type(self):
-        meta = file_reader(OPENED_FILE, signal="peak_data")[0]["metadata"]
+        meta = file_reader(OPENED_FILE, signal="nominal_peak_data")[0]["metadata"]
         assert meta["Signal"]["signal_type"] == "FIB-SIMS"
 
     def test_binned_flag(self):
         # is_binned is set on the m/z signal axis, not in metadata.Signal
-        ax = file_reader(OPENED_FILE, signal="peak_data")[0]["axes"][3]
+        ax = file_reader(OPENED_FILE, signal="nominal_peak_data")[0]["axes"][3]
         assert ax["is_binned"] is True
 
     def test_file_type_flag(self):
-        meta = file_reader(OPENED_FILE, signal="peak_data")[0]["metadata"]
+        meta = file_reader(OPENED_FILE, signal="nominal_peak_data")[0]["metadata"]
         assert (
             meta["Acquisition_instrument"]["FIB_SIMS"]["file_type"] == "pre-processed"
         )
 
     def test_voltage_kv(self):
-        fib = file_reader(OPENED_FILE, signal="peak_data")[0]["metadata"][
+        fib = file_reader(OPENED_FILE, signal="nominal_peak_data")[0]["metadata"][
             "Acquisition_instrument"
         ]["FIB_SIMS"]["FIB"]
         np.testing.assert_allclose(fib["voltage_kV"], 30.0)
 
     def test_fib_hardware(self):
-        fib = file_reader(OPENED_FILE, signal="peak_data")[0]["metadata"][
+        fib = file_reader(OPENED_FILE, signal="nominal_peak_data")[0]["metadata"][
             "Acquisition_instrument"
         ]["FIB_SIMS"]["FIB"]
         assert fib["hardware"] == "Tescan"
 
     def test_ion_mode(self):
-        tof = file_reader(OPENED_FILE, signal="peak_data")[0]["metadata"][
+        tof = file_reader(OPENED_FILE, signal="nominal_peak_data")[0]["metadata"][
             "Acquisition_instrument"
         ]["FIB_SIMS"]["ToF"]
         assert tof["ion_mode"] == "positive"
@@ -219,7 +227,7 @@ class TestOpenedFile:
         import dask.array as da
 
         result = file_reader(
-            OPENED_FILE, lazy=lazy, signal=["sum_spectrum", "peak_data"]
+            OPENED_FILE, lazy=lazy, signal=["sum_spectrum", "nominal_peak_data"]
         )
         # Sum spectrum: lazy when requested
         sum_data = result[0]["data"]
@@ -277,7 +285,7 @@ class TestRawFile:
 
 class TestSignalPeakData:
     """
-    Tests for signal="peak_data" on both raw and opened files.
+    Tests for signal="nominal_peak_data" on both raw and opened files.
 
     With ClockPeriod = SampleInterval in the fixture, clock_ratio = 1 and
     NbrWaveforms = 1, NActiveChannels = 1 → normalization = 1.  EventList
@@ -287,59 +295,67 @@ class TestSignalPeakData:
     def test_raw_default_returns_one_signal(self):
         assert len(file_reader(RAW_FILE)) == 1
 
-    def test_raw_peak_data_returns_one_signal(self):
-        assert len(file_reader(RAW_FILE, signal="peak_data")) == 1
+    def test_raw_nominal_peak_data_returns_one_signal(self):
+        assert len(file_reader(RAW_FILE, signal="nominal_peak_data")) == 1
 
     def test_peak_data_shape(self):
-        sig = file_reader(RAW_FILE, signal="peak_data")[0]
+        sig = file_reader(RAW_FILE, signal="nominal_peak_data")[0]
         assert sig["data"].shape == (NWRITES, NSEGS, NX, NPEAKS)
 
     def test_peak_data_dtype(self):
-        sig = file_reader(RAW_FILE, signal="peak_data")[0]
+        sig = file_reader(RAW_FILE, signal="nominal_peak_data")[0]
         assert sig["data"].dtype == np.float32
 
     def test_peak_data_title(self):
-        sig = file_reader(RAW_FILE, signal="peak_data")[0]
-        assert "peak data" in sig["metadata"]["General"]["title"]
+        sig = file_reader(RAW_FILE, signal="nominal_peak_data")[0]
+        assert "nominal peak data" in sig["metadata"]["General"]["title"]
 
     def test_peak_data_axes(self):
-        axes = file_reader(RAW_FILE, signal="peak_data")[0]["axes"]
+        axes = file_reader(RAW_FILE, signal="nominal_peak_data")[0]["axes"]
         assert len(axes) == 4
         assert [ax["name"] for ax in axes] == ["depth", "y", "x", "m/z"]
 
     def test_peak_data_mass_axis_values(self):
-        ax = file_reader(RAW_FILE, signal="peak_data")[0]["axes"][3]
+        ax = file_reader(RAW_FILE, signal="nominal_peak_data")[0]["axes"][3]
         np.testing.assert_allclose(ax["axis"], np.arange(1, NPEAKS + 1, dtype=float))
 
     def test_peak_data_non_negative(self):
-        data = file_reader(RAW_FILE, signal="peak_data")[0]["data"]
+        data = file_reader(RAW_FILE, signal="nominal_peak_data")[0]["data"]
         assert (data >= 0).all()
 
     def test_peak_data_values_match_algorithm(self):
         """Verify plumbing: reader output matches _compute_peak_data_from_file."""
         import h5py
 
-        from rsciio.tofwerk._api import _compute_peak_data_from_file
+        from rsciio.tofwerk._api import (
+            _compute_peak_data_from_file,
+            _peak_table_to_list,
+        )
 
         with h5py.File(RAW_FILE, "r") as f:
-            expected = _compute_peak_data_from_file(f)
-        result = file_reader(RAW_FILE, signal="peak_data")[0]["data"]
+            nominal_table = [
+                p
+                for p in _peak_table_to_list(np.asarray(f["PeakData/PeakTable"]))
+                if p["label"].startswith("nominal")
+            ]
+            expected = _compute_peak_data_from_file(f, peak_table=nominal_table)
+        result = file_reader(RAW_FILE, signal="nominal_peak_data")[0]["data"]
         np.testing.assert_array_equal(result, expected)
 
-    def test_signal_peak_data_on_opened_file(self):
-        """signal='peak_data' on opened file returns 1 signal (reads PeakData directly)."""
-        sigs = file_reader(OPENED_FILE, signal="peak_data")
+    def test_signal_nominal_peak_data_on_opened_file(self):
+        """signal='nominal_peak_data' on opened file returns 1 signal."""
+        sigs = file_reader(OPENED_FILE, signal="nominal_peak_data")
         assert len(sigs) == 1
         assert sigs[0]["data"].shape == (NWRITES, NSEGS, NX, NPEAKS)
 
-    def test_lazy_raw_peak_data_raises(self):
-        """lazy=True with signal='peak_data' on a raw file raises NotImplementedError."""
+    def test_lazy_raw_nominal_peak_data_raises(self):
+        """lazy=True with signal='nominal_peak_data' on a raw file raises NotImplementedError."""
         with pytest.raises(NotImplementedError, match="lazy"):
-            file_reader(RAW_FILE, signal="peak_data", lazy=True)
+            file_reader(RAW_FILE, signal="nominal_peak_data", lazy=True)
 
-    def test_lazy_opened_peak_data_works(self):
-        """lazy=True with signal='peak_data' on a pre-processed file works fine."""
-        sigs = file_reader(OPENED_FILE, signal="peak_data", lazy=True)
+    def test_lazy_opened_nominal_peak_data_works(self):
+        """lazy=True with signal='nominal_peak_data' on a pre-processed file works fine."""
+        sigs = file_reader(OPENED_FILE, signal="nominal_peak_data", lazy=True)
         assert len(sigs) == 1
         import dask.array as da
 
@@ -491,11 +507,11 @@ class TestSignalAll:
     """Tests for signal='all'."""
 
     def test_opened_file_returns_three_signals(self):
-        # Opened files have sum_spectrum + peak_data + fib_images (no EventList)
+        # Opened files have sum_spectrum + nominal_peak_data + fib_images (no EventList)
         assert len(file_reader(OPENED_FILE, signal="all")) == 3
 
     def test_raw_file_returns_four_signals(self):
-        # Raw files have sum_spectrum + peak_data (reconstructed) + event_list + fib_images
+        # Raw files have sum_spectrum + nominal_peak_data (reconstructed) + event_list + fib_images
         assert len(file_reader(RAW_FILE, signal="all")) == 4
 
     def test_sum_and_event_list_only(self):
@@ -505,13 +521,13 @@ class TestSignalAll:
     def test_all_opened_signal_order(self):
         sigs = file_reader(OPENED_FILE, signal="all")
         assert "sum spectrum" in sigs[0]["metadata"]["General"]["title"]
-        assert "peak data" in sigs[1]["metadata"]["General"]["title"]
+        assert "nominal peak data" in sigs[1]["metadata"]["General"]["title"]
         assert "FIB SE images" in sigs[2]["metadata"]["General"]["title"]
 
     def test_all_raw_signal_order(self):
         sigs = file_reader(RAW_FILE, signal="all")
         assert "sum spectrum" in sigs[0]["metadata"]["General"]["title"]
-        assert "peak data" in sigs[1]["metadata"]["General"]["title"]
+        assert "nominal peak data" in sigs[1]["metadata"]["General"]["title"]
         assert "event list" in sigs[2]["metadata"]["General"]["title"]
         assert "FIB SE images" in sigs[3]["metadata"]["General"]["title"]
 
@@ -521,11 +537,11 @@ class TestAvailableSignals:
 
     def test_opened_file(self):
         sigs = available_signals(OPENED_FILE)
-        assert sigs == ["sum_spectrum", "peak_data", "fib_images"]
+        assert sigs == ["sum_spectrum", "nominal_peak_data", "fib_images"]
 
     def test_raw_file(self):
         sigs = available_signals(RAW_FILE)
-        assert sigs == ["sum_spectrum", "peak_data", "event_list", "fib_images"]
+        assert sigs == ["sum_spectrum", "nominal_peak_data", "event_list", "fib_images"]
 
     def test_non_tofwerk_raises(self, tmp_path):
         p = tmp_path / "plain.h5"
@@ -534,23 +550,24 @@ class TestAvailableSignals:
             available_signals(p)
 
     def test_no_peak_capability(self, tmp_path):
-        """File with no EventList and no PeakData: 'peak_data' absent from result.
-
-        Covers the False branch of:
-          993->995  (has_peak_data or (has_event_list and has_peak_table) is False)
-        """
+        """File with no EventList and no PeakData: peak signals absent from result."""
         p = tmp_path / "no_peak_cap.h5"
         _make_minimal_tofdaq(p, include_eventlist=False)
         sigs = available_signals(p)
-        assert "peak_data" not in sigs
+        assert "nominal_peak_data" not in sigs
+        assert "additional_peak_data" not in sigs
         assert "sum_spectrum" in sigs
 
-    def test_no_fib_images(self, tmp_path):
-        """File without FIBImages group: 'fib_images' absent from result.
+    def test_additional_peak_data_reported(self, tmp_path):
+        """File with non-nominal peaks: 'additional_peak_data' in available signals."""
+        p = tmp_path / "additional.h5"
+        _make_minimal_tofdaq(p)  # labels b"p0", b"p1" — non-nominal
+        sigs = available_signals(p)
+        assert "additional_peak_data" in sigs
+        assert "nominal_peak_data" not in sigs
 
-        Covers the False branch of:
-          997->999  ("FIBImages" not in f or empty)
-        """
+    def test_no_fib_images(self, tmp_path):
+        """File without FIBImages group: 'fib_images' absent from result."""
         p = tmp_path / "no_fib.h5"
         _make_minimal_tofdaq(p, include_fibimages=False)
         sigs = available_signals(p)
@@ -659,7 +676,7 @@ class TestDetection:
             file_reader(plain_h5)
 
     def test_opened_file_detected(self):
-        meta = file_reader(OPENED_FILE, signal="peak_data")[0]["metadata"]
+        meta = file_reader(OPENED_FILE, signal="nominal_peak_data")[0]["metadata"]
         assert (
             meta["Acquisition_instrument"]["FIB_SIMS"]["file_type"] == "pre-processed"
         )
@@ -1024,7 +1041,7 @@ class TestEdgeCases:
         p = tmp_path / "no_clock.h5"
         # _make_minimal_tofdaq does not write ClockPeriod unless kwarg provided
         _make_minimal_tofdaq(p)
-        result = file_reader(p, signal="peak_data")
+        result = file_reader(p, signal="additional_peak_data")
         assert len(result) == 1
         assert result[0]["data"].shape[-1] == 2  # npeaks
 
@@ -1032,14 +1049,14 @@ class TestEdgeCases:
         """Pixel with empty EventList → skipped in peak_data reconstruction without error."""
         p = tmp_path / "empty_pixel.h5"
         _make_minimal_tofdaq(p, empty_pixel=True)
-        result = file_reader(p, signal="peak_data")
+        result = file_reader(p, signal="additional_peak_data")
         assert len(result) == 1
 
     def test_out_of_range_events_discarded(self, tmp_path):
         """Events outside [0, nsamples) → discarded in peak_data reconstruction."""
         p = tmp_path / "oor_events.h5"
         _make_minimal_tofdaq(p, out_of_range_pixel=True)
-        result = file_reader(p, signal="peak_data")
+        result = file_reader(p, signal="additional_peak_data")
         assert len(result) == 1
 
     def test_original_metadata_no_fibimages(self, tmp_path):
@@ -1139,12 +1156,12 @@ class TestEdgeCases:
         result = file_reader(p)
         assert len(result) == 1
 
-    def test_want_peak_not_available_raises(self, tmp_path):
-        """signal='peak_data' on file with no EventList and no PeakData raises ValueError."""
+    def test_want_nominal_not_available_raises(self, tmp_path):
+        """signal='nominal_peak_data' on file with no EventList and no PeakData raises ValueError."""
         p = tmp_path / "no_peak.h5"
         _make_minimal_tofdaq(p, include_eventlist=False)
-        with pytest.raises(ValueError, match="peak_data"):
-            file_reader(p, signal="peak_data")
+        with pytest.raises(ValueError, match="nominal_peak_data"):
+            file_reader(p, signal="nominal_peak_data")
 
     def test_want_fib_not_available_raises(self, tmp_path):
         """signal='fib_images' on file with empty FIBImages group raises ValueError."""
@@ -1158,7 +1175,8 @@ class TestEdgeCases:
         with caplog.at_level(logging.INFO, logger="rsciio.tofwerk._api"):
             file_reader(OPENED_FILE, signal="sum_spectrum")
         assert any(
-            "peak_data" in r.message and r.levelname == "INFO" for r in caplog.records
+            "nominal_peak_data" in r.message and r.levelname == "INFO"
+            for r in caplog.records
         )
 
 
@@ -1268,18 +1286,20 @@ class TestMarkEventListRagged:
 class TestMzRange:
     def test_invalid_raises(self):
         with pytest.raises(ValueError, match="mz_range"):
-            file_reader(OPENED_FILE, signal="peak_data", mz_range=(5.0, 2.0))
+            file_reader(OPENED_FILE, signal="nominal_peak_data", mz_range=(5.0, 2.0))
 
     def test_empty_range_warns_and_no_signal(self, caplog):
         with caplog.at_level(logging.WARNING, logger="rsciio.tofwerk._api"):
             result = file_reader(
-                OPENED_FILE, signal="peak_data", mz_range=(100.0, 200.0)
+                OPENED_FILE, signal="nominal_peak_data", mz_range=(100.0, 200.0)
             )
         assert len(result) == 0
         assert any("mz_range" in r.message for r in caplog.records)
 
     def test_filters_peaks_opened_eager(self):
-        result = file_reader(OPENED_FILE, signal="peak_data", mz_range=(1.0, 5.0))
+        result = file_reader(
+            OPENED_FILE, signal="nominal_peak_data", mz_range=(1.0, 5.0)
+        )
         data = result[0]["data"]
         assert data.shape == (NWRITES, NSEGS, NX, 5)
         np.testing.assert_allclose(
@@ -1290,14 +1310,14 @@ class TestMzRange:
         import dask.array as da
 
         result = file_reader(
-            OPENED_FILE, signal="peak_data", mz_range=(1.0, 5.0), lazy=True
+            OPENED_FILE, signal="nominal_peak_data", mz_range=(1.0, 5.0), lazy=True
         )
         data = result[0]["data"]
         assert isinstance(data, da.Array)
         assert data.shape == (NWRITES, NSEGS, NX, 5)
 
     def test_filters_peaks_raw(self):
-        result = file_reader(RAW_FILE, signal="peak_data", mz_range=(1.0, 5.0))
+        result = file_reader(RAW_FILE, signal="nominal_peak_data", mz_range=(1.0, 5.0))
         data = result[0]["data"]
         assert data.shape == (NWRITES, NSEGS, NX, 5)
         np.testing.assert_allclose(
@@ -1305,18 +1325,18 @@ class TestMzRange:
         )
 
     def test_unsorted_opened_selects_correct_peaks(self, tmp_path):
-        """mz_range on unsorted pre-processed file: result in ascending mass order."""
+        """mz_range on unsorted pre-processed file with additional peaks: result in ascending mass order."""
         p = tmp_path / "unsorted_mz_opened.h5"
         _make_unsorted_peaks_tofdaq(p, with_peak_data=True)
-        result = file_reader(p, signal="peak_data", mz_range=(1.0, 1.5))
+        result = file_reader(p, signal="additional_peak_data", mz_range=(1.0, 1.5))
         assert result[0]["data"].shape[-1] == 1
         np.testing.assert_allclose(result[0]["axes"][3]["axis"], [1.0])
 
     def test_unsorted_raw_selects_correct_peaks(self, tmp_path):
-        """mz_range on unsorted raw file: reconstructs only selected peaks."""
+        """mz_range on unsorted raw file with additional peaks: reconstructs only selected peaks."""
         p = tmp_path / "unsorted_mz_raw.h5"
         _make_unsorted_peaks_tofdaq(p, with_peak_data=False)
-        result = file_reader(p, signal="peak_data", mz_range=(1.0, 1.5))
+        result = file_reader(p, signal="additional_peak_data", mz_range=(1.0, 1.5))
         assert result[0]["data"].shape[-1] == 1
         np.testing.assert_allclose(result[0]["axes"][3]["axis"], [1.0])
 
@@ -1336,7 +1356,9 @@ class TestDepthRange:
             file_reader(OPENED_FILE, depth_range=(3, 2))
 
     def test_opened_eager(self):
-        result = file_reader(OPENED_FILE, signal="peak_data", depth_range=(1, 3))
+        result = file_reader(
+            OPENED_FILE, signal="nominal_peak_data", depth_range=(1, 3)
+        )
         data = result[0]["data"]
         assert data.shape == (2, NSEGS, NX, NPEAKS)
         assert result[0]["axes"][0]["size"] == 2
@@ -1345,14 +1367,14 @@ class TestDepthRange:
         import dask.array as da
 
         result = file_reader(
-            OPENED_FILE, signal="peak_data", depth_range=(0, 2), lazy=True
+            OPENED_FILE, signal="nominal_peak_data", depth_range=(0, 2), lazy=True
         )
         assert isinstance(result[0]["data"], da.Array)
         assert result[0]["data"].shape == (2, NSEGS, NX, NPEAKS)
 
     def test_raw_peak_data(self):
-        # Also exercises _compute_peak_data_from_file with depth_start/depth_stop (line 897)
-        result = file_reader(RAW_FILE, signal="peak_data", depth_range=(1, 3))
+        # Also exercises _compute_peak_data_from_file with depth_start/depth_stop
+        result = file_reader(RAW_FILE, signal="nominal_peak_data", depth_range=(1, 3))
         assert result[0]["data"].shape == (2, NSEGS, NX, NPEAKS)
 
     def test_event_list_eager(self):
@@ -1382,22 +1404,87 @@ class TestDepthRange:
 
 class TestDtype:
     def test_opened_eager(self):
-        result = file_reader(OPENED_FILE, signal="peak_data", dtype=np.float16)
+        result = file_reader(OPENED_FILE, signal="nominal_peak_data", dtype=np.float16)
         assert result[0]["data"].dtype == np.float16
 
     def test_opened_lazy(self):
         result = file_reader(
-            OPENED_FILE, signal="peak_data", dtype=np.float16, lazy=True
+            OPENED_FILE, signal="nominal_peak_data", dtype=np.float16, lazy=True
         )
         assert result[0]["data"].dtype == np.float16
 
     def test_raw(self):
-        result = file_reader(RAW_FILE, signal="peak_data", dtype=np.float16)
+        result = file_reader(RAW_FILE, signal="nominal_peak_data", dtype=np.float16)
         assert result[0]["data"].dtype == np.float16
 
     def test_string_dtype_accepted(self):
-        result = file_reader(OPENED_FILE, signal="peak_data", dtype="float16")
+        result = file_reader(OPENED_FILE, signal="nominal_peak_data", dtype="float16")
         assert result[0]["data"].dtype == np.float16
+
+
+# ---------------------------------------------------------------------------
+# Tests: additional_peak_data paths (pre-processed and raw)
+# ---------------------------------------------------------------------------
+
+
+class TestAdditionalPeakData:
+    """
+    Coverage for branches specific to signal='additional_peak_data'.
+
+    Uses _make_minimal_tofdaq (labels b"p0", b"p1" — non-nominal) as the
+    additional-peaks fixture.  include_peakdata=True produces a pre-processed
+    file; default (False) is raw.
+    """
+
+    def test_not_available_raises(self):
+        """Requesting additional_peak_data from a file with only nominal peaks raises ValueError."""
+        with pytest.raises(ValueError, match="additional_peak_data"):
+            file_reader(OPENED_FILE, signal="additional_peak_data")
+
+    def test_empty_mz_range_warns_and_no_signal(self, tmp_path, caplog):
+        """mz_range that excludes all additional peaks: warns and returns no signal."""
+        p = tmp_path / "add_empty_mz.h5"
+        _make_minimal_tofdaq(p)  # peaks at 1.0 and 2.0 Da
+        with caplog.at_level(logging.WARNING, logger="rsciio.tofwerk._api"):
+            result = file_reader(
+                p, signal="additional_peak_data", mz_range=(100.0, 200.0)
+            )
+        assert len(result) == 0
+        assert any("mz_range" in r.message for r in caplog.records)
+
+    def test_opened_already_sorted_eager(self, tmp_path):
+        """Pre-processed file with already-sorted additional peaks: batch-read path."""
+        p = tmp_path / "add_sorted_opened.h5"
+        _make_minimal_tofdaq(p, include_peakdata=True)  # b"p0"=1.0, b"p1"=2.0 (sorted)
+        result = file_reader(p, signal="additional_peak_data")
+        assert result[0]["data"].shape[-1] == 2
+        np.testing.assert_allclose(result[0]["axes"][3]["axis"], [1.0, 2.0])
+
+    def test_opened_already_sorted_eager_dtype(self, tmp_path):
+        """Pre-processed file with sorted additional peaks + dtype: dtype is applied."""
+        p = tmp_path / "add_sorted_dtype.h5"
+        _make_minimal_tofdaq(p, include_peakdata=True)
+        result = file_reader(p, signal="additional_peak_data", dtype=np.float16)
+        assert result[0]["data"].dtype == np.float16
+
+    def test_opened_lazy_dtype(self, tmp_path):
+        """Pre-processed file with additional peaks, lazy=True + dtype is applied."""
+        import dask.array as da
+
+        p = tmp_path / "add_lazy_dtype.h5"
+        _make_minimal_tofdaq(p, include_peakdata=True)
+        result = file_reader(
+            p, signal="additional_peak_data", lazy=True, dtype=np.float16
+        )
+        assert isinstance(result[0]["data"], da.Array)
+        assert result[0]["data"].dtype == np.float16
+
+    def test_lazy_raw_raises(self, tmp_path):
+        """lazy=True with additional_peak_data on a raw file raises NotImplementedError."""
+        p = tmp_path / "add_lazy_raw.h5"
+        _make_minimal_tofdaq(p)
+        with pytest.raises(NotImplementedError, match="lazy"):
+            file_reader(p, signal="additional_peak_data", lazy=True)
 
 
 # ---------------------------------------------------------------------------
@@ -1407,41 +1494,41 @@ class TestDtype:
 
 class TestUnsortedPeaks:
     """
-    Peaks stored in non-ascending mass order exercise the batch-sort and lazy-sort
-    code paths (lines 1309, 1330–1337, 1373–1397).
+    Additional (custom) peaks stored in non-ascending mass order exercise the
+    batch-sort and lazy-sort code paths in the additional_peak_data block.
     """
 
     def test_opened_eager_output_ascending(self, tmp_path):
-        """Unsorted pre-processed file: reader still returns masses in ascending order."""
+        """Unsorted pre-processed additional peaks: reader returns masses in ascending order."""
         p = tmp_path / "unsorted_opened.h5"
         _make_unsorted_peaks_tofdaq(p, with_peak_data=True)
-        result = file_reader(p, signal="peak_data")
+        result = file_reader(p, signal="additional_peak_data")
         ax = result[0]["axes"][3]
         np.testing.assert_allclose(ax["axis"], [1.0, 2.0])
 
     def test_opened_lazy_output_ascending(self, tmp_path):
-        """Unsorted pre-processed file lazy: masses in ascending order after compute."""
+        """Unsorted pre-processed additional peaks lazy: masses in ascending order after compute."""
         import dask.array as da
 
         p = tmp_path / "unsorted_opened_lazy.h5"
         _make_unsorted_peaks_tofdaq(p, with_peak_data=True)
-        result = file_reader(p, signal="peak_data", lazy=True)
+        result = file_reader(p, signal="additional_peak_data", lazy=True)
         assert isinstance(result[0]["data"], da.Array)
         np.testing.assert_allclose(result[0]["axes"][3]["axis"], [1.0, 2.0])
 
     def test_raw_output_ascending(self, tmp_path):
-        """Unsorted raw file: reconstructed peak_data has masses in ascending order."""
+        """Unsorted raw additional peaks: reconstructed data has masses in ascending order."""
         p = tmp_path / "unsorted_raw.h5"
         _make_unsorted_peaks_tofdaq(p, with_peak_data=False)
-        result = file_reader(p, signal="peak_data")
+        result = file_reader(p, signal="additional_peak_data")
         ax = result[0]["axes"][3]
         np.testing.assert_allclose(ax["axis"], [1.0, 2.0])
 
     def test_raw_with_dtype(self, tmp_path):
-        """dtype cast applies after sort on raw unsorted file."""
+        """dtype cast applies after sort on raw unsorted additional peaks file."""
         p = tmp_path / "unsorted_raw_dtype.h5"
         _make_unsorted_peaks_tofdaq(p, with_peak_data=False)
-        result = file_reader(p, signal="peak_data", dtype=np.float16)
+        result = file_reader(p, signal="additional_peak_data", dtype=np.float16)
         assert result[0]["data"].dtype == np.float16
 
 
@@ -1513,7 +1600,7 @@ class TestTqdmPbar:
         assert mock_pbar.close.called
 
     def test_pbar_unsorted_raw_sort(self, tmp_path):
-        """tqdm pbar is created during the post-reconstruction sort on raw unsorted files."""
+        """tqdm pbar is created during reconstruction of unsorted additional peaks."""
         import sys
         from unittest.mock import patch
 
@@ -1523,8 +1610,7 @@ class TestTqdmPbar:
         with patch.dict(
             sys.modules, {"tqdm": mock_tqdm_auto, "tqdm.auto": mock_tqdm_auto}
         ):
-            file_reader(p, signal="peak_data")
-        # The sort pbar is a separate call; at least one tqdm call must have occurred
+            file_reader(p, signal="additional_peak_data")
         assert mock_tqdm_auto.tqdm.called
         assert mock_pbar.update.called
         assert mock_pbar.close.called
@@ -1581,5 +1667,5 @@ class TestTqdmPbar:
         p = tmp_path / "tqdm_absent_numpy.h5"
         _make_minimal_tofdaq(p)
         with patch.dict(sys.modules, {"numba": None, "tqdm": None, "tqdm.auto": None}):
-            result = file_reader(p, signal="peak_data")
+            result = file_reader(p, signal="additional_peak_data")
         assert len(result) == 1

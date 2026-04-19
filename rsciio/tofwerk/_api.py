@@ -69,23 +69,25 @@ Two file states are handled:
 * **Pre-processed** files (``PeakData/PeakData`` present) — the Tofwerk software
   has already integrated the raw events into per-peak counts.  The
   ``"sum_spectrum"`` signal (default) returns the 1-D cumulative spectrum.
-  The ``"peak_data"`` signal returns the 4-D ``(depth, y, x, m/z)``
-  peak-integrated array.  If the EventList is still present,
-  ``signal="event_list"`` will return it for reprocessing.
+  The ``"nominal_peak_data"`` signal returns the 4-D ``(depth, y, x, m/z)``
+  array for Tofwerk-generated peaks; ``"additional_peak_data"`` returns the
+  same array for any user-defined custom peaks.  If the EventList is still
+  present, ``signal="event_list"`` will return it for reprocessing.
 
 * **Raw** files (``FullSpectra/EventList`` only) — the raw TDC timestamp
   data has not yet been peak-integrated.  The ``"sum_spectrum"`` signal
   (default) returns the 1-D cumulative spectrum.  Pass
-  ``signal="peak_data"`` to reconstruct the 4-D peak array from the
-  EventList using the integration windows in ``PeakData/PeakTable``.
+  ``signal="nominal_peak_data"`` to reconstruct the 4-D peak array from the
+  EventList using the nominal integration windows in ``PeakData/PeakTable``.
   Pass ``signal="event_list"`` to retrieve the raw ragged TDC timestamps.
 
 The ``signal`` parameter controls which signals are returned.  Pass a
-string or list of strings from ``{"sum_spectrum", "peak_data",
-"event_list", "fib_images", "all"}``.  The default
-``signal="sum_spectrum"`` is fast and always available; ``"peak_data"``
-on a raw file triggers full EventList reconstruction; ``"fib_images"``
-returns the stack of secondary-electron images at full FIB resolution.
+string or list of strings from ``{"sum_spectrum", "nominal_peak_data",
+"additional_peak_data", "event_list", "fib_images", "all"}``.  The default
+``signal="sum_spectrum"`` is fast and always available;
+``"nominal_peak_data"`` on a raw file triggers full EventList
+reconstruction; ``"fib_images"`` returns the stack of secondary-electron
+images at full FIB resolution.
 """
 
 from __future__ import annotations
@@ -94,7 +96,7 @@ import enum
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import numpy as np
 
@@ -128,7 +130,8 @@ class TofwerkSignal(str, enum.Enum):
     """Valid values for the ``signal`` parameter of :func:`file_reader`."""
 
     SUM_SPECTRUM = "sum_spectrum"
-    PEAK_DATA = "peak_data"
+    NOMINAL_PEAK_DATA = "nominal_peak_data"
+    ADDITIONAL_PEAK_DATA = "additional_peak_data"
     EVENT_LIST = "event_list"
     FIB_IMAGES = "fib_images"
     ALL = "all"
@@ -570,6 +573,32 @@ def _peak_table_to_list(pt: np.ndarray) -> list[dict[str, Any]]:
     ]
 
 
+def _split_peak_table(
+    peak_table_list: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """
+    Split a peak table into nominal and additional (custom) peaks.
+
+    Tofwerk software auto-generates *nominal* peaks whose labels start with
+    ``"nominal"`` (e.g. ``"nominal"`` or ``"nominal_0"``).  Any entry whose
+    label does not start with ``"nominal"`` is a user-defined *additional* peak
+    (e.g. ``"[194Pt]"``).
+
+    Parameters
+    ----------
+    peak_table_list : list of dict
+        As returned by :func:`_peak_table_to_list`.
+
+    Returns
+    -------
+    nominal : list of dict
+    additional : list of dict
+    """
+    nominal = [p for p in peak_table_list if p["label"].startswith("nominal")]
+    additional = [p for p in peak_table_list if not p["label"].startswith("nominal")]
+    return nominal, additional
+
+
 # ---------------------------------------------------------------------------
 # Private file-level EventList reconstruction helper
 # ---------------------------------------------------------------------------
@@ -698,7 +727,7 @@ def available_signals(filename: str | Path) -> list[str]:
     """
     Return the list of signal names available in a Tofwerk TofDAQ HDF5 file.
 
-    This is a fast, read-only inspection call — no data arrays are loaded.
+    This is a fast, read-only inspection call — no large data arrays are loaded.
 
     Parameters
     ----------
@@ -708,7 +737,9 @@ def available_signals(filename: str | Path) -> list[str]:
     Returns
     -------
     list of str
-        Subset of ``["sum_spectrum", "peak_data", "event_list", "fib_images"]``
+        Subset of
+        ``["sum_spectrum", "nominal_peak_data", "additional_peak_data",
+        "event_list", "fib_images"]``
         depending on what is present in the file.
 
     Raises
@@ -720,7 +751,7 @@ def available_signals(filename: str | Path) -> list[str]:
     --------
     >>> from rsciio.tofwerk import available_signals
     >>> available_signals("my_acquisition.h5")
-    ['sum_spectrum', 'peak_data', 'fib_images']
+    ['sum_spectrum', 'nominal_peak_data', 'fib_images']
     """
     import h5py
 
@@ -734,8 +765,14 @@ def available_signals(filename: str | Path) -> list[str]:
         has_peak_data = _has_peak_data(f)
         has_event_list = "FullSpectra/EventList" in f
         has_peak_table = "PeakData/PeakTable" in f
-        if has_peak_data or (has_event_list and has_peak_table):
-            signals.append("peak_data")
+        can_peak = has_peak_data or (has_event_list and has_peak_table)
+        if can_peak and has_peak_table:
+            pt_list = _peak_table_to_list(np.asarray(f["PeakData/PeakTable"]))
+            nominal, additional = _split_peak_table(pt_list)
+            if nominal:
+                signals.append("nominal_peak_data")
+            if additional:
+                signals.append("additional_peak_data")
         if has_event_list:
             signals.append("event_list")
         if "FIBImages" in f and len(f["FIBImages"]) > 0:
@@ -767,11 +804,17 @@ def file_reader(
         ``"sum_spectrum"`` (default)
             1-D cumulative spectrum from ``FullSpectra/SumSpectrum``.
             Always available.
-        ``"peak_data"``
-            4-D array ``(depth, y, x, m/z)``.  For pre-processed files, reads
-            ``PeakData/PeakData`` directly.  For raw files, reconstructs
-            from ``FullSpectra/EventList`` using the windows in
-            ``PeakData/PeakTable``.
+        ``"nominal_peak_data"``
+            4-D array ``(depth, y, x, m/z)`` for Tofwerk-generated peaks
+            (labels starting with ``"nominal"``).  For pre-processed files,
+            reads the relevant columns of ``PeakData/PeakData`` directly.
+            For raw files, reconstructs from ``FullSpectra/EventList``.
+        ``"additional_peak_data"``
+            4-D array ``(depth, y, x, m/z)`` for user-defined custom peaks
+            (labels not starting with ``"nominal"``).  Only available when
+            the ``PeakData/PeakTable`` contains at least one such entry.
+            For pre-processed files reads from ``PeakData/PeakData`` directly;
+            for raw files reconstructs from ``FullSpectra/EventList``.
         ``"event_list"``
             Ragged object array ``(depth, y, x)`` of raw uint16 TDC
             timestamps.  Present in raw files; may also be present in
@@ -784,8 +827,8 @@ def file_reader(
             All signals available for the file.
 
         Pass a list to request multiple specific signals, e.g.
-        ``signal=["sum_spectrum", "peak_data"]``.  The returned list has
-        one entry per requested signal (or all available for ``"all"``).
+        ``signal=["sum_spectrum", "nominal_peak_data"]``.  The returned list
+        has one entry per requested signal (or all available for ``"all"``).
     %s
     mz_range : tuple, optional
         Restrict the m/z axis of ``"peak_data"`` to peaks whose nominal
@@ -826,7 +869,8 @@ def file_reader(
         ``depth_range`` are out of bounds, or if an explicitly requested signal
         is not available in the file.
     NotImplementedError
-        If ``lazy=True`` and ``signal="peak_data"`` on a raw file that requires
+        If ``lazy=True`` and ``signal="nominal_peak_data"`` or
+        ``signal="additional_peak_data"`` on a raw file that requires
         EventList reconstruction.
     """
     import h5py
@@ -860,7 +904,8 @@ def file_reader(
 
     want_all = TofwerkSignal.ALL in signal_list
     want_sum = want_all or TofwerkSignal.SUM_SPECTRUM in signal_list
-    want_peak = want_all or TofwerkSignal.PEAK_DATA in signal_list
+    want_nominal = want_all or TofwerkSignal.NOMINAL_PEAK_DATA in signal_list
+    want_additional = want_all or TofwerkSignal.ADDITIONAL_PEAK_DATA in signal_list
     want_evl = want_all or TofwerkSignal.EVENT_LIST in signal_list
     want_fib = want_all or TofwerkSignal.FIB_IMAGES in signal_list
 
@@ -913,18 +958,60 @@ def file_reader(
         dtype = np.dtype(dtype)
 
     # ------------------------------------------------------------------
-    # Availability checks
+    # Read and split PeakTable (needed for availability checks)
     # ------------------------------------------------------------------
     has_peak_table = "PeakData/PeakTable" in f
-    can_peak = has_peak_data or (has_event_list and has_peak_table)
+    all_peak_table_list: list[dict[str, Any]] = []
+    nominal_peak_table_list: list[dict[str, Any]] = []
+    additional_peak_table_list: list[dict[str, Any]] = []
+    nominal_orig_idx = np.array([], dtype=int)
+    additional_orig_idx = np.array([], dtype=int)
+
+    if has_peak_table:
+        _raw_pt = np.asarray(f["PeakData/PeakTable"])
+        all_peak_table_list = _peak_table_to_list(_raw_pt)
+        nominal_peak_table_list, additional_peak_table_list = _split_peak_table(
+            all_peak_table_list
+        )
+        nominal_orig_idx = np.array(
+            [
+                i
+                for i, p in enumerate(all_peak_table_list)
+                if p["label"].startswith("nominal")
+            ],
+            dtype=int,
+        )
+        additional_orig_idx = np.array(
+            [
+                i
+                for i, p in enumerate(all_peak_table_list)
+                if not p["label"].startswith("nominal")
+            ],
+            dtype=int,
+        )
+
+    # ------------------------------------------------------------------
+    # Availability checks
+    # ------------------------------------------------------------------
+    _can_peak_base = has_peak_data or (has_event_list and has_peak_table)
+    can_nominal = _can_peak_base and len(nominal_orig_idx) > 0
+    can_additional = _can_peak_base and len(additional_orig_idx) > 0
     can_evl = has_event_list
     can_fib = "FIBImages" in f and len(f["FIBImages"]) > 0
 
-    if want_peak and not can_peak and not want_all:
+    if want_nominal and not can_nominal and not want_all:
         f.close()
         raise ValueError(
-            "signal='peak_data' requested but not available "
-            "(no PeakData/PeakData and no EventList+PeakTable)."
+            "signal='nominal_peak_data' requested but not available "
+            "(no nominal peaks in PeakTable, or no PeakData/PeakData and no "
+            "EventList+PeakTable)."
+        )
+    if want_additional and not can_additional and not want_all:
+        f.close()
+        raise ValueError(
+            "signal='additional_peak_data' requested but not available "
+            "(no additional/custom peaks in PeakTable, or no PeakData/PeakData "
+            "and no EventList+PeakTable)."
         )
     if want_evl and not can_evl and not want_all:
         f.close()
@@ -939,15 +1026,18 @@ def file_reader(
         )
 
     produce_sum = want_sum
-    produce_peak = want_peak and can_peak
+    produce_nominal = want_nominal and can_nominal
+    produce_additional = want_additional and can_additional
     produce_evl = want_evl and can_evl
     produce_fib = want_fib and can_fib
 
     # Log available-but-not-requested signals
     if not want_all:
-        available = ["sum_spectrum"]
-        if can_peak:
-            available.append("peak_data")
+        available: list[str] = ["sum_spectrum"]
+        if can_nominal:
+            available.append("nominal_peak_data")
+        if can_additional:
+            available.append("additional_peak_data")
         if can_evl:
             available.append("event_list")
         if can_fib:
@@ -1002,144 +1092,233 @@ def file_reader(
             }
         )
 
-    # ------------------------------------------------------------------
-    # 4D peak-integrated array
-    #   Pre-processed files: read PeakData/PeakData directly
-    #   Raw files: reconstruct from EventList
-    # ------------------------------------------------------------------
-    if produce_peak:
-        if has_peak_data:
-            peak_ds = f["PeakData/PeakData"]
-            peak_table = np.asarray(f["PeakData/PeakTable"])
-        else:
-            peak_table = np.asarray(f["PeakData/PeakTable"])
+    # Open PeakData/PeakData once if we need it (pre-processed files)
+    peak_ds = f["PeakData/PeakData"] if has_peak_data else None
 
-        peak_masses = peak_table["mass"].astype(float)
-        # Sort peaks by mass so the m/z signal axis is monotonically increasing
-        # (required by HyperSpy non-uniform axes).
-        sort_idx = np.argsort(peak_masses)
-        # Skip the reorder step on the data array when peaks are already sorted.
-        already_sorted = np.array_equal(sort_idx, np.arange(len(sort_idx)))
-        peak_masses = peak_masses[sort_idx]
+    # ------------------------------------------------------------------
+    # 4D nominal peak-integrated array
+    #   Nominal peaks: Tofwerk-auto-generated, labels start with "nominal".
+    #   Already in ascending mass order — no sorting required.
+    # ------------------------------------------------------------------
+    if produce_nominal:
+        nom_masses = np.array([p["mass"] for p in nominal_peak_table_list], dtype=float)
+        # nominal peaks are guaranteed sorted; map to file column indices
+        nom_sel = nominal_orig_idx  # shape (n_nominal,), ascending
 
-        # mz_range: compute boolean mask on the sorted peak_masses array.
-        # mz_sel holds the indices (into sorted order) of the selected peaks.
         if mz_range is not None:
-            mz_mask = (peak_masses >= mz_range[0]) & (peak_masses <= mz_range[1])
-            mz_sel = np.where(mz_mask)[0]
-            if len(mz_sel) == 0:
+            nom_mz_mask = (nom_masses >= mz_range[0]) & (nom_masses <= mz_range[1])
+            if not nom_mz_mask.any():
                 _logger.warning(
-                    f"mz_range={mz_range!r} excludes all {len(peak_masses)} peaks "
-                    "in PeakTable; skipping peak_data signal."
+                    f"mz_range={mz_range!r} excludes all {len(nom_masses)} nominal "
+                    "peaks; skipping nominal_peak_data signal."
                 )
-                produce_peak = False
+                produce_nominal = False
             else:
-                peak_masses = peak_masses[mz_mask]
-        else:
-            mz_sel = None
+                nom_masses = nom_masses[nom_mz_mask]
+                nom_sel = nominal_orig_idx[nom_mz_mask]
 
-    if produce_peak:
-        peak_axes = _build_axes_preprocessed(
-            nwrites_loaded, nsegs, nx, peak_masses, pixel_size_um
+    if produce_nominal:
+        nom_axes = _build_axes_preprocessed(
+            nwrites_loaded, nsegs, nx, nom_masses, pixel_size_um
         )
-
-        peak_meta = dict(metadata)
-        peak_meta["General"] = dict(metadata["General"])
-        peak_meta["General"]["title"] = stem + " (peak data)"
-        peak_meta["Signal"] = {**metadata.get("Signal", {}), "signal_type": "FIB-SIMS"}
+        nom_meta = dict(metadata)
+        nom_meta["General"] = dict(metadata["General"])
+        nom_meta["General"]["title"] = stem + " (nominal peak data)"
+        nom_meta["Signal"] = {
+            **metadata.get("Signal", {}),
+            "signal_type": "FIB-SIMS",
+            "peak_table": nominal_peak_table_list,
+        }
 
         if has_peak_data:
+            assert peak_ds is not None
             if lazy:
                 import dask.array as da
 
-                peak_data = da.from_array(peak_ds, chunks=chunks)[
-                    depth_start:depth_stop
+                nom_data = da.from_array(peak_ds, chunks=chunks)[
+                    depth_start:depth_stop, :, :, nom_sel.tolist()
                 ]
-                if not already_sorted:
-                    peak_data = peak_data[:, :, :, sort_idx]
-                if mz_sel is not None:
-                    peak_data = peak_data[:, :, :, mz_sel]
                 if dtype is not None:
-                    peak_data = peak_data.astype(dtype)
+                    nom_data = nom_data.astype(dtype)
             else:
-                if mz_sel is not None:
-                    # When mz_range is active, read only the selected columns
-                    # directly from HDF5 so we never materialise the full mass
-                    # axis in memory.  final_idx maps each selected sorted-mass
-                    # position back to its original column index in the file.
-                    # h5py requires fancy indices to be in strictly ascending
-                    # order, so we sort them, read, then undo the reorder.
-                    final_idx = sort_idx[mz_sel]
-                    _asc_order = np.argsort(final_idx)
-                    _undo = np.argsort(_asc_order)
-                    peak_data = np.asarray(
-                        peak_ds[
-                            depth_start:depth_stop,
-                            :,
-                            :,
-                            final_idx[_asc_order].tolist(),
-                        ]
-                    )[:, :, :, _undo]
-                elif already_sorted:
-                    peak_data = np.asarray(peak_ds[depth_start:depth_stop])
-                else:
-                    # Apply sort_idx in batches so each batch fits in CPU cache.
-                    # Avoids cache-thrashing column permutation across the full
-                    # array.  Batch size is tunable via peak_data_batch_size.
-                    peak_data = np.empty(
-                        (nwrites_loaded, nsegs, nx, peak_ds.shape[3]),
-                        dtype=peak_ds.dtype,
-                    )
-                    for _w0 in range(0, nwrites_loaded, peak_data_batch_size):
-                        _w1 = min(_w0 + peak_data_batch_size, nwrites_loaded)
-                        peak_data[_w0:_w1] = np.asarray(
-                            peak_ds[depth_start + _w0 : depth_start + _w1]
-                        )[:, :, :, sort_idx]
+                nom_data = np.asarray(
+                    peak_ds[depth_start:depth_stop, :, :, nom_sel.tolist()]
+                )
                 if dtype is not None:
-                    peak_data = peak_data.astype(dtype)
+                    nom_data = nom_data.astype(dtype)
         else:
-            # Raw file: reconstruction from EventList is inherently eager because
-            # compute_peak_data_from_eventlist materialises the full array.
-            # Silently falling through to eager loading when the caller passed
-            # lazy=True is misleading (the data lands in RAM before the signal
-            # is returned), so we raise explicitly instead.
             if lazy:
                 f.close()
                 raise NotImplementedError(
-                    "lazy=True is not supported when requesting signal='peak_data', "
-                    "since it requires eagerly integrating the raw EventList data. "
-                    "To compute the peak_data signal, either load the dataset eagerly "
+                    "lazy=True is not supported when requesting "
+                    "signal='nominal_peak_data' on a raw file, since it requires "
+                    "eagerly integrating the raw EventList data. Load eagerly "
                     "(lazy=False) or open the file with the Tofwerk software first "
-                    "to produce PeakData/PeakData, which will enable lazy loading in "
-                    "rsciio."
+                    "to produce PeakData/PeakData, which enables lazy loading."
                 )
-            # Pass the active peak_table from metadata so users can reintegrate
-            # with modified windows by reloading with signal="peak_data".
-            active_peak_table = cast(
-                list[dict[str, Any]], peak_meta["Signal"]["peak_table"]
-            )
-
-            # Pre-sort peak_table into ascending mass order (full or filtered).
-            # Reconstruction emits one column per peak_table entry in input
-            # order, so pre-sorting here avoids a separate post-hoc sort pass.
-            sel = sort_idx[mz_sel] if mz_sel is not None else sort_idx
-            active_peak_table = [active_peak_table[i] for i in sel]
-            peak_data = _compute_peak_data_from_file(
+            # Filter nominal peaks by mz_range and reconstruct (already sorted)
+            if mz_range is not None:
+                active_nom_table = [
+                    p
+                    for p in nominal_peak_table_list
+                    if mz_range[0] <= p["mass"] <= mz_range[1]
+                ]
+            else:
+                active_nom_table = nominal_peak_table_list
+            nom_data = _compute_peak_data_from_file(
                 f,
-                peak_table=active_peak_table,
+                peak_table=active_nom_table,
                 depth_start=depth_start,
                 depth_stop=depth_stop,
                 show_progressbar=show_progressbar,
             )
-
             if dtype is not None:
-                peak_data = peak_data.astype(dtype)
+                nom_data = nom_data.astype(dtype)
 
         signals.append(
             {
-                "data": peak_data,
-                "axes": peak_axes,
-                "metadata": peak_meta,
+                "data": nom_data,
+                "axes": nom_axes,
+                "metadata": nom_meta,
+                "original_metadata": original_metadata,
+            }
+        )
+
+    # ------------------------------------------------------------------
+    # 4D additional (custom) peak-integrated array
+    #   Additional peaks: user-defined, arbitrary labels and order.
+    #   Must be sorted by mass; batched sort applied for large arrays.
+    # ------------------------------------------------------------------
+    if produce_additional:
+        add_masses_unsorted = np.array(
+            [p["mass"] for p in additional_peak_table_list], dtype=float
+        )
+        add_sort_idx = np.argsort(add_masses_unsorted)
+        add_already_sorted = np.array_equal(add_sort_idx, np.arange(len(add_sort_idx)))
+        add_masses = add_masses_unsorted[add_sort_idx]
+        # File column indices of additional peaks, in sorted-mass order
+        add_sorted_orig_idx = additional_orig_idx[add_sort_idx]
+
+        if mz_range is not None:
+            add_mz_mask = (add_masses >= mz_range[0]) & (add_masses <= mz_range[1])
+            if not add_mz_mask.any():
+                _logger.warning(
+                    f"mz_range={mz_range!r} excludes all {len(add_masses)} additional "
+                    "peaks; skipping additional_peak_data signal."
+                )
+                produce_additional = False
+            else:
+                add_masses = add_masses[add_mz_mask]
+                add_sorted_orig_idx = add_sorted_orig_idx[add_mz_mask]
+
+    if produce_additional:
+        add_axes = _build_axes_preprocessed(
+            nwrites_loaded, nsegs, nx, add_masses, pixel_size_um
+        )
+        add_meta = dict(metadata)
+        add_meta["General"] = dict(metadata["General"])
+        add_meta["General"]["title"] = stem + " (additional peak data)"
+        add_meta["Signal"] = {
+            **metadata.get("Signal", {}),
+            "signal_type": "FIB-SIMS",
+            "peak_table": additional_peak_table_list,
+        }
+
+        if has_peak_data:
+            assert peak_ds is not None
+            if lazy:
+                import dask.array as da
+
+                # Load full depth slice lazily, then select/reorder columns.
+                add_data = da.from_array(peak_ds, chunks=chunks)[depth_start:depth_stop]
+                add_data = add_data[:, :, :, add_sorted_orig_idx.tolist()]
+                if dtype is not None:
+                    add_data = add_data.astype(dtype)
+            else:
+                # h5py requires fancy index columns in strictly ascending order.
+                # Sort the file column indices for the read, then undo the reorder.
+                _asc = np.argsort(add_sorted_orig_idx)
+                _undo = np.argsort(_asc)
+                if add_already_sorted and mz_range is None:
+                    # No reorder within the additional block — batch-sort path.
+                    n_add = len(additional_orig_idx)
+                    add_data = np.empty(
+                        (nwrites_loaded, nsegs, nx, n_add),
+                        dtype=peak_ds.dtype,
+                    )
+                    for _w0 in range(0, nwrites_loaded, peak_data_batch_size):
+                        _w1 = min(_w0 + peak_data_batch_size, nwrites_loaded)
+                        add_data[_w0:_w1] = np.asarray(
+                            peak_ds[
+                                depth_start + _w0 : depth_start + _w1,
+                                :,
+                                :,
+                                additional_orig_idx.tolist(),
+                            ]
+                        )
+                elif not add_already_sorted and mz_range is None:
+                    # Unsorted additional peaks — batch-sort path.
+                    n_add = len(additional_orig_idx)
+                    add_data = np.empty(
+                        (nwrites_loaded, nsegs, nx, n_add),
+                        dtype=peak_ds.dtype,
+                    )
+                    for _w0 in range(0, nwrites_loaded, peak_data_batch_size):
+                        _w1 = min(_w0 + peak_data_batch_size, nwrites_loaded)
+                        add_data[_w0:_w1] = np.asarray(
+                            peak_ds[
+                                depth_start + _w0 : depth_start + _w1,
+                                :,
+                                :,
+                                additional_orig_idx.tolist(),
+                            ]
+                        )[:, :, :, add_sort_idx]
+                else:
+                    # mz_range active: read only the selected columns directly.
+                    add_data = np.asarray(
+                        peak_ds[
+                            depth_start:depth_stop,
+                            :,
+                            :,
+                            add_sorted_orig_idx[_asc].tolist(),
+                        ]
+                    )[:, :, :, _undo]
+                if dtype is not None:
+                    add_data = add_data.astype(dtype)
+        else:
+            if lazy:
+                f.close()
+                raise NotImplementedError(
+                    "lazy=True is not supported when requesting "
+                    "signal='additional_peak_data' on a raw file, since it requires "
+                    "eagerly integrating the raw EventList data. Load eagerly "
+                    "(lazy=False) or open the file with the Tofwerk software first "
+                    "to produce PeakData/PeakData, which enables lazy loading."
+                )
+            # Sort additional peaks by mass and filter by mz_range before
+            # reconstruction so output columns are in ascending mass order.
+            sorted_add_table = [additional_peak_table_list[i] for i in add_sort_idx]
+            if mz_range is not None:
+                sorted_add_table = [
+                    p
+                    for p in sorted_add_table
+                    if mz_range[0] <= p["mass"] <= mz_range[1]
+                ]
+            add_data = _compute_peak_data_from_file(
+                f,
+                peak_table=sorted_add_table,
+                depth_start=depth_start,
+                depth_stop=depth_stop,
+                show_progressbar=show_progressbar,
+            )
+            if dtype is not None:
+                add_data = add_data.astype(dtype)
+
+        signals.append(
+            {
+                "data": add_data,
+                "axes": add_axes,
+                "metadata": add_meta,
                 "original_metadata": original_metadata,
             }
         )
@@ -1268,7 +1447,11 @@ def file_reader(
 
     # Keep the file open if any lazy dask arrays still reference it
     has_lazy_array = lazy and (
-        produce_sum or (produce_peak and has_peak_data) or produce_evl or produce_fib
+        produce_sum
+        or (produce_nominal and has_peak_data)
+        or (produce_additional and has_peak_data)
+        or produce_evl
+        or produce_fib
     )
     if not has_lazy_array:
         f.close()

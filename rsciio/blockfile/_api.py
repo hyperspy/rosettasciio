@@ -271,7 +271,7 @@ def file_reader(filename, lazy=False, chunks="auto", endianness="<"):
     # navigator = np.fromfile(f, dtype=endianness+"u1", shape=(NX, NY)).T
 
     # Then comes actual blockfile
-    offset2 = header["Data_offset_2"]
+    offset2 = int(header["Data_offset_2"])
     # Every frame is preceded by a 6 byte sequence
     # (AA 55, and then a 4 byte integer specifying frame number)
     if not lazy:

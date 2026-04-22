@@ -1,0 +1,1 @@
+Fixed "OverflowError: Python int too large to convert to C int" on Windows and other 32-bit systems when Daks computes the lazily-loaded blockfiles 

@@ -111,6 +111,25 @@ def test_data_axis_length_1():
     assert signal.data.shape == (5, 1, 5)
 
 
+@pytest.mark.parametrize("lazy", (True, False))
+def test_py4dstem(lazy):
+    filename = TEST_DATA_PATH / "py4DSTEM_size2x3x4x5.h5"
+    signal = file_reader(filename)[0]
+    assert signal["data"].shape == (2, 3, 4, 5)
+    assert len(signal["axes"]) == 4
+    # Check the sizes in axes
+    assert signal["axes"][0]["size"] == 2
+    assert signal["axes"][1]["size"] == 3
+    assert signal["axes"][2]["size"] == 4
+    assert signal["axes"][3]["size"] == 5
+    # Check the realspace calibration
+    assert signal["axes"][0]["units"] == "nm"
+    np.testing.assert_allclose(signal["axes"][0]["scale"], 0.126796875)
+    # Check the reciprocal space calibration
+    assert signal["axes"][2]["units"] == "1 / Å"
+    np.testing.assert_allclose(signal["axes"][2]["scale"], 0.044251566616087125)
+
+
 class TestDatasetName:
     def setup_method(self):
         tmpdir = tempfile.TemporaryDirectory()

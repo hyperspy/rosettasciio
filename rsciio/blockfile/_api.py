@@ -242,6 +242,7 @@ def file_reader(filename, lazy=False, chunks="auto", endianness="<"):
             UserWarning,
         )
     header = sarray2dict(header)
+    # Convert the header value to python int to avoid potential overflow issues on 32-bit systems
     note = f.read(int(header["Data_offset_1"]) - f.tell())
     # It seems it uses "\x00" for padding, so we remove it
     try:
@@ -271,6 +272,7 @@ def file_reader(filename, lazy=False, chunks="auto", endianness="<"):
     # navigator = np.fromfile(f, dtype=endianness+"u1", shape=(NX, NY)).T
 
     # Then comes actual blockfile
+    # header["Data_offset_2"] is np.uint32. Converting to int to avoid potential overflow issues on 32-bit systems
     offset2 = int(header["Data_offset_2"])
     # Every frame is preceded by a 6 byte sequence
     # (AA 55, and then a 4 byte integer specifying frame number)

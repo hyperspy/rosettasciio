@@ -84,7 +84,7 @@ def no_cythonize(extensions):
 
 
 # to cythonize, or not to cythonize... :
-if os.environ.get("DISABLE_C_EXTENTIONS"):
+if os.environ.get("DISABLE_C_EXTENSIONS"):
     # Explicitly disable
     extensions = []
 elif len(raw_extensions) > count_c_extensions(raw_extensions):

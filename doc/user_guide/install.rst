@@ -145,3 +145,25 @@ To install a development version on CI, it is advised to use
 in order to get the correct development version, e.g. ``0.3.dev14+g706deac``::
 
     pip install git+https://github.com/hyperspy/rosettasciio.git
+
+.. note::
+
+    To install a development version on a system without a compiler available, the compilation
+    of the C-extension of the Bruker reader can be disabled using the ``DISABLE_C_EXTENSIONS``
+    environment variable:
+
+    .. tab-set::
+
+        .. tab-item:: Windows
+
+            .. code-block:: bash
+
+              set DISABLE_C_EXTENSIONS=1
+              pip install git+https://github.com/hyperspy/rosettasciio.git
+
+        .. tab-item:: Linux/macOS
+
+            .. code-block:: bash
+
+              DISABLE_C_EXTENSIONS=1
+              pip install git+https://github.com/hyperspy/rosettasciio.git

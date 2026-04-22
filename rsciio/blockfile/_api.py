@@ -242,7 +242,7 @@ def file_reader(filename, lazy=False, chunks="auto", endianness="<"):
             UserWarning,
         )
     header = sarray2dict(header)
-    note = f.read(header["Data_offset_1"] - f.tell())
+    note = f.read(int(header["Data_offset_1"]) - f.tell())
     # It seems it uses "\x00" for padding, so we remove it
     try:
         header["Note"] = note.decode("latin1").strip("\x00")

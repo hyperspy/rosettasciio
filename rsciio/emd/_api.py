@@ -135,6 +135,8 @@ def file_reader(
     stack_group : None, bool, default=None
         NCEM only: Stack datasets of groups with common path. Relevant for emd file
         version >= 0.5, where groups can be named ``group0000``, ``group0001``, etc.
+        For py4DSTEM files saved by EMD version 1.0, set ``stack_group=False`` to load
+        the 4D datacube as well as virtual images, dp_mean, etc.
     select_type : {None, 'image', 'single_spectrum', 'spectrum_image'}
         Velox only: specifies the type of data to load: if ``'image'`` is selected,
         only images (including EDS maps) are loaded, if ``'single_spectrum'`` is

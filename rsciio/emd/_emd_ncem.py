@@ -225,6 +225,9 @@ class EMD_NCEM:
     ):
         axes = []
         transpose_required = True if dataset_name != "datacube" else False
+        if f"{group_path[0]}/dim0" in self.file:
+            # py4DSTEM data does not need to be transposed
+            transpose_required = False
 
         dataset_list = [self.file.get(f"{key}/{dataset_name}") for key in group_path]
 
@@ -304,8 +307,12 @@ class EMD_NCEM:
             dim_indices = array_indices
         else:
             array_indices = np.arange(0, len(shape))
-            # dim indices start form 1
-            dim_indices = array_indices + 1
+            if f"{group_path[0]}/dim0" in self.file:
+                # New EMD version uses dim indices starting from 0
+                dim_indices = array_indices
+            else:
+                # Older EMD version uses dim indices starting from 1
+                dim_indices = array_indices + 1
 
         if transpose_required:
             dim_indices = dim_indices[::-1]
@@ -343,10 +350,15 @@ class EMD_NCEM:
             if not isinstance(value, str):
                 value = value.decode()
             if key == "units":
+                # py4DSTEM uses "A" for Angstrom, but pint doesn't recognize it, so we replace it with "Å"
+                if value in ["A", "A^-1"]:
+                    value = value.replace("A", "Å")
                 # Get all the units
                 units_list = re.findall(r"(\[.+?\])", value)
-                units_list = [u[1:-1].replace("_", "") for u in units_list]
-                value = " * ".join(units_list)
+                if units_list:
+                    # Only rewrite the value if regex finds something, otherwise keep the original string
+                    units_list = [u[1:-1].replace("_", "") for u in units_list]
+                    value = " * ".join(units_list)
                 try:
                     from rsciio.utils._units import _UREG
 
@@ -355,6 +367,7 @@ class EMD_NCEM:
                 except Exception:
                     # In case it fails parsing units
                     pass
+
         return value
 
     def _parse_metadata(self, group_basename, title=""):
@@ -432,7 +445,7 @@ class EMD_NCEM:
         Estimate, offset, scale from a 1D array
         """
         if axis_data.ndim > 0 and np.issubdtype(axis_data.dtype, np.number):
-            offset, scale = axis_data[0], np.diff(axis_data).mean()
+            offset, scale = float(axis_data[0]), float(np.diff(axis_data).mean())
         else:
             # This is a string, return default values
             # When non-uniform axis is supported we should be able to parse

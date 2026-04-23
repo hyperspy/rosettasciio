@@ -188,8 +188,13 @@ def import_pr(data, meta_data, filename=None):
     content_type = meta_data.get("content.types")
     calibrations = []
     for axis in range(data_dimensions):
+        calib_key = "device.calib"
+        if "user.calib" in meta_data:
+            calib_key = "user.calib"
+        elif "inherited.calib" in meta_data:
+            calib_key = "inherited.calib"
         try:
-            calib = meta_data["device.calib"][axis]
+            calib = meta_data[calib_key][axis]
         except (IndexError, KeyError):
             calib = None
         calibrations.append(calib)
@@ -266,8 +271,10 @@ def import_pr(data, meta_data, filename=None):
     calibration_ordered = [calibrations_np_order[i] for i in new_order]
     data = np.moveaxis(data, new_order, list(range(len(content_type_np_order))))
 
-    # TODO: Will have to be updated once CEOS adds selectable dispersion orientation
-    if meta_data.get("filter.mode") == "EELS":
+    # axis ordered by increasing energy means loss direction to the left
+    if meta_data.get("filter.mode") == "EELS" and not meta_data.get(
+        "source.flip_geometry"
+    ):
         flip_axis = tuple(i for i, label in enumerate(data_labels) if label == "Energy")
         if flip_axis:
             data = np.flip(data, flip_axis)

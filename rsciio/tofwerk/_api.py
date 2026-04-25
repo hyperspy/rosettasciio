@@ -1132,20 +1132,18 @@ def file_reader(
 
         if has_peak_data:
             assert peak_ds is not None
+            _dtype = dtype or peak_ds.dtype
             if lazy:
                 import dask.array as da
 
                 nom_data = da.from_array(peak_ds, chunks=chunks)[
                     depth_start:depth_stop, :, :, nom_sel.tolist()
-                ]
-                if dtype is not None:
-                    nom_data = nom_data.astype(dtype)
+                ].astype(_dtype)
             else:
                 nom_data = np.asarray(
-                    peak_ds[depth_start:depth_stop, :, :, nom_sel.tolist()]
+                    peak_ds[depth_start:depth_stop, :, :, nom_sel.tolist()],
+                    dtype=_dtype,
                 )
-                if dtype is not None:
-                    nom_data = nom_data.astype(dtype)
         else:
             if lazy:
                 f.close()
@@ -1226,14 +1224,14 @@ def file_reader(
 
         if has_peak_data:
             assert peak_ds is not None
+            _dtype = dtype or peak_ds.dtype
             if lazy:
                 import dask.array as da
 
                 # Load full depth slice lazily, then select/reorder columns.
-                add_data = da.from_array(peak_ds, chunks=chunks)[depth_start:depth_stop]
-                add_data = add_data[:, :, :, add_sorted_orig_idx.tolist()]
-                if dtype is not None:
-                    add_data = add_data.astype(dtype)
+                add_data = da.from_array(peak_ds, chunks=chunks)[
+                    depth_start:depth_stop, :, :, add_sorted_orig_idx.tolist()
+                ].astype(_dtype)
             else:
                 # h5py requires fancy index columns in strictly ascending order.
                 # Sort the file column indices for the read, then undo the reorder.
@@ -1244,7 +1242,7 @@ def file_reader(
                     n_add = len(additional_orig_idx)
                     add_data = np.empty(
                         (nwrites_loaded, nsegs, nx, n_add),
-                        dtype=peak_ds.dtype,
+                        dtype=_dtype,
                     )
                     for _w0 in range(0, nwrites_loaded, peak_data_batch_size):
                         _w1 = min(_w0 + peak_data_batch_size, nwrites_loaded)
@@ -1261,7 +1259,7 @@ def file_reader(
                     n_add = len(additional_orig_idx)
                     add_data = np.empty(
                         (nwrites_loaded, nsegs, nx, n_add),
-                        dtype=peak_ds.dtype,
+                        dtype=_dtype,
                     )
                     for _w0 in range(0, nwrites_loaded, peak_data_batch_size):
                         _w1 = min(_w0 + peak_data_batch_size, nwrites_loaded)
@@ -1281,10 +1279,9 @@ def file_reader(
                             :,
                             :,
                             add_sorted_orig_idx[_asc].tolist(),
-                        ]
+                        ],
+                        dtype=_dtype,
                     )[:, :, :, _undo]
-                if dtype is not None:
-                    add_data = add_data.astype(dtype)
         else:
             if lazy:
                 f.close()

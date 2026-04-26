@@ -183,6 +183,7 @@ def compute_peak_data_from_eventlist(
     normalization: int,
     peak_table: list[dict[str, Any]],
     show_progressbar: bool = True,
+    dtype: np.dtype = np.uint16,
 ) -> np.ndarray:
     """
     Reconstruct the 4-D peak-integrated array from raw EventList data.
@@ -230,11 +231,14 @@ def compute_peak_data_from_eventlist(
         ``lower_integration_limit`` and ``upper_integration_limit`` (Da).
     show_progressbar : bool, default=True
         Whether to show tqdm progress bars during reconstruction.
+    dtype : numpy dtype, default=np.uint16
+        Output array dtype.  Counts are accumulated as float32 internally (for
+        the normalization division) and cast to this dtype on return.
 
     Returns
     -------
     numpy.ndarray
-        Shape ``(nwrites, nsegs, nx, npeaks)``, dtype float32.
+        Shape ``(nwrites, nsegs, nx, npeaks)``, cast to ``dtype``.
         Identical in structure to ``PeakData/PeakData`` in a pre-processed file.
     """
     el = event_list
@@ -344,4 +348,4 @@ def compute_peak_data_from_eventlist(
             pbar.close()
 
     result /= normalization
-    return result
+    return result.astype(dtype)

@@ -610,6 +610,7 @@ def _compute_peak_data_from_file(
     depth_start: int = 0,
     depth_stop: int | None = None,
     show_progressbar: bool = True,
+    dtype: np.dtype = np.uint16,
 ) -> np.ndarray:
     """
     Extract all required arrays from an open HDF5 file and call
@@ -630,11 +631,14 @@ def _compute_peak_data_from_file(
         First depth slice index (inclusive).  Default 0.
     depth_stop : int or None, optional
         Last depth slice index (exclusive).  Default None (all slices).
+    dtype : numpy dtype, optional
+        Output dtype passed through to :func:`compute_peak_data_from_eventlist`.
+        Default ``np.uint16``.
 
     Returns
     -------
     numpy.ndarray
-        Shape ``(nwrites, nsegs, nx, npeaks)``, dtype float32.
+        Shape ``(nwrites, nsegs, nx, npeaks)``.
     """
     if peak_table is None:
         peak_table = _peak_table_to_list(np.asarray(file["PeakData/PeakTable"]))
@@ -673,6 +677,7 @@ def _compute_peak_data_from_file(
         normalization,
         peak_table,
         show_progressbar=show_progressbar,
+        dtype=dtype,
     )
 
 
@@ -1094,6 +1099,9 @@ def file_reader(
 
     # Open PeakData/PeakData once if we need it (pre-processed files)
     peak_ds = f["PeakData/PeakData"] if has_peak_data else None
+    # For raw-file reconstruction paths, default output dtype matches the
+    # pre-processed PeakData/PeakData convention (integer counts).
+    _reconstruction_dtype = dtype if dtype is not None else np.uint16
 
     # ------------------------------------------------------------------
     # 4D nominal peak-integrated array
@@ -1169,9 +1177,8 @@ def file_reader(
                 depth_start=depth_start,
                 depth_stop=depth_stop,
                 show_progressbar=show_progressbar,
+                dtype=_reconstruction_dtype,
             )
-            if dtype is not None:
-                nom_data = nom_data.astype(dtype)
 
         signals.append(
             {
@@ -1307,9 +1314,8 @@ def file_reader(
                 depth_start=depth_start,
                 depth_stop=depth_stop,
                 show_progressbar=show_progressbar,
+                dtype=_reconstruction_dtype,
             )
-            if dtype is not None:
-                add_data = add_data.astype(dtype)
 
         signals.append(
             {
@@ -1340,7 +1346,7 @@ def file_reader(
             )[depth_start:depth_stop]
         else:
             # Eager path: load requested depth slices into an object array now.
-            _logger.warning(
+            _logger.info(
                 f"Loading EventList ({nwrites_loaded} depth slices × {nsegs} × {nx} pixels). "
                 f"Pass lazy=True to defer reading to .compute() calls."
             )
@@ -1374,11 +1380,6 @@ def file_reader(
             # and raises its standard RuntimeError when .plot() is called.
             "post_process": [_mark_event_list_ragged],
         }
-        if not lazy:
-            # HyperSpy's lazy data wrapping hangs on object-dtype numpy arrays
-            # (dask cannot auto-chunk object dtype).  Since the data is already
-            # in memory, force a non-lazy signal regardless of the caller's flag.
-            sig_dict["attributes"] = {"_lazy": False}
         signals.append(sig_dict)
 
     # ------------------------------------------------------------------
@@ -1442,15 +1443,7 @@ def file_reader(
             }
         )
 
-    # Keep the file open if any lazy dask arrays still reference it
-    has_lazy_array = lazy and (
-        produce_sum
-        or (produce_nominal and has_peak_data)
-        or (produce_additional and has_peak_data)
-        or produce_evl
-        or produce_fib
-    )
-    if not has_lazy_array:
+    if not lazy:
         f.close()
 
     return signals

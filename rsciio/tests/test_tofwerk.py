@@ -304,7 +304,7 @@ class TestSignalPeakData:
 
     def test_peak_data_dtype(self):
         sig = file_reader(RAW_FILE, signal="nominal_peak_data")[0]
-        assert sig["data"].dtype == np.float32
+        assert sig["data"].dtype == np.uint16
 
     def test_peak_data_title(self):
         sig = file_reader(RAW_FILE, signal="nominal_peak_data")[0]
@@ -393,11 +393,11 @@ class TestComputePeakDataNumpyFallback:
         assert result.shape == (1, 2, 2, 2)  # nwrites=1, nsegs=2, nx=2, npeaks=2
 
     def test_numpy_fallback_dtype(self, tmp_path):
-        """NumPy fallback returns float32."""
+        """NumPy fallback returns uint16 by default."""
         p = tmp_path / "fallback_dtype.h5"
         _make_minimal_tofdaq(p)
         result = self._run_no_numba(p)
-        assert result.dtype == np.float32
+        assert result.dtype == np.uint16
 
     def test_numpy_fallback_matches_numba(self, tmp_path):
         """NumPy fallback produces the same counts as the numba path."""
@@ -480,7 +480,6 @@ class TestSignalEventList:
         # Default (lazy=False): data is a numpy object array
         sig = file_reader(RAW_FILE, signal="event_list")[0]
         assert isinstance(sig["data"], np.ndarray)
-        assert not sig.get("attributes", {}).get("_lazy", True)
 
     def test_lazy_data_is_dask_array(self):
         import dask.array as da

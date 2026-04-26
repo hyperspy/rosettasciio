@@ -77,7 +77,7 @@ def _peak_table_from_list(
 # ---------------------------------------------------------------------------
 
 
-def _count_active_channels(ini: str) -> int:
+def count_active_channels(ini: str) -> int:
     """
     Return the number of active TDC recording channels from the INI config string.
 
@@ -90,6 +90,11 @@ def _count_active_channels(ini: str) -> int:
     ----------
     ini : str
         Contents of the ``Configuration File Contents`` root attribute.
+
+    Returns
+    -------
+    int
+        Number of active channels (at least 1).
     """
     matches = re.findall(r"Ch\dRecord=(\d)", ini)
     return max(sum(int(m) for m in matches), 1)

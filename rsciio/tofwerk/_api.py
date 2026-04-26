@@ -112,8 +112,8 @@ from rsciio._docstrings import (
     SHOW_PROGRESSBAR_DOC,
 )
 from rsciio.tofwerk._reconstruction import (
-    _count_active_channels,
     compute_peak_data_from_eventlist,
+    count_active_channels,
 )
 
 _logger = logging.getLogger(__name__)
@@ -656,7 +656,7 @@ def _compute_peak_data_from_file(
 
     nbr_waveforms = int(np.asarray(file.attrs.get("NbrWaveforms", 1)).flat[0])
     ini = _decode(file.attrs.get("Configuration File Contents", b""))
-    n_active = _count_active_channels(ini)
+    n_active = count_active_channels(ini)
     normalization = nbr_waveforms * n_active
 
     el_ds = file["FullSpectra/EventList"]

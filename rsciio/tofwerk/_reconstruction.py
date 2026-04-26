@@ -231,7 +231,7 @@ def compute_peak_data_from_eventlist(
         ``lower_integration_limit`` and ``upper_integration_limit`` (Da).
     show_progressbar : bool, default=True
         Whether to show tqdm progress bars during reconstruction.
-    dtype : numpy dtype, default=np.uint16
+    dtype : numpy.dtype, default=np.uint16
         Output array dtype.  Counts are accumulated as float32 internally (for
         the normalization division) and cast to this dtype on return.
 

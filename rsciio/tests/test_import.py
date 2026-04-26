@@ -154,6 +154,7 @@ def test_dir_plugins(plugin):
         assert dir(plugin_module) == [
             "available_signals",
             "compute_peak_data_from_eventlist",
+            "count_active_channels",
             "file_reader",
         ]
     elif plugin["writes"] is False:

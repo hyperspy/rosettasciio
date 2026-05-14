@@ -141,6 +141,7 @@ linkcheck_ignore = [
     "https://www.iso.org/standard/78268.html",  # 403 Client Error: Forbidden for url
     "https://zenodo.org",  # 403 Client Error: Forbidden for url
     "https://doi.org/10.5281/zenodo",  # resolves to zenodo.org, also blocked
+    "https://www.tofwerk.com/software/tofdaq",  # 403 blocked
 ]
 
 # https://github.com/sphinx-doc/sphinx/issues/12589#issuecomment-2229491106

@@ -89,12 +89,29 @@ def count_active_channels(ini: str) -> int:
     Parameters
     ----------
     ini : str
-        Contents of the ``Configuration File Contents`` root attribute.
+        Decoded text from the HDF5 root attribute
+        ``file.attrs["Configuration File Contents"]``. This is the TofDAQ
+        configuration stored as an INI-style string, for example containing
+        entries such as ``Ch1Record=1`` and ``Ch2Record=0``.
 
     Returns
     -------
     int
         Number of active channels (at least 1).
+
+    Examples
+    --------
+    Read the embedded TofDAQ configuration from a file and count the active
+    recording channels:
+
+    >>> ini = _decode(file.attrs["Configuration File Contents"])
+    >>> count_active_channels(ini)
+    2
+
+    A minimal INI-style example:
+
+    >>> count_active_channels("[TOFParameter]\\nCh1Record=1\\nCh2Record=0\\nCh3Record=1")
+    2
     """
     matches = re.findall(r"Ch\dRecord=(\d)", ini)
     return max(sum(int(m) for m in matches), 1)

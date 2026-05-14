@@ -12,9 +12,9 @@ Tofwerk (fibTOF FIB-SIMS)
    `open an issue <https://github.com/hyperspy/rosettasciio/issues>`_ on the
    RosettaSciIO issue tracker!
 
-Reads HDF5 files (``.h5``) written by TofDAQ acquisition software for Tofwerk
-time-of-flight mass spectrometry instruments, including the fibTOF FIB-SIMS
-system (Tescan plasma-FIB with integrated Tofwerk ToF-SIMS detector).
+Reads HDF5 files (``.h5``) written by `TofDAQ acquisition software
+<https://www.tofwerk.com/software/tofdaq/>`_ for Tofwerk time-of-flight secondary
+ion mass spectrometry (ToF-SIMS) instruments, including the fibTOF FIB-SIMS system.
 
 Acquired signals
 ^^^^^^^^^^^^^^^^
@@ -24,10 +24,11 @@ A fibTOF acquisition produces two raw signal types and one derived signal:
 **Raw signals**
 
 * **EventList** — the primary raw detector output.  For each pixel in the
-  3-D raster ``(depth, y, x)``, a variable-length array of TDC timestamps
-  records every individual ion detection event.  Each write (depth slice)
-  mills a thin layer from the sample surface and then rasters the FIB beam
-  across the exposed face to collect SIMS spectra.  The spatial axes are:
+  3-D raster ``(depth, y, x)``, a variable-length array of Time-to-Digital
+  Converter (TDC) timestamps corresponding to every individual ion detection
+  event. Each write (depth slice) mills a thin layer from the sample surface
+  and then rasters the FIB beam across the exposed face to collect SIMS spectra.
+  The spatial axes are:
 
   - **depth** — one entry per FIB milling + SIMS acquisition cycle (``NbrWrites``).
   - **y** — rows of the 2-D SIMS raster scan (``NbrSegments``).
@@ -94,7 +95,7 @@ software may preserve ``EventList`` when pre-processing).
     │   ├── SumSpectrum             float64 (NbrSamples,) — cumulative ion counts
     │   ├── SaturationWarning       uint8   (NbrWrites, NbrSegments)
     │   │                              Per-buffer saturation flag: 0 = no saturation,
-    │   │                              1 = ADC or TDC saturation detected. High values
+    │   │                              1 = saturation detected. High values
     │   │                              indicate that the detector was overloaded during that
     │   │                              (write, segment) combination and the corresponding
     │   │                              spectral data should be treated with caution.
@@ -112,7 +113,7 @@ software may preserve ``EventList`` when pre-processing).
     ├── TimingData/
     │   ├── BufTimes                float64 (NbrWrites, NbrSegments) — wall-clock
     │   │                             timestamps per buffer, in seconds
-    │   └── (group attributes)      TofPeriod — ADC samples per ToF pulse
+    │   └── (group attributes)      TofPeriod — Analog-Digital Converter (ADC) samples per ToF pulse
     └── TPS2/                       instrument telemetry — Sampled once per scan line.
         ├── TwData                  float64 (NbrWrites, NbrSegments, 75) — target
         │                             and monitored voltages/flags for 75 named
@@ -143,7 +144,7 @@ Key root attributes:
      - Number of Y scan lines per write.
    * - ``NbrSamples``
      - int32
-     - ADC samples per spectrum (length of ``MassAxis``).
+     - Number of bins (samples) per spectrum (length of ``MassAxis``).
    * - ``NbrPeaks``
      - int32
      - Number of peaks in the peak table.

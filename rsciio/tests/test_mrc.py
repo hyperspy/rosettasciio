@@ -139,8 +139,9 @@ def test_mrc_metadata_auto():
     assert s.metadata.Acquisition_instrument.TEM.detector == "DESim"
     assert s.metadata.Acquisition_instrument.TEM.magnification == "1000"
     assert s.metadata.Acquisition_instrument.TEM.frames_per_second == "700"
-    assert len(s.metadata.General.virtual_images) == 2
-    assert len(s.metadata.General.external_detectors) == 1
+    assert len(s.metadata.General.virtual_images.keys()) == 2
+    assert len(s.metadata.General.external_images.keys()) == 1
+    assert isinstance(s.metadata.General.virtual_images["Virt 0"], hs.signals.Signal2D)
 
     assert s.metadata._HyperSpy.navigator is not None
 
@@ -164,10 +165,12 @@ def test_mrc_metadata_auto_custom_shape():
     assert s.metadata.Acquisition_instrument.TEM.magnification == "1000"
     assert s.metadata.Acquisition_instrument.TEM.frames_per_second == "700"
     assert len(s.metadata.General.virtual_images) == 2
-    assert len(s.metadata.General.external_detectors) == 1
+    assert len(s.metadata.General.external_images) == 1
 
     assert s.metadata._HyperSpy.navigator is not None
-    assert s.metadata._HyperSpy.navigator.shape == navigation_shape[::-1]
+    assert s.metadata._HyperSpy.navigator.data.shape == navigation_shape[::-1]
+
+    assert isinstance(s.metadata._HyperSpy.navigator, hs.signals.BaseSignal)
 
     shape = (
         s.axes_manager._navigation_shape_in_array

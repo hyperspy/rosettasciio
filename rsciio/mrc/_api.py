@@ -23,6 +23,7 @@
 import glob
 import logging
 import os
+import re
 
 import numpy as np
 
@@ -43,6 +44,130 @@ from rsciio.utils._deprecated import (
 )
 
 _logger = logging.getLogger(__name__)
+
+# Regex to parse movie files: YYYYMMDD_acq[_optionalSuffix][_optionalMovieNum]_movie.mrc
+MOVIE_RE = re.compile(
+    r'^(?P<timestamp>\d{8})_'
+    r'(?P<acquisitionNumber>\d+)'
+    r'(?:_(?P<optionalSuffix>.+?))?'
+    r'(?:_(?P<movieNum>\d+))?_movie\.mrc$'
+)
+
+# Regex to parse virtual images:
+# YYYYMMDD_acq[_optionalSuffix]_virtualImageNum_name_calculationType.mrc
+# Example: 20251103_23389_3_CentroidAmp_centroid_amplitude.mrc
+VIRTUAL_RE = re.compile(
+    r'^(?P<timestamp>\d{8})_'
+    r'(?P<acquisitionNumber>\d+)'
+    r'(?:_(?P<optionalSuffix>.+?))?'
+    r'_(?P<virtualImageNum>(?:\d+|virt\d+))_'
+    r'(?P<name>[^_]+)_'
+    r'(?P<calculationType>[^.]+)\.mrc$'
+)
+
+
+def find_related_de_files(movie_filename: str):
+    """
+    Given a DE movie filename, find related files:
+    - info_file: `YYYYMMDD_acq[_optionalSuffix]_info.txt`
+    - virtual_images: `YYYYMMDD_acq[_optionalSuffix]_virtualImageNum_name_calculationType.mrc`
+                      (virtualImageNum supports '<digits>' or 'virt<digits>')
+    - external_images: `YYYYMMDD_acq[_optionalSuffix]_ext<#>[_Name].mrc`
+    - scan_csv: `YYYYMMDD_acq[_optionalSuffix]_scan_coordinates.csv`
+    Returns a dict including a deduplicated list of virtual image names.
+    """
+    dir_name = os.path.dirname(movie_filename) or "."
+    base_name = os.path.basename(movie_filename)
+
+    # Parse timestamp and acquisitionNumber from the movie name
+    m = MOVIE_RE.fullmatch(base_name)
+    if m:
+        ts = m.group("timestamp")
+        acq = m.group("acquisitionNumber")
+    else:
+        return {
+                "info_file": None,
+                "virtual_images": [],
+                "virtual_image_names": [],
+                "external_images": [],
+                "scan_csv": None,
+            }
+    prefix = f"{ts}_{acq}_"
+
+    # Utilities
+    def _first_or_none(paths):
+        return sorted(paths)[0] if paths else None
+
+    def _dedupe(seq):
+        seen = {}
+        out = []
+        for x in seq:
+            if x not in seen:
+                seen[x] = 1
+                out.append(x)
+            else:
+                count = seen[x]
+                new_name = f"{x}_{count}"
+                while new_name in seen:
+                    count += 1
+                    new_name = f"{x}_{count}"
+                seen[x] = count + 1
+                seen[new_name] = 1
+                out.append(new_name)
+        return out
+
+    # Collect all candidate .mrc files sharing the same timestamp and acquisitionNumber
+    all_mrc = glob.glob(os.path.join(dir_name, f"{prefix}*.mrc"))
+
+    # Virtual images via regex (supports '<digits>' and 'virt<digits>')
+    virtual_images = []
+    virtual_image_names = []
+    for p in all_mrc:
+        name = os.path.basename(p)
+        if name.endswith("_movie.mrc"):
+            continue
+        mv = VIRTUAL_RE.fullmatch(name)
+        if mv:
+            virtual_images.append(p)
+            virtual_image_names.append(mv.group("name"))
+
+    virtual_image_names = _dedupe(virtual_image_names)
+
+    # External detector images (e.g., _ext3.mrc or _ext3_Name.mrc)
+    ext_re = re.compile(
+        rf"^{re.escape(ts)}_{re.escape(acq)}_(?:.+?_)?ext(?P<num>\d+)(?:_(?P<name>[^.]+))?\.mrc$"
+    )
+    external_images = []
+    external_image_names = []
+    for p in all_mrc:
+        fname = os.path.basename(p)
+        mext = ext_re.fullmatch(fname)
+        if mext:
+            external_images.append(p)
+            ext_name = mext.group("name") or f"ext{mext.group('num')}"
+            external_image_names.append(ext_name)
+    external_image_names = _dedupe(external_image_names)
+    # Info file
+    info_file = _first_or_none(
+        glob.glob(os.path.join(dir_name, f"{prefix}info.txt"))
+        + glob.glob(os.path.join(dir_name, f"{prefix}*_info.txt"))
+    )
+
+    # Scan coordinates CSV
+    scan_csv = _first_or_none(
+        glob.glob(os.path.join(dir_name, f"{prefix}scan_coordinates.csv"))
+        + glob.glob(os.path.join(dir_name, f"{prefix}*_scan_coordinates.csv"))
+    )
+
+    return {
+        "info_file": info_file,
+        "virtual_images": sorted(virtual_images),
+        "virtual_image_names": virtual_image_names,
+        "external_images": sorted(external_images),
+        "external_image_names": external_image_names,
+        "scan_csv": scan_csv,
+    }
+
 
 
 def get_std_dtype_list(endianness="<"):
@@ -127,7 +252,7 @@ def get_fei_dtype_list(endianness="<"):
 
 def get_data_type(mode):
     mode_to_dtype = {
-        0: np.int8,
+        0: np.uint8,
         1: np.int16,
         2: np.float32,
         4: np.complex64,
@@ -294,6 +419,8 @@ def read_de_metadata_file(filename, nav_shape=None, scan_pos_file=None):
     ind = 0
     for i, s in enumerate(axes_shapes):
         if s != 1:
+            if axes_scales[i] == -1:
+                axes_scales[i] = 1
             axes.append(
                 {
                     "name": axes_names[i],
@@ -367,49 +494,17 @@ def file_reader(
 
     %s
     """
+    virtual_image_names = None
     if metadata_file == "auto":
         if "movie" in filename:
-            try:  # DE movie
-                dir_name = os.path.dirname(filename)
-                base_name = os.path.basename(filename)
-                split = base_name.split("_")
-                unique_id = "_".join(split[:2])
-                if len(split) > 3:  # File Suffix
-                    suffix = "_".join(split[2:-1])
-                else:
-                    suffix = ""
-                if len(dir_name) == 0:
-                    dir_name = "."
-                metadata = glob.glob(dir_name + "/" + unique_id + suffix + "_info.txt")
-                virtual_images = glob.glob(
-                    dir_name + "/" + unique_id + suffix + "*_[0-4]_*.mrc"
-                )
-                virtual_images_old = glob.glob(
-                    dir_name + "/" + unique_id + suffix + "_virt[0-4]_*.mrc"
-                )
-                virtual_images += virtual_images_old
-
-                external_images = glob.glob(
-                    dir_name + "/" + unique_id + suffix + "_ext[1-4]_*.mrc"
-                )
-            except IndexError:  # pragma: no cover
-                # Not a DE movie or File Naming Convention is not followed
-                _logger.warning("Could not find metadata file for DE movie.")
-                metadata = []
-            try:
-                scan_file = glob.glob(
-                    f"{dir_name}/{unique_id}_{suffix}*coordinates.csv"
-                )[0]
-            except IndexError:
-                _logger.warning(
-                    f"Could not find scan file [{dir_name}/{unique_id}_{suffix}*_coordinates.csv]"
-                    f" for DE movie {filename}."
-                )
-                scan_file = None
-        else:
-            metadata = []
-        if len(metadata) == 1:
-            metadata_file = metadata[0]
+            info = find_related_de_files(filename)
+            # Populate from related DE files helper
+            metadata_file = info.get("info_file")
+            virtual_images = info.get("virtual_images") or []
+            virtual_image_names = info.get("virtual_image_names") or []
+            external_images = info.get("external_images") or []
+            scan_file = info.get("scan_csv")
+            external_images_names = info.get("external_image_names") or []
         else:
             metadata_file = None
 
@@ -434,30 +529,45 @@ def file_reader(
         positions = None
     metadata["General"]["original_filename"] = os.path.split(filename)[1]
     metadata["Signal"]["signal_type"] = ""
-
+    metadata["General"]["virtual_images"] = {}
     if virtual_images is not None and len(virtual_images) > 0:
         imgs = []
-        for v in virtual_images:
-            img = file_reader(v)[0]["data"]
+        for i, v in enumerate(virtual_images):
+            signal = file_reader(v)[0]
+            img = signal["data"]
             if navigation_shape is not None and navigation_shape[::-1] != img.shape:
                 if np.prod(img.shape) == np.prod(navigation_shape[::-1]):
-                    img = img.reshape(navigation_shape[::-1])
+                    signal["data"] = img.reshape(navigation_shape[::-1])
                 else:  # pragma: no cover
                     _logger.warning(
                         f"Virtual image {v} does not match the navigation shape {navigation_shape[::-1]}"
                     )
-            imgs.append(img)
-        metadata["General"]["virtual_images"] = imgs
+            imgs.append(signal)
+            _logger.debug(f"Adding virtual image _sig_image_{i}")
+
+            if virtual_image_names and i < len(virtual_image_names):
+                name = f"_sig_{virtual_image_names[i]}"
+            else:
+                name = f"_sig_Virt_{i}"
+            metadata["General"]["virtual_images"][name] = signal
         # checking to make sure the navigator is valid
-        if navigation_shape is not None and navigation_shape[::-1] == imgs[0].shape:
+        if navigation_shape is not None and navigation_shape[::-1] == imgs[0]["data"].shape:
             metadata["_HyperSpy"] = {}
-            metadata["_HyperSpy"]["navigator"] = imgs[0]
+            metadata["_HyperSpy"]["_sig_navigator"] = imgs[0]
 
     if external_images is not None and len(external_images) > 0:
         imgs = []
+        metadata["General"]["external_images"] = {}
         for e in external_images:
-            imgs.append(file_reader(e)[0]["data"])
-        metadata["General"]["external_detectors"] = imgs
+            imgs.append(file_reader(e)[0])
+        for i, signal in enumerate(imgs):
+            _logger.debug(f"Adding external image _sig_ext_{i}")
+            if virtual_image_names and i < len(virtual_image_names):
+                name = f"_sig_{virtual_image_names[i]}"
+            else:
+                name = f"_sig_ext_{i}"
+
+            metadata["General"]["external_images"][name] = signal
 
     f = open(filename, "rb")
     std_header = np.fromfile(f, dtype=get_std_dtype_list(endianness), count=1)

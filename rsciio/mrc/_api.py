@@ -565,7 +565,7 @@ def file_reader(
             if virtual_image_names and i < len(virtual_image_names):
                 name = f"_sig_{virtual_image_names[i]}"
             else:
-                name = f"_sig_Virt_{i}"
+                name = f"_sig_ext_{i}"
 
             metadata["General"]["external_images"][name] = signal
 

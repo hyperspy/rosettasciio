@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Build wheels for CPython
-        uses: pypa/cibuildwheel@ee02a1537ce3071a004a6b08c41e72f0fdc42d9a
+        uses: pypa/cibuildwheel@8d2b08b68458a16aeb24b64e68a09ab1c8e82084
         env:
           CIBW_ARCHS: ${{ matrix.CIBW_ARCHS }}
 

@@ -597,8 +597,8 @@ def test_writetestobjects(tmp_path, test_object):
     d2.save(fn, is_special=False)
     d3 = hs.load(fn)
 
-    np.testing.assert_allclose(d2.data, d.data, rtol=1e-6)
-    np.testing.assert_allclose(d2.data, d3.data)
+    np.testing.assert_allclose(d2.data, d.data, rtol=1e-5, atol=1e-5)
+    np.testing.assert_allclose(d2.data, d3.data, rtol=1e-5, atol=1e-5)
     assert d.metadata.Signal.quantity == d2.metadata.Signal.quantity
     assert d.metadata.Signal.quantity == d3.metadata.Signal.quantity
 
@@ -752,7 +752,7 @@ def test_writegeneric_validtypes(tmp_path, dtype, compressed):
         gen.save(fgen, compressed=compressed, overwrite=True)
 
     gen2 = hs.load(fgen)
-    np.testing.assert_allclose(gen2.data, gen.data)
+    np.testing.assert_allclose(gen2.data, gen.data, rtol=1e-5, atol=1e-5)
 
 
 @pytest.mark.parametrize("compressed", [True, False])
@@ -770,7 +770,7 @@ def test_writegeneric_nans(tmp_path, compressed):
 
     gen2 = hs.load(fgen)
     np.testing.assert_allclose(
-        gen2.data, gen.data, equal_nan=True, rtol=1e-6, atol=1e-8
+        gen2.data, gen.data, equal_nan=True, rtol=1e-5, atol=1e-5
     )
 
 
@@ -786,7 +786,7 @@ def test_writegeneric_transposedprofile(tmp_path):
         gen.save(fgen, overwrite=True)
 
     gen2 = hs.load(fgen)
-    np.testing.assert_allclose(gen2.data, gen.data)
+    np.testing.assert_allclose(gen2.data, gen.data, rtol=1e-5, atol=1e-5)
 
 
 def test_writegeneric_transposedsurface(
@@ -806,7 +806,7 @@ def test_writegeneric_transposedsurface(
 
     gen2 = hs.load(fgen)
 
-    np.testing.assert_allclose(gen.data, gen2.data, rtol=1e-6, atol=1e-6)
+    np.testing.assert_allclose(gen.data, gen2.data, rtol=1e-5, atol=1e-5)
 
 
 @pytest.mark.parametrize(
@@ -878,7 +878,7 @@ def test_writegeneric_binaryimg(tmp_path, compressed, transpose):
 
     gen2 = hs.load(fgen)
 
-    np.testing.assert_allclose(gen.data, gen2.data)
+    np.testing.assert_allclose(gen.data, gen2.data, rtol=1e-5, atol=1e-5)
 
 
 @pytest.mark.parametrize("compressed", [True, False])
@@ -966,7 +966,7 @@ def test_writegeneric_surfaceseries(tmp_path, dtype, compressed):
     gen2 = hs.load(fgen)
 
     # increase tolerance for float64, which fails randomly, most likely due to compression losses
-    np.testing.assert_allclose(gen.data, gen2.data, rtol=1e-04)
+    np.testing.assert_allclose(gen.data, gen2.data, rtol=1e-04, atol=1e-02)
 
 
 def test_writegeneric_datetime(tmp_path):

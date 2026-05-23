@@ -49,6 +49,7 @@ big datasets is supported.
    semper
    tia
    tiff
+   tofwerk
    topspin
    trivista
    tvips

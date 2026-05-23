@@ -1,0 +1,1244 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
+    <title>Tofwerk (fibTOF FIB-SIMS) &#8212; RosettaSciIO  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=0790524f97105ba85085"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
+
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=d1c4098b"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/tofwerk';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TopSpin App5" href="topspin.html" />
+    <link rel="prev" title="Tagged image file format (TIFF)" href="tiff.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo_rec_oct22.svg" class="logo__image only-light" alt="RosettaSciIO  documentation - Home"/>
+    <img src="../_static/logo_rec_dark_oct22.svg" class="logo__image only-dark pst-js-only" alt="RosettaSciIO  documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../file_specification/index.html">
+    File Specifications
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Supported formats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../changes.html">
+    Release Notes
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/hyperspy/rosettasciio" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://gitter.im/hyperspy/hyperspy" title="Gitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-gitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Gitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../file_specification/index.html">
+    File Specifications
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Supported formats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../changes.html">
+    Release Notes
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/hyperspy/rosettasciio" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://gitter.im/hyperspy/hyperspy" title="Gitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-gitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Gitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar"><svg class="pst-icon svg-inline--fa" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="arina.html">Arina</a></li>
+<li class="toctree-l1"><a class="reference internal" href="blockfile.html">Blockfile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bruker.html">Bruker</a></li>
+<li class="toctree-l1"><a class="reference internal" href="de5.html">Direct Electron EMD (DE5)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delmic.html">Delmic HDF5</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dens.html">DENSsolutions formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="digitalmicrograph.html">Gatan Digital Micrograph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="digitalsurf.html">DigitalSurf format (SUR &amp; PRO)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="edax.html">EDAX TEAM/Genesis (SPC, SPD)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emd.html">Electron Microscopy Dataset (EMD)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="empad.html">EMPAD format (XML &amp; RAW)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hamamatsu.html">Hamamatsu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hspy.html">HSpy - HyperSpy’s HDF5 Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image.html">Image formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="jeol.html">JEOL Analyst Station (ASW, …)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="jobinyvon.html">Horiba Jobin Yvon LabSpec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mrc.html">MRC format</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="mrcz.html">MRCZ format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="msa.html">EMSA/MSA format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="netcdf.html">NetCDF (EELSlab) format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nexus.html">NeXus data format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="numpy.html">NumPy (NPY)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pantarhei.html">CEOS Panta Rhei (PRZ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="phenom.html">Phenom ELID format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="protochips.html">Protochips logfile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantumdetector.html">Quantum Detector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="renishaw.html">Renishaw</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ripple.html">Ripple format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="semper.html">SEMPER binary format (UNF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tia.html">FEI TIA (SER &amp; EMI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tiff.html">Tagged image file format (TIFF)</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Tofwerk (fibTOF FIB-SIMS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topspin.html">TopSpin App5</a></li>
+<li class="toctree-l1"><a class="reference internal" href="trivista.html">TriVista</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tvips.html">TVIPS format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usid.html">Universal Spectroscopy and Imaging Data (h5USID)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zspy.html">ZSpy - HyperSpy’s Zarr Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="supporting_your_file_format.html">Supporting Your File Format</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Supported formats</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Tofwerk (fibTOF FIB-SIMS)</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="tofwerk-fibtof-fib-sims">
+<span id="tofwerk-format"></span><h1>Tofwerk (fibTOF FIB-SIMS)<a class="headerlink" href="#tofwerk-fibtof-fib-sims" title="Link to this heading">#</a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This plugin and the file format documentation below were developed by
+reverse-engineering real acquisition files without access to official Tofwerk
+format specifications.  Descriptions of HDF5 groups, attributes, and data
+layouts may be incomplete or incorrect.  If you notice anything wrong, please
+<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues">open an issue</a> on the
+RosettaSciIO issue tracker!</p>
+</div>
+<p>Reads HDF5 files (<code class="docutils literal notranslate"><span class="pre">.h5</span></code>) written by <a class="reference external" href="https://www.tofwerk.com/software/tofdaq/">TofDAQ acquisition software</a> for Tofwerk time-of-flight secondary
+ion mass spectrometry (ToF-SIMS) instruments, including the fibTOF FIB-SIMS system.</p>
+<section id="acquired-signals">
+<h2>Acquired signals<a class="headerlink" href="#acquired-signals" title="Link to this heading">#</a></h2>
+<p>A fibTOF acquisition produces two raw signal types and one derived signal:</p>
+<p><strong>Raw signals</strong></p>
+<ul class="simple">
+<li><p><strong>EventList</strong> — the primary raw detector output.  For each pixel in the
+3-D raster <code class="docutils literal notranslate"><span class="pre">(depth,</span> <span class="pre">y,</span> <span class="pre">x)</span></code>, a variable-length array of Time-to-Digital
+Converter (TDC) timestamps corresponding to every individual ion detection
+event. Each write (depth slice) mills a thin layer from the sample surface
+and then rasters the FIB beam across the exposed face to collect SIMS spectra.
+The spatial axes are:</p>
+<ul>
+<li><p><strong>depth</strong> — one entry per FIB milling + SIMS acquisition cycle (<code class="docutils literal notranslate"><span class="pre">NbrWrites</span></code>).</p></li>
+<li><p><strong>y</strong> — rows of the 2-D SIMS raster scan (<code class="docutils literal notranslate"><span class="pre">NbrSegments</span></code>).</p></li>
+<li><p><strong>x</strong> — columns of the 2-D SIMS raster scan.</p></li>
+</ul>
+</li>
+<li><p><strong>FIB SE images</strong> — secondary-electron images acquired simultaneously at
+the full FIB scan resolution (e.g. 256×256), one image per depth slice.
+The SE image resolution is typically higher than the SIMS raster (e.g.
+128×128 for a “256×256 2×2” acquisition), so SE images and SIMS data have
+independent pixel sizes — both derived from <code class="docutils literal notranslate"><span class="pre">FIBParams.ViewField</span></code> (in mm)
+divided by the respective pixel count.</p></li>
+</ul>
+<p><strong>Derived signal</strong></p>
+<ul class="simple">
+<li><p><strong>Peak data</strong> — the signal most users work with.  The EventList is
+integrated over user-defined mass windows (<code class="docutils literal notranslate"><span class="pre">PeakData/PeakTable</span></code>) to
+produce a 4-D array <code class="docutils literal notranslate"><span class="pre">(depth,</span> <span class="pre">y,</span> <span class="pre">x,</span> <span class="pre">m/z)</span></code> of per-peak ion counts.  In
+pre-processed files this integration has already been performed by the
+Tofwerk software and the result is stored as <code class="docutils literal notranslate"><span class="pre">PeakData/PeakData</span></code>.  For
+raw files it can be reconstructed on load (see <code class="docutils literal notranslate"><span class="pre">signal=&quot;peak_data&quot;</span></code>
+below).</p></li>
+</ul>
+</section>
+<section id="file-states">
+<h2>File states<a class="headerlink" href="#file-states" title="Link to this heading">#</a></h2>
+<p>Two file states are supported:</p>
+<ul class="simple">
+<li><p><strong>Pre-processed files</strong> (<code class="docutils literal notranslate"><span class="pre">PeakData/PeakData</span></code> present) – A file where the
+Tofwerk software has already integrated the raw events into per-peak counts.</p></li>
+<li><p><strong>Raw files</strong> (no <code class="docutils literal notranslate"><span class="pre">PeakData/PeakData</span></code>) – unprocessed TofDAQ output as originally
+saved by the acquisition software.  The <code class="docutils literal notranslate"><span class="pre">&quot;peak_data&quot;</span></code> signal can be reconstructed
+from the <code class="docutils literal notranslate"><span class="pre">EventList</span></code> data using the integration windows in <code class="docutils literal notranslate"><span class="pre">PeakData/PeakTable</span></code>,
+but this can be computationally intensive (see below).</p></li>
+</ul>
+</section>
+<section id="hdf5-file-structure">
+<h2>HDF5 file structure<a class="headerlink" href="#hdf5-file-structure" title="Link to this heading">#</a></h2>
+<p>All TofDAQ <code class="docutils literal notranslate"><span class="pre">.h5</span></code> files share the following top-level layout.  Groups marked
+<code class="docutils literal notranslate"><span class="pre">[raw</span> <span class="pre">only]</span></code> are absent from pre-processed files; groups marked
+<code class="docutils literal notranslate"><span class="pre">[pre-processed</span> <span class="pre">only]</span></code> are absent from raw files (though the Tofwerk
+software may preserve <code class="docutils literal notranslate"><span class="pre">EventList</span></code> when pre-processing).</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>/                               root — acquisition-wide attributes and metadata
+├── AcquisitionLog/
+│   └── Log                     compound dataset; one row per log entry.
+│                                 Log[0][&#39;timestring&#39;] is the authoritative
+│                                 ISO-8601 acquisition timestamp. This node
+│                                 also contains the acquisition &quot;finish&quot; time.
+├── FIBImages/
+│   ├── Image0000/
+│   │   └── Data                float64 (H, W) — SE image at full FIB resolution
+│   ├── Image0001/ ...
+│   └── Image000N/              one subgroup per image; sorted lexicographically
+├── FIBParams/                  group attributes — FIB column settings
+├── FibParams/
+│   └── FibPressure/
+│       └── TwData              float64 (NbrWrites, 1) — chamber pressure in Pa
+│                                 for every depth slice in the dataset
+├── FullSpectra/
+│   ├── MassAxis                float32 (NbrSamples,) — calibrated m/z in Da
+│   ├── SumSpectrum             float64 (NbrSamples,) — cumulative ion counts
+│   ├── SaturationWarning       uint8   (NbrWrites, NbrSegments)
+│   │                              Per-buffer saturation flag: 0 = no saturation,
+│   │                              1 = saturation detected. High values
+│   │                              indicate that the detector was overloaded during that
+│   │                              (write, segment) combination and the corresponding
+│   │                              spectral data should be treated with caution.
+│   └── EventList               vlen uint16 (NbrWrites, NbrSegments, NbrX)
+│                                 each pixel contains one variable-length TDC
+│                                 timestamp array
+├── PeakData/
+│   ├── PeakTable               compound (NbrPeaks,) — peak definitions:
+│   │                             label, mass (Da), lower/upper integration limits.
+│   │                             Will contain &quot;nominal&quot; peaks created by the TofDAQ
+│   │                             software, together with any user-defined peak integration
+│   │                             windows created before the file was saved
+│   └── PeakData                float32 (NbrWrites, NbrSegments, NbrX, NbrPeaks)
+│                                 [pre-processed only] — peak-integrated ion counts
+├── TimingData/
+│   ├── BufTimes                float64 (NbrWrites, NbrSegments) — wall-clock
+│   │                             timestamps per buffer, in seconds
+│   └── (group attributes)      TofPeriod — Analog-Digital Converter (ADC) samples per ToF pulse
+└── TPS2/                       instrument telemetry — Sampled once per scan line.
+    ├── TwData                  float64 (NbrWrites, NbrSegments, 75) — target
+    │                             and monitored voltages/flags for 75 named
+    │                             channels.  Mostly low-level instrument debug
+    │                             data not relevant to signal processing.
+    │                             Channels of potential diagnostic interest:
+    │                             MCP bias monitor, filament emission monitor,
+    │                             and ToF pulser voltages.
+    └── TwInfo                  |S256 (75,) — channel names and units
+</pre></div>
+</div>
+<p>Key root attributes:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 15.0%" />
+<col style="width: 55.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TofDAQ</span> <span class="pre">Version</span></code></p></td>
+<td><p>float32</p></td>
+<td><p>Primary format-detection marker (e.g. <code class="docutils literal notranslate"><span class="pre">1.99</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">NbrWrites</span></code></p></td>
+<td><p>int32</p></td>
+<td><p>Number of depth slices (milling steps).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">NbrSegments</span></code></p></td>
+<td><p>int32</p></td>
+<td><p>Number of Y scan lines per write.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">NbrSamples</span></code></p></td>
+<td><p>int32</p></td>
+<td><p>Number of bins (samples) per spectrum (length of <code class="docutils literal notranslate"><span class="pre">MassAxis</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">NbrPeaks</span></code></p></td>
+<td><p>int32</p></td>
+<td><p>Number of peaks in the peak table.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">NbrWaveforms</span></code></p></td>
+<td><p>int32</p></td>
+<td><p>Hardware waveform averaging count (normally 1).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IonMode</span></code></p></td>
+<td><p>bytes</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">b&quot;positive&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">b&quot;negative&quot;</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Key <code class="docutils literal notranslate"><span class="pre">FIBParams</span></code> group attributes:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 15.0%" />
+<col style="width: 55.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FibHardware</span></code></p></td>
+<td><p>bytes</p></td>
+<td><p>FIB platform identifier (e.g. <code class="docutils literal notranslate"><span class="pre">b&quot;Tescan&quot;</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Voltage</span></code></p></td>
+<td><p>float64</p></td>
+<td><p>Primary ion beam voltage in V (divide by 1000 for kV).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Current</span></code></p></td>
+<td><p>float64</p></td>
+<td><p>Ion beam current in A (zero if not measured).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ViewField</span></code></p></td>
+<td><p>float64</p></td>
+<td><p>Field of view in mm.  Divided by the pixel count to obtain pixel
+size in µm — separately for the SIMS raster and the FIB SE images.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="inspecting-available-signals">
+<h2>Inspecting available signals<a class="headerlink" href="#inspecting-available-signals" title="Link to this heading">#</a></h2>
+<p>Use <a class="reference internal" href="#rsciio.tofwerk.available_signals" title="rsciio.tofwerk.available_signals"><code class="xref py py-func docutils literal notranslate"><span class="pre">rsciio.tofwerk.available_signals()</span></code></a> to check which signals a file
+contains before loading:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">rsciio.tofwerk</span><span class="w"> </span><span class="kn">import</span> <span class="n">available_signals</span>
+
+<span class="n">available_signals</span><span class="p">(</span><span class="s2">&quot;acquisition.h5&quot;</span><span class="p">)</span>
+<span class="c1"># [&#39;sum_spectrum&#39;, &#39;peak_data&#39;, &#39;fib_images&#39;]          # pre-processed file</span>
+<span class="c1"># [&#39;sum_spectrum&#39;, &#39;peak_data&#39;, &#39;event_list&#39;, &#39;fib_images&#39;]  # raw file</span>
+</pre></div>
+</div>
+</section>
+<section id="selecting-signals">
+<h2>Selecting signals<a class="headerlink" href="#selecting-signals" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">signal</span></code> parameter controls which signals are returned.  The default is
+<code class="docutils literal notranslate"><span class="pre">&quot;sum_spectrum&quot;</span></code>, which is always fast.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">hyperspy.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">hs</span>
+
+<span class="c1"># Default: 1-D cumulative spectrum (fast, always available)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;acquisition.h5&quot;</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="s2">&quot;Tofwerk&quot;</span><span class="p">)</span>
+
+<span class="c1"># 4-D peak array (depth × y × x × m/z)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;acquisition.h5&quot;</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="s2">&quot;Tofwerk&quot;</span><span class="p">,</span> <span class="n">signal</span><span class="o">=</span><span class="s2">&quot;peak_data&quot;</span><span class="p">)</span>
+
+<span class="c1"># FIB SE image stack (depth × y × x), full FIB scan resolution</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;acquisition.h5&quot;</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="s2">&quot;Tofwerk&quot;</span><span class="p">,</span> <span class="n">signal</span><span class="o">=</span><span class="s2">&quot;fib_images&quot;</span><span class="p">)</span>
+
+<span class="c1"># Raw TDC timestamps as a ragged signal</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;acquisition.h5&quot;</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="s2">&quot;Tofwerk&quot;</span><span class="p">,</span> <span class="n">signal</span><span class="o">=</span><span class="s2">&quot;event_list&quot;</span><span class="p">)</span>
+
+<span class="c1"># Multiple signals at once</span>
+<span class="n">signals</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+    <span class="s2">&quot;acquisition.h5&quot;</span><span class="p">,</span>
+    <span class="n">file_format</span><span class="o">=</span><span class="s2">&quot;Tofwerk&quot;</span><span class="p">,</span>
+    <span class="n">signal</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sum_spectrum&quot;</span><span class="p">,</span> <span class="s2">&quot;peak_data&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+
+<span class="c1"># All signals available for this file</span>
+<span class="n">signals</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;acquisition.h5&quot;</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="s2">&quot;Tofwerk&quot;</span><span class="p">,</span> <span class="n">signal</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Valid values for <code class="docutils literal notranslate"><span class="pre">signal</span></code>:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;sum_spectrum&quot;</span></code> (default)</dt><dd><p>1-D cumulative spectrum from <code class="docutils literal notranslate"><span class="pre">FullSpectra/SumSpectrum</span></code>.  Always
+available.  Supports lazy loading.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;peak_data&quot;</span></code></dt><dd><p>4-D array <code class="docutils literal notranslate"><span class="pre">(depth,</span> <span class="pre">y,</span> <span class="pre">x,</span> <span class="pre">m/z)</span></code>.</p>
+<ul class="simple">
+<li><p><em>Pre-processed files</em>: reads <code class="docutils literal notranslate"><span class="pre">PeakData/PeakData</span></code> directly.  Supports lazy
+loading (recommended for large files).</p></li>
+<li><p><em>Raw files</em>: reconstructs the 4-D array by walking the variable-length
+<code class="docutils literal notranslate"><span class="pre">FullSpectra/EventList</span></code> and integrating events within each peak window.
+Always eager.  On large files this can take several minutes; install
+<code class="docutils literal notranslate"><span class="pre">tqdm</span></code> for a progress bar and <code class="docutils literal notranslate"><span class="pre">numba</span></code> for a ~19× speed-up.</p></li>
+</ul>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;event_list&quot;</span></code></dt><dd><p>Ragged object array <code class="docutils literal notranslate"><span class="pre">(depth,</span> <span class="pre">y,</span> <span class="pre">x)</span></code> of raw uint16 TDC timestamps, one
+variable-length array per pixel.  Present in all raw files; also available
+in pre-processed files if the Tofwerk software did not remove it.  Supports lazy
+loading.  HyperSpy represents it as a ragged signal and does not support
+plotting it directly.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;fib_images&quot;</span></code></dt><dd><p>3-D stack <code class="docutils literal notranslate"><span class="pre">(depth,</span> <span class="pre">y,</span> <span class="pre">x)</span></code> of secondary-electron images at full FIB scan
+resolution.  Available in FIB-SIMS files that contain a <code class="docutils literal notranslate"><span class="pre">FIBImages</span></code>
+group.  Supports lazy loading.  If any images have a non-dominant shape
+(e.g. a truncated final frame), they are skipped with a warning.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;all&quot;</span></code></dt><dd><p>All signals available for the file.  Use
+<a class="reference internal" href="#rsciio.tofwerk.available_signals" title="rsciio.tofwerk.available_signals"><code class="xref py py-func docutils literal notranslate"><span class="pre">available_signals()</span></code></a> to see the list in advance.</p>
+</dd>
+</dl>
+</section>
+<section id="subsetting">
+<h2>Subsetting<a class="headerlink" href="#subsetting" title="Link to this heading">#</a></h2>
+<p>Use <code class="docutils literal notranslate"><span class="pre">mz_range</span></code> and <code class="docutils literal notranslate"><span class="pre">depth_range</span></code> to read only a portion of the data:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load only peaks between 20 and 100 Da</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;acquisition.h5&quot;</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="s2">&quot;Tofwerk&quot;</span><span class="p">,</span>
+            <span class="n">signal</span><span class="o">=</span><span class="s2">&quot;peak_data&quot;</span><span class="p">,</span> <span class="n">mz_range</span><span class="o">=</span><span class="p">(</span><span class="mf">20.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">))</span>
+
+<span class="c1"># Load only depth slices 10–19 (exclusive upper bound)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;acquisition.h5&quot;</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="s2">&quot;Tofwerk&quot;</span><span class="p">,</span>
+            <span class="n">signal</span><span class="o">=</span><span class="s2">&quot;peak_data&quot;</span><span class="p">,</span> <span class="n">depth_range</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Both parameters work for pre-processed files by slicing the HDF5 dataset
+before reading.  For raw files, <code class="docutils literal notranslate"><span class="pre">mz_range</span></code> also reduces reconstruction cost
+because only the selected peaks need to be counted.  <code class="docutils literal notranslate"><span class="pre">depth_range</span></code> applies
+to <code class="docutils literal notranslate"><span class="pre">&quot;peak_data&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;event_list&quot;</span></code>, and <code class="docutils literal notranslate"><span class="pre">&quot;fib_images&quot;</span></code>.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">dtype</span></code> to cast <code class="docutils literal notranslate"><span class="pre">&quot;peak_data&quot;</span></code> after loading, e.g.
+<code class="docutils literal notranslate"><span class="pre">dtype=np.uint16</span></code> for low-count integer data or <code class="docutils literal notranslate"><span class="pre">dtype=np.float16</span></code> to
+halve memory use at reduced precision.</p>
+</section>
+<section id="lazy-loading">
+<h2>Lazy loading<a class="headerlink" href="#lazy-loading" title="Link to this heading">#</a></h2>
+<p>Pass <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code> to defer reading large arrays until <code class="docutils literal notranslate"><span class="pre">.compute()</span></code> is called:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+    <span class="s2">&quot;large_acquisition.h5&quot;</span><span class="p">,</span>
+    <span class="n">file_format</span><span class="o">=</span><span class="s2">&quot;Tofwerk&quot;</span><span class="p">,</span>
+    <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">signal</span><span class="o">=</span><span class="s2">&quot;peak_data&quot;</span><span class="p">,</span>
+    <span class="n">chunks</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>   <span class="c1"># or a tuple / dict for manual chunking</span>
+<span class="p">)</span>
+<span class="c1"># s.data is a dask array; inspect size before computing:</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">nbytes</span> <span class="o">/</span> <span class="mf">1e9</span><span class="p">,</span> <span class="s2">&quot;GB&quot;</span><span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Lazy loading is supported for <code class="docutils literal notranslate"><span class="pre">&quot;sum_spectrum&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;peak_data&quot;</span></code>
+(pre-processed files), <code class="docutils literal notranslate"><span class="pre">&quot;event_list&quot;</span></code>, and <code class="docutils literal notranslate"><span class="pre">&quot;fib_images&quot;</span></code>.  Reconstructing
+<code class="docutils literal notranslate"><span class="pre">&quot;peak_data&quot;</span></code> from a raw file’s EventList is always eager.</p>
+</section>
+<section id="optional-dependencies">
+<h2>Optional dependencies<a class="headerlink" href="#optional-dependencies" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">numba</span></code> — JIT-accelerates EventList reconstruction (~19× faster than the
+NumPy fallback on large datasets).</p></li>
+</ul>
+<p>Pass <code class="docutils literal notranslate"><span class="pre">show_progressbar=False</span></code> to suppress progress output entirely.</p>
+</section>
+<section id="performance-tips">
+<h2>Performance tips<a class="headerlink" href="#performance-tips" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>EventList reconstruction</strong> (raw files, <code class="docutils literal notranslate"><span class="pre">signal=&quot;peak_data&quot;</span></code>) can be slow
+on large datasets.  Install <code class="docutils literal notranslate"><span class="pre">numba</span></code> for a large speed-up, and use
+<code class="docutils literal notranslate"><span class="pre">mz_range</span></code> to limit reconstruction to the peaks of interest.  Adjust
+<code class="docutils literal notranslate"><span class="pre">peak_data_batch_size</span></code> to process multiple depth slices per batch
+(trades memory for fewer Python iterations).</p></li>
+<li><p><strong>Pre-processed files with unsorted peaks</strong>: if <code class="docutils literal notranslate"><span class="pre">PeakData/PeakTable</span></code>
+peaks are not in ascending m/z order, the reader sorts them in place.
+<code class="docutils literal notranslate"><span class="pre">peak_data_batch_size</span></code> controls how many depth slices are sorted per
+iteration; smaller values keep working arrays in CPU cache.</p></li>
+</ul>
+</section>
+<section id="metadata">
+<h2>Metadata<a class="headerlink" href="#metadata" title="Link to this heading">#</a></h2>
+<p>FIB-SIMS specific fields are stored under <code class="docutils literal notranslate"><span class="pre">Acquisition_instrument.FIB_SIMS</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">meta</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">Acquisition_instrument</span><span class="o">.</span><span class="n">FIB_SIMS</span>
+
+<span class="n">meta</span><span class="o">.</span><span class="n">file_type</span>              <span class="c1"># &quot;pre-processed&quot; or &quot;raw&quot;</span>
+<span class="n">meta</span><span class="o">.</span><span class="n">FIB</span><span class="o">.</span><span class="n">hardware</span>           <span class="c1"># FIB hardware identifier (e.g. &quot;Tescan&quot;)</span>
+<span class="n">meta</span><span class="o">.</span><span class="n">FIB</span><span class="o">.</span><span class="n">voltage_kV</span>         <span class="c1"># Ion beam accelerating voltage in kV</span>
+<span class="n">meta</span><span class="o">.</span><span class="n">FIB</span><span class="o">.</span><span class="n">current_A</span>          <span class="c1"># Ion beam current in A</span>
+<span class="n">meta</span><span class="o">.</span><span class="n">FIB</span><span class="o">.</span><span class="n">view_field_mm</span>      <span class="c1"># Field of view in mm</span>
+<span class="n">meta</span><span class="o">.</span><span class="n">FIB</span><span class="o">.</span><span class="n">pixel_size_um</span>      <span class="c1"># SIMS pixel size in µm</span>
+<span class="n">meta</span><span class="o">.</span><span class="n">ToF</span><span class="o">.</span><span class="n">ion_mode</span>           <span class="c1"># &quot;positive&quot; or &quot;negative&quot;</span>
+<span class="n">meta</span><span class="o">.</span><span class="n">DAQ</span><span class="o">.</span><span class="n">tofdaq_version</span>     <span class="c1"># TofDAQ software version string</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">.h5</span></code> extension is shared with other formats (EMD, Arina, etc.).
+The plugin identifies Tofwerk files by checking for TofDAQ-specific HDF5
+groups (<code class="docutils literal notranslate"><span class="pre">FullSpectra</span></code>, <code class="docutils literal notranslate"><span class="pre">TimingData</span></code>, <code class="docutils literal notranslate"><span class="pre">AcquisitionLog</span></code>) and the
+<code class="docutils literal notranslate"><span class="pre">TofDAQ</span> <span class="pre">Version</span></code> root attribute.  Specify <code class="docutils literal notranslate"><span class="pre">file_format=&quot;Tofwerk&quot;</span></code>
+explicitly if automatic detection fails.</p>
+</div>
+</section>
+<section id="module-rsciio.tofwerk">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.tofwerk" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.tofwerk.available_signals">
+<span class="sig-prename descclassname"><span class="pre">rsciio.tofwerk.</span></span><span class="sig-name descname"><span class="pre">available_signals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#rsciio.tofwerk.available_signals" title="Link to this definition">#</a></dt>
+<dd><p>Return the list of signal names available in a Tofwerk TofDAQ HDF5 file.</p>
+<p>This is a fast, read-only inspection call — no large data arrays are loaded.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Path to the <code class="docutils literal notranslate"><span class="pre">.h5</span></code> file.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></dt><dd><p>Subset of
+<code class="docutils literal notranslate"><span class="pre">[&quot;sum_spectrum&quot;,</span> <span class="pre">&quot;nominal_peak_data&quot;,</span> <span class="pre">&quot;additional_peak_data&quot;,</span>
+<span class="pre">&quot;event_list&quot;,</span> <span class="pre">&quot;fib_images&quot;]</span></code>
+depending on what is present in the file.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#IOError" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOError</span></code></a></dt><dd><p>If the file is not a Tofwerk TofDAQ HDF5 file.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">rsciio.tofwerk</span><span class="w"> </span><span class="kn">import</span> <span class="n">available_signals</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">available_signals</span><span class="p">(</span><span class="s2">&quot;my_acquisition.h5&quot;</span><span class="p">)</span>
+<span class="go">[&#39;sum_spectrum&#39;, &#39;nominal_peak_data&#39;, &#39;fib_images&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.tofwerk.compute_peak_data_from_eventlist">
+<span class="sig-prename descclassname"><span class="pre">rsciio.tofwerk.</span></span><span class="sig-name descname"><span class="pre">compute_peak_data_from_eventlist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">event_list:</span> <span class="pre">~numpy.ndarray,</span> <span class="pre">mass_axis:</span> <span class="pre">~numpy.ndarray,</span> <span class="pre">nbr_samples:</span> <span class="pre">int,</span> <span class="pre">clock_ratio:</span> <span class="pre">int,</span> <span class="pre">normalization:</span> <span class="pre">int,</span> <span class="pre">peak_table:</span> <span class="pre">list[dict[str,</span> <span class="pre">~typing.Any]],</span> <span class="pre">show_progressbar:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">dtype:</span> <span class="pre">~numpy.dtype</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'numpy.uint16'&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a></span></span><a class="headerlink" href="#rsciio.tofwerk.compute_peak_data_from_eventlist" title="Link to this definition">#</a></dt>
+<dd><p>Reconstruct the 4-D peak-integrated array from raw EventList data.</p>
+<p>This replicates the processing performed by the Tofwerk proprietary
+software when opening a raw file:</p>
+<ol class="arabic simple">
+<li><p>For each pixel’s variable-length EventList (raw TDC timestamps),
+convert timestamps to ADC sample indices by integer division with the
+TDC-to-ADC clock ratio (<code class="docutils literal notranslate"><span class="pre">SampleInterval</span> <span class="pre">/</span> <span class="pre">ClockPeriod</span></code>, typically 64).</p></li>
+<li><p>Look up the calibrated mass for each sample index via <code class="docutils literal notranslate"><span class="pre">MassAxis</span></code>.</p></li>
+<li><p>Count events that fall within each peak’s integration window.</p></li>
+<li><p>Divide by <code class="docutils literal notranslate"><span class="pre">NbrWaveforms</span> <span class="pre">×</span> <span class="pre">NActiveChannels</span></code> — the number of times each
+physical ion is recorded in the EventList (once per ToF cycle per active
+recording channel).</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">numba</span></code> is installed, each depth slice is read in a single h5py
+call (instead of one call per row), then each row is packed into a flat
+int64 buffer and processed by a JIT-compiled kernel.  Otherwise falls
+back to a vectorised NumPy path that allocates per-pixel arrays but is
+still significantly faster than a pure-Python triple loop.</p>
+</div>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>event_list</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-array_like" title="(in NumPy v2.4)"><span>array_like</span></a></span></dt><dd><p>Ragged object array of shape <code class="docutils literal notranslate"><span class="pre">(nwrites,</span> <span class="pre">nsegs,</span> <span class="pre">nx)</span></code> of uint16 TDC
+timestamps, one variable-length array per pixel.  Accepts h5py
+variable-length datasets or numpy object arrays (as loaded by
+<code class="docutils literal notranslate"><span class="pre">signal=&quot;event_list&quot;</span></code>).</p>
+</dd>
+<dt><strong>mass_axis</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a></span></dt><dd><p>1-D array of shape <code class="docutils literal notranslate"><span class="pre">(nbr_samples,)</span></code> with calibrated mass (Da) for
+each ADC sample index, from <code class="docutils literal notranslate"><span class="pre">FullSpectra/MassAxis</span></code>.</p>
+</dd>
+<dt><strong>nbr_samples</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a></span></dt><dd><p>Length of <code class="docutils literal notranslate"><span class="pre">mass_axis</span></code>; events outside <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">nbr_samples)</span></code> are
+discarded.</p>
+</dd>
+<dt><strong>clock_ratio</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a></span></dt><dd><p>TDC-to-ADC sample index divisor (<code class="docutils literal notranslate"><span class="pre">SampleInterval</span> <span class="pre">/</span> <span class="pre">ClockPeriod</span></code>).
+Pass 1 if <code class="docutils literal notranslate"><span class="pre">ClockPeriod</span></code> is not available.</p>
+</dd>
+<dt><strong>normalization</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a></span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">NbrWaveforms</span> <span class="pre">×</span> <span class="pre">NActiveChannels</span></code> — the divisor used to convert raw
+event counts to per-waveform ion counts.</p>
+</dd>
+<dt><strong>peak_table</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></span></dt><dd><p>Integration windows.  Each dict must have keys
+<code class="docutils literal notranslate"><span class="pre">lower_integration_limit</span></code> and <code class="docutils literal notranslate"><span class="pre">upper_integration_limit</span></code> (Da).</p>
+</dd>
+<dt><strong>show_progressbar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Whether to show tqdm progress bars during reconstruction.</p>
+</dd>
+<dt><strong>dtype</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.dtype</span></code></a>, default=np.uint16</span></dt><dd><p>Output array dtype.  Counts are accumulated as float32 internally (for
+the normalization division) and cast to this dtype on return.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a></dt><dd><p>Shape <code class="docutils literal notranslate"><span class="pre">(nwrites,</span> <span class="pre">nsegs,</span> <span class="pre">nx,</span> <span class="pre">npeaks)</span></code>, cast to <code class="docutils literal notranslate"><span class="pre">dtype</span></code>.
+Identical in structure to <code class="docutils literal notranslate"><span class="pre">PeakData/PeakData</span></code> in a pre-processed file.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.tofwerk.count_active_channels">
+<span class="sig-prename descclassname"><span class="pre">rsciio.tofwerk.</span></span><span class="sig-name descname"><span class="pre">count_active_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ini</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></span><a class="headerlink" href="#rsciio.tofwerk.count_active_channels" title="Link to this definition">#</a></dt>
+<dd><p>Return the number of active TDC recording channels from the INI config string.</p>
+<p>TofDAQ records events from multiple ADC/TDC channels simultaneously
+(e.g. Ch1 and Ch3 in a typical fibTOF setup).  Each active channel
+contributes an independent copy of every ion event to the EventList,
+so the raw event count per pixel is multiplied by this factor.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>ini</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Decoded text from the HDF5 root attribute
+<code class="docutils literal notranslate"><span class="pre">file.attrs[&quot;Configuration</span> <span class="pre">File</span> <span class="pre">Contents&quot;]</span></code>. This is the TofDAQ
+configuration stored as an INI-style string, for example containing
+entries such as <code class="docutils literal notranslate"><span class="pre">Ch1Record=1</span></code> and <code class="docutils literal notranslate"><span class="pre">Ch2Record=0</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a></dt><dd><p>Number of active channels (at least 1).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Read the embedded TofDAQ configuration from a file and count the active
+recording channels:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ini</span> <span class="o">=</span> <span class="n">_decode</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;Configuration File Contents&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">count_active_channels</span><span class="p">(</span><span class="n">ini</span><span class="p">)</span>
+<span class="go">2</span>
+</pre></div>
+</div>
+<p>A minimal INI-style example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">count_active_channels</span><span class="p">(</span><span class="s2">&quot;[TOFParameter]</span><span class="se">\n</span><span class="s2">Ch1Record=1</span><span class="se">\n</span><span class="s2">Ch2Record=0</span><span class="se">\n</span><span class="s2">Ch3Record=1&quot;</span><span class="p">)</span>
+<span class="go">2</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.tofwerk.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.tofwerk.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'sum_spectrum'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mz_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_progressbar</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak_data_batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#rsciio.tofwerk.file_reader" title="Link to this definition">#</a></dt>
+<dd><p>Read a Tofwerk TofDAQ HDF5 file.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not. The file will stay open
+until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.signals/LazySignal.html#hyperspy.api.signals.LazySignal.compute" title="(in HyperSpy v2.4)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
+or closed manually. <a class="reference internal" href="../api/rsciio.utils.html#rsciio.utils.file.get_file_handle" title="rsciio.utils.file.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
+can be used to access the file handler and close it manually.</p>
+</dd>
+<dt><strong>signal</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, optional</span></dt><dd><p>Which signal(s) to return.  Valid values:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;sum_spectrum&quot;</span></code> (default)</dt><dd><p>1-D cumulative spectrum from <code class="docutils literal notranslate"><span class="pre">FullSpectra/SumSpectrum</span></code>.
+Always available.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;nominal_peak_data&quot;</span></code></dt><dd><p>4-D array <code class="docutils literal notranslate"><span class="pre">(depth,</span> <span class="pre">y,</span> <span class="pre">x,</span> <span class="pre">m/z)</span></code> for Tofwerk-generated peaks
+(labels starting with <code class="docutils literal notranslate"><span class="pre">&quot;nominal&quot;</span></code>).  For pre-processed files,
+reads the relevant columns of <code class="docutils literal notranslate"><span class="pre">PeakData/PeakData</span></code> directly.
+For raw files, reconstructs from <code class="docutils literal notranslate"><span class="pre">FullSpectra/EventList</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;additional_peak_data&quot;</span></code></dt><dd><p>4-D array <code class="docutils literal notranslate"><span class="pre">(depth,</span> <span class="pre">y,</span> <span class="pre">x,</span> <span class="pre">m/z)</span></code> for user-defined custom peaks
+(labels not starting with <code class="docutils literal notranslate"><span class="pre">&quot;nominal&quot;</span></code>).  Only available when
+the <code class="docutils literal notranslate"><span class="pre">PeakData/PeakTable</span></code> contains at least one such entry.
+For pre-processed files reads from <code class="docutils literal notranslate"><span class="pre">PeakData/PeakData</span></code> directly;
+for raw files reconstructs from <code class="docutils literal notranslate"><span class="pre">FullSpectra/EventList</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;event_list&quot;</span></code></dt><dd><p>Ragged object array <code class="docutils literal notranslate"><span class="pre">(depth,</span> <span class="pre">y,</span> <span class="pre">x)</span></code> of raw uint16 TDC
+timestamps.  Present in raw files; may also be present in
+pre-processed files.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;fib_images&quot;</span></code></dt><dd><p>3-D array <code class="docutils literal notranslate"><span class="pre">(depth,</span> <span class="pre">y,</span> <span class="pre">x)</span></code> of secondary-electron images at
+full FIB scan resolution (e.g. 256×256).  Available only in
+FIB-SIMS files that contain a <code class="docutils literal notranslate"><span class="pre">FIBImages</span></code> group.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;all&quot;</span></code></dt><dd><p>All signals available for the file.</p>
+</dd>
+</dl>
+<p>Pass a list to request multiple specific signals, e.g.
+<code class="docutils literal notranslate"><span class="pre">signal=[&quot;sum_spectrum&quot;,</span> <span class="pre">&quot;nominal_peak_data&quot;]</span></code>.  The returned list
+has one entry per requested signal (or all available for <code class="docutils literal notranslate"><span class="pre">&quot;all&quot;</span></code>).</p>
+</dd>
+<dt><strong>chunks</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=”auto”</span></dt><dd><p>The chunks used when reading the data lazily. This argument is passed
+to the <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.core.normalize_chunks.html#dask.array.core.normalize_chunks" title="(in Dask)"><code class="xref py py-func docutils literal notranslate"><span class="pre">dask.array.core.normalize_chunks()</span></code></a> function.</p>
+</dd>
+<dt><strong>mz_range</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a>, optional</span></dt><dd><p>Restrict the m/z axis of <code class="docutils literal notranslate"><span class="pre">&quot;peak_data&quot;</span></code> to peaks whose nominal
+mass falls within <code class="docutils literal notranslate"><span class="pre">[mz_range[0],</span> <span class="pre">mz_range[1]]</span></code> (inclusive, Da).
+For pre-processed files only the selected columns are retained after
+reading; for raw files only the selected peaks are reconstructed from
+the EventList, so the reconstruction cost scales with the number of
+selected peaks.  If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default), all peaks are returned.</p>
+</dd>
+<dt><strong>depth_range</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a>, optional</span></dt><dd><p>Restrict the depth axis to slices <code class="docutils literal notranslate"><span class="pre">[depth_range[0],</span> <span class="pre">depth_range[1])</span></code>
+(0-indexed, exclusive upper bound).  Applies to <code class="docutils literal notranslate"><span class="pre">&quot;peak_data&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;event_list&quot;</span></code>, and <code class="docutils literal notranslate"><span class="pre">&quot;fib_images&quot;</span></code>.  For pre-processed files the
+HDF5 dataset is sliced before loading, so only the requested depth
+slices are read from disk.  If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default), all depth slices
+are returned.</p>
+</dd>
+<dt><strong>dtype</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.dtype</span></code></a>, optional</span></dt><dd><p>Cast the <code class="docutils literal notranslate"><span class="pre">&quot;peak_data&quot;</span></code> array to this dtype after loading.  Useful to
+reduce memory usage, e.g. <code class="docutils literal notranslate"><span class="pre">dtype=np.float16</span></code> or <code class="docutils literal notranslate"><span class="pre">dtype=np.uint16</span></code>
+for low-count data.  If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default), the on-disk dtype
+(<code class="docutils literal notranslate"><span class="pre">float32</span></code>) is preserved.</p>
+</dd>
+<dt><strong>show_progressbar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Whether to show the progressbar or not.</p>
+</dd>
+<dt><strong>peak_data_batch_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, optional</span></dt><dd><p>Number of depth slices to read and permute per iteration when loading
+<code class="docutils literal notranslate"><span class="pre">&quot;peak_data&quot;</span></code> from a pre-processed file whose peaks are not already
+in ascending mass order.  Smaller batches keep the sort permutation
+working on arrays that fit in CPU cache, which is faster for large
+datasets.  Default is 1 (one slice at a time).  Has no effect when
+peaks are already sorted or when <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>‘metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>‘original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+<p>When the file contains several datasets, each dataset will be loaded as separate dictionary.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#IOError" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IOError</span></code></a></dt><dd><p>If the file is not a Tofwerk TofDAQ HDF5 file.</p>
+</dd>
+<dt><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ValueError</span></code></a></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">signal</span></code> contains an unrecognised value, or if <code class="docutils literal notranslate"><span class="pre">mz_range</span></code> or
+<code class="docutils literal notranslate"><span class="pre">depth_range</span></code> are out of bounds, or if an explicitly requested signal
+is not available in the file.</p>
+</dd>
+<dt><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NotImplementedError</span></code></a></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code> and <code class="docutils literal notranslate"><span class="pre">signal=&quot;nominal_peak_data&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">signal=&quot;additional_peak_data&quot;</span></code> on a raw file that requires
+EventList reconstruction.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="tiff.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Tagged image file format (TIFF)</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="topspin.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">TopSpin App5</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#acquired-signals">Acquired signals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#file-states">File states</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hdf5-file-structure">HDF5 file structure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inspecting-available-signals">Inspecting available signals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#selecting-signals">Selecting signals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#subsetting">Subsetting</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#lazy-loading">Lazy loading</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optional-dependencies">Optional dependencies</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#performance-tips">Performance tips</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#metadata">Metadata</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.tofwerk">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tofwerk.available_signals"><code class="docutils literal notranslate"><span class="pre">available_signals()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tofwerk.compute_peak_data_from_eventlist"><code class="docutils literal notranslate"><span class="pre">compute_peak_data_from_eventlist()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tofwerk.count_active_channels"><code class="docutils literal notranslate"><span class="pre">count_active_channels()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.tofwerk.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/supported_formats/tofwerk.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=0790524f97105ba85085"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023-2026, HyperSpy Developers.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.18.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -530,7 +530,8 @@ def file_reader(
         positions = None
     metadata["General"]["original_filename"] = os.path.split(filename)[1]
     metadata["Signal"]["signal_type"] = ""
-    metadata["General"]["virtual_images"] = {}
+    metadata["_HyperSpy"] = {}
+    metadata["_HyperSpy"]["navigators"] = {}
     if virtual_images is not None and len(virtual_images) > 0:
         imgs = []
         for i, v in enumerate(virtual_images):
@@ -544,13 +545,13 @@ def file_reader(
                         f"Virtual image {v} does not match the navigation shape {navigation_shape[::-1]}"
                     )
             imgs.append(signal)
-            _logger.debug(f"Adding virtual image _sig_image_{i}")
+            _logger.debug(f"Adding virtual image _sig_virtual_image_{i}")
 
             if virtual_image_names and i < len(virtual_image_names):
                 name = f"_sig_{virtual_image_names[i]}"
             else:
-                name = f"_sig_Virt_{i}"
-            metadata["General"]["virtual_images"][name] = signal
+                name = f"_sig_virtual_image_{i}" # _sig_ is dropped in hyperspy. List  --> BaseSignal
+            metadata["_HyperSpy"]["navigators"][name] = signal
         # checking to make sure the navigator is valid
         if (
             navigation_shape is not None
@@ -561,17 +562,16 @@ def file_reader(
 
     if external_images is not None and len(external_images) > 0:
         imgs = []
-        metadata["General"]["external_images"] = {}
         for e in external_images:
             imgs.append(file_reader(e)[0])
         for i, signal in enumerate(imgs):
-            _logger.debug(f"Adding external image _sig_ext_{i}")
+            _logger.debug(f"Adding external image _sig_external_image_{i}")
             if virtual_image_names and i < len(virtual_image_names):
                 name = f"_sig_{virtual_image_names[i]}"
             else:
-                name = f"_sig_Virt_{i}"
+                name = f"_sig_external_image_{i}" # _sig_ is dropped in hyperspy. List  --> BaseSignal
 
-            metadata["General"]["external_images"][name] = signal
+            metadata["_HyperSpy"]["navigators"][name] = signal
 
     f = open(filename, "rb")
     std_header = np.fromfile(f, dtype=get_std_dtype_list(endianness), count=1)

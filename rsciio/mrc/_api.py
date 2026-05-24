@@ -530,8 +530,8 @@ def file_reader(
         positions = None
     metadata["General"]["original_filename"] = os.path.split(filename)[1]
     metadata["Signal"]["signal_type"] = ""
-    metadata["_HyperSpy"] = {}
-    metadata["_HyperSpy"]["navigators"] = {}
+    metadata.setdefault("_HyperSpy", {})
+    metadata["_HyperSpy"].setdefault("navigators", {})
     if virtual_images is not None and len(virtual_images) > 0:
         imgs = []
         for i, v in enumerate(virtual_images):
@@ -550,14 +550,15 @@ def file_reader(
             if virtual_image_names and i < len(virtual_image_names):
                 name = f"_sig_{virtual_image_names[i]}"
             else:
-                name = f"_sig_virtual_image_{i}" # _sig_ is dropped in hyperspy. List  --> BaseSignal
+                name = f"_sig_virtual_image_{i}"  # _sig_ is dropped in hyperspy. List  --> BaseSignal
             metadata["_HyperSpy"]["navigators"][name] = signal
         # checking to make sure the navigator is valid
         if (
             navigation_shape is not None
             and navigation_shape[::-1] == imgs[0]["data"].shape
         ):
-            metadata["_HyperSpy"] = {}
+            # Preserve existing navigator entries (virtual/external) and only
+            # set the default navigator signal.
             metadata["_HyperSpy"]["_sig_navigator"] = imgs[0]
 
     if external_images is not None and len(external_images) > 0:
@@ -566,10 +567,10 @@ def file_reader(
             imgs.append(file_reader(e)[0])
         for i, signal in enumerate(imgs):
             _logger.debug(f"Adding external image _sig_external_image_{i}")
-            if virtual_image_names and i < len(virtual_image_names):
-                name = f"_sig_{virtual_image_names[i]}"
+            if external_images_names and i < len(external_images_names):
+                name = f"_sig_{external_images_names[i]}"
             else:
-                name = f"_sig_external_image_{i}" # _sig_ is dropped in hyperspy. List  --> BaseSignal
+                name = f"_sig_external_image_{i}"  # _sig_ is dropped in hyperspy. List  --> BaseSignal
 
             metadata["_HyperSpy"]["navigators"][name] = signal
 

@@ -145,9 +145,8 @@ def test_mrc_metadata_auto():
     assert s.metadata.Acquisition_instrument.TEM.detector == "DESim"
     assert s.metadata.Acquisition_instrument.TEM.magnification == "1000"
     assert s.metadata.Acquisition_instrument.TEM.frames_per_second == "700"
-    assert len(s.metadata.General.virtual_images.keys()) == 2
-    assert len(s.metadata.General.external_images.keys()) == 1
-    assert isinstance(s.metadata.General.virtual_images["Virt 0"], hs.signals.Signal2D)
+    assert len(s.metadata._HyperSpy.navigators.keys()) == 3
+    assert isinstance(s.metadata._HyperSpy.navigators["Virt 0"], hs.signals.Signal2D)
 
     assert s.metadata._HyperSpy.navigator is not None
 
@@ -170,8 +169,7 @@ def test_mrc_metadata_auto_custom_shape():
     assert s.metadata.Acquisition_instrument.TEM.detector == "DESim"
     assert s.metadata.Acquisition_instrument.TEM.magnification == "1000"
     assert s.metadata.Acquisition_instrument.TEM.frames_per_second == "700"
-    assert len(s.metadata.General.virtual_images) == 2
-    assert len(s.metadata.General.external_images) == 1
+    assert len(s.metadata._HyperSpy.navigators) == 3
 
     assert s.metadata._HyperSpy.navigator is not None
     assert s.metadata._HyperSpy.navigator.data.shape == navigation_shape[::-1]
@@ -425,20 +423,21 @@ class TestMetadataVirtualImageNames:
     def test_virtual_image_names_in_metadata(self):
         s = hs.load(TEST_DATA_DIR / "20241021_00405_movie.mrc", lazy=True)
         # HyperSpy stores _sig_* keys and exposes them without the prefix as signals
-        keys = list(s.metadata.General.virtual_images.as_dictionary().keys())
+        keys = list(s.metadata._HyperSpy.navigators.as_dictionary().keys())
         assert "_sig_Virt 0" in keys
         assert "_sig_Virt 1" in keys
         # Accessible via HyperSpy attribute (prefix stripped)
-        assert "Virt 0" in s.metadata.General.virtual_images
+        assert "Virt 0" in s.metadata._HyperSpy.navigators
 
     def test_external_image_names_in_metadata(self):
         s = hs.load(TEST_DATA_DIR / "20241021_00405_movie.mrc", lazy=True)
-        ext_keys = list(s.metadata.General.external_images.as_dictionary().keys())
-        assert len(ext_keys) == 1
-        # Key stored with _sig_ prefix
-        assert ext_keys[0] == "_sig_Ext 1"
+        nav_keys = list(s.metadata._HyperSpy.navigators.as_dictionary().keys())
+        # 2 virtual + 1 external = 3 navigators total
+        assert len(nav_keys) == 3
+        # External key stored with _sig_ prefix
+        assert "_sig_Ext 1" in nav_keys
         # Accessible via HyperSpy attribute (prefix stripped)
-        assert "Ext 1" in s.metadata.General.external_images
+        assert "Ext 1" in s.metadata._HyperSpy.navigators
 
     def test_navigator_is_signal(self):
         s = hs.load(TEST_DATA_DIR / "20241021_00405_movie.mrc", lazy=True)
@@ -446,5 +445,5 @@ class TestMetadataVirtualImageNames:
 
     def test_virtual_image_is_signal2d(self):
         s = hs.load(TEST_DATA_DIR / "20241021_00405_movie.mrc", lazy=True)
-        virt = s.metadata.General.virtual_images["Virt 0"]
+        virt = s.metadata._HyperSpy.navigators["Virt 0"]
         assert isinstance(virt, hs.signals.Signal2D)

@@ -15,9 +15,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
+import importlib.util
 from pathlib import Path
 
-import importlib.util
 import numpy as np
 import pytest
 
@@ -490,9 +490,9 @@ class TestLoadSave:
         std_header = s.original_metadata.std_header
         for field in ("EXTRA", "EXTRA2", "CMAP", "STAMP", "LABELS"):
             value = std_header[field]
-            assert isinstance(
-                value, str
-            ), f"Header field '{field}' should be a hex string, got {type(value)}"
+            assert isinstance(value, str), (
+                f"Header field '{field}' should be a hex string, got {type(value)}"
+            )
             # Must be a valid hex string
             bytes.fromhex(value)
 

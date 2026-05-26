@@ -83,7 +83,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Build pure python wheel
-        run: DISABLE_C_EXTENTIONS=1 pipx run build --wheel
+        run: DISABLE_C_EXTENSIONS=1 pipx run build --wheel
 
       - name: List SDist
         run: |

@@ -43,6 +43,7 @@ big datasets is supported.
    pantarhei
    phenom
    protochips
+   quadstar
    quantumdetector
    renishaw
    ripple

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
-    <title>CEOS Panta Rhei (PRZ) &#8212; RosettaSciIO  documentation</title>
+    <title>Quadstar (SAC, SBC) &#8212; RosettaSciIO  documentation</title>
   
   
   
@@ -47,12 +47,12 @@
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=d1c4098b"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/pantarhei';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/quadstar';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Phenom ELID format" href="phenom.html" />
-    <link rel="prev" title="NumPy (NPY)" href="numpy.html" />
+    <link rel="next" title="Quantum Detector" href="quantumdetector.html" />
+    <link rel="prev" title="Protochips logfile" href="protochips.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -422,10 +422,10 @@
 <li class="toctree-l1"><a class="reference internal" href="netcdf.html">NetCDF (EELSlab) format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="nexus.html">NeXus data format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="numpy.html">NumPy (NPY)</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">CEOS Panta Rhei (PRZ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pantarhei.html">CEOS Panta Rhei (PRZ)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="phenom.html">Phenom ELID format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="protochips.html">Protochips logfile</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quadstar.html">Quadstar (SAC, SBC)</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Quadstar (SAC, SBC)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantumdetector.html">Quantum Detector</a></li>
 <li class="toctree-l1"><a class="reference internal" href="renishaw.html">Renishaw</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ripple.html">Ripple format</a></li>
@@ -482,7 +482,7 @@
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Supported formats</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">CEOS Panta Rhei (PRZ)</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Quadstar (SAC, SBC)</span></li>
   </ul>
 </nav>
 </div>
@@ -499,42 +499,48 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="ceos-panta-rhei-prz">
-<span id="pantarhei-format"></span><h1>CEOS Panta Rhei (PRZ)<a class="headerlink" href="#ceos-panta-rhei-prz" title="Link to this heading">#</a></h1>
-<p>RosettaSciIO can read and write <code class="docutils literal notranslate"><span class="pre">.prz</span></code> files used by the CEOS Panta Rhei software.
-The <code class="docutils literal notranslate"><span class="pre">.prz</span></code> files are based on open formats (numpy arrays and python dictionaries)
-so a complete support is in principle possible.
-However, as new features are continuously being added to Panta Rhei, it is also
-possible to occasionally encounter some which are not yet supported by RosettaSciIO.
-Please report any problematic file on the <a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues">issues tracker</a> to make us aware of it.</p>
-<section id="module-rsciio.pantarhei">
-<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.pantarhei" title="Link to this heading">#</a></h2>
+  <section id="quadstar-sac-sbc">
+<span id="quadstar-format"></span><h1>Quadstar (SAC, SBC)<a class="headerlink" href="#quadstar-sac-sbc" title="Link to this heading">#</a></h1>
+<p>RosettaSciIO can read Balzers/Pfeiffer Quadstar binary files from
+Quadstar software (version 4.x and later):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.sac</span></code> (Scan Analog): one or more analog traces over time.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.sbc</span></code> (Scan Bargraph): peak/bargraph cycles with mass labels and
+intensities.</p></li>
+</ul>
+<p>For <code class="docutils literal notranslate"><span class="pre">.sac</span></code> files, each trace is returned as a separate signal dictionary.
+For <code class="docutils literal notranslate"><span class="pre">.sbc</span></code> files, a single signal dictionary is returned.</p>
+<p>In both cases, the signal axis corresponds to mass-to-charge ratio (<code class="docutils literal notranslate"><span class="pre">m/z</span></code>),
+and the navigation axis corresponds to measurement cycles/time when multiple
+cycles are present.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Lazy loading is currently not supported for Quadstar files.</p>
+</div>
+<section id="module-rsciio.quadstar">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.quadstar" title="Link to this heading">#</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="rsciio.pantarhei.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.pantarhei.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_restricted_pickle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#rsciio.pantarhei.file_reader" title="Link to this definition">#</a></dt>
-<dd><p>Read a PantaRhei <code class="docutils literal notranslate"><span class="pre">.prz</span></code> file.
-For Panta Rhei &lt;24.03 a restricted unpickler can be used to load the meta
-data with <code class="docutils literal notranslate"><span class="pre">allow_restricted_pickle=True</span></code>, which raises <code class="docutils literal notranslate"><span class="pre">InvalidPickleError</span></code>
-if restricted modules are detected.</p>
+<dt class="sig sig-object py" id="rsciio.quadstar.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.quadstar.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_uniform_signal_axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.quadstar.file_reader" title="Link to this definition">#</a></dt>
+<dd><p>Read mass spectrometry data from a Balzers/Pfeiffer Quadstar SAC or
+SBC file.</p>
+<p>For SAC files, each trace (channel) is returned as a separate signal
+dictionary.  For SBC files, a single signal dictionary is returned
+containing the scan bargraph intensities.</p>
+<p>The signal axis corresponds to the mass-to-charge ratio (M/Z) and
+the navigation axis represents sequential measurement cycles
+(timesteps).  When only a single timestep is present the data is
+returned as a 1-D spectrum.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
 <dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
 </dd>
-<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to open the file lazily or not. The file will stay open
-until closed in <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.signals/LazySignal.html#hyperspy.api.signals.LazySignal.compute" title="(in HyperSpy v2.4)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute()</span></code></a>
-or closed manually. <a class="reference internal" href="../api/rsciio.utils.html#rsciio.utils.file.get_file_handle" title="rsciio.utils.file.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
-can be used to access the file handler and close it manually.</p>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Lazy loading is not supported.</p>
 </dd>
-<dt><strong>chunks</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, default=None</span></dt><dd><p>Define the chunking used for saving the dataset. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, calculates
-chunks for the signal, with preferably at least one chunk per signal
-space.</p>
-</dd>
-<dt><strong>allow_restricted_pickle</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Allows unpickling of prz meta data for data saved with Panta Rhei &lt;24.03.
-This poses a security risk, use only for completely trusted prz files.</p>
-</dd>
-<dt><strong>**kwargs</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</span></dt><dd><p>Additional keyword arguments passed to <a class="reference internal" href="../api/rsciio.utils.html#rsciio.utils.file.memmap_distributed" title="rsciio.utils.file.memmap_distributed"><code class="xref py py-func docutils literal notranslate"><span class="pre">rsciio.utils.file.memmap_distributed()</span></code></a>
-when <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code>.</p>
+<dt><strong>use_uniform_signal_axis</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>If <cite>True</cite>, the time navigation axis is returned as a uniform axis
+(<cite>offset</cite> + <cite>scale</cite>). If <cite>False</cite>, the time navigation axis is returned
+as an explicit non-uniform <cite>axis</cite> array using per-cycle timestamps.</p>
 </dd>
 </dl>
 </dd>
@@ -557,31 +563,6 @@ containing the full axes vector</p></li>
 </dl>
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="rsciio.pantarhei.file_writer">
-<span class="sig-prename descclassname"><span class="pre">rsciio.pantarhei.</span></span><span class="sig-name descname"><span class="pre">file_writer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#rsciio.pantarhei.file_writer" title="Link to this definition">#</a></dt>
-<dd><p>Write signal to PantaRhei <code class="docutils literal notranslate"><span class="pre">.prz</span></code> format.</p>
-<dl class="field-list">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl>
-<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to write to or corresponding <cite>pathlib.Path</cite>.</p>
-</dd>
-<dt><strong>signal</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></span></dt><dd><p>Dictionary containing the signal object.
-Should contain the following fields:</p>
-<ul class="simple">
-<li><p>‘data’ – multidimensional numpy array</p></li>
-<li><p>‘axes’ – list of dictionaries describing the axes
-containing the fields ‘name’, ‘units’, ‘index_in_array’, and
-either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
-containing the full axes vector</p></li>
-<li><p>‘metadata’ – dictionary containing the metadata tree</p></li>
-</ul>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 </section>
 
@@ -596,20 +577,20 @@ containing the full axes vector</p></li>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="numpy.html"
+       href="protochips.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">NumPy (NPY)</p>
+        <p class="prev-next-title">Protochips logfile</p>
       </div>
     </a>
     <a class="right-next"
-       href="phenom.html"
+       href="quantumdetector.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Phenom ELID format</p>
+        <p class="prev-next-title">Quantum Detector</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -632,9 +613,8 @@ containing the full axes vector</p></li>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.pantarhei">API functions</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.pantarhei.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.pantarhei.file_writer"><code class="docutils literal notranslate"><span class="pre">file_writer()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.quadstar">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.quadstar.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -643,7 +623,7 @@ containing the full axes vector</p></li>
   <div class="sidebar-secondary-item">
 
   <div class="tocsection sourcelink">
-    <a href="../_sources/supported_formats/pantarhei.rst.txt">
+    <a href="../_sources/supported_formats/quadstar.rst.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
   </div>

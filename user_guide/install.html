@@ -565,7 +565,7 @@ manually or by using <a class="reference external" href="https://peps.python.org
 <section id="with-conda">
 <span id="install-with-conda"></span><h2>With conda<a class="headerlink" href="#with-conda" title="Link to this heading">#</a></h2>
 <p>To install with conda, we recommend you install it in a
-<a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html" title="(in conda v26.5.1.dev11)"><span class="xref std std-doc">conda environment</span></a> with the
+<a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html" title="(in conda v26.5.1.dev13)"><span class="xref std std-doc">conda environment</span></a> with the
 <a class="reference external" href="https://github.com/conda-forge/miniforge">Miniforge distribution</a>.
 To create an environment and activate it:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">rsciio</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.11</span>
@@ -620,6 +620,30 @@ at runtime, otherwise, the version will be the one at build time.</p>
 in order to get the correct development version, e.g. <code class="docutils literal notranslate"><span class="pre">0.3.dev14+g706deac</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">hyperspy</span><span class="o">/</span><span class="n">rosettasciio</span><span class="o">.</span><span class="n">git</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To install a development version on a system without a compiler available, the compilation
+of the C-extension of the Bruker reader can be disabled using the <code class="docutils literal notranslate"><span class="pre">DISABLE_C_EXTENSIONS</span></code>
+environment variable:</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-0">
+Windows</label><div class="sd-tab-content docutils">
+<div class="highlight-bat notranslate"><div class="highlight"><pre><span></span><span class="k">set</span> <span class="nv">DISABLE_C_EXTENSIONS</span><span class="p">=</span>1
+pip install git+https://github.com/hyperspy/rosettasciio.git
+</pre></div>
+</div>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-1">
+Linux/macOS</label><div class="sd-tab-content docutils">
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">DISABLE_C_EXTENSIONS</span><span class="o">=</span><span class="m">1</span>
+pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/hyperspy/rosettasciio.git
+</pre></div>
+</div>
+</div>
+</div>
 </div>
 </section>
 </section>

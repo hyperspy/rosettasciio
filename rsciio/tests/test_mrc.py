@@ -17,6 +17,7 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 from pathlib import Path
 
+import importlib.util
 import numpy as np
 import pytest
 
@@ -30,6 +31,7 @@ from rsciio.mrc._api import (
 )
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+zarr_missing = importlib.util.find_spec("zarr") is None
 
 
 TEST_DATA_DIR = Path(__file__).parent / "data" / "mrc"
@@ -447,3 +449,59 @@ class TestMetadataVirtualImageNames:
         s = hs.load(TEST_DATA_DIR / "20241021_00405_movie.mrc", lazy=True)
         virt = s.metadata._HyperSpy.navigators["Virt 0"]
         assert isinstance(virt, hs.signals.Signal2D)
+
+
+@pytest.mark.skipif(zarr_missing, reason="zarr not installed")
+class TestLoadSave:
+    @pytest.mark.parametrize(
+        "metadata_file",
+        [
+            TEST_DATA_DIR / "3DSTEM_scan_info.txt",
+            TEST_DATA_DIR / "3DTEM_scan_info.txt",
+            TEST_DATA_DIR / "3DTEMDiffracting_scan_info.txt",
+        ],
+    )
+    def test_mrc_metadata_save(self, metadata_file, tmp_path):
+        """Saving an MRC-loaded signal to zspy should not raise a
+        JSON-serialization error for numpy.void / bytes header fields."""
+        s = hs.load(
+            TEST_DATA_DIR / "20241021_00405_movie.mrc", metadata_file=metadata_file
+        )
+        diffracting = (
+            "STEM" in metadata_file.name or "Diffracting" in metadata_file.name
+        )
+        s.axes_manager.navigation_axes[0].units = "sec"
+        if diffracting:
+            s.axes_manager.signal_axes[0].units = "nm^-1"
+            s.axes_manager.signal_axes[1].units = "nm^-1"
+        else:
+            s.axes_manager.signal_axes[0].units = "nm"
+            s.axes_manager.signal_axes[1].units = "nm"
+
+        out = tmp_path / "out.zspy"
+        # Must not raise TypeError: Object of type void is not JSON serializable
+        s.save(str(out))
+
+    def test_mrc_void_header_fields_are_hex_strings(self):
+        """numpy.void and bytes fields in the MRC header (EXTRA, EXTRA2,
+        CMAP, STAMP, LABELS) must be stored as plain hex strings, not raw
+        numpy/bytes objects, so they can be JSON-serialized (e.g. for zspy)."""
+        s = hs.load(TEST_DATA_DIR / "20241021_00405_movie.mrc")
+        std_header = s.original_metadata.std_header
+        for field in ("EXTRA", "EXTRA2", "CMAP", "STAMP", "LABELS"):
+            value = std_header[field]
+            assert isinstance(
+                value, str
+            ), f"Header field '{field}' should be a hex string, got {type(value)}"
+            # Must be a valid hex string
+            bytes.fromhex(value)
+
+    def test_mrc_save_reload_zspy(self, tmp_path):
+        """Round-trip: load MRC, save to zspy, reload – data and key metadata
+        should be preserved, and no serialization errors should occur."""
+        zarr = pytest.importorskip("zarr", reason="zarr not installed")  # noqa: F841
+        s = hs.load(TEST_DATA_DIR / "20241021_00405_movie.mrc", lazy=True)
+        out = tmp_path / "round_trip.zspy"
+        s.save(str(out))
+        s2 = hs.load(str(out))
+        np.testing.assert_array_equal(s.data.compute(), s2.data)

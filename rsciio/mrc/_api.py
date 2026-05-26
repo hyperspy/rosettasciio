@@ -606,17 +606,17 @@ def file_reader(
 
     original_metadata["std_header"] = sarray2dict(std_header)
 
-    # Convert bytes to unicode
-    for key in ["CMAP", "STAMP", "LABELS"]:
-        try:
-            original_metadata["std_header"][key] = original_metadata["std_header"][
-                key
-            ].decode()
-        except UnicodeDecodeError:
-            _logger.warning(
-                f"Could not decode {key} in the standard header. "
-                f"Using the raw bytes instead."
-            )
+    # Convert void/bytes fields to hex strings so they are JSON-serializable
+    # (e.g. when saving to zspy/zarr). CMAP, STAMP, LABELS are bytes/void;
+    # EXTRA and EXTRA2 are numpy.void padding fields.
+    for key in ["EXTRA", "EXTRA2", "CMAP", "STAMP", "LABELS"]:
+        val = original_metadata["std_header"].get(key)
+        if val is None:
+            continue
+        if isinstance(val, (bytes, np.void)):
+            original_metadata["std_header"][key] = bytes(val).hex()
+        elif isinstance(val, np.ndarray) and val.dtype.kind == "V":
+            original_metadata["std_header"][key] = val.tobytes().hex()
     if fei_header is not None:
         fei_dict = sarray2dict(
             fei_header,

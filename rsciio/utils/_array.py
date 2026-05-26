@@ -39,7 +39,8 @@ def sarray2dict(sarray, dictionary=None):
     if dictionary is None:
         dictionary = OrderedDict()
     for name in sarray.dtype.names:
-        dictionary[name] = sarray[name][0] if len(sarray[name]) == 1 else sarray[name]
+        value = sarray[name][0] if len(sarray[name]) == 1 else sarray[name]
+        dictionary[name] = value
     return dictionary
 
 

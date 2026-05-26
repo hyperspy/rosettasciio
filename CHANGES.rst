@@ -8,6 +8,41 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 
 .. towncrier release notes start
 
+0.14.0 (2026-05-27)
+===================
+
+New features
+------------
+
+- Add support for reading Tofwerk TofDAQ HDF5 files (``.h5``) from fibTOF
+  FIB-SIMS instruments, returning peak-integrated 4D data ``(depth, y, x, m/z)``
+  for opened files or a sum spectrum + TIC map for raw files.
+  See :ref:`tofwerk-format`. (`#490 <https://github.com/hyperspy/rosettasciio/issues/490>`_)
+- Added support for reading Balzers/Pfeiffer Quadstar mass spectrometry files in ``.sac`` and ``.sbc`` formats. (`#509 <https://github.com/hyperspy/rosettasciio/issues/509>`_)
+
+
+Enhancements
+------------
+
+- Improve MRC file reader: add support for loading virtual and external images
+  as HyperSpy navigators, with regex-based discovery of related files and
+  streamlined metadata structure. (`#515 <https://github.com/hyperspy/rosettasciio/issues/515>`_)
+
+
+Bug Fixes
+---------
+
+- Handle py4DSTEM data saved with NCEM EMD version 1.0 (`#499 <https://github.com/hyperspy/rosettasciio/issues/499>`_)
+- Parse and write the rsciio version when using the :ref:`msa-format` writer. (`#504 <https://github.com/hyperspy/rosettasciio/issues/504>`_)
+- Fixed "OverflowError: Python int too large to convert to C int" on Windows and other 32-bit systems when Daks computes the lazily-loaded blockfiles (`#506 <https://github.com/hyperspy/rosettasciio/issues/506>`_)
+
+
+Improved Documentation
+----------------------
+
+- Document ``DISABLE_C_EXTENSIONS`` to install development version of rosettasciio without a compiler. (`#507 <https://github.com/hyperspy/rosettasciio/issues/507>`_)
+
+
 0.13.0 (2026-04-08)
 ===================
 

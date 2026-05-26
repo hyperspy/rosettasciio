@@ -1,1 +1,0 @@
-Added support for reading Balzers/Pfeiffer Quadstar mass spectrometry files in ``.sac`` and ``.sbc`` formats.

@@ -1,1 +1,0 @@
-Document ``DISABLE_C_EXTENSIONS`` to install development version of rosettasciio without a compiler.

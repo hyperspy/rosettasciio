@@ -32,9 +32,6 @@ from rsciio.quadstar._api import (
 )
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "quadstar"
-SBC_FILES = sorted(TEST_DATA_PATH.glob("*.sbc"))
-FIRST_SBC_FILE = SBC_FILES[0]
-SAC_FILES = sorted(TEST_DATA_PATH.glob("*.sac"))
 EXPECTED_NUM_MASSES = {
     "1-200amu-2cycles.sbc": 200,
     "1-200amu-3cycles.sbc": 200,
@@ -43,6 +40,14 @@ EXPECTED_NUM_MASSES = {
     "1-50amu-2cycles.sbc": 50,
     "10-50amu-2cycles.sbc": 41,
 }
+
+
+def SBC_FILES():
+    return sorted(TEST_DATA_PATH.glob("*.sbc"))
+
+
+def SAC_FILES():
+    return sorted(TEST_DATA_PATH.glob("*.sac"))
 
 
 class TestHelpers:
@@ -108,7 +113,7 @@ def _read_sbc_header_values(path):
 
 
 class TestReadSbcFiles:
-    @pytest.mark.parametrize("filename", SBC_FILES, ids=lambda p: p.name)
+    @pytest.mark.parametrize("filename", SBC_FILES(), ids=lambda p: p.name)
     def test_returns_single_signal_dict(self, filename):
         signals = file_reader(filename)
         assert isinstance(signals, list)
@@ -119,7 +124,7 @@ class TestReadSbcFiles:
         assert "metadata" in sig
         assert "original_metadata" in sig
 
-    @pytest.mark.parametrize("filename", SBC_FILES, ids=lambda p: p.name)
+    @pytest.mark.parametrize("filename", SBC_FILES(), ids=lambda p: p.name)
     def test_shape_and_dtype_match_header(self, filename):
         file_size, num_cycles, num_masses = _read_sbc_header_values(filename)
         sig = file_reader(filename)[0]
@@ -142,7 +147,7 @@ class TestReadSbcFiles:
         sig = file_reader(TEST_DATA_PATH / name)[0]
         assert sig["original_metadata"]["sbc_parameters"]["num_masses"] == expected
 
-    @pytest.mark.parametrize("filename", SBC_FILES, ids=lambda p: p.name)
+    @pytest.mark.parametrize("filename", SBC_FILES(), ids=lambda p: p.name)
     def test_mass_axis_and_masses_metadata(self, filename):
         _, num_cycles, num_masses = _read_sbc_header_values(filename)
         sig = file_reader(filename)[0]
@@ -164,7 +169,7 @@ class TestReadSbcFiles:
         else:
             assert ax["index_in_array"] == 0
 
-    @pytest.mark.parametrize("filename", SBC_FILES, ids=lambda p: p.name)
+    @pytest.mark.parametrize("filename", SBC_FILES(), ids=lambda p: p.name)
     def test_time_axis_and_timestamps(self, filename):
         _, num_cycles, _ = _read_sbc_header_values(filename)
         sig = file_reader(filename)[0]
@@ -184,7 +189,7 @@ class TestReadSbcFiles:
             assert t["size"] == num_cycles
             assert t["index_in_array"] == 0
 
-    @pytest.mark.parametrize("filename", SBC_FILES, ids=lambda p: p.name)
+    @pytest.mark.parametrize("filename", SBC_FILES(), ids=lambda p: p.name)
     def test_time_axis_non_uniform_when_requested(self, filename):
         _, num_cycles, _ = _read_sbc_header_values(filename)
         if num_cycles <= 1:
@@ -207,7 +212,7 @@ class TestReadSbcFiles:
 
 class TestReadSacFiles:
     def test_sac_returns_single_signal(self):
-        signals = file_reader(SAC_FILES[1])
+        signals = file_reader(SAC_FILES()[1])
         assert isinstance(signals, list)
         assert len(signals) == 1
         sig = signals[0]
@@ -217,7 +222,7 @@ class TestReadSacFiles:
         assert "original_metadata" in sig
 
     def test_sac_data_shape_and_dtype(self):
-        sig = file_reader(SAC_FILES[1])[0]
+        sig = file_reader(SAC_FILES()[1])[0]
         data = sig["data"]
         assert isinstance(data, np.ndarray)
         assert data.dtype == np.float32
@@ -225,7 +230,7 @@ class TestReadSacFiles:
         assert data.ndim >= 1
 
     def test_sac_has_mass_axis(self):
-        sig = file_reader(SAC_FILES[1])[0]
+        sig = file_reader(SAC_FILES()[1])[0]
         signal_axes = [a for a in sig["axes"] if not a["navigate"]]
         assert len(signal_axes) > 0
         # Check for mass-to-charge ratio axis
@@ -239,7 +244,7 @@ class TestReadSacFiles:
         assert ax["size"] > 0
 
     def test_sac_metadata_structure(self):
-        sig = file_reader(SAC_FILES[1])[0]
+        sig = file_reader(SAC_FILES()[1])[0]
         original = sig["original_metadata"]
 
         assert "general_header" in original
@@ -285,7 +290,7 @@ class TestReadSacFiles:
         assert len(timestamps) == general["n_timesteps"]
 
     def test_sac_time_axis_non_uniform_when_requested(self):
-        sig = file_reader(SAC_FILES[1], use_uniform_signal_axis=False)[0]
+        sig = file_reader(SAC_FILES()[1], use_uniform_signal_axis=False)[0]
         timestamps = np.asarray(
             sig["original_metadata"]["timestamps"], dtype=np.float64
         )
@@ -305,7 +310,7 @@ class TestReadSacFiles:
 
 class TestReadGeneralHeader:
     def test_general_header(self):
-        with open(FIRST_SBC_FILE, "rb") as f:
+        with open(SBC_FILES()[0], "rb") as f:
             buf = f.read()
         gen = _read_general_header(buf)
         assert isinstance(gen, dict)
@@ -314,7 +319,7 @@ class TestReadGeneralHeader:
         assert gen["timestep_length"] >= 0
 
     def test_trace_headers(self):
-        with open(FIRST_SBC_FILE, "rb") as f:
+        with open(SBC_FILES()[0], "rb") as f:
             buf = f.read()
         gen = _read_general_header(buf)
         headers = _read_trace_headers(buf, gen["n_traces"])
@@ -323,7 +328,7 @@ class TestReadGeneralHeader:
         assert gen["n_traces"] == 0
 
     def test_sac_general_header(self):
-        with open(SAC_FILES[1], "rb") as f:
+        with open(SAC_FILES()[1], "rb") as f:
             buf = f.read()
         gen = _read_general_header(buf)
         assert isinstance(gen, dict)
@@ -331,7 +336,7 @@ class TestReadGeneralHeader:
         assert gen["n_traces"] >= 0
 
     def test_sac_trace_headers(self):
-        with open(SAC_FILES[1], "rb") as f:
+        with open(SAC_FILES()[1], "rb") as f:
             buf = f.read()
         gen = _read_general_header(buf)
         assert gen["n_traces"] > 0
@@ -347,14 +352,14 @@ class TestReadGeneralHeader:
 class TestLazyNotSupported:
     def test_lazy_raises_sbc(self):
         with pytest.raises(NotImplementedError, match="Lazy loading"):
-            file_reader(FIRST_SBC_FILE, lazy=True)
+            file_reader(SBC_FILES()[0], lazy=True)
 
     def test_lazy_raises_sac(self):
         with pytest.raises(NotImplementedError, match="Lazy loading"):
-            file_reader(SAC_FILES[1], lazy=True)
+            file_reader(SAC_FILES()[1], lazy=True)
 
 
 def test_all_sac_files():
-    for filename in SAC_FILES:
+    for filename in SAC_FILES():
         sig = file_reader(filename)[0]
         assert "original_metadata" in sig

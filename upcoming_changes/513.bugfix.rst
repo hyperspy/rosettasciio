@@ -1,0 +1,1 @@
+Modified empad reader to parse scan sizes from the raw file name following the pattern "scan_xaaa_ybbb.raw", where "aaa" and "bbb" represent the scan sizes in the x and y dimensions, respectively.

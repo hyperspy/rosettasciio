@@ -80,16 +80,20 @@ def _parse_xml(filename):
     elif om.has_item("root.pix_x") and om.has_item("root.pix_y"):
         # 2D x 2D
         info.update({"scan_x": int(om.root.pix_x), "scan_y": int(om.root.pix_y)})
-    # in case root.pix_x and root.pix_y are not available
-    elif om.has_item("root.scan_parameters.scan_resolution_x") and om.has_item(
-        "root.scan_parameters.scan_resolution_y"
-    ):
-        info.update(
-            {
-                "scan_x": int(om.root.scan_parameters.scan_resolution_x),
-                "scan_y": int(om.root.scan_parameters.scan_resolution_y),
-            }
-        )
+    # in case root.pix_x and root.pix_y are not available, parse from the raw_file name
+    elif om.has_item("root.raw_file.filename"):
+        raw_filename = om.root.raw_file.filename
+        # The raw filename is in the format of "scan_xxx_yxx.raw", where xx is the scan size in x and y direction.
+        if raw_filename.startswith("scan_"):
+            try:
+                basename = raw_filename.split(".")[0]
+                scan_x = int(basename.split("_")[-2][1:])
+                scan_y = int(basename.split("_")[-1][1:])
+                info.update({"scan_x": scan_x, "scan_y": scan_y})
+            except Exception:
+                raise IOError(
+                    "Unsupported Empad file: the scan parameters cannot be imported."
+                )
     else:
         raise IOError("Unsupported Empad file: the scan parameters cannot be imported.")
 

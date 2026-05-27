@@ -1,4 +1,0 @@
-Improve MRC file reader: add support for loading virtual and external images
-as HyperSpy navigators, with regex-based discovery of related files and
-streamlined metadata structure.
-

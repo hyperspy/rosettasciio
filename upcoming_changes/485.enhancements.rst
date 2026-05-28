@@ -1,0 +1,1 @@
+:ref:`EDAX TEAM/Genesis <edax-format>`: support line scan (``.lsd``) data

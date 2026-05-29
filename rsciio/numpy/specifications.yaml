@@ -1,0 +1,8 @@
+name: "numpy"
+name_aliases: []
+description: "Load numpy binary format."
+full_support: False
+file_extensions: ["npy", "NPY"]
+default_extension: 0
+non_uniform_axis: False
+writes: True

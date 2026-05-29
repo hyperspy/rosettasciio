@@ -1,0 +1,8 @@
+name: "Arina"
+name_aliases: []
+description: "Read Dectris arina 4D-STEM datasets"
+full_support: False
+file_extensions: ["h5"]
+default_extension: 0
+writes: False
+non_uniform_axis: False 

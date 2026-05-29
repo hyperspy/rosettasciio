@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestXML>
+  <Header>
+    <ShortDescription>Test XML</ShortDescription>
+    <HTMLDescription><![CDATA[This utter <i>nonsense</i> <b>XML</b> was created to check far-fetched ideas about sub-worst case of OEM-generated XML scenarios.]]></HTMLDescription>
+  </Header>
+  <Main>
+    <ClassInstance>
+       <Detector>
+          <ClassInstance>
+            <Angle>15.345</Angle>
+            <Type>SDD</Type>
+            <Model>BreakFast™</Model>
+            <PulseProcessor>FPGAv11</PulseProcessor>
+            <BufferSize units="bytes">2048</BufferSize>
+          </ClassInstance>
+       </Detector>
+       <Instrument ClassInstance="Analytical">
+          <Type class="chasis">Toaster</Type>
+          <SerialNumber>1234-5</SerialNumber>
+          <Dim axes="width, depth, height">33.3,27.4,25.2</Dim>
+          <IsCoated/>
+          <IsToasted>not today</IsToasted>
+          <IsToasting>affirmative</IsToasting>
+       </Instrument>
+       <Sample name="breakfast test" number="23">With one of these components
+          <Components>
+            <ComponentChildren>
+              <Instance name="Eggs" calories="345.2" breaking-speed="5.2"></Instance>
+              <Instance name="Bacon" calories="5000" breaking-speed="11"></Instance>
+              <Instance name="Spam" calories="0.1" breaking-speed="24.6"></Instance>
+            </ComponentChildren>
+          </Components>
+          <Project>BreakFast</Project> SDD risks to be Toasted.
+       </Sample>
+    </ClassInstance>
+  </Main>
+</TestXML>

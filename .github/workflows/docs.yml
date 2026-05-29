@@ -1,0 +1,27 @@
+name: Documentation
+
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - 'dependabot/**'
+      - 'pre-commit-ci-update-config'
+  workflow_dispatch:
+
+jobs:
+  Build:
+    # Use the "reusable workflow" from the hyperspy organisation
+    uses: hyperspy/.github/.github/workflows/doc.yml@main
+    with:
+      doc_path: ./doc
+      doc_build_path: ./doc/_build/html/
+      pip_extra_doc: all,doc
+
+  Push:
+    needs: Build
+    if: ${{ github.event_name != 'pull_request' && github.repository_owner == 'hyperspy' }}
+    permissions:
+      # needs write permission to push the docs to gh-pages
+      contents: write
+    # Use the "reusable workflow" from the hyperspy organisation
+    uses: hyperspy/.github/.github/workflows/push_doc.yml@main

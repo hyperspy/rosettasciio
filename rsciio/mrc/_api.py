@@ -1,0 +1,732 @@
+# -*- coding: utf-8 -*-
+# Copyright 2007-2026 The HyperSpy developers
+#
+# This file is part of RosettaSciIO.
+#
+# RosettaSciIO is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# RosettaSciIO is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
+
+# The details of the format were taken from
+# https://www.biochem.mpg.de/doc_tom/TOM_Release_2008/IOfun/tom_mrcread.html
+# and https://ami.scripps.edu/software/mrctools/mrc_specification.php
+
+import glob
+import logging
+import os
+import re
+
+import numpy as np
+
+from rsciio._docstrings import (
+    CHUNKS_READ_DOC,
+    ENDIANESS_DOC,
+    FILENAME_DOC,
+    LAZY_DOC,
+    NAVIGATION_SHAPE,
+    RETURNS_DOC,
+)
+from rsciio.utils import file
+from rsciio.utils._array import sarray2dict
+from rsciio.utils._deprecated import (
+    distributed_keyword_deprecation,
+    endianess_keyword_deprecation,
+    mmap_mode_keyword_deprecation,
+)
+
+_logger = logging.getLogger(__name__)
+
+# Regex to parse movie files: YYYYMMDD_acq[_optionalSuffix][_optionalMovieNum]_movie.mrc
+MOVIE_RE = re.compile(
+    r"^(?P<timestamp>\d{8})_"
+    r"(?P<acquisitionNumber>\d+)"
+    r"(?:_(?P<optionalSuffix>.+?))?"
+    r"(?:_(?P<movieNum>\d+))?_movie\.mrc$"
+)
+
+# Regex to parse virtual images:
+# YYYYMMDD_acq[_optionalSuffix]_virtualImageNum_name_calculationType.mrc
+# Example: 20251103_23389_3_CentroidAmp_centroid_amplitude.mrc
+VIRTUAL_RE = re.compile(
+    r"^(?P<timestamp>\d{8})_"
+    r"(?P<acquisitionNumber>\d+)"
+    r"(?:_(?P<optionalSuffix>.+?))?"
+    r"_(?P<virtualImageNum>(?:\d+|virt\d+))_"
+    r"(?P<name>[^_]+)_"
+    r"(?P<calculationType>[^.]+)\.mrc$"
+)
+
+
+def find_related_de_files(movie_filename: str):
+    """
+    Given a DE movie filename, find related files:
+    - info_file: `YYYYMMDD_acq[_optionalSuffix]_info.txt`
+    - virtual_images: `YYYYMMDD_acq[_optionalSuffix]_virtualImageNum_name_calculationType.mrc`
+                      (virtualImageNum supports '<digits>' or 'virt<digits>')
+    - external_images: `YYYYMMDD_acq[_optionalSuffix]_ext<#>[_Name].mrc`
+    - scan_csv: `YYYYMMDD_acq[_optionalSuffix]_scan_coordinates.csv`
+    Returns a dict including a deduplicated list of virtual image names.
+    """
+    dir_name = os.path.dirname(movie_filename) or "."
+    base_name = os.path.basename(movie_filename)
+
+    # Parse timestamp and acquisitionNumber from the movie name
+    m = MOVIE_RE.fullmatch(base_name)
+    if m:
+        ts = m.group("timestamp")
+        acq = m.group("acquisitionNumber")
+    else:
+        return {
+            "info_file": None,
+            "virtual_images": [],
+            "virtual_image_names": [],
+            "external_images": [],
+            "scan_csv": None,
+        }
+    prefix = f"{ts}_{acq}_"
+
+    # Utilities
+    def _first_or_none(paths):
+        return sorted(paths)[0] if paths else None
+
+    def _dedupe(seq):
+        seen = {}
+        out = []
+        for x in seq:
+            if x not in seen:
+                seen[x] = 1
+                out.append(x)
+            else:
+                count = seen[x]
+                new_name = f"{x}_{count}"
+                while new_name in seen:
+                    count += 1
+                    new_name = f"{x}_{count}"
+                seen[x] = count + 1
+                seen[new_name] = 1
+                out.append(new_name)
+        return out
+
+    # Collect all candidate .mrc files sharing the same timestamp and acquisitionNumber
+    all_mrc = glob.glob(os.path.join(dir_name, f"{prefix}*.mrc"))
+
+    # Virtual images via regex (supports '<digits>' and 'virt<digits>')
+    virtual_images = []
+    virtual_image_names = []
+    for p in all_mrc:
+        name = os.path.basename(p)
+        if name.endswith("_movie.mrc"):
+            continue
+        mv = VIRTUAL_RE.fullmatch(name)
+        if mv:
+            virtual_images.append(p)
+            virtual_image_names.append(mv.group("name"))
+
+    virtual_image_names = _dedupe(virtual_image_names)
+
+    # External detector images (e.g., _ext3.mrc or _ext3_Name.mrc)
+    ext_re = re.compile(
+        rf"^{re.escape(ts)}_{re.escape(acq)}_(?:.+?_)?ext(?P<num>\d+)(?:_(?P<name>[^.]+))?\.mrc$"
+    )
+    external_images = []
+    external_image_names = []
+    for p in all_mrc:
+        fname = os.path.basename(p)
+        mext = ext_re.fullmatch(fname)
+        if mext:
+            external_images.append(p)
+            ext_name = mext.group("name") or f"ext{mext.group('num')}"
+            external_image_names.append(ext_name)
+    external_image_names = _dedupe(external_image_names)
+    # Info file
+    info_file = _first_or_none(
+        glob.glob(os.path.join(dir_name, f"{prefix}info.txt"))
+        + glob.glob(os.path.join(dir_name, f"{prefix}*_info.txt"))
+    )
+
+    # Scan coordinates CSV
+    scan_csv = _first_or_none(
+        glob.glob(os.path.join(dir_name, f"{prefix}scan_coordinates.csv"))
+        + glob.glob(os.path.join(dir_name, f"{prefix}*_scan_coordinates.csv"))
+    )
+
+    return {
+        "info_file": info_file,
+        "virtual_images": sorted(virtual_images),
+        "virtual_image_names": virtual_image_names,
+        "external_images": sorted(external_images),
+        "external_image_names": external_image_names,
+        "scan_csv": scan_csv,
+    }
+
+
+def get_std_dtype_list(endianness="<"):
+    end = endianness
+    dtype_list = [
+        ("NX", end + "u4"),
+        ("NY", end + "u4"),
+        ("NZ", end + "u4"),
+        ("MODE", end + "u4"),
+        ("NXSTART", end + "u4"),
+        ("NYSTART", end + "u4"),
+        ("NZSTART", end + "u4"),
+        ("MX", end + "u4"),
+        ("MY", end + "u4"),
+        ("MZ", end + "u4"),
+        ("Xlen", end + "f4"),
+        ("Ylen", end + "f4"),
+        ("Zlen", end + "f4"),
+        ("ALPHA", end + "f4"),
+        ("BETA", end + "f4"),
+        ("GAMMA", end + "f4"),
+        ("MAPC", end + "u4"),
+        ("MAPR", end + "u4"),
+        ("MAPS", end + "u4"),
+        ("AMIN", end + "f4"),
+        ("AMAX", end + "f4"),
+        ("AMEAN", end + "f4"),
+        ("ISPG", end + "u2"),
+        ("NSYMBT", end + "u2"),
+        ("NEXT", end + "u4"),
+        ("CREATID", end + "u2"),
+        ("EXTRA", (np.void, 30)),
+        ("NINT", end + "u2"),
+        ("NREAL", end + "u2"),
+        ("EXTRA2", (np.void, 28)),
+        ("IDTYPE", end + "u2"),
+        ("LENS", end + "u2"),
+        ("ND1", end + "u2"),
+        ("ND2", end + "u2"),
+        ("VD1", end + "u2"),
+        ("VD2", end + "u2"),
+        ("TILTANGLES", (np.float32, 6)),
+        ("XORIGIN", end + "f4"),
+        ("YORIGIN", end + "f4"),
+        ("ZORIGIN", end + "f4"),
+        ("CMAP", (bytes, 4)),
+        ("STAMP", (bytes, 4)),
+        ("RMS", end + "f4"),
+        ("NLABL", end + "u4"),
+        ("LABELS", (bytes, 800)),
+    ]
+
+    return dtype_list
+
+
+def get_fei_dtype_list(endianness="<"):
+    end = endianness
+    dtype_list = [
+        ("a_tilt", end + "f4"),  # Alpha tilt (deg)
+        ("b_tilt", end + "f4"),  # Beta tilt (deg)
+        # Stage x position (Unit=m. But if value>1, unit=???m)
+        ("x_stage", end + "f4"),
+        # Stage y position (Unit=m. But if value>1, unit=???m)
+        ("y_stage", end + "f4"),
+        # Stage z position (Unit=m. But if value>1, unit=???m)
+        ("z_stage", end + "f4"),
+        # Signal2D shift x (Unit=m. But if value>1, unit=???m)
+        ("x_shift", end + "f4"),
+        # Signal2D shift y (Unit=m. But if value>1, unit=???m)
+        ("y_shift", end + "f4"),
+        ("defocus", end + "f4"),  # Defocus Unit=m. But if value>1, unit=???m)
+        ("exp_time", end + "f4"),  # Exposure time (s)
+        ("mean_int", end + "f4"),  # Mean value of image
+        ("tilt_axis", end + "f4"),  # Tilt axis (deg)
+        ("pixel_size", end + "f4"),  # Pixel size of image (m)
+        ("magnification", end + "f4"),  # Magnification used
+        # Not used (filling up to 128 bytes)
+        ("empty", (np.void, 128 - 13 * 4)),
+    ]
+    return dtype_list
+
+
+def get_data_type(mode):
+    mode_to_dtype = {
+        0: np.uint8,
+        1: np.int16,
+        2: np.float32,
+        4: np.complex64,
+        6: np.uint16,
+        12: np.float16,
+    }
+
+    mode = int(mode[0])
+    if mode in mode_to_dtype:
+        return np.dtype(mode_to_dtype[mode])
+    else:
+        raise ValueError(f"Unrecognised mode '{mode}'.")
+
+
+def read_de_metadata_file(filename, nav_shape=None, scan_pos_file=None):
+    """This reads the metadata ".txt" file that is saved alongside a DE .mrc file.
+
+    There are 3 ways in which the files are saved:
+
+
+    Parameters
+    ----------
+    filename : str
+        The filename of the metadata file.
+    nav_shape : tuple
+        The shape of the navigation axes.
+
+    Returns
+    -------
+    all_lines : dict
+        A dictionary containing all the metadata.
+    shape : tuple
+        The shape of the data in real space.
+    """
+    original_metadata = {}
+    with open(filename) as metadata:
+        for line in metadata.readlines():
+            try:
+                key, value = line.split("=")
+                key = key.strip()
+                value = value.strip()
+                original_metadata[key] = value
+            except ValueError:  # pragma: no cover
+                _logger.warning(
+                    f"Could not parse line: {line} in metadata file {filename} "
+                    f"Each line should be in the form 'key = value'."
+                )
+    # -1 -> Not read from TEM Channel 0 -> TEM 1 -> STEM
+    in_stem_mode = int(original_metadata.get("Instrument Project TEMorSTEM Mode", -1))
+    scanning = original_metadata.get("Scan - Enable", "Disable") == "Enable"
+    raster = original_metadata.get("Scan - Type", "Raster") == "Raster"
+
+    if scanning and not raster:
+        if scan_pos_file is None:
+            raise ValueError("Scan position file is required for non-raster scans.")
+        positions = np.loadtxt(scan_pos_file, delimiter=",", dtype=int)[:, ::-1]
+        nav_shape = (positions[:, 0].max() + 1, positions[:, 1].max() + 1)
+        unique_pos, inverse, counts = np.unique(
+            positions, axis=0, return_counts=True, return_inverse=True
+        )
+        repeats = np.max(counts)
+        if repeats > 1:
+            # If there are repeated positions, we need to create a new array
+            # with the repeated positions
+            rep = np.zeros((len(positions), 1), dtype=int)
+            positions = np.hstack((positions, rep))
+            for i in range(len(positions)):
+                positions[inverse == i, 2] = np.arange(len(inverse[inverse == i]))
+            nav_shape = (
+                repeats,
+                nav_shape[0],
+                nav_shape[1],
+            )  # repeat the scan positions
+    else:
+        positions = None
+
+    if in_stem_mode == -1:
+        in_stem_mode = scanning
+    elif in_stem_mode == 0:  # 0 -> TEM Mode
+        in_stem_mode = False
+    else:
+        in_stem_mode = True
+
+    has_camera_length = float(
+        original_metadata.get("Instrument Project Camera Length (centimeters)", -1)
+    )
+    diffracting = (
+        has_camera_length != -1 or in_stem_mode
+    )  # Force diffracting if in STEM mode
+
+    if (
+        in_stem_mode and scanning and raster or nav_shape is not None
+    ):  # nav-shape is not None for pos files
+        axes_scales = np.array(
+            [
+                float(
+                    original_metadata.get("Scan - Time (seconds)", 1)
+                    + original_metadata.get("Scan - Repeat Delay (seconds)", 1)
+                ),
+                float(original_metadata.get("Specimen Pixel Size Y (nanometers)", 1)),
+                float(original_metadata.get("Specimen Pixel Size X (nanometers)", 1)),
+                1,  # Signal Axes below
+                float(original_metadata.get("Diffraction Pixel Size Y", 1)),
+                float(original_metadata.get("Diffraction Pixel Size X", 1)),
+            ]
+        )
+        axes_scales[axes_scales != -1] = 1
+        axes_units = ["sec", "nm", "nm", "times", "nm^-1", "nm^-1"]
+        axes_names = ["time", "y", "x", "repeats", "ky", "kx"]
+        if original_metadata.get("Scan - ROI Enable", "Disable") == "Enable":
+            sizex = int(original_metadata.get("Scan - ROI Size X", 1))
+            sizey = int(original_metadata.get("Scan - ROI Size Y", 1))
+        else:
+            sizex = int(original_metadata.get("Scan - Size X", 1))
+            sizey = int(original_metadata.get("Scan - Size Y", 1))
+        if nav_shape is not None and len(nav_shape) == 3:
+            time = nav_shape[0]
+            sizey = nav_shape[1]
+            sizex = nav_shape[2]
+        elif nav_shape is not None and len(nav_shape) == 2:
+            sizex = nav_shape[1]
+            sizey = nav_shape[0]
+            time = 1
+        elif nav_shape is not None and len(nav_shape) == 1:
+            sizex = nav_shape[0]
+            sizey = 1
+            time = 1
+        else:
+            time = 1
+        sizekx = int(original_metadata.get("Image Size X (pixels)", -1))
+        sizeky = int(original_metadata.get("Image Size Y (pixels)", -1))
+        navigate = [True, True, True, True, False, False]
+        axes_shapes = [time, sizey, sizex, 1, sizeky, sizekx]
+        nav_shape = tuple([shape for shape in [time, sizex, sizey, 1] if shape != 1])
+    else:
+        navigate = [True, False, False]
+
+        nav_shape = None  # read from the .mrc file
+        frame_sum = float(original_metadata.get("Autosave Movie Sum Count", 1))
+        frame_time = float(original_metadata.get("Frames Per Second", 1))
+        sec_per_frame = 1 / (frame_time * frame_sum)
+        axes_shapes = [-1, -1, -1]  # get from the .mrc file
+        if diffracting:
+            axes_scales = np.array(
+                [
+                    sec_per_frame,
+                    original_metadata.get("Diffraction Pixel Size Y", 1),
+                    original_metadata.get("Diffraction Pixel Size X", 1),
+                ]
+            )
+            axes_units = ["sec", "nm^-1", "nm^-1"]
+            axes_names = ["time", "ky", "kx"]
+        else:
+            axes_scales = np.array(
+                [
+                    sec_per_frame,
+                    original_metadata.get("Specimen Pixel Size Y (nanometers)", 1),
+                    original_metadata.get("Specimen Pixel Size X (nanometers)", 1),
+                ]
+            )
+            axes_units = ["sec", "nm", "nm"]
+            axes_names = ["time", "y", "x"]
+    axes = []
+    ind = 0
+    for i, s in enumerate(axes_shapes):
+        if s != 1:
+            if axes_scales[i] == -1:
+                axes_scales[i] = 1
+            axes.append(
+                {
+                    "name": axes_names[i],
+                    "size": s,  # if -1, get from the .mrc file
+                    "units": axes_units[i],
+                    "scale": axes_scales[i],
+                    "navigate": navigate[i],
+                    "index_in_array": ind,
+                }
+            )
+            ind += 1
+    electron_gain = float(original_metadata.get("ADUs Per Electron Bin1x", 1))
+    magnification = original_metadata.get("Instrument Project Magnification", None)
+    camera_model = original_metadata.get("Camera Model", None)
+    timestamp = original_metadata.get("Timestamp (seconds since Epoch)", None)
+    fps = original_metadata.get("Frames Per Second", None)
+
+    metadata = {
+        "Acquisition_instrument": {
+            "TEM": {
+                "magnification": magnification,
+                "detector": camera_model,
+                "frames_per_second": fps,
+            }
+        },
+        "Signal": {
+            "Noise_properties": {"gain_factor": 1 / electron_gain},
+            "quantity": "$e^-$",
+        },
+        "General": {"timestamp": timestamp},
+    }
+    return original_metadata, metadata, axes, nav_shape, positions
+
+
+@endianess_keyword_deprecation
+@distributed_keyword_deprecation
+@mmap_mode_keyword_deprecation
+def file_reader(
+    filename,
+    lazy=False,
+    endianness="<",
+    navigation_shape=None,
+    chunks="auto",
+    metadata_file="auto",
+    virtual_images=None,
+    external_images=None,
+    scan_file=None,
+):
+    """
+    File reader for the MRC format for tomographic and 4D-STEM data.
+
+    Parameters
+    ----------
+    %s
+    %s
+    %s
+    %s
+    %s
+    metadata_file : str
+        The filename of the metadata file, if "auto" it will try to find the
+        metadata file automatically. For DE movies of 4D STEM datasets this
+        defines the shape and metadata.
+    virtual_images : list
+        A list of filenames of virtual images. For DE movies these are automatically loaded.
+    external_images : list
+        A list of filenames of external images (e.g. external detectors) to be loaded
+        alongside the main data. For DE movies these are automatically loaded.
+    scan_file : str
+        The filename of the scan file. This is only used for DE movies to determine the scan order
+        for custom scans.
+
+    %s
+    """
+    virtual_image_names = None
+    external_images_names = None
+
+    if metadata_file == "auto":
+        if "movie" in filename:
+            info = find_related_de_files(filename)
+            # Populate from related DE files helper
+            metadata_file = info.get("info_file")
+            virtual_images = info.get("virtual_images") or []
+            virtual_image_names = info.get("virtual_image_names") or []
+            external_images = info.get("external_images") or []
+            scan_file = info.get("scan_csv")
+            external_images_names = info.get("external_image_names") or []
+        else:
+            metadata_file = None
+
+    if metadata_file is not None:
+        # Check if the metadata file exists
+        (
+            de_metadata,
+            metadata,
+            metadata_axes,
+            _navigation_shape,
+            positions,
+        ) = read_de_metadata_file(
+            metadata_file, nav_shape=navigation_shape, scan_pos_file=scan_file
+        )
+        if navigation_shape is None:
+            navigation_shape = _navigation_shape
+        original_metadata = {"de_metadata": de_metadata}
+    else:
+        original_metadata = {}
+        metadata = {"General": {}, "Signal": {}}
+        metadata_axes = None
+        positions = None
+    metadata["General"]["original_filename"] = os.path.split(filename)[1]
+    metadata["Signal"]["signal_type"] = ""
+    metadata.setdefault("_HyperSpy", {})
+    metadata["_HyperSpy"].setdefault("navigators", {})
+    if virtual_images is not None and len(virtual_images) > 0:
+        imgs = []
+        for i, v in enumerate(virtual_images):
+            signal = file_reader(v)[0]
+            img = signal["data"]
+            if navigation_shape is not None and navigation_shape[::-1] != img.shape:
+                if np.prod(img.shape) == np.prod(navigation_shape[::-1]):
+                    signal["data"] = img.reshape(navigation_shape[::-1])
+                else:  # pragma: no cover
+                    _logger.warning(
+                        f"Virtual image {v} does not match the navigation shape {navigation_shape[::-1]}"
+                    )
+            imgs.append(signal)
+            _logger.debug(f"Adding virtual image _sig_virtual_image_{i}")
+
+            if virtual_image_names and i < len(virtual_image_names):
+                name = f"_sig_{virtual_image_names[i]}"
+            else:
+                name = f"_sig_virtual_image_{i}"  # _sig_ is dropped in hyperspy. List  --> BaseSignal
+            metadata["_HyperSpy"]["navigators"][name] = signal
+        # checking to make sure the navigator is valid
+        if (
+            navigation_shape is not None
+            and navigation_shape[::-1] == imgs[0]["data"].shape
+        ):
+            # Preserve existing navigator entries (virtual/external) and only
+            # set the default navigator signal.
+            metadata["_HyperSpy"]["_sig_navigator"] = imgs[0]
+
+    if external_images is not None and len(external_images) > 0:
+        imgs = []
+        for e in external_images:
+            imgs.append(file_reader(e)[0])
+        for i, signal in enumerate(imgs):
+            _logger.debug(f"Adding external image _sig_external_image_{i}")
+            if external_images_names and i < len(external_images_names):
+                name = f"_sig_{external_images_names[i]}"
+            else:
+                name = f"_sig_external_image_{i}"  # _sig_ is dropped in hyperspy. List  --> BaseSignal
+
+            metadata["_HyperSpy"]["navigators"][name] = signal
+
+    f = open(filename, "rb")
+    std_header = np.fromfile(f, dtype=get_std_dtype_list(endianness), count=1)
+    fei_header = None
+    if std_header["NEXT"] / 1024 == 128:
+        _logger.info(f"{filename} seems to contain an extended FEI header")
+        fei_header = np.fromfile(f, dtype=get_fei_dtype_list(endianness), count=1024)
+    if f.tell() == 1024 + std_header["NEXT"]:
+        _logger.debug("The FEI header was correctly loaded")
+    else:
+        f.seek(1024 + std_header["NEXT"][0])
+        fei_header = None
+    NX, NY, NZ = std_header["NX"], std_header["NY"], std_header["NZ"]
+    shape = (NX[0], NY[0], NZ[0])
+    if navigation_shape is not None:
+        shape = shape[:2] + navigation_shape
+
+    data = file.memmap_distributed(
+        filename,
+        offset=f.tell(),
+        shape=shape[::-1],
+        dtype=get_data_type(std_header["MODE"]),
+        positions=positions,
+        chunks=chunks,
+    )
+    if any(shape[i] == 1 for i in range(len(shape))):
+        # Remove the singleton dimensions
+        data = np.squeeze(data)
+    if not lazy:
+        data = data.compute()
+
+    original_metadata["std_header"] = sarray2dict(std_header)
+
+    # Convert void/bytes fields to hex strings so they are JSON-serializable
+    # (e.g. when saving to zspy/zarr). CMAP, STAMP, LABELS are bytes/void;
+    # EXTRA and EXTRA2 are numpy.void padding fields.
+    for key in ["EXTRA", "EXTRA2", "CMAP", "STAMP", "LABELS"]:
+        val = original_metadata["std_header"].get(key)
+        if val is None:
+            continue
+        if isinstance(val, (bytes, np.void)):
+            original_metadata["std_header"][key] = bytes(val).hex()
+        elif isinstance(val, np.ndarray) and val.dtype.kind == "V":
+            original_metadata["std_header"][key] = val.tobytes().hex()
+    if fei_header is not None:
+        fei_dict = sarray2dict(
+            fei_header,
+        )
+        del fei_dict["empty"]
+        original_metadata["fei_header"] = fei_dict
+
+    if fei_header is None:
+        # The scale is in Angstroms, we convert it to nm
+        scales = [
+            (
+                float((std_header["Zlen"] / std_header["MZ"])[0]) / 10
+                if float(std_header["Zlen"][0]) != 0 and float(std_header["MZ"][0]) != 0
+                else 1
+            ),
+            (
+                float((std_header["Ylen"] / std_header["MY"])[0]) / 10
+                if float(std_header["MY"][0]) != 0
+                else 1
+            ),
+            (
+                float((std_header["Xlen"] / std_header["MX"])[0]) / 10
+                if float(std_header["MX"][0]) != 0
+                else 1
+            ),
+        ]
+        offsets = [
+            float(std_header["ZORIGIN"][0]) / 10,
+            float(std_header["YORIGIN"][0]) / 10,
+            float(std_header["XORIGIN"][0]) / 10,
+        ]
+
+    else:
+        # FEI does not use the standard header to store the scale
+        # It does store the spatial scale in pixel_size, one per angle in
+        # meters
+        scales = [
+            1,
+        ] + [
+            fei_header["pixel_size"][0] * 10**9,
+        ] * 2
+        offsets = [
+            0,
+        ] * 3
+
+    if metadata_axes is None:
+        units = [None, "nm", "nm"]
+        names = ["z", "y", "x"]
+        navigate = [True, False, False]
+        nav_axis_to_add = 0
+        if navigation_shape is not None:
+            nav_axis_to_add = len(navigation_shape) - 1
+            for i in range(nav_axis_to_add):
+                units.insert(0, None)
+                names.insert(0, "")
+                navigate.insert(0, True)
+                scales.insert(0, 1)
+                offsets.insert(0, 0)
+
+        # create the axis objects for each axis
+        dim = len(data.shape)
+        axes = [
+            {
+                "size": data.shape[i],
+                "index_in_array": i,
+                "name": names[i + nav_axis_to_add + 3 - dim],
+                "scale": scales[i + nav_axis_to_add + 3 - dim],
+                "offset": offsets[i + nav_axis_to_add + 3 - dim],
+                "units": units[i + nav_axis_to_add + 3 - dim],
+                "navigate": navigate[i + nav_axis_to_add + 3 - dim],
+            }
+            for i in range(dim)
+        ]
+    else:
+        axes = metadata_axes
+        for ax, s in zip(axes, shape[::-1]):
+            ax["size"] = s  # Update the size of the axes
+
+    dictionary = {
+        "data": data,
+        "axes": axes,
+        "metadata": metadata,
+        "original_metadata": original_metadata,
+        "mapping": mapping,
+    }
+
+    return [
+        dictionary,
+    ]
+
+
+mapping = {
+    "fei_header.a_tilt": ("Acquisition_instrument.TEM.Stage.tilt_alpha", None),
+    "fei_header.b_tilt": ("Acquisition_instrument.TEM.Stage.tilt_beta", None),
+    "fei_header.x_stage": ("Acquisition_instrument.TEM.Stage.x", None),
+    "fei_header.y_stage": ("Acquisition_instrument.TEM.Stage.y", None),
+    "fei_header.z_stage": ("Acquisition_instrument.TEM.Stage.z", None),
+    "fei_header.exp_time": (
+        "Acquisition_instrument.TEM.Detector.Camera.exposure",
+        None,
+    ),
+    "fei_header.magnification": ("Acquisition_instrument.TEM.magnification", None),
+}
+
+
+file_reader.__doc__ %= (
+    FILENAME_DOC,
+    LAZY_DOC,
+    ENDIANESS_DOC,
+    NAVIGATION_SHAPE,
+    CHUNKS_READ_DOC,
+    RETURNS_DOC,
+)

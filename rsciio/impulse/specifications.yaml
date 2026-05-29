@@ -1,0 +1,8 @@
+name: "Impulse"
+name_aliases: []
+description: "Reads DENSsolutions Impulse log files."
+full_support: False
+file_extensions: ["csv", "CSV"]
+default_extension: 0
+writes: False
+non_uniform_axis: False

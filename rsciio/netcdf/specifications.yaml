@@ -1,0 +1,8 @@
+name: "netCDF"
+name_aliases: []
+description: "Read files written by EELSlab (HyperSpy's predecessor) using the nedCDF format."
+full_support: True
+file_extensions: ["nc", "NC"]
+default_extension: 0
+writes: False
+non_uniform_axis: False

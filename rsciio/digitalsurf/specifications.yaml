@@ -1,0 +1,8 @@
+name: "DigitalSurf"
+name_aliases: ["DigitalSurfSurface", "Digital Surf Surface", "SUR"]
+description: "Read and write data from .sur/.pro file formats from Digital Surf."
+full_support: False
+file_extensions: ["sur", "SUR", "pro", "PRO"]
+default_extension: 0
+writes: True
+non_uniform_axis: False

@@ -1,0 +1,22 @@
+name: Package & Test
+
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - 'dependabot/**'
+      - 'pre-commit-ci-update-config'
+  workflow_dispatch:
+
+jobs:
+  package_and_test:
+    name: Package and Test
+    # Use the "reusable workflow" from the hyperspy organisation
+    uses: hyperspy/.github/.github/workflows/package_and_test.yml@main
+    with:
+      module_name: rsciio
+      # "github.event.pull_request.head.repo.full_name" is for "pull request" event while github.repository is for "push" event 
+      # "github.event.pull_request.head.ref" is for "pull request" event while "github.ref_name" is for "push" event
+      POOCH_BASE_URL: https://github.com/${{ github.event.pull_request.head.repo.full_name || github.repository }}/raw/${{ github.event.pull_request.head.ref || github.ref_name }}/rsciio/tests/data/
+      # "-s" is used to show of output when downloading the test files
+      PYTEST_ARGS: "-n 2"

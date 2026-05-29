@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LSX_Data>
+	<LSX_Tree Format="9" ID="0x69746164" Size="12">
+		<LSX Format="7" ID="0x6D707974">SpIm</LSX>
+		<LSX Format="8" ID="0x6C7469D9">ev21738_1</LSX>
+		<LSX Format="4" ID="0x6DD6C7D0">65728</LSX>
+		<LSX Format="9" ID="0x7A74D9D6" Size="1">
+			<LSX Format="9" ID="0x7B697861" Size="4">
+				<LSX Format="9" ID="0x0" Size="4">
+					<LSX Format="7" ID="0x6D707974">Intens</LSX>
+					<LSX Format="7" ID="0x7C696E75">Cnt/sec</LSX>
+					<LSX Format="9" ID="0x6D6174E3" Size="3">
+						<LSX Format="6" ID="0x6E75E2C6" Size="68">
+						1509 1251 1087 1002 934 896 866 830 837 831 815 792 784 808 796 
+						799 794 784 788 773 780 785 771 779 767 765 770 757 758 758 
+						741 762 757 775 1614 1317 1140 1035 970 931 901 868 865 847 843 
+						847 831 834 818 810 810 817 807 798 800 797 797 804 786 786 
+						778 787 775 790 782 778 780 783 
+						</LSX>
+						<LSX Format="9" ID="0x6E61656D" Size="2">
+							<LSX Format="5" ID="0x0">741</LSX>
+							<LSX Format="5" ID="0x1">1511.930656512</LSX>
+						</LSX>
+						<LSX Format="9" ID="0x696DDCE0" Size="2">
+							<LSX Format="5" ID="0x0">741</LSX>
+							<LSX Format="5" ID="0x1">1614</LSX>
+						</LSX>
+					</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x1" Size="4">
+					<LSX Format="6" ID="0x7D6CD4DB" Size="34">
+					537.361 536.918 536.474 536.031 535.586 535.142 534.697 534.252 533.807 533.361 532.915 532.468 532.022 531.575 531.128 
+					530.68 530.232 529.784 529.336 528.887 528.438 527.988 527.539 527.089 526.639 526.188 525.737 525.286 524.835 524.383 
+					523.931 523.479 523.027 522.574 
+					</LSX>
+					<LSX Format="7" ID="0x6D707974">Spectr</LSX>
+					<LSX Format="7" ID="0x7C696E75">nm</LSX>
+					<LSX Format="9" ID="0x6D6174E3" Size="1">
+						<LSX Format="9" ID="0x696DDCE0" Size="2">
+							<LSX Format="5" ID="0x0">522.57373046875</LSX>
+							<LSX Format="5" ID="0x1">537.361206054688</LSX>
+						</LSX>
+					</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x2" Size="4">
+					<LSX Format="6" ID="0x7D6CD4DB" Size="3">
+					0 0.5 1 
+					</LSX>
+					<LSX Format="7" ID="0x6D707974">Y</LSX>
+					<LSX Format="7" ID="0x7C696E75">µm</LSX>
+					<LSX Format="9" ID="0x6D6174E3" Size="1">
+						<LSX Format="9" ID="0x696DDCE0" Size="2">
+							<LSX Format="5" ID="0x0">0</LSX>
+							<LSX Format="5" ID="0x1">1</LSX>
+						</LSX>
+					</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x3" Size="3">
+					<LSX Format="6" ID="0x7D6CD4DB" Size="1">
+					0 
+					</LSX>
+					<LSX Format="7" ID="0x6D707974">X</LSX>
+					<LSX Format="7" ID="0x7C696E75">µm</LSX>
+				</LSX>
+			</LSX>
+		</LSX>
+		<LSX Format="4" ID="0x7CD6D3DA">6</LSX>
+		<LSX Format="9" ID="0xDAE4D648" Size="3">
+			<LSX Format="9" ID="0x8716361" Size="2">
+				<LSX Format="9" ID="0x8000079" Size="3">
+					<LSX Format="4" ID="0x6D646F6D">1</LSX>
+					<LSX Format="5" ID="0x78657473">0.5</LSX>
+					<LSX Format="4" ID="0x6D7A6973">3</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x8000078" Size="3">
+					<LSX Format="4" ID="0x6D646F6D">1</LSX>
+					<LSX Format="5" ID="0x78657473">0</LSX>
+					<LSX Format="4" ID="0x6D7A6973">1</LSX>
+				</LSX>
+			</LSX>
+			<LSX Format="9" ID="0x8000078" Size="2">
+				<LSX Format="5" ID="0x0">-0</LSX>
+				<LSX Format="5" ID="0x1">-0</LSX>
+			</LSX>
+			<LSX Format="9" ID="0x8000079" Size="2">
+				<LSX Format="5" ID="0x0">0</LSX>
+				<LSX Format="5" ID="0x1">1</LSX>
+			</LSX>
+		</LSX>
+		<LSX Format="9" ID="0x6C62D4D9" Size="3">
+			<LSX Format="9" ID="0x8716361" Size="33">
+				<LSX Format="9" ID="0x6F707865" Size="3">
+					<LSX Format="5" ID="0x7D6C61DB">1</LSX>
+					<LSX Format="7" ID="0x6D6D616E">Acq. time (s)</LSX>
+					<LSX Format="7" ID="0x7C696E75">s</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x7D6363CE" Size="2">
+					<LSX Format="4" ID="0x7D6C61DB">2</LSX>
+					<LSX Format="7" ID="0x6D6D616E">Accumulations</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x6F6E61D7" Size="2">
+					<LSX Format="7" ID="0x7D6C61DB">Off</LSX>
+					<LSX Format="7" ID="0x6D6D616E">Range</LSX>
+				</LSX>
+				<LSX Format="9" ID="0xECD7E53A" Size="2">
+					<LSX Format="7" ID="0x7D6C61DB">Off</LSX>
+					<LSX Format="7" ID="0x6D6D616E">Autofocus</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x6E6977E7" Size="2">
+					<LSX Format="7" ID="0x7D6C61DB">Off</LSX>
+					<LSX Format="7" ID="0x6D6D616E">SWIFT</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x4C576339" Size="2">
+					<LSX Format="7" ID="0x7D6C61DB">Off</LSX>
+					<LSX Format="7" ID="0x6D6D616E">AutoExposure</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x4F350544" Size="2">
+					<LSX Format="7" ID="0x7D6C61DB">Multiple accum.</LSX>
+					<LSX Format="7" ID="0x6D6D616E">Spike filter</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x696C65DD" Size="3">
+					<LSX Format="5" ID="0x7D6C61DB">0</LSX>
+					<LSX Format="7" ID="0x6D6D616E">Delay time (s)</LSX>
+					<LSX Format="7" ID="0x7C696E75">s</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x6ED5D7CB" Size="2">
+					<LSX Format="4" ID="0x7D6C61DB">30</LSX>
+					<LSX Format="7" ID="0x6D6D616E">Binning</LSX>
+				</LSX>
+				<LSX Format="9" ID="0xEA3A4A4E" Size="2">
+					<LSX Format="7" ID="0x7D6C61DB">Signal</LSX>
+					<LSX Format="7" ID="0x6D6D616E">Readout mode</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x6FD3D8CD" Size="2">
+					<LSX Format="7" ID="0x7D6C61DB">Off</LSX>
+					<LSX Format="7" ID="0x6D6D616E">DeNoise</LSX>
+				</LSX>
+				<LSX Format="9" ID="0xFC5AA4A0" Size="2">
+					<LSX Format="7" ID="0x7D6C61DB">Off</LSX>
+					<LSX Format="7" ID="0x6D6D616E">ICS correction</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x5AB3995F" Size="2">
+					<LSX Format="7" ID="0x7D6C61DB">Off</LSX>
+					<LSX Format="7" ID="0x6D6D616E">Dark correction</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x5A48F279" Size="2">
+					<LSX Format="7" ID="0x7D6C61DB">Off</LSX>
+					<LSX Format="7" ID="0x6D6D616E">Inst. Process</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x6EDE5114" Size="2">
+					<LSX Format="5" ID="0x7D6C61DB">-118.94</LSX>
+					<LSX Format="7" ID="0x6D6D616E">Detector temperature (°C)</LSX>
+				</LSX>
+				<LSX Format="9" ID="0xD9E15849" Size="6">
+					<LSX Format="7" ID="0x6D6D616E">Instrument</LSX>
+					<LSX Format="7" ID="0x7D6C61DB">LabRAM HR Evol</LSX>
+					<LSX Format="5" ID="0x8736F70">-825338570</LSX>
+					<LSX Format="4" ID="0x6A6DE7D3">5</LSX>
+					<LSX Format="7" ID="0xDCDCE5D6">LabRAM HR Evol</LSX>
+				</LSX>
+				<LSX Format="9" ID="0xDFE3D9C7" Size="6">
+					<LSX Format="7" ID="0x6D6D616E">Detector</LSX>
+					<LSX Format="7" ID="0x7D6C61DB">Symphony VIS</LSX>
+					<LSX Format="5" ID="0x8736F70">2037017759</LSX>
+					<LSX Format="4" ID="0x6A6DE7D3">2</LSX>
+					<LSX Format="7" ID="0xDCDCE5D6">Symphony VIS</LSX>
+				</LSX>
+				<LSX Format="9" ID="0xDBD3D737" Size="5">
+					<LSX Format="7" ID="0x6D6D616E">Objective</LSX>
+					<LSX Format="7" ID="0x7D6C61DB">x100</LSX>
+					<LSX Format="5" ID="0x8736F70">100</LSX>
+					<LSX Format="4" ID="0x6A6DE7D3">0</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x7CC8E0D0" Size="5">
+					<LSX Format="7" ID="0x6D6D616E">Grating</LSX>
+					<LSX Format="7" ID="0x7D6C61DB">1800 gr/mm</LSX>
+					<LSX Format="5" ID="0x8736F70">1800</LSX>
+					<LSX Format="4" ID="0x6A6DE7D3">0</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x7C6CDBCB" Size="5">
+					<LSX Format="7" ID="0x6D6D616E">ND Filter</LSX>
+					<LSX Format="7" ID="0x7D6C61DB">10%</LSX>
+					<LSX Format="5" ID="0x8736F70">10</LSX>
+					<LSX Format="4" ID="0x6A6DE7D3">3</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x6D7361DE" Size="5">
+					<LSX Format="7" ID="0x6D6D616E">Laser (nm)</LSX>
+					<LSX Format="7" ID="0x7D6C61DB">633 </LSX>
+					<LSX Format="5" ID="0x8736F70">632.817</LSX>
+					<LSX Format="4" ID="0x6A6DE7D3">0</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x6BD4E2E7" Size="4">
+					<LSX Format="7" ID="0x6D6D616E">Spectro (nm)</LSX>
+					<LSX Format="5" ID="0x7D6C61DB">530.0006245</LSX>
+					<LSX Format="5" ID="0x8736F70">530.0006245</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x6D6C6F68" Size="4">
+					<LSX Format="7" ID="0x6D6D616E">Hole</LSX>
+					<LSX Format="5" ID="0x7D6C61DB">100.02125</LSX>
+					<LSX Format="5" ID="0x8736F70">100.02125</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x7D7369EC" Size="5">
+					<LSX Format="7" ID="0x6D6D616E">Range</LSX>
+					<LSX Format="7" ID="0x7D6C61DB">Visible</LSX>
+					<LSX Format="5" ID="0x8736F70">1</LSX>
+					<LSX Format="4" ID="0x6A6DE7D3">1</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x7B9DDBD5" Size="5">
+					<LSX Format="7" ID="0x6D6D616E">Laser. Pol.</LSX>
+					<LSX Format="7" ID="0x7D6C61DB">L/2 vis L</LSX>
+					<LSX Format="5" ID="0x8736F70">0</LSX>
+					<LSX Format="4" ID="0x6A6DE7D3">0</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x7B9EDBD5" Size="5">
+					<LSX Format="7" ID="0x6D6D616E">Raman. Pol.</LSX>
+					<LSX Format="7" ID="0x7D6C61DB">No</LSX>
+					<LSX Format="5" ID="0x8736F70">3</LSX>
+					<LSX Format="4" ID="0x6A6DE7D3">3</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x396C6F70" Size="4">
+					<LSX Format="7" ID="0x6D6D616E">Laser Pol. (°)</LSX>
+					<LSX Format="5" ID="0x7D6C61DB">0</LSX>
+					<LSX Format="5" ID="0x8736F70">0</LSX>
+					<LSX Format="7" ID="0x7C696E75">°</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x3A6C6F70" Size="4">
+					<LSX Format="7" ID="0x6D6D616E">Raman Pol. (°)</LSX>
+					<LSX Format="5" ID="0x7D6C61DB">0</LSX>
+					<LSX Format="5" ID="0x8736F70">0</LSX>
+					<LSX Format="7" ID="0x7C696E75">°</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x6FDAECD8" Size="6">
+					<LSX Format="7" ID="0x6D6D616E">StageXY</LSX>
+					<LSX Format="7" ID="0x7D6C61DB">Marzhauser</LSX>
+					<LSX Format="5" ID="0x8736F70">1768810209</LSX>
+					<LSX Format="4" ID="0x6A6DE7D3">0</LSX>
+					<LSX Format="7" ID="0xDCDCE5D6">Marzhauser</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x6F61EED8" Size="6">
+					<LSX Format="7" ID="0x6D6D616E">StageZ</LSX>
+					<LSX Format="7" ID="0x7D6C61DB">Marzhauser</LSX>
+					<LSX Format="5" ID="0x8736F70">1768810209</LSX>
+					<LSX Format="4" ID="0x6A6DE7D3">0</LSX>
+					<LSX Format="7" ID="0xDCDCE5D6">Marzhauser</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x8000078" Size="4">
+					<LSX Format="7" ID="0x6D6D616E">X (µm)</LSX>
+					<LSX Format="5" ID="0x7D6C61DB">0.2</LSX>
+					<LSX Format="5" ID="0x8736F70">0.2</LSX>
+					<LSX Format="7" ID="0x7C696E75">µm</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x800007A" Size="4">
+					<LSX Format="7" ID="0x6D6D616E">Z (µm)</LSX>
+					<LSX Format="5" ID="0x7D6C61DB">0</LSX>
+					<LSX Format="5" ID="0x8736F70">0</LSX>
+					<LSX Format="7" ID="0x7C696E75">µm</LSX>
+				</LSX>
+				<LSX Format="9" ID="0xD9D9DEDA" Size="2">
+					<LSX Format="5" ID="0x7D6C61DB">8</LSX>
+					<LSX Format="7" ID="0x6D6D616E">Full time(s)</LSX>
+				</LSX>
+			</LSX>
+			<LSX Format="9" ID="0x7C73E2D2" Size="6">
+				<LSX Format="9" ID="0x6AE3D5D5" Size="2">
+					<LSX Format="7" ID="0x6D6D616E">Project</LSX>
+					<LSX Format="8" ID="0x7D6C61DB">A</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x786DC6DF" Size="2">
+					<LSX Format="7" ID="0x6D6D616E">Sample</LSX>
+					<LSX Format="8" ID="0x7D6C61DB">test</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x6D746973" Size="2">
+					<LSX Format="7" ID="0x6D6D616E">Site</LSX>
+					<LSX Format="8" ID="0x7D6C61DB">C</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x6C7469D9" Size="2">
+					<LSX Format="7" ID="0x6D6D616E">Title</LSX>
+					<LSX Format="8" ID="0x7D6C61DB">ev21738_1</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x696DD0E4" Size="2">
+					<LSX Format="7" ID="0x6D6D616E">Remark</LSX>
+					<LSX Format="8" ID="0x7D6C61DB">PL</LSX>
+				</LSX>
+				<LSX Format="9" ID="0x6D746164" Size="2">
+					<LSX Format="7" ID="0x6D6D616E">Date</LSX>
+					<LSX Format="7" ID="0x7D6C61DB">27.06.2022 16:36</LSX>
+				</LSX>
+			</LSX>
+			<LSX Format="9" ID="0x7CECDBD7" Size="1">
+				<LSX Format="9" ID="0x0" Size="3">
+					<LSX Format="7" ID="0x6D6D616E">Acquired</LSX>
+					<LSX Format="7" ID="0x7D6C61DB">27.06.2022 16:36:48</LSX>
+				</LSX>
+			</LSX>
+		</LSX>
+		<LSX Format="4" ID="0xCADCE2DA">1</LSX>
+		<LSX Format="9" ID="0x6D6174E3" Size="2">
+			<LSX Format="4" ID="0xEBD4C9C8">17640946</LSX>
+			<LSX Format="9" ID="0x8736C70" Size="2">
+				<LSX Format="4" ID="0xEF484842">17640237</LSX>
+				<LSX Format="5" ID="0xDFCCE3D9">10</LSX>
+			</LSX>
+		</LSX>
+		<LSX Format="9" ID="0x6B6165E3" Size="2">
+			<LSX Format="4" ID="0x6DD9CDD5">133120</LSX>
+			<LSX Format="5" ID="0xDFD9DE47">10</LSX>
+		</LSX>
+		<LSX Format="4" ID="0xD8DEE64D">0</LSX>
+	</LSX_Tree>
+	<LSX_Matrix Format="6" ID="0x7D6CD4DB" Size="102">
+		<LSX_Row Format="6" Index="0" Size="34">
+		1614 1317 1140 1035 970 931 901 868 864 845 843 847 831 834 813 
+		810 807 817 807 798 800 797 788 804 767 778 778 787 775 790 
+		769 778 780 783 
+		</LSX_Row>
+		<LSX_Row Format="6" Index="1" Size="34">
+		1509 1251 1087 1002 934 896 866 830 837 831 815 792 784 811 796 
+		799 794 784 788 773 780 787 797 779 780 765 770 757 758 758 
+		741 769 765 775 
+		</LSX_Row>
+		<LSX_Row Format="6" Index="2" Size="34">
+		1546 1292 1124 1020 950 901 890 865 865 847 837 824 827 808 818 
+		809 810 814 798 784 790 785 771 790 786 786 773 771 772 768 
+		782 762 757 781 
+		</LSX_Row>
+	</LSX_Matrix>
+</LSX_Data>

@@ -1,0 +1,9 @@
+name: "Ripple"
+name_aliases: []
+description: "RPL file contains the information on how to read the RAW file with the same name."
+full_support: True
+file_extensions: ["rpl", "RPL"]
+default_extension: 0
+writes: [[1, 0], [1, 1], [1, 2], [2, 0], [2, 1], ]
+non_uniform_axis: False
+

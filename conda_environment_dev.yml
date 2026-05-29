@@ -1,0 +1,19 @@
+name: test_env
+channels:
+- conda-forge
+dependencies:
+- cython
+- filelock
+- h5py >=2.3
+- hdf5plugin
+- imageio >=2.16
+- numba >=0.52
+- pooch
+- pytest
+- pytest-xdist
+- pytest-rerunfailures
+- hyperspy-base >=2.0
+- setuptools-scm
+- sparse
+- tifffile>=2022.7.28,!=2026.2.24
+- zarr <3

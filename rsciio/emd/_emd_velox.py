@@ -30,6 +30,7 @@ import logging
 import os
 import time
 from datetime import datetime
+import re
 
 import numpy as np
 from dateutil import tz
@@ -550,6 +551,10 @@ class FeiEMDReader(object):
     def _read_spectrum_stream(self):
         if not self.load_SI:
             return
+
+        if "EelsSpectrumImage" in self.d_grp.keys():
+            self._read_eels_spectrum_images()
+
         self.detector_name = "EDS"
         # Try to read the number of frames from Data/SpectrumImage
         try:
@@ -706,6 +711,128 @@ class FeiEMDReader(object):
                     ),
                 }
             )
+
+
+    def _read_eels_spectrum_images(self):
+
+        # get binary result to read pixel size
+        k = list(self.d_grp["SpectrumImage"].keys())[0]
+        meta = self.d_grp["SpectrumImage"][k]["Metadata"]
+        meta_dict = eval(bytes(meta[:].flatten()).decode("utf-8", errors="ignore").strip().rstrip("\x00"))
+        binary_result = meta_dict["BinaryResult"]
+        spatial_dim = len(binary_result["Offset"])
+
+        #read pixel size
+        scale_x, x_unit = self._convert_scale_units(binary_result["PixelSize"]["width"],binary_result["PixelUnitX"])
+        offset_x, _ = self._convert_scale_units(binary_result["Offset"]["x"],binary_result["PixelUnitX"])
+        if spatial_dim == 2:
+            scale_y, y_unit = self._convert_scale_units(binary_result["PixelSize"]["height"],binary_result["PixelUnitY"])
+            offset_y, _ = self._convert_scale_units(binary_result["Offset"]["y"],binary_result["PixelUnitY"])
+
+        # Zebra detector stores the different energy ranges as separate datasets. Iterate over each of their ids:
+        for bin_id in self.d_grp["EelsSpectrumImage"].keys():
+            axes=[]
+            eels_dict = {}
+            data_node_path = f"EelsSpectrumImage/{bin_id}/Data"
+            data_cube = self.d_grp[data_node_path][:]
+
+            if data_cube.ndim == 3:
+                data_cube = data_cube.transpose(2, 0, 1)
+                axes.extend(
+                    [
+                        {
+                        "name":"y",
+                        "offset":offset_y,
+                        "scale":scale_y,
+                        "size":data_cube.shape[0],
+                        "units":y_unit,
+                        "index_in_array":1,
+                        "navigate":True
+                            
+                        },
+                        {
+                        "name":"x",
+                        "offset":offset_x,
+                        "scale":scale_x,
+                        "size":data_cube.shape[1],
+                        "units":x_unit,
+                        "index_in_array":0,
+                        "navigate":True
+            
+                        }
+                    ] 
+                )
+            elif data_cube.ndim ==2:
+                axes.extend(
+                    [
+                        {
+                        "name":"x",
+                        "offset":offset_x,
+                        "scale":scale_x,
+                        "size":data_cube.shape[0],
+                        "units":x_unit,
+                        "index_in_array":0,
+                        "navigate":True
+            
+                        }
+                    ]
+                )
+            else:
+                raise Exception("Unexpected dataset dimensionality")
+
+            # deal with metadata
+            meta_eels = self.d_grp[f"EelsSpectrumImage/{bin_id}/Metadata"]
+            meta_eels_dict = eval(bytes(meta_eels[:].flatten()).decode("utf-8", errors="ignore").strip().rstrip("\x00"))
+            meta_eels_dict = self._fix_eels_metadata_dict(meta_eels_dict["CustomProperties"])
+
+            acquisition_md_raw = self.d_grp["EelsSpectrumImage"][f"{bin_id}"]["AcquisitionMetadata"]
+            acquisition_md = eval(bytes(acquisition_md_raw[:][:,0].flatten()).decode("utf-8", errors="ignore").strip().rstrip("\x00"))
+            energy_offset = acquisition_md["Data"]["offset"]
+            energy_scale = acquisition_md["Data"]["dispersion"]
+            axes.append(
+                {
+                    "name":"Energy-loss",
+                    "offset":energy_offset,
+                    "scale":energy_scale,
+                    "size":data_cube.shape[-1],
+                    "units":"eV", # assumed
+                    "navigate":False
+                }
+            )
+
+            #tidy up dictionary
+            md = {"General":{"original_filename":self.filename},"title":"EELS","Signal":{"signal_type":"EELS"}}
+            md["Signal"]["signal_type"] = "EELS"
+            eels_dict["data"] = data_cube
+            eels_dict["axes"] = axes
+            md["original_metadata"] = meta_eels_dict
+            eels_dict["metadata"] = md
+            
+            self.dictionaries.append(eels_dict)
+
+
+
+    def _fix_eels_metadata_dict(self,dict):
+        new_dict={}
+        for k,v in dict.items():
+            
+            new_keys = re.split(r"[.\[\]]+", k)
+            if "" in new_keys:
+                new_keys.remove("")
+            new_keys = [i.replace("\"","") for i in new_keys]
+            #print(new_keys)
+
+            if isinstance(new_keys,list):
+                if not new_keys[0] in new_dict.keys():
+                    new_dict[new_keys[0]] = {}
+                    
+                d = new_dict[new_keys[0]]
+                for i in new_keys[1:-1]:
+                    if not i in d.keys():
+                        d[i]={}
+                    d=d[i]
+                d[new_keys[-1]]=v
+        return new_dict
 
     def _get_dispersion_offset(self, original_metadata):
         try:

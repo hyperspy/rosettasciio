@@ -869,7 +869,45 @@ def si_reader(
         spc_basename = os.path.splitext(os.path.basename(filename))[0] + ".spc"
         spc_fname = os.path.join(spc_path, spc_basename)
 
+    metadata = {
+        "General": {
+            "original_filename": os.path.split(filename)[1],
+        },
+        "Signal": {
+            "signal_type": "EDS_SEM",
+        },
+    }
+
     read_spc = os.path.isfile(spc_fname)
+
+    # Read the .spc header (if possible)
+    if read_spc:
+        with open(spc_fname, "rb") as f:
+            _logger.debug(" From .spd reader - reading .spc {}".format(spc_fname))
+            spc_header = __get_spc_header(f, endianness, load_all_spc)
+            spc_dict = sarray2dict(spc_header)
+            original_metadata["spc_header"] = spc_dict
+            metadata = _add_spc_metadata(metadata, spc_dict)
+    else:
+        _logger.warning(
+            "Could not find .spc file named {}.\n"
+            "No spectral metadata will be loaded."
+            "\n".format(spc_fname)
+        )
+    # create the energy axis dictionary:
+    energy_axis = {
+        "size": data.shape[-1],
+        "index_in_array": -1,
+        "name": "Energy",
+        "scale": (
+            original_metadata["spc_header"]["evPerChan"] / 1000.0 if read_spc else 1
+        ),
+        "offset": original_metadata["spc_header"]["startEnergy"] if read_spc else 1,
+        "units": "keV" if read_spc else None,
+        "navigate": False,
+    }
+
+    nav_units = "µm"
 
     if linescan:
         if csv_fname is None:
@@ -911,6 +949,21 @@ def si_reader(
                 "\n".format(csv_fname)
             )
 
+        x_axis = {
+            "size": data.shape[0],
+            "index_in_array": 1,
+            "name": "x",
+            "scale": spatial_axis_calibration,
+            "offset": spatial_axis_offset,
+            "units": nav_units if read_csv else None,
+            "navigate": True,
+        }
+
+        # Set title in metadata to EDS Line Scan:
+        metadata["General"]["title"] = "EDS Line Scan"
+
+        axes = [x_axis, energy_axis]
+
     else:
         # Get name of .ipr file from bitmap image (if not explicitly given):
         if ipr_fname is None:
@@ -947,61 +1000,6 @@ def si_reader(
                 "\n".format(ipr_fname)
             )
 
-    # Read the .spc header (if possible)
-    if read_spc:
-        with open(spc_fname, "rb") as f:
-            _logger.debug(" From .spd reader - reading .spc {}".format(spc_fname))
-            spc_header = __get_spc_header(f, endianness, load_all_spc)
-            spc_dict = sarray2dict(spc_header)
-            original_metadata["spc_header"] = spc_dict
-    else:
-        _logger.warning(
-            "Could not find .spc file named {}.\n"
-            "No spectral metadata will be loaded."
-            "\n".format(spc_fname)
-        )
-
-    # create the energy axis dictionary:
-    energy_axis = {
-        "size": data.shape[-1],
-        "index_in_array": -1,
-        "name": "Energy",
-        "scale": (
-            original_metadata["spc_header"]["evPerChan"] / 1000.0 if read_spc else 1
-        ),
-        "offset": original_metadata["spc_header"]["startEnergy"] if read_spc else 1,
-        "units": "keV" if read_spc else None,
-        "navigate": False,
-    }
-
-    nav_units = "µm"
-    # Create navigation axes dictionaries:
-
-    if linescan:
-        x_axis = {
-            "size": data.shape[0],
-            "index_in_array": 1,
-            "name": "x",
-            "scale": spatial_axis_calibration,
-            "offset": spatial_axis_offset,
-            "units": nav_units if read_csv else None,
-            "navigate": True,
-        }
-
-        # Assign metadata for spectrum image:
-        metadata = {
-            "General": {
-                "original_filename": os.path.split(filename)[1],
-                "title": "EDS Line Scan",
-            },
-            "Signal": {
-                "signal_type": "EDS_SEM",
-            },
-        }
-
-        axes = [x_axis, energy_axis]
-
-    else:
         x_axis = {
             "size": data.shape[1],
             "index_in_array": 1,
@@ -1022,23 +1020,11 @@ def si_reader(
             "navigate": True,
         }
 
-        # Assign metadata for spectrum image:
-        metadata = {
-            "General": {
-                "original_filename": os.path.split(filename)[1],
-                "title": "EDS Spectrum Image",
-            },
-            "Signal": {
-                "signal_type": "EDS_SEM",
-            },
-        }
+        # Set title in metadata to EDS Spectrum Image:
+        metadata["General"]["title"] = "EDS Spectrum Image"
 
         # Define navigation and signal axes:
         axes = [y_axis, x_axis, energy_axis]
-
-    # Add spectral calibration and elements (if present):
-    if read_spc:
-        metadata = _add_spc_metadata(metadata, spc_dict)
 
     dictionary = {
         "data": data,

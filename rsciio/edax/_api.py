@@ -1127,16 +1127,7 @@ def file_reader(
             load_all_spc=load_all_spc,
             **kwargs,
         )
-    # elif ext == "lsd":
-    #     return lsd_reader(
-    #         filename,
-    #         lazy,
-    #         endianness,
-    #         spc_fname=spc_fname,
-    #         csv_fname=csv_fname,
-    #         load_all_spc=load_all_spc,
-    #         **kwargs,
-    #     )
+
     elif ext == "spc":
         return spc_reader(
             filename,

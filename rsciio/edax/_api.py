@@ -979,7 +979,7 @@ def lsd_reader(
     spc_fname=None,
     csv_fname=None,
     load_all_spc=False,
-    **kwds,
+    **kwargs,
 ):
     """
     Read data from an SPD spectral map specified by filename.
@@ -1006,7 +1006,7 @@ def lsd_reader(
     load_all_spc : bool, Default=False
         Switch to control whether the complete .spc header is read, or just the
         important parts for import into HyperSpy.
-    **kwds
+    **kwargs
         Remaining arguments are passed to the Numpy ``memmap`` function.
 
     %s
@@ -1023,13 +1023,13 @@ def lsd_reader(
         data_type = {"1": "u1", "2": "u2", "4": "u4"}[
             str(original_metadata["spd_header"]["countBytes"])
         ]
-        mode = kwds.pop("mode", "c")
+        mode = kwargs.pop("mode", "c")
         if lazy:
             mode = "r"
 
         # Read data from file into a numpy memmap object
         data = (
-            np.memmap(f, mode=mode, offset=data_offset, dtype=data_type, **kwds)
+            np.memmap(f, mode=mode, offset=data_offset, dtype=data_type, **kwargs)
             .squeeze()
             .reshape((nz, nx), order="F")
             .T
@@ -1241,7 +1241,7 @@ def file_reader(
             spc_fname=spc_fname,
             csv_fname=csv_fname,
             load_all_spc=load_all_spc,
-            **kwds,
+            **kwargs,
         )
     elif ext == "spc":
         return spc_reader(

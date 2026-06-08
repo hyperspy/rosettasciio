@@ -773,7 +773,7 @@ def spc_reader(filename, lazy=False, endianness="<", load_all_spc=False, **kwarg
 spc_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, KWARGS_DOC, RETURNS_DOC)
 
 
-def spd_reader(
+def si_reader(
     filename,
     lazy=False,
     chunks="auto",
@@ -785,7 +785,7 @@ def spd_reader(
     **kwargs,
 ):
     """
-    Read data from an SPD spectral map specified by filename.
+    Read data from spectrum image or line scan dataset specified by filename.
 
     Parameters
     ----------
@@ -1052,199 +1052,7 @@ def spd_reader(
     ]
 
 
-spd_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, KWARGS_DOC, RETURNS_DOC)
-
-
-# def lsd_reader(
-#     filename,
-#     lazy=False,
-#     endianness="<",
-#     spc_fname=None,
-#     csv_fname=None,
-#     load_all_spc=False,
-#     **kwargs,
-# ):
-#     """
-#     Read data from an SPD spectral map specified by filename.
-
-#     Parameters
-#     ----------
-#     %s
-#     %s
-#     %s
-#     spc_fname : None or str
-#         Name of file from which to read the spectral calibration. If data
-#         was exported fully from EDAX TEAM software, an .spc file with the
-#         same name as the .spd should be present.
-#         If `None`, the default filename will be searched for.
-#         Otherwise, the name of the .spc file to use for calibration can
-#         be explicitly given as a string.
-#     csv_fname : None or str
-#         Name of file from which to read the spatial calibration. If data
-#         was exported fully from EDAX TEAM software, a .csv file with the
-#         same name as the .lsd should be present.
-#         If `None`, the default filename will be searched for.
-#         Otherwise, the name of the .csv file to use for spatial calibration
-#         can be explicitly given as a string.
-#     load_all_spc : bool, Default=False
-#         Switch to control whether the complete .spc header is read, or just the
-#         important parts for import into HyperSpy.
-#     **kwargs
-#         Remaining arguments are passed to the Numpy ``memmap`` function.
-
-#     %s
-#     """
-#     with open(filename, "rb") as f:
-#         spd_header = np.fromfile(f, dtype=get_spd_dtype_list(endianness), count=1)
-
-#         original_metadata = {"spd_header": sarray2dict(spd_header)}
-
-#         # dimensions of map data:
-#         nx = original_metadata["spd_header"]["nPoints"]
-#         nz = original_metadata["spd_header"]["nChannels"]
-#         data_offset = original_metadata["spd_header"]["dataOffset"]
-#         data_type = {"1": "u1", "2": "u2", "4": "u4"}[
-#             str(original_metadata["spd_header"]["countBytes"])
-#         ]
-#         mode = kwargs.pop("mode", "c")
-#         if lazy:
-#             mode = "r"
-
-#         # Read data from file into a numpy memmap object
-#         data = (
-#             np.memmap(f, mode=mode, offset=data_offset, dtype=data_type, **kwargs)
-#             .squeeze()
-#             .reshape((nz, nx), order="F")
-#             .T
-#         )
-#         nSpectra = original_metadata["spd_header"]["nSpectra"]
-#         data = data[0:nSpectra, :]
-
-#     # Convert char arrays to strings:
-#     original_metadata["spd_header"]["tag"] = spd_header["tag"][0].view("S16")[0]
-#     # fName is the name of the .bmp file of the line scan
-#     original_metadata["spd_header"]["fName"] = spd_header["fName"][0].view("S120")[0]
-
-#     # Get name of .spc file from the .lsd line scan (if not explicitly given):
-#     if spc_fname is None:
-#         spc_path = os.path.dirname(filename)
-#         spc_basename = os.path.splitext(os.path.basename(filename))[0] + ".spc"
-#         spc_fname = os.path.join(spc_path, spc_basename)
-
-#     # Get name of .ipr file from bitmap image (if not explicitly given):
-#     if csv_fname is None:
-#         csv_basename = os.path.splitext(filename)[0] + ".csv"
-#         csv_path = os.path.dirname(filename)
-#         csv_fname = os.path.join(csv_path, csv_basename)
-
-#     # Flags to control reading of files
-#     read_spc = os.path.isfile(spc_fname)
-#     read_csv = os.path.isfile(csv_fname)
-
-#     # Read the .csv header (if possible)
-#     csv_header = OrderedDict()
-#     spatial_axis = []
-#     spatial_axis_calibration = 1
-#     spatial_axis_offset = 0
-#     if read_csv:
-#         with open(csv_fname, mode="r", encoding="utf-8-sig") as f:
-#             _logger.debug(" From .lsd reader - reading .csv {}".format(csv_fname))
-
-#             # Reader lsd file header
-#             for _ in range(14):
-#                 line = next(f).strip()
-#                 if line:
-#                     parts = line.split(",", 1)
-#                     if len(parts) == 2:
-#                         label, value = parts
-#                         csv_header[label.strip()] = value.strip()
-
-#             # Read csv data
-#             reader = csv.DictReader(f, skipinitialspace=True)
-#             for row in reader:
-#                 spatial_axis.append(float(row["Distance (nm)"]))
-#             spatial_axis_offset = spatial_axis[0]
-#             spatial_axis_calibration = spatial_axis[1] - spatial_axis[0]
-
-#         original_metadata["csv_header"] = csv_header
-
-#     else:
-#         _logger.warning(
-#             "Could not find .csv file named {}.\n"
-#             "No spatial calibration will be loaded."
-#             "\n".format(csv_fname)
-#         )
-
-#     # Read the .spc header (if possible)
-#     if read_spc:
-#         with open(spc_fname, "rb") as f:
-#             _logger.debug(" From .spd reader - reading .spc {}".format(spc_fname))
-#             spc_header = __get_spc_header(f, endianness, load_all_spc)
-#             spc_dict = sarray2dict(spc_header)
-#             original_metadata["spc_header"] = spc_dict
-#     else:
-#         _logger.warning(
-#             "Could not find .spc file named {}.\n"
-#             "No spectral metadata will be loaded."
-#             "\n".format(spc_fname)
-#         )
-
-#     # create the energy axis dictionary:
-#     energy_axis = {
-#         "size": data.shape[1],
-#         "index_in_array": 1,
-#         "name": "Energy",
-#         "scale": (
-#             original_metadata["spc_header"]["evPerChan"] / 1000.0 if read_spc else 1
-#         ),
-#         "offset": original_metadata["spc_header"]["startEnergy"] if read_spc else 1,
-#         "units": "keV" if read_spc else None,
-#         "navigate": False,
-#     }
-
-#     nav_units = "µm"
-#     # Create navigation axes dictionaries:
-#     x_axis = {
-#         "size": data.shape[0],
-#         "index_in_array": 1,
-#         "name": "x",
-#         "scale": spatial_axis_calibration,
-#         "offset": spatial_axis_offset,
-#         "units": nav_units if read_csv else None,
-#         "navigate": True,
-#     }
-
-#     # Assign metadata for spectrum image:
-#     metadata = {
-#         "General": {
-#             "original_filename": os.path.split(filename)[1],
-#             "title": "EDS Line Scan",
-#         },
-#         "Signal": {
-#             "signal_type": "EDS_SEM",
-#         },
-#     }
-
-#     # Add spectral calibration and elements (if present):
-#     if read_spc:
-#         metadata = _add_spc_metadata(metadata, spc_dict)
-
-#     # Define navigation and signal axes:
-#     axes = [x_axis, energy_axis]
-
-#     dictionary = {
-#         "data": data,
-#         "axes": axes,
-#         "metadata": metadata,
-#         "original_metadata": original_metadata,
-#     }
-
-#     return [
-#         dictionary,
-#     ]
-
-
-# lsd_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, RETURNS_DOC)
+si_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, KWARGS_DOC, RETURNS_DOC)
 
 
 @endianess_keyword_deprecation
@@ -1309,7 +1117,7 @@ def file_reader(
         "spd",
         "lsd",
     ]:
-        return spd_reader(
+        return si_reader(
             filename,
             lazy=lazy,
             chunks=chunks,

@@ -820,7 +820,8 @@ def si_reader(
 
     %s
     """
-    linescan = False
+    ext = os.path.splitext(filename)[1][1:].lower()
+    linescan = ext == "lsd"
 
     with open(filename, "rb") as f:
         spd_header = np.fromfile(f, dtype=get_spd_dtype_list(endianness), count=1)
@@ -852,11 +853,7 @@ def si_reader(
             data = np.fromfile(
                 f, dtype=data_type, offset=data_offset, count=nx * ny * nz
             )
-            data = data.reshape((ny, nx, nz)).squeeze()
-
-    if ny == 1:
-        linescan = True
-        data = data[0:nSpectra, :]
+            data = data.reshape((ny, nx, nz))
 
     # Convert char arrays to strings:
     original_metadata["spd_header"]["tag"] = spd_header["tag"][0].view("S16")[0]
@@ -910,6 +907,7 @@ def si_reader(
     nav_units = "µm"
 
     if linescan:
+        data = data.squeeze()[:nSpectra, :]
         if csv_fname is None:
             csv_basename = os.path.splitext(filename)[0] + ".csv"
             csv_path = os.path.dirname(filename)
@@ -937,6 +935,7 @@ def si_reader(
                 reader = csv.DictReader(f, skipinitialspace=True)
                 for row in reader:
                     spatial_axis.append(float(row["Distance (nm)"]))
+                    nav_units = "nm"
                 spatial_axis_offset = spatial_axis[0]
                 spatial_axis_calibration = spatial_axis[1] - spatial_axis[0]
 
@@ -951,7 +950,7 @@ def si_reader(
 
         x_axis = {
             "size": data.shape[0],
-            "index_in_array": 1,
+            "index_in_array": 0,
             "name": "x",
             "scale": spatial_axis_calibration,
             "offset": spatial_axis_offset,
@@ -1110,6 +1109,7 @@ def file_reader(
             endianness=endianness,
             spc_fname=spc_fname,
             ipr_fname=ipr_fname,
+            csv_fname=csv_fname,
             load_all_spc=load_all_spc,
             **kwargs,
         )

@@ -662,7 +662,7 @@ class TestLsdLineScan:
                 "offset": 0.0,
                 "scale": 212.0,
                 "size": 3,
-                "units": "µm",
+                "units": "nm",
             },
             "axis-1": {
                 "_type": "UniformDataAxis",
@@ -719,3 +719,13 @@ def test_lazy_loading(fname):
     spc_lazy.compute()
 
     np.testing.assert_allclose(spc_lazy.data, spc.data)
+
+
+def test_lazy_loading_linescan():
+    lsd = hs.load(os.path.join(TMP_DIR.name, "line_scan.lsd"))
+    lsd_lazy = hs.load(os.path.join(TMP_DIR.name, "line_scan.lsd"), lazy=True)
+    assert lsd_lazy._lazy
+
+    lsd_lazy.compute()
+
+    np.testing.assert_allclose(lsd_lazy.data, lsd.data)

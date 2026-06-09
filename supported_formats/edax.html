@@ -501,21 +501,29 @@
                   
   <section id="edax-team-genesis-spc-spd">
 <span id="edax-format"></span><h1>EDAX TEAM/Genesis (SPC, SPD)<a class="headerlink" href="#edax-team-genesis-spc-spd" title="Link to this heading">#</a></h1>
-<p>RosettaSciIO can read both <code class="docutils literal notranslate"><span class="pre">.spd</span></code> (spectrum image) and <code class="docutils literal notranslate"><span class="pre">.spc</span></code> (single spectra)
-files from the EDAX TEAM software and its predecessor EDAX Genesis.
-If reading an <code class="docutils literal notranslate"><span class="pre">.spd</span></code> file, the calibration of the
+<p>RosettaSciIO can read <code class="docutils literal notranslate"><span class="pre">.spd</span></code> (spectrum image), <code class="docutils literal notranslate"><span class="pre">.lsd</span></code> (line scan), and
+<code class="docutils literal notranslate"><span class="pre">.spc</span></code> (single spectra) files from the EDAX TEAM software and its predecessor
+EDAX Genesis.</p>
+<p>If reading an <code class="docutils literal notranslate"><span class="pre">.spd</span></code> file, the calibration of the
 spectrum image is loaded from the corresponding <code class="docutils literal notranslate"><span class="pre">.ipr</span></code> and <code class="docutils literal notranslate"><span class="pre">.spc</span></code> files
 stored in the same directory, or from specific files indicated by the user.
 If these calibration files are not available, the data from the <code class="docutils literal notranslate"><span class="pre">.spd</span></code>
+file will still be loaded, but with no spatial or energy calibration.</p>
+<p>If reading an <code class="docutils literal notranslate"><span class="pre">.lsd</span></code> file, the calibration of the
+line scan is loaded from the corresponding <code class="docutils literal notranslate"><span class="pre">.csv</span></code> and <code class="docutils literal notranslate"><span class="pre">.spc</span></code> files
+stored in the same directory, or from specific files indicated by the user.
+If these calibration files are not available, the data from the <code class="docutils literal notranslate"><span class="pre">.lsd</span></code>
 file will still be loaded, but with no spatial or energy calibration.</p>
 <p>When using <a class="reference external" href="https://hyperspy.org">HyperSpy</a>, if elemental information has been
 defined in the spectrum image, those elements will automatically be added to the
 signal loaded by HyperSpy.</p>
 <p>In HyperSpy, if an <code class="docutils literal notranslate"><span class="pre">.spd</span></code> file is loaded, the result will be a HyperSpy
 <code class="docutils literal notranslate"><span class="pre">EDSSEMSpectrum</span></code> map, and the calibration will be loaded from the appropriate
-<code class="docutils literal notranslate"><span class="pre">.spc</span></code> and <code class="docutils literal notranslate"><span class="pre">.ipr</span></code> files (if available). If an <code class="docutils literal notranslate"><span class="pre">.spc</span></code> file is loaded, the
-result will be a single <code class="docutils literal notranslate"><span class="pre">EDSSEMSpectrum</span></code> with no other files needed for
-calibration.</p>
+<code class="docutils literal notranslate"><span class="pre">.spc</span></code> and <code class="docutils literal notranslate"><span class="pre">.ipr</span></code> files (if available). If an <code class="docutils literal notranslate"><span class="pre">.lsd</span></code> file is loaded, the
+result will be a HyperSpy <code class="docutils literal notranslate"><span class="pre">EDSSEMSpectrum</span></code>, and the calibration will be
+loaded from the appropriate <code class="docutils literal notranslate"><span class="pre">.spc</span></code> and <code class="docutils literal notranslate"><span class="pre">.csv</span></code> files (if available). If an
+<code class="docutils literal notranslate"><span class="pre">.spc</span></code> file is loaded, the result will be a single <code class="docutils literal notranslate"><span class="pre">EDSSEMSpectrum</span></code> with no
+other files needed for calibration.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Currently, HyperSpy will load data as an <code class="docutils literal notranslate"><span class="pre">EDSSEMSpectrum</span></code> signal. If support
@@ -528,9 +536,9 @@ file formats have been publicly available from EDAX.</p>
 <span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.edax" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="rsciio.edax.file_reader">
-<span class="sig-prename descclassname"><span class="pre">rsciio.edax.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_all_spc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spc_fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ipr_fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.edax.file_reader" title="Link to this definition">#</a></dt>
-<dd><p>Read <code class="docutils literal notranslate"><span class="pre">.spc</span></code> (spectrum) or <code class="docutils literal notranslate"><span class="pre">.spd</span></code> (spectrum image) files from EDAX
-Genesis or TEAMS software.</p>
+<span class="sig-prename descclassname"><span class="pre">rsciio.edax.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_all_spc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spc_fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ipr_fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">csv_fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endianness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'&lt;'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.edax.file_reader" title="Link to this definition">#</a></dt>
+<dd><p>Read <code class="docutils literal notranslate"><span class="pre">.spc</span></code> (spectrum), <code class="docutils literal notranslate"><span class="pre">.spd</span></code> (spectrum image), or <code class="docutils literal notranslate"><span class="pre">.lsd</span></code> (line scan) files
+from EDAX Genesis or TEAM software.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl>
@@ -557,11 +565,18 @@ Otherwise, the name of the .spc file to use for calibration can
 be explicitly given as a string.</p>
 </dd>
 <dt><strong>ipr_fname</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>For spd files only.
-Name of file from which to read the spatial calibration. If data
-was exported fully from EDAX TEAM software, an .ipr file with the
+Name of file from which to read the spatial calibration for mapping data.
+If data was exported fully from EDAX TEAM software, an .ipr file with the
 same name as the .spd (plus a “_Img” suffix) should be present.
 If <cite>None</cite>, the default filename will be searched for.
 Otherwise, the name of the .ipr file to use for spatial calibration
+can be explicitly given as a string.</p>
+</dd>
+<dt><strong>csv_fname</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Name of file from which to read the spatial calibration for line scan data.
+If data was exported fully from EDAX TEAM software, a .csv file with the
+same name as the .lsd should be present.
+If <cite>None</cite>, the default filename will be searched for.
+Otherwise, the name of the .csv file to use for spatial calibration
 can be explicitly given as a string.</p>
 </dd>
 <dt><strong>endianness</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=”&lt;”</span></dt><dd><p><code class="docutils literal notranslate"><span class="pre">&quot;&lt;&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;&gt;&quot;</span></code>, depending on how the bits are written to

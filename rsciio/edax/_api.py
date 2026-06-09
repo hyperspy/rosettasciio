@@ -20,8 +20,10 @@
 # https://www.biochem.mpg.de/doc_tom/TOM_Release_2008/IOfun/tom_mrcread.html
 # and https://ami.scripps.edu/software/mrctools/mrc_specification.php
 
+import csv
 import logging
 import os
+from collections import OrderedDict
 
 import numpy as np
 
@@ -771,18 +773,19 @@ def spc_reader(filename, lazy=False, endianness="<", load_all_spc=False, **kwarg
 spc_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, KWARGS_DOC, RETURNS_DOC)
 
 
-def spd_reader(
+def si_reader(
     filename,
     lazy=False,
     chunks="auto",
     endianness="<",
     spc_fname=None,
     ipr_fname=None,
+    csv_fname=None,
     load_all_spc=False,
     **kwargs,
 ):
     """
-    Read data from an SPD spectral map specified by filename.
+    Read data from spectrum image or line scan dataset specified by filename.
 
     Parameters
     ----------
@@ -803,6 +806,13 @@ def spd_reader(
         If `None`, the default filename will be searched for.
         Otherwise, the name of the .ipr file to use for spatial calibration
         can be explicitly given as a string.
+    csv_fname : None or str
+        For linescan (.lsd) data, the name of file from which to read the spatial calibration.
+        If data was exported fully from EDAX TEAM software, a .csv file with the
+        same name as the .lsd should be present.
+        If `None`, the default filename will be searched for.
+        Otherwise, the name of the .csv file to use for spatial calibration
+        can be explicitly given as a string.
     load_all_spc : bool, Default=False
         Switch to control whether the complete .spc header is read, or just the
         important parts for import into HyperSpy.
@@ -810,6 +820,9 @@ def spd_reader(
 
     %s
     """
+    ext = os.path.splitext(filename)[1][1:].lower()
+    linescan = ext == "lsd"
+
     with open(filename, "rb") as f:
         spd_header = np.fromfile(f, dtype=get_spd_dtype_list(endianness), count=1)
 
@@ -817,8 +830,9 @@ def spd_reader(
 
         # dimensions of map data:
         nx = original_metadata["spd_header"]["nPoints"]
-        ny = original_metadata["spd_header"]["nLines"]
+        ny = original_metadata["spd_header"].get("nLines", 1)
         nz = original_metadata["spd_header"]["nChannels"]
+        nSpectra = original_metadata["spd_header"].get("nSpectra", nx * ny)
         # need to convert from np.uint32 to int to avoid type error when passing to memmap
         data_offset = int(original_metadata["spd_header"]["dataOffset"])
         data_type = {"1": "u1", "2": "u2", "4": "u4"}[
@@ -852,41 +866,16 @@ def spd_reader(
         spc_basename = os.path.splitext(os.path.basename(filename))[0] + ".spc"
         spc_fname = os.path.join(spc_path, spc_basename)
 
-    # Get name of .ipr file from bitmap image (if not explicitly given):
-    if ipr_fname is None:
-        ipr_basename = (
-            os.path.splitext(
-                os.path.basename(original_metadata["spd_header"]["fName"])
-            )[0].decode()
-            + ".ipr"
-        )
-        ipr_path = os.path.dirname(filename)
-        ipr_fname = os.path.join(ipr_path, ipr_basename)
+    metadata = {
+        "General": {
+            "original_filename": os.path.split(filename)[1],
+        },
+        "Signal": {
+            "signal_type": "EDS_SEM",
+        },
+    }
 
-    # Flags to control reading of files
     read_spc = os.path.isfile(spc_fname)
-    read_ipr = os.path.isfile(ipr_fname)
-
-    # Read the .ipr header (if possible)
-    if read_ipr:
-        with open(ipr_fname, "rb") as f:
-            _logger.debug(" From .spd reader - reading .ipr {}".format(ipr_fname))
-            ipr_header = __get_ipr_header(f, endianness)
-            original_metadata["ipr_header"] = sarray2dict(ipr_header)
-
-            # Workaround for type error when saving hdf5:
-            # save as list of strings instead of numpy unicode array
-            # see https://github.com/hyperspy/hyperspy/pull/2007 and
-            #     https://github.com/h5py/h5py/issues/289 for context
-            original_metadata["ipr_header"]["charText"] = [
-                np.bytes_(i) for i in original_metadata["ipr_header"]["charText"]
-            ]
-    else:
-        _logger.warning(
-            "Could not find .ipr file named {}.\n"
-            "No spatial calibration will be loaded."
-            "\n".format(ipr_fname)
-        )
 
     # Read the .spc header (if possible)
     if read_spc:
@@ -895,17 +884,17 @@ def spd_reader(
             spc_header = __get_spc_header(f, endianness, load_all_spc)
             spc_dict = sarray2dict(spc_header)
             original_metadata["spc_header"] = spc_dict
+            metadata = _add_spc_metadata(metadata, spc_dict)
     else:
         _logger.warning(
             "Could not find .spc file named {}.\n"
             "No spectral metadata will be loaded."
             "\n".format(spc_fname)
         )
-
     # create the energy axis dictionary:
     energy_axis = {
-        "size": data.shape[2],
-        "index_in_array": 2,
+        "size": data.shape[-1],
+        "index_in_array": -1,
         "name": "Energy",
         "scale": (
             original_metadata["spc_header"]["evPerChan"] / 1000.0 if read_spc else 1
@@ -916,44 +905,125 @@ def spd_reader(
     }
 
     nav_units = "µm"
-    # Create navigation axes dictionaries:
-    x_axis = {
-        "size": data.shape[1],
-        "index_in_array": 1,
-        "name": "x",
-        "scale": original_metadata["ipr_header"]["mppX"] if read_ipr else 1,
-        "offset": 0,
-        "units": nav_units if read_ipr else None,
-        "navigate": True,
-    }
 
-    y_axis = {
-        "size": data.shape[0],
-        "index_in_array": 0,
-        "name": "y",
-        "scale": original_metadata["ipr_header"]["mppY"] if read_ipr else 1,
-        "offset": 0,
-        "units": nav_units if read_ipr else None,
-        "navigate": True,
-    }
+    if linescan:
+        data = data.squeeze()[:nSpectra, :]
+        if csv_fname is None:
+            csv_basename = os.path.splitext(filename)[0] + ".csv"
+            csv_path = os.path.dirname(filename)
+            csv_fname = os.path.join(csv_path, csv_basename)
 
-    # Assign metadata for spectrum image:
-    metadata = {
-        "General": {
-            "original_filename": os.path.split(filename)[1],
-            "title": "EDS Spectrum Image",
-        },
-        "Signal": {
-            "signal_type": "EDS_SEM",
-        },
-    }
+        read_csv = os.path.isfile(csv_fname)
+        csv_header = OrderedDict()
+        spatial_axis = []
+        spatial_axis_calibration = 1
+        spatial_axis_offset = 0
+        if read_csv:
+            with open(csv_fname, mode="r", encoding="utf-8-sig") as f:
+                _logger.debug(" From .lsd reader - reading .csv {}".format(csv_fname))
 
-    # Add spectral calibration and elements (if present):
-    if read_spc:
-        metadata = _add_spc_metadata(metadata, spc_dict)
+                # Reader lsd file header
+                for _ in range(14):
+                    line = next(f).strip()
+                    if line:
+                        parts = line.split(",", 1)
+                        if len(parts) == 2:
+                            label, value = parts
+                            csv_header[label.strip()] = value.strip()
 
-    # Define navigation and signal axes:
-    axes = [y_axis, x_axis, energy_axis]
+                # Read csv data
+                reader = csv.DictReader(f, skipinitialspace=True)
+                for row in reader:
+                    spatial_axis.append(float(row["Distance (nm)"]))
+                    nav_units = "nm"
+                spatial_axis_offset = spatial_axis[0]
+                spatial_axis_calibration = spatial_axis[1] - spatial_axis[0]
+
+            original_metadata["csv_header"] = csv_header
+
+        else:
+            _logger.warning(
+                "Could not find .csv file named {}.\n"
+                "No spatial calibration will be loaded."
+                "\n".format(csv_fname)
+            )
+
+        x_axis = {
+            "size": data.shape[0],
+            "index_in_array": 0,
+            "name": "x",
+            "scale": spatial_axis_calibration,
+            "offset": spatial_axis_offset,
+            "units": nav_units if read_csv else None,
+            "navigate": True,
+        }
+
+        # Set title in metadata to EDS Line Scan:
+        metadata["General"]["title"] = "EDS Line Scan"
+
+        axes = [x_axis, energy_axis]
+
+    else:
+        # Get name of .ipr file from bitmap image (if not explicitly given):
+        if ipr_fname is None:
+            ipr_basename = (
+                os.path.splitext(
+                    os.path.basename(original_metadata["spd_header"]["fName"])
+                )[0].decode()
+                + ".ipr"
+            )
+            ipr_path = os.path.dirname(filename)
+            ipr_fname = os.path.join(ipr_path, ipr_basename)
+
+        # Flags to control reading of files
+        read_ipr = os.path.isfile(ipr_fname)
+
+        # Read the .ipr header (if possible)
+        if read_ipr:
+            with open(ipr_fname, "rb") as f:
+                _logger.debug(" From .spd reader - reading .ipr {}".format(ipr_fname))
+                ipr_header = __get_ipr_header(f, endianness)
+                original_metadata["ipr_header"] = sarray2dict(ipr_header)
+
+                # Workaround for type error when saving hdf5:
+                # save as list of strings instead of numpy unicode array
+                # see https://github.com/hyperspy/hyperspy/pull/2007 and
+                #     https://github.com/h5py/h5py/issues/289 for context
+                original_metadata["ipr_header"]["charText"] = [
+                    np.bytes_(i) for i in original_metadata["ipr_header"]["charText"]
+                ]
+        else:
+            _logger.warning(
+                "Could not find .ipr file named {}.\n"
+                "No spatial calibration will be loaded."
+                "\n".format(ipr_fname)
+            )
+
+        x_axis = {
+            "size": data.shape[1],
+            "index_in_array": 1,
+            "name": "x",
+            "scale": original_metadata["ipr_header"]["mppX"] if read_ipr else 1,
+            "offset": 0,
+            "units": nav_units if read_ipr else None,
+            "navigate": True,
+        }
+
+        y_axis = {
+            "size": data.shape[0],
+            "index_in_array": 0,
+            "name": "y",
+            "scale": original_metadata["ipr_header"]["mppY"] if read_ipr else 1,
+            "offset": 0,
+            "units": nav_units if read_ipr else None,
+            "navigate": True,
+        }
+
+        # Set title in metadata to EDS Spectrum Image:
+        metadata["General"]["title"] = "EDS Spectrum Image"
+
+        # Define navigation and signal axes:
+        axes = [y_axis, x_axis, energy_axis]
 
     dictionary = {
         "data": data,
@@ -967,7 +1037,7 @@ def spd_reader(
     ]
 
 
-spd_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, KWARGS_DOC, RETURNS_DOC)
+si_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, ENDIANESS_DOC, KWARGS_DOC, RETURNS_DOC)
 
 
 @endianess_keyword_deprecation
@@ -978,12 +1048,13 @@ def file_reader(
     load_all_spc=False,
     spc_fname=None,
     ipr_fname=None,
+    csv_fname=None,
     endianness="<",
     **kwargs,
 ):
     """
-    Read ``.spc`` (spectrum) or ``.spd`` (spectrum image) files from EDAX
-    Genesis or TEAMS software.
+    Read ``.spc`` (spectrum), ``.spd`` (spectrum image), or ``.lsd`` (line scan) files
+    from EDAX Genesis or TEAM software.
 
     Parameters
     ----------
@@ -1003,11 +1074,18 @@ def file_reader(
         be explicitly given as a string.
     ipr_fname : None or str
         For spd files only.
-        Name of file from which to read the spatial calibration. If data
-        was exported fully from EDAX TEAM software, an .ipr file with the
+        Name of file from which to read the spatial calibration for mapping data.
+        If data was exported fully from EDAX TEAM software, an .ipr file with the
         same name as the .spd (plus a "_Img" suffix) should be present.
         If `None`, the default filename will be searched for.
         Otherwise, the name of the .ipr file to use for spatial calibration
+        can be explicitly given as a string.
+    csv_fname : None or str
+        Name of file from which to read the spatial calibration for line scan data.
+        If data was exported fully from EDAX TEAM software, a .csv file with the
+        same name as the .lsd should be present.
+        If `None`, the default filename will be searched for.
+        Otherwise, the name of the .csv file to use for spatial calibration
         can be explicitly given as a string.
     %s
     %s
@@ -1020,17 +1098,22 @@ def file_reader(
     """
 
     ext = os.path.splitext(filename)[1][1:].lower()
-    if ext == "spd":
-        return spd_reader(
+    if ext.lower() in [
+        "spd",
+        "lsd",
+    ]:
+        return si_reader(
             filename,
             lazy=lazy,
             chunks=chunks,
             endianness=endianness,
             spc_fname=spc_fname,
             ipr_fname=ipr_fname,
+            csv_fname=csv_fname,
             load_all_spc=load_all_spc,
             **kwargs,
         )
+
     elif ext == "spc":
         return spc_reader(
             filename,

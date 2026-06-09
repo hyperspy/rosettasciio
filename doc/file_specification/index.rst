@@ -18,7 +18,7 @@ The file specifications for the :ref:`edax <edax-format>` file formats made
 available publicly available from EDAX:
 
 - :download:`spc <edax/SPECTRUM-V70.pdf>`
-- :download:`spd <edax/SpcMap-spd.file.format.pdf>`
+- :download:`spd / lsd <edax/SpcMap-spd.file.format.pdf>`
 - :download:`ipr <edax/ImageIPR.pdf>`
 
 
@@ -42,4 +42,3 @@ and different external detectors or virtual images are saved as CurrentDate_Movi
 CurrentDate_MovieNumber_suffix_#_virtualName.mrc respectively. The suffix is optional and can be any
 string or left empty. By default Virtual image 0 is the sum at each navigation point and is equivalent to the
 navigation image.
-

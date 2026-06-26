@@ -79,7 +79,9 @@ def test_read_stack(lazy):
     np.testing.assert_allclose(s.data, ref_data.astype("float32"))
     signal_axes = s.axes_manager.signal_axes
     assert signal_axes[0].name == "width"
+    assert signal_axes[0].size == 128
     assert signal_axes[1].name == "height"
+    assert signal_axes[1].size == 128
     for axis in signal_axes:
         units = EXPECTED_UNSPECIFIED_UNITS
         assert axis.units == units
@@ -135,8 +137,10 @@ def test_read_map_1_2_2(lazy, q_calibration):
     signal_axes = s.axes_manager.signal_axes
     assert signal_axes[0].name == "width"
     assert signal_axes[0].index_in_array == 3
+    assert signal_axes[0].size == 128
     assert signal_axes[1].name == "height"
     assert signal_axes[1].index_in_array == 2
+    assert signal_axes[1].size == 128
 
     for axis in signal_axes:
         if q_calibration is not None:
@@ -150,8 +154,10 @@ def test_read_map_1_2_2(lazy, q_calibration):
     navigation_axes = s.axes_manager.navigation_axes
     assert navigation_axes[0].name == "scan_x"
     assert navigation_axes[0].index_in_array == 1
+    assert navigation_axes[0].size == 32
     assert navigation_axes[1].name == "scan_y"
     assert navigation_axes[1].index_in_array == 0
+    assert navigation_axes[1].size == 64
     for axis in navigation_axes:
         assert axis.units == "nm"
         np.testing.assert_allclose(axis.scale, 27.6131150)

@@ -31,7 +31,7 @@ jobs:
             PYTHON_VERSION: '3.10'
             # Set pillow and scikit-image version to be compatible with imageio and scipy
             # align matplotlib and dask dependency with hyperspy
-            DEPENDENCIES: matplotlib==3.6 numpy==1.22.0 tifffile==2022.7.28 dask[array]==2022.9.2 distributed==2022.9.2 numba==0.56 imageio==2.16 pillow==9.0.1 scikit-image==0.20.0 python-box==6.0.0 h5py==3.7
+            DEPENDENCIES: matplotlib==3.6 numpy==1.25.0 tifffile==2022.8.12 dask[array]==2024.12.0 distributed==2024.12.0 numba==0.58.0 imageio==2.27 pillow==9.0.1 scikit-image==0.21.0 python-box==6.0.0 h5py==3.7
             LABEL: '-oldest'
             HYPERSPY_VERSION: 'release'
           - os: ubuntu

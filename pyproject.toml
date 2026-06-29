@@ -23,9 +23,9 @@ classifiers = [
   "Topic :: Software Development :: Libraries",
 ]
 dependencies = [
-  "dask[array] >=2022.9.2", # aligned with hyperspy for convenience
+  "dask[array] >=2024.12.0", # aligned with hyperspy for convenience
   "python-dateutil",
-  "numpy >=1.22",
+  "numpy >=1.25.0",
   "pint >=0.8",
   # python-box API changed on major release
   # and compatibility needs to be checked
@@ -91,14 +91,20 @@ license-files = ["COPYING.txt"]
 [project.optional-dependencies]
 app5 = ["h5py>=3.7"]
 arina = ["h5py>=3.7", "hdf5plugin"]
-blockfile = ["scikit-image>=0.20"]
+blockfile = ["scikit-image>=0.21.0"]
 eds-stream = ["sparse"]
 hdf5 = ["h5py>=3.7"]
-image = ["imageio>=2.16", "pillow>=9.0.1"]
+image = [
+  "imageio>=2.27", # For scikit-image
+  "pillow>=9.0.1"
+]
 mrcz = ["mrcz>=0.3.6"]
 scalebar_export = ["matplotlib-scalebar", "matplotlib>=3.6"]
-speed = ["numba>=0.56"]
-tiff = ["tifffile>=2022.7.28,!=2026.2.24", "imagecodecs"]
+speed = ["numba>=0.58.0"]
+tiff = [
+  "tifffile>=2022.8.12,!=2026.2.24", # For scikit-image
+  "imagecodecs"
+]
 tofwerk = ["h5py>=3.7"]
 usid = ["pyUSID>=0.0.11"]
 zspy = ["zarr>=2,<3", "msgpack"]

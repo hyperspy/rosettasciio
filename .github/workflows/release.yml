@@ -40,10 +40,10 @@ jobs:
             CIBW_ARCHS: "arm64"
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Build wheels for CPython
-        uses: pypa/cibuildwheel@ee02a1537ce3071a004a6b08c41e72f0fdc42d9a
+        uses: pypa/cibuildwheel@294735312765b09d24a2fbec22660ce817587d55
         env:
           CIBW_ARCHS: ${{ matrix.CIBW_ARCHS }}
 
@@ -61,7 +61,7 @@ jobs:
     name: Make SDist
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Build SDist
         run: pipx run build --sdist
@@ -80,7 +80,7 @@ jobs:
     name: Make pure python wheel
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Build pure python wheel
         run: DISABLE_C_EXTENSIONS=1 pipx run build --wheel

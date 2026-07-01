@@ -72,7 +72,7 @@ jobs:
             HYPERSPY_VERSION: 'dev'
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -88,7 +88,7 @@ jobs:
           git remote add upstream https://github.com/hyperspy/${{ env.REPOSITORY_NAME }}.git
           git fetch upstream --tags
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v6.2.0
         name: Install Python
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}
@@ -194,6 +194,6 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: ${{ always() }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

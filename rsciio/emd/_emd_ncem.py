@@ -192,9 +192,17 @@ class EMD_NCEM:
         return group.attrs.get("emd_group_type", False)
 
     @staticmethod
-    def _read_dataset(dataset):
+    def _read_dataset(dataset, lazy=False):
         """Read dataset and use the h5py AsStrWrapper when the dataset is of
-        string type (h5py 3.0 and newer)
+        string type (h5py 3.0 and newer).
+
+        Parameters
+        ----------
+        dataset : h5py.Dataset
+            Dataset to read.
+        lazy : bool, default=False
+            If True, return an h5py-backed array-like object suitable for
+            dask wrapping. If False, materialize into memory.
         """
         chunks = dataset.chunks
         if chunks is None:
@@ -202,9 +210,9 @@ class EMD_NCEM:
         if h5py.check_string_dtype(dataset.dtype) and hasattr(dataset, "asstr"):
             # h5py 3.0 and newer
             # https://docs.h5py.org/en/3.0.0/strings.html
-            data = dataset.asstr()[:]
+            data = dataset.asstr() if lazy else dataset.asstr()[:]
         else:
-            data = dataset[:]
+            data = dataset if lazy else dataset[:]
         return data, chunks
 
     def _read_emd_version(self, group):
@@ -240,14 +248,16 @@ class EMD_NCEM:
                 import dask.array as da
 
                 data_list = [
-                    da.from_array(*self._read_dataset(d)) for d in dataset_list
+                    da.from_array(*self._read_dataset(d, lazy=self.lazy))
                 ]
                 if transpose_required:
                     data_list = [da.transpose(d) for d in data_list]
                 data = da.stack(data_list)
                 data = da.squeeze(data)
             else:
-                data_list = [self._read_dataset(d)[0] for d in dataset_list]
+                data_list = [
+                    self._read_dataset(d, lazy=self.lazy)[0] for d in dataset_list
+                ]
                 if transpose_required:
                     data_list = [np.transpose(d) for d in data_list]
                 data = np.stack(data_list).squeeze()
@@ -256,9 +266,9 @@ class EMD_NCEM:
             if self.lazy:
                 import dask.array as da
 
-                data = da.from_array(*self._read_dataset(d))
+                data = da.from_array(*self._read_dataset(d, lazy=self.lazy))
             else:
-                data = self._read_dataset(d)[0]
+                data = self._read_dataset(d, lazy=self.lazy)[0]
             if transpose_required:
                 data = data.transpose()
 

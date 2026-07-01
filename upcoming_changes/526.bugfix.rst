@@ -1,0 +1,1 @@
+Fix lazy loading for NCEM EMD data to avoid eager reads

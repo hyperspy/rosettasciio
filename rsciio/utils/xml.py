@@ -225,7 +225,7 @@ class XmlToDict:
             # literal_eval have problems with strings like this '8842_80'
             return string
 
-    def dictionarize(self, et_node):
+    def dictionarize(self, et_node, ignore_children=False):
         """
         Take etree XML node and return its conversion into
         pythonic dict/list representation of that XML tree
@@ -243,7 +243,7 @@ class XmlToDict:
         """
         d_node = {et_node.tag: {} if et_node.attrib else None}
         children = list(et_node)
-        if children:
+        if children and not ignore_children:
             dd_node = defaultdict(list)
             for dc_node in map(self.dictionarize, children):
                 for key, val in dc_node.items():

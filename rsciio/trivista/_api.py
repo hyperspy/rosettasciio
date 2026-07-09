@@ -16,12 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import importlib.util
-import logging
 import xml.etree.ElementTree as ET
-from collections import defaultdict
-from copy import deepcopy
+import logging
+import importlib.util
 from pathlib import Path
+from copy import deepcopy
 
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
@@ -116,9 +115,7 @@ class TrivistaTVFReader:
             unfiltered_original_metadata,
         ) = self.parse_file_structure(filter_original_metadata)
 
-        self._num_datasets = int(
-            data_head.findall("Childs")[0].attrib["Count"]  # codespell:ignore
-        )
+        self._num_datasets = int(data_head.findall("Childs")[0].attrib["Count"])
         data, time, signal_axis = self.get_data_and_signal(data_head=data_head)
 
         self.axes = self.set_axes(
@@ -185,7 +182,7 @@ class TrivistaTVFReader:
         et_root = ET.parse(self._file_path).getroot()
 
         ## root level metadata
-        root_level_md = _et_node_attrib2dict(et_root)
+        root_level_md = x2d_translator.dictionarize(et_root,ignore_children=True)
         fileInfoSerialized = root_level_md.get("XmlMain", {}).get("FileInfoSerialized")
         if fileInfoSerialized is not None:
             et_fileInfoSerialized = ET.fromstring(fileInfoSerialized)
@@ -196,7 +193,7 @@ class TrivistaTVFReader:
 
         ## Documents / Document section
         data_head = et_root[1][0]
-        data_head_md = _et_node_attrib2dict(data_head)
+        data_head_md = x2d_translator.dictionarize(data_head,ignore_children=True)
         filtered_original_metadata.update(data_head_md)
         infoSerialized = data_head_md.get("Document", {}).get("InfoSerialized")
         if infoSerialized is not None:
@@ -222,9 +219,9 @@ class TrivistaTVFReader:
         infoSerialized_processed = _process_info_serialized(
             infoSerialized["Info"]["Groups"]["Group"]
         )
-        filtered_original_metadata["Document"]["InfoSerialized"] = (
-            infoSerialized_processed
-        )
+        filtered_original_metadata["Document"][
+            "InfoSerialized"
+        ] = infoSerialized_processed
 
         ## these methods alter metadata_hardware
         self._filter_laser_metadata(infoSerialized_processed, metadata_hardware)
@@ -265,10 +262,10 @@ class TrivistaTVFReader:
         """Filter microscope section (objective) via isEnabled tag"""
         for microscope in metadata_hardware["Hardware"]["Microscopes"]["Microscope"]:
             for objective in microscope["Objectives"]["Objective"]:
-                if objective["IsEnabled"] == "True":
-                    metadata_hardware["Hardware"]["Microscopes"]["Microscope"] = (
-                        microscope
-                    )
+                if objective["IsEnabled"]:
+                    metadata_hardware["Hardware"]["Microscopes"][
+                        "Microscope"
+                    ] = microscope
                     metadata_hardware["Hardware"]["Microscopes"]["Microscope"][
                         "Objectives"
                     ]["Objective"] = objective
@@ -301,9 +298,9 @@ class TrivistaTVFReader:
             if spectrometer["Serialnumber"] in spectrometer_serial_numbers:
                 idx = spectrometer_serial_numbers.index(spectrometer["Serialnumber"])
                 spectrometer_name = spectrometer_serialized_list[idx]
-                metadata_hardware["Hardware"]["Spectrometers"][spectrometer_name] = (
-                    spectrometer
-                )
+                metadata_hardware["Hardware"]["Spectrometers"][
+                    spectrometer_name
+                ] = spectrometer
                 ## filter grating via groove density
                 gratings_root = spectrometer["Gratings"]["Grating"]
                 for grating in gratings_root:
@@ -674,7 +671,7 @@ class TrivistaTVFReader:
         return data, time
 
     def _load_glued_data_stack(self, data_head):
-        num_datasets_list = data_head.findall("Childs")  # codespell:ignore
+        num_datasets_list = data_head.findall("Childs")
         _error_handling_find_location(
             len(num_datasets_list), "glued datasets"
         )  # pragma: no cover
@@ -727,27 +724,18 @@ def file_reader(
     filter_original_metadata=True,
 ):
     """
-    Read TriVista's ``.tvf`` file.
+    Reads TriVista's ``.tvf`` file.
 
     Parameters
     ----------
     %s
     %s
-    use_uniform_signal_axis : bool, default=False
+    use_uniform_signal_axis: bool, default=False
         Can be specified to choose between non-uniform or uniform signal axes.
         If `True`, the ``scale`` attribute is calculated from the average delta
         along the signal axis and a warning is raised in case the delta varies
         by more than 1%%.
-    glued_data_as_stack : bool, default=False
-        Using the mode `Step & Glue` results in measurements performed
-        at different wavelength ranges with some overlap between them.
-        The file then contains the individual spectra as well as
-        the "glued" spectrum. The latter is represented as one spectrum,
-        which covers the complete wavelength range. Stitching the datasets
-        together in the overlap region is already done by the setup.
-        If this setting is set to `True`, then the individual datasets will be loaded
-        as a stack. Otherwise, only the "glued" spectrum is loaded.
-    filter_original_metadata : bool, default=True
+    filter_original_metadata: bool, default=True
         Decides whether to process the original_metadata.
         If `True`, then non-relevant metadata will be excluded.
         For example, the metadata usually contains information
@@ -756,6 +744,15 @@ def file_reader(
         will be added to original_metadata.
         This setting only affects the ``original_metadata`` attribute
         and not the ``metadata`` attribute.
+    glued_data_as_stack: bool, default=False
+        Using the mode `Step & Glue` results in measurements performed
+        at different wavelength ranges with some overlap between them.
+        The file then contains the individual spectra as well as
+        the "glued" spectrum. The latter is represented as one spectrum,
+        which covers the complete wavelength range. Stitching the datasets
+        together in the overlap region is already done by the setup.
+        If this setting is set to `True`, then the individual datasets will be loaded
+        as a stack. Otherwise, only the "glued" spectrum is loaded.
 
     %s
     """

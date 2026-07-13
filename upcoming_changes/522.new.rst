@@ -1,0 +1,1 @@
+:ref:`emd_fei-format`: Add support for reading EELS datasets.

@@ -634,3 +634,73 @@ def test_is_EMD_Velox_filename_types(filename_type):
     # Test with non-Velox file - should return False
     result = is_EMD_Velox(filename)
     assert result is False
+
+
+class TestVeloxEELSEDS:
+    extracted_files_path = TEST_DATA_PATH / "velox_EELS_EDS"
+
+    @classmethod
+    def setup_class(cls):
+        import zipfile
+
+        zipf = TEST_DATA_PATH / "velox_EELS_EDS.zip"
+        with zipfile.ZipFile(zipf, "r") as zipped:
+            zipped.extractall(cls.extracted_files_path)
+
+    @classmethod
+    def teardown_class(cls):
+        gc.collect()
+        shutil.rmtree(cls.extracted_files_path)
+
+    @pytest.mark.parametrize("lazy", (True, False))
+    def test_velox_load_EELS_EDS(self, lazy):
+        pytest.importorskip("sparse")
+
+        EELS_EDS_velox_file = self.extracted_files_path / "example_velox_EELS_EDS.emd"
+        signals = hs.load(EELS_EDS_velox_file, lazy=lazy)
+        for s in signals:
+            if lazy:
+                s.compute()
+        assert len(signals) == 18
+        # this acquisition consists of 6 individual EDS spectra, 3 elemental maps (Fe,Co,O) from EELS,
+        # 3 elemental maps form EDS (Fe,Co,O), 1 Dark field image DF, 3 EELS spectrum images with different energy loss ranges
+        # a EDS SI from a second acquisition and an associated image.
+        # the SI spatial dimensions are (20x16) for the EELS/EDS acquisition (the smallest possible in the acquisition software version)
+        # the spatial dimensions for the second acquisition are (128x128)
+        EDS_spectra_count = 0
+
+        for s in signals:
+            if s.metadata.Signal.signal_type == "EDS_TEM":
+                if s.axes_manager.navigation_dimension == 0:
+                    assert s.axes_manager.signal_shape == (4096,)
+                    EDS_spectra_count += 1
+                else:
+                    assert s.axes_manager.navigation_shape == (128, 128)
+                    assert s.axes_manager.signal_shape == (4096,)
+            elif s.metadata.Signal.signal_type == "EELS":
+                assert s.axes_manager.navigation_shape == (20, 16)
+                assert s.axes_manager.signal_shape == (2048,)
+                assert np.isclose(s.axes_manager[-1].scale, 0.1692, rtol=1e-5)
+                assert any(
+                    [
+                        np.isclose(s.axes_manager[-1].offset, i, rtol=1e-5)
+                        for i in [800.0, 480.0, -21.5026]
+                    ]
+                )
+
+            else:  # 2D signals
+                assert s.metadata.General.title in [
+                    "Fe-EELS",
+                    "Co-EELS",
+                    "O-EELS",
+                    "Co",
+                    "DF-S",
+                    "O",
+                    "Fe",
+                    "a",
+                ]
+                if s.metadata.General.title == "a":
+                    assert s.axes_manager.signal_shape == (128, 128)
+                else:
+                    assert s.axes_manager.signal_shape == (20, 16)
+        assert EDS_spectra_count == 6

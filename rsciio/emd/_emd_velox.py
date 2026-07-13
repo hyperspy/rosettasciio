@@ -23,7 +23,6 @@
 # and use either the EMD class or the FEIEMDReader class to read the file.
 # Writing file is only supported for EMD Berkeley file.
 
-
 import importlib
 import json
 import logging
@@ -550,6 +549,10 @@ class FeiEMDReader(object):
     def _read_spectrum_stream(self):
         if not self.load_SI:
             return
+
+        if "EelsSpectrumImage" in self.d_grp.keys():
+            self._read_eels_spectrum_images()
+
         self.detector_name = "EDS"
         # Try to read the number of frames from Data/SpectrumImage
         try:
@@ -706,6 +709,118 @@ class FeiEMDReader(object):
                     ),
                 }
             )
+
+    def _read_eels_spectrum_images(self):
+
+        # get binary result to read pixel size
+        k = list(self.d_grp["SpectrumImage"].keys())[0]
+        binary_result = _parse_metadata(self.d_grp["SpectrumImage"], k)["BinaryResult"]
+        spatial_dim = len(binary_result["Offset"])
+
+        # read pixel size
+        scale_x, x_unit = self._convert_scale_units(
+            binary_result["PixelSize"]["width"], binary_result["PixelUnitX"]
+        )
+        # Because "axes" only allows one common unit for offset and scale,
+        # offset_x, offset_y is converted to the same unit as x_unit
+        offset_x = convert_units(
+            float(binary_result["Offset"]["x"]),
+            binary_result["PixelUnitX"],
+            x_unit,
+        )
+        if spatial_dim == 2:
+            # to avoid mismatching units between x and y axis, use the same unit as x
+            # x is chosen as reference, because scalebar used (usually) the horizontal axis
+            # and the units conversion is tuned to get decent scale bar
+            scale_y = convert_units(
+                float(binary_result["PixelSize"]["height"]),
+                binary_result["PixelUnitY"],
+                x_unit,
+            )
+            offset_y = convert_units(
+                float(binary_result["Offset"]["y"]),
+                binary_result["PixelUnitY"],
+                x_unit,
+            )
+
+        # Zebra detector stores the different energy ranges as separate datasets. Iterate over each of their ids:
+        for bin_id in self.d_grp["EelsSpectrumImage"].keys():
+            axes = []
+            eels_dict = {}
+            data_node_path = f"EelsSpectrumImage/{bin_id}/Data"
+            data_cube = self.d_grp[data_node_path][:]
+
+            if data_cube.ndim == 3:
+                data_cube = data_cube.transpose(2, 0, 1)
+                axes.extend(
+                    [
+                        {
+                            "name": "y",
+                            "offset": offset_y,
+                            "scale": scale_y,
+                            "size": data_cube.shape[0],
+                            "units": x_unit,
+                            "index_in_array": 1,
+                            "navigate": True,
+                        },
+                        {
+                            "name": "x",
+                            "offset": offset_x,
+                            "scale": scale_x,
+                            "size": data_cube.shape[1],
+                            "units": x_unit,
+                            "index_in_array": 0,
+                            "navigate": True,
+                        },
+                    ]
+                )
+            elif data_cube.ndim == 2:
+                axes.extend(
+                    [
+                        {
+                            "name": "x",
+                            "offset": offset_x,
+                            "scale": scale_x,
+                            "size": data_cube.shape[0],
+                            "units": x_unit,
+                            "index_in_array": 0,
+                            "navigate": True,
+                        }
+                    ]
+                )
+            else:
+                raise RuntimeError("Unexpected dataset dimensionality")
+
+            # deal with metadata
+            acquisition_md = _parse_metadata(
+                self.d_grp["EelsSpectrumImage"], bin_id, name="AcquisitionMetadata"
+            )
+            energy_offset = acquisition_md["Data"]["offset"]
+            energy_scale = acquisition_md["Data"]["dispersion"]
+            axes.append(
+                {
+                    "name": "Energy-loss",
+                    "offset": energy_offset,
+                    "scale": energy_scale,
+                    "size": data_cube.shape[-1],
+                    "units": "eV",  # assumed
+                    "index_in_array": data_cube.ndim - 1,
+                    "navigate": False,
+                }
+            )
+
+            # tidy up dictionary
+            md = {
+                "General": {"title": "EELS", "original_filename": self.filename},
+                "Signal": {"signal_type": "EELS"},
+            }
+            eels_dict["data"] = data_cube
+            eels_dict["axes"] = axes
+            eels_dict["metadata"] = md
+            eels_dict["original_metadata"] = _parse_metadata(
+                self.d_grp["EelsSpectrumImage"], bin_id
+            )
+            self.dictionaries.append(eels_dict)
 
     def _get_dispersion_offset(self, original_metadata):
         try:

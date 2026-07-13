@@ -27,7 +27,6 @@ import importlib
 import json
 import logging
 import os
-import re
 import time
 from datetime import datetime
 
@@ -715,14 +714,7 @@ class FeiEMDReader(object):
 
         # get binary result to read pixel size
         k = list(self.d_grp["SpectrumImage"].keys())[0]
-        meta = self.d_grp["SpectrumImage"][k]["Metadata"]
-        meta_dict = eval(
-            bytes(meta[:].flatten())
-            .decode("utf-8", errors="ignore")
-            .strip()
-            .rstrip("\x00")
-        )
-        binary_result = meta_dict["BinaryResult"]
+        binary_result = _parse_metadata(self.d_grp["SpectrumImage"], k)["BinaryResult"]
         spatial_dim = len(binary_result["Offset"])
 
         # read pixel size
@@ -789,25 +781,8 @@ class FeiEMDReader(object):
                 raise Exception("Unexpected dataset dimensionality")
 
             # deal with metadata
-            meta_eels = self.d_grp[f"EelsSpectrumImage/{bin_id}/Metadata"]
-            meta_eels_dict = eval(
-                bytes(meta_eels[:].flatten())
-                .decode("utf-8", errors="ignore")
-                .strip()
-                .rstrip("\x00")
-            )
-            meta_eels_dict = self._fix_eels_metadata_dict(
-                meta_eels_dict["CustomProperties"]
-            )
-
-            acquisition_md_raw = self.d_grp["EelsSpectrumImage"][f"{bin_id}"][
-                "AcquisitionMetadata"
-            ]
-            acquisition_md = eval(
-                bytes(acquisition_md_raw[:][:, 0].flatten())
-                .decode("utf-8", errors="ignore")
-                .strip()
-                .rstrip("\x00")
+            acquisition_md = _parse_metadata(
+                self.d_grp["EelsSpectrumImage"], bin_id, name="AcquisitionMetadata"
             )
             energy_offset = acquisition_md["Data"]["offset"]
             energy_scale = acquisition_md["Data"]["dispersion"]
@@ -831,29 +806,11 @@ class FeiEMDReader(object):
             md["Signal"]["signal_type"] = "EELS"
             eels_dict["data"] = data_cube
             eels_dict["axes"] = axes
-            md["original_metadata"] = meta_eels_dict
             eels_dict["metadata"] = md
+            eels_dict["original_metadata"] = _parse_metadata(
+                self.d_grp["EelsSpectrumImage"], bin_id
+            )["CustomProperties"]
             self.dictionaries.append(eels_dict)
-
-    def _fix_eels_metadata_dict(self, dict):
-        new_dict = {}
-        for k, v in dict.items():
-            new_keys = re.split(r"[.\[\]]+", k)
-            if "" in new_keys:
-                new_keys.remove("")
-            new_keys = [i.replace('"', "") for i in new_keys]
-
-            if isinstance(new_keys, list):
-                if new_keys[0] not in new_dict.keys():
-                    new_dict[new_keys[0]] = {}
-
-                d = new_dict[new_keys[0]]
-                for i in new_keys[1:-1]:
-                    if i not in d.keys():
-                        d[i] = {}
-                    d = d[i]
-                d[new_keys[-1]] = v
-        return new_dict
 
     def _get_dispersion_offset(self, original_metadata):
         try:

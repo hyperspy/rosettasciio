@@ -167,11 +167,11 @@ def _get_keys_from_group(group):
     return list(group.keys())
 
 
-def _parse_sub_data_group_metadata(sub_data_group):
-    metadata_array = sub_data_group["Metadata"][:, 0].T
+def _parse_sub_data_group_metadata(sub_data_group, name="Metadata"):
+    metadata_array = sub_data_group[name][:, 0].T
     mdata_string = metadata_array.tobytes().decode("utf-8")
     return json.loads(mdata_string.rstrip("\x00"))
 
 
-def _parse_metadata(data_group, sub_group_key):
-    return _parse_sub_data_group_metadata(data_group[sub_group_key])
+def _parse_metadata(data_group, sub_group_key, name="Metadata"):
+    return _parse_sub_data_group_metadata(data_group[sub_group_key], name)

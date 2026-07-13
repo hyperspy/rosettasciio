@@ -662,7 +662,7 @@ class TestVeloxEELSEDS:
             if lazy:
                 s.compute()
         assert len(signals) == 18
-        # this acquisitons consists of 6 individual EDS spectra, 3 elemental maps (Fe,Co,O) from EELS,
+        # this acquisition consists of 6 individual EDS spectra, 3 elemental maps (Fe,Co,O) from EELS,
         # 3 elemental maps form EDS (Fe,Co,O), 1 Dark field image DF, 3 EELS spectrum images with different energy loss ranges
         # a EDS SI from a second acquisition and an associated image.
         # the SI spatial dimensions are (20x16) for the EELS/EDS acquisition (the smallest possible in the acquisition software version)

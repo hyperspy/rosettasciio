@@ -721,15 +721,26 @@ class FeiEMDReader(object):
         scale_x, x_unit = self._convert_scale_units(
             binary_result["PixelSize"]["width"], binary_result["PixelUnitX"]
         )
-        offset_x, _ = self._convert_scale_units(
-            binary_result["Offset"]["x"], binary_result["PixelUnitX"]
+        # Because "axes" only allows one common unit for offset and scale,
+        # offset_x, offset_y is converted to the same unit as x_unit
+        offset_x = convert_units(
+            float(binary_result["Offset"]["x"]),
+            binary_result["PixelUnitX"],
+            x_unit,
         )
         if spatial_dim == 2:
-            scale_y, y_unit = self._convert_scale_units(
-                binary_result["PixelSize"]["height"], binary_result["PixelUnitY"]
+            # to avoid mismatching units between x and y axis, use the same unit as x
+            # x is chosen as reference, because scalebar used (usually) the horizontal axis
+            # and the units conversion is tuned to get decent scale bar
+            scale_y = convert_units(
+                float(binary_result["PixelSize"]["height"]),
+                binary_result["PixelUnitY"],
+                x_unit,
             )
-            offset_y, _ = self._convert_scale_units(
-                binary_result["Offset"]["y"], binary_result["PixelUnitY"]
+            offset_y = convert_units(
+                float(binary_result["Offset"]["y"]),
+                binary_result["PixelUnitY"],
+                x_unit,
             )
 
         # Zebra detector stores the different energy ranges as separate datasets. Iterate over each of their ids:
@@ -748,7 +759,7 @@ class FeiEMDReader(object):
                             "offset": offset_y,
                             "scale": scale_y,
                             "size": data_cube.shape[0],
-                            "units": y_unit,
+                            "units": x_unit,
                             "index_in_array": 1,
                             "navigate": True,
                         },
@@ -778,7 +789,7 @@ class FeiEMDReader(object):
                     ]
                 )
             else:
-                raise Exception("Unexpected dataset dimensionality")
+                raise RuntimeError("Unexpected dataset dimensionality")
 
             # deal with metadata
             acquisition_md = _parse_metadata(
@@ -793,23 +804,22 @@ class FeiEMDReader(object):
                     "scale": energy_scale,
                     "size": data_cube.shape[-1],
                     "units": "eV",  # assumed
+                    "index_in_array": data_cube.ndim - 1,
                     "navigate": False,
                 }
             )
 
             # tidy up dictionary
             md = {
-                "General": {"original_filename": self.filename},
-                "title": "EELS",
+                "General": {"title": "EELS", "original_filename": self.filename},
                 "Signal": {"signal_type": "EELS"},
             }
-            md["Signal"]["signal_type"] = "EELS"
             eels_dict["data"] = data_cube
             eels_dict["axes"] = axes
             eels_dict["metadata"] = md
             eels_dict["original_metadata"] = _parse_metadata(
                 self.d_grp["EelsSpectrumImage"], bin_id
-            )["CustomProperties"]
+            )
             self.dictionaries.append(eels_dict)
 
     def _get_dispersion_offset(self, original_metadata):

@@ -67,7 +67,7 @@ jobs:
             HYPERSPY_VERSION: 'release'
           - os: ubuntu
             os_version: latest
-            PYTHON_VERSION: '3.13t'
+            PYTHON_VERSION: '3.14t'
             LABEL: '-hyperspy-minimum'
             HYPERSPY_VERSION: 'dev'
 

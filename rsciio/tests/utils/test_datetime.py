@@ -10,7 +10,11 @@ def _get_example(date, time, time_zone=None):
     if time_zone:
         md.set_item("General.time_zone", time_zone)
         dt = parser.parse("%sT%s" % (date, time))
-        dt = dt.replace(tzinfo=tz.gettz(time_zone))
+        tzinfo = tz.gettz(time_zone)
+        if tzinfo is None:
+            dt = parser.parse(f"{date}T{time}{time_zone}")
+        else:
+            dt = dt.replace(tzinfo=tzinfo)
         iso = dt.isoformat()
     else:
         iso = "%sT%s" % (date, time)
@@ -21,7 +25,7 @@ def _get_example(date, time, time_zone=None):
 md1, dt1, iso1 = _get_example("2014-12-27", "00:00:00", "UTC")
 serial1 = 42000.00
 
-md2, dt2, iso2 = _get_example("2124-03-25", "10:04:48", "EST")
+md2, dt2, iso2 = _get_example("2124-03-25", "10:04:48", "-05:00")
 serial2 = 81900.62833333334
 
 md3, dt3, iso3 = _get_example("2016-07-12", "22:57:32")
@@ -56,9 +60,8 @@ def test_ISO_format_to_serial_date():
         dt1.date().isoformat(), dt1.time().isoformat(), timezone=dt1.tzname()
     )
     np.testing.assert_allclose(res1, serial1, atol=1e-5)
-    dt = dt2.astimezone(tz.tzlocal())
     res2 = dtt.ISO_format_to_serial_date(
-        dt.date().isoformat(), dt.time().isoformat(), timezone=dt.tzname()
+        dt2.date().isoformat(), dt2.time().isoformat(), timezone="-05:00"
     )
     np.testing.assert_allclose(res2, serial2, atol=1e-5)
     res3 = dtt.ISO_format_to_serial_date(
@@ -78,7 +81,11 @@ def _get_example(date, time, time_zone=None):
     if time_zone:
         md["General"]["time_zone"] = time_zone
         dt = parser.parse(f"{date}T{time}")
-        dt = dt.replace(tzinfo=tz.gettz(time_zone))
+        tzinfo = tz.gettz(time_zone)
+        if tzinfo is None:
+            dt = parser.parse(f"{date}T{time}{time_zone}")
+        else:
+            dt = dt.replace(tzinfo=tzinfo)
         iso = dt.isoformat()
     else:
         iso = f"{date}T{time}"
@@ -89,7 +96,7 @@ def _get_example(date, time, time_zone=None):
 md1, dt1, iso1 = _get_example("2014-12-27", "00:00:00", "UTC")
 serial1 = 42000.00
 
-md2, dt2, iso2 = _get_example("2124-03-25", "10:04:48", "EST")
+md2, dt2, iso2 = _get_example("2124-03-25", "10:04:48", "-05:00")
 serial2 = 81900.62833333334
 
 md3, dt3, iso3 = _get_example("2016-07-12", "22:57:32")

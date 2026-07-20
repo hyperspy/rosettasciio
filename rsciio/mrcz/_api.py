@@ -233,8 +233,7 @@ def file_writer(
     # Get pixelsize and pixelunits from the axes
     pixelunits = signal["axes"][-1]["units"]
     pixelsize = [
-        signal["axes"][I_]["scale"]
-        for I_ in _WRITE_ORDER[: len(signal["axes"])]
+        signal["axes"][I_]["scale"] for I_ in _WRITE_ORDER[: len(signal["axes"])]
     ]
 
     # Strip out voltage from meta-data

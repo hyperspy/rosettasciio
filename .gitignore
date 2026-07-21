@@ -16,3 +16,4 @@ rsciio/bruker/*.pyd
 coverage.xml
 .vscode/*
 .zed
+.omo/*

@@ -1088,17 +1088,34 @@ def test_saving_overwrite_data(tmp_path, file):
     # make sure we can open it after, file haven't been corrupted
     _ = hs.load(fname)
 
-    # now new data
-    @zspy_marker
-    def test_chunking_saving_lazy_specify(self, tmp_path, file):
-        filename = tmp_path / file
-        s = hs.signals.Signal2D(da.zeros((50, 100, 100))).as_lazy()
-        # specify chunks
-        chunks = (50, 10, 10)
-        s.data = s.data.rechunk([50, 25, 25])
-        s.save(filename, chunks=chunks)
-        s1 = hs.load(filename, lazy=True)
-        assert tuple([c[0] for c in s1.data.chunks]) == chunks
+
+@zspy_marker
+def test_chunking_saving_lazy_specify(tmp_path, file):
+    filename = tmp_path / file
+    s = hs.signals.Signal2D(da.zeros((50, 100, 100))).as_lazy()
+    # specify chunks
+    chunks = (50, 10, 10)
+    s.data = s.data.rechunk([50, 25, 25])
+    s.save(filename, chunks=chunks)
+    s1 = hs.load(filename, lazy=True)
+    assert tuple([c[0] for c in s1.data.chunks]) == chunks
+
+
+def test_lazy_then_reopen_with_truncate(tmp_path):
+    fname = tmp_path / "test_lazy_reopen.hspy"
+
+    s = hs.signals.Signal1D(np.zeros((5, 10)))
+    s.save(fname)
+
+    # keep reference to the file handle alive
+    # to make the regression test stronger
+    s2 = hs.load(fname, lazy=True, mode="a")  # noqa: F841
+
+    s3 = hs.signals.Signal1D(np.full((5, 10), 42))
+    s3.save(fname, overwrite=True)
+
+    s4 = hs.load(fname)
+    np.testing.assert_allclose(s4.data, np.full((5, 10), 42))
 
 
 @pytest.mark.parametrize("target_size", (1e6, 1e7))

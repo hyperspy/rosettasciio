@@ -21,7 +21,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from packaging.version import Version
 
 imageio = pytest.importorskip("imageio")
 
@@ -30,10 +29,6 @@ from rsciio.image import file_writer  # noqa: E402
 testfile_dir = (Path(__file__).parent / "data" / "image").resolve()
 
 
-@pytest.mark.skipif(
-    Version(imageio.__version__) < Version("2.23"),
-    reason="needs imageio >=2.23",
-)
 @pytest.mark.parametrize(("dtype"), ["uint8", "int32", bool])
 @pytest.mark.parametrize(("ext"), ["png", "bmp", "gif", "jpg"])
 def test_save_load_cycle_grayscale(dtype, ext, tmp_path):
@@ -72,10 +67,6 @@ def test_save_load_cycle_color(color, ext, tmp_path):
     hs.load(filename)
 
 
-@pytest.mark.skipif(
-    Version(imageio.__version__) < Version("2.23"),
-    reason="needs imageio >=2.23",
-)
 @pytest.mark.parametrize(("dtype"), ["uint8", "int32"])
 @pytest.mark.parametrize(("ext"), ["png", "bmp", "gif", "jpg"])
 def test_save_load_cycle_kwds(dtype, ext, tmp_path):
@@ -100,10 +91,6 @@ def test_save_load_cycle_kwds(dtype, ext, tmp_path):
     hs.load(filename, pilmode="L", as_grey=True)
 
 
-@pytest.mark.skipif(
-    Version(imageio.__version__) < Version("2.23"),
-    reason="needs imageio >=2.23",
-)
 @pytest.mark.parametrize(("ext"), ["png", "bmp", "gif", "jpg"])
 def test_export_scalebar(ext, tmp_path):
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")

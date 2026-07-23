@@ -539,9 +539,10 @@ returned as a 1-D spectrum.</p>
 </dd>
 <dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Lazy loading is not supported.</p>
 </dd>
-<dt><strong>use_uniform_signal_axis</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>If <cite>True</cite>, the time navigation axis is returned as a uniform axis
-(<cite>offset</cite> + <cite>scale</cite>). If <cite>False</cite>, the time navigation axis is returned
-as an explicit non-uniform <cite>axis</cite> array using per-cycle timestamps.</p>
+<dt><strong>use_uniform_signal_axis</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Whether to represent the relevant axis with a uniform <code class="docutils literal notranslate"><span class="pre">offset</span></code> and
+<code class="docutils literal notranslate"><span class="pre">scale</span></code> or with an explicit non-uniform <code class="docutils literal notranslate"><span class="pre">axis</span></code> array. If <code class="docutils literal notranslate"><span class="pre">True</span></code>,
+the scale is estimated from the average axis spacing and a warning is
+raised when the spacing varies by more than 1%.</p>
 </dd>
 </dl>
 </dd>

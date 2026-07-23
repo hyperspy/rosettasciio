@@ -525,22 +525,22 @@ until closed in <a class="reference external" href="https://hyperspy.org/hypersp
 or closed manually. <a class="reference internal" href="../api/rsciio.utils.html#rsciio.utils.file.get_file_handle" title="rsciio.utils.file.get_file_handle"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_file_handle()</span></code></a>
 can be used to access the file handler and close it manually.</p>
 </dd>
-<dt><strong>use_uniform_signal_axis</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Can be specified to choose between non-uniform or uniform signal axes.
-If <cite>True</cite>, the <code class="docutils literal notranslate"><span class="pre">scale</span></code> attribute is calculated from the average delta
-along the signal axis and a warning is raised in case the delta varies
-by more than 1%.</p>
+<dt><strong>use_uniform_signal_axis</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to represent the relevant axis with a uniform <code class="docutils literal notranslate"><span class="pre">offset</span></code> and
+<code class="docutils literal notranslate"><span class="pre">scale</span></code> or with an explicit non-uniform <code class="docutils literal notranslate"><span class="pre">axis</span></code> array. If <code class="docutils literal notranslate"><span class="pre">True</span></code>,
+the scale is estimated from the average axis spacing and a warning is
+raised when the spacing varies by more than 1%.</p>
 </dd>
-<dt><strong>glued_data_as_stack</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Using the mode <cite>Step &amp; Glue</cite> results in measurements performed
+<dt><strong>glued_data_as_stack</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Using the mode <code class="docutils literal notranslate"><span class="pre">Step</span> <span class="pre">&amp;</span> <span class="pre">Glue</span></code> results in measurements performed
 at different wavelength ranges with some overlap between them.
 The file then contains the individual spectra as well as
-the “glued” spectrum. The latter is represented as one spectrum,
+the <code class="docutils literal notranslate"><span class="pre">&quot;glued&quot;</span></code> spectrum. The latter is represented as one spectrum,
 which covers the complete wavelength range. Stitching the datasets
 together in the overlap region is already done by the setup.
-If this setting is set to <cite>True</cite>, then the individual datasets will be loaded
-as a stack. Otherwise, only the “glued” spectrum is loaded.</p>
+If this setting is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, then the individual datasets will be loaded
+as a stack. Otherwise, only the <code class="docutils literal notranslate"><span class="pre">&quot;glued&quot;</span></code> spectrum is loaded.</p>
 </dd>
 <dt><strong>filter_original_metadata</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, default=True</span></dt><dd><p>Decides whether to process the original_metadata.
-If <cite>True</cite>, then non-relevant metadata will be excluded.
+If <code class="docutils literal notranslate"><span class="pre">True</span></code>, then non-relevant metadata will be excluded.
 For example, the metadata usually contains information
 for multiple objectives, even though only one is used.
 In this case, only the metadata from the used objective

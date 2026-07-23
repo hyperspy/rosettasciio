@@ -120,6 +120,18 @@ def x2d_subclass_for_custom_bool(XML_TEST_NODE):
     assert pynode["IsToasted"] is False
     assert pynode["IsToasting"] is True
 
+def test_x2d_ignore_children(XML_TEST_NODE):
+    """test of XmlToDict dictionarize with ignore_children set to True.
+    """
+    x2d = XmlToDict(
+        dub_text_str="#value",
+        interchild_text_parsing='list',
+        tags_to_flatten=["ClassInstance", "ComponentChildren", "Instance"]
+    )
+    pynode = x2d.dictionarize(XML_TEST_NODE.find("Main//Sample"),ignore_children=True)
+    assert "@name" not in pynode["Sample"]
+    assert pynode["Sample"]["#value"] == "With one of these components"
+
 
 def test_wrong_type_x2d_initiation():
     with pytest.raises(ValueError):

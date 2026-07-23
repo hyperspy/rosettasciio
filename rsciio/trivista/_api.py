@@ -16,17 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
-import xml.etree.ElementTree as ET
-import logging
 import importlib.util
-from pathlib import Path
+import logging
+import xml.etree.ElementTree as ET
 from copy import deepcopy
+from pathlib import Path
 
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
 
-from rsciio.utils.tools import XmlToDict
 from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio.utils.xml import XmlToDict
 
 _logger = logging.getLogger(__name__)
 
@@ -175,18 +175,18 @@ class TrivistaTVFReader:
         et_root = ET.parse(self._file_path).getroot()
 
         ## root level metadata
-        root_level_md = x2d_translator.dictionarize(et_root,ignore_children=True)
+        root_level_md = x2d_translator.dictionarize(et_root, ignore_children=True)
         fileInfoSerialized = root_level_md.get("XmlMain", {}).get("FileInfoSerialized")
         if fileInfoSerialized is not None:
             et_fileInfoSerialized = ET.fromstring(fileInfoSerialized)
-            root_level_md["XmlMain"][
-                "FileInfoSerialized"
-            ] = x2d_translator.dictionarize(et_fileInfoSerialized)
+            root_level_md["XmlMain"]["FileInfoSerialized"] = (
+                x2d_translator.dictionarize(et_fileInfoSerialized)
+            )
         filtered_original_metadata.update(root_level_md)
 
         ## Documents / Document section
         data_head = et_root[1][0]
-        data_head_md = x2d_translator.dictionarize(data_head,ignore_children=True)
+        data_head_md = x2d_translator.dictionarize(data_head, ignore_children=True)
         filtered_original_metadata.update(data_head_md)
         infoSerialized = data_head_md.get("Document", {}).get("InfoSerialized")
         if infoSerialized is not None:
@@ -212,9 +212,9 @@ class TrivistaTVFReader:
         infoSerialized_processed = _process_info_serialized(
             infoSerialized["Info"]["Groups"]["Group"]
         )
-        filtered_original_metadata["Document"][
-            "InfoSerialized"
-        ] = infoSerialized_processed
+        filtered_original_metadata["Document"]["InfoSerialized"] = (
+            infoSerialized_processed
+        )
 
         ## these methods alter metadata_hardware
         self._filter_laser_metadata(infoSerialized_processed, metadata_hardware)
@@ -256,9 +256,9 @@ class TrivistaTVFReader:
         for microscope in metadata_hardware["Hardware"]["Microscopes"]["Microscope"]:
             for objective in microscope["Objectives"]["Objective"]:
                 if objective["IsEnabled"]:
-                    metadata_hardware["Hardware"]["Microscopes"][
-                        "Microscope"
-                    ] = microscope
+                    metadata_hardware["Hardware"]["Microscopes"]["Microscope"] = (
+                        microscope
+                    )
                     metadata_hardware["Hardware"]["Microscopes"]["Microscope"][
                         "Objectives"
                     ]["Objective"] = objective
@@ -291,9 +291,9 @@ class TrivistaTVFReader:
             if spectrometer["Serialnumber"] in spectrometer_serial_numbers:
                 idx = spectrometer_serial_numbers.index(spectrometer["Serialnumber"])
                 spectrometer_name = spectrometer_serialized_list[idx]
-                metadata_hardware["Hardware"]["Spectrometers"][
-                    spectrometer_name
-                ] = spectrometer
+                metadata_hardware["Hardware"]["Spectrometers"][spectrometer_name] = (
+                    spectrometer
+                )
                 ## filter grating via groove density
                 gratings_root = spectrometer["Gratings"]["Grating"]
                 for grating in gratings_root:
@@ -467,9 +467,14 @@ class TrivistaTVFReader:
         )
         central_wavelength = calibration_original.get("Center_Wavelength")
         laser_wavelength = calibration_original.get("Laser_Wavelength", 0)
-        ## covers 2 cases: calibration doesn't exist or it does exist, but value is 0
-        if np.isclose(laser_wavelength, 0):
+        try:
+            laser_wavelength = float(laser_wavelength)
+        except (TypeError, ValueError):
             laser_wavelength = None
+
+        if laser_wavelength is None or np.isclose(laser_wavelength, 0):
+            laser_wavelength = None
+
         return central_wavelength, laser_wavelength
 
     def map_metadata(self, original_metadata):

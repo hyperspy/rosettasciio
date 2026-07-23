@@ -148,11 +148,10 @@ class TestSpec:
         else:
             assert metadata["Signal"]["signal_type"] == ""
 
-        assert metadata["Acquisition_instrument"]["Detector"]["glued_spectrum"] == False
-        assert (
-            metadata["Acquisition_instrument"]["Detector"]["processing"]["calc_average"]
-            == True
-        )
+        assert not metadata["Acquisition_instrument"]["Detector"]["glued_spectrum"]
+        assert metadata["Acquisition_instrument"]["Detector"]["processing"][
+            "calc_average"
+        ]
         np.testing.assert_allclose(
             metadata["Acquisition_instrument"]["Detector"]["exposure_per_frame"], 1
         )
@@ -2398,7 +2397,7 @@ class TestStepAndGlue:
         assert original_metadata_glued["Skipped Pixel Left"] == 0
         assert original_metadata_glued["Skipped Pixel Right"] == 0
 
-        assert metadata_detector.glued_spectrum == True
+        assert metadata_detector.glued_spectrum
         assert np.isclose(metadata_detector.glued_spectrum_overlap, 15)
         assert np.isclose(metadata_detector.glued_spectrum_windows, 19)
 
@@ -2537,7 +2536,7 @@ class TestSpecIntegrationTime:
         assert np.isclose(metadata_detector.exposure_per_frame, 3)
         assert np.isclose(metadata_detector.frames, 2)
         assert np.isclose(metadata_detector.integration_time, 3)
-        assert metadata_detector.processing.calc_average == True
+        assert metadata_detector.processing.calc_average
 
     def test_metadata_2acc_no_average(self):
         metadata_detector = (
@@ -2546,4 +2545,4 @@ class TestSpecIntegrationTime:
         assert np.isclose(metadata_detector.exposure_per_frame, 3)
         assert np.isclose(metadata_detector.frames, 2)
         assert np.isclose(metadata_detector.integration_time, 6)
-        assert metadata_detector.processing.calc_average == False
+        assert not metadata_detector.processing.calc_average

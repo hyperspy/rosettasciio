@@ -236,14 +236,17 @@ class XmlToDict:
         et_node : xml.etree.ElementTree.Element
             XML node to be converted.
 
+        ignore_children : bool
+            If True, children of the node will be ignored and not included in the resulting dictionary.
+
         Returns
         -------
         dict
             Dictionary representation of the XML node.
         """
         d_node = {et_node.tag: {} if et_node.attrib else None}
-        children = list(et_node)
-        if children and not ignore_children:
+        children = [] if ignore_children else list(et_node)
+        if children:
             dd_node = defaultdict(list)
             for dc_node in map(self.dictionarize, children):
                 for key, val in dc_node.items():

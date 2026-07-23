@@ -39,13 +39,20 @@ def ISO_format_to_serial_date(date, time, timezone="UTC"):
     """Convert ISO format to a serial date."""
     if timezone is None or timezone == "Coordinated Universal Time":
         timezone = "UTC"
-    dt = parser.parse("%sT%s" % (date, time)).replace(tzinfo=tz.gettz(timezone))
+    dt = parser.parse("%sT%s" % (date, time))
+    tzinfo = tz.gettz(timezone)
+    if tzinfo is None and dt.tzinfo is None:
+        # Numeric UTC offsets such as ``-05:00`` are valid ISO 8601 timezone
+        # designators, but dateutil's gettz does not resolve them.
+        dt = parser.parse(f"{date}T{time}{timezone}")
+    elif tzinfo is not None:
+        dt = dt.replace(tzinfo=tzinfo)
     return datetime_to_serial_date(dt)
 
 
 def datetime_to_serial_date(dt):
     """Convert datetime.datetime object to a serial date."""
-    if dt.tzname() is None:
+    if dt.tzinfo is None:
         dt = dt.replace(tzinfo=tz.tzutc())
     origin = datetime.datetime(1899, 12, 30, tzinfo=tz.tzutc())
     delta = dt - origin

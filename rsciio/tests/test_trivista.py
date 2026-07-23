@@ -17,11 +17,12 @@
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
 import gc
+import importlib.util
+from copy import deepcopy
+from pathlib import Path
+
 import numpy as np
 import pytest
-import importlib.util
-from pathlib import Path
-from copy import deepcopy
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -2385,9 +2386,7 @@ class TestStepAndGlue:
         )
 
     def test_metadata(self):
-        original_metadata_glued = (
-            self.glued.original_metadata.Document.InfoSerialized.Experiment.as_dictionary()
-        )
+        original_metadata_glued = self.glued.original_metadata.Document.InfoSerialized.Experiment.as_dictionary()
         metadata_detector = self.glued.metadata.Acquisition_instrument.Detector
 
         assert original_metadata_glued["From"] == "900.000 nm"

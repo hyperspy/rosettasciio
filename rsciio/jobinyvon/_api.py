@@ -28,7 +28,12 @@ from pathlib import Path
 
 import numpy as np
 
-from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
+from rsciio._docstrings import (
+    FILENAME_DOC,
+    LAZY_UNSUPPORTED_DOC,
+    RETURNS_DOC,
+    USE_UNIFORM_SIGNAL_AXIS_DOC,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -56,8 +61,7 @@ class JobinYvonXMLReader:
     file_path: pathlib.Path
         Path to the to be read file.
 
-    use_uniform_signal_axis: bool, default=False
-        Decides whether to use uniform or non-uniform signal-axis.
+    %s
 
     Attributes
     ----------
@@ -673,6 +677,9 @@ class JobinYvonXMLReader:
         _remove_none_from_dict(self.metadata)
 
 
+JobinYvonXMLReader.__doc__ %= USE_UNIFORM_SIGNAL_AXIS_DOC.format(default="False")
+
+
 def file_reader(filename, lazy=False, use_uniform_signal_axis=False):
     """
     Read data from .xml files saved using Horiba Jobin Yvon's LabSpec software.
@@ -681,11 +688,7 @@ def file_reader(filename, lazy=False, use_uniform_signal_axis=False):
     ----------
     %s
     %s
-    use_uniform_signal_axis : bool, default=False
-        Can be specified to choose between non-uniform or uniform signal axis.
-        If ``True``, the ``scale`` attribute is calculated from the average delta
-        along the signal axis and a warning is raised in case the delta varies
-        by more than 1 percent.
+    %s
 
     %s
     """
@@ -712,4 +715,9 @@ def file_reader(filename, lazy=False, use_uniform_signal_axis=False):
     ]
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (
+    FILENAME_DOC,
+    LAZY_UNSUPPORTED_DOC,
+    USE_UNIFORM_SIGNAL_AXIS_DOC.format(default="False"),
+    RETURNS_DOC,
+)

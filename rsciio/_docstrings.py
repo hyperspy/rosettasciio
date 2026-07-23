@@ -42,6 +42,14 @@ LAZY_DOC = """lazy : bool, default=False
     """
 
 
+USE_UNIFORM_SIGNAL_AXIS_DOC = """use_uniform_signal_axis : bool, default={default}
+        Whether to represent the relevant axis with a uniform ``offset`` and
+        ``scale`` or with an explicit non-uniform ``axis`` array. If ``True``,
+        the scale is estimated from the average axis spacing and a warning is
+        raised when the spacing varies by more than 1%.
+    """
+
+
 LAZY_UNSUPPORTED_DOC = """lazy : bool, default=False
         Lazy loading is not supported.
     """

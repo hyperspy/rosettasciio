@@ -25,7 +25,12 @@ from pathlib import Path
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
 
-from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio._docstrings import (
+    FILENAME_DOC,
+    LAZY_DOC,
+    RETURNS_DOC,
+    USE_UNIFORM_SIGNAL_AXIS_DOC,
+)
 from rsciio.utils.xml import XmlToDict
 
 _logger = logging.getLogger(__name__)
@@ -722,17 +727,13 @@ def file_reader(
     filter_original_metadata=True,
 ):
     """
-    Reads TriVista's ``.tvf`` file.
+    Read TriVista's ``.tvf`` file.
 
     Parameters
     ----------
     %s
     %s
-    use_uniform_signal_axis : bool, default=False
-        Can be specified to choose between non-uniform or uniform signal axes.
-        If ``True``, the ``scale`` attribute is calculated from the average delta
-        along the signal axis and a warning is raised in case the delta varies
-        by more than 1%%.
+    %s
     glued_data_as_stack : bool, default=False
         Using the mode ``Step & Glue`` results in measurements performed
         at different wavelength ranges with some overlap between them.
@@ -777,4 +778,9 @@ def file_reader(
     return result
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (
+    FILENAME_DOC,
+    LAZY_DOC,
+    USE_UNIFORM_SIGNAL_AXIS_DOC.format(default="False"),
+    RETURNS_DOC,
+)

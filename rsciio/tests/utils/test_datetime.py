@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import numpy as np
 from dateutil import parser, tz
 
@@ -61,13 +63,24 @@ def test_ISO_format_to_serial_date():
     )
     np.testing.assert_allclose(res1, serial1, atol=1e-5)
     res2 = dtt.ISO_format_to_serial_date(
-        dt2.date().isoformat(), dt2.time().isoformat(), timezone="-05:00"
+        dt2.date().isoformat(),
+        dt2.timetz().replace(tzinfo=None).isoformat(),
+        timezone="-05:00",
     )
     np.testing.assert_allclose(res2, serial2, atol=1e-5)
     res3 = dtt.ISO_format_to_serial_date(
         dt3.date().isoformat(), dt3.time().isoformat(), timezone=dt3.tzname()
     )
     np.testing.assert_allclose(res3, serial3, atol=1e-5)
+
+
+def test_ISO_format_to_serial_date_time_with_UTC_offset():
+    date = dt2.date().isoformat()
+    time = dt2.timetz().isoformat()
+    with patch.object(dtt.parser, "parse", wraps=dtt.parser.parse) as parse_mock:
+        res = dtt.ISO_format_to_serial_date(date, time, timezone="-05:00")
+    parse_mock.assert_called_once_with(f"{date}T{time}")
+    np.testing.assert_allclose(res, serial2, atol=1e-5)
 
 
 def test_datetime_to_serial_date():

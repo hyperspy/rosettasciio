@@ -56,13 +56,6 @@ def _remove_none_from_dict(dict_in):
             del dict_in[key]
 
 
-def _et_node_attrib2dict(t):
-    result = None
-    if t.attrib:
-        result = {t.tag: {k: XmlToDict.eval(v) for k, v in t.attrib.items()}}
-    return result
-
-
 def _process_info_serialized(head):
     """Recursive processing designed for the InfoSerialized entry from the original_metadata."""
     result = {}

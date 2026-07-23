@@ -44,7 +44,12 @@ import struct
 
 import numpy as np
 
-from rsciio._docstrings import FILENAME_DOC, LAZY_UNSUPPORTED_DOC, RETURNS_DOC
+from rsciio._docstrings import (
+    FILENAME_DOC,
+    LAZY_UNSUPPORTED_DOC,
+    RETURNS_DOC,
+    USE_UNIFORM_SIGNAL_AXIS_DOC,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -539,10 +544,7 @@ def file_reader(filename, lazy=False, use_uniform_signal_axis=True):
     ----------
     %s
     %s
-    use_uniform_signal_axis : bool, default=True
-        If `True`, the time navigation axis is returned as a uniform axis
-        (`offset` + `scale`). If `False`, the time navigation axis is returned
-        as an explicit non-uniform `axis` array using per-cycle timestamps.
+    %s
 
     %s
     """
@@ -576,5 +578,6 @@ def file_reader(filename, lazy=False, use_uniform_signal_axis=True):
 file_reader.__doc__ %= (
     FILENAME_DOC,
     LAZY_UNSUPPORTED_DOC,
+    USE_UNIFORM_SIGNAL_AXIS_DOC.format(default="True"),
     RETURNS_DOC,
 )

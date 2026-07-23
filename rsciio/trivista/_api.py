@@ -19,16 +19,24 @@
 import importlib.util
 import logging
 import xml.etree.ElementTree as ET
-from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
 
-from rsciio._docstrings import FILENAME_DOC, LAZY_DOC, RETURNS_DOC
+from rsciio._docstrings import (
+    FILENAME_DOC,
+    LAZY_DOC,
+    RETURNS_DOC,
+    USE_UNIFORM_SIGNAL_AXIS_DOC,
+)
+from rsciio.utils.xml import XmlToDict
 
 _logger = logging.getLogger(__name__)
+
+## no name collision between children and attrib in testfiles
+x2d_translator = XmlToDict(dub_attr_pre_str="")
 
 
 def _error_handling_find_location(len_entry, name):
@@ -44,14 +52,6 @@ def _error_handling_find_location(len_entry, name):
         )  # pragma: no cover
 
 
-def _convert_float(input):
-    """Handle None-values when converting strings to float."""
-    if input is None:
-        return None  # pragma: no cover
-    else:
-        return float(input)
-
-
 def _remove_none_from_dict(dict_in):
     """Recursive removal of None-values from a dictionary."""
     for key, value in list(dict_in.items()):
@@ -59,30 +59,6 @@ def _remove_none_from_dict(dict_in):
             _remove_none_from_dict(value)
         elif value is None:
             del dict_in[key]
-
-
-def _etree_to_dict(t, only_top_lvl=False):
-    """Recursive conversion from xml.etree.ElementTree to a dictionary."""
-    d = {t.tag: {} if t.attrib else None}
-    if not only_top_lvl:
-        children = list(t)
-        if children:
-            dd = defaultdict(list)
-            for dc in map(_etree_to_dict, children):
-                for k, v in dc.items():
-                    dd[k].append(v)
-            d = {t.tag: {k: v[0] if len(v) == 1 else v for k, v in dd.items()}}
-        if t.text:
-            if children or t.attrib:
-                ## in this case, the text is ignored
-                ## if children=True -> text is just empty space in test data
-                ## if t.attrib=True and children=False doesn't occur in test data
-                pass
-            else:
-                d[t.tag] = t.text.strip()
-    if t.attrib:
-        d[t.tag].update((k, v) for k, v in t.attrib.items())
-    return d
 
 
 def _process_info_serialized(head):
@@ -137,9 +113,7 @@ class TrivistaTVFReader:
             unfiltered_original_metadata,
         ) = self.parse_file_structure(filter_original_metadata)
 
-        self._num_datasets = int(
-            data_head.findall("Childs")[0].attrib["Count"]  # codespell:ignore
-        )
+        self._num_datasets = int(data_head.findall("Childs")[0].attrib["Count"])
         data, time, signal_axis = self.get_data_and_signal(data_head=data_head)
 
         self.axes = self.set_axes(
@@ -206,24 +180,31 @@ class TrivistaTVFReader:
         et_root = ET.parse(self._file_path).getroot()
 
         ## root level metadata
-        filtered_original_metadata.update(_etree_to_dict(et_root, only_top_lvl=True))
-        et_fileInfoSerialized = ET.fromstring(
-            filtered_original_metadata["XmlMain"]["FileInfoSerialized"]
-        )
-        fileInfoSerialized = _etree_to_dict(et_fileInfoSerialized, only_top_lvl=False)
-        filtered_original_metadata["XmlMain"]["FileInfoSerialized"] = fileInfoSerialized
+        root_level_md = x2d_translator.dictionarize(et_root, ignore_children=True)
+        fileInfoSerialized = root_level_md.get("XmlMain", {}).get("FileInfoSerialized")
+        if fileInfoSerialized is not None:
+            et_fileInfoSerialized = ET.fromstring(fileInfoSerialized)
+            root_level_md["XmlMain"]["FileInfoSerialized"] = (
+                x2d_translator.dictionarize(et_fileInfoSerialized)
+            )
+        filtered_original_metadata.update(root_level_md)
 
         ## Documents / Document section
         data_head = et_root[1][0]
-        filtered_original_metadata.update(_etree_to_dict(data_head, only_top_lvl=True))
-        et_infoSerialized = ET.fromstring(
-            filtered_original_metadata["Document"]["InfoSerialized"]
-        )
-        infoSerialized = _etree_to_dict(et_infoSerialized, only_top_lvl=False)
+        data_head_md = x2d_translator.dictionarize(data_head, ignore_children=True)
+        filtered_original_metadata.update(data_head_md)
+        infoSerialized = data_head_md.get("Document", {}).get("InfoSerialized")
+        if infoSerialized is not None:
+            et_infoSerialized = ET.fromstring(infoSerialized)
+            infoSerialized = x2d_translator.dictionarize(et_infoSerialized)
+        else:
+            raise RuntimeError(
+                "Invalid file (InfoSerialized Block missing), cannot read axis data."
+            )
 
         ## Hardware section
         metadata_head = et_root[0]
-        metadata_hardware = _etree_to_dict(metadata_head, only_top_lvl=False)
+        metadata_hardware = x2d_translator.dictionarize(metadata_head)
 
         if not filter_original_metadata:
             unfiltered_original_metadata = deepcopy(filtered_original_metadata)
@@ -252,13 +233,15 @@ class TrivistaTVFReader:
 
     @staticmethod
     def _filter_laser_metadata(infoSerialized_processed, metadata_hardware):
-        """Filter LightSources section (Laser) via wavelength if possible."""
+        """Filter LightSources section (Laser) via wavelength"""
+        try:
+            calibration_wl = infoSerialized_processed["Calibration"]["Laser_Wavelength"]
+        except KeyError:
+            return
+
         for laser in metadata_hardware["Hardware"]["LightSources"]["LightSource"]:
             try:
-                calibration_wl = float(
-                    infoSerialized_processed["Calibration"]["Laser_Wavelength"]
-                )
-                laser_wl = float(laser["Wavelengths"]["Value_0"])
+                laser_wl = laser["Wavelengths"]["Value_0"]
             except KeyError:
                 pass
             else:
@@ -277,7 +260,7 @@ class TrivistaTVFReader:
         """Filter microscope section (objective) via isEnabled tag"""
         for microscope in metadata_hardware["Hardware"]["Microscopes"]["Microscope"]:
             for objective in microscope["Objectives"]["Objective"]:
-                if objective["IsEnabled"] == "True":
+                if objective["IsEnabled"]:
                     metadata_hardware["Hardware"]["Microscopes"]["Microscope"] = (
                         microscope
                     )
@@ -368,14 +351,18 @@ class TrivistaTVFReader:
 
     def _map_detector_md(self, original_metadata):
         detector = {"processing": {}}
-        detector_original = original_metadata["Document"]["InfoSerialized"]["Detector"]
-        try:
-            experiment_original = original_metadata["Document"]["InfoSerialized"][
-                "Experiment"
-            ]
-        except KeyError:
-            pass
-        else:
+        detector_original = (
+            original_metadata.get("Document", {})
+            .get("InfoSerialized", {})
+            .get("Detector", {})
+        )
+
+        experiment_original = (
+            original_metadata.get("Document", {})
+            .get("InfoSerialized", {})
+            .get("Experiment")
+        )
+        if experiment_original is not None:
             if "Overlap (%)" in experiment_original:
                 detector["glued_spectrum"] = True
                 detector["glued_spectrum_overlap"] = float(
@@ -384,43 +371,40 @@ class TrivistaTVFReader:
                 detector["glued_spectrum_windows"] = self._num_datasets
             else:
                 detector["glued_spectrum"] = False
-        detector["temperature"] = _convert_float(
-            detector_original.get("Detector_Temperature")
-        )
-        detector["exposure_per_frame"] = (
-            _convert_float(detector_original.get("Exposure_Time_(ms)")) / 1000
-        )
-        detector["frames"] = _convert_float(
-            detector_original.get("No_of_Accumulations")
-        )
+
+        detector["temperature"] = detector_original.get("Detector_Temperature")
+        detector["frames"] = detector_original.get("No_of_Accumulations")
         detector["processing"]["calc_average"] = detector_original.get("Calc_Average")
 
         try:
             detector["exposure_per_frame"] = (
-                _convert_float(detector_original.get("Exposure_Time_(ms)")) / 1000
+                detector_original.get("Exposure_Time_(ms)") / 1000
             )
         except TypeError:  # pragma: no cover
             detector["exposure_per_frame"] = None  # pragma: no cover
 
-        if detector["processing"]["calc_average"] == "False":
+        if detector["processing"]["calc_average"]:
+            detector["integration_time"] = detector["exposure_per_frame"]
+        else:
             try:
                 detector["integration_time"] = (
                     detector["exposure_per_frame"] * detector["frames"]
                 )
             except TypeError:  # pragma: no cover
                 pass  # pragma: no cover
-        elif detector["processing"]["calc_average"] == "True":
-            detector["integration_time"] = detector["exposure_per_frame"]
 
         return detector
 
     @staticmethod
     def _map_laser_md(original_metadata, laser_wavelength):
         laser = {}
-        laser["objective_magnification"] = float(
-            original_metadata["Hardware"]["Microscopes"]["Microscope"]["Objectives"][
-                "Objective"
-            ]["Magnification"]
+        laser["objective_magnification"] = (
+            original_metadata.get("Hardware", {})
+            .get("Microscopes", {})
+            .get("Microscope", {})
+            .get("Objectives", {})
+            .get("Objective", {})
+            .get("Magnification")
         )
         if laser_wavelength is not None:
             laser["wavelength"] = laser_wavelength
@@ -430,18 +414,26 @@ class TrivistaTVFReader:
     def _map_spectrometer_md(original_metadata, central_wavelength):
         all_spectrometers_dict = {}
 
-        spectrometers_original = original_metadata["Document"]["InfoSerialized"][
-            "Spectrometers"
-        ]
+        spectrometers_original = (
+            original_metadata.get("Document", {})
+            .get("InfoSerialized", {})
+            .get("Spectrometers", {})
+        )
 
         for key, entry in spectrometers_original.items():
             spectro_dict_tmp = {"Grating": {}}
             spectro_dict_tmp["central_wavelength"] = central_wavelength
-            blaze = original_metadata["Hardware"]["Spectrometers"][key]["Gratings"][
-                "Grating"
-            ]["Blaze"]
-            if blaze[-2:] == "NM":
-                blaze = float(blaze.split("N")[0])
+            blaze = (
+                original_metadata.get("Hardware", {})
+                .get("Spectrometers", {})
+                .get(key, {})
+                .get("Gratings", {})
+                .get("Grating", {})
+                .get("Blaze")
+            )
+            if isinstance(blaze, str):
+                if blaze[-2:] == "NM":
+                    blaze = float(blaze.split("N")[0])
             spectro_dict_tmp["Grating"]["blazing_wavelength"] = blaze
             spectro_dict_tmp["model"] = entry.get("Model")
             try:
@@ -451,45 +443,46 @@ class TrivistaTVFReader:
             else:
                 groove_density = float(groove_density.split(" ")[0])
             spectro_dict_tmp["Grating"]["groove_density"] = groove_density
-            slit_entrance_front = (
-                _convert_float(entry.get("Slit_Entrance-Front")) / 1000
-            )
-            slit_entrance_side = _convert_float(entry.get("Slit_Entrance-Side")) / 1000
-            slit_exit_front = _convert_float(entry.get("Slit_Exit-Front")) / 1000
-            slit_exit_side = _convert_float(entry.get("Slit_Exit-Side")) / 1000
-            ## using the maximum here, because
-            ## only one entrance/exit should be in use anyways
-            spectro_dict_tmp["entrance_slit_width"] = max(
-                slit_entrance_front, slit_entrance_side
-            )
-            spectro_dict_tmp["exit_slit_width"] = max(slit_exit_front, slit_exit_side)
+            try:
+                slit_entrance_front = entry.get("Slit_Entrance-Front") / 1000
+                slit_entrance_side = entry.get("Slit_Entrance-Side") / 1000
+                slit_exit_front = entry.get("Slit_Exit-Front") / 1000
+                slit_exit_side = entry.get("Slit_Exit-Side") / 1000
+            except TypeError:
+                pass
+            else:
+                ## using the maximum here, because
+                ## only one entrance/exit should be in use anyways
+                spectro_dict_tmp["entrance_slit_width"] = max(
+                    slit_entrance_front, slit_entrance_side
+                )
+                spectro_dict_tmp["exit_slit_width"] = max(
+                    slit_exit_front, slit_exit_side
+                )
             all_spectrometers_dict[key] = spectro_dict_tmp
 
         return all_spectrometers_dict
 
     @staticmethod
     def _get_calibration_md(original_metadata):
+        calibration_original = (
+            original_metadata.get("Document", {})
+            .get("InfoSerialized", {})
+            .get("Calibration", {})
+        )
+        central_wavelength = calibration_original.get("Center_Wavelength")
+        laser_wavelength = calibration_original.get("Laser_Wavelength", 0)
         try:
-            calibration_original = original_metadata["Document"]["InfoSerialized"][
-                "Calibration"
-            ]
-        except KeyError:
-            central_wavelength = None
+            laser_wavelength = float(laser_wavelength)
+        except (TypeError, ValueError):
             laser_wavelength = None
-        else:
-            central_wavelength = _convert_float(
-                calibration_original.get("Center_Wavelength")
-            )
-            laser_wavelength = _convert_float(
-                calibration_original.get("Laser_Wavelength")
-            )
-            if laser_wavelength is not None:
-                if np.isclose(laser_wavelength, 0):
-                    laser_wavelength = None
+
+        if laser_wavelength is None or np.isclose(laser_wavelength, 0):
+            laser_wavelength = None
+
         return central_wavelength, laser_wavelength
 
     def map_metadata(self, original_metadata):
-        """Maps original_metadata to metadata."""
         general = self._map_general_md(original_metadata)
         signal = self._map_signal_md(original_metadata)
         detector = self._map_detector_md(original_metadata)
@@ -514,7 +507,6 @@ class TrivistaTVFReader:
         return metadata
 
     def _get_signal_axis(self, axis_pos):
-        """Helper method to read and set signal axis."""
         axis_list = axis_pos.findall("xDim")
         _error_handling_find_location(
             len(axis_list), "signal axis information"
@@ -589,7 +581,6 @@ class TrivistaTVFReader:
 
     @staticmethod
     def _get_nav_axis(name, axis):
-        """Helper method to read and set navigation axes."""
         nav_dict = {}
         nav_dict["offset"] = float(axis["From"])
         nav_dict["scale"] = float(axis["Step"])
@@ -600,7 +591,6 @@ class TrivistaTVFReader:
         return nav_dict
 
     def set_axes(self, axis_head, signal_axis, time):
-        """Extracts signal and navigation axes."""
         axes = dict()
         has_y = False
         has_x = False
@@ -663,7 +653,6 @@ class TrivistaTVFReader:
 
     @staticmethod
     def _parse_data(data_pos):
-        """Extracts data from file."""
         data_list = data_pos.findall("Data")
         _error_handling_find_location(len(data_list), "data")  # pragma: no cover
 
@@ -685,7 +674,7 @@ class TrivistaTVFReader:
         return data, time
 
     def _load_glued_data_stack(self, data_head):
-        num_datasets_list = data_head.findall("Childs")  # codespell:ignore
+        num_datasets_list = data_head.findall("Childs")
         _error_handling_find_location(
             len(num_datasets_list), "glued datasets"
         )  # pragma: no cover
@@ -715,7 +704,6 @@ class TrivistaTVFReader:
         return data, time, signal_axis
 
     def reshape_data(self, data, axes):
-        """Reshapes data according to axes sizes."""
         if self._use_uniform_signal_axis:
             wavelength_size = axes[0][-1]["size"]
         else:
@@ -745,23 +733,19 @@ def file_reader(
     ----------
     %s
     %s
-    use_uniform_signal_axis : bool, default=False
-        Can be specified to choose between non-uniform or uniform signal axes.
-        If `True`, the ``scale`` attribute is calculated from the average delta
-        along the signal axis and a warning is raised in case the delta varies
-        by more than 1%%.
+    %s
     glued_data_as_stack : bool, default=False
-        Using the mode `Step & Glue` results in measurements performed
+        Using the mode ``Step & Glue`` results in measurements performed
         at different wavelength ranges with some overlap between them.
         The file then contains the individual spectra as well as
-        the "glued" spectrum. The latter is represented as one spectrum,
+        the ``"glued"`` spectrum. The latter is represented as one spectrum,
         which covers the complete wavelength range. Stitching the datasets
         together in the overlap region is already done by the setup.
-        If this setting is set to `True`, then the individual datasets will be loaded
-        as a stack. Otherwise, only the "glued" spectrum is loaded.
+        If this setting is set to ``True``, then the individual datasets will be loaded
+        as a stack. Otherwise, only the ``"glued"`` spectrum is loaded.
     filter_original_metadata : bool, default=True
         Decides whether to process the original_metadata.
-        If `True`, then non-relevant metadata will be excluded.
+        If ``True``, then non-relevant metadata will be excluded.
         For example, the metadata usually contains information
         for multiple objectives, even though only one is used.
         In this case, only the metadata from the used objective
@@ -794,4 +778,9 @@ def file_reader(
     return result
 
 
-file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
+file_reader.__doc__ %= (
+    FILENAME_DOC,
+    LAZY_DOC,
+    USE_UNIFORM_SIGNAL_AXIS_DOC.format(default="False"),
+    RETURNS_DOC,
+)

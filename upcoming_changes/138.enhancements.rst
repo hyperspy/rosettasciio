@@ -1,0 +1,1 @@
+:ref:`TriVista <trivista-format>`: migrate to :class:`rsciio.utils.xml.XmlToDict` for XML parsing and dictionary conversion to improve maintainability.

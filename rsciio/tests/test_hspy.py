@@ -976,6 +976,76 @@ def test_save_ragged_dim(tmp_path, file, nav_dim, lazy):
             np.testing.assert_allclose(s.data[indices], s2.data[indices])
 
 
+@zspy_marker
+def test_save_ragged_array_csr_lazy_read(tmp_path, file):
+    # A uniform-trailing-shape numeric ragged array (e.g. one (N_i, 2) array
+    # of vectors per position) is written using the dense CSR encoding
+    # (see ZARR_V3_PLAN.md "Phase 3b"). Written eagerly, it must still be
+    # readable back lazily.
+    rng = np.random.default_rng(0)
+    nav_shape = (7, 5)
+    data = np.empty(nav_shape, dtype=object)
+    for ind in np.ndindex(data.shape):
+        num = rng.integers(0, 6)
+        data[ind] = rng.random((num, 2)).astype(np.float32)
+
+    s = hs.signals.BaseSignal(data, ragged=True)
+    filename = tmp_path / file
+    s.save(filename)
+
+    s2 = hs.load(filename, lazy=True)
+    assert isinstance(s2.data, da.Array)
+    assert s2.data.dtype == object
+    computed = s2.data.compute()
+    for ind in np.ndindex(data.shape):
+        np.testing.assert_allclose(data[ind], computed[ind])
+
+
+@zspy_marker
+def test_save_ragged_array_csr_all_empty(tmp_path, file):
+    # Every cell has zero vectors (N_total == 0 across the whole array) --
+    # an edge case the dense CSR encoding needs to handle explicitly since
+    # some backends can't chunk a zero-length axis with automatic guessing.
+    nav_shape = (4, 3)
+    data = np.empty(nav_shape, dtype=object)
+    for ind in np.ndindex(data.shape):
+        data[ind] = np.zeros((0, 2), dtype=np.float32)
+
+    s = hs.signals.BaseSignal(data, ragged=True)
+    filename = tmp_path / file
+    s.save(filename)
+
+    s2 = hs.load(filename)
+    for ind in np.ndindex(data.shape):
+        assert s2.data[ind].shape == (0, 2)
+
+
+@zspy_marker
+@pytest.mark.parametrize("heterogeneous", ["shape", "dtype"])
+def test_save_ragged_array_csr_fallback(tmp_path, file, heterogeneous):
+    # Ragged arrays that don't fit the CSR encoding's "uniform trailing
+    # shape, single dtype" requirement (heterogeneous per-cell shapes or
+    # mixed dtypes) must still round-trip correctly through the generic
+    # (per-cell object-dtype) fallback encoding.
+    rng = np.random.default_rng(0)
+    data = np.empty((5,), dtype=object)
+    for index in np.ndindex(data.shape):
+        i = index[0]
+        if heterogeneous == "shape":
+            data[index] = rng.random((i + 1, 2 + (i % 2)))
+        else:
+            dtype = np.int32 if i % 2 else np.float64
+            data[index] = rng.random((i + 1, 2)).astype(dtype)
+
+    s = hs.signals.BaseSignal(data, ragged=True)
+    filename = tmp_path / file
+    s.save(filename)
+
+    s2 = hs.load(filename)
+    for index in np.ndindex(data.shape):
+        np.testing.assert_allclose(data[index], s2.data[index])
+
+
 def test_load_missing_extension(caplog):
     path = TEST_DATA_PATH / "hspy_ext_missing.hspy"
     with pytest.warns(UserWarning):

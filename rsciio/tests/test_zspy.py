@@ -111,6 +111,46 @@ class TestZspy:
         d = f["Experiments/__unnamed__/data"]
         assert d.compressor == comp
 
+    def test_ragged_vectors_use_csr_encoding(self, tmp_path):
+        # A numeric ragged array with a uniform trailing shape (e.g. one
+        # (N_i, 2) array of vectors per position) must be written with the
+        # dense CSR (values + offsets) encoding, not the generic per-cell
+        # object-dtype encoding -- see ZARR_V3_PLAN.md "Phase 3b".
+        filename = tmp_path / "testfile.zspy"
+        rng = np.random.default_rng(0)
+        data = np.empty((4, 3), dtype=object)
+        for ind in np.ndindex(data.shape):
+            data[ind] = rng.random((rng.integers(0, 5), 2)).astype(np.float32)
+
+        hs.signals.BaseSignal(data, ragged=True).save(filename)
+
+        f = zarr.open(filename.__str__(), mode="r")
+        d = f["Experiments/__unnamed__/data"]
+        assert d.dtype != object
+        assert d.attrs["_ragged_encoding"] == "csr"
+        assert d.attrs["_ragged_nav_shape"] == [4, 3]
+        assert "_ragged_offsets_data" in f["Experiments/__unnamed__"]
+        assert "_ragged_shapes_data" not in f["Experiments/__unnamed__"]
+
+    def test_ragged_heterogeneous_uses_generic_encoding(self, tmp_path):
+        # Heterogeneous per-cell shapes don't fit the CSR encoding and must
+        # fall back to the generic object-dtype/shapes-sidecar mechanism.
+        filename = tmp_path / "testfile.zspy"
+        rng = np.random.default_rng(0)
+        data = np.empty((5,), dtype=object)
+        for index in np.ndindex(data.shape):
+            i = index[0]
+            data[index] = rng.random((i + 1, 2 + (i % 2)))
+
+        hs.signals.BaseSignal(data, ragged=True).save(filename)
+
+        f = zarr.open(filename.__str__(), mode="r")
+        d = f["Experiments/__unnamed__/data"]
+        assert d.dtype == object
+        assert "_ragged_encoding" not in d.attrs
+        assert "_ragged_shapes_data" in f["Experiments/__unnamed__"]
+        assert "_ragged_offsets_data" not in f["Experiments/__unnamed__"]
+
     @pytest.mark.parametrize("compressor", (None, "default", "blosc"))
     def test_compression(self, compressor, tmp_path):
         if compressor == "blosc":

@@ -29,7 +29,11 @@ from rsciio._docstrings import SHOW_PROGRESSBAR_DOC
 from rsciio.utils._array import is_dask_array
 from rsciio.utils._tools import ensure_unicode
 
-version = "3.3"
+# 3.4 adds the CSR (dense values + offsets) encoding for ragged arrays with a
+# uniform numeric per-position shape. Readers older than 3.4 don't know about
+# the `_ragged_encoding` attribute and would silently misread such a dataset as
+# a plain dense array, so the bump is what makes them warn.
+version = "3.4"
 
 default_version = Version(version)
 
@@ -843,6 +847,29 @@ class HierarchicalWriter:
     def _store_data(*arg):  # pragma: no cover
         raise NotImplementedError("This method must be implemented by subclasses.")
 
+    @staticmethod
+    def _clear_ragged_state(group, key):
+        """
+        Drop any ragged-array bookkeeping left over from a previous write of
+        ``key``: the CSR marker attributes and both flavours of sidecar
+        dataset.
+
+        Rewriting a key doesn't necessarily recreate its dataset -- when the
+        new shape and dtype happen to match, ``require_dataset`` reuses the
+        existing one -- so without this the old encoding's metadata can
+        survive and make the reader reconstruct the new data the wrong way
+        (e.g. a plain dense array read back as a ragged one). Sidecars from
+        the encoding *not* used by this write would also linger as dead
+        datasets in the file.
+        """
+        if key in group:
+            for attr in ("_ragged_encoding", "_ragged_nav_shape"):
+                if attr in group[key].attrs:
+                    del group[key].attrs[attr]
+        for sidecar in (f"_ragged_offsets_{key}", f"_ragged_shapes_{key}"):
+            if sidecar in group:
+                del group[sidecar]
+
     @classmethod
     def _write_ragged_csr(
         cls, group, data, key, trailing_shape, dtype, show_progressbar=True, **kwds
@@ -908,6 +935,9 @@ class HierarchicalWriter:
             :py:meth:`h5py.Group.require_dataset` or
             :py:meth:`zarr.hierarchy.Group.require_dataset` method.
         """ % SHOW_PROGRESSBAR_DOC
+        # Whatever encoding this write ends up using, any bookkeeping from a
+        # previous write of the same key is now stale and must not survive.
+        cls._clear_ragged_state(group, key)
         if chunks is None:
             if is_dask_array(data):
                 # For lazy dataset, by default, we use the current dask chunking
@@ -980,10 +1010,23 @@ class HierarchicalWriter:
             else:
                 new_data, shapes = flatten_data(data, is_hdf5=cls._is_hdf5)
 
-            dset = cls._get_object_dset(group, new_data, key, chunks, **kwds)
-            shape_dset = cls._get_object_dset(
-                group, shapes, f"_ragged_shapes_{key}", chunks, dtype=int, **kwds
-            )
+            got_data = False
+            while not got_data:
+                try:
+                    dset = cls._get_object_dset(group, new_data, key, chunks, **kwds)
+                    shape_dset = cls._get_object_dset(
+                        group, shapes, f"_ragged_shapes_{key}", chunks, dtype=int, **kwds
+                    )
+                    got_data = True
+                except TypeError:
+                    # Same as the concrete-dtype branch above: if the shape or
+                    # dtype/etc of an existing dataset don't match, delete it
+                    # and create a new one in the next loop run. Needed when
+                    # the key previously held a CSR-encoded (dense) array,
+                    # whose shape never matches the ragged one written here.
+                    for key_ in (key, f"_ragged_shapes_{key}"):
+                        if key_ in group:
+                            del group[key_]
 
             cls._store_data(
                 (new_data, shapes),

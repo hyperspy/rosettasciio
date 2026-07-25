@@ -20,6 +20,7 @@ import importlib
 import logging
 import sys
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 import dask.array as da
@@ -1044,6 +1045,95 @@ def test_save_ragged_array_csr_fallback(tmp_path, file, heterogeneous):
     s2 = hs.load(filename)
     for index in np.ndindex(data.shape):
         np.testing.assert_allclose(data[index], s2.data[index])
+
+
+def _ragged(shapes, dtype=np.float64):
+    data = np.empty((len(shapes),), dtype=object)
+    for i, shape in enumerate(shapes):
+        data[i] = np.arange(np.prod(shape), dtype=dtype).reshape(shape)
+    return data
+
+
+@contextmanager
+def _scratch_group(path, file):
+    """Yield ``(writer_cls, reader_cls, group)`` for a .hspy or .zspy file.
+
+    These tests drive ``overwrite_dataset`` directly because rewriting an
+    existing key isn't reachable through ``save()`` -- a full-file save
+    recreates the signal group first.
+    """
+    if ".hspy" in file:
+        from rsciio.hspy._api import HyperspyReader, HyperspyWriter
+
+        with h5py.File(path, "w") as f:
+            yield HyperspyWriter, HyperspyReader, f.create_group("group")
+    else:
+        zarr = pytest.importorskip("zarr")
+        from rsciio.zspy._api import ZspyReader, ZspyWriter
+
+        yield ZspyWriter, ZspyReader, zarr.group()
+
+
+def _read_back(reader_cls, group, key):
+    # The readers' __init__ validates a whole hspy/zspy file; these tests only
+    # need the array-reconstruction half.
+    reader = object.__new__(reader_cls)
+    out = reader._read_array(group, key)
+    return out.compute() if hasattr(out, "compute") else np.asarray(out)
+
+
+@zspy_marker
+def test_rewrite_csr_key_clears_stale_state(tmp_path, file):
+    # Rewriting a key must not leave the previous encoding's bookkeeping
+    # behind: a dense array written over a CSR-encoded key used to keep the
+    # `_ragged_encoding` attribute (require_dataset reuses the dataset when
+    # shape and dtype match) and was then silently read back as ragged.
+    with _scratch_group(tmp_path / file, file) as (writer, reader_cls, group):
+        writer.overwrite_dataset(
+            group, _ragged([(1,), (2,), (3,)]), "data", show_progressbar=False
+        )
+        assert group["data"].attrs["_ragged_encoding"] == "csr"
+
+        # A dense array of exactly the CSR values' shape and dtype.
+        dense = np.arange(6, dtype=np.float64) * 10
+        writer.overwrite_dataset(group, dense, "data", show_progressbar=False)
+        assert "_ragged_encoding" not in group["data"].attrs
+        assert "_ragged_offsets_data" not in group
+
+        out = _read_back(reader_cls, group, "data")
+        assert out.dtype == np.float64
+        np.testing.assert_allclose(out, dense)
+
+
+@zspy_marker
+def test_rewrite_csr_key_with_heterogeneous_ragged(tmp_path, file):
+    # Overwriting a CSR-encoded key with ragged data that only the generic
+    # encoding can represent must succeed: the existing dense dataset has a
+    # different shape, so it has to be deleted and recreated.
+    heterogeneous = _ragged([(1, 3), (2, 2)])
+
+    with _scratch_group(tmp_path / file, file) as (writer, reader_cls, group):
+        writer.overwrite_dataset(
+            group, _ragged([(2, 2), (3, 2)]), "data", show_progressbar=False
+        )
+        writer.overwrite_dataset(group, heterogeneous, "data", show_progressbar=False)
+        assert "_ragged_encoding" not in group["data"].attrs
+        assert "_ragged_offsets_data" not in group
+
+        out = _read_back(reader_cls, group, "data")
+        for index in np.ndindex(heterogeneous.shape):
+            np.testing.assert_allclose(heterogeneous[index], out[index])
+
+
+def test_format_version_bumped_for_csr():
+    # The CSR encoding is a new on-disk format: readers predating it would
+    # silently misread such a dataset as a plain dense array, so the format
+    # version must be ahead of 3.3 for their "newer version" warning to fire.
+    from packaging.version import Version
+
+    from rsciio._hierarchical import version
+
+    assert Version(version) > Version("3.3")
 
 
 def test_load_missing_extension(caplog):

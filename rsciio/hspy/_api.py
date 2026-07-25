@@ -99,8 +99,12 @@ class HyperspyWriter(HierarchicalWriter):
                     )
                 # for performance reason, we write the data later, with all data
                 # at the same time in a single `dask.array.store` call
-            # "write_direct" doesn't play well with empty array
-            elif data_.flags.c_contiguous and data_.shape != (0,):
+            # "write_direct" doesn't play well with empty array -- on older
+            # h5py it divides by zero while broadcasting the selection. Any
+            # zero-size shape hits this, not just the 1-D `(0,)` case: the
+            # CSR encoding writes a `(0, D)` values buffer when every ragged
+            # cell is empty.
+            elif data_.flags.c_contiguous and data_.size != 0:
                 dset_.write_direct(data_)
             else:
                 dset_[:] = data_

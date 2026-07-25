@@ -1022,21 +1022,21 @@ def test_save_ragged_array_csr_all_empty(tmp_path, file):
 
 
 @zspy_marker
-@pytest.mark.parametrize("heterogeneous", ["shape", "dtype"])
-def test_save_ragged_array_csr_fallback(tmp_path, file, heterogeneous):
-    # Ragged arrays that don't fit the CSR encoding's "uniform trailing
-    # shape, single dtype" requirement (heterogeneous per-cell shapes or
-    # mixed dtypes) must still round-trip correctly through the generic
-    # (per-cell object-dtype) fallback encoding.
+def test_save_ragged_array_csr_fallback(tmp_path, file):
+    # Ragged arrays with heterogeneous per-cell shapes don't fit the CSR
+    # encoding and must still round-trip through the generic (per-cell
+    # object-dtype) fallback encoding.
+    #
+    # Mixed *dtypes* are covered by the encoding-selection tests in
+    # test_zspy.py rather than here: the generic encoding stores a single
+    # dtype for the whole dataset, so it has never round-tripped mixed-dtype
+    # ragged data faithfully. What matters for the CSR path is only that it
+    # declines such data (otherwise its concatenation would silently coerce).
     rng = np.random.default_rng(0)
     data = np.empty((5,), dtype=object)
     for index in np.ndindex(data.shape):
         i = index[0]
-        if heterogeneous == "shape":
-            data[index] = rng.random((i + 1, 2 + (i % 2)))
-        else:
-            dtype = np.int32 if i % 2 else np.float64
-            data[index] = rng.random((i + 1, 2)).astype(dtype)
+        data[index] = rng.random((i + 1, 2 + (i % 2)))
 
     s = hs.signals.BaseSignal(data, ragged=True)
     filename = tmp_path / file

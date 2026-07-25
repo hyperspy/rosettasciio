@@ -1015,7 +1015,12 @@ class HierarchicalWriter:
                 try:
                     dset = cls._get_object_dset(group, new_data, key, chunks, **kwds)
                     shape_dset = cls._get_object_dset(
-                        group, shapes, f"_ragged_shapes_{key}", chunks, dtype=int, **kwds
+                        group,
+                        shapes,
+                        f"_ragged_shapes_{key}",
+                        chunks,
+                        dtype=int,
+                        **kwds,
                     )
                     got_data = True
                 except TypeError:

@@ -132,15 +132,23 @@ class TestZspy:
         assert "_ragged_offsets_data" in f["Experiments/__unnamed__"]
         assert "_ragged_shapes_data" not in f["Experiments/__unnamed__"]
 
-    def test_ragged_heterogeneous_uses_generic_encoding(self, tmp_path):
-        # Heterogeneous per-cell shapes don't fit the CSR encoding and must
-        # fall back to the generic object-dtype/shapes-sidecar mechanism.
+    @pytest.mark.parametrize("heterogeneous", ["shape", "dtype"])
+    def test_ragged_heterogeneous_uses_generic_encoding(self, tmp_path, heterogeneous):
+        # Ragged data that doesn't fit the CSR encoding's "uniform trailing
+        # shape, single dtype" requirement must fall back to the generic
+        # object-dtype/shapes-sidecar mechanism. Mixed dtypes matter in
+        # particular: CSR concatenates all cells into one buffer, which would
+        # silently coerce them to a common dtype if the predicate accepted it.
         filename = tmp_path / "testfile.zspy"
         rng = np.random.default_rng(0)
         data = np.empty((5,), dtype=object)
         for index in np.ndindex(data.shape):
             i = index[0]
-            data[index] = rng.random((i + 1, 2 + (i % 2)))
+            if heterogeneous == "shape":
+                data[index] = rng.random((i + 1, 2 + (i % 2)))
+            else:
+                dtype = np.int32 if i % 2 else np.float64
+                data[index] = rng.random((i + 1, 2)).astype(dtype)
 
         hs.signals.BaseSignal(data, ragged=True).save(filename)
 

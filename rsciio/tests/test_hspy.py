@@ -1125,6 +1125,29 @@ def test_rewrite_csr_key_with_heterogeneous_ragged(tmp_path, file):
             np.testing.assert_allclose(heterogeneous[index], out[index])
 
 
+@zspy_marker
+def test_ragged_dataset_error_retry_is_bounded(tmp_path, file, monkeypatch):
+    # The ragged write retries dataset creation once, to clear a conflicting
+    # dataset left by the other encoding. A TypeError that a delete can't
+    # resolve -- one coming from the data itself -- must propagate rather than
+    # spin forever, which would hang the write instead of reporting the error.
+    calls = []
+
+    def always_raises(*args, **kwargs):
+        calls.append(1)
+        raise TypeError("unrelated to any existing dataset")
+
+    with _scratch_group(tmp_path / file, file) as (writer, _reader_cls, group):
+        monkeypatch.setattr(writer, "_get_object_dset", staticmethod(always_raises))
+        with pytest.raises(TypeError, match="unrelated"):
+            writer.overwrite_dataset(
+                group, _ragged([(1, 3), (2, 2)]), "data", show_progressbar=False
+            )
+
+    # At most two attempts, each creating at most the data and shapes datasets.
+    assert len(calls) <= 4
+
+
 def test_format_version_bumped_for_csr():
     # The CSR encoding is a new on-disk format: readers predating it would
     # silently misread such a dataset as a plain dense array, so the format

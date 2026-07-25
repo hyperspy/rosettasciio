@@ -1010,8 +1010,13 @@ class HierarchicalWriter:
             else:
                 new_data, shapes = flatten_data(data, is_hdf5=cls._is_hdf5)
 
-            got_data = False
-            while not got_data:
+            # If the shape or dtype/etc of an existing dataset don't match,
+            # delete it and create a new one -- needed when the key previously
+            # held a CSR-encoded (dense) array, whose shape never matches the
+            # ragged one written here. Retry exactly once: a TypeError that
+            # survives the delete comes from the data itself, not from a
+            # conflicting dataset, and must propagate rather than spin.
+            for last_attempt in (False, True):
                 try:
                     dset = cls._get_object_dset(group, new_data, key, chunks, **kwds)
                     shape_dset = cls._get_object_dset(
@@ -1022,13 +1027,10 @@ class HierarchicalWriter:
                         dtype=int,
                         **kwds,
                     )
-                    got_data = True
+                    break
                 except TypeError:
-                    # Same as the concrete-dtype branch above: if the shape or
-                    # dtype/etc of an existing dataset don't match, delete it
-                    # and create a new one in the next loop run. Needed when
-                    # the key previously held a CSR-encoded (dense) array,
-                    # whose shape never matches the ragged one written here.
+                    if last_attempt:
+                        raise
                     for key_ in (key, f"_ragged_shapes_{key}"):
                         if key_ in group:
                             del group[key_]

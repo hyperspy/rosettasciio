@@ -28,7 +28,17 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 # zarr (because of numcodecs) is only supported on x86_64 machines
 zarr = pytest.importorskip("zarr", reason="zarr not installed")
 
+from rsciio.zspy._api import ZARR_V3  # noqa: E402
+
 dname = Path(os.path.dirname(__file__)) / "data" / "zspy"
+
+# Stores and behaviours that only exist under zarr 2. N5 support and the
+# `DBMStore`/`LMDBStore`/`NestedDirectoryStore` classes were dropped in
+# zarr 3 rather than renamed, and ragged arrays there rely on object codecs
+# that have no zarr 3 equivalent.
+zarr_v2_only = pytest.mark.skipif(ZARR_V3, reason="zarr 2 only API")
+zarr_v3_only = pytest.mark.skipif(not ZARR_V3, reason="requires zarr 3")
+_v2_stores = [] if ZARR_V3 else [zarr.N5Store, zarr.ZipStore]
 
 
 class TestZspy:
@@ -38,7 +48,8 @@ class TestZspy:
         s = hs.signals.Signal1D(data)
         return s
 
-    @pytest.mark.parametrize("store_class", [zarr.N5Store, zarr.ZipStore])
+    @zarr_v2_only
+    @pytest.mark.parametrize("store_class", _v2_stores)
     def test_save_store(self, signal, tmp_path, store_class):
         filename = tmp_path / "test_save_store.zspy"
         store = store_class(path=filename)
@@ -54,6 +65,7 @@ class TestZspy:
 
         np.testing.assert_array_equal(signal2.data, signal.data)
 
+    @zarr_v2_only
     @pytest.mark.parametrize("close_file", [True, False])
     def test_save_ZipStore_close_file(self, signal, tmp_path, close_file):
         filename = tmp_path / "test_zip_Store.zspy"
@@ -65,6 +77,7 @@ class TestZspy:
         s2 = hs.load(filename)
         np.testing.assert_array_equal(s2.data, signal.data)
 
+    @zarr_v2_only
     def test_save_ZipStore_mode_warning(self, signal, tmp_path, caplog):
         filename = tmp_path / "test.zspy"
         store = zarr.ZipStore(path=filename)
@@ -74,6 +87,7 @@ class TestZspy:
             _ = hs.load(filename, mode="r+")
             assert "Specifying `mode` " in caplog.text
 
+    @zarr_v2_only
     def test_save_wrong_store(self, signal, tmp_path, caplog):
         filename = tmp_path / "testmodels.zspy"
         store = zarr.N5Store(path=filename)
@@ -101,6 +115,7 @@ class TestZspy:
         else:
             np.testing.assert_array_equal(signal.data, hs.load(filename).data)
 
+    @zarr_v2_only
     def test_compression_opts(self, tmp_path):
         self.filename = tmp_path / "testfile.zspy"
         from numcodecs import Blosc
@@ -128,8 +143,12 @@ def test_non_valid_zspy(tmp_path, caplog):
     filename = tmp_path / "testfile.zspy"
     data = np.arange(10)
 
-    f = zarr.group(filename)
-    f.create_dataset("dataset", data=data)
+    if ZARR_V3:
+        f = zarr.create_group(filename)
+        f.create_array("dataset", shape=data.shape, dtype=data.dtype)
+    else:
+        f = zarr.group(filename)
+        f.create_dataset("dataset", data=data)
 
     with pytest.raises(IOError):
         with caplog.at_level(logging.ERROR):
@@ -180,6 +199,14 @@ def test_read_zspy_saved_with_zarr_v2_ragged_markers():
     """
     fname = dname / "signal2d_20x10x10-ragged_markers.zspy"
 
+    if ZARR_V3:
+        # zarr 3 can't resolve the v2 object-codec metadata this file's ragged
+        # markers were written with. Check the failure is the actionable one
+        # rather than zarr's raw internal error.
+        with pytest.raises(ValueError, match="written with zarr 2 object codecs"):
+            hs.load(fname)
+        return
+
     s = hs.load(fname)
     assert s.data.shape == (20, 10, 10)
     m = s.metadata.Markers.Points
@@ -219,6 +246,11 @@ def test_read_zspy_saved_with_zarr_v2_ragged_markers_unicode():
     s.save("signal2d_20x10x10-ragged_markers_unicode.zspy", store_type="zip")
     """
     fname = dname / "signal2d_20x10x10-ragged_markers_unicode.zspy"
+
+    if ZARR_V3:
+        with pytest.raises(ValueError, match="written with zarr 2 object codecs"):
+            hs.load(fname)
+        return
 
     s = hs.load(fname)
     assert s.data.shape == (5, 10, 10)
@@ -288,8 +320,30 @@ def test_save_store_error(tmp_path):
     with pytest.raises(ValueError, match="one of 'local' or 'zip'."):
         s.save(tmp_path / "test0.zspy", store_type="unsupported_store_type")
 
+
+@zarr_v2_only
+def test_save_store_error_store_passed(tmp_path):
+    # Passing a store object rather than a path. Skipped under zarr 3 because
+    # hyperspy detects "a store was passed" with `isinstance(filename,
+    # MutableMapping)`, and zarr 3 stores derive from `zarr.abc.store.Store`
+    # instead, so the store never reaches rsciio -- hyperspy treats it as a
+    # path and raises TypeError. Needs a fix on the hyperspy side.
+    s = hs.signals.Signal1D(np.ones((10, 10, 10, 10)))
     store = zarr.storage.ZipStore(tmp_path / "test1.zspy")
     with pytest.raises(
         ValueError, match="The `store_type` parameter must be None if a zarr "
     ):
         s.save(filename=store, store_type="zip")
+
+
+@zarr_v3_only
+def test_save_ragged_zarr3_raises(tmp_path):
+    # Ragged arrays need zarr 2's object codecs, which zarr 3 has no
+    # equivalent for. Until that is ported, the failure must say so rather
+    # than surfacing an AttributeError from deep inside the writer.
+    data = np.empty((3,), dtype=object)
+    for i in range(3):
+        data[i] = np.arange(i + 2, dtype=float)
+
+    with pytest.raises(NotImplementedError, match="not supported with zarr 3"):
+        hs.signals.BaseSignal(data, ragged=True).save(tmp_path / "ragged.zspy")

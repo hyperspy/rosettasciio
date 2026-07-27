@@ -711,6 +711,19 @@ class HierarchicalWriter:
         raise NotImplementedError("This method must be implemented by subclasses.")
 
     @classmethod
+    def _require_dataset(cls, group, key, **kwds):
+        """
+        Create ``key`` in ``group``, reusing an existing dataset when it
+        already matches.
+
+        Backends whose API differs from :py:meth:`h5py.Group.require_dataset`
+        override this -- zarr 3 renamed it to ``require_array`` and changed
+        how compressors are specified -- so that all version handling stays
+        inside the backend rather than leaking into this shared code.
+        """
+        return group.require_dataset(key, **kwds)
+
+    @classmethod
     def overwrite_dataset(
         cls,
         group,
@@ -761,8 +774,15 @@ class HierarchicalWriter:
             data = data.astype(np.dtype("S"))
 
         if data.dtype != np.dtype("O"):
-            got_data = False
-            while not got_data:
+            # Retry exactly once: if the shape or dtype/etc of an existing
+            # dataset do not match, delete it and create a new one. A
+            # TypeError that survives the delete comes from the request
+            # itself, not from a conflicting dataset, and must propagate.
+            # This used to loop unbounded, relying on `del group[key]` raising
+            # KeyError to escape -- which zarr 3 does not do for a missing
+            # key, so the loop would spin forever there instead of reporting
+            # the error.
+            for last_attempt in (False, True):
                 try:
                     these_kwds = kwds.copy()
                     these_kwds.update(
@@ -776,12 +796,13 @@ class HierarchicalWriter:
 
                     # If chunks is True, the `chunks` attribute of `dset` below
                     # contains the chunk shape guessed by h5py
-                    dset = group.require_dataset(key, **these_kwds)
-                    got_data = True
+                    dset = cls._require_dataset(group, key, **these_kwds)
+                    break
                 except TypeError:
-                    # if the shape or dtype/etc do not match,
-                    # we delete the old one and create new in the next loop run
-                    del group[key]
+                    if last_attempt:
+                        raise
+                    if key in group:
+                        del group[key]
 
         _logger.info(f"Chunks used for saving: {chunks}")
         if data.dtype == np.dtype("O"):

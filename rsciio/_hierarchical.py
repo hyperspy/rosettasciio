@@ -101,6 +101,11 @@ def unflatten_data(data, shape, is_hdf5=False):
 # for anything that doesn't fit (ragged strings, heterogeneous shapes, mixed
 # dtypes). See ZARR_V3_PLAN.md, "Phase 3b".
 
+# Rough number of dask blocks the CSR reader aims for when reconstructing a
+# ragged array. Only a performance knob -- it trades per-task overhead against
+# block size and read amplification.
+_CSR_TARGET_BLOCKS = 16
+
 
 def _csr_trailing_shape(x):
     """
@@ -378,13 +383,21 @@ class HierarchicalReader:
         # whole per block: since `offsets` is in flattened row-major (C)
         # order, this keeps each block's row range in `values` contiguous,
         # with no need to special-case partial rows of a multi-D nav grid.
-        # The block size itself is just a performance knob (any value is
-        # correct) chosen to roughly match one physical chunk of `values`.
+        # The block size itself is only a performance knob -- any value is
+        # correct -- but it wants to be at least one physical chunk of
+        # `values` (so a block doesn't straddle chunks needlessly) while
+        # still emitting few enough blocks that per-task overhead stays
+        # amortized. Sizing it purely from the physical chunk is not enough:
+        # h5py's automatic chunking picks far smaller chunks than zarr's, and
+        # the block size then collapses to a single outer index, i.e. one
+        # dask task per nav row.
         values_chunk_rows = values_da.chunks[0][0] if values_da.chunks[0] else 1
-        frames_per_chunk = max(
-            1, int(np.searchsorted(offsets, values_chunk_rows, side="right"))
+        total_rows = int(offsets[-1])
+        rows_per_block = max(values_chunk_rows, -(-total_rows // _CSR_TARGET_BLOCKS))
+        frames_per_block = max(
+            1, int(np.searchsorted(offsets, rows_per_block, side="right"))
         )
-        outer_chunk = max(1, frames_per_chunk // max(inner_size, 1))
+        outer_chunk = max(1, frames_per_block // max(inner_size, 1))
         outer_chunk = min(outer_chunk, n_outer) if n_outer else 1
 
         def _reconstruct(block_values, block_offsets, shape):
@@ -886,8 +899,29 @@ class HierarchicalWriter:
         """
         nav_shape = data.shape
         values, offsets = flatten_to_csr(data, trailing_shape, dtype)
+        # Chunk `values` explicitly rather than leaving it to the backend's
+        # automatic chunking, which has no idea this is a row-oriented buffer:
+        # h5py splits the trailing dimension (e.g. (2492, 1) for an (N, 2)
+        # array), so every row-range read has to touch one chunk per column.
+        # Keep whole rows together and size the chunk by the writer's usual
+        # target, as `get_signal_chunks` would for a normal dataset.
+        # An empty buffer keeps the backend's automatic chunking: h5py rejects
+        # an explicit chunk larger than the dataset in any dimension, which a
+        # zero-length one can never satisfy.
+        if values.shape[0] > 0:
+            row_bytes = values.dtype.itemsize * max(1, int(np.prod(trailing_shape)))
+            rows_per_chunk = max(1, int(cls.target_size // max(row_bytes, 1)))
+            rows_per_chunk = min(rows_per_chunk, values.shape[0])
+            values_chunks = (rows_per_chunk,) + trailing_shape
+        else:
+            values_chunks = None
         cls.overwrite_dataset(
-            group, values, key, show_progressbar=show_progressbar, **kwds
+            group,
+            values,
+            key,
+            chunks=values_chunks,
+            show_progressbar=show_progressbar,
+            **kwds,
         )
         cls.overwrite_dataset(
             group,

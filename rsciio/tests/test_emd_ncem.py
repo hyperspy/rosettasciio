@@ -113,21 +113,35 @@ def test_data_axis_length_1():
 
 @pytest.mark.parametrize("lazy", (True, False))
 def test_py4dstem(lazy):
-    filename = TEST_DATA_PATH / "py4DSTEM_size2x3x4x5.h5"
-    signal = file_reader(filename)[0]
-    assert signal["data"].shape == (2, 3, 4, 5)
-    assert len(signal["axes"]) == 4
+    filename = TEST_DATA_PATH / "py4DSTEM_size2x3x4x5_bf20x30.h5"
+    signals = file_reader(filename)
+    assert len(signals) == 2
+    for i in range(2):
+        if signals[i]["data"].ndim == 4:
+            signal4d = signals[i]
+            signals.pop(i)
+            break
+    signal2d = signals[0]
+    assert signal2d["data"].shape == (20, 30)
+    assert len(signal2d["axes"]) == 2
+    assert signal2d["axes"][0]["size"] == 20
+    assert signal2d["axes"][1]["size"] == 30
+    
+    assert signal4d["data"].shape == (2, 3, 4, 5)
+    assert len(signal4d["axes"]) == 4
     # Check the sizes in axes
-    assert signal["axes"][0]["size"] == 2
-    assert signal["axes"][1]["size"] == 3
-    assert signal["axes"][2]["size"] == 4
-    assert signal["axes"][3]["size"] == 5
+    assert signal4d["axes"][0]["size"] == 2
+    assert signal4d["axes"][1]["size"] == 3
+    assert signal4d["axes"][2]["size"] == 4
+    assert signal4d["axes"][3]["size"] == 5
     # Check the realspace calibration
-    assert signal["axes"][0]["units"] == "nm"
-    np.testing.assert_allclose(signal["axes"][0]["scale"], 0.126796875)
+    assert signal4d["axes"][0]["units"] == "nm"
+    np.testing.assert_allclose(signal4d["axes"][0]["scale"], 0.126796875)
     # Check the reciprocal space calibration
-    assert signal["axes"][2]["units"] == "1 / Å"
-    np.testing.assert_allclose(signal["axes"][2]["scale"], 0.044251566616087125)
+    assert signal4d["axes"][2]["units"] == "1 / Å"
+    np.testing.assert_allclose(signal4d["axes"][2]["scale"], 0.044251566616087125)
+
+
 
 
 class TestDatasetName:

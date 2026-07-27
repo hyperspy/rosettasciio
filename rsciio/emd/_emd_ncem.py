@@ -248,7 +248,7 @@ class EMD_NCEM:
                 import dask.array as da
 
                 data_list = [
-                    da.from_array(*self._read_dataset(d, lazy=self.lazy))
+                    da.from_array(*self._read_dataset(d, lazy=self.lazy)) for d in dataset_list
                 ]
                 if transpose_required:
                     data_list = [da.transpose(d) for d in data_list]
@@ -402,6 +402,21 @@ class EMD_NCEM:
                 om.update(
                     {group_name: {key: value for key, value in group.attrs.items()}}
                 )
+
+        # For py4DSTEM, the calibration is stored in [root_group]/metadatabundle/calibration
+        calibration_group = None
+        for root_name, root_group in f.items():
+            if isinstance(root_group, h5py.Group):
+                calibration_group = root_group.get("metadatabundle/calibration")
+                if calibration_group is not None:
+                    break
+                
+        if calibration_group is not None:
+            calibration = {}
+            for key, value in calibration_group.items():
+                if isinstance(value, h5py.Dataset):
+                    calibration[key] = value[()]
+            om.update({"calibration": calibration})
 
         if self._is_prismatic_file:
             md_mapping = {

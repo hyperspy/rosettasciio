@@ -1148,6 +1148,40 @@ def test_ragged_dataset_error_retry_is_bounded(tmp_path, file, monkeypatch):
     assert len(calls) <= 4
 
 
+@pytest.mark.parametrize(
+    ("cells", "fits"),
+    [
+        ([np.zeros((2, 2)), np.zeros((3, 2))], True),
+        ([[[1.0, 2.0]], [[3.0, 4.0], [5.0, 6.0]]], True),  # lists, not arrays
+        ([np.arange(2.0), np.arange(3.0)], True),  # 1-D cells, trailing ()
+        ([np.zeros((2, 2)), np.zeros((2, 3))], False),  # trailing shape differs
+        ([np.zeros((2, 2), "i4"), np.zeros((2, 2), "f8")], False),  # dtype differs
+        ([np.zeros((3, 2)), np.zeros((3, 2, 4))], False),  # ndim differs
+        ([np.float64(1.0), np.arange(3.0)], False),  # 0-d mixed with 1-D
+        ([np.float64(1.0), np.float64(2.0)], False),  # all 0-d
+        ([np.array(["a", "b"]), np.array(["c"])], False),  # strings
+    ],
+)
+def test_csr_cells_detection(cells, fits):
+    # csr_cells decides the encoding, so a wrong "fits" answer either loses
+    # the optimisation or, worse, sends data down a path that would coerce
+    # it. The 0-d cases matter in particular: a 0-d cell has an empty
+    # trailing shape just like a 1-D one, so it is only distinguishable by
+    # its ndim.
+    from rsciio._hierarchical import csr_cells
+
+    data = np.empty((len(cells),), dtype=object)
+    for i, cell in enumerate(cells):
+        data[i] = cell
+
+    collected, trailing_shape, dtype = csr_cells(data)
+    assert (collected is not None) is fits
+    if fits:
+        assert len(collected) == len(cells)
+        assert trailing_shape == np.asarray(cells[0]).shape[1:]
+        assert dtype == np.asarray(cells[0]).dtype
+
+
 def test_format_version_bumped_for_csr():
     # The CSR encoding is a new on-disk format: readers predating it would
     # silently misread such a dataset as a plain dense array, so the format

@@ -107,44 +107,62 @@ def unflatten_data(data, shape, is_hdf5=False):
 _CSR_TARGET_BLOCKS = 16
 
 
-def _csr_trailing_shape(x):
+def csr_cells(x):
     """
     Check whether ragged array ``x`` (dtype=object, arbitrary nav shape) fits
-    the CSR encoding: every cell must be a plain numeric array sharing the
-    same trailing shape, with only the leading dimension free to vary.
+    the CSR encoding, collecting its cells in the same pass.
 
-    Returns the shared trailing shape (a tuple, empty for 1-D cells) and
-    common dtype on success, or ``(None, None)`` if ``x`` doesn't fit and
+    To fit, every cell must be a plain numeric array sharing the same trailing
+    shape, with only the leading dimension free to vary.
+
+    Returns ``(cells, trailing_shape, dtype)`` -- the cells in flattened
+    row-major (C) order, the shared trailing shape (empty for 1-D cells) and
+    the common dtype -- or ``(None, None, None)`` if ``x`` doesn't fit and
     callers should fall back to the generic object-dtype encoding.
+
+    Inspecting a ``dtype=object`` array means touching every element, so some
+    Python-level iteration is unavoidable. Rather than a branchy per-cell
+    loop, reduce the cells to the set of their ``(dtype, ndim, trailing
+    shape)`` signatures: they fit exactly when that set has one element. That
+    is a single pass of cheap, uniform operations, and the per-cell
+    comparisons collapse into the set's hashing.
+
+    ``ndim`` has to be part of the signature, not just checked on one cell:
+    a 0-d cell has an empty trailing shape too, so it would otherwise be
+    indistinguishable from a 1-D one and blow up later with no leading
+    dimension to count.
     """
-    trailing_shape = None
-    common_dtype = None
-    for i in np.ndindex(x.shape):
-        cell = np.asarray(x[i])
-        if cell.dtype == object or cell.dtype.kind in "US":
-            return None, None
-        if cell.ndim == 0:
-            return None, None
-        if trailing_shape is None:
-            trailing_shape = cell.shape[1:]
-            common_dtype = cell.dtype
-        elif cell.shape[1:] != trailing_shape or cell.dtype != common_dtype:
-            return None, None
-    return trailing_shape, common_dtype
+    cells = list(x.flat)
+    if not cells:
+        return None, None, None
+    try:
+        signature = {(c.dtype, c.ndim, c.shape[1:]) for c in cells}
+    except AttributeError:
+        # A cell isn't an array (a list, say). Convert and retry, rather than
+        # paying a type check per cell on the overwhelmingly common path.
+        cells = [c if type(c) is np.ndarray else np.asarray(c) for c in cells]
+        signature = {(c.dtype, c.ndim, c.shape[1:]) for c in cells}
+    if len(signature) != 1:
+        return None, None, None
+    common_dtype, ndim, trailing_shape = signature.pop()
+    if ndim == 0 or common_dtype.hasobject or common_dtype.kind in "US":
+        return None, None, None
+    return cells, trailing_shape, common_dtype
 
 
-def flatten_to_csr(x, trailing_shape, dtype):
+def flatten_to_csr(cells, trailing_shape, dtype):
     """
-    Convert ragged array ``x`` into a CSR (values, offsets) pair: ``values``
-    is the dense concatenation of every cell along axis 0, in the same
-    flattened nav order ``np.ndindex`` walks (row-major/C order); ``offsets``
-    is the ``(x.size + 1,)`` cumulative row-count index into ``values``, so
-    cell ``i`` (in that flattened order) is ``values[offsets[i]:offsets[i + 1]]``.
+    Convert the cells collected by :func:`csr_cells` into a CSR
+    (values, offsets) pair: ``values`` is their dense concatenation along
+    axis 0, in flattened row-major (C) order; ``offsets`` is the
+    ``(len(cells) + 1,)`` cumulative row-count index into ``values``, so cell
+    ``i`` is ``values[offsets[i]:offsets[i + 1]]``.
     """
-    cells = [np.asarray(x[i]) for i in np.ndindex(x.shape)]
-    counts = np.array([c.shape[0] for c in cells], dtype=np.int64)
     offsets = np.zeros(len(cells) + 1, dtype=np.int64)
-    np.cumsum(counts, out=offsets[1:])
+    np.cumsum(
+        np.fromiter((c.shape[0] for c in cells), dtype=np.int64, count=len(cells)),
+        out=offsets[1:],
+    )
     if offsets[-1] == 0:
         values = np.empty((0,) + trailing_shape, dtype=dtype)
     else:
@@ -885,20 +903,27 @@ class HierarchicalWriter:
 
     @classmethod
     def _write_ragged_csr(
-        cls, group, data, key, trailing_shape, dtype, show_progressbar=True, **kwds
+        cls,
+        group,
+        nav_shape,
+        cells,
+        key,
+        trailing_shape,
+        dtype,
+        show_progressbar=True,
+        **kwds,
     ):
         """
-        Write ragged array ``data`` using the dense CSR (values + offsets)
-        encoding (see :func:`flatten_to_csr`) instead of the generic per-cell
-        object-dtype encoding. Only called for eager (non-dask), numeric,
-        uniform-trailing-shape ragged arrays -- the caller already checked
-        this via :func:`_csr_trailing_shape`. ``values``/``offsets`` are
-        concrete-dtype arrays, so they're written through the ordinary
-        (non-ragged) branch of `overwrite_dataset`, chunked and compressed
-        like any other dataset.
+        Write the cells of a ragged array using the dense CSR
+        (values + offsets) encoding (see :func:`flatten_to_csr`) instead of
+        the generic per-cell object-dtype encoding. Only called for eager
+        (non-dask), numeric, uniform-trailing-shape ragged arrays -- the
+        caller already established that, and collected ``cells``, via
+        :func:`csr_cells`. ``values``/``offsets`` are concrete-dtype arrays,
+        so they're written through the ordinary (non-ragged) branch of
+        `overwrite_dataset`, chunked and compressed like any other dataset.
         """
-        nav_shape = data.shape
-        values, offsets = flatten_to_csr(data, trailing_shape, dtype)
+        values, offsets = flatten_to_csr(cells, trailing_shape, dtype)
         # Chunk `values` explicitly rather than leaving it to the backend's
         # automatic chunking, which has no idea this is a row-oriented buffer:
         # h5py splits the trailing dimension (e.g. (2492, 1) for an (N, 2)
@@ -1018,11 +1043,12 @@ class HierarchicalWriter:
                 # ZARR_V3_PLAN.md "Phase 3b". Lazy (dask-backed) ragged
                 # arrays keep using the generic per-cell encoding below; CSR
                 # write support for lazy input is a documented follow-up.
-                trailing_shape, common_dtype = _csr_trailing_shape(data)
-                if trailing_shape is not None:
+                cells, trailing_shape, common_dtype = csr_cells(data)
+                if cells is not None:
                     cls._write_ragged_csr(
                         group,
-                        data,
+                        data.shape,
+                        cells,
                         key,
                         trailing_shape,
                         common_dtype,

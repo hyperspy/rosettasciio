@@ -67,6 +67,11 @@ jobs:
             HYPERSPY_VERSION: 'release'
           - os: ubuntu
             os_version: latest
+            PYTHON_VERSION: '3.13'
+            LABEL: '-zarr3'
+            HYPERSPY_VERSION: 'release'
+          - os: ubuntu
+            os_version: latest
             PYTHON_VERSION: '3.13t'
             LABEL: '-hyperspy-minimum'
             HYPERSPY_VERSION: 'dev'
@@ -177,6 +182,13 @@ jobs:
         if: ${{ ! contains(matrix.LABEL, 'oldest') }}
         run: |
           pip uninstall -y pyUSID
+
+      - name: Install zarr 3
+        # zarr 2 and 3 can't be installed side by side, so zarr 3 gets its own
+        # matrix leg rather than a parametrised fixture
+        if: contains(matrix.LABEL, 'zarr3')
+        run: |
+          pip install --upgrade "zarr>=3,<4" "numcodecs>=0.15"
 
       - name: Install oldest supported version
         if: contains(matrix.LABEL, 'oldest')

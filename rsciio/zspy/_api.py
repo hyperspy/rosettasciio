@@ -23,6 +23,7 @@ from collections.abc import MutableMapping
 import numcodecs
 import numpy as np
 import zarr
+from packaging.version import Version
 
 from rsciio._docstrings import (
     CHUNKS_DOC,
@@ -37,6 +38,31 @@ from rsciio.utils._array import is_dask_array
 from rsciio.utils._context_manager import get_progress_bar_context_manager
 
 _logger = logging.getLogger(__name__)
+
+ZARR_V3 = Version(zarr.__version__).major >= 3
+
+# zarr 3 stores are no longer ``MutableMapping`` subclasses; they derive from
+# ``zarr.abc.store.Store`` instead. Detecting "a store was passed instead of a
+# path" has to accept both, otherwise a zarr 3 store is mistaken for a filename.
+if ZARR_V3:  # pragma: no cover - depends on the installed zarr
+    from zarr.abc.store import Store as _ZarrStore
+
+    _STORE_TYPES = (MutableMapping, _ZarrStore)
+else:  # pragma: no cover
+    _STORE_TYPES = (MutableMapping,)
+
+# Stores that buffer writes and need an explicit close/flush to land on disk.
+# The v2-only ones simply don't exist under zarr 3 (`DBMStore`/`LMDBStore` were
+# dropped rather than renamed), so build the tuple from whatever is available.
+_BUFFERED_STORES = tuple(
+    store
+    for store in (
+        getattr(zarr.storage, "ZipStore", None),
+        getattr(zarr, "DBMStore", None),
+        getattr(zarr, "LMDBStore", None),
+    )
+    if store is not None
+)
 
 
 # -----------------------
@@ -85,6 +111,32 @@ class ZspyWriter(HierarchicalWriter):
         super().__init__(file, signal, expg, **kwargs)
         self.Dataset = zarr.Array
 
+    @classmethod
+    def _require_dataset(cls, group, key, **kwds):
+        if not ZARR_V3:
+            return group.require_dataset(key, **kwds)
+        # zarr 3 renamed `require_dataset` to `require_array`, dropped the
+        # `exact` argument (shape and dtype are matched regardless), and takes
+        # a list of its own codecs rather than a single classic one.
+        kwds.pop("exact", None)
+        compressor = kwds.pop("compressor", None)
+        # The file is written as zarr format 2 (see `file_writer`), and that
+        # format's codec pipeline takes classic numcodecs codecs directly, so
+        # the documented `compressor=` value is passed straight through --
+        # no translation to zarr 3's codec wrappers is needed.
+        if isinstance(compressor, numcodecs.abc.Codec):
+            kwds["compressors"] = [compressor]
+        elif compressor is None:
+            # zarr 2 spells "no compression" as `compressor=None`.
+            kwds["compressors"] = None
+        # Anything else (notably zarr 2's ``"default"`` sentinel) is left to
+        # zarr to interpret, which for an unset ``compressors`` means its own
+        # default pipeline.
+        if kwds.get("chunks") is True:
+            # h5py spells "pick chunks for me" as True, zarr 3 as "auto".
+            kwds["chunks"] = "auto"
+        return group.require_array(name=key, **kwds)
+
     @staticmethod
     def _get_object_dset(group, data, key, chunks, dtype=None, **kwds):
         """Creates a Zarr Array object for saving ragged data
@@ -93,6 +145,14 @@ class ZspyWriter(HierarchicalWriter):
         calculating the chunks for a ragged array is not supported. See
         https://github.com/hyperspy/rosettasciio/issues/168 for more details.
         """
+        if ZARR_V3:
+            raise NotImplementedError(
+                "Saving ragged arrays (such as variable-length markers or "
+                "diffraction vectors) to zspy is not supported with zarr 3 "
+                "yet. It relies on zarr 2 object codecs (`VLenArray`, "
+                "`MsgPack`), which zarr 3 has no equivalent for. Install "
+                "`zarr<3` to save this signal, or save it as `.hspy` instead."
+            )
         if not is_dask_array(data):
             chunks = data.shape
         these_kwds = kwds.copy()
@@ -222,7 +282,7 @@ def file_writer(
     if not isinstance(write_dataset, bool):
         raise ValueError("`write_dataset` argument must a boolean.")
 
-    if isinstance(filename, MutableMapping):
+    if isinstance(filename, _STORE_TYPES):
         # a store is passed for the filename
         store = filename
         if store_type is not None:
@@ -232,9 +292,22 @@ def file_writer(
             )
     else:
         if store_type in ["local", None]:
-            store = zarr.storage.NestedDirectoryStore(filename)
+            if ZARR_V3:
+                # `NestedDirectoryStore` is v2-only. The mode is set by the
+                # `zarr.open_group(store=store, mode=mode)` call below, and
+                # `LocalStore` takes no `mode` argument.
+                store = zarr.storage.LocalStore(filename)
+            else:
+                store = zarr.storage.NestedDirectoryStore(filename)
         elif store_type == "zip":
-            store = zarr.storage.ZipStore(filename)
+            if ZARR_V3:
+                # zarr 3's ZipStore defaults to read-only, so the mode has to
+                # be given up front rather than only to `open_group` below.
+                store = zarr.storage.ZipStore(
+                    filename, mode="w" if write_dataset else "a"
+                )
+            else:
+                store = zarr.storage.ZipStore(filename)
         else:
             raise ValueError(
                 "The `store_type` argument must be one of 'local' or 'zip'."
@@ -245,7 +318,15 @@ def file_writer(
     _logger.debug(f"File mode: {mode}")
     _logger.debug(f"Zarr store: {store}")
 
-    f = zarr.open_group(store=store, mode=mode)
+    if ZARR_V3:
+        # Keep writing the zarr *format* version 2 even when running zarr 3.
+        # zarr 3 defaults to writing format 3, which zarr 2 cannot open at
+        # all -- a file saved after upgrading would be unreadable by anyone
+        # still on zarr 2. zarr 3 reads format 2 happily, so pinning the
+        # format keeps files interchangeable in both directions.
+        f = zarr.open_group(store=store, mode=mode, zarr_format=2)
+    else:
+        f = zarr.open_group(store=store, mode=mode)
     f.attrs["file_format"] = "ZSpy"
     f.attrs["file_format_version"] = version
     exps = f.require_group("Experiments")
@@ -268,10 +349,11 @@ def file_writer(
     )
     writer.write()
 
-    if isinstance(store, (zarr.ZipStore, zarr.DBMStore, zarr.LMDBStore)):
+    if _BUFFERED_STORES and isinstance(store, _BUFFERED_STORES):
         if close_file:
             store.close()
-        else:
+        elif hasattr(store, "flush"):
+            # zarr 3 stores have no `flush`; the data is already written.
             store.flush()
 
 
@@ -298,7 +380,7 @@ def file_reader(filename, lazy=False, **kwds):
     %s
     """
     # check that this is a not zarr store before checking if it is a zip file
-    if not isinstance(filename, MutableMapping) and zipfile.is_zipfile(filename):
+    if not isinstance(filename, _STORE_TYPES) and zipfile.is_zipfile(filename):
         filename = zarr.storage.ZipStore(filename, mode="r")
 
     if isinstance(filename, zarr.storage.ZipStore) and "mode" in kwds.keys():
@@ -320,7 +402,22 @@ def file_reader(filename, lazy=False, **kwds):
         )
         raise
 
-    to_return = ZspyReader(f).read(lazy=lazy)
+    try:
+        to_return = ZspyReader(f).read(lazy=lazy)
+    except ValueError as err:
+        if ZARR_V3 and "object_codec_id" in str(err):
+            # zarr 3 can't resolve the v2 object-codec metadata that ragged
+            # arrays (variable-length markers, diffraction vectors) were
+            # written with. This is zarr's own v2-compatibility layer, so no
+            # amount of fixing the write path here makes such a file readable.
+            raise ValueError(
+                "This file contains ragged arrays (such as variable-length "
+                "markers or diffraction vectors) written with zarr 2 object "
+                "codecs, which zarr 3 cannot read. Install `zarr<3` to read "
+                "this file, and re-save it if you need it readable under "
+                f"zarr 3. Original error: {err}"
+            ) from err
+        raise
     if not lazy and isinstance(filename, zarr.storage.ZipStore):
         # Close the file if not lazy
         filename.close()

@@ -101,7 +101,7 @@ speed = ["numba>=0.56"]
 tiff = ["tifffile>=2022.7.28,!=2026.2.24", "imagecodecs"]
 tofwerk = ["h5py>=3.7"]
 usid = ["pyUSID>=0.0.11"]
-zspy = ["zarr>=2,<3", "msgpack"]
+zspy = ["zarr>=2,<4", "msgpack"]
 tests = [
   "filelock",
   "pooch",

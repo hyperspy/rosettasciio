@@ -65,36 +65,6 @@ _BUFFERED_STORES = tuple(
 )
 
 
-def _as_v3_codec(compressor):
-    """
-    Translate a classic :mod:`numcodecs` codec to the zarr 3 codec wrapping it.
-
-    zarr 3 rejects classic codecs (``TypeError: Expected a BytesBytesCodec``)
-    and wants its own wrappers instead. Keeping the documented ``compressor=``
-    parameter working means translating rather than making callers pass a
-    different type depending on their zarr version.
-    """
-    if compressor is None or isinstance(compressor, (list, tuple)):
-        return compressor
-    try:
-        # zarr >= 3.1.3 exposes the wrappers itself; `numcodecs.zarr3` is
-        # deprecated and slated for removal.
-        from zarr.codecs import numcodecs as zarr_numcodecs
-    except ImportError:  # pragma: no cover - older zarr 3
-        from numcodecs import zarr3 as zarr_numcodecs
-
-    name = type(compressor).__name__
-    wrapper = getattr(zarr_numcodecs, name, None)
-    if wrapper is None:
-        raise ValueError(
-            f"The compressor {compressor!r} has no zarr 3 equivalent in "
-            f"{zarr_numcodecs.__name__}. Pass a codec from that module "
-            "directly, or use `compressor=None`."
-        )
-    config = {k: v for k, v in compressor.get_config().items() if k != "id"}
-    return wrapper(**config)
-
-
 # -----------------------
 # File format description
 # -----------------------
@@ -150,8 +120,12 @@ class ZspyWriter(HierarchicalWriter):
         # a list of its own codecs rather than a single classic one.
         kwds.pop("exact", None)
         compressor = kwds.pop("compressor", None)
+        # The file is written as zarr format 2 (see `file_writer`), and that
+        # format's codec pipeline takes classic numcodecs codecs directly, so
+        # the documented `compressor=` value is passed straight through --
+        # no translation to zarr 3's codec wrappers is needed.
         if isinstance(compressor, numcodecs.abc.Codec):
-            kwds["compressors"] = [_as_v3_codec(compressor)]
+            kwds["compressors"] = [compressor]
         elif compressor is None:
             # zarr 2 spells "no compression" as `compressor=None`.
             kwds["compressors"] = None
@@ -344,7 +318,15 @@ def file_writer(
     _logger.debug(f"File mode: {mode}")
     _logger.debug(f"Zarr store: {store}")
 
-    f = zarr.open_group(store=store, mode=mode)
+    if ZARR_V3:
+        # Keep writing the zarr *format* version 2 even when running zarr 3.
+        # zarr 3 defaults to writing format 3, which zarr 2 cannot open at
+        # all -- a file saved after upgrading would be unreadable by anyone
+        # still on zarr 2. zarr 3 reads format 2 happily, so pinning the
+        # format keeps files interchangeable in both directions.
+        f = zarr.open_group(store=store, mode=mode, zarr_format=2)
+    else:
+        f = zarr.open_group(store=store, mode=mode)
     f.attrs["file_format"] = "ZSpy"
     f.attrs["file_format_version"] = version
     exps = f.require_group("Experiments")

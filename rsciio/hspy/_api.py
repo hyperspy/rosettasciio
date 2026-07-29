@@ -16,7 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import contextlib
 import logging
+import os
+import threading
 from pathlib import Path
 
 import h5py
@@ -38,6 +41,34 @@ from rsciio.utils._array import is_dask_array
 from rsciio.utils._context_manager import get_progress_bar_context_manager
 
 _logger = logging.getLogger(__name__)
+
+# Track lazy file handles by absolute path so they can be closed before
+# the file is reopened in "w" (truncate) mode — which fails if any
+# handle to the same file is still open at the HDF5 C level.
+# A plain dict is used (not WeakValueDictionary) because h5py.Dataset
+# objects keep the C-level file handle alive even after the Python
+# h5py.File object is garbage-collected.
+
+_lazy_file_handles = {}
+_lazy_file_handles_lock = threading.Lock()
+
+
+def _track_lazy_handle(file_obj):
+    """Register *file_obj* keyed by its absolute path."""
+    path = os.fspath(Path(file_obj.filename).absolute())
+    with _lazy_file_handles_lock:
+        _lazy_file_handles.setdefault(path, []).append(file_obj)
+
+
+def _close_tracked_handles(filename):
+    """Close (and forget) all tracked handles for *filename*."""
+    path = os.fspath(Path(filename).absolute())
+    with _lazy_file_handles_lock:
+        handles = _lazy_file_handles.pop(path, [])
+    for handle in handles:
+        with contextlib.suppress(Exception):
+            handle.close()
+
 
 not_valid_format = "The file is not a valid HyperSpy hdf5 file"
 
@@ -157,7 +188,14 @@ def file_reader(filename, lazy=False, **kwds):
     try:
         exp_dict_list = reader.read(lazy=lazy)
     except BaseException as err:
+        if lazy:
+            # in the finally block, the file is closed only when lazy=False,
+            # so we need to close it here in case of exception
+            f.close()
         raise err
+    else:
+        if lazy:
+            _track_lazy_handle(f)
     finally:
         if not lazy:
             f.close()
@@ -235,6 +273,8 @@ def file_writer(
         mode = kwds.get("mode", "w" if write_dataset else "a")
         if mode != "a" and not write_dataset:
             raise ValueError("`mode='a'` is required to use `write_dataset=False`.")
+        if mode in ("w", "w-", "x"):
+            _close_tracked_handles(filename)
         f = h5py.File(filename, mode=mode)
 
     f.attrs["file_format"] = "HyperSpy"

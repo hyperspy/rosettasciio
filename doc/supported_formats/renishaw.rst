@@ -34,7 +34,7 @@ used as the ``signal_type``.
 
 This reader is based on the `py-wdf-reader <https://github.com/alchem0x2A/py-wdf-reader.git>`_,
 which is inspired by the `matlab reader <https://doi.org/10.5281/zenodo.495477>`_ from Alex Henderson.
-Moreover, inspiration is taken from `gwyddion's reader <http://gwyddion.net>`_.
+Moreover, inspiration is taken from `gwyddion's reader <https://gwyddion.net>`_.
 
 API functions
 ^^^^^^^^^^^^^

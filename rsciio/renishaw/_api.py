@@ -45,7 +45,7 @@
 # (https://github.com/alchem0x2A/py-wdf-reader),
 # which is inspired by Henderson, Alex
 # (https://doi.org/10.5281/zenodo.495477).
-# Moreover, this code is inspired by gwyddion (http://gwyddion.net).
+# Moreover, this code is inspired by gwyddion (https://gwyddion.net).
 
 # known limitations/problems:
 #   - cannot parse BKXL-Block

@@ -67,7 +67,7 @@ jobs:
             HYPERSPY_VERSION: 'release'
           - os: ubuntu
             os_version: latest
-            PYTHON_VERSION: '3.13t'
+            PYTHON_VERSION: '3.14t'
             LABEL: '-hyperspy-minimum'
             HYPERSPY_VERSION: 'dev'
 
@@ -131,31 +131,32 @@ jobs:
           echo "PYTHON_GIL=0" >> "$GITHUB_ENV"
 
       - name: Display GIL information
-        if: ${{ contains(matrix.PYTHON_VERSION, '3.13') }}
+        if: ${{ endsWith(matrix.PYTHON_VERSION, 't') }}
         run: |
           # show if free-threaded build
           python -VV
           # show if GIL is enable
           python -c "import sys; print('GIL enabled:', sys._is_gil_enabled())"
 
-      - name: Install hyperspy (3.13t)
-        if: ${{ matrix.PYTHON_VERSION == '3.13t'}}
+      - name: Install hyperspy (free-threaded)
+        if: ${{ endsWith(matrix.PYTHON_VERSION, 't') }}
         run: |
           # no freethreaded build available for h5py
           # install other dependencies manually 
           pip install cloudpickle dask[array] importlib-metadata jinja2 matplotlib natsort numpy packaging pint prettytable pyyaml scikit-image scipy sympy tqdm pooch requests
           pip install traits
-          # with recent version of python3.13t, there are issue with installing from a git repository or source
+          # with recent versions of free-threaded python, there are issues with
+          # installing from a git repository or source
           # for now, install from pypi, as this is working...
           pip install hyperspy --no-deps
 
       - name: Install hyperspy and exspy (release)
-        if: ${{ matrix.HYPERSPY_VERSION == 'release' && matrix.PYTHON_VERSION != '3.13t'}}
+        if: ${{ matrix.HYPERSPY_VERSION == 'release' && ! endsWith(matrix.PYTHON_VERSION, 't') }}
         run: |
           pip install hyperspy exspy
 
       - name: Install hyperspy and exspy (dev)
-        if: ${{ matrix.HYPERSPY_VERSION == 'dev' && matrix.PYTHON_VERSION != '3.13t' }}
+        if: ${{ matrix.HYPERSPY_VERSION == 'dev' && ! endsWith(matrix.PYTHON_VERSION, 't') }}
         run: |
           pip install git+https://github.com/hyperspy/hyperspy.git
           pip install git+https://github.com/hyperspy/exspy.git

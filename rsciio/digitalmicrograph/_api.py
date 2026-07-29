@@ -769,7 +769,7 @@ class ImageObject(object):
             )
         ]
 
-    def get_metadata(self, metadata=None):
+    def new_metadata(self, metadata=None):
         if metadata is None:
             metadata = {}
         if "General" not in metadata:
@@ -800,6 +800,24 @@ class ImageObject(object):
             return "SEM"
         else:
             return "TEM"
+
+    def _get_illumination_mode(self):
+        # check if instrument is SEM or TEM
+        if (
+            "Microscope Info" in self.imdict.ImageTags
+            and "Illumination Mode" in self.imdict.ImageTags["Microscope Info"]
+        ):
+            microscope = (
+                "SEM"
+                if self._get_mode(
+                    self.imdict.ImageTags["Microscope Info"]["Illumination Mode"]
+                )
+                == "SEM"
+                else "TEM"
+            )
+        else:
+            microscope = "TEM"
+        return microscope
 
     def _get_time(self, time):
         try:
@@ -835,6 +853,81 @@ class ImageObject(object):
                 return mic
         _logger.info("Microscope name not present")
         return None
+
+
+    def get_EDS_pixel_time(self, mp, om, overwrite_pixeltime=False):
+        # mp and om are dict, not Box in this stage
+        def _get_item(dic, tag_name):
+            tags = tag_name.split('.')
+            for tag in tags:
+                dic = dic.get(tag)
+                if dic is None:
+                    break
+            return dic
+        def _set_item(dic, tag_name, val):
+            tags = tag_name.split('.')
+            for tag in tags[:-1]:
+                if tag not in dic:
+                    dic[tag] = {}
+                dic = dic[tag]
+            dic[tags[-1]] = val
+
+        _mode = self._get_illumination_mode()
+        if "SEM" not in _mode: # SEM/TEM/STEM
+            _mode = "TEM"
+        _om_eds_images = _get_item(om, "ImageTags.EDS.Images")
+        _om_si = _get_item(om, "ImageTags.SI.Acquisition")
+        _eds_tag_name = "Acquisition_instrument."+_mode+".Detector.EDS"
+        if _om_eds_images is None or _om_si is None:
+            # No pixel-wise EDS live-time data in original_metadata
+            return
+        _notes = _get_item(mp, "General.notes")
+        if _notes is None:
+            _notes = ""
+        _num_cycle = _om_si.get("Number of cycles")
+        _pi = _om_si.get("Pixel iterator")
+        _pt = _om_si.get("Pixel time (s)")
+        _shape = self.shape[1:] # (Energy, Height, Width)
+        _rtm = _om_eds_images.get("Real time")
+        _ltm = _om_eds_images.get("Live time")
+        _ctm = _om_eds_images.get("Count rate")
+        if _ltm is None or _rtm is None:
+            # No pixel-wise EDS live-time data in original_metadata
+            return
+        _ct = np.array(_ctm).reshape(_shape)
+        _rt = np.array(_rtm).reshape(_shape)
+        _lt = np.array(_ltm).reshape(_shape)
+
+        ###
+        ###  Overwrite data shape 
+        ###
+        _om_eds_images["Real time"] = _rt
+        _om_eds_images["Live time"] = _lt
+        _om_eds_images["Count rate"] = _ct
+
+        _rta = np.average(_rt)
+        _lta = np.average(_lt)
+        _cta = np.average(_ct)
+        _rts = np.std(_rt)
+        _lts = np.std(_lt)
+        _cts = np.std(_ct)
+        _set_item(mp, _eds_tag_name+".real_time (s)", _rta)
+        _set_item(mp, _eds_tag_name+".live_time (s)", _lta)
+
+        _notes += "Pixel time(Setting) = {:.1f} ms, ".format(_pt * 1000)
+        _notes += "ave. real time = {:.2f} ms (std = {:.2f}), ".format(_rta * 1000, _rts * 1000)
+        _notes += "ave. live time = {:.2f} ms (std = {:.2f}), ".format(_rta * 1000, _lts * 1000)
+        _notes += "ave. count rate = {:.2f} ms (std = {:.2f}), ".format(_cta * 1000, _cts * 1000)
+        _notes += "number of cycles = {}.\n".format(_num_cycle)
+
+        if _pt * 1.1 < _rta:
+            _logger.warning("Pixel time ({:.1f} ms) / EDS real time ({:.1f} ms) mismatch".format(_pt * 1000, _rta * 1000))
+        if _num_cycle != 1:
+            _warn = "Part of pixel-wise real-time/live-time data was lost when number of cycles != 1"
+        if _notes != "":
+            _set_item(mp, "General.notes", _notes)
+        return
+
 
     def _parse_string(self, tag, convert_to_float=False, tag_name=None):
         if len(tag) == 0:
@@ -884,6 +977,7 @@ class ImageObject(object):
             _logger.info("CL detector type can't be read.")
             return None
 
+
     def get_mapping(self):
         if "source" in self.imdict.ImageTags.keys():
             # For stack created with the stack builder plugin
@@ -894,21 +988,7 @@ class ImageObject(object):
             tags_path = "ImageList.TagGroup0.ImageTags"
             image_tags_dict = self.imdict.ImageTags
         is_scanning = "DigiScan" in image_tags_dict.keys()
-        # check if instrument is SEM or TEM
-        if (
-            "Microscope Info" in self.imdict.ImageTags
-            and "Illumination Mode" in self.imdict.ImageTags["Microscope Info"]
-        ):
-            microscope = (
-                "SEM"
-                if self._get_mode(
-                    self.imdict.ImageTags["Microscope Info"]["Illumination Mode"]
-                )
-                == "SEM"
-                else "TEM"
-            )
-        else:
-            microscope = "TEM"
+        microscope = self._get_illumination_mode()
         mapping = {
             "{}.DataBar.Acquisition Date".format(tags_path): (
                 "General.date",
@@ -1312,8 +1392,9 @@ def file_reader(filename, lazy=False, order=None, optimize=True, chunks="auto"):
             image.filename = filename
             dm.tags_dict["ImageList"]["TagGroup0"] = image.imdict.to_dict()
             axes = image.get_axes_dict()
-            mp = image.get_metadata()
+            mp = image.new_metadata()
             mp["General"]["original_filename"] = os.path.split(filename)[1]
+            image.get_EDS_pixel_time(mp, dm.tags_dict["ImageList"]["TagGroup0"])
             post_process = []
             if image.to_spectrum is True:
                 post_process.append(lambda s: s.to_signal1D(optimize=optimize))

@@ -160,6 +160,23 @@ class ZspyWriter(HierarchicalWriter):
                 da.store(data, dset, lock=False)
 
 
+def _consolidate_metadata(store):
+    """Consolidate zarr metadata, handling both zarr v2 and v3.
+
+    Calls the appropriate consolidated metadata function for the installed
+    zarr version. In zarr v2, it's ``zarr.convenience.consolidate_metadata``.
+    In zarr v3+, it's ``zarr.consolidate_metadata``.
+    """
+    try:
+        # zarr v3+
+        from zarr import consolidate_metadata  # noqa: F811
+
+        consolidate_metadata(store)
+    except ImportError:
+        # zarr v2
+        zarr.convenience.consolidate_metadata(store)
+
+
 def file_writer(
     filename,
     signal,
@@ -169,6 +186,7 @@ def file_writer(
     write_dataset=True,
     store_type=None,
     show_progressbar=True,
+    consolidate=True,
     **kwds,
 ):
     """
@@ -200,6 +218,16 @@ def file_writer(
         If ``None``, the default store is used (:class:`~zarr.storage.NestedDirectoryStore`)
         is used. Specifying this parameter is incompatible with passing an instance of
         a zarr store to the ``filename`` parameter. Default is None.
+    consolidate : bool, default=True
+        If ``True``, call :func:`zarr.convenience.consolidate_metadata`
+        to bundle all metadata into a single ``.zmetadata`` file. This
+        significantly reduces the number of HTTP requests needed when
+        opening the file on remote or cloud storage (S3, GCS, etc.),
+        improving performance for cloud workflows. When saving to local
+        filesystems, the overhead is negligible. If the store does not
+        support writes or the consolidation fails for any reason, a
+        warning is logged and the file remains valid — metadata is
+        simply read from individual files on open.
     %s
     **kwds
         The keyword arguments are passed to the
@@ -267,6 +295,16 @@ def file_writer(
         **kwds,
     )
     writer.write()
+
+    if consolidate:
+        try:
+            _consolidate_metadata(store)
+        except Exception as e:
+            _logger.warning(
+                f"Failed to consolidate metadata: {e}. "
+                "The file is still valid, but opening it on remote/cloud "
+                "storage will require more HTTP requests."
+            )
 
     if isinstance(store, (zarr.ZipStore, zarr.DBMStore, zarr.LMDBStore)):
         if close_file:

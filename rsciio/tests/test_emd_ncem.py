@@ -114,7 +114,7 @@ def test_data_axis_length_1():
 @pytest.mark.parametrize("lazy", (True, False))
 def test_py4dstem(lazy):
     filename = TEST_DATA_PATH / "py4DSTEM_size2x3x4x5_bf20x30.h5"
-    signals = file_reader(filename)
+    signals = file_reader(filename, lazy=lazy)
     assert len(signals) == 2
     for i in range(2):
         if signals[i]["data"].ndim == 4:

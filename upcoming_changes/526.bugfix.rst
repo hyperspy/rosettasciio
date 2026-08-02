@@ -1,1 +1,1 @@
-Modified _emd_ncem.py to correctly handle lazy loading of ncem data by avoiding eager dataset reads.
+Fix lazy loading for NCEM EMD data to avoid eager reads

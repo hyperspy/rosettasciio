@@ -1,0 +1,1 @@
+Fix ``KeyError: 'XmlClassName'`` when reading Bruker ``.bcf`` files whose ``TRTSpectrumRegion`` entries have no selected element name; such regions are now skipped instead of aborting the read.

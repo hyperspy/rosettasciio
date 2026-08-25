@@ -272,6 +272,42 @@ def test_fast_bcf():
             np.testing.assert_array_equal(hmap1, hmap2)
 
 
+def test_set_elements_skips_region_without_xml_class_name():
+    # https://github.com/hyperspy/rosettasciio/issues/541
+    # Some Esprit-generated bcf files have TRTSpectrumRegion entries
+    # without a Name attribute, which used to raise a bare KeyError.
+    import xml.etree.ElementTree as ET
+
+    from rsciio.bruker._api import HyperHeader
+
+    root = ET.fromstring(
+        "<Root>"
+        "<ClassInstance Type='TRTContainerClass'>"
+        "<ChildClassInstances>"
+        "<ClassInstance Type='TRTElementInformationList'>"
+        "<ClassInstance Type='TRTSpectrumRegionList'>"
+        "<ChildClassInstances>"
+        "<ClassInstance Type='TRTSpectrumRegion' Name='Al'>"
+        "<Line>Ka</Line><Energy>1.486</Energy>"
+        "</ClassInstance>"
+        "<ClassInstance Type='TRTSpectrumRegion'>"
+        "<Line>Ka</Line><Energy>0.525</Energy>"
+        "</ClassInstance>"
+        "</ChildClassInstances>"
+        "</ClassInstance>"
+        "</ClassInstance>"
+        "</ChildClassInstances>"
+        "</ClassInstance>"
+        "</Root>"
+    )
+
+    header = object.__new__(HyperHeader)
+    header.elements = {}
+    header._set_elements(root)
+
+    assert header.elements == {"Al": {"line": "Ka", "energy": 1.486}}
+
+
 def test_decimal_regex():
     from rsciio.utils.xml import sanitize_msxml_float
 

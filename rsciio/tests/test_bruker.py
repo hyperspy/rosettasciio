@@ -330,3 +330,38 @@ def test_export_xml(tmp_path):
     export_metadata(
         TEST_DATA_DIR / test_files[0], output_filename=tmp_path / "header.xml"
     )
+
+
+def test_set_elements_skips_region_without_xml_class_name():
+    # See https://github.com/hyperspy/rosettasciio/issues/541
+    # some Esprit-generated BCF files have a TRTSpectrumRegion entry
+    # without a Name attribute, which used to raise a KeyError.
+    import xml.etree.ElementTree as ET
+
+    from rsciio.bruker import _api
+
+    root = ET.fromstring(
+        "<Root>"
+        "<ClassInstance Type='TRTContainerClass'>"
+        "<ChildClassInstances>"
+        "<ClassInstance Type='TRTElementInformationList'>"
+        "<ClassInstance Type='TRTSpectrumRegionList'>"
+        "<ChildClassInstances>"
+        "<ClassInstance Type='TRTSpectrumRegion'><Line>Ka</Line></ClassInstance>"
+        "<ClassInstance Type='TRTSpectrumRegion' Name='Al'>"
+        "<Line>Ka</Line><Energy>1.487</Energy>"
+        "</ClassInstance>"
+        "</ChildClassInstances>"
+        "</ClassInstance>"
+        "</ClassInstance>"
+        "</ChildClassInstances>"
+        "</ClassInstance>"
+        "</Root>"
+    )
+
+    header = _api.HyperHeader.__new__(_api.HyperHeader)
+    header.elements = {}
+    header._set_elements(root)
+
+    # the region without a Name is skipped, the valid one is kept
+    assert header.elements == {"Al": {"line": "Ka", "energy": 1.487}}

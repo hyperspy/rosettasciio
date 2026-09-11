@@ -125,6 +125,7 @@ class TestFeiEMD:
             assert signal._lazy
             signal.compute(close_file=True)
         fei_image = np.load(self.fei_files_path / "fei_emd_image.npy")
+        assert signal.data.dtype == fei_image.dtype
         assert signal.axes_manager[0].name == "x"
         assert signal.axes_manager[0].units == "µm"
         assert signal.axes_manager[0].is_binned is False
@@ -542,7 +543,7 @@ def test_velox_fft_odd_number(fname):
     assert np.issubdtype(s[0].data.dtype, np.complex64)
 
     assert s[1].axes_manager.signal_shape == (128, 128)
-    assert np.issubdtype(s[1].data.dtype, float)
+    assert s[1].data.dtype == np.uint16
 
 
 class TestVeloxEMDv11:

@@ -113,7 +113,7 @@ def test_numpy_unicore_header(tmp_path):
     filename = tmp_path / "test_utf8_containing_dtype.npy"
     # Create a sample numpy array with UTF-8 string dtype
     # Define a structured dtype with a unicode field
-    dtype = np.dtype([("ΔT", "f4"), ("Time", "f4")])
+    dtype = np.dtype([("ΔT", "<f4"), ("Time", "<f4")])
 
     # Create a structured array with sample data
     original_array = np.array([(1.5, 0.0), (2.3, 1.0)], dtype=dtype)

@@ -1,0 +1,1 @@
+Support the Greek small letter mu (``U+03BC``) when saving TIFF files.

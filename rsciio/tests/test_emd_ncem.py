@@ -25,6 +25,7 @@ import os
 import tempfile
 from pathlib import Path
 
+import dask
 import dask.array as da
 import numpy as np
 import pytest
@@ -116,6 +117,13 @@ def test_data_axis_length_1():
 def test_py4dstem(lazy):
     filename = TEST_DATA_PATH / "py4DSTEM_size2x3x4x5_bf20x30.h5"
     signals = file_reader(filename, lazy=lazy)
+    if lazy:
+        assert isinstance(signals[0]["data"], dask.array.Array)
+        assert isinstance(signals[1]["data"], dask.array.Array)
+        # Check that the dask array is backed by an h5py dataset
+        assert any(
+            isinstance(v, h5py.Dataset) for v in signals[0]["data"].dask.values()
+        )
     assert len(signals) == 2
     for i in range(2):
         if signals[i]["data"].ndim == 4:

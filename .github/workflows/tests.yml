@@ -156,13 +156,6 @@ jobs:
           pip install git+https://github.com/hyperspy/hyperspy.git
           pip install git+https://github.com/hyperspy/exspy.git
 
-      - name: Install python-mrcz dev
-        # for numpy 2.0 support for python >= 3.9
-        # https://github.com/em-MRCZ/python-mrcz/pull/15
-        if: ${{ ! contains(matrix.LABEL, 'oldest') && ! contains(matrix.LABEL, 'minimum') }}
-        run: |
-          pip install git+https://github.com/ericpre/python-mrcz.git@numpy2.0_and_deprecation_fixes
-
       - name: Install
         shell: bash
         run: |

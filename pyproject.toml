@@ -98,7 +98,7 @@ image = [
   "imageio>=2.27", # For scikit-image
   "pillow>=9.0.1"
 ]
-mrcz = ["mrcz>=0.3.6"]
+mrcz = ["mrcz>=0.6.0"]  # support for numpy 2.0
 scalebar_export = ["matplotlib-scalebar", "matplotlib>=3.6"]
 speed = ["numba>=0.58.0"]
 tiff = [

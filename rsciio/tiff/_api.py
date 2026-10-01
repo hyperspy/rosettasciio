@@ -1045,6 +1045,9 @@ def _get_scale_unit(axes, encoding=None):
         if unit is None:
             units[i] = ""
         if encoding is not None:
+            # U+03BC (Greek mu) is not encodable in latin-1, unlike
+            # U+00B5 (micro sign), which looks identical - normalise it
+            units[i] = units[i].replace("\u03bc", "\u00b5")
             units[i] = units[i].encode(encoding)
     return scales, units, offsets
 
@@ -1058,7 +1061,8 @@ def _imagej_description(version="1.11a", **kwargs):
     if kwargs["spacing"] is None:
         kwargs.pop("spacing")
     for key, value in list(kwargs.items()):
-        if value == "µm":
+        # support both U+00B5 and U+03BC for the micro symbol
+        if value in ("µm", "μm"):
             value = "micron"
         if value == "Å":
             value = "angstrom"

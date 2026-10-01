@@ -31,7 +31,7 @@ hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 t = pytest.importorskip("traits.api", reason="traits not installed")
 
 import rsciio.tiff  # noqa: E402
-from rsciio.utils._tests import assert_deep_almost_equal  # noqa: E402
+from rsciio.utils._tests import assert_deep_almost_equal, normalize_micro  # noqa: E402
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "tiff"
 TEST_NPZ_DATA_PATH = Path(__file__).parent / "data" / "npz"
@@ -71,8 +71,8 @@ class TestDM3ToTiffConversion:
     def test_read_unit_um(tmp_path):
         # Load DM file and save it as tif
         s = hs.load(TEST_DATA_PATH / "test_dm_image_um_unit.dm3")
-        assert s.axes_manager[0].units == "µm"
-        assert s.axes_manager[1].units == "µm"
+        assert normalize_micro(s.axes_manager[0].units) == "μm"
+        assert normalize_micro(s.axes_manager[1].units) == "μm"
         np.testing.assert_allclose(s.axes_manager[0].scale, 0.16867, atol=1e-5)
         np.testing.assert_allclose(s.axes_manager[1].scale, 0.16867, atol=1e-5)
         assert s.metadata.General.date == "2015-07-20"
@@ -82,8 +82,8 @@ class TestDM3ToTiffConversion:
         s.save(fname, overwrite=True, export_scale=True)
         # load tif file
         s2 = hs.load(fname)
-        assert s.axes_manager[0].units == "µm"
-        assert s.axes_manager[1].units == "µm"
+        assert normalize_micro(s2.axes_manager[0].units) == "μm"
+        assert normalize_micro(s2.axes_manager[1].units) == "μm"
         np.testing.assert_allclose(s2.axes_manager[0].scale, 0.16867, atol=1e-5)
         np.testing.assert_allclose(s2.axes_manager[1].scale, 0.16867, atol=1e-5)
         assert s2.metadata.General.date == s.metadata.General.date
@@ -113,8 +113,8 @@ class TestLoadingImagesSavedWithImageJ:
         s = hs.load(TEST_DATA_PATH / "test_loading_image_saved_with_imageJ.tif")
         assert s.axes_manager.signal_shape == (68, 68)
         assert s.axes_manager.navigation_shape == ()
-        assert s.axes_manager[0].units == "µm"
-        assert s.axes_manager[1].units == "µm"
+        assert normalize_micro(s.axes_manager[0].units) == "μm"
+        assert normalize_micro(s.axes_manager[1].units) == "μm"
         np.testing.assert_allclose(s.axes_manager[0].scale, 0.16867, atol=1e-5)
         np.testing.assert_allclose(s.axes_manager[1].scale, 0.16867, atol=1e-5)
 
@@ -125,8 +125,8 @@ class TestLoadingImagesSavedWithImageJ:
         assert s.axes_manager.navigation_shape == (2,)
         assert s.data.shape == (2, 68, 68)
         assert s.axes_manager[0].units == t.Undefined
-        assert s.axes_manager[1].units == "µm"
-        assert s.axes_manager[2].units == "µm"
+        assert normalize_micro(s.axes_manager[1].units) == "μm"
+        assert normalize_micro(s.axes_manager[2].units) == "μm"
         np.testing.assert_allclose(s.axes_manager[0].scale, 2.5, atol=1e-5)
         np.testing.assert_allclose(s.axes_manager[1].scale, 0.16867, atol=1e-5)
         np.testing.assert_allclose(s.axes_manager[2].scale, 0.16867, atol=1e-5)
@@ -170,8 +170,8 @@ class TestLoadingImagesSavedWithImageJ:
             fname2 = os.path.join(tmpdir, "test_loading_image_saved_with_imageJ2.tif")
             s.save(fname2, export_scale=True, overwrite=True)
             s2 = hs.load(fname2)
-            assert s2.axes_manager[0].units == "µm"
-            assert s2.axes_manager[1].units == "µm"
+            assert normalize_micro(s2.axes_manager[0].units) == "μm"
+            assert normalize_micro(s2.axes_manager[1].units) == "μm"
             assert s.data.shape == s2.data.shape
             assert s2.axes_manager.signal_shape == s.axes_manager.signal_shape
             assert s2.axes_manager.navigation_shape == s.axes_manager.navigation_shape
@@ -197,8 +197,8 @@ class TestLoadingImagesSavedWithImageJ:
             fname3 = os.path.join(tmpdir, "description2.tif")
             s.save(fname3, export_scale=True, overwrite=True, description="test")
             s3 = hs.load(fname3, convert_units=True)
-            assert s3.axes_manager[0].units == "µm"
-            assert s3.axes_manager[1].units == "µm"
+            assert normalize_micro(s3.axes_manager[0].units) == "μm"
+            assert normalize_micro(s3.axes_manager[1].units) == "μm"
             np.testing.assert_allclose(s3.axes_manager[0].scale, 0.16867, atol=1e-5)
             np.testing.assert_allclose(s3.axes_manager[1].scale, 0.16867, atol=1e-5)
             assert s3.axes_manager.signal_shape == s.axes_manager.signal_shape
@@ -261,8 +261,8 @@ class TestLoadingImagesSavedWithDM:
         assert s.axes_manager.navigation_shape == (2,)
         assert s.data.shape == (2, 68, 68)
         assert s.axes_manager[0].units == "s"
-        assert s.axes_manager[1].units == "µm"
-        assert s.axes_manager[2].units == "µm"
+        assert normalize_micro(s.axes_manager[1].units) == "μm"
+        assert normalize_micro(s.axes_manager[2].units) == "μm"
         np.testing.assert_allclose(s.axes_manager[0].scale, 2.5, atol=1e-5)
         np.testing.assert_allclose(s.axes_manager[1].scale, 0.16867, atol=1e-5)
         np.testing.assert_allclose(s.axes_manager[2].scale, 1.68674, atol=1e-5)
@@ -273,8 +273,8 @@ class TestLoadingImagesSavedWithDM:
         assert s.axes_manager.navigation_shape == s2.axes_manager.navigation_shape
         _compare_signal_shape_data(s, s2)
         assert s2.axes_manager[0].units == s.axes_manager[0].units
-        assert s2.axes_manager[1].units == "µm"
-        assert s2.axes_manager[2].units == "µm"
+        assert normalize_micro(s2.axes_manager[1].units) == "μm"
+        assert normalize_micro(s2.axes_manager[2].units) == "μm"
         np.testing.assert_allclose(
             s2.axes_manager[0].scale, s.axes_manager[0].scale, atol=1e-5
         )
@@ -302,8 +302,8 @@ class TestLoadingImagesSavedWithDM:
         s = hs.load(fname)
         assert s.axes_manager.signal_shape == (68, 68)
         assert s.axes_manager.navigation_shape == ()
-        assert s.axes_manager[0].units == "µm"
-        assert s.axes_manager[1].units == "µm"
+        assert normalize_micro(s.axes_manager[0].units) == "μm"
+        assert normalize_micro(s.axes_manager[1].units) == "μm"
         np.testing.assert_allclose(s.axes_manager[0].scale, 0.16867, atol=1e-5)
         np.testing.assert_allclose(s.axes_manager[1].scale, 0.16867, atol=1e-5)
         np.testing.assert_allclose(s.axes_manager[0].offset, 139.66264, atol=1e-5)
@@ -315,8 +315,8 @@ class TestLoadingImagesSavedWithDM:
             _compare_signal_shape_data(s, s2)
             assert s.axes_manager.signal_shape == s2.axes_manager.signal_shape
             assert s.axes_manager.navigation_shape == s2.axes_manager.navigation_shape
-            assert s2.axes_manager[0].units == "µm"
-            assert s2.axes_manager[1].units == "µm"
+            assert normalize_micro(s2.axes_manager[0].units) == "μm"
+            assert normalize_micro(s2.axes_manager[1].units) == "μm"
             np.testing.assert_allclose(
                 s2.axes_manager[0].scale, s.axes_manager[0].scale, atol=1e-5
             )
@@ -374,7 +374,7 @@ class TestSavingTiff:
         s.axes_manager["x"].scale = 0.25
         s.axes_manager["y"].scale = 0.5
         s.axes_manager["x"].units = "nm"
-        s.axes_manager["y"].units = "µm"
+        s.axes_manager["y"].units = "μm"
         with tempfile.TemporaryDirectory() as tmpdir:
             fname = os.path.join(tmpdir, "test_export_scale_unit_not_square_pixel.tif")
             s.save(fname, overwrite=True, export_scale=True)
@@ -433,8 +433,8 @@ class TestSavingTiff:
         _compare_signal_shape_data(s, s1)
         assert s1.axes_manager[0].units == "pm"
         # only one unit can be read
-        assert s1.axes_manager[1].units == "µm"
-        assert s1.axes_manager[2].units == "µm"
+        assert normalize_micro(s1.axes_manager[1].units) == "μm"
+        assert normalize_micro(s1.axes_manager[2].units) == "μm"
         np.testing.assert_allclose(s1.axes_manager[0].scale, 250.0)
         np.testing.assert_allclose(s1.axes_manager[1].scale, s.axes_manager[1].scale)
         np.testing.assert_allclose(s1.axes_manager[2].scale, s.axes_manager[2].scale)
@@ -538,8 +538,8 @@ class TestReadFEIHelios:
         s = hs.load(fname, convert_units=True)
         assert s.axes_manager.signal_shape == (512, 471)
         assert s.axes_manager.navigation_shape == ()
-        assert s.axes_manager[0].units == "µm"
-        assert s.axes_manager[1].units == "µm"
+        assert normalize_micro(s.axes_manager[0].units) == "μm"
+        assert normalize_micro(s.axes_manager[1].units) == "μm"
         np.testing.assert_allclose(s.axes_manager[0].scale, 3.3724, rtol=1e-5)
         np.testing.assert_allclose(s.axes_manager[1].scale, 3.3724, rtol=1e-5)
         assert s.data.dtype == "uint8"
@@ -555,8 +555,8 @@ class TestReadFEIHelios:
         s = hs.load(fname, convert_units=True)
         assert s.axes_manager.signal_shape == (512, 471)
         assert s.axes_manager.navigation_shape == ()
-        assert s.axes_manager[0].units == "µm"
-        assert s.axes_manager[1].units == "µm"
+        assert normalize_micro(s.axes_manager[0].units) == "μm"
+        assert normalize_micro(s.axes_manager[1].units) == "μm"
         np.testing.assert_allclose(s.axes_manager[0].scale, 3.3724, rtol=1e-5)
         np.testing.assert_allclose(s.axes_manager[1].scale, 3.3724, rtol=1e-5)
         assert s.data.dtype == "uint16"
@@ -682,8 +682,8 @@ class TestReadZeissSEM:
 
         assert s.axes_manager.signal_shape == (1024, 768)
         assert s.axes_manager.navigation_shape == ()
-        assert s.axes_manager[0].units == "µm"
-        assert s.axes_manager[1].units == "µm"
+        assert normalize_micro(s.axes_manager[0].units) == "μm"
+        assert normalize_micro(s.axes_manager[1].units) == "μm"
         np.testing.assert_allclose(s.axes_manager[0].scale, 2.614514, rtol=1e-6)
         np.testing.assert_allclose(s.axes_manager[1].scale, 2.614514, rtol=1e-6)
         assert s.data.dtype == "uint8"
@@ -737,8 +737,8 @@ class TestReadZeissSEM:
         s = hs.load(fname, convert_units=True)
         assert s.axes_manager.signal_shape == (512, 384)
         assert s.axes_manager.navigation_shape == ()
-        assert s.axes_manager[0].units == "µm"
-        assert s.axes_manager[1].units == "µm"
+        assert normalize_micro(s.axes_manager[0].units) == "μm"
+        assert normalize_micro(s.axes_manager[1].units) == "μm"
         np.testing.assert_allclose(s.axes_manager[0].scale, 0.011649976, rtol=1e-6)
         np.testing.assert_allclose(s.axes_manager[1].scale, 0.011649976, rtol=1e-6)
         assert s.data.dtype == "uint8"
@@ -804,8 +804,8 @@ class TestReadZeissAxioVision:
         assert s.axes_manager.navigation_shape == ()
         assert s.data.dtype == np.uint8
         assert s.data.shape == (10, 13)
-        assert s.axes_manager[0].units == "µm"
-        assert s.axes_manager[1].units == "µm"
+        assert normalize_micro(s.axes_manager[0].units) == "μm"
+        assert normalize_micro(s.axes_manager[1].units) == "μm"
         np.testing.assert_allclose(s.axes_manager[0].scale, 169.333, rtol=1e-5)
         np.testing.assert_allclose(s.axes_manager[1].scale, 169.333, rtol=1e-5)
         assert s.metadata.General.date == "2016-06-13"
@@ -822,8 +822,8 @@ class TestReadZeissAxioVision:
         assert s.axes_manager.navigation_shape == ()
         assert s.data.dtype == np.uint8
         assert s.data.shape == (10, 13)
-        assert s.axes_manager[0].units == "µm"
-        assert s.axes_manager[1].units == "µm"
+        assert normalize_micro(s.axes_manager[0].units) == "μm"
+        assert normalize_micro(s.axes_manager[1].units) == "μm"
         np.testing.assert_allclose(s.axes_manager[0].scale, 169.333, rtol=1e-5)
         np.testing.assert_allclose(s.axes_manager[1].scale, 169.333, rtol=1e-5)
 
@@ -838,8 +838,8 @@ class TestReadZeissAxioVision:
         assert s.axes_manager.navigation_shape == ()
         assert s.data.dtype == np.uint8
         assert s.data.shape == (10, 13)
-        assert s.axes_manager[0].units == "µm"
-        assert s.axes_manager[1].units == "µm"
+        assert normalize_micro(s.axes_manager[0].units) == "μm"
+        assert normalize_micro(s.axes_manager[1].units) == "μm"
         np.testing.assert_allclose(s.axes_manager[0].scale, 169.333, rtol=1e-5)
         np.testing.assert_allclose(s.axes_manager[1].scale, 169.333, rtol=1e-5)
         assert s.metadata.General.date == "2016-06-13"
@@ -1155,3 +1155,26 @@ class TestReadHamamatsu:
             s = hs.load(fname)
 
         assert s.metadata.Signal.signal_type == "TransientSpectrum"
+
+
+def test_mu_symbol(tmp_path):
+    # There are two unicode characters for the micro symbol: U+00B5 (µ) and U+03BC (μ)
+    # They look the same; U+03BC is recommended for the micro prefix in SI units.
+    # Since pint 0.26.0, it is used by default
+
+    # Using U+00B5
+    s_00B5 = hs.signals.Signal2D(np.zeros((10, 10)))
+    s_00B5.axes_manager.signal_axes.set(units="µm")
+    s_00B5.save(tmp_path / "test_mu_00B5.tif")
+    s_00B5_2 = hs.load(tmp_path / "test_mu_00B5.tif")
+    assert normalize_micro(s_00B5_2.axes_manager[0].units) == "μm"
+    assert normalize_micro(s_00B5_2.axes_manager[1].units) == "μm"
+
+    # Using U+03BC
+    s_03BC = hs.signals.Signal2D(np.zeros((10, 10)))
+    s_03BC.axes_manager.signal_axes.set(units="μm")
+    s_03BC.save(tmp_path / "test_mu_03BC.tif")
+    # when saving it is normalised to U+00B5 (µ)
+    s_03BC_2 = hs.load(tmp_path / "test_mu_03BC.tif")
+    assert normalize_micro(s_03BC_2.axes_manager[0].units) == "μm"
+    assert normalize_micro(s_03BC_2.axes_manager[1].units) == "μm"

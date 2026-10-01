@@ -33,6 +33,7 @@ h5py = pytest.importorskip("h5py", reason="h5py not installed")
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
 from rsciio.emd import file_reader  # noqa: E402
+from rsciio.utils._tests import normalize_micro  # noqa: E402
 
 TEST_DATA_PATH = Path(__file__).parent / "data" / "emd"
 
@@ -254,7 +255,7 @@ def test_save_and_read(lazy, tmp_path):
     np.testing.assert_almost_equal(signal.axes_manager[1].offset, 20.0)
     np.testing.assert_almost_equal(signal.axes_manager[2].offset, 30.0)
     np.testing.assert_equal(signal.axes_manager[0].units, "nm")
-    np.testing.assert_equal(signal.axes_manager[1].units, "µm")
+    np.testing.assert_equal(normalize_micro(signal.axes_manager[1].units), "μm")
     np.testing.assert_equal(signal.axes_manager[2].units, "mm")
     np.testing.assert_equal(signal.metadata.General.title, test_title)
     np.testing.assert_equal(om["user"], user)

@@ -25,6 +25,8 @@ import numpy as np
 import pytest
 from packaging.version import Version
 
+from rsciio.utils._tests import normalize_micro
+
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 t = pytest.importorskip("traits.api", reason="traits not installed")
 
@@ -116,7 +118,7 @@ def test_read_map(lazy):
     assert navigation_axes[0].name == "scan_x"
     assert navigation_axes[1].name == "scan_y"
     for axis in navigation_axes:
-        assert axis.units == "µm"
+        assert normalize_micro(axis.units) == "μm"
         np.testing.assert_allclose(axis.scale, 1.1415856)
         np.testing.assert_allclose(axis.offset, 0.0)
 

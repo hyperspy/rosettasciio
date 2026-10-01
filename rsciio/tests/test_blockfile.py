@@ -23,7 +23,9 @@ from pathlib import Path
 
 import dask.array as da
 import numpy as np
+import pint
 import pytest
+from packaging.version import Version
 
 from rsciio.utils._array import sarray2dict
 from rsciio.utils._date_time import serial_date_to_ISO_format
@@ -229,7 +231,7 @@ axes2_converted = {
         "offset": 0.0,
         "scale": 160.61676839061997,
         "size": 5,
-        "units": "µm",
+        "units": "μm",
         "is_binned": False,
     },
     "axis-3": {
@@ -239,7 +241,7 @@ axes2_converted = {
         "offset": 0.0,
         "scale": 160.61676839061997,
         "size": 5,
-        "units": "µm",
+        "units": "μm",
         "is_binned": False,
     },
 }
@@ -256,7 +258,9 @@ def test_load2(convert_units):
     s = hs.load(FILE2, convert_units=convert_units)
     assert s.data.shape == (2, 3, 5, 5)
     axes = axes2_converted if convert_units else axes2
-    np.testing.assert_equal(s.axes_manager.as_dictionary(), axes)
+    if Version(pint.__version__) >= Version("0.26.0"):
+        # change in micro unicode in pint
+        np.testing.assert_equal(s.axes_manager.as_dictionary(), axes)
     np.testing.assert_allclose(s.data, ref_data2)
 
 

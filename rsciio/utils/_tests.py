@@ -84,3 +84,19 @@ def assert_deep_almost_equal(actual, expected, *args, **kwargs):
             trace = " -> ".join(reversed(exc.traces))
             exc = AssertionError("%s\nTRACE: %s" % (exc, trace))
         raise exc
+
+
+def normalize_micro(obj):
+    """Normalize the micro prefix glyph to Greek small letter mu (U+03BC).
+
+    pint >= 0.26 renders the micro prefix with the Greek mu (U+03BC),
+    following the Unicode standard recommendation, while older versions
+    render the micro sign. The two glyphs are visually identical, so
+    tests comparing pint-formatted units strings normalize both sides
+    with this helper to stay independent of the pint version.
+    """
+    if isinstance(obj, str):
+        return obj.replace("\u00b5", "\u03bc")
+    if isinstance(obj, tuple):
+        return tuple(normalize_micro(o) for o in obj)
+    return obj

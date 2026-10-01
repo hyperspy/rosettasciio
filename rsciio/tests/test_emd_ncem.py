@@ -127,7 +127,7 @@ def test_py4dstem(lazy):
     assert len(signal2d["axes"]) == 2
     assert signal2d["axes"][0]["size"] == 20
     assert signal2d["axes"][1]["size"] == 30
-    
+
     assert signal4d["data"].shape == (2, 3, 4, 5)
     assert len(signal4d["axes"]) == 4
     # Check the sizes in axes
@@ -141,8 +141,6 @@ def test_py4dstem(lazy):
     # Check the reciprocal space calibration
     assert signal4d["axes"][2]["units"] == "1 / Å"
     np.testing.assert_allclose(signal4d["axes"][2]["scale"], 0.044251566616087125)
-
-
 
 
 class TestDatasetName:

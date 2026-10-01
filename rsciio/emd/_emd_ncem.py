@@ -248,7 +248,8 @@ class EMD_NCEM:
                 import dask.array as da
 
                 data_list = [
-                    da.from_array(*self._read_dataset(d, lazy=self.lazy)) for d in dataset_list
+                    da.from_array(*self._read_dataset(d, lazy=self.lazy))
+                    for d in dataset_list
                 ]
                 if transpose_required:
                     data_list = [da.transpose(d) for d in data_list]
@@ -410,7 +411,7 @@ class EMD_NCEM:
                 calibration_group = root_group.get("metadatabundle/calibration")
                 if calibration_group is not None:
                     break
-                
+
         if calibration_group is not None:
             calibration = {}
             for key, value in calibration_group.items():

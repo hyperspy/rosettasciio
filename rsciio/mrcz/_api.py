@@ -111,21 +111,40 @@ def file_reader(filename, lazy=False, mmap_mode="c", endianness="<", **kwds):
     )
 
     # Create the axis objects for each axis
-    names = ["y", "x", "z"]
-    navigate = [False, False, True]
-    axes = [
-        {
-            "size": data.shape[hsIndex],
-            "index_in_array": hsIndex,
-            "name": names[index],
-            "scale": mrcz_header["pixelsize"][hsIndex],
-            "offset": 0.0,
-            "units": mrcz_header["pixelunits"],
-            "navigate": nav,
-        }
-        for index, (hsIndex, nav) in enumerate(zip(_READ_ORDER, navigate))
-    ]
-    axes.insert(0, axes.pop(2))  # re-order the axes
+    if data.ndim == 3 and data.shape[0] == 1:
+        # MRC stores two-dimensional data with a singleton z dimension. The eager
+        # mrcz reader removes it, while the memory-mapped reader does not.
+        data = data[0]
+
+    if data.ndim == 2:
+        axes = [
+            {
+                "size": data.shape[index],
+                "index_in_array": index,
+                "name": name,
+                "scale": mrcz_header["pixelsize"][index + 1],
+                "offset": 0.0,
+                "units": mrcz_header["pixelunits"],
+                "navigate": False,
+            }
+            for index, name in enumerate(("y", "x"))
+        ]
+    else:
+        names = ["y", "x", "z"]
+        navigate = [False, False, True]
+        axes = [
+            {
+                "size": data.shape[hsIndex],
+                "index_in_array": hsIndex,
+                "name": names[index],
+                "scale": mrcz_header["pixelsize"][hsIndex],
+                "offset": 0.0,
+                "units": mrcz_header["pixelunits"],
+                "navigate": nav,
+            }
+            for index, (hsIndex, nav) in enumerate(zip(_READ_ORDER, navigate))
+        ]
+        axes.insert(0, axes.pop(2))  # re-order the axes
 
     metadata = mrcz_header.copy()
     # Remove non-standard fields
@@ -213,7 +232,9 @@ def file_writer(
 
     # Get pixelsize and pixelunits from the axes
     pixelunits = signal["axes"][-1]["units"]
-    pixelsize = [signal["axes"][I_]["scale"] for I_ in _WRITE_ORDER]
+    pixelsize = [
+        signal["axes"][I_]["scale"] for I_ in _WRITE_ORDER[: len(signal["axes"])]
+    ]
 
     # Strip out voltage from meta-data
     voltage = md.get("Acquisition_instrument.TEM.beam_energy")

@@ -21,38 +21,43 @@ jobs:
       matrix:
         os: [ubuntu, windows, macos]
         os_version: [latest]
-        PYTHON_VERSION: ['3.11', '3.12', '3.13']
+        PYTHON_VERSION: ['3.12', '3.13', '3.14']
         HYPERSPY_VERSION: ['release']
         LABEL: ['']
+        exclude:
+          # no wheel available for macOS with Python 3.14 because numcodecs requirement is pinned
+          # due to zarr>=2,<3
+          - os: macos
+            PYTHON_VERSION: '3.14'
         include:
           # test oldest supported version of main dependencies on python 3.8
           - os: ubuntu
             os_version: latest
-            PYTHON_VERSION: '3.10'
+            PYTHON_VERSION: '3.11'
             # Set pillow and scikit-image version to be compatible with imageio and scipy
             # align matplotlib and dask dependency with hyperspy
-            DEPENDENCIES: matplotlib==3.6 numpy==1.25.0 tifffile==2022.8.12 dask[array]==2024.12.0 distributed==2024.12.0 numba==0.58.0 imageio==2.27 pillow==9.0.1 scikit-image==0.21.0 python-box==6.0.0 h5py==3.7
+            DEPENDENCIES: matplotlib==3.6 numpy==1.25.0 tifffile==2022.8.12 dask[array]==2024.12.0 distributed==2024.12.0 numba==0.58.0 imageio==2.27 pillow==9.2.0 scikit-image==0.21.0 python-box==6.0.0 h5py==3.8.0
             LABEL: '-oldest'
             HYPERSPY_VERSION: 'release'
           - os: ubuntu
             os_version: latest
-            PYTHON_VERSION: '3.10'
+            PYTHON_VERSION: '3.11'
             LABEL: '-hyperspy'
             HYPERSPY_VERSION: 'release'
           # test minimum requirement
           - os: ubuntu
             os_version: latest
-            PYTHON_VERSION: '3.14'
+            PYTHON_VERSION: '3.15.0-rc.2'
             LABEL: '-minimum'
             HYPERSPY_VERSION: ''
           - os: ubuntu
             os_version: latest
-            PYTHON_VERSION: '3.13'
+            PYTHON_VERSION: '3.14'
             LABEL: '-hyperspy-minimum'
             HYPERSPY_VERSION: 'release'
           - os: ubuntu
             os_version: latest
-            PYTHON_VERSION: '3.13'
+            PYTHON_VERSION: '3.14'
             LABEL: '-hyperspy_dev'
             HYPERSPY_VERSION: 'dev'
           - os: macos

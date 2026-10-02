@@ -218,6 +218,7 @@ def file_writer(
         If ``None``, the default store is used (:class:`~zarr.storage.NestedDirectoryStore`)
         is used. Specifying this parameter is incompatible with passing an instance of
         a zarr store to the ``filename`` parameter. Default is None.
+    %s
     consolidate : bool, default=True
         If ``True``, call :func:`zarr.convenience.consolidate_metadata`
         to bundle all metadata into a single ``.zmetadata`` file. This
@@ -228,7 +229,6 @@ def file_writer(
         support writes or the consolidation fails for any reason, a
         warning is logged and the file remains valid — metadata is
         simply read from individual files on open.
-    %s
     **kwds
         The keyword arguments are passed to the
         :py:meth:`zarr.hierarchy.Group.require_dataset` function.

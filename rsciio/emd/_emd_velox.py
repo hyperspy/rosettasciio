@@ -57,6 +57,55 @@ def _get_detector_metadata_dict(om, detector_name):
     return None
 
 
+def _read_image_data(h5data, read_stack, convert=None):
+    """Read a ``(y, x, frame)`` image dataset as a ``(frame, y, x)`` array.
+
+    Velox typically stores each frame in its own chunk. Reading such a
+    dataset at once - with the standard API or with ``read_direct`` using a
+    matching dtype - is extremely slow because each chunk needs to be
+    scattered element-wise into the destination array
+    (https://github.com/h5py/h5py/issues/977). Reading the frames
+    individually bypasses this issue and preserves the dtype of the data
+    stored in the file.
+
+    Parameters
+    ----------
+    h5data : h5py.Dataset
+        Image dataset of shape ``(y, x, frame)``.
+    read_stack : bool
+        When False, only the first frame is read, as the remaining frames
+        are discarded by the caller.
+    convert : Callable, optional
+        Function converting the read data, e.g. combining the real and
+        imaginary parts of FFT/DPC data into a complex array. By default,
+        the data is returned as stored in the file.
+    """
+    if convert is None:
+
+        def convert(arr):
+            return arr
+
+    n_frames = h5data.shape[2] if read_stack else 1
+    if n_frames == 1:
+        return convert(h5data[:, :, 0])[np.newaxis]
+
+    chunks = h5data.chunks
+    if chunks is None or chunks[2] > 1:
+        # Contiguous dataset or chunks spanning multiple frames: reading
+        # the whole dataset at once is fast in these cases.
+        return np.rollaxis(convert(h5data[:]), axis=2)
+
+    # Stack of frames chunked individually: read the frames one by one to
+    # bypass the slow element-wise scatter.
+    data = None
+    for index in range(n_frames):
+        frame = convert(h5data[:, :, index])
+        if data is None:
+            data = np.empty((n_frames,) + frame.shape, frame.dtype)
+        data[index] = frame
+    return data
+
+
 PRUNE_WARNING = (
     "No spectrum stream is present in the file and the "
     "spectrum images are saved in a proprietary format, "
@@ -284,11 +333,10 @@ class FeiEMDReader(object):
         h5data = image_sub_group["Data"]
         # Get the scanning area shape of the SI from the images
         self.spatial_shape = h5data.shape[:-1]
-        # For Velox FFT data, dtype must be specified and lazy is not
-        # supported due to special dtype. The data is loaded as-is; to get
-        # a traditional view the negative half must be created and the data
-        # must be re-centered
-        # Similar story for DPC signal
+        # Velox FFT and DPC data are stored with a compound dtype, the real
+        # and imaginary parts of which are combined into a complex array.
+        # The FFT data is loaded as-is; to get a traditional view the
+        # negative half must be created and the data must be re-centered.
         fft_dtype = [
             [("realFloatHalfEven", "<f4"), ("imagFloatHalfEven", "<f4")],
             [("realFloatHalfOdd", "<f4"), ("imagFloatHalfOdd", "<f4")],
@@ -305,11 +353,12 @@ class FeiEMDReader(object):
                 data = data[real] + 1j * data[imag]
                 data = da.transpose(data, axes=[2, 0, 1])
             else:
-                data = np.empty(h5data.shape, h5data.dtype)
-                h5data.read_direct(data)
-                data = data[real] + 1j * data[imag]
-                # Set the axes in frame, y, x order
-                data = np.rollaxis(data, axis=2)
+                # Combine the real and imaginary parts into a complex array
+                data = _read_image_data(
+                    h5data,
+                    read_stack,
+                    convert=lambda arr: arr[real] + 1j * arr[imag],
+                )
         else:
             if self.lazy:
                 import dask.array as da
@@ -318,15 +367,7 @@ class FeiEMDReader(object):
                     da.from_array(h5data, chunks=h5data.chunks), axes=[2, 0, 1]
                 )
             else:
-                # Workaround for a h5py bug https://github.com/h5py/h5py/issues/977
-                # Change back to standard API once issue #977 is fixed.
-                # Preallocate the numpy array and use read_direct method, which is
-                # much faster in case of chunked data.
-                # Do not specify dtype in np.empty, slows down substantially!
-                data = np.empty(h5data.shape)
-                h5data.read_direct(data)
-                # Set the axes in frame, y, x order
-                data = np.rollaxis(data, axis=2)
+                data = _read_image_data(h5data, read_stack)
 
         pix_scale = original_metadata["BinaryResult"].get(
             "PixelSize", {"height": 1.0, "width": 1.0}

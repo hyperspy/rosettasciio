@@ -1,0 +1,1 @@
+Images loaded from Velox EMD files now keep the dtype used to store the data in the file (e.g. ``uint16``) instead of being systematically converted to ``float64``. This reduces memory usage, makes non-lazy loading consistent with lazy loading, and significantly speeds up reading image stacks whose frames are chunked individually in the file.

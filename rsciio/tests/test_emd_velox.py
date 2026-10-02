@@ -542,7 +542,7 @@ def test_velox_fft_odd_number(fname):
     assert np.issubdtype(s[0].data.dtype, np.complex64)
 
     assert s[1].axes_manager.signal_shape == (128, 128)
-    assert np.issubdtype(s[1].data.dtype, float)
+    assert s[1].data.dtype == np.uint16
 
 
 class TestVeloxEMDv11:

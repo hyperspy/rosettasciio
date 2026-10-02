@@ -293,3 +293,101 @@ def test_save_store_error(tmp_path):
         ValueError, match="The `store_type` parameter must be None if a zarr "
     ):
         s.save(filename=store, store_type="zip")
+
+
+class TestConsolidateMetadata:
+    """Tests for consolidated metadata in ZSPY files."""
+
+    @pytest.fixture
+    def signal(self):
+        data = np.ones((10, 10, 10, 10))
+        s = hs.signals.Signal1D(data)
+        s.metadata.General.title = "test consolidate metadata"
+        return s
+
+    def test_consolidate_default_creates_zmetadata(self, signal, tmp_path):
+        """consolidate=True (default) creates .zmetadata in the store."""
+        filename = tmp_path / "test_consolidate_default.zspy"
+        store = zarr.ZipStore(path=filename)
+        signal.save(store)
+        # zarr.open() auto-detects consolidated metadata
+        # but we verify .zmetadata exists in the store
+        assert ".zmetadata" in store
+
+    def test_consolidate_false_no_zmetadata(self, signal, tmp_path):
+        """consolidate=False does NOT create .zmetadata."""
+        filename = tmp_path / "test_consolidate_false.zspy"
+        store = zarr.ZipStore(path=filename)
+        signal.save(store, consolidate=False)
+        assert ".zmetadata" not in store
+
+    def test_consolidate_explicit_true(self, signal, tmp_path):
+        """consolidate=True explicitly creates .zmetadata."""
+        filename = tmp_path / "test_consolidate_explicit.zspy"
+        store = zarr.ZipStore(path=filename)
+        signal.save(store, consolidate=True)
+        assert ".zmetadata" in store
+
+    def test_consolidate_round_trip_data_integrity(self, signal, tmp_path):
+        """Data and metadata survive round-trip with consolidate=True."""
+        filename = tmp_path / "test_consolidate_rt.zspy"
+        store = zarr.ZipStore(path=filename)
+        signal.save(store)
+
+        s2 = hs.load(filename)
+        np.testing.assert_array_equal(s2.data, signal.data)
+        assert s2.metadata.General.title == "test consolidate metadata"
+
+    def test_consolidate_round_trip_no_consolidate(self, signal, tmp_path):
+        """Data and metadata survive round-trip with consolidate=False."""
+        filename = tmp_path / "test_consolidate_no_rt.zspy"
+        store = zarr.ZipStore(path=filename)
+        signal.save(store, consolidate=False)
+
+        s2 = hs.load(filename)
+        np.testing.assert_array_equal(s2.data, signal.data)
+        assert s2.metadata.General.title == "test consolidate metadata"
+
+    def test_consolidate_with_complex_metadata(self, tmp_path):
+        """Consolidated metadata works with nested metadata objects."""
+        data = np.arange(12 * 25 * 48, dtype=float).reshape(12, 25, 48)
+        s = hs.signals.Signal1D(data)
+        s.axes_manager[0].name = "x"
+        s.axes_manager[1].name = "y"
+        s.axes_manager[2].name = "energy"
+        s.axes_manager[2].units = "eV"
+        s.metadata.General.title = "nested metadata test"
+        s.metadata.Signal.quantity = "intensity"
+
+        filename = tmp_path / "test_consolidate_complex.zspy"
+        store = zarr.ZipStore(path=filename)
+        s.save(store)
+
+        # Verify .zmetadata exists
+        assert ".zmetadata" in store
+
+        # Round-trip
+        s2 = hs.load(filename)
+        np.testing.assert_allclose(s2.data, s.data)
+        assert s2.metadata.General.title == "nested metadata test"
+        assert s2.metadata.Signal.quantity == "intensity"
+        assert s2.axes_manager["x"].name == "x"
+        assert s2.axes_manager["energy"].units == "eV"
+
+    def test_consolidate_preserves_metadata_across_formats(self, signal, tmp_path):
+        """consolidate=True does not change data when saving with different settings."""
+        # Save normally with consolidate=True
+        f1 = tmp_path / "test_consolidate_cmp_a.zspy"
+        store1 = zarr.ZipStore(path=f1)
+        signal.save(store1, consolidate=True)
+        s1 = hs.load(f1)
+
+        # Save with consolidate=False
+        f2 = tmp_path / "test_consolidate_cmp_b.zspy"
+        store2 = zarr.ZipStore(path=f2)
+        signal.save(store2, consolidate=False)
+        s2 = hs.load(f2)
+
+        # Data should be identical regardless of consolidate setting
+        np.testing.assert_array_equal(s1.data, s2.data)
+        assert s1.metadata.General.title == s2.metadata.General.title

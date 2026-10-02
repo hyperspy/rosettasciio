@@ -427,7 +427,7 @@ Bug Fixes
   - Fix :ref:`tvips <tvips-format>` reader
   - Allow reading and writing :ref:`EMD NCEM <emd_ncem-format>` file
   - Fix running test suite without optional dependencies (`#182 <https://github.com/hyperspy/rosettasciio/issues/182>`_)
-- Fix getting version on debian/ubuntu in system-wide install. Add support for installing from git archive and improve getting development version using setuptools `fallback_version <https://setuptools-scm.readthedocs.io/en/latest/config>`_ (`#187 <https://github.com/hyperspy/rosettasciio/issues/187>`_)
+- Fix getting version on debian/ubuntu in system-wide install. Add support for installing from git archive and improve getting development version using setuptools `fallback_version <https://setuptools-scm.readthedocs.io/latest/config>`_ (`#187 <https://github.com/hyperspy/rosettasciio/issues/187>`_)
 - Fix ``dwell_time`` reading in :ref:`QuantumDetectors <quantumdetector-format>` reader (``.mib`` file). The
   ``dwell_time`` is stored in milliseconds, not microseconds as the previous code
   assumed. (`#189 <https://github.com/hyperspy/rosettasciio/issues/189>`_)

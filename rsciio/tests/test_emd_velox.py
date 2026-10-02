@@ -36,7 +36,7 @@ from rsciio.utils._context_manager import dummy_context_manager
 from rsciio.utils._tests import assert_deep_almost_equal, normalize_micro
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
-pytest.importorskip("h5py", reason="h5py not installed")
+h5py = pytest.importorskip("h5py", reason="h5py not installed")
 
 from rsciio.emd._api import is_EMD_Velox  # noqa: E402
 
@@ -408,6 +408,28 @@ class TestFeiEMD:
             signal[1].compute(close_file=True)
         np.testing.assert_equal(signal[1].data, fei_si)
         assert isinstance(signal[1], hs.signals.Signal1D)
+
+    def test_fei_emd_si_image_stack_dtype_and_frame_order(self):
+        pytest.importorskip("sparse")
+        # Regression test: image stacks whose frames are chunked
+        # individually are read frame by frame - check the values, the
+        # frame order, the shape and the dtype of the eagerly loaded stack.
+        filename = self.fei_files_path / "fei_emd_si.emd"
+        signal = hs.load(filename, select_type="images", load_SI_image_stack=True)
+        assert isinstance(signal, hs.signals.Signal2D)
+
+        with h5py.File(filename, "r") as f:
+            image_group_key = list(f["Data/Image"].keys())[0]
+            dset = f["Data/Image"][image_group_key]["Data"]
+            # (y, x, frame) dataset with one chunk per frame
+            assert dset.shape == (16, 16, 5)
+            assert dset.chunks == (16, 16, 1)
+            reference = dset[:].transpose(2, 0, 1)
+            file_dtype = dset.dtype
+
+        assert signal.data.shape == reference.shape
+        assert signal.data.dtype == file_dtype == np.uint16
+        np.testing.assert_equal(signal.data, reference)
 
     @pytest.mark.parametrize(["lazy", "sum_EDS_detectors"], _generate_parameters())
     def test_fei_si_4detectors(self, lazy, sum_EDS_detectors):

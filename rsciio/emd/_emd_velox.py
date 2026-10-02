@@ -322,8 +322,7 @@ class FeiEMDReader(object):
                 # Change back to standard API once issue #977 is fixed.
                 # Preallocate the numpy array and use read_direct method, which is
                 # much faster in case of chunked data.
-                # Do not specify dtype in np.empty, slows down substantially!
-                data = np.empty(h5data.shape)
+                data = np.empty(h5data.shape, dtype=h5data.dtype)
                 h5data.read_direct(data)
                 # Set the axes in frame, y, x order
                 data = np.rollaxis(data, axis=2)

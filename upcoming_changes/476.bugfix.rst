@@ -1,0 +1,1 @@
+Preserve the original data type when reading images from Velox EMD files eagerly.

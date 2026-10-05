@@ -20,7 +20,7 @@ New features
 Enhancements
 ------------
 
-- :ref:`TriVista <trivista-format>`: migrate to :class:`rsciio.utils.xml.XmlToDict` for XML parsing and dictionary conversion to improve maintainability. (`#138 <https://github.com/hyperspy/rosettasciio/issues/138>`_)
+- :ref:`TriVista <trivista-format>`: migrate to :class:`rsciio.utils.xml.XmlToDict` for XML parsing and dictionary conversion to improve maintainability. (`#531 <https://github.com/hyperspy/rosettasciio/issues/531>`_)
 - Images loaded from Velox EMD files now keep the dtype used to store the data in the file (e.g. ``uint16``) instead of being systematically converted to ``float64``. This reduces memory usage, makes non-lazy loading consistent with lazy loading, and significantly speeds up reading image stacks whose frames are chunked individually in the file. (`#476 <https://github.com/hyperspy/rosettasciio/issues/476>`_)
 - :ref:`EDAX TEAM/Genesis <edax-format>`: support line scan (``.lsd``) data (`#485 <https://github.com/hyperspy/rosettasciio/issues/485>`_)
 - The ``zspy`` writer now consolidates metadata by default using :func:`zarr.convenience.consolidate_metadata`.

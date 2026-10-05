@@ -1,1 +1,0 @@
-Drop python 3.10 and add python 3.15. Bump mrcz requirement to >=0.6.0, which adds support for numpy 2.0.

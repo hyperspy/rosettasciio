@@ -1,1 +1,0 @@
-Bump scikit-image requirement to >=0.21.0 and remove vendored code from scikit-image. Dask, numpy, imageio, numba and tifffile mininum-version requirement are also updated to be compatible with scikit-image requirements.

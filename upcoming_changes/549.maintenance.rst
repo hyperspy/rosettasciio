@@ -1,1 +1,0 @@
-Fix test failure related to the change of micro unicode character used by pint in version 0.26.0.

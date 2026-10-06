@@ -1,1 +1,0 @@
-Fix ``KeyError: 'XmlClassName'`` when reading Bruker BCF files with a selected-element region that has no name attribute.

@@ -8,6 +8,51 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 
 .. towncrier release notes start
 
+0.15.0 (2026-10-06)
+===================
+
+New features
+------------
+
+- :ref:`emd_fei-format`: Add support for reading EELS datasets. (`#522 <https://github.com/hyperspy/rosettasciio/issues/522>`_)
+
+
+Enhancements
+------------
+
+- :ref:`TriVista <trivista-format>`: migrate to :class:`rsciio.utils.xml.XmlToDict` for XML parsing and dictionary conversion to improve maintainability. (`#531 <https://github.com/hyperspy/rosettasciio/issues/531>`_)
+- Images loaded from Velox EMD files now keep the dtype used to store the data in the file (e.g. ``uint16``) instead of being systematically converted to ``float64``. This reduces memory usage, makes non-lazy loading consistent with lazy loading, and significantly speeds up reading image stacks whose frames are chunked individually in the file. (`#476 <https://github.com/hyperspy/rosettasciio/issues/476>`_)
+- :ref:`EDAX TEAM/Genesis <edax-format>`: support line scan (``.lsd``) data (`#485 <https://github.com/hyperspy/rosettasciio/issues/485>`_)
+- The ``zspy`` writer now consolidates metadata by default using :func:`zarr.convenience.consolidate_metadata`.
+  This bundles all individual ``.zattrs``, ``.zarray`` and ``.zgroup`` metadata files
+  (~20+ files for a typical signal) into a single ``.zmetadata`` entry, reducing the number
+  of HTTP requests needed to open a file from remote storage by an order of magnitude.
+  Set ``consolidate=False`` to disable this behaviour (e.g. for interactive workflows where
+  metadata is inspected manually). (`#525 <https://github.com/hyperspy/rosettasciio/issues/525>`_)
+
+
+Bug Fixes
+---------
+
+- Support ISO 8601 UTC-offset strings in serial-date conversion and make timezone tests platform independent. (`#341 <https://github.com/hyperspy/rosettasciio/issues/341>`_)
+- Modified empad reader to parse scan sizes from the raw file name following the pattern "scan_xaaa_ybbb.raw", where "aaa" and "bbb" represent the scan sizes in the x and y dimensions, respectively. (`#513 <https://github.com/hyperspy/rosettasciio/issues/513>`_)
+- Fix lazy loading for NCEM EMD data to avoid eager reads (`#526 <https://github.com/hyperspy/rosettasciio/issues/526>`_)
+- Fix closing ``.hspy`` file when loaded lazily on free-threaded Python. (`#533 <https://github.com/hyperspy/rosettasciio/issues/533>`_)
+- Fix ``KeyError: 'XmlClassName'`` when reading Bruker BCF files with a selected-element region that has no name attribute. (`#541 <https://github.com/hyperspy/rosettasciio/issues/541>`_)
+- Support the Greek small letter mu (``U+03BC``) when saving TIFF files. (`#549 <https://github.com/hyperspy/rosettasciio/issues/549>`_)
+
+
+Maintenance
+-----------
+
+- Bump scikit-image requirement to >=0.21.0 and remove vendored code from scikit-image. Dask, numpy, imageio, numba and tifffile mininum-version requirement are also updated to be compatible with scikit-image requirements. (`#527 <https://github.com/hyperspy/rosettasciio/issues/527>`_)
+- Add a ``.mailmap`` file to consolidate duplicate author identities in
+  the git history, fixing contributor attribution for tools that respect
+  mailmap. (`#547 <https://github.com/hyperspy/rosettasciio/issues/547>`_)
+- Fix test failure related to the change of micro unicode character used by pint in version 0.26.0. (`#549 <https://github.com/hyperspy/rosettasciio/issues/549>`_)
+- Drop python 3.10 and add python 3.15. Bump mrcz requirement to >=0.6.0, which adds support for numpy 2.0. (`#550 <https://github.com/hyperspy/rosettasciio/issues/550>`_)
+
+
 0.14.0 (2026-05-27)
 ===================
 

@@ -38,5 +38,6 @@ RosettaSciIO has recently been split out of the [HyperSpy repository](https://gi
 
 ```python
 from rsciio import msa
+
 msa.file_reader("your_msa_file.msa")
 ```

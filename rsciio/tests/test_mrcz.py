@@ -211,6 +211,37 @@ class TestPythonMrcz:
                 lazy=lazy,
             )
 
+    @pytest.mark.parametrize("lazy_signal", [False, True])
+    def test_MRC_2d(self, tmp_path, lazy_signal):
+        data = np.arange(16 * 32, dtype=np.uint16).reshape(16, 32)
+        signal = hs.signals.Signal2D(data)
+        signal.axes_manager[0].name = "x"
+        signal.axes_manager[0].scale = 2.5
+        signal.axes_manager[0].units = "nm"
+        signal.axes_manager[1].name = "y"
+        signal.axes_manager[1].scale = 4.0
+        signal.axes_manager[1].units = "nm"
+        if lazy_signal:
+            signal = signal.as_lazy()
+
+        filename = tmp_path / "test_2d.mrcz"
+        signal.save(filename)
+        reloaded = hs.load(filename)
+
+        npt.assert_array_equal(reloaded.data, data)
+        assert reloaded.axes_manager.navigation_dimension == 0
+        assert reloaded.axes_manager.signal_dimension == 2
+        for axis_name in ("x", "y"):
+            npt.assert_equal(
+                reloaded.axes_manager[axis_name].size,
+                signal.axes_manager[axis_name].size,
+            )
+            npt.assert_allclose(
+                reloaded.axes_manager[axis_name].scale,
+                signal.axes_manager[axis_name].scale,
+            )
+            assert reloaded.axes_manager[axis_name].units == "nm"
+
     @pytest.mark.parametrize("dtype", dtype_list)
     def test_Async(self, dtype):
         _ = pytest.importorskip("blosc", reason="skipping test_async, requires blosc")

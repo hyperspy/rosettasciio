@@ -6,16 +6,31 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # See the LICENSE file at the root of the repository for the full license text.
 
+"""Reader and writer for Universal Spectroscopy and Imaging Data (h5USID).
+
+The h5USID layout (https://pycroscopy.github.io/USID/) is implemented here
+directly with h5py, without depending on pyUSID. A USID *Main* dataset is a
+2D ``(positions, spectroscopic values)`` dataset with:
+
+- ``quantity`` and ``units`` string attributes;
+- ``Position_Indices``, ``Position_Values``, ``Spectroscopic_Indices`` and
+  ``Spectroscopic_Values`` attributes, which are object references to the
+  ancillary datasets describing each dimension.
+
+The ancillary position datasets have one column per dimension and the
+spectroscopic ones one row per dimension. Both carry ``labels`` and
+``units`` attributes, with one entry per dimension.
+"""
+
 import logging
 import os
+import time
 from collections.abc import MutableMapping
-from functools import partial
 from warnings import warn
 
+import dask.array as da
 import h5py
 import numpy as np
-import pyUSID as usid
-import sidpy
 
 from rsciio._docstrings import (
     FILENAME_DOC,
@@ -26,509 +41,462 @@ from rsciio._docstrings import (
 
 _logger = logging.getLogger(__name__)
 
-
-version = usid.__version__
-
-# ######### UTILITIES THAT SIMPLIFY READING FROM H5USID FILES #################
-
-
-def _get_dim_dict(labels, units, val_func, ignore_non_uniform_dims=True):
-    """
-    Gets a list of dictionaries that correspond to axes for HyperSpy Signal
-    objects
-
-    Parameters
-    ----------
-    labels : list
-        List of strings denoting the names of the dimension
-    units : list
-        List of strings denoting the units for the dimensions
-    val_func : callable
-        Function that will return the values over which a dimension was varied
-    ignore_non_uniform_dims : bool, Optional. Default = True
-        If set to True, a warning will be raised instead of a ValueError when a
-        dimension is encountered which was non-uniformly.
-
-    Returns
-    -------
-    dict
-        Dictionary of dictionaries that correspond to axes for HyperSpy Signal
-        objects
-
-    Notes
-    -----
-    For a future release of HyperSpy:
-    If a dimension was varied non-uniformly, one would need to set the
-    appropriate quantity in the quantity equal to dim_vals. At that point,
-    the typical offset and scale parameters would be (hopefully) ignored.
-    """
-    dim_dict = dict()
-    for dim_name, units in zip(labels, units):
-        # dim_vals below contains the full 1D tensor that shows how a dimension
-        # was varied. If the parameter was varied uniformly, the offset, size,
-        # and scale can be extracted easily.
-        dim_vals = val_func(dim_name)
-        if len(dim_vals) == 1:
-            # Empty dimension!
-            continue
-        else:
-            try:
-                step_size = sidpy.base.num_utils.get_slope(dim_vals)
-            except ValueError:
-                # non-uniform dimension! - see notes above
-                if ignore_non_uniform_dims:
-                    warn("Ignoring non-uniformity of dimension: {}".format(dim_name))
-                    step_size = 1
-                    dim_vals[0] = 0
-                else:
-                    raise ValueError(
-                        "Cannot load provided dataset. "
-                        "Parameter: {} was varied "
-                        "non-uniformly. Supply keyword "
-                        'argument "ignore_non_uniform_dims='
-                        'True" to ignore this '
-                        "error".format(dim_name)
-                    )
-
-        dim_dict[dim_name] = {
-            "size": len(dim_vals),
-            "name": dim_name,
-            "units": units,
-            "scale": step_size,
-            "offset": dim_vals[0],
-        }
-    return dim_dict
+_ANCILLARY = (
+    "Position_Indices",
+    "Position_Values",
+    "Spectroscopic_Indices",
+    "Spectroscopic_Values",
+)
+# Placeholders used by the writer, since signals carry no quantity/units
+# for the data values themselves.
+_DATASET_NAME = "Raw_Data"
+_UNKNOWN_QUANTITY = "Unknown Quantity"
+_UNKNOWN_UNITS = "Unknown Units"
+_DEFAULT_UNITS = "a. u."
+# Relative tolerance on the step between values for a dimension to be
+# considered uniform
+_UNIFORM_RTOL = 1e-3
 
 
-def _assemble_dim_list(dim_dict, dim_names):
-    """
-    Assembles a list of dictionary objects (axes) in the same order as
-    specified in dim_names
-
-    Parameters
-    ----------
-    dim_dict : dict
-        Dictionary of dictionaries that correspond to axes for HyperSpy Signal
-        objects
-    dim_names : list
-        List of strings denoting the names of the dimension
-
-    Returns
-    -------
-    list
-        List of dictionaries that correspond to axes for HyperSpy Signal
-        objects
-    """
-    dim_list = []
-    for dim_name in dim_names:
-        try:
-            dim_list.append(dim_dict[dim_name])
-        except KeyError:
-            pass
-    return dim_list
+def _decode(value):
+    """Convert bytes (or arrays of bytes) read from HDF5 attributes to str."""
+    if isinstance(value, bytes):
+        return value.decode("utf-8")
+    if isinstance(value, np.ndarray) and value.dtype.kind in "SO":
+        return [_decode(v) for v in value.tolist()]
+    return value
 
 
-def _split_descriptor(desc):
-    """
-    Splits a string such as "Quantity [units]" or "Quantity (units)" into the
-    quantity and unit strings
-
-    Parameters
-    ----------
-    desc : str
-        Descriptor of a dimension or the main dataset itself
-
-    Returns
-    -------
-    quant : str
-        Name of the physical quantity
-    units : str
-        Units corresponding to the physical quantity
-    """
-    desc = desc.strip()
-    ind = desc.rfind("(")
-    if ind < 0:
-        ind = desc.rfind("[")
-        if ind < 0:
-            return desc, ""
-
-    quant = desc[:ind].strip()
-    units = desc[ind:]
-    for item in "()[]":
-        units = units.replace(item, "")
-    return quant, units
+def _attributes(h5_object):
+    return {key: _decode(value) for key, value in h5_object.attrs.items()}
 
 
-def _convert_to_signal_dict(
-    ndim_form,
-    quantity,
-    units,
-    dim_dict_list,
-    h5_path,
-    h5_dset_path,
-    name,
-    sig_type="",
-    group_attrs={},
-):
-    """
-    Packages required components that make up a Signal object
-
-    Parameters
-    ----------
-    ndim_form : numpy.ndarray
-        N-dimensional form of the main dataset
-    quantity : str
-        Physical quantity of the measurement
-    units : str
-        Corresponding units
-    dim_dict_list : list
-        List of dictionaries that instruct the axes corresponding to the main
-        dataset
-    h5_path : str
-        Absolute path of the original USID HDF5 file
-    h5_dset_path : str
-        Absolute path of the USIDataset within the HDF5 file
-    name : str
-        Name of the HDF5 dataset
-    sig_type : str, Optional
-        Type of measurement
-    group_attrs : dict, Optional. Default = {}
-        Any attributes at the channel and group levels
-
-    Returns
-    -------
-
-    """
-
-    sig = {
-        "data": ndim_form,
-        "axes": dim_dict_list,
-        "metadata": {
-            "Signal": {"signal_type": sig_type},
-            "General": {"original_filename": h5_path, "title": name},
-        },
-        "original_metadata": {
-            "quantity": quantity,
-            "units": units,
-            "dataset_path": h5_dset_path,
-            "original_file_type": "USID HDF5",
-            "pyUSID_version": usid.__version__,
-            "parameters": group_attrs,
-        },
-    }
-    return sig
+# ---------------------------------------------------------------------------
+# Reading
+# ---------------------------------------------------------------------------
 
 
-def _usidataset_to_signal_dict(h5_main, ignore_non_uniform_dims=True, lazy=False):
-    """
-    Converts a single specified USIDataset object to one or more Signal objects
-
-    Parameters
-    ----------
-    h5_main : pyUSID.USIDataset
-        USID Main dataset
-    ignore_non_uniform_dims : bool, Default True
-        If True, parameters that were varied non-uniformly in the desired
-        dataset will result in Exceptions.
-        Else, all such non-uniformly varied parameters will be treated as
-        uniformly varied parameters and
-        a Signal object will be generated.
-    %s
-
-    %s
-    """
-    h5_main = usid.USIDataset(h5_main)
-    # TODO: Cannot handle data without N-dimensional form yet
-    # First get dictionary of axes that HyperSpy likes to see. Ignore singular
-    # dimensions
-    pos_dict = _get_dim_dict(
-        h5_main.pos_dim_labels,
-        usid.hdf_utils.get_attr(h5_main.h5_pos_inds, "units"),
-        h5_main.get_pos_values,
-        ignore_non_uniform_dims=ignore_non_uniform_dims,
-    )
-    spec_dict = _get_dim_dict(
-        h5_main.spec_dim_labels,
-        usid.hdf_utils.get_attr(h5_main.h5_spec_inds, "units"),
-        h5_main.get_spec_values,
-        ignore_non_uniform_dims=ignore_non_uniform_dims,
-    )
-
-    num_spec_dims = len(spec_dict)
-    num_pos_dims = len(pos_dict)
-    _logger.info(
-        "Dimensions: Positions: {}, Spectroscopic: {}.".format(
-            num_pos_dims, num_spec_dims
+def _ancillary_datasets(h5_dataset):
+    """Return the four ancillary datasets of a USID Main dataset, or None."""
+    if h5_dataset.ndim != 2:
+        return None
+    attrs = h5_dataset.attrs
+    if not all(isinstance(_decode(attrs.get(k)), str) for k in ("quantity", "units")):
+        return None
+    try:
+        pos_inds, pos_vals, spec_inds, spec_vals = (
+            h5_dataset.file[attrs[name]] for name in _ANCILLARY
         )
+    except (KeyError, TypeError, ValueError):
+        return None
+    n_pos, n_spec = h5_dataset.shape
+    if not (
+        pos_inds.shape == pos_vals.shape
+        and spec_inds.shape == spec_vals.shape
+        and pos_inds.ndim == spec_inds.ndim == 2
+        and pos_inds.shape[0] == n_pos
+        and spec_inds.shape[1] == n_spec
+    ):
+        return None
+    return pos_inds, pos_vals, spec_inds, spec_vals
+
+
+def _find_main_datasets(h5_file):
+    """Return all USID Main datasets of a file, in HDF5 traversal order."""
+    found = []
+
+    def visit(name, obj):
+        if isinstance(obj, h5py.Dataset) and _ancillary_datasets(obj) is not None:
+            found.append(obj)
+
+    h5_file.visititems(visit)
+    return found
+
+
+def _read_dimensions(h5_inds, h5_vals, spectroscopic):
+    """Read the dimensions described by a pair of ancillary datasets.
+
+    Returns a list of ``(label, units, values)`` ordered from the slowest to
+    the fastest varying dimension, such that the corresponding axis of the
+    Main dataset reshapes (in C order) to the sizes of these dimensions.
+    """
+    indices, values = h5_inds[()], h5_vals[()]
+    if spectroscopic:
+        indices, values = indices.T, values.T
+    # rows are now points and columns are dimensions
+    labels, units = (
+        np.atleast_1d(_decode(h5_inds.attrs[name])).astype(str).tolist()
+        for name in ("labels", "units")
     )
 
-    ret_vals = usid.hdf_utils.reshape_to_n_dims(h5_main, get_labels=True, lazy=lazy)
-    ds_nd, success, dim_labs = ret_vals
+    # The fastest varying dimension is the one that changes most often
+    n_changes = np.count_nonzero(np.diff(indices, axis=0), axis=0)
+    order = np.argsort(n_changes, kind="stable")
+    indices, values = indices[:, order], values[:, order]
+    sizes = [int(column.max()) + 1 for column in indices.T]
 
-    if success is not True:
-        raise ValueError("Dataset could not be reshaped!")
-    ds_nd = ds_nd.squeeze()
-    _logger.info("N-dimensional shape: {}".format(ds_nd.shape))
-    _logger.info("N-dimensional labels: {}".format(dim_labs))
+    # Only a full grid of indices can be reshaped to N dimensions
+    grid = np.indices(sizes).reshape(len(sizes), -1).T
+    if indices.shape != grid.shape or not np.array_equal(indices, grid):
+        raise ValueError(
+            f"The dimensions of {h5_inds.parent.name} do not form a regular "
+            "grid and cannot be reshaped to N dimensions."
+        )
 
-    # Capturing metadata present in conventional h5USID files:
-    group_attrs = dict()
-    h5_chan_grp = h5_main.parent
-    if isinstance(h5_chan_grp, h5py.Group):
-        if "Channel" in h5_chan_grp.name.split("/")[-1]:
-            group_attrs = sidpy.hdf_utils.get_attributes(h5_chan_grp)
-            h5_meas_grp = h5_main.parent
-            if isinstance(h5_meas_grp, h5py.Group):
-                if "Measurement" in h5_meas_grp.name.split("/")[-1]:
-                    temp = sidpy.hdf_utils.get_attributes(h5_meas_grp)
-                    group_attrs.update(temp)
+    dimensions = []
+    for i, column in enumerate(order):
+        # values of this dimension at the points where all other indices are 0
+        points = np.arange(sizes[i]) * int(np.prod(sizes[i + 1 :]))
+        dimensions.append((labels[column], units[column], values[points, i]))
+    return dimensions
 
+
+def _uniform_axis(label, units, values, ignore_non_uniform_dims):
+    """Axis dictionary of a dimension, which must be uniformly spaced."""
+    steps = np.diff(values.astype(float))
+    scale = steps.mean()
+    if not np.allclose(steps, scale, rtol=_UNIFORM_RTOL, atol=0):
+        if not ignore_non_uniform_dims:
+            raise ValueError(
+                f"Cannot load provided dataset. Parameter: {label} was varied "
+                "non-uniformly. Supply keyword argument "
+                '"ignore_non_uniform_dims=True" to ignore this error'
+            )
+        warn(f"Ignoring non-uniformity of dimension: {label}")
+        return {
+            "size": values.size,
+            "name": label,
+            "units": units,
+            "scale": 1,
+            "offset": 0,
+        }
+    return {
+        "size": values.size,
+        "name": label,
+        "units": units,
+        "scale": float(scale),
+        "offset": float(values[0]),
+    }
+
+
+def _split_descriptor(descriptor):
+    """Split a descriptor of the form ``"quantity (units)"``.
+
+    Square brackets are also accepted around the units. Returns the
+    ``(quantity, units)`` tuple, with empty units if there are none.
     """
-    Normally, we might have been done but the order of the dimensions may be
-    different in N-dim form and
-    attributes in ancillary dataset
+    descriptor = descriptor.strip()
+    for opening in "([":
+        index = descriptor.rfind(opening)
+        if index >= 0:
+            units = descriptor[index:]
+            for bracket in "()[]":
+                units = units.replace(bracket, "")
+            return descriptor[:index].strip(), units
+    return descriptor, ""
+
+
+def _group_parameters(h5_dataset):
+    """Return the attributes of the enclosing Channel and Measurement groups."""
+    parameters = {}
+    channel = h5_dataset.parent
+    if "Channel" in channel.name.split("/")[-1]:
+        parameters.update(_attributes(channel))
+        measurement = channel.parent
+        if "Measurement" in measurement.name.split("/")[-1]:
+            parameters.update(_attributes(measurement))
+    return parameters
+
+
+def _read_main_dataset(h5_dataset, lazy, ignore_non_uniform_dims):
+    """Convert a USID Main dataset into a list of signal dictionaries.
+
+    A compound (structured) dataset gives one signal per field.
     """
-    num_pos_dims = len(h5_main.pos_dim_labels)
-    pos_dim_list = _assemble_dim_list(pos_dict, dim_labs[:num_pos_dims])
-    spec_dim_list = _assemble_dim_list(spec_dict, dim_labs[num_pos_dims:])
-    dim_list = pos_dim_list + spec_dim_list
+    pos_inds, pos_vals, spec_inds, spec_vals = _ancillary_datasets(h5_dataset)
+    dimensions = _read_dimensions(pos_inds, pos_vals, spectroscopic=False)
+    dimensions += _read_dimensions(spec_inds, spec_vals, spectroscopic=True)
 
-    _, is_complex, is_compound, _, _ = sidpy.hdf.dtype_utils.check_dtype(h5_main)
-
-    trunc_func = partial(
-        _convert_to_signal_dict,
-        dim_dict_list=dim_list,
-        h5_path=h5_main.file.filename,
-        h5_dset_path=h5_main.name,
-        name=h5_main.name.split("/")[-1],
-        group_attrs=group_attrs,
-    )
-
-    # Extracting the quantity and units of the main dataset
-    quant, units = _split_descriptor(h5_main.data_descriptor)
-
-    if is_compound:
-        sig = []
-        # Iterate over each dimension name:
-        for name in ds_nd.dtype.names:
-            q_sub, u_sub = _split_descriptor(name)
-            sig.append(trunc_func(ds_nd[name], q_sub, u_sub, sig_type=quant))
+    # Dimensions with a single value are squeezed out of the data
+    axes = [
+        _uniform_axis(label, units, values, ignore_non_uniform_dims)
+        for label, units, values in dimensions
+        if values.size > 1
+    ]
+    shape = tuple(axis["size"] for axis in axes)
+    if lazy:
+        data = da.from_array(h5_dataset).reshape(shape)
     else:
-        sig = [trunc_func(ds_nd, quant, units)]
+        data = h5_dataset[()].reshape(shape)
 
-    return sig
+    attrs = h5_dataset.attrs
+    quantity = _decode(attrs["quantity"]).strip()
+    units = _decode(attrs["units"]).strip()
+    general = {
+        "original_filename": h5_dataset.file.filename,
+        "title": h5_dataset.name.split("/")[-1],
+    }
+    original_metadata = {
+        "dataset_path": h5_dataset.name,
+        "original_file_type": "USID HDF5",
+        "parameters": _group_parameters(h5_dataset),
+    }
 
+    def signal_dict(array, quantity, units, signal_type):
+        return {
+            "data": array,
+            "axes": [axis.copy() for axis in axes],
+            "metadata": {
+                "General": dict(general),
+                "Signal": {"signal_type": signal_type},
+            },
+            "original_metadata": {
+                "quantity": quantity,
+                "units": units,
+                **original_metadata,
+            },
+        }
 
-_usidataset_to_signal_dict.__doc__ %= (LAZY_DOC, RETURNS_DOC)
-
-
-# ######## UTILITIES THAT SIMPLIFY WRITING TO H5USID FILES ####################
-
-
-def _flatten_dict(nested_dict, parent_key="", sep="-"):
-    """
-    Flattens a nested dictionary
-
-    Parameters
-    ----------
-    nested_dict : dict
-        Nested dictionary
-    parent_key : str, Optional
-        Name of current parent
-    sep : str, Optional. Default='-'
-        Separator between the keys of different levels
-
-    Returns
-    -------
-    dict
-        Dictionary whose keys are flattened to a single level
-    Notes
-    -----
-    Taken from https://stackoverflow.com/questions/6027558/flatten-nested-
-    dictionaries-compressing-keys
-    """
-    items = []
-    for k, v in nested_dict.items():
-        new_key = parent_key + sep + k if parent_key else k
-        if isinstance(v, MutableMapping):
-            items.extend(_flatten_dict(v, new_key, sep=sep).items())
-        else:
-            items.append((new_key, v))
-    return dict(items)
-
-
-def _axes_list_to_dimensions(axes_list, data_shape, is_spec):
-    dim_list = []
-    dim_type = "Pos"
-    if is_spec:
-        dim_type = "Spec"
-    # for dim_ind, (dim_size, dim) in enumerate(zip(data_shape, axes_list)):
-    # we are going by data_shape for order (slowest to fastest)
-    # so the order in axes_list does not matter
-    for dim_ind, dim in enumerate(axes_list):
-        dim = axes_list[dim_ind]
-        dim_name = dim_type + "_Dim_" + str(dim_ind)
-        if isinstance(dim["name"], str):
-            temp = dim["name"].strip()
-            if len(temp) > 0:
-                dim_name = temp
-        dim_units = "a. u."
-        if isinstance(dim["units"], str):
-            temp = dim["units"].strip()
-            if len(temp) > 0:
-                dim_units = temp
-                # use REAL dimension size rather than what is presented in the
-                # axes manager
-        dim_size = data_shape[len(data_shape) - 1 - dim_ind]
-        ar = np.arange(dim_size) * dim["scale"] + dim["offset"]
-        dim_list.append(usid.Dimension(dim_name, dim_units, ar))
-    if len(dim_list) == 0:
-        return usid.Dimension("Arb", "a. u.", 1)
-    return dim_list[::-1]
-
-
-# ####### REQUIRED FUNCTIONS FOR AN IO PLUGIN #################################
+    if data.dtype.names is None:
+        return [signal_dict(data, quantity, units, "")]
+    # Each field of a compound dataset becomes a signal; the quantity of the
+    # whole dataset is kept as the signal type.
+    return [
+        signal_dict(data[field], *_split_descriptor(field), quantity)
+        for field in data.dtype.names
+    ]
 
 
 def file_reader(filename, lazy=False, dataset_path=None, ignore_non_uniform_dims=True):
     """
-    Read a USID Main dataset present in an HDF5 file into a HyperSpy Signal.
+    Read an h5USID file.
 
     Parameters
     ----------
     %s
     %s
-    dataset_path : str, optional
-        Absolute path of USID Main HDF5 dataset.
-        Default is ``None`` - all Main Datasets will be read. Given that HDF5
-        files can accommodate very large datasets, lazy reading is strongly
-        recommended.
-        If a string like ``"/Measurement_000/Channel_000/My_Dataset"`` is
-        provided, the specific dataset will be loaded.
-    ignore_non_uniform_dims : bool, optional
-        If ``True`` (default), parameters that were varied non-uniformly in the
-        desired dataset will result in Exceptions.
-        Else, all such non-uniformly varied parameters will be treated as
-        uniformly varied parameters and a Signal object will be generated.
+    dataset_path : str, default=None
+        Absolute path of the USID Main dataset to read, for example
+        ``"/Measurement_000/Channel_000/Raw_Data"``. If None, all USID Main
+        datasets in the file are read.
+    ignore_non_uniform_dims : bool, default=True
+        Non-uniform dimensions are not supported. If True, such dimensions
+        are loaded with a scale of 1 and an offset of 0 and a warning is
+        raised. If False, a ``ValueError`` is raised instead.
 
     %s
+
+    Notes
+    -----
+    When ``lazy=True``, the file is kept open so that the data can be read
+    later.
     """
-    if not isinstance(filename, str):
-        raise TypeError("filename should be a string")
+    filename = os.fspath(filename)
     if not os.path.isfile(filename):
         raise FileNotFoundError(f"No file found at: {filename}")
+    if dataset_path is not None and not isinstance(dataset_path, str):
+        raise TypeError("'dataset_path' should be a string")
 
-    # Need to keep h5 file handle open indefinitely if lazy
-    # Using "with" will cause the file to be closed
-    h5_f = h5py.File(filename, "r")
-    if dataset_path is None:
-        all_main_dsets = usid.hdf_utils.get_all_main(h5_f)
+    h5_file = h5py.File(filename, mode="r")
+    try:
+        if dataset_path is None:
+            h5_datasets = _find_main_datasets(h5_file)
+        else:
+            h5_dataset = h5_file[dataset_path]
+            if not isinstance(h5_dataset, h5py.Dataset) or (
+                _ancillary_datasets(h5_dataset) is None
+            ):
+                raise ValueError(f"{dataset_path} is not a USID Main dataset.")
+            h5_datasets = [h5_dataset]
         signals = []
-        for h5_dset in all_main_dsets:
-            # Note that the function returns a list already.
-            # Should not append
-            signals += _usidataset_to_signal_dict(
-                h5_dset,
-                ignore_non_uniform_dims=ignore_non_uniform_dims,
-                lazy=lazy,
-            )
-    else:
-        if not isinstance(dataset_path, str):
-            raise TypeError("'dataset_path' should be a string")
-        h5_dset = h5_f[dataset_path]
-        signals = _usidataset_to_signal_dict(
-            h5_dset, ignore_non_uniform_dims=ignore_non_uniform_dims, lazy=lazy
-        )
+        for h5_dataset in h5_datasets:
+            signals += _read_main_dataset(h5_dataset, lazy, ignore_non_uniform_dims)
+    except Exception:
+        h5_file.close()
+        raise
+
     if not lazy:
-        h5_f.close()
+        h5_file.close()
     return signals
 
 
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)
 
 
+# ---------------------------------------------------------------------------
+# Writing
+# ---------------------------------------------------------------------------
+
+
+def _flatten(mapping, prefix=""):
+    """Flatten nested mappings, joining the keys with ``"-"``."""
+    flat = {}
+    for key, value in mapping.items():
+        key = f"{prefix}-{key}" if prefix else key
+        if isinstance(value, MutableMapping):
+            flat.update(_flatten(value, key))
+        else:
+            flat[key] = value
+    return flat
+
+
+def _write_attributes(h5_object, attributes):
+    """Write attributes, skipping those which cannot be stored in HDF5."""
+    for key, value in attributes.items():
+        if value is None:
+            continue
+        if isinstance(value, (list, tuple)) and any(isinstance(v, str) for v in value):
+            value = np.array([str(v).encode("utf-8") for v in value], dtype="S")
+        try:
+            h5_object.attrs[key.strip()] = value
+        except (TypeError, ValueError):
+            _logger.warning(
+                f"The metadata item {key!r} of type {type(value).__name__} "
+                "cannot be written to an h5USID file and is skipped."
+            )
+
+
+def _write_timestamp(h5_object):
+    h5_object.attrs["timestamp"] = time.strftime("%Y_%m_%d-%H_%M_%S")
+
+
+def _create_indexed_group(h5_parent, base_name):
+    """Create the group ``<base_name>_NNN`` following the existing ones."""
+    prefix = f"{base_name}_"
+    indices = [
+        int(name[len(prefix) :])
+        for name, obj in h5_parent.items()
+        if isinstance(obj, h5py.Group)
+        and name.startswith(prefix)
+        and name[len(prefix) :].isdigit()
+    ]
+    group = h5_parent.create_group(f"{prefix}{max(indices, default=-1) + 1:03d}")
+    _write_timestamp(group)
+    return group
+
+
+def _text_or_default(value, default):
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    return default
+
+
+def _dimensions_from_axes(axes, shape, default_name):
+    """Return the ``(label, units, values)`` of each axis, slowest first.
+
+    The sizes are taken from ``shape``, the matching part of the data shape.
+    Unnamed dimensions are numbered from the fastest one.
+    """
+    if not axes:
+        # USID always needs at least one dimension on each side
+        return [("Arb", _DEFAULT_UNITS, np.zeros(1))]
+    if len(axes) != len(shape):
+        raise ValueError(
+            f"The number of axes ({len(axes)}) does not match the number of "
+            f"data dimensions ({len(shape)})."
+        )
+    n = len(axes)
+    return [
+        (
+            _text_or_default(axis.get("name"), f"{default_name}_{n - 1 - i}"),
+            _text_or_default(axis.get("units"), _DEFAULT_UNITS),
+            np.arange(size) * axis["scale"] + axis["offset"],
+        )
+        for i, (axis, size) in enumerate(zip(axes, shape))
+    ]
+
+
+def _write_ancillary(h5_group, base_name, dimensions, spectroscopic):
+    """Write the indices and values datasets describing ``dimensions``."""
+    sizes = [len(values) for _, _, values in dimensions]
+    # One row per dimension, the last (fastest) one varying fastest
+    indices = np.indices(sizes).reshape(len(sizes), -1)
+    values = np.stack(
+        [
+            dim_values[dim_indices]
+            for (_, _, dim_values), dim_indices in zip(dimensions, indices)
+        ]
+    )
+    if not spectroscopic:
+        indices, values = indices.T, values.T
+
+    attributes = {
+        "labels": [label for label, _, _ in dimensions],
+        "units": [units for _, units, _ in dimensions],
+        "type": [0] * len(dimensions),
+    }
+    datasets = []
+    for kind, array, dtype in (
+        ("Indices", indices, np.uint32),
+        ("Values", values, np.float32),
+    ):
+        dataset = h5_group.create_dataset(
+            f"{base_name}_{kind}", data=array.astype(dtype)
+        )
+        _write_attributes(dataset, attributes)
+        datasets.append(dataset)
+    return datasets
+
+
 def file_writer(filename, signal, **kwds):
     """
-    Write a HyperSpy Signal object to a HDF5 file formatted according to USID.
+    Write a signal to an h5USID file.
+
+    If the file already exists, the signal is added to it as a new
+    ``Measurement`` group; the existing content is kept.
 
     Parameters
     ----------
     %s
     %s
     **kwds : dict, optional
-        All other keyword arguments will be passed to
-        :py:func:`pyUSID.io.hdf_utils.model.write_main_dataset`.
+        Passed to :meth:`h5py.Group.create_dataset` when creating the
+        Main dataset, for example ``compression="gzip"``.
+
+    Notes
+    -----
+    The metadata and original metadata are flattened and written as
+    attributes of the ``Measurement`` group. Models and other objects linked
+    to the signal are not written.
     """
-    append = False
-    if os.path.exists(filename):
-        append = True
-
-    hs_shape = signal["data"].shape
-
-    parm_dict = _flatten_dict(signal["metadata"])
-    temp = signal["original_metadata"]
-    parm_dict.update(_flatten_dict(temp, parent_key="Original"))
-
-    axes = signal["axes"]
-    nav_axes = [ax for ax in axes if ax["navigate"]][::-1]
-    sig_axes = [ax for ax in axes if not ax["navigate"]][::-1]
-    nav_dim = len(nav_axes)
-
     data = signal["data"]
-    # data is assumed to have dimensions arranged from slowest to fastest
-    # varying dimensions
-    if nav_dim > 0 and len(sig_axes) > 0:
-        # now flatten to 2D:
-        data = data.reshape(np.prod(hs_shape[:nav_dim]), np.prod(hs_shape[nav_dim:]))
-        pos_dims = _axes_list_to_dimensions(nav_axes, hs_shape[:nav_dim], False)
-        spec_dims = _axes_list_to_dimensions(sig_axes, hs_shape[nav_dim:], True)
-    elif nav_dim == 0:
-        # only spectroscopic:
-        # now flatten to 2D:
-        data = data.reshape(1, -1)
-        pos_dims = _axes_list_to_dimensions(nav_axes, [], False)
-        spec_dims = _axes_list_to_dimensions(sig_axes, hs_shape, True)
-    else:
-        # now flatten to 2D:
-        data = data.reshape(-1, 1)
-        pos_dims = _axes_list_to_dimensions(nav_axes, hs_shape, False)
-        spec_dims = _axes_list_to_dimensions(sig_axes, [], True)
+    nav_axes = [axis for axis in signal["axes"] if axis["navigate"]]
+    sig_axes = [axis for axis in signal["axes"] if not axis["navigate"]]
+    nav_shape = data.shape[: len(nav_axes)]
+    sig_shape = data.shape[len(nav_axes) :]
 
-    #  Does HyperSpy store the physical quantity and units somewhere?
-    phy_quant = "Unknown Quantity"
-    phy_units = "Unknown Units"
-    dset_name = "Raw_Data"
+    pos_dims = _dimensions_from_axes(nav_axes, nav_shape, "Pos_Dim")
+    spec_dims = _dimensions_from_axes(sig_axes, sig_shape, "Spec_Dim")
+    # USID stores the data as a 2D (positions, spectroscopic values) matrix
+    data_2d = data.reshape(int(np.prod(nav_shape)), int(np.prod(sig_shape)))
 
-    if not append:
-        tran = usid.NumpyTranslator()
-        _ = tran.translate(
-            filename,
-            dset_name,
-            data,
-            phy_quant,
-            phy_units,
-            pos_dims,
-            spec_dims,
-            parm_dict=parm_dict,
-            slow_to_fast=True,
-            **kwds,
+    parameters = _flatten(signal["metadata"])
+    parameters.update(_flatten(signal["original_metadata"], "Original"))
+
+    new_file = not os.path.exists(filename)
+    with h5py.File(filename, mode="a") as h5_file:
+        if new_file:
+            h5_file.attrs["data_type"] = _DATASET_NAME
+            _write_timestamp(h5_file)
+        measurement = _create_indexed_group(h5_file, "Measurement")
+        _write_attributes(measurement, parameters)
+        channel = _create_indexed_group(measurement, "Channel")
+
+        ancillary = _write_ancillary(channel, "Position", pos_dims, False)
+        ancillary += _write_ancillary(channel, "Spectroscopic", spec_dims, True)
+
+        main = channel.create_dataset(
+            _DATASET_NAME, shape=data_2d.shape, dtype=data_2d.dtype, **kwds
         )
-    else:
-        with h5py.File(filename, mode="r+") as h5_f:
-            h5_grp = usid.hdf_utils.create_indexed_group(h5_f, "Measurement")
-            usid.hdf_utils.write_simple_attrs(h5_grp, parm_dict)
-            h5_grp = usid.hdf_utils.create_indexed_group(h5_grp, "Channel")
-            _ = usid.hdf_utils.write_main_dataset(
-                h5_grp,
-                data,
-                dset_name,
-                phy_quant,
-                phy_units,
-                pos_dims,
-                spec_dims,
-                slow_to_fast=True,
-                **kwds,
-            )
+        if isinstance(data_2d, da.Array):
+            da.store(data_2d, main)
+        else:
+            main[...] = data_2d
+        main.attrs["quantity"] = _UNKNOWN_QUANTITY
+        main.attrs["units"] = _UNKNOWN_UNITS
+        _write_timestamp(main)
+        for name, dataset in zip(_ANCILLARY, ancillary):
+            main.attrs[name] = dataset.ref
 
 
 file_writer.__doc__ %= (FILENAME_DOC.replace("read", "write to"), SIGNAL_DOC)

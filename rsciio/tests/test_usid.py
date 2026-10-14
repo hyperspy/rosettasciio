@@ -6,775 +6,463 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # See the LICENSE file at the root of the repository for the full license text.
 
-import tempfile
+from pathlib import Path
 
-import dask.array as da
 import numpy as np
 import pytest
 
-hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
-usid = pytest.importorskip("pyUSID", reason="pyUSID not installed")
-sidpy = pytest.importorskip("sidpy", reason="sidpy not installed")
 h5py = pytest.importorskip("h5py", reason="h5py not installed")
+da = pytest.importorskip("dask.array", reason="dask not installed")
 
-# ##################### HELPER FUNCTIONS ######################################
-
-
-def _array_translator_basic_checks(h5_f):
-    assert len(h5_f.items()) == 1
-    assert "Measurement_000" in h5_f.keys()
-    h5_meas_grp = h5_f["Measurement_000"]
-    assert isinstance(h5_meas_grp, h5py.Group)
-
-    # Again, this group should only have one group - Channel_000
-    assert len(h5_meas_grp.items()) == 1
-    assert "Channel_000" in h5_meas_grp.keys()
-    h5_chan_grp = h5_meas_grp["Channel_000"]
-    assert isinstance(h5_chan_grp, h5py.Group)
-
-    # This channel group will contain the main dataset
-    assert len(h5_chan_grp.items()) == 5
-    for dset_name in [
-        "Raw_Data",
-        "Position_Indices",
-        "Position_Values",
-        "Spectroscopic_Indices",
-        "Spectroscopic_Values",
-    ]:
-        assert dset_name in h5_chan_grp.keys()
-        h5_dset = h5_chan_grp[dset_name]
-        assert isinstance(h5_dset, h5py.Dataset)
-
-    assert len(usid.hdf_utils.get_all_main(h5_f)) == 1
-
-    assert usid.hdf_utils.check_if_main(h5_chan_grp["Raw_Data"])
+from rsciio.usid import file_reader, file_writer  # noqa: E402
 
 
-def _compare_axes(
-    hs_axes, dim_descriptors, usid_val_func, axes_defined=True, invalid_axes=False
+def _import_pyusid():
+    # pyUSID is only used to check compatibility with the reference
+    # implementation; it does not support numpy 2.
+    if np.lib.NumpyVersion(np.__version__) >= "2.0.0":
+        return None
+    try:
+        import pyUSID
+    except Exception:
+        return None
+    return pyUSID
+
+
+pyUSID = _import_pyusid()
+requires_pyusid = pytest.mark.skipif(
+    pyUSID is None, reason="pyUSID not installed or not usable with numpy >= 2"
+)
+
+
+def write_usid(
+    filename,
+    data_2d,
+    pos_dims,
+    spec_dims,
+    group="Measurement_000/Channel_000",
+    name="Raw_Data",
+    fast_to_slow=False,
 ):
-    usid_descriptors = [_split_descriptor(_) for _ in dim_descriptors]
-    for dim_ind, axis in enumerate(hs_axes):
-        # Remember that the signal axes are actually reversed!
-        real_dim_ind = len(hs_axes) - dim_ind - 1
-        if axes_defined:
-            assert axis.name == usid_descriptors[real_dim_ind][0]
-            assert axis.units == usid_descriptors[real_dim_ind][1]
-
-        if not invalid_axes:
-            axis_vals = np.arange(
-                axis.offset, axis.offset + axis.size * axis.scale, axis.scale
-            )
-            usid_vals = usid_val_func(usid_descriptors[real_dim_ind][0])
-            np.testing.assert_allclose(axis_vals, usid_vals)
-
-
-def _assert_empty_dims(hs_axes, usid_labels, usid_val_func):
-    assert len(hs_axes) == 0
-    assert len(usid_labels) == 1
-    dim_vals = usid_val_func(usid_labels[0])
-    assert len(dim_vals) == 1
-
-
-def _split_descriptor(desc):
-    desc = desc.strip()
-    ind = desc.rfind("(")
-    if ind < 0:
-        ind = desc.rfind("[")
-        if ind < 0:
-            return desc, ""
-
-    quant = desc[:ind].strip()
-    units = desc[ind:]
-    for item in "()[]":
-        units = units.replace(item, "")
-    return quant, units
-
-
-def _validate_metadata_from_h5dset(sig, h5_dset, compound_comp_name=None):
-    if compound_comp_name is None:
-        quant = usid.hdf_utils.get_attr(h5_dset, "quantity")
-        units = usid.hdf_utils.get_attr(h5_dset, "units")
-    else:
-        quant, units = _split_descriptor(compound_comp_name)
-    assert sig.original_metadata.quantity == quant
-    assert sig.original_metadata.units == units
-    assert sig.metadata.General.original_filename == h5_dset.file.filename
-    assert sig.metadata.General.title == h5_dset.name.split("/")[-1]
-    assert sig.original_metadata.dataset_path == h5_dset.name
-    assert sig.original_metadata.original_file_type == "USID HDF5"
-    assert sig.original_metadata.pyUSID_version == usid.__version__
-
-    h5_chan_grp = h5_dset.parent
-    usid_grp_parms = dict()
-    if "Channel" in h5_chan_grp.name.split("/")[-1]:
-        usid_grp_parms = sidpy.hdf.hdf_utils.get_attributes(h5_chan_grp)
-        h5_meas_grp = h5_chan_grp.parent
-        if "Measurement" in h5_meas_grp.name.split("/")[-1]:
-            temp = sidpy.hdf.hdf_utils.get_attributes(h5_meas_grp)
-            usid_grp_parms.update(temp)
-    # Remove timestamp key since there is 1s difference occasionally
-    usid_grp_parms.pop("timestamp", None)
-    om_dict = sig.original_metadata.parameters.as_dictionary()
-    om_dict.pop("timestamp", None)
-    assert om_dict == usid_grp_parms
-
-
-def compare_usid_from_signal(
-    sig, h5_path, empty_pos=False, empty_spec=False, dataset_path=None, **kwargs
-):
-    with h5py.File(h5_path, mode="r") as h5_f:
-        # 1. Validate that what has been written is a USID Main dataset
-        if dataset_path is None:
-            _array_translator_basic_checks(h5_f)
-            h5_main = usid.hdf_utils.get_all_main(h5_f)[0]
-        else:
-            h5_main = usid.USIDataset(h5_f[dataset_path])
-
-        usid_data = h5_main.get_n_dim_form().squeeze()
-        # 2. Validate that raw data has been written correctly:
-        np.testing.assert_allclose(sig.data, usid_data)
-        # 3. Validate that axes / dimensions have been translated correctly:
-        if empty_pos:
-            _assert_empty_dims(
-                sig.axes_manager.navigation_axes,
-                h5_main.pos_dim_labels,
-                h5_main.get_pos_values,
-                **kwargs,
-            )
-        else:
-            _compare_axes(
-                sig.axes_manager.navigation_axes,
-                h5_main.pos_dim_descriptors,
-                h5_main.get_pos_values,
-                **kwargs,
-            )
-        # 4. Check to make sure that there is only one spectroscopic dimension
-        # of size 1
-        if empty_spec:
-            _assert_empty_dims(
-                sig.axes_manager.signal_axes,
-                h5_main.spec_dim_labels,
-                h5_main.get_spec_values,
-                **kwargs,
-            )
-        else:
-            _compare_axes(
-                sig.axes_manager.signal_axes,
-                h5_main.spec_dim_descriptors,
-                h5_main.get_spec_values,
-                **kwargs,
-            )
-
-
-def compare_signal_from_usid(
-    file_path,
-    ndata,
-    new_sig,
-    axes_to_spec=[],
-    sig_type=hs.signals.BaseSignal,
-    dataset_path=None,
-    compound_comp_name=None,
-    **kwargs,
-):
-    # 1. Validate object type
-    assert isinstance(new_sig, sig_type)
-    if len(axes_to_spec) > 0:
-        new_sig = new_sig.as_signal2D(axes_to_spec)
-
-    # 2. Validate that data has been read in correctly:
-    np.testing.assert_allclose(new_sig.data, ndata)
-    with h5py.File(file_path, mode="r") as h5_f:
-        if dataset_path is None:
-            h5_main = usid.hdf_utils.get_all_main(h5_f)[0]
-        else:
-            h5_main = usid.USIDataset(h5_f[dataset_path])
-        # 3. Validate that all axes / dimensions have been translated correctly
-        if len(axes_to_spec) > 0:
-            _compare_axes(
-                new_sig.axes_manager.navigation_axes,
-                h5_main.pos_dim_descriptors,
-                h5_main.get_pos_values,
-                **kwargs,
-            )
-        else:
-            assert new_sig.axes_manager.navigation_dimension == 0
-        # 3. Validate that all spectroscopic axes / dimensions have been
-        # translated correctly:
-        if h5_main.shape[1] == 1:
-            _compare_axes(
-                new_sig.axes_manager.signal_axes,
-                h5_main.pos_dim_descriptors,
-                h5_main.get_pos_values,
-                **kwargs,
-            )
-        else:
-            _compare_axes(
-                new_sig.axes_manager.signal_axes,
-                h5_main.spec_dim_descriptors,
-                h5_main.get_spec_values,
-                **kwargs,
-            )
-
-        # 5. Validate that metadata has been read in correctly:
-        _validate_metadata_from_h5dset(
-            new_sig, h5_main, compound_comp_name=compound_comp_name
-        )
-
-
-def gen_2pos_2spec(s2f_aux=True, mode=None):
-    pos_dims = [
-        usid.Dimension("X", "nm", [-250, 750]),
-        usid.Dimension("Y", "um", np.linspace(0, 60, num=7)),
-    ]
-    spec_dims = [
-        usid.Dimension("Frequency", "kHz", [300, 350, 400]),
-        usid.Dimension("Bias", "V", np.linspace(-4, 4, num=5)),
-    ]
-    if s2f_aux:
-        pos_dims = pos_dims[::-1]
-        spec_dims = spec_dims[::-1]
-
-    ndim_shape = (7, 2, 5, 3)
-    if mode is None:
-        # Typical floating point dataset
-        ndata = np.random.rand(*ndim_shape)
-    elif mode == "complex":
-        ndata = np.random.rand(*ndim_shape) + 1j * np.random.rand(*ndim_shape)
-    elif mode == "compound":
-        struc_dtype = np.dtype(
-            {"names": ["amp", "phas"], "formats": [np.float16, np.float32]}
-        )
-        ndata = np.zeros(shape=ndim_shape, dtype=struc_dtype)
-        ndata["amp"] = np.random.random(size=ndim_shape)
-        ndata["phas"] = np.random.random(size=ndim_shape)
-
-    data_2d = ndata.reshape(np.prod(ndata.shape[:2]), np.prod(ndata.shape[2:]))
-    return pos_dims, spec_dims, ndata, data_2d
-
-
-def gen_2dim(all_pos=False, s2f_aux=True):
-    ndata = np.random.rand(3, 2)
-    if all_pos:
-        pos_dims = [
-            usid.Dimension("X", "nm", [-250, 750]),
-            usid.Dimension("Y", "um", [-2, 0, 2]),
-        ]
-        spec_dims = [usid.Dimension("arb", "a.u.", 1)]
-        data_2d = ndata.reshape(-1, 1)
-    else:
-        pos_dims = [usid.Dimension("arb", "a.u.", 1)]
-        spec_dims = [
-            usid.Dimension("Frequency", "kHz", [0, 100]),
-            usid.Dimension("Bias", "V", [-5, 0, 5]),
-        ]
-        data_2d = ndata.reshape(1, -1)
-    if s2f_aux:
-        pos_dims = pos_dims[::-1]
-        spec_dims = spec_dims[::-1]
-    return pos_dims, spec_dims, ndata, data_2d
-
-
-# ################ HyperSpy Signal to h5USID ##################################
-
-
-@pytest.mark.filterwarnings(
-    "ignore:This dataset does not have an N-dimensional form:UserWarning"
-)
-class TestHS2USIDallKnown:
-    def test_n_pos_0_spec(self):
-        sig = hs.signals.BaseSignal(
-            np.random.randint(0, high=100, size=(2, 3)),
-            axes=[
-                {"size": 2, "name": "X", "units": "nm", "scale": 0.2, "offset": 1},
-                {"size": 3, "name": "Y", "units": "um", "scale": 0.1, "offset": 2},
-            ],
-        )
-        sig = sig.transpose()
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + "usid_n_pos_0_spec_real.h5"
-        sig.save(file_path)
-
-        compare_usid_from_signal(sig, file_path, empty_pos=False, empty_spec=True)
-
-    def test_0_pos_n_spec(self):
-        sig = hs.signals.BaseSignal(
-            np.random.randint(0, high=100, size=(2, 3)),
-            axes=[
-                {"size": 2, "name": "Freq", "units": "Hz", "scale": 30, "offset": 300},
-                {
-                    "size": 3,
-                    "name": "Bias",
-                    "units": "V",
-                    "scale": 0.25,
-                    "offset": -0.25,
-                },
-            ],
-        )
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + "usid_0_pos_n_spec_real.h5"
-        sig.save(file_path)
-
-        compare_usid_from_signal(sig, file_path, empty_pos=True, empty_spec=False)
-
-    def test_n_pos_m_spec(self):
-        sig = hs.signals.Signal2D(
-            np.random.randint(0, high=100, size=(2, 3, 5, 7)),
-            axes=[
-                {"size": 2, "name": "X", "units": "nm", "scale": 0.2, "offset": 1},
-                {"size": 3, "name": "Y", "units": "um", "scale": 0.1, "offset": 2},
-                {"size": 5, "name": "Freq", "units": "Hz", "scale": 30, "offset": 300},
-                {
-                    "size": 7,
-                    "name": "Bias",
-                    "units": "V",
-                    "scale": 0.25,
-                    "offset": -0.25,
-                },
-            ],
-        )
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + "usid_n_pos_n_spec_real.h5"
-        sig.save(file_path)
-
-        compare_usid_from_signal(sig, file_path, empty_pos=False, empty_spec=False)
-
-    def test_append_to_existing_file(self):
-        sig = hs.signals.BaseSignal(
-            np.random.randint(0, high=100, size=(2, 3)),
-            axes=[
-                {"size": 2, "name": "X", "units": "nm", "scale": 0.2, "offset": 1},
-                {"size": 3, "name": "Y", "units": "um", "scale": 0.1, "offset": 2},
-            ],
-        )
-        sig = sig.transpose()
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + "usid_n_pos_0_spec_real.h5"
-        sig.save(file_path)
-
-        compare_usid_from_signal(sig, file_path, empty_pos=False, empty_spec=True)
-
-        sig = hs.signals.BaseSignal(
-            np.random.randint(0, high=100, size=(2, 3)),
-            axes=[
-                {"size": 2, "name": "Freq", "units": "Hz", "scale": 30, "offset": 300},
-                {
-                    "size": 3,
-                    "name": "Bias",
-                    "units": "V",
-                    "scale": 0.25,
-                    "offset": -0.25,
-                },
-            ],
-        )
-
-        sig.save(file_path, overwrite=True)
-
-        new_dataset_path = "/Measurement_001/Channel_000/Raw_Data"
-
-        compare_usid_from_signal(
-            sig,
-            file_path,
-            empty_pos=True,
-            empty_spec=False,
-            dataset_path=new_dataset_path,
-        )
-
-
-@pytest.mark.filterwarnings(
-    "ignore:This dataset does not have an N-dimensional form:UserWarning"
-)
-class TestHS2USIDlazy:
-    def test_base_nd(self):
-        sig = hs.signals.Signal2D(
-            da.random.randint(0, high=100, size=(2, 3, 5, 7), chunks="auto")
-        ).as_lazy()
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + "usid_n_pos_n_spec_dask.h5"
-        sig.save(file_path)
-
-        compare_usid_from_signal(
-            sig, file_path, empty_pos=False, empty_spec=False, axes_defined=False
-        )
-
-
-@pytest.mark.filterwarnings(
-    "ignore:This dataset does not have an N-dimensional form:UserWarning"
-)
-class TestHS2USIDedgeAxes:
-    def test_no_axes(self):
-        sig = hs.signals.Signal2D(np.random.randint(0, high=100, size=(2, 3, 5, 7)))
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + "usid_n_pos_n_spec_no_axes.h5"
-        sig.save(file_path)
-
-        compare_usid_from_signal(
-            sig, file_path, empty_pos=False, empty_spec=False, axes_defined=False
-        )
-
-    def test_incorrect_axes(self):
-        sig = hs.signals.Signal2D(
-            np.random.randint(0, high=100, size=(2, 3, 5, 7)),
-            axes=[
-                {"size": 1259, "name": "X", "units": "nm", "scale": 0.2, "offset": 1},
-                {"size": 245, "name": "Y", "units": "um", "scale": 0.1, "offset": 2},
-                {
-                    "size": 205,
-                    "name": "Freq",
-                    "units": "Hz",
-                    "scale": 30,
-                    "offset": 300,
-                },
-                {
-                    "size": 1005,
-                    "name": "Bias",
-                    "units": "V",
-                    "scale": 0.25,
-                    "offset": -0.25,
-                },
-            ],
-        )
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + "usid_n_pos_n_spec_incorrect_axes.h5"
-        sig.save(file_path)
-
-        compare_usid_from_signal(
-            sig, file_path, empty_pos=False, empty_spec=False, invalid_axes=True
-        )
-
-    def test_too_many_axes(self):
-        sig = hs.signals.Signal2D(
-            np.random.randint(0, high=100, size=(2, 3, 5, 7)),
-            axes=[
-                {"size": 2, "name": "X", "units": "nm", "scale": 0.2, "offset": 1},
-                {"size": 3, "name": "Y", "units": "um", "scale": 0.1, "offset": 2},
-                {"size": 5, "name": "Freq", "units": "Hz", "scale": 30, "offset": 300},
-                {
-                    "size": 7,
-                    "name": "Bias",
-                    "units": "V",
-                    "scale": 0.25,
-                    "offset": -0.25,
-                },
-                {
-                    "size": 27,
-                    "name": "Does not exist",
-                    "units": "V",
-                    "scale": 0.25,
-                    "offset": -0.25,
-                },
-            ],
-        )
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + "usid_n_pos_n_spec_too_many_axes.h5"
-        with pytest.raises(ValueError):
-            sig.save(file_path)
-
-
-# ################## h5USID to HyperSpy Signal(s)  ############################
-
-
-@pytest.mark.filterwarnings(
-    "ignore:This dataset does not have an N-dimensional form:UserWarning"
-)
-class TestUSID2HSbase:
-    def test_n_pos_0_spec(self):
-        phy_quant = "Current"
-        phy_unit = "nA"
-        slow_to_fast = True
-        pos_dims, spec_dims, ndata, data_2d = gen_2dim(
-            all_pos=True, s2f_aux=slow_to_fast
-        )
-        tran = usid.ArrayTranslator()
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + "usid_n_pos_0_spec.h5"
-        _ = tran.translate(
-            file_path,
-            "Blah",
-            data_2d,
-            phy_quant,
-            phy_unit,
-            pos_dims,
-            spec_dims,
-            slow_to_fast=slow_to_fast,
-        )
-
-        new_sig = hs.load(file_path, reader="USID")
-        compare_signal_from_usid(
-            file_path, ndata, new_sig, sig_type=hs.signals.BaseSignal, axes_to_spec=[]
-        )
-
-    def test_0_pos_n_spec(self):
-        phy_quant = "Current"
-        phy_unit = "nA"
-        slow_to_fast = True
-        pos_dims, spec_dims, ndata, data_2d = gen_2dim(
-            all_pos=False, s2f_aux=slow_to_fast
-        )
-        tran = usid.ArrayTranslator()
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + "usid_0_pos_n_spec.h5"
-        _ = tran.translate(
-            file_path,
-            "Blah",
-            data_2d,
-            phy_quant,
-            phy_unit,
-            pos_dims,
-            spec_dims,
-            slow_to_fast=slow_to_fast,
-        )
-
-        new_sig = hs.load(file_path, reader="USID")
-        compare_signal_from_usid(
-            file_path, ndata, new_sig, sig_type=hs.signals.BaseSignal, axes_to_spec=[]
-        )
-
-    @pytest.mark.parametrize("lazy", [True, False])
-    def test_base_n_pos_m_spec(self, lazy, slow_to_fast=True):
-        phy_quant = "Current"
-        phy_unit = "nA"
-        ret_vals = gen_2pos_2spec(s2f_aux=slow_to_fast)
-        pos_dims, spec_dims, ndata, data_2d = ret_vals
-        tran = usid.ArrayTranslator()
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + "usid_n_pos_n_spec.h5"
-        _ = tran.translate(
-            file_path,
-            "Blah",
-            data_2d,
-            phy_quant,
-            phy_unit,
-            pos_dims,
-            spec_dims,
-            slow_to_fast=slow_to_fast,
-        )
-
-        new_sig = hs.load(file_path, reader="USID", lazy=lazy)
-        compare_signal_from_usid(
-            file_path,
-            ndata,
-            new_sig,
-            sig_type=hs.signals.BaseSignal,
-            axes_to_spec=["Frequency", "Bias"],
-        )
-
-
-@pytest.mark.filterwarnings(
-    "ignore:This dataset does not have an N-dimensional form:UserWarning"
-)
-class TestUSID2HSdtype:
-    def test_complex(self):
-        phy_quant = "Current"
-        phy_unit = "nA"
-        slow_to_fast = True
-        ret_vals = gen_2pos_2spec(s2f_aux=slow_to_fast, mode="complex")
-        pos_dims, spec_dims, ndata, data_2d = ret_vals
-        tran = usid.ArrayTranslator()
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + "usid_n_pos_n_spec_complex.h5"
-        _ = tran.translate(
-            file_path,
-            "Blah",
-            data_2d,
-            phy_quant,
-            phy_unit,
-            pos_dims,
-            spec_dims,
-            slow_to_fast=slow_to_fast,
-        )
-
-        new_sig = hs.load(file_path, reader="USID")
-        compare_signal_from_usid(
-            file_path,
-            ndata,
-            new_sig,
-            sig_type=hs.signals.ComplexSignal,
-            axes_to_spec=["Frequency", "Bias"],
-        )
-
-    def test_compound(self):
-        phy_quant = "Current"
-        phy_unit = "nA"
-        slow_to_fast = True
-        ret_vals = gen_2pos_2spec(s2f_aux=slow_to_fast, mode="compound")
-        pos_dims, spec_dims, ndata, data_2d = ret_vals
-        tran = usid.ArrayTranslator()
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + "usid_n_pos_n_spec_compound.h5"
-        _ = tran.translate(
-            file_path,
-            "Blah",
-            data_2d,
-            phy_quant,
-            phy_unit,
-            pos_dims,
-            spec_dims,
-            slow_to_fast=slow_to_fast,
-        )
-
-        objects = hs.load(file_path, reader="USID")
-        assert isinstance(objects, list)
-        assert len(objects) == 2
-
-        # 1. Validate object type
-        for new_sig, comp_name in zip(objects, ["amp", "phas"]):
-            compare_signal_from_usid(
-                file_path,
-                ndata[comp_name],
-                new_sig,
-                sig_type=hs.signals.BaseSignal,
-                axes_to_spec=["Frequency", "Bias"],
-                compound_comp_name=comp_name,
-            )
-
-    def test_non_uniform_dimension(self):
-        pos_dims = [
-            usid.Dimension("Y", "um", np.linspace(0, 60, num=5)),
-            usid.Dimension("X", "nm", [-250, 750]),
-        ]
-        spec_dims = [
-            usid.Dimension("Bias", "V", np.sin(np.linspace(0, 2 * np.pi, num=7))),
-            usid.Dimension("Frequency", "kHz", [300, 350, 400]),
-        ]
-        ndata = np.random.rand(5, 2, 7, 3)
-        phy_quant = "Current"
-        phy_unit = "nA"
-        data_2d = ndata.reshape(np.prod(ndata.shape[:2]), np.prod(ndata.shape[2:]))
-        tran = usid.ArrayTranslator()
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + "usid_n_pos_n_spec_non_lin_dim.h5"
-        _ = tran.translate(
-            file_path,
-            "Blah",
-            data_2d,
-            phy_quant,
-            phy_unit,
-            pos_dims,
-            spec_dims,
-            slow_to_fast=True,
-        )
-
-        with pytest.raises(ValueError):
-            _ = hs.load(file_path, reader="USID", ignore_non_uniform_dims=False)
-
-        with pytest.warns(UserWarning) as _:
-            new_sig = hs.load(file_path, reader="USID")
-        compare_signal_from_usid(
-            file_path,
-            ndata,
-            new_sig,
-            axes_to_spec=["Frequency", "Bias"],
-            invalid_axes=True,
-        )
-
-
-@pytest.mark.filterwarnings(
-    "ignore:This dataset does not have an N-dimensional form:UserWarning"
-)
-class TestUSID2HSmultiDsets:
-    def test_pick_specific(self):
-        slow_to_fast = True
-        ret_vals = gen_2pos_2spec(s2f_aux=slow_to_fast)
-        pos_dims, spec_dims, ndata, data_2d = ret_vals
-        phy_quant = "Current"
-        phy_unit = "nA"
-        tran = usid.ArrayTranslator()
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + "usid_n_pos_n_spec.h5"
-        _ = tran.translate(
-            file_path,
-            "Blah",
-            data_2d,
-            phy_quant,
-            phy_unit,
-            pos_dims,
-            spec_dims,
-            slow_to_fast=slow_to_fast,
-        )
-
-        ret_vals = gen_2dim(all_pos=True, s2f_aux=slow_to_fast)
-        pos_dims, spec_dims, ndata_2, data_2d_2 = ret_vals
-        phy_quant = "Current"
-        phy_unit = "nA"
-
-        with h5py.File(file_path, mode="r+") as h5_f:
-            h5_meas_grp = h5_f.create_group("Measurement_001")
-            h5_chan_grp = h5_meas_grp.create_group("Channel_000")
-            _ = usid.hdf_utils.write_main_dataset(
-                h5_chan_grp,
-                data_2d_2,
-                "Raw_Data",
-                phy_quant,
-                phy_unit,
-                pos_dims,
-                spec_dims,
-                slow_to_fast=slow_to_fast,
-            )
-
-        dataset_path = "/Measurement_001/Channel_000/Raw_Data"
-        new_sig = hs.load(file_path, dataset_path=dataset_path, reader="USID")
-        compare_signal_from_usid(file_path, ndata_2, new_sig, dataset_path=dataset_path)
-
-    def test_read_all_by_default(self):
-        slow_to_fast = True
-        pos_dims, spec_dims, ndata, data_2d = gen_2dim(
-            all_pos=False, s2f_aux=slow_to_fast
-        )
-        phy_quant = "Current"
-        phy_unit = "nA"
-        tran = usid.ArrayTranslator()
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            file_path = tmp_dir + "usid_0_pos_n_spec.h5"
-        _ = tran.translate(
-            file_path,
-            "Blah",
-            data_2d,
-            phy_quant,
-            phy_unit,
-            pos_dims,
-            spec_dims,
-            slow_to_fast=slow_to_fast,
-        )
-
-        ret_vals = gen_2dim(all_pos=True, s2f_aux=slow_to_fast)
-        pos_dims, spec_dims, ndata_2, data_2d_2 = ret_vals
-        phy_quant = "Current"
-        phy_unit = "nA"
-
-        with h5py.File(file_path, mode="r+") as h5_f:
-            h5_meas_grp = h5_f.create_group("Measurement_001")
-            _ = usid.hdf_utils.write_main_dataset(
-                h5_meas_grp,
-                data_2d_2,
-                "Spat_Map",
-                phy_quant,
-                phy_unit,
-                pos_dims,
-                spec_dims,
-                slow_to_fast=slow_to_fast,
-            )
-
-        objects = hs.load(file_path, reader="USID")
-        assert isinstance(objects, list)
-        assert len(objects) == 2
-
-        dset_names = [
-            "/Measurement_000/Channel_000/Raw_Data",
-            "Measurement_001/Spat_Map",
-        ]
-
-        # 1. Validate object type
-        for new_sig, ndim_data, dataset_path in zip(
-            objects, [ndata, ndata_2], dset_names
+    """Write a USID Main dataset by hand, following the USID specification.
+
+    Dimensions are ``(label, units, values)`` tuples, slowest first. With
+    ``fast_to_slow``, they are stored in the reverse order in the ancillary
+    datasets, as done by some writers.
+    """
+    with h5py.File(filename, "a") as f:
+        grp = f.require_group(group)
+        main = grp.create_dataset(name, data=data_2d)
+        main.attrs["quantity"] = "Current"
+        main.attrs["units"] = "nA"
+        for base, dims, transpose in (
+            ("Position", pos_dims, True),
+            ("Spectroscopic", spec_dims, False),
         ):
-            compare_signal_from_usid(
-                file_path, ndim_data, new_sig, dataset_path=dataset_path
-            )
+            sizes = [len(values) for _, _, values in dims]
+            inds = np.indices(sizes).reshape(len(dims), -1)
+            vals = np.stack([np.asarray(v)[i] for (_, _, v), i in zip(dims, inds)])
+            labels = [label.encode() for label, _, _ in dims]
+            units = [unit.encode() for _, unit, _ in dims]
+            if fast_to_slow:
+                inds, vals, labels, units = (
+                    inds[::-1],
+                    vals[::-1],
+                    labels[::-1],
+                    units[::-1],
+                )
+            if transpose:
+                inds, vals = inds.T, vals.T
+            for kind, array in (("Indices", inds.astype(np.uint32)), ("Values", vals)):
+                dset = grp.create_dataset(f"{name}_{base}_{kind}", data=array)
+                dset.attrs["labels"] = np.array(labels, dtype="S")
+                dset.attrs["units"] = np.array(units, dtype="S")
+                main.attrs[f"{base}_{kind}"] = dset.ref
+
+
+def make_signal(data, axes):
+    """Signal dictionary with axes given as (name, units, scale, offset, navigate)."""
+    return {
+        "data": data,
+        "axes": [
+            {
+                "name": name,
+                "units": units,
+                "scale": scale,
+                "offset": offset,
+                "navigate": navigate,
+                "size": size,
+            }
+            for (name, units, scale, offset, navigate), size in zip(axes, data.shape)
+        ],
+        "metadata": {"General": {"title": "test"}, "Signal": {"signal_type": ""}},
+        "original_metadata": {"acquisition": {"exposure": 0.5}},
+    }
+
+
+def check_axes(axes, expected):
+    """Compare axis dictionaries to (name, units, scale, offset, size) tuples."""
+    assert len(axes) == len(expected)
+    for axis, (name, units, scale, offset, size) in zip(axes, expected):
+        assert "navigate" not in axis
+        assert (axis["name"], axis["units"], axis["size"]) == (name, units, size)
+        np.testing.assert_allclose(
+            [axis["scale"], axis["offset"]], [scale, offset], atol=1e-6
+        )
+
+
+POS_DIMS = [("Y", "um", np.arange(7) * 0.5 + 1), ("X", "um", np.arange(2) * 0.5)]
+SPEC_DIMS = [("Bias", "V", np.linspace(-1, 1, 5)), ("Cycle", "", np.arange(3))]
+EXPECTED_AXES = [
+    ("Y", "um", 0.5, 1, 7),
+    ("X", "um", 0.5, 0, 2),
+    ("Bias", "V", 0.5, -1, 5),
+    ("Cycle", "", 1, 0, 3),
+]
+
+
+# ---------------------------------------------------------------------------
+# Reading
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def four_d_file(tmp_path):
+    data = np.random.default_rng(0).random((7 * 2, 5 * 3))
+    filename = tmp_path / "four_d.h5"
+    write_usid(filename, data, POS_DIMS, SPEC_DIMS)
+    return filename, data.reshape(7, 2, 5, 3)
+
+
+@pytest.mark.parametrize("lazy", [False, True])
+def test_read_position_and_spectroscopic_dims(four_d_file, lazy):
+    filename, expected = four_d_file
+    signals = file_reader(filename, lazy=lazy)
+    assert isinstance(signals, list) and len(signals) == 1
+    s = signals[0]
+
+    assert isinstance(s["data"], da.Array) == lazy
+    np.testing.assert_allclose(np.asarray(s["data"]), expected)
+    check_axes(s["axes"], EXPECTED_AXES)
+    assert s["metadata"]["General"]["title"] == "Raw_Data"
+    assert Path(s["metadata"]["General"]["original_filename"]) == filename
+    assert s["metadata"]["Signal"]["signal_type"] == ""
+    om = s["original_metadata"]
+    assert (om["quantity"], om["units"]) == ("Current", "nA")
+    assert om["dataset_path"] == "/Measurement_000/Channel_000/Raw_Data"
+    assert om["original_file_type"] == "USID HDF5"
+
+
+def test_read_fast_to_slow_storage(tmp_path):
+    # The same data with the dimensions stored fastest first
+    data = np.random.default_rng(0).random((7 * 2, 5 * 3))
+    write_usid(tmp_path / "f.h5", data, POS_DIMS, SPEC_DIMS, fast_to_slow=True)
+    s = file_reader(str(tmp_path / "f.h5"))[0]
+    np.testing.assert_allclose(s["data"], data.reshape(7, 2, 5, 3))
+    check_axes(s["axes"], EXPECTED_AXES)
+
+
+def test_read_irregular_grid(tmp_path):
+    filename = tmp_path / "f.h5"
+    write_usid(filename, np.ones((4, 3)), [("X", "m", np.arange(4))], SPEC_DIMS[1:])
+    with h5py.File(filename, "a") as f:
+        f["Measurement_000/Channel_000/Raw_Data_Position_Indices"][2, 0] = 0
+    with pytest.raises(ValueError, match="regular grid"):
+        file_reader(filename)
+
+
+@pytest.mark.parametrize("positions", [True, False])
+def test_read_single_value_dims_are_dropped(tmp_path, positions):
+    data = np.arange(12.0)
+    dims = [("Y", "nm", np.arange(3)), ("X", "nm", np.arange(4))]
+    single = [("Arb", "a. u.", [0])]
+    if positions:
+        write_usid(tmp_path / "f.h5", data.reshape(12, 1), dims, single)
+    else:
+        write_usid(tmp_path / "f.h5", data.reshape(1, 12), single, dims)
+
+    s = file_reader(tmp_path / "f.h5")[0]
+    np.testing.assert_allclose(s["data"], data.reshape(3, 4))
+    check_axes(s["axes"], [("Y", "nm", 1, 0, 3), ("X", "nm", 1, 0, 4)])
+
+
+def test_read_complex(tmp_path):
+    data = (np.arange(6) + 1j * np.arange(6)[::-1]).astype(np.complex64)
+    write_usid(
+        tmp_path / "f.h5",
+        data.reshape(2, 3),
+        [("X", "m", np.arange(2))],
+        [("Freq", "Hz", np.arange(3))],
+    )
+    s = file_reader(tmp_path / "f.h5")[0]
+    assert np.iscomplexobj(s["data"])
+    np.testing.assert_allclose(s["data"], data.reshape(2, 3))
+
+
+@pytest.mark.parametrize("lazy", [False, True])
+def test_read_compound(tmp_path, lazy):
+    data = np.zeros((4, 5), dtype=[("amp", np.float16), ("phase", np.float32)])
+    data["amp"] = np.arange(20).reshape(4, 5)
+    data["phase"] = -np.arange(20).reshape(4, 5)
+    write_usid(
+        tmp_path / "f.h5",
+        data,
+        [("X", "m", np.arange(4))],
+        [("Freq", "Hz", np.arange(5))],
+    )
+
+    signals = file_reader(tmp_path / "f.h5", lazy=lazy)
+    assert len(signals) == 2
+    for s, field in zip(signals, ["amp", "phase"]):
+        np.testing.assert_allclose(np.asarray(s["data"]), data[field])
+        assert s["original_metadata"]["quantity"] == field
+        assert s["original_metadata"]["units"] == ""
+        assert s["metadata"]["Signal"]["signal_type"] == "Current"
+        assert s["metadata"]["General"]["title"] == "Raw_Data"
+
+
+@pytest.fixture
+def non_uniform_file(tmp_path):
+    bias = np.sin(np.linspace(0, np.pi / 2, 10))
+    write_usid(
+        tmp_path / "f.h5",
+        np.ones((3, 10)),
+        [("X", "m", np.arange(3))],
+        [("Bias", "V", bias)],
+    )
+    return tmp_path / "f.h5"
+
+
+def test_read_non_uniform_dim_warns(non_uniform_file):
+    with pytest.warns(UserWarning, match="Ignoring non-uniformity of dimension: Bias"):
+        s = file_reader(non_uniform_file)[0]
+    check_axes(s["axes"], [("X", "m", 1, 0, 3), ("Bias", "V", 1, 0, 10)])
+
+
+def test_read_non_uniform_dim_raises(non_uniform_file):
+    with pytest.raises(ValueError, match="Bias was varied non-uniformly"):
+        file_reader(non_uniform_file, ignore_non_uniform_dims=False)
+
+
+@pytest.fixture
+def two_dataset_file(tmp_path):
+    filename = tmp_path / "f.h5"
+    write_usid(
+        filename,
+        np.ones((2, 3)),
+        [("X", "m", np.arange(2))],
+        [("E", "eV", np.arange(3))],
+    )
+    write_usid(
+        filename,
+        np.zeros((4, 5)),
+        [("Y", "m", np.arange(4))],
+        [("t", "s", np.arange(5))],
+        group="Measurement_001",
+        name="Map",
+    )
+    with h5py.File(filename, "a") as f:
+        f.create_dataset("not_usid", data=np.ones((2, 3)))
+    return filename
+
+
+def test_read_all_datasets(two_dataset_file):
+    signals = file_reader(two_dataset_file)
+    paths = [s["original_metadata"]["dataset_path"] for s in signals]
+    assert paths == ["/Measurement_000/Channel_000/Raw_Data", "/Measurement_001/Map"]
+    assert [s["data"].shape for s in signals] == [(2, 3), (4, 5)]
+    # Not in a Channel group, so no group parameters
+    assert signals[1]["original_metadata"]["parameters"] == {}
+
+
+def test_read_dataset_path(two_dataset_file):
+    signals = file_reader(two_dataset_file, dataset_path="/Measurement_001/Map")
+    assert len(signals) == 1
+    assert signals[0]["metadata"]["General"]["title"] == "Map"
+    np.testing.assert_allclose(signals[0]["data"], np.zeros((4, 5)))
+
+
+def test_read_group_parameters(two_dataset_file):
+    with h5py.File(two_dataset_file, "a") as f:
+        f["Measurement_000"].attrs["temperature"] = 300
+        f["Measurement_000"].attrs["sample"] = b"Si"
+        f["Measurement_000/Channel_000"].attrs["gain"] = 2
+    parameters = file_reader(two_dataset_file)[0]["original_metadata"]["parameters"]
+    assert parameters == {"temperature": 300, "sample": "Si", "gain": 2}
+
+
+def test_read_errors(two_dataset_file, tmp_path):
+    with pytest.raises(FileNotFoundError):
+        file_reader(tmp_path / "missing.h5")
+    with pytest.raises(TypeError, match="dataset_path"):
+        file_reader(two_dataset_file, dataset_path=1)
+    with pytest.raises(KeyError):
+        file_reader(two_dataset_file, dataset_path="/does/not/exist")
+    with pytest.raises(ValueError, match="not a USID Main dataset"):
+        file_reader(two_dataset_file, dataset_path="/not_usid")
+
+
+# ---------------------------------------------------------------------------
+# Writing
+# ---------------------------------------------------------------------------
+
+AXES = [
+    ("y", "nm", 0.5, 10.0, True),
+    ("x", "nm", 0.25, 0.0, True),
+    ("ky", "1/nm", 0.1, -0.4, False),
+    ("kx", "1/nm", 0.2, -0.6, False),
+]
+
+
+def check_written_layout(filename):
+    with h5py.File(filename, "r") as f:
+        assert list(f) == ["Measurement_000"]
+        assert list(f["Measurement_000"]) == ["Channel_000"]
+        assert set(f["Measurement_000/Channel_000"]) == {
+            "Raw_Data",
+            "Position_Indices",
+            "Position_Values",
+            "Spectroscopic_Indices",
+            "Spectroscopic_Values",
+        }
+
+
+@pytest.mark.parametrize(
+    "axes",
+    [AXES, AXES[:2], AXES[2:], AXES[1:3]],
+    ids=["nav_and_sig", "nav_only", "sig_only", "one_each"],
+)
+def test_write_round_trip(tmp_path, axes):
+    shape = (4, 3, 5, 6)[: len(axes)]
+    data = np.random.default_rng(0).random(shape)
+    filename = tmp_path / "out.h5"
+    file_writer(filename, make_signal(data, axes))
+    check_written_layout(filename)
+
+    s = file_reader(filename)[0]
+    np.testing.assert_allclose(s["data"], data)
+    check_axes(
+        s["axes"],
+        [(n, u, sc, off, size) for (n, u, sc, off, _), size in zip(axes, shape)],
+    )
+    assert s["original_metadata"]["quantity"] == "Unknown Quantity"
+    assert s["original_metadata"]["units"] == "Unknown Units"
+
+
+def test_write_lazy(tmp_path):
+    data = da.random.random((4, 3, 5, 6), chunks=(2, 3, 5, 6))
+    filename = tmp_path / "out.h5"
+    file_writer(filename, make_signal(data, AXES))
+    check_written_layout(filename)
+    np.testing.assert_allclose(file_reader(filename)[0]["data"], data.compute())
+
+
+def test_write_kwds(tmp_path):
+    file_writer(
+        tmp_path / "out.h5", make_signal(np.ones((4, 5)), AXES[1:3]), compression="gzip"
+    )
+    with h5py.File(tmp_path / "out.h5", "r") as f:
+        assert f["Measurement_000/Channel_000/Raw_Data"].compression == "gzip"
+
+
+def test_write_default_names_and_units(tmp_path):
+    axes = [(None, None, 1, 0, True), ("  ", "", 1, 0, True), ("", None, 1, 0, False)]
+    file_writer(tmp_path / "out.h5", make_signal(np.ones((2, 3, 4)), axes))
+    s = file_reader(tmp_path / "out.h5")[0]
+    # Unnamed dimensions are numbered from the fastest one
+    assert [a["name"] for a in s["axes"]] == ["Pos_Dim_1", "Pos_Dim_0", "Spec_Dim_0"]
+    assert {a["units"] for a in s["axes"]} == {"a. u."}
+
+
+def test_write_ignores_axis_size(tmp_path):
+    signal = make_signal(np.ones((2, 3)), AXES[1:3])
+    for axis in signal["axes"]:
+        axis["size"] = 100
+    file_writer(tmp_path / "out.h5", signal)
+    assert file_reader(tmp_path / "out.h5")[0]["data"].shape == (2, 3)
+
+
+def test_write_axes_mismatch(tmp_path):
+    signal = make_signal(np.ones((2, 3)), AXES[2:])
+    signal["axes"].append({**signal["axes"][-1], "name": "extra"})
+    with pytest.raises(ValueError, match="number of axes"):
+        file_writer(tmp_path / "out.h5", signal)
+
+
+def test_write_appends_to_existing_file(tmp_path):
+    filename = tmp_path / "out.h5"
+    file_writer(filename, make_signal(np.ones((2, 3)), AXES[:2]))
+    file_writer(filename, make_signal(np.zeros((5,)), AXES[3:]))
+
+    signals = file_reader(filename)
+    assert [s["original_metadata"]["dataset_path"] for s in signals] == [
+        "/Measurement_000/Channel_000/Raw_Data",
+        "/Measurement_001/Channel_000/Raw_Data",
+    ]
+    np.testing.assert_allclose(signals[1]["data"], np.zeros(5))
+
+
+def test_write_metadata_as_attributes(tmp_path, caplog):
+    filename = tmp_path / "out.h5"
+    signal = make_signal(np.ones((2, 3)), AXES[1:3])
+    signal["metadata"]["General"]["authors"] = ["A", "B"]
+    signal["metadata"]["General"]["unset"] = None
+    signal["original_metadata"]["unsupported"] = object()
+    file_writer(filename, signal)
+    assert "'Original-unsupported'" in caplog.text
+
+    with h5py.File(filename, "r") as f:
+        attrs = f["Measurement_000"].attrs
+        assert attrs["General-title"] == "test"
+        assert attrs["Original-acquisition-exposure"] == 0.5
+        assert "General-unset" not in attrs
+    # and they are read back as group parameters
+    parameters = file_reader(filename)[0]["original_metadata"]["parameters"]
+    assert parameters["General-title"] == "test"
+    assert parameters["General-authors"] == ["A", "B"]
+
+
+# ---------------------------------------------------------------------------
+# Compatibility with pyUSID, the reference implementation
+# ---------------------------------------------------------------------------
+
+
+@requires_pyusid
+def test_pyusid_reads_written_file(tmp_path):
+    data = np.random.default_rng(0).random((4, 3, 5, 6))
+    filename = tmp_path / "out.h5"
+    file_writer(filename, make_signal(data, AXES))
+    with h5py.File(filename, "r") as f:
+        (main,) = pyUSID.hdf_utils.get_all_main(f)
+        dataset = pyUSID.USIDataset(main)
+        assert list(dataset.pos_dim_labels) == ["y", "x"]
+        assert list(dataset.spec_dim_labels) == ["ky", "kx"]
+        np.testing.assert_allclose(dataset.get_n_dim_form(), data)
+        np.testing.assert_allclose(
+            dataset.get_spec_values("kx"), np.arange(6) * 0.2 - 0.6, rtol=1e-6
+        )
+
+
+@requires_pyusid
+@pytest.mark.parametrize("slow_to_fast", [True, False])
+def test_read_pyusid_file(tmp_path, slow_to_fast):
+    data = np.random.default_rng(0).random((7 * 2, 5 * 3))
+    dims = [
+        [pyUSID.Dimension(label, units, values) for label, units, values in d]
+        for d in (POS_DIMS, SPEC_DIMS)
+    ]
+    if not slow_to_fast:
+        dims = [d[::-1] for d in dims]
+    pyUSID.ArrayTranslator().translate(
+        str(tmp_path / "f.h5"),
+        "Raw_Data",
+        data,
+        "Current",
+        "nA",
+        *dims,
+        slow_to_fast=slow_to_fast,
+    )
+    s = file_reader(tmp_path / "f.h5")[0]
+    np.testing.assert_allclose(s["data"], data.reshape(7, 2, 5, 3))
+    check_axes(s["axes"], EXPECTED_AXES)
+    assert s["original_metadata"]["quantity"] == "Current"

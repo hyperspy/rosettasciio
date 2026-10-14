@@ -34,7 +34,9 @@ def test_import_all():
     # Remove plugins which require not installed optional dependencies
     h5py = importlib.util.find_spec("h5py")
     if h5py is None:
-        plugin_name_to_remove.extend(["Delmic", "EMD", "HSPY", "NeXus", "Topspin"])
+        plugin_name_to_remove.extend(
+            ["Delmic", "EMD", "HSPY", "NeXus", "Topspin", "USID"]
+        )
 
     hdf5plugin = importlib.util.find_spec("hdf5plugin")
     if hdf5plugin is None:
@@ -60,10 +62,6 @@ def test_import_all():
     if tifffile is None:
         plugin_name_to_remove.append("TIFF")
         plugin_name_to_remove.append("Phenom")
-
-    pyUSID = importlib.util.find_spec("pyUSID")
-    if pyUSID is None:
-        plugin_name_to_remove.append("USID")
 
     zarr = importlib.util.find_spec("zarr")
     if zarr is None:
@@ -115,11 +113,17 @@ def test_dir_plugins(plugin):
         pytest.importorskip("mrcz")
     elif plugin["name"] in ["TIFF", "Phenom"]:
         pytest.importorskip("tifffile")
-    elif plugin["name"] == "USID":
-        pytest.importorskip("pyUSID")
     elif plugin["name"] == "ZSPY":
         pytest.importorskip("zarr")
-    elif plugin["name"] in ["Delmic", "EMD", "HSPY", "NeXus", "Tofwerk", "Topspin"]:
+    elif plugin["name"] in [
+        "Delmic",
+        "EMD",
+        "HSPY",
+        "NeXus",
+        "Tofwerk",
+        "Topspin",
+        "USID",
+    ]:
         pytest.importorskip("h5py")
     plugin_module = importlib.import_module(plugin_string)
 

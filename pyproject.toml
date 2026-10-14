@@ -106,7 +106,7 @@ tiff = [
   "imagecodecs"
 ]
 tofwerk = ["h5py>=3.8.0"]
-usid = ["pyUSID>=0.0.11"]
+usid = ["h5py>=3.8.0"]
 zspy = ["zarr>=2,<3", "msgpack"]
 tests = [
   "filelock",

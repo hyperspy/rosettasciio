@@ -166,17 +166,10 @@ jobs:
         run: |
           pip install ${{ env.PIP_ARGS }} .'${{ env.PIP_SELECTOR }}'
 
-      - name: Uninstall pyUSID
-        # remove when pyUSID supports numpy 2 
-        if: ${{ ! contains(matrix.LABEL, 'oldest') }}
-        run: |
-          pip uninstall -y pyUSID
-
       - name: Install oldest supported version
         if: contains(matrix.LABEL, 'oldest')
         run: |
-          # pyusid install sidpy 0.12.9, which is incompatible with oldest supported version
-          pip install ${{ matrix.DEPENDENCIES }} "sidpy<0.12.9"
+          pip install ${{ matrix.DEPENDENCIES }}
 
       - name: Pip list
         run: |

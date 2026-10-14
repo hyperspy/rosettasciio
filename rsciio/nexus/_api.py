@@ -545,7 +545,7 @@ def file_reader(
                 rootlist = list(original_metadata.keys())
                 rootlist.remove("attrs")
                 if rootlist and len(rootlist) == 1:
-                    nxentry == rootlist[0]
+                    nxentry = rootlist[0]
             if nxentry:
                 if "default" in original_metadata[nxentry]["attrs"]:
                     nxdata = original_metadata[nxentry]["attrs"]["default"]

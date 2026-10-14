@@ -1,0 +1,3 @@
+Fix NeXus default signal selection for files with a single entry and no root
+``default`` attribute. The entry's default NXdata group is now selected instead
+of returning additional datasets as separate signals.

@@ -40,6 +40,9 @@ extensions = [
     "sphinxcontrib.towncrier",
     "sphinx_copybutton",
     "sphinx_design",
+    # Generate LLM-friendly documentation (llms.txt, llms-full.txt and
+    # markdown version of each page) alongside the HTML build
+    "sphinx_llm.txt",
 ]
 
 intersphinx_mapping = {
@@ -126,6 +129,22 @@ numpydoc_show_class_members = False
 towncrier_draft_autoversion_mode = "draft"
 towncrier_draft_include_empty = False
 towncrier_draft_working_directory = ".."
+
+# -- Options for sphinx_llm.txt extension (LLM-friendly documentation) ---
+# Documentation for LLMs and agents: https://github.com/NVIDIA/sphinx-llm
+# The canonical URL of the published documentation; used to generate
+# absolute links in llms.txt and in the markdown pages
+markdown_http_base = "https://hyperspy.org/rosettasciio/"
+
+llms_txt_description = (
+    "Reading and writing scientific file formats: RosettaSciIO provides easy "
+    "reading and writing capabilities in Python for a wide range of scientific "
+    "data formats, together with the axes and metadata of the dataset."
+)
+
+# Generate a llms-full.txt file, a single file concatenating the whole
+# documentation, so that it can be passed at once to a LLM context
+llms_txt_full_build = True
 
 # -- Options for CopyButton extension -----------------------------------
 

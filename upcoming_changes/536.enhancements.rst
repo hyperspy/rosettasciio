@@ -1,0 +1,1 @@
+:ref:`hspy-format` and :ref:`zspy-format`: store ragged arrays with a uniform, numeric per-position shape (e.g. marker or diffraction-vector coordinates) as a single dense array with an offsets index instead of one blob per position, reducing file size and improving read/write performance. Ragged arrays that don't fit this case (e.g. ragged strings) are unaffected.

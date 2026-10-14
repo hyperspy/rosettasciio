@@ -20,6 +20,7 @@ import importlib
 import logging
 import sys
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 import dask.array as da
@@ -974,6 +975,222 @@ def test_save_ragged_dim(tmp_path, file, nav_dim, lazy):
 
         for indices in np.ndindex(s.data.shape):
             np.testing.assert_allclose(s.data[indices], s2.data[indices])
+
+
+@zspy_marker
+def test_save_ragged_array_csr_lazy_read(tmp_path, file):
+    # A uniform-trailing-shape numeric ragged array (e.g. one (N_i, 2) array
+    # of vectors per position) is written using the dense CSR encoding
+    # (see ZARR_V3_PLAN.md "Phase 3b"). Written eagerly, it must still be
+    # readable back lazily.
+    rng = np.random.default_rng(0)
+    nav_shape = (7, 5)
+    data = np.empty(nav_shape, dtype=object)
+    for ind in np.ndindex(data.shape):
+        num = rng.integers(0, 6)
+        data[ind] = rng.random((num, 2)).astype(np.float32)
+
+    s = hs.signals.BaseSignal(data, ragged=True)
+    filename = tmp_path / file
+    s.save(filename)
+
+    s2 = hs.load(filename, lazy=True)
+    assert isinstance(s2.data, da.Array)
+    assert s2.data.dtype == object
+    computed = s2.data.compute()
+    for ind in np.ndindex(data.shape):
+        np.testing.assert_allclose(data[ind], computed[ind])
+
+
+@zspy_marker
+def test_save_ragged_array_csr_all_empty(tmp_path, file):
+    # Every cell has zero vectors (N_total == 0 across the whole array) --
+    # an edge case the dense CSR encoding needs to handle explicitly since
+    # some backends can't chunk a zero-length axis with automatic guessing.
+    nav_shape = (4, 3)
+    data = np.empty(nav_shape, dtype=object)
+    for ind in np.ndindex(data.shape):
+        data[ind] = np.zeros((0, 2), dtype=np.float32)
+
+    s = hs.signals.BaseSignal(data, ragged=True)
+    filename = tmp_path / file
+    s.save(filename)
+
+    s2 = hs.load(filename)
+    for ind in np.ndindex(data.shape):
+        assert s2.data[ind].shape == (0, 2)
+
+
+@zspy_marker
+def test_save_ragged_array_csr_fallback(tmp_path, file):
+    # Ragged arrays with heterogeneous per-cell shapes don't fit the CSR
+    # encoding and must still round-trip through the generic (per-cell
+    # object-dtype) fallback encoding.
+    #
+    # Mixed *dtypes* are covered by the encoding-selection tests in
+    # test_zspy.py rather than here: the generic encoding stores a single
+    # dtype for the whole dataset, so it has never round-tripped mixed-dtype
+    # ragged data faithfully. What matters for the CSR path is only that it
+    # declines such data (otherwise its concatenation would silently coerce).
+    rng = np.random.default_rng(0)
+    data = np.empty((5,), dtype=object)
+    for index in np.ndindex(data.shape):
+        i = index[0]
+        data[index] = rng.random((i + 1, 2 + (i % 2)))
+
+    s = hs.signals.BaseSignal(data, ragged=True)
+    filename = tmp_path / file
+    s.save(filename)
+
+    s2 = hs.load(filename)
+    for index in np.ndindex(data.shape):
+        np.testing.assert_allclose(data[index], s2.data[index])
+
+
+def _ragged(shapes, dtype=np.float64):
+    data = np.empty((len(shapes),), dtype=object)
+    for i, shape in enumerate(shapes):
+        data[i] = np.arange(np.prod(shape), dtype=dtype).reshape(shape)
+    return data
+
+
+@contextmanager
+def _scratch_group(path, file):
+    """Yield ``(writer_cls, reader_cls, group)`` for a .hspy or .zspy file.
+
+    These tests drive ``overwrite_dataset`` directly because rewriting an
+    existing key isn't reachable through ``save()`` -- a full-file save
+    recreates the signal group first.
+    """
+    if ".hspy" in file:
+        from rsciio.hspy._api import HyperspyReader, HyperspyWriter
+
+        with h5py.File(path, "w") as f:
+            yield HyperspyWriter, HyperspyReader, f.create_group("group")
+    else:
+        zarr = pytest.importorskip("zarr")
+        from rsciio.zspy._api import ZspyReader, ZspyWriter
+
+        yield ZspyWriter, ZspyReader, zarr.group()
+
+
+def _read_back(reader_cls, group, key):
+    # The readers' __init__ validates a whole hspy/zspy file; these tests only
+    # need the array-reconstruction half.
+    reader = object.__new__(reader_cls)
+    out = reader._read_array(group, key)
+    return out.compute() if hasattr(out, "compute") else np.asarray(out)
+
+
+@zspy_marker
+def test_rewrite_csr_key_clears_stale_state(tmp_path, file):
+    # Rewriting a key must not leave the previous encoding's bookkeeping
+    # behind: a dense array written over a CSR-encoded key used to keep the
+    # `_ragged_encoding` attribute (require_dataset reuses the dataset when
+    # shape and dtype match) and was then silently read back as ragged.
+    with _scratch_group(tmp_path / file, file) as (writer, reader_cls, group):
+        writer.overwrite_dataset(
+            group, _ragged([(1,), (2,), (3,)]), "data", show_progressbar=False
+        )
+        assert group["data"].attrs["_ragged_encoding"] == "csr"
+
+        # A dense array of exactly the CSR values' shape and dtype.
+        dense = np.arange(6, dtype=np.float64) * 10
+        writer.overwrite_dataset(group, dense, "data", show_progressbar=False)
+        assert "_ragged_encoding" not in group["data"].attrs
+        assert "_ragged_offsets_data" not in group
+
+        out = _read_back(reader_cls, group, "data")
+        assert out.dtype == np.float64
+        np.testing.assert_allclose(out, dense)
+
+
+@zspy_marker
+def test_rewrite_csr_key_with_heterogeneous_ragged(tmp_path, file):
+    # Overwriting a CSR-encoded key with ragged data that only the generic
+    # encoding can represent must succeed: the existing dense dataset has a
+    # different shape, so it has to be deleted and recreated.
+    heterogeneous = _ragged([(1, 3), (2, 2)])
+
+    with _scratch_group(tmp_path / file, file) as (writer, reader_cls, group):
+        writer.overwrite_dataset(
+            group, _ragged([(2, 2), (3, 2)]), "data", show_progressbar=False
+        )
+        writer.overwrite_dataset(group, heterogeneous, "data", show_progressbar=False)
+        assert "_ragged_encoding" not in group["data"].attrs
+        assert "_ragged_offsets_data" not in group
+
+        out = _read_back(reader_cls, group, "data")
+        for index in np.ndindex(heterogeneous.shape):
+            np.testing.assert_allclose(heterogeneous[index], out[index])
+
+
+@zspy_marker
+def test_ragged_dataset_error_retry_is_bounded(tmp_path, file, monkeypatch):
+    # The ragged write retries dataset creation once, to clear a conflicting
+    # dataset left by the other encoding. A TypeError that a delete can't
+    # resolve -- one coming from the data itself -- must propagate rather than
+    # spin forever, which would hang the write instead of reporting the error.
+    calls = []
+
+    def always_raises(*args, **kwargs):
+        calls.append(1)
+        raise TypeError("unrelated to any existing dataset")
+
+    with _scratch_group(tmp_path / file, file) as (writer, _reader_cls, group):
+        monkeypatch.setattr(writer, "_get_object_dset", staticmethod(always_raises))
+        with pytest.raises(TypeError, match="unrelated"):
+            writer.overwrite_dataset(
+                group, _ragged([(1, 3), (2, 2)]), "data", show_progressbar=False
+            )
+
+    # At most two attempts, each creating at most the data and shapes datasets.
+    assert len(calls) <= 4
+
+
+@pytest.mark.parametrize(
+    ("cells", "fits"),
+    [
+        ([np.zeros((2, 2)), np.zeros((3, 2))], True),
+        ([[[1.0, 2.0]], [[3.0, 4.0], [5.0, 6.0]]], True),  # lists, not arrays
+        ([np.arange(2.0), np.arange(3.0)], True),  # 1-D cells, trailing ()
+        ([np.zeros((2, 2)), np.zeros((2, 3))], False),  # trailing shape differs
+        ([np.zeros((2, 2), "i4"), np.zeros((2, 2), "f8")], False),  # dtype differs
+        ([np.zeros((3, 2)), np.zeros((3, 2, 4))], False),  # ndim differs
+        ([np.float64(1.0), np.arange(3.0)], False),  # 0-d mixed with 1-D
+        ([np.float64(1.0), np.float64(2.0)], False),  # all 0-d
+        ([np.array(["a", "b"]), np.array(["c"])], False),  # strings
+    ],
+)
+def test_csr_cells_detection(cells, fits):
+    # csr_cells decides the encoding, so a wrong "fits" answer either loses
+    # the optimisation or, worse, sends data down a path that would coerce
+    # it. The 0-d cases matter in particular: a 0-d cell has an empty
+    # trailing shape just like a 1-D one, so it is only distinguishable by
+    # its ndim.
+    from rsciio._hierarchical import csr_cells
+
+    data = np.empty((len(cells),), dtype=object)
+    for i, cell in enumerate(cells):
+        data[i] = cell
+
+    collected, trailing_shape, dtype = csr_cells(data)
+    assert (collected is not None) is fits
+    if fits:
+        assert len(collected) == len(cells)
+        assert trailing_shape == np.asarray(cells[0]).shape[1:]
+        assert dtype == np.asarray(cells[0]).dtype
+
+
+def test_format_version_bumped_for_csr():
+    # The CSR encoding is a new on-disk format: readers predating it would
+    # silently misread such a dataset as a plain dense array, so the format
+    # version must be ahead of 3.3 for their "newer version" warning to fire.
+    from packaging.version import Version
+
+    from rsciio._hierarchical import version
+
+    assert Version(version) > Version("3.3")
 
 
 def test_load_missing_extension(caplog):

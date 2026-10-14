@@ -80,8 +80,8 @@ keywords = [
     "wdf",
     "zspy",
 ]
-license = "GPL-3.0-or-later"
-license-files = ["COPYING.txt"]
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 
 [project.urls]
 "Homepage" = "https://hyperspy.org/rosettasciio"

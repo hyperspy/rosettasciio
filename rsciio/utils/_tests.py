@@ -3,18 +3,8 @@
 #
 # This file is part of RosettaSciIO.
 #
-# RosettaSciIO is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# RosettaSciIO is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
+# SPDX-License-Identifier: BSD-3-Clause
+# See the LICENSE file at the root of the repository for the full license text.
 
 import importlib
 
@@ -35,55 +25,51 @@ def expected_is_binned():
     return binned
 
 
-# Adapted from:
-# https://github.com/gem/oq-engine/blob/master/openquake/server/tests/helpers.py
 def assert_deep_almost_equal(actual, expected, *args, **kwargs):
-    """Assert that two complex structures have almost equal contents.
-    Compares lists, dicts and tuples recursively. Checks numeric values
-    using :func:`numpy.testing.assert_allclose` and
-    checks all other values with :func:`numpy.testing.assert_equal`.
-    Accepts additional positional and keyword arguments and pass those
-    intact to assert_allclose() (that's how you specify comparison
-    precision).
+    """Recursively check that two nested structures are (almost) equal.
+
+    Dictionaries are compared key by key, and lists, tuples and arrays are
+    compared item by item. Python numbers are compared with
+    :func:`numpy.testing.assert_allclose`; any other values are compared
+    with ``==``. On failure, the error message gives the location of the
+    first mismatch within the structure.
 
     Parameters
     ----------
-    actual: list, dict or tuple
-        Actual values to compare.
-    expected: list, dict or tuple
-        Expected values.
-    *args :
-        Arguments are passed to :func:`numpy.testing.assert_allclose` or
-        :func:`assert_deep_almost_equal`.
-    **kwargs :
-        Keyword arguments are passed to
-        :func:`numpy.testing.assert_allclose` or
-        :func:`assert_deep_almost_equal`.
+    actual : dict, list, tuple, numpy.ndarray or scalar
+        The structure to check.
+    expected : dict, list, tuple, numpy.ndarray or scalar
+        The reference structure.
+    *args, **kwargs :
+        Passed to :func:`numpy.testing.assert_allclose`, for example
+        ``rtol`` or ``atol``.
     """
-    is_root = "__trace" not in kwargs
-    trace = kwargs.pop("__trace", "ROOT")
-    try:
-        if isinstance(expected, (int, float, complex)):
-            np.testing.assert_allclose(expected, actual, *args, **kwargs)
-        elif isinstance(expected, (list, tuple, np.ndarray)):
-            assert len(expected) == len(actual)
-            for index in range(len(expected)):
-                v1, v2 = expected[index], actual[index]
-                assert_deep_almost_equal(v1, v2, __trace=repr(index), *args, **kwargs)
-        elif isinstance(expected, dict):
-            assert set(expected) == set(actual)
-            for key in expected:
-                assert_deep_almost_equal(
-                    expected[key], actual[key], __trace=repr(key), *args, **kwargs
-                )
-        else:
-            assert expected == actual
-    except AssertionError as exc:
-        exc.__dict__.setdefault("traces", []).append(trace)
-        if is_root:
-            trace = " -> ".join(reversed(exc.traces))
-            exc = AssertionError("%s\nTRACE: %s" % (exc, trace))
-        raise exc
+    _compare_nested(actual, expected, "ROOT", args, kwargs)
+
+
+def _compare_nested(actual, expected, location, args, kwargs):
+    if isinstance(expected, dict):
+        if set(actual) != set(expected):
+            raise AssertionError(
+                f"Keys differ at {location}: {sorted(map(repr, set(actual)))} "
+                f"!= {sorted(map(repr, set(expected)))}"
+            )
+        for key, value in expected.items():
+            _compare_nested(actual[key], value, f"{location} -> {key!r}", args, kwargs)
+    elif isinstance(expected, (list, tuple, np.ndarray)):
+        if len(actual) != len(expected):
+            raise AssertionError(
+                f"Lengths differ at {location}: {len(actual)} != {len(expected)}"
+            )
+        for i, (a, e) in enumerate(zip(actual, expected)):
+            _compare_nested(a, e, f"{location} -> {i}", args, kwargs)
+    elif isinstance(expected, (int, float, complex)):
+        try:
+            np.testing.assert_allclose(actual, expected, *args, **kwargs)
+        except AssertionError as exc:
+            raise AssertionError(f"Values differ at {location}:\n{exc}") from None
+    elif actual != expected:
+        raise AssertionError(f"Values differ at {location}: {actual!r} != {expected!r}")
 
 
 def normalize_micro(obj):

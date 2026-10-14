@@ -538,24 +538,24 @@ def file_reader(
         )
         nxentry = None
         nxdata = None
-        if "attrs" in original_metadata:
-            if "default" in original_metadata["attrs"]:
-                nxentry = original_metadata["attrs"]["default"]
-            else:
-                rootlist = list(original_metadata.keys())
-                rootlist.remove("attrs")
-                if rootlist and len(rootlist) == 1:
-                    nxentry == rootlist[0]
-            if nxentry:
-                if "default" in original_metadata[nxentry]["attrs"]:
-                    nxdata = original_metadata[nxentry]["attrs"]["default"]
-            if nxentry and nxdata:
-                nxdata = "/" + nxentry + "/" + nxdata
-            if nxdata:
-                hdf_data_paths = []
-                nexus_data_paths = [
-                    nxpath for nxpath in nexus_data_paths if nxdata in nxpath
-                ]
+        root_attrs = original_metadata.get("attrs", {})
+        if "default" in root_attrs:
+            nxentry = root_attrs["default"]
+        else:
+            rootlist = [key for key in original_metadata if key != "attrs"]
+            if len(rootlist) == 1:
+                nxentry = rootlist[0]
+        if nxentry:
+            entry_metadata = original_metadata[nxentry]
+            if isinstance(entry_metadata, dict):
+                nxdata = entry_metadata.get("attrs", {}).get("default")
+        if nxentry and nxdata:
+            nxdata = "/" + nxentry + "/" + nxdata
+        if nxdata:
+            hdf_data_paths = []
+            nexus_data_paths = [
+                nxpath for nxpath in nexus_data_paths if nxdata in nxpath
+            ]
 
     # if no default found then search for the data as normal
     if not nexus_data_paths and not hdf_data_paths:

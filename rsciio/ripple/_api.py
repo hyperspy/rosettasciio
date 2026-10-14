@@ -98,32 +98,39 @@ rpl_keys = {
 }
 
 
-def correct_INCA_format(fp):
-    fp_list = list()
+def _normalise_inca_header(fp):
+    """Return the header in the standard tab-separated ripple layout.
+
+    Oxford Instruments INCA writes headers with entries such as
+    ``(MLX::WIDTH : 4)``, after a first line which is skipped. These are
+    converted to lower-case ``width<TAB>4`` lines. Other headers are returned
+    unchanged.
+    """
     fp.seek(0)
-    if "(" in fp.readline():
-        for line in fp:
-            line = (
-                line.replace("(MLX::", "")
-                .replace(" : ", "\t")
-                .replace(" :", "\t")
-                .replace(" ", "\t")
-                .lower()
-                .strip()
-                .replace(")", "\n")
-            )
-            if "record-by" in line:
-                if "image" in line:
-                    line = "record-by\timage"
-                if "vector" in line:
-                    line = "record-by\tvector"
-                if "dont-care" in line:
-                    line = "record-by\tdont-care"
-            fp_list.append(line)
-        fp = StringIO()
-        fp.writelines(fp_list)
-    fp.seek(0)
-    return fp
+    if "(" not in fp.readline():
+        fp.seek(0)
+        return fp
+
+    record_by_values = rpl_keys["record-by"]
+    lines = []
+    for line in fp:
+        line = (
+            line.replace("(MLX::", "")
+            .replace(" : ", "\t")
+            .replace(" :", "\t")
+            .replace(" ", "\t")
+            .lower()
+            .strip()
+            .replace(")", "\n")
+        )
+        key = line.split("\t", 1)[0]
+        if key == "record-by":
+            # keep only the recognised value, dropping any decoration
+            value = next((v for v in record_by_values if v in line), None)
+            if value is not None:
+                line = f"record-by\t{value}\n"
+        lines.append(line)
+    return StringIO("".join(lines))
 
 
 def parse_ripple(fp):
@@ -132,11 +139,11 @@ def parse_ripple(fp):
     Accepts file object 'fp. Returns dictionary rpl_info.
     """
 
-    fp = correct_INCA_format(fp)
+    fp = _normalise_inca_header(fp)
 
     rpl_info = {}
     for line in fp.readlines():
-        # correct_brucker_format
+        # Bruker writes "data-Length" instead of "data-length"
         line = line.replace("data-Length", "data-length")
         if line[:2] not in newline and line[0] != comment:
             line = line.strip("\r\n")
@@ -175,7 +182,7 @@ def parse_ripple(fp):
         err += "Check %s" % fp.name
         raise IOError(err)
     if rpl_info["data-length"] == "1" and rpl_info["byte-order"] != "dont-care":
-        err = '"data-length" and "byte-order" mismatch.\n'
+        err = 'Inconsistent "data-length" and "byte-order" keys.\n'
         err += '"data-length" cannot be "1" if "byte-order" is not "dont-care"'
         err += " and vice versa."
         err += "Check %s" % fp.name

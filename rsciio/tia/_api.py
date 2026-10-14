@@ -585,8 +585,7 @@ def ser_reader(filename, objects=None, lazy=False, only_valid_data=True):
             }
         )
 
-        # FEI seems to use the international system of units (SI) for the
-        # energy scale (eV).
+        # The energy axis of FEI spectra is always in eV
         axes[-1]["units"] = "eV"
         axes[-1]["name"] = "Energy"
 

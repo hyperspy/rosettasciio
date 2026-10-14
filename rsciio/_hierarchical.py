@@ -481,10 +481,9 @@ class HierarchicalReader:
             if "SEM" in exp["metadata"]:
                 if "Acquisition_instrument" not in exp["metadata"]:
                     exp["metadata"]["Acquisition_instrument"] = {}
-                exp["metadata"]["Acquisition_instrument"]["SEM"] = exp["metadata"][
+                exp["metadata"]["Acquisition_instrument"]["SEM"] = exp["metadata"].pop(
                     "SEM"
-                ]
-                del exp["metadata"]["SEM"]
+                )
                 sem = exp["metadata"]["Acquisition_instrument"]["SEM"]
                 if "EDS" in sem:
                     if "Detector" not in sem:

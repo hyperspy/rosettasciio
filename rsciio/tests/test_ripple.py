@@ -1,4 +1,5 @@
 import gc
+from io import StringIO
 from pathlib import Path
 
 import numpy as np
@@ -273,3 +274,38 @@ def generate_files():
                     )
                     filename = _get_filename(s, metadata)
                     s.save(TEST_DATA_PATH / filename, overwrite=True)
+
+
+INCA_HEADER = """(MLX::INCA ripple header)
+(MLX::WIDTH : 4)
+(MLX::HEIGHT : 3)
+(MLX::DEPTH : 10)
+(MLX::OFFSET : 0)
+(MLX::DATA-LENGTH : 2)
+(MLX::DATA-TYPE : SIGNED)
+(MLX::RECORD-BY : {record_by})
+(MLX::BYTE-ORDER : LITTLE-ENDIAN)
+"""
+
+
+@pytest.mark.parametrize("record_by", ["VECTOR", "IMAGE"])
+def test_parse_inca_header(record_by):
+    rpl_info = ripple.parse_ripple(StringIO(INCA_HEADER.format(record_by=record_by)))
+    assert rpl_info == {
+        "width": 4,
+        "height": 3,
+        "depth": 10,
+        "offset": 0,
+        "data-length": "2",
+        "data-type": "signed",
+        "record-by": record_by.lower(),
+        "byte-order": "little-endian",
+    }
+
+
+def test_parse_standard_header_unchanged():
+    header = "key\tvalue\nwidth\t2\nheight\t1\ndepth\t5\noffset\t0\n"
+    header += "data-length\t4\ndata-type\tfloat\nbyte-order\tlittle-endian\n"
+    header += "record-by\tvector\n"
+    rpl_info = ripple.parse_ripple(StringIO(header))
+    assert rpl_info["width"] == 2 and rpl_info["record-by"] == "vector"

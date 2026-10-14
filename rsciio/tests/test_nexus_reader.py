@@ -24,9 +24,12 @@ h5py = pytest.importorskip("h5py")
 from rsciio.nexus import file_reader  # noqa: E402
 
 
-def _write_nexus(path, root_default=False, entry_default=True, entries=1):
+def _write_nexus(
+    path, root_default=False, entry_default=True, entries=1, root_attributes=True
+):
     with h5py.File(path, "w") as f:
-        f.attrs["NX_class"] = "NXroot"
+        if root_attributes:
+            f.attrs["NX_class"] = "NXroot"
         if root_default:
             f.attrs["default"] = "entry0"
         for index in range(entries):
@@ -99,3 +102,37 @@ def test_single_entry_without_entry_default(tmp_path, lazy):
         "entry0_data_x",
         "entry0_instrument_extra",
     }
+
+
+@pytest.mark.parametrize("lazy", [False, True])
+def test_attribute_free_root_default(tmp_path, lazy):
+    path = tmp_path / "attribute_free_root.nxs"
+    _write_nexus(path, root_attributes=False)
+
+    _assert_selected_signal(file_reader(path, use_default=True, lazy=lazy), lazy)
+    assert len(file_reader(path, use_default=False, lazy=lazy)) == 3
+
+
+@pytest.mark.parametrize("lazy", [False, True])
+@pytest.mark.parametrize("root_attributes", [False, True])
+@pytest.mark.parametrize("grouped", [False, True])
+def test_hdf5_without_entry_attributes(tmp_path, grouped, root_attributes, lazy):
+    path = tmp_path / "plain_hdf5.nxs"
+    expected = np.arange(8, dtype="float32")
+    with h5py.File(path, "w") as f:
+        if root_attributes:
+            f.attrs["creator"] = "test"
+        parent = f.create_group("plain") if grouped else f
+        parent["counts"] = expected
+
+    for use_default in (False, True):
+        signals = file_reader(path, use_default=use_default, lazy=lazy)
+        assert len(signals) == 1
+        data = signals[0]["data"]
+        if lazy:
+            import dask.array as da
+
+            assert isinstance(data, da.Array)
+            data = data.compute()
+        assert data.dtype == np.float32
+        np.testing.assert_array_equal(data, expected)

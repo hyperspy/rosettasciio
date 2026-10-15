@@ -145,6 +145,12 @@ llms_txt_description = (
 # Generate a llms-full.txt file, a single file concatenating the whole
 # documentation, so that it can be passed at once to a LLM context
 llms_txt_full_build = True
+# Ignoring unknown node warnings for LLM documentation build
+llms_txt_suppress_unknown_node_warnings = [
+    "classifier",
+    "PassthroughTextElement",
+    "toctree",
+]
 
 # -- Options for CopyButton extension -----------------------------------
 

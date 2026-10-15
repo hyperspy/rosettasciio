@@ -124,6 +124,7 @@ doc = [
   "setuptools_scm",
   "sphinx",
   "sphinx-favicon",
+  "sphinx-llm>=1.1.0",
   "sphinxcontrib-towncrier>=0.5.0a0",
   "sphinx-copybutton",
   "towncrier",

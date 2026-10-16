@@ -3,18 +3,8 @@
 #
 # This file is part of RosettaSciIO.
 #
-# RosettaSciIO is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# RosettaSciIO is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
+# SPDX-License-Identifier: BSD-3-Clause
+# See the LICENSE file at the root of the repository for the full license text.
 
 import importlib
 
@@ -44,7 +34,9 @@ def test_import_all():
     # Remove plugins which require not installed optional dependencies
     h5py = importlib.util.find_spec("h5py")
     if h5py is None:
-        plugin_name_to_remove.extend(["Delmic", "EMD", "HSPY", "NeXus", "Topspin"])
+        plugin_name_to_remove.extend(
+            ["Delmic", "EMD", "HSPY", "NeXus", "Topspin", "USID"]
+        )
 
     hdf5plugin = importlib.util.find_spec("hdf5plugin")
     if hdf5plugin is None:
@@ -70,10 +62,6 @@ def test_import_all():
     if tifffile is None:
         plugin_name_to_remove.append("TIFF")
         plugin_name_to_remove.append("Phenom")
-
-    pyUSID = importlib.util.find_spec("pyUSID")
-    if pyUSID is None:
-        plugin_name_to_remove.append("USID")
 
     zarr = importlib.util.find_spec("zarr")
     if zarr is None:
@@ -125,11 +113,17 @@ def test_dir_plugins(plugin):
         pytest.importorskip("mrcz")
     elif plugin["name"] in ["TIFF", "Phenom"]:
         pytest.importorskip("tifffile")
-    elif plugin["name"] == "USID":
-        pytest.importorskip("pyUSID")
     elif plugin["name"] == "ZSPY":
         pytest.importorskip("zarr")
-    elif plugin["name"] in ["Delmic", "EMD", "HSPY", "NeXus", "Tofwerk", "Topspin"]:
+    elif plugin["name"] in [
+        "Delmic",
+        "EMD",
+        "HSPY",
+        "NeXus",
+        "Tofwerk",
+        "Topspin",
+        "USID",
+    ]:
         pytest.importorskip("h5py")
     plugin_module = importlib.import_module(plugin_string)
 

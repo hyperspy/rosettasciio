@@ -170,9 +170,9 @@ some additional loading arguments are provided.
 
 .. note::
 
-    Given that HDF5 files can accommodate very large datasets, setting ``lazy=True``
-    is strongly recommended if the content of the HDF5 file is not known apriori.
-    This prevents issues with regard to loading datasets far larger than memory.
+    HDF5 files can hold datasets larger than the available memory. When the
+    content of a file is not known in advance, use ``lazy=True`` so that the
+    data is only read when needed.
 
     Also note that setting ``lazy=True`` leaves the file handle to the HDF5 file
     open. In Hyperspy, it can with ``_signals.lazy.LazySignal.close_file``
@@ -186,7 +186,7 @@ the single dataset to be loaded:
 .. code-block:: python
 
     >>> from rsciio.nexus import file_reader
-    >>> # Loading a specific dataset
+    >>> # Read only the dataset at the given path
     >>> file_reader("sample.nxs", dataset_path="/entry/experiment/EDS/data")
 
 We can also choose to load datasets based on a search key using the
@@ -214,7 +214,7 @@ Multiple datasets can be loaded by providing a number of keys:
 
 .. code-block:: python
 
-    >>> # Loading a specific dataset
+    >>> # Read only the datasets whose path contains one of the keys
     >>> file_reader("sample.nxs", dataset_key=["EDS", "Fe", "Ca"])
 
 Metadata can also be filtered in the same way using ``metadata_key``:

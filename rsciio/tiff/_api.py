@@ -468,8 +468,10 @@ def _axes_fei(tiff, op, shape, names):
     except KeyError:
         del op["FEI_SFEG"]
     try:
-        scales["x"] = float(op["fei_metadata"]["Scan"]["PixelWidth"])
-        scales["y"] = float(op["fei_metadata"]["Scan"]["PixelHeight"])
+        # "x" holds the height axis and "y" the width axis,
+        # see _order_axes_by_name
+        scales["y"] = float(op["fei_metadata"]["Scan"]["PixelWidth"])
+        scales["x"] = float(op["fei_metadata"]["Scan"]["PixelHeight"])
         units.update({"x": "m", "y": "m"})
     except KeyError:
         _logger.debug(
@@ -477,10 +479,10 @@ def _axes_fei(tiff, op, shape, names):
             "from 'IRBeam' metadata"
         )
         try:
-            scales["x"] = float(op["fei_metadata"]["IRBeam"]["HFW"]) / float(
+            scales["y"] = float(op["fei_metadata"]["IRBeam"]["HFW"]) / float(
                 op["fei_metadata"]["Image"]["ResolutionX"]
             )
-            scales["y"] = float(op["fei_metadata"]["IRBeam"]["VFW"]) / float(
+            scales["x"] = float(op["fei_metadata"]["IRBeam"]["VFW"]) / float(
                 op["fei_metadata"]["Image"]["ResolutionY"]
             )
             units.update({"x": "m", "y": "m"})
@@ -536,8 +538,8 @@ def _axes_tvips(tiff, op, shape, names):
 
     if "PixelSizeX" in op["TVIPS"] and "PixelSizeY" in op["TVIPS"]:
         _logger.debug("getting TVIPS scale from PixelSizeX")
-        scales["x"] = op["TVIPS"]["PixelSizeX"]
-        scales["y"] = op["TVIPS"]["PixelSizeY"]
+        scales["y"] = op["TVIPS"]["PixelSizeX"]
+        scales["x"] = op["TVIPS"]["PixelSizeY"]
         units.update({"x": "nm", "y": "nm"})
     else:
         _logger.debug("getting TVIPS scale from XYResolution")
@@ -566,8 +568,8 @@ def _axes_olympus_sis(page, tiff, op, shape, names):
         except Exception:
             pass
     op["Olympus_SIS_metadata"] = sis_metadata
-    scales["x"] = round(float(sis_metadata["pixelsizex"]), 15)
-    scales["y"] = round(float(sis_metadata["pixelsizey"]), 15)
+    scales["y"] = round(float(sis_metadata["pixelsizex"]), 15)
+    scales["x"] = round(float(sis_metadata["pixelsizey"]), 15)
     units.update({"x": "m", "y": "m"})
 
     scales, offsets, units = _order_axes_by_name(names, scales, offsets, units)

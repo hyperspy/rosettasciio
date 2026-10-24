@@ -1,0 +1,1 @@
+Fix the TIFF reader swapping the x and y pixel sizes of FEI/Thermo Fisher, TVIPS and Olympus SIS files, which gave wrong calibrations for images with non-square pixels.

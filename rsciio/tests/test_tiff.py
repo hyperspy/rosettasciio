@@ -533,6 +533,22 @@ class TestReadFEIHelios:
         with zipfile.ZipFile(zipf, "r") as zipped:
             zipped.extractall(cls.path)
 
+    def test_read_FEI_SEM_non_square_pixels(self, tmp_path):
+        # Make PixelHeight twice PixelWidth to check that each pixel size is
+        # assigned to the right axis
+        fname = self.path / "FEI-Helios-Ebeam-8bits.tif"
+        content = fname.read_bytes()
+        content = content.replace(
+            b"PixelHeight=3.3724e-006", b"PixelHeight=6.7448e-006"
+        )
+        fname2 = tmp_path / "FEI-Helios-Ebeam-8bits-non-square.tif"
+        fname2.write_bytes(content)
+        s = hs.load(fname2, convert_units=True)
+        assert s.axes_manager[0].name == "width"
+        assert s.axes_manager[1].name == "height"
+        np.testing.assert_allclose(s.axes_manager[0].scale, 3.3724, rtol=1e-5)
+        np.testing.assert_allclose(s.axes_manager[1].scale, 6.7448, rtol=1e-5)
+
     def test_read_FEI_SEM_scale_metadata_8bits(self):
         fname = self.path / "FEI-Helios-Ebeam-8bits.tif"
         s = hs.load(fname, convert_units=True)

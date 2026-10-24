@@ -122,6 +122,7 @@ def test_export_scalebar(ext, tmp_path):
 @pytest.mark.parametrize(("units"), ["1/nm", "1 / nm", "1 / nanometer", "1/nanometer"])
 def test_export_scalebar_reciprocal(tmp_path, units):
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+    pytest.importorskip("matplotlib_scalebar")
     pixels = 512
     s = hs.signals.Signal2D(
         np.arange(pixels**2).reshape((pixels, pixels)).astype("int32")
@@ -138,6 +139,7 @@ def test_export_scalebar_reciprocal(tmp_path, units):
 
 def test_export_scalebar_undefined_units(tmp_path):
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+    pytest.importorskip("matplotlib_scalebar")
     pixels = 512
     s = hs.signals.Signal2D(
         np.arange(pixels**2).reshape((pixels, pixels)).astype("int32")
@@ -205,6 +207,7 @@ def test_export_scalebar_scale_close_enough(tmp_path, pixels_below_above):
 
 def test_save_image_scalebar_scale_opposite_signs(tmp_path):
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+    pytest.importorskip("matplotlib_scalebar")
     pixels = 16
     s = hs.signals.Signal2D(
         np.arange(pixels**2).reshape((pixels, pixels)).astype("int32")
@@ -273,6 +276,7 @@ def test_export_output_size_aspect(aspect, output_size, tmp_path):
 
 def test_save_image_navigation(tmp_path):
     hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
+    pytest.importorskip("matplotlib_scalebar")
     pixels = 16
     s = hs.signals.Signal2D(
         np.arange(pixels**2).reshape((pixels, pixels)).astype("int32")
@@ -280,6 +284,30 @@ def test_save_image_navigation(tmp_path):
 
     fname = tmp_path / "test_save_image_navigation.png"
     s.T.save(fname, scalebar=True)
+
+
+def test_write_int32_png(tmp_path):
+    # Pillow >=13.0.0 no longer supports writing 32-bit ("I" mode) images
+    # as PNG; see
+    # https://pillow.readthedocs.io/en/stable/releasenotes/13.0.0.html
+    # Without matplotlib-scalebar, the file writer falls back to directly
+    # writing the data with imageio: check that a clear error is raised,
+    # asking to change the data type before saving.
+    axis = {
+        "_type": "UniformDataAxis",
+        "name": None,
+        "units": None,
+        "navigate": False,
+        "is_binned": False,
+        "size": 128,
+        "scale": 1.0,
+        "offset": 0.0,
+    }
+    data = np.arange(128 * 128).reshape(128, 128).astype("int32")
+    signal_dict = {"data": data, "axes": [axis, axis]}
+    filename = tmp_path / "test_int32.png"
+    with pytest.raises(ValueError, match="int32"):
+        file_writer(filename, signal_dict)
 
 
 def test_error_library_no_installed(tmp_path):

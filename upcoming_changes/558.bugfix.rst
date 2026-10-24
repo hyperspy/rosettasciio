@@ -1,0 +1,5 @@
+Saving 32-bit signed integer data (``int32``) to PNG now raises an
+informative error explaining that the data type needs to be changed
+(e.g. cast to ``np.uint16``), since Pillow >=13.0.0 dropped writing
+32-bit ("I" mode) images to PNG, which used to fail with a cryptic
+``OSError``.

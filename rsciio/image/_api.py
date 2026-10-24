@@ -209,6 +209,23 @@ def file_writer(
 
         fig.savefig(filename, dpi=dpi, pil_kwargs=kwds)
     else:
+        if os.path.splitext(filename)[1].lower() == ".png":
+            image = Image.fromarray(data)
+            if image.mode == "I":
+                # Pillow >=13.0.0 dropped support for saving 32-bit signed
+                # integer ("I" mode) images as PNG: PNG can only contain at
+                # most 16 bits per channel. Saving silently clipped the
+                # values before, so this is now raised: change the data
+                # type before saving instead, for example cast to
+                # ``np.uint16`` to save with 16 bits using clipping.
+                raise ValueError(
+                    f"Saving data of type `{data.dtype}` to "
+                    f"`{os.path.basename(filename)}` is not supported: PNG "
+                    "can only store at most 16 bits per channel and Pillow "
+                    "dropped saving 32-bit signed integers because they "
+                    "could not be stored without silently clipping the "
+                    "values. Change the data type before saving."
+                )
         iio.imwrite(filename, data, **kwds)
 
 

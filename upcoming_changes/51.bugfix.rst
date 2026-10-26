@@ -1,0 +1,1 @@
+Fix reading ripple files with an Oxford Instruments INCA header, where the ``record-by`` entry was merged with the following line.

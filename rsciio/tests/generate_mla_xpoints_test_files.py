@@ -164,7 +164,8 @@ def jkf_for(offsets, sizes, rows=range(len(SPECTRA)), shift=None, reverse=False)
     """``.jkf`` bytes indexing ``rows`` of ``dataset``: two frames, four particles.
 
     ``shift`` adds a number to fields of the index records (``"x"``, ``"y"``,
-    ``"width"``, ``"height"``), so that they differ from the record headers.
+    ``"width"``, ``"height"``, ``"bse_mode"``, ``"bse_mode_fraction"``), so that
+    they differ from the record headers.
     ``reverse`` lists the frames and the spectra of a particle in reverse order.
     """
     shift = shift or {}
@@ -183,8 +184,8 @@ def jkf_for(offsets, sizes, rows=range(len(SPECTRA)), shift=None, reverse=False)
                     x + shift.get("x", 0),
                     y + shift.get("y", 0),
                     size,
-                    bse,
-                    frac,
+                    bse + shift.get("bse_mode", 0),
+                    frac + shift.get("bse_mode_fraction", 0),
                 )
             )
         return out

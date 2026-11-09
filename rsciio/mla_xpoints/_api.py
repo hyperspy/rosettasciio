@@ -98,7 +98,7 @@ def _jkf_metadata(jkf_path, offsets, payload_bytes, headers):
     matched, rows = np.flatnonzero(found), index[at[found]]
     expected_bytes = HEADER_SIZE + payload_bytes[matched].astype(np.int64)
     consistent = (rows["record_bytes"].astype(np.int64) == expected_bytes) & np.all(
-        [rows[f] == headers[f][matched] for f in ("x", "y", "width", "height")], axis=0
+        [rows[f] == headers[f][matched] for f in HEADER_FIELDS], axis=0
     )
     if not consistent.all():
         raise ValueError(
@@ -234,7 +234,8 @@ def file_reader(filename, lazy=False, chunks="auto", jkf=True):
     >>> from rsciio.mla_xpoints import file_reader
     >>> s = file_reader("3_GXMAP_spx.xpoints", lazy=True)
     """
-    path = Path(filename)
+    # absolute, so that lazy reads still find the file after a change of directory
+    path = Path(filename).absolute()
     offsets, payload_bytes, n_channels, headers = scan_records(path)
     n_spectra = len(offsets)
 

@@ -344,6 +344,17 @@ def test_read_spectra_without_records(dataset):
     assert empty.dtype == np.uint16
 
 
+def test_lazy_relative_path_survives_a_change_of_directory(
+    dataset, tmp_path, monkeypatch
+):
+    monkeypatch.chdir(dataset.path.parent)
+    (signal,) = file_reader(dataset.path.name, lazy=True)
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    monkeypatch.chdir(elsewhere)
+    np.testing.assert_array_equal(signal["data"].compute(), dataset.spectra)
+
+
 def test_lazy_reads_the_file_on_compute(dataset):
     (signal,) = file_reader(dataset.path, lazy=True)
     # Nothing is read or cached when loading lazily: only the path is kept
@@ -517,7 +528,9 @@ def test_jkf_may_skip_records(dataset, caplog, rows):
     np.testing.assert_array_equal(signal["data"], dataset.spectra)
 
 
-@pytest.mark.parametrize("field", ["x", "y", "width", "height"])
+@pytest.mark.parametrize(
+    "field", ["x", "y", "width", "height", "bse_mode", "bse_mode_fraction"]
+)
 def test_jkf_of_another_file_is_ignored(dataset, caplog, field):
     # one field of the index records differs from the record headers
     dataset.jkf.write_bytes(jkf_for(dataset.offsets, dataset.sizes, shift={field: 1}))

@@ -1,0 +1,1 @@
+Fix the blockfile reader assigning the wrong axes to line scans and single diffraction patterns, which labeled a diffraction axis as a navigation axis.

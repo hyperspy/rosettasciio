@@ -522,7 +522,7 @@ def test_jkf_may_skip_records(dataset, caplog, rows):
         np.testing.assert_array_equal(jkf[name], expected, err_msg=name)
     assert np.isnan(jkf["stage_x_um"][missing]).all()
     assert np.isnan(jkf["stage_y_um"][missing]).all()
-    assert np.isfinite(np.delete(jkf["stage_x_um"], missing)).all()
+    assert np.isfinite(jkf["stage_x_um"][rows]).all()
     assert f"{len(missing)} of 5 spectra have no entry in sample_spx.jkf" in caplog.text
     # the spectra themselves are all read, including the ones the index skips
     np.testing.assert_array_equal(signal["data"], dataset.spectra)

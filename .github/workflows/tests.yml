@@ -116,6 +116,15 @@ jobs:
           else
             PIP_SELECTOR="[all, tests]"
           fi
+          if [[ "${{ matrix.PYTHON_VERSION }}" == 3.14* ]]; then
+            # The zspy extra requires zarr<3, which forces numcodecs<0.16,
+            # for which no wheels are available for Python 3.14: pip builds
+            # the sdist and the vendored c-blosc fails to compile with the
+            # C23 compiler default of recent GCC (Ubuntu 26.04 runners).
+            # Skip the zspy extra until the zarr<3 requirement is dropped
+            # (tracked in #539), by installing all the other extras.
+            PIP_SELECTOR="[app5, arina, blockfile, eds-stream, hdf5, image, mrcz, scalebar_export, speed, tiff, usid, tests]"
+          fi
           echo "PIP_SELECTOR=${PIP_SELECTOR}" >> $GITHUB_ENV
 
       - name: Display version

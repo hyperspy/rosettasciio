@@ -347,10 +347,8 @@ def read_de_metadata_file(filename, nav_shape=None, scan_pos_file=None):
     ):  # nav-shape is not None for pos files
         axes_scales = np.array(
             [
-                float(
-                    original_metadata.get("Scan - Time (seconds)", 1)
-                    + original_metadata.get("Scan - Repeat Delay (seconds)", 1)
-                ),
+                float(original_metadata.get("Scan - Time (seconds)", 1))
+                + float(original_metadata.get("Scan - Repeat Delay (seconds)", 0)),
                 float(original_metadata.get("Specimen Pixel Size Y (nanometers)", 1)),
                 float(original_metadata.get("Specimen Pixel Size X (nanometers)", 1)),
                 1,  # Signal Axes below
@@ -358,7 +356,7 @@ def read_de_metadata_file(filename, nav_shape=None, scan_pos_file=None):
                 float(original_metadata.get("Diffraction Pixel Size X", 1)),
             ]
         )
-        axes_scales[axes_scales != -1] = 1
+        axes_scales[axes_scales == -1] = 1
         axes_units = ["sec", "nm", "nm", "times", "nm^-1", "nm^-1"]
         axes_names = ["time", "y", "x", "repeats", "ky", "kx"]
         if original_metadata.get("Scan - ROI Enable", "Disable") == "Enable":

@@ -54,7 +54,6 @@ intersphinx_mapping = {
     "numpy": ("https://numpy.org/doc/stable", None),
     "pooch": ("https://www.fatiando.org/pooch/latest", None),
     "python": ("https://docs.python.org/3", None),
-    "pyusid": ("https://pycroscopy.github.io/pyUSID/", None),
     "zarr": ("https://zarr.readthedocs.io/en/v2.18.4", None),
 }
 

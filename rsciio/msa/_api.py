@@ -163,6 +163,8 @@ keywords = {
 
 def _axis_from_x_column(x, axis):
     """The signal axis of XY data, where the X column is the axis."""
+    if x.size == 1:
+        return axis | {"offset": x[0]}
     steps = np.diff(x)
     if not (np.all(steps > 0) or np.all(steps < 0)):
         _logger.warning(
@@ -319,7 +321,7 @@ def parse_msa_string(string, filename=None):
         "units": parameters.get("XUNITS", ""),
         "navigate": False,
     }
-    if len(x) > 1:
+    if x:
         axis = _axis_from_x_column(np.array(x), axis)
     axes = [axis]
     if filename is not None:
@@ -573,7 +575,7 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
 
         if format == "XY":
             for x, y in zip(x_axis, signal["data"]):
-                f.write("%g%s%g" % (x, separator, y))
+                f.write("%r%s%g" % (float(x), separator, y))
                 f.write("\u000d\u000a")
         elif format == "Y":
             for y in signal["data"]:

@@ -575,3 +575,16 @@ def test_xy_non_uniform_write_load_cycle(tmp_path):
     assert s2.original_metadata.DATATYPE == "XY"
     np.testing.assert_allclose(s2.axes_manager[0].axis, s.axes_manager[0].axis)
     np.testing.assert_allclose(s2.data, s.data)
+
+
+def test_xy_one_point_uses_x_value():
+    axis = _parse_xy_axis([300.0])
+    assert axis["offset"] == 300.0 and axis["scale"] == 1.0
+
+
+def test_xy_non_uniform_write_keeps_x_precision(tmp_path):
+    x = [50000.001, 50000.003, 50000.009]
+    s = hs.signals.Signal1D([1.0, 2.0, 3.0], axes=[{"axis": x, "navigate": False}])
+    fname = tmp_path / "precision.msa"
+    s.save(fname)
+    np.testing.assert_array_equal(hs.load(fname).axes_manager[0].axis, x)

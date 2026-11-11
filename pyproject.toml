@@ -78,6 +78,7 @@ keywords = [
     "unf",
     "usid",
     "wdf",
+    "xpoints",
     "zspy",
 ]
 license = "GPL-3.0-or-later"

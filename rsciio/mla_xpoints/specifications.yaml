@@ -1,0 +1,10 @@
+name: "MLA_xpoints"
+name_aliases: ["MLA", "xpoints", "MLA xpoints", "FEI MLA"]
+description: "Raw X-ray spectra (EDS) of FEI/Thermo Mineral Liberation Analyser (MLA) measurements, stored in a headerless sequence of records. Decoded from MLA Suite 3.1.4.686 files."
+full_support: False
+# Recognised file extension
+file_extensions: ["xpoints", "XPOINTS"]
+default_extension: 0
+# Writing features
+writes: False
+non_uniform_axis: False

@@ -520,3 +520,58 @@ def test_parsed_version(tmp_path):
     v = ".".join(version_parts[:nv])
     with open(fname, "r") as fi:
         assert v in fi.read()
+
+
+def _parse_xy_axis(x, offset=280.0, xperchan=1.0):
+    header = [
+        "#FORMAT      : EMSA/MAS Spectral Data File",
+        "#VERSION     : 1.0",
+        "#TITLE       : XY example",
+        f"#NPOINTS     : {len(x)}",
+        "#NCOLUMNS    : 1",
+        "#XUNITS      : eV",
+        "#DATATYPE    : XY",
+        f"#XPERCHAN    : {xperchan}",
+        f"#OFFSET      : {offset}",
+        "#SIGNALTYPE  : ELS",
+        "#SPECTRUM    : Spectral Data Starts Here",
+    ]
+    data = [f"{xi}, {i}" for i, xi in enumerate(x)]
+    string = "\n".join(header + data + ["#ENDOFDATA   :"])
+    return msa.parse_msa_string(string)[0]["axes"][0]
+
+
+def test_xy_non_uniform_x_column():
+    x = [280.0, 280.5, 281.0, 283.0]
+    axis = _parse_xy_axis(x)
+    assert "scale" not in axis and "offset" not in axis
+    np.testing.assert_allclose(axis["axis"], x)
+
+
+def test_xy_uniform_x_column_overrides_header():
+    axis = _parse_xy_axis([300.0, 300.5, 301.0, 301.5])
+    assert axis["offset"] == 300.0
+    assert axis["scale"] == 0.5
+
+
+def test_xy_rounded_x_column_keeps_header():
+    axis = _parse_xy_axis([280.0, 280.33, 280.67, 281.0], xperchan=1 / 3)
+    assert axis["offset"] == 280.0
+    assert axis["scale"] == pytest.approx(1 / 3)
+
+
+def test_xy_not_monotonic_uses_header(caplog):
+    axis = _parse_xy_axis([280.0, 280.0, 281.0, 282.0])
+    assert axis["offset"] == 280.0 and axis["scale"] == 1.0
+    assert "not monotonic" in caplog.text
+
+
+def test_xy_non_uniform_write_load_cycle(tmp_path):
+    s = hs.load(TEST_DATA_PATH / "example1.msa")
+    assert not s.axes_manager[0].is_uniform
+    fname = tmp_path / "non-uniform.msa"
+    s.save(fname)
+    s2 = hs.load(fname)
+    assert s2.original_metadata.DATATYPE == "XY"
+    np.testing.assert_allclose(s2.axes_manager[0].axis, s.axes_manager[0].axis)
+    np.testing.assert_allclose(s2.data, s.data)

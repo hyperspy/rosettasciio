@@ -1,0 +1,1 @@
+Use the X column of ``DATATYPE: XY`` MSA files for the signal axis, instead of ``OFFSET`` and ``XPERCHAN``. When the X values are not evenly spaced, the signal gets a non-uniform axis, which the MSA writer now saves as XY data.

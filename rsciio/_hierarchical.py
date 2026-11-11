@@ -29,7 +29,11 @@ from rsciio._docstrings import SHOW_PROGRESSBAR_DOC
 from rsciio.utils._array import is_dask_array
 from rsciio.utils._tools import ensure_unicode
 
-version = "3.3"
+# 3.4 adds the CSR (dense values + offsets) encoding for ragged arrays with a
+# uniform numeric per-position shape. Readers older than 3.4 don't know about
+# the `_ragged_encoding` attribute and would silently misread such a dataset as
+# a plain dense array, so the bump is what makes them warn.
+version = "3.4"
 
 default_version = Version(version)
 
@@ -86,6 +90,98 @@ def unflatten_data(data, shape, is_hdf5=False):
 
 
 # ---------------------------------
+# CSR (dense buffer + offsets) encoding for "vector-shaped" ragged arrays:
+# numeric ragged arrays where every cell shares the same trailing shape and
+# only the leading (count) dimension varies, e.g. one (N_i, 2) array of point
+# coordinates per navigation position. Stored as a single dense concatenation
+# of every cell ("values") plus a cumulative row-count index ("offsets"),
+# instead of one independent object-dtype/vlen blob per cell. This sidesteps
+# per-cell codec overhead entirely and lets `values` be chunked/compressed
+# like any ordinary array. Falls back to `flatten_data`/`unflatten_data` above
+# for anything that doesn't fit (ragged strings, heterogeneous shapes, mixed
+# dtypes). See ZARR_V3_PLAN.md, "Phase 3b".
+
+# Rough number of dask blocks the CSR reader aims for when reconstructing a
+# ragged array. Only a performance knob -- it trades per-task overhead against
+# block size and read amplification.
+_CSR_TARGET_BLOCKS = 16
+
+
+def csr_cells(x):
+    """
+    Check whether ragged array ``x`` (dtype=object, arbitrary nav shape) fits
+    the CSR encoding, collecting its cells in the same pass.
+
+    To fit, every cell must be a plain numeric array sharing the same trailing
+    shape, with only the leading dimension free to vary.
+
+    Returns ``(cells, trailing_shape, dtype)`` -- the cells in flattened
+    row-major (C) order, the shared trailing shape (empty for 1-D cells) and
+    the common dtype -- or ``(None, None, None)`` if ``x`` doesn't fit and
+    callers should fall back to the generic object-dtype encoding.
+
+    Inspecting a ``dtype=object`` array means touching every element, so some
+    Python-level iteration is unavoidable. Rather than a branchy per-cell
+    loop, reduce the cells to the set of their ``(dtype, ndim, trailing
+    shape)`` signatures: they fit exactly when that set has one element. That
+    is a single pass of cheap, uniform operations, and the per-cell
+    comparisons collapse into the set's hashing.
+
+    ``ndim`` has to be part of the signature, not just checked on one cell:
+    a 0-d cell has an empty trailing shape too, so it would otherwise be
+    indistinguishable from a 1-D one and blow up later with no leading
+    dimension to count.
+    """
+    cells = list(x.flat)
+    if not cells:
+        return None, None, None
+    try:
+        signature = {(c.dtype, c.ndim, c.shape[1:]) for c in cells}
+    except AttributeError:
+        # A cell isn't an array (a list, say). Convert and retry, rather than
+        # paying a type check per cell on the overwhelmingly common path.
+        cells = [c if type(c) is np.ndarray else np.asarray(c) for c in cells]
+        signature = {(c.dtype, c.ndim, c.shape[1:]) for c in cells}
+    if len(signature) != 1:
+        return None, None, None
+    common_dtype, ndim, trailing_shape = signature.pop()
+    if ndim == 0 or common_dtype.hasobject or common_dtype.kind in "US":
+        return None, None, None
+    return cells, trailing_shape, common_dtype
+
+
+def flatten_to_csr(cells, trailing_shape, dtype):
+    """
+    Convert the cells collected by :func:`csr_cells` into a CSR
+    (values, offsets) pair: ``values`` is their dense concatenation along
+    axis 0, in flattened row-major (C) order; ``offsets`` is the
+    ``(len(cells) + 1,)`` cumulative row-count index into ``values``, so cell
+    ``i`` is ``values[offsets[i]:offsets[i + 1]]``.
+    """
+    offsets = np.zeros(len(cells) + 1, dtype=np.int64)
+    np.cumsum(
+        np.fromiter((c.shape[0] for c in cells), dtype=np.int64, count=len(cells)),
+        out=offsets[1:],
+    )
+    if offsets[-1] == 0:
+        values = np.empty((0,) + trailing_shape, dtype=dtype)
+    else:
+        values = np.concatenate(cells, axis=0)
+    return values, offsets
+
+
+def unflatten_from_csr(values, offsets, nav_shape):
+    """
+    Reconstruct a ragged (dtype=object) array of shape ``nav_shape`` from a
+    CSR encoding: ``values`` is the dense ``(N_total, *trailing)`` buffer,
+    ``offsets`` is the cumulative row-count index built by
+    :func:`flatten_to_csr`.
+    """
+    cells = np.split(np.asarray(values), offsets[1:-1], axis=0)
+    new_data = np.empty(shape=nav_shape, dtype=object)
+    for idx, i in enumerate(np.ndindex(nav_shape)):
+        new_data[i] = cells[idx]
+    return new_data
 
 
 def get_signal_chunks(shape, dtype, signal_axes=None, target_size=1e6):
@@ -277,12 +373,82 @@ class HierarchicalReader:
 
         return exp_dict_list
 
+    def _read_csr_array(self, group, dataset_key):
+        """
+        Reconstruct a ragged (dtype=object) array from the dense CSR
+        (values + offsets) encoding written by
+        :meth:`HierarchicalWriter._write_ragged_csr`. Always returns a dask
+        array (mirroring the generic ragged path in :meth:`_read_array`) --
+        callers `.compute()` it when an eager result is wanted.
+        """
+        import dask
+        import dask.array as da
+
+        values = group[dataset_key]
+        offsets = np.asarray(group[f"_ragged_offsets_{dataset_key}"][:])
+        nav_shape = tuple(int(s) for s in values.attrs["_ragged_nav_shape"])
+        values_da = da.from_array(values, chunks=values.chunks)
+
+        if not nav_shape:
+            block = dask.delayed(unflatten_from_csr)(values_da[:], offsets, nav_shape)
+            return da.from_delayed(block, shape=nav_shape, dtype=object)
+
+        n_outer = nav_shape[0]
+        inner_shape = nav_shape[1:]
+        inner_size = int(np.prod(inner_shape)) if inner_shape else 1
+
+        # Chunk along the outermost nav axis only, keeping inner nav dims
+        # whole per block: since `offsets` is in flattened row-major (C)
+        # order, this keeps each block's row range in `values` contiguous,
+        # with no need to special-case partial rows of a multi-D nav grid.
+        # The block size itself is only a performance knob -- any value is
+        # correct -- but it wants to be at least one physical chunk of
+        # `values` (so a block doesn't straddle chunks needlessly) while
+        # still emitting few enough blocks that per-task overhead stays
+        # amortized. Sizing it purely from the physical chunk is not enough:
+        # h5py's automatic chunking picks far smaller chunks than zarr's, and
+        # the block size then collapses to a single outer index, i.e. one
+        # dask task per nav row.
+        values_chunk_rows = values_da.chunks[0][0] if values_da.chunks[0] else 1
+        total_rows = int(offsets[-1])
+        rows_per_block = max(values_chunk_rows, -(-total_rows // _CSR_TARGET_BLOCKS))
+        frames_per_block = max(
+            1, int(np.searchsorted(offsets, rows_per_block, side="right"))
+        )
+        outer_chunk = max(1, frames_per_block // max(inner_size, 1))
+        outer_chunk = min(outer_chunk, n_outer) if n_outer else 1
+
+        def _reconstruct(block_values, block_offsets, shape):
+            local_offsets = block_offsets - block_offsets[0]
+            return unflatten_from_csr(block_values, local_offsets, shape)
+
+        blocks = []
+        for start in range(0, n_outer, outer_chunk):
+            stop = min(n_outer, start + outer_chunk)
+            frame_start = start * inner_size
+            frame_stop = stop * inner_size
+            s, e = int(offsets[frame_start]), int(offsets[frame_stop])
+            block_offsets = offsets[frame_start : frame_stop + 1]
+            block_shape = (stop - start,) + inner_shape
+            delayed_block = dask.delayed(_reconstruct)(
+                values_da[s:e], block_offsets, block_shape
+            )
+            blocks.append(
+                da.from_delayed(delayed_block, shape=block_shape, dtype=object)
+            )
+
+        if not blocks:
+            return da.from_array(np.empty(nav_shape, dtype=object), chunks=nav_shape)
+        return da.concatenate(blocks, axis=0)
+
     def _read_array(self, group, dataset_key):
         # This is a workaround for the lack of support for n-d ragged array
         # in h5py and zarr. There is work in progress for implementation in zarr:
         # https://github.com/zarr-developers/zarr-specs/issues/62 which may be
         # relevant to implement here when available
         data = group[dataset_key]
+        if data.attrs.get("_ragged_encoding") == "csr":
+            return self._read_csr_array(group, dataset_key)
         key = f"_ragged_shapes_{dataset_key}"
         if "ragged_shapes" in group:
             # For file saved with rosettaSciIO <= 0.1
@@ -599,9 +765,11 @@ class HierarchicalReader:
                 dictionary[key] = value
         if not isinstance(group, self.Dataset):
             for key in group.keys():
-                if key.startswith("_ragged_shapes_"):
-                    # array used to parse ragged array, need to skip it
-                    # otherwise, it will wrongly read kwargs when reading
+                if key.startswith("_ragged_shapes_") or key.startswith(
+                    "_ragged_offsets_"
+                ):
+                    # arrays used to parse ragged array, need to skip them
+                    # otherwise, they will wrongly read kwargs when reading
                     # variable length markers as they uses ragged arrays
                     pass
                 elif key.startswith("_sig_"):
@@ -710,6 +878,86 @@ class HierarchicalWriter:
     def _store_data(*arg):  # pragma: no cover
         raise NotImplementedError("This method must be implemented by subclasses.")
 
+    @staticmethod
+    def _clear_ragged_state(group, key):
+        """
+        Drop any ragged-array bookkeeping left over from a previous write of
+        ``key``: the CSR marker attributes and both flavours of sidecar
+        dataset.
+
+        Rewriting a key doesn't necessarily recreate its dataset -- when the
+        new shape and dtype happen to match, ``require_dataset`` reuses the
+        existing one -- so without this the old encoding's metadata can
+        survive and make the reader reconstruct the new data the wrong way
+        (e.g. a plain dense array read back as a ragged one). Sidecars from
+        the encoding *not* used by this write would also linger as dead
+        datasets in the file.
+        """
+        if key in group:
+            for attr in ("_ragged_encoding", "_ragged_nav_shape"):
+                if attr in group[key].attrs:
+                    del group[key].attrs[attr]
+        for sidecar in (f"_ragged_offsets_{key}", f"_ragged_shapes_{key}"):
+            if sidecar in group:
+                del group[sidecar]
+
+    @classmethod
+    def _write_ragged_csr(
+        cls,
+        group,
+        nav_shape,
+        cells,
+        key,
+        trailing_shape,
+        dtype,
+        show_progressbar=True,
+        **kwds,
+    ):
+        """
+        Write the cells of a ragged array using the dense CSR
+        (values + offsets) encoding (see :func:`flatten_to_csr`) instead of
+        the generic per-cell object-dtype encoding. Only called for eager
+        (non-dask), numeric, uniform-trailing-shape ragged arrays -- the
+        caller already established that, and collected ``cells``, via
+        :func:`csr_cells`. ``values``/``offsets`` are concrete-dtype arrays,
+        so they're written through the ordinary (non-ragged) branch of
+        `overwrite_dataset`, chunked and compressed like any other dataset.
+        """
+        values, offsets = flatten_to_csr(cells, trailing_shape, dtype)
+        # Chunk `values` explicitly rather than leaving it to the backend's
+        # automatic chunking, which has no idea this is a row-oriented buffer:
+        # h5py splits the trailing dimension (e.g. (2492, 1) for an (N, 2)
+        # array), so every row-range read has to touch one chunk per column.
+        # Keep whole rows together and size the chunk by the writer's usual
+        # target, as `get_signal_chunks` would for a normal dataset.
+        # An empty buffer keeps the backend's automatic chunking: h5py rejects
+        # an explicit chunk larger than the dataset in any dimension, which a
+        # zero-length one can never satisfy.
+        if values.shape[0] > 0:
+            row_bytes = values.dtype.itemsize * max(1, int(np.prod(trailing_shape)))
+            rows_per_chunk = max(1, int(cls.target_size // max(row_bytes, 1)))
+            rows_per_chunk = min(rows_per_chunk, values.shape[0])
+            values_chunks = (rows_per_chunk,) + trailing_shape
+        else:
+            values_chunks = None
+        cls.overwrite_dataset(
+            group,
+            values,
+            key,
+            chunks=values_chunks,
+            show_progressbar=show_progressbar,
+            **kwds,
+        )
+        cls.overwrite_dataset(
+            group,
+            offsets,
+            f"_ragged_offsets_{key}",
+            show_progressbar=show_progressbar,
+            **kwds,
+        )
+        group[key].attrs["_ragged_encoding"] = "csr"
+        group[key].attrs["_ragged_nav_shape"] = list(nav_shape)
+
     @classmethod
     def overwrite_dataset(
         cls,
@@ -746,6 +994,9 @@ class HierarchicalWriter:
             :py:meth:`h5py.Group.require_dataset` or
             :py:meth:`zarr.hierarchy.Group.require_dataset` method.
         """ % SHOW_PROGRESSBAR_DOC
+        # Whatever encoding this write ends up using, any bookkeeping from a
+        # previous write of the same key is now stale and must not survive.
+        cls._clear_ragged_state(group, key)
         if chunks is None:
             if is_dask_array(data):
                 # For lazy dataset, by default, we use the current dask chunking
@@ -785,6 +1036,26 @@ class HierarchicalWriter:
 
         _logger.info(f"Chunks used for saving: {chunks}")
         if data.dtype == np.dtype("O"):
+            if not is_dask_array(data):
+                # Numeric ragged arrays with a uniform trailing shape (e.g.
+                # one (N_i, 2) array of vectors per navigation position) get a
+                # dense CSR (values + offsets) encoding instead -- see
+                # ZARR_V3_PLAN.md "Phase 3b". Lazy (dask-backed) ragged
+                # arrays keep using the generic per-cell encoding below; CSR
+                # write support for lazy input is a documented follow-up.
+                cells, trailing_shape, common_dtype = csr_cells(data)
+                if cells is not None:
+                    cls._write_ragged_csr(
+                        group,
+                        data.shape,
+                        cells,
+                        key,
+                        trailing_shape,
+                        common_dtype,
+                        show_progressbar=show_progressbar,
+                        **kwds,
+                    )
+                    return
             if is_dask_array(data):
                 import dask.array as da
 
@@ -799,10 +1070,30 @@ class HierarchicalWriter:
             else:
                 new_data, shapes = flatten_data(data, is_hdf5=cls._is_hdf5)
 
-            dset = cls._get_object_dset(group, new_data, key, chunks, **kwds)
-            shape_dset = cls._get_object_dset(
-                group, shapes, f"_ragged_shapes_{key}", chunks, dtype=int, **kwds
-            )
+            # If the shape or dtype/etc of an existing dataset don't match,
+            # delete it and create a new one -- needed when the key previously
+            # held a CSR-encoded (dense) array, whose shape never matches the
+            # ragged one written here. Retry exactly once: a TypeError that
+            # survives the delete comes from the data itself, not from a
+            # conflicting dataset, and must propagate rather than spin.
+            for last_attempt in (False, True):
+                try:
+                    dset = cls._get_object_dset(group, new_data, key, chunks, **kwds)
+                    shape_dset = cls._get_object_dset(
+                        group,
+                        shapes,
+                        f"_ragged_shapes_{key}",
+                        chunks,
+                        dtype=int,
+                        **kwds,
+                    )
+                    break
+                except TypeError:
+                    if last_attempt:
+                        raise
+                    for key_ in (key, f"_ragged_shapes_{key}"):
+                        if key_ in group:
+                            del group[key_]
 
             cls._store_data(
                 (new_data, shapes),

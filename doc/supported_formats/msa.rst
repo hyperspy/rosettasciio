@@ -10,6 +10,11 @@ multidimensional data. It can for example be used to exchange single spectra
 with Gatan's Digital Micrograph or other software packages. A wide range of
 programs supports exporting to and reading from the ``.msa`` format.
 
+For ``DATATYPE: XY`` files, the signal axis comes from the X column of the
+data, not from the ``OFFSET`` and ``XPERCHAN`` keywords. When the X values are
+not evenly spaced, the signal has a non-uniform axis. A signal with a
+non-uniform axis is always saved as XY data.
+
 .. Note::
     If several spectra are loaded and stacked in `HyperSpy <https://hyperspy.org>`_
     (``hs.load('pattern', stack_signals=True)``)

@@ -161,6 +161,29 @@ keywords = {
 }
 
 
+def _axis_from_x_column(x, axis):
+    """The signal axis of XY data, where the X column is the axis."""
+    if x.size == 1:
+        return axis | {"offset": x[0]}
+    steps = np.diff(x)
+    if not (np.all(steps > 0) or np.all(steps < 0)):
+        _logger.warning(
+            "The X column of the XY data is not monotonic, so OFFSET and "
+            "XPERCHAN are used for the signal axis instead."
+        )
+        return axis
+    # The X values are written with limited precision, so they only have to
+    # match a uniform grid to within a fraction of a step.
+    index = np.arange(x.size)
+    fitted_scale = (x[-1] - x[0]) / (x.size - 1)
+    for offset, scale in ((axis["offset"], axis["scale"]), (x[0], fitted_scale)):
+        if np.allclose(x, offset + scale * index, rtol=0, atol=0.1 * abs(scale)):
+            return axis | {"offset": offset, "scale": scale}
+    axis = dict(axis)
+    del axis["offset"], axis["scale"]
+    return axis | {"axis": x}
+
+
 def parse_msa_string(string, filename=None):
     """
     Parse an EMSA/MSA file content.
@@ -181,6 +204,7 @@ def parse_msa_string(string, filename=None):
         string = string.splitlines()
     parameters = {}
     mapped = DTBox(box_dots=True)
+    x = []
     y = []
     # Read the keywords
     data_section = False
@@ -208,9 +232,11 @@ def parse_msa_string(string, filename=None):
             if line[0] != "#" and line.strip():
                 line_ = line.replace(",", " ").strip().split()
                 if parameters["DATATYPE"] == "XY":
+                    x.append(float(line_[0]))
                     y.append(float(line_[1]))
                     if len(line_) > 2:
                         # NCOLUMNS is 2
+                        x.append(float(line_[2]))
                         y.append(float(line_[3]))
                 elif parameters["DATATYPE"] == "Y":
                     data = [float(i) for i in line_]
@@ -286,17 +312,18 @@ def parse_msa_string(string, filename=None):
         ) as e:  # Error raised if split does not return 3 elements in this case
             _logger.warning(malformed_date_error + ": %s" % e)
 
-    axes = [
-        {
-            "size": len(y),
-            "index_in_array": 0,
-            "name": parameters["XLABEL"] if "XLABEL" in parameters else "",
-            "scale": parameters["XPERCHAN"] if "XPERCHAN" in parameters else 1,
-            "offset": parameters["OFFSET"] if "OFFSET" in parameters else 0,
-            "units": parameters["XUNITS"] if "XUNITS" in parameters else "",
-            "navigate": False,
-        }
-    ]
+    axis = {
+        "size": len(y),
+        "index_in_array": 0,
+        "name": parameters.get("XLABEL", ""),
+        "scale": parameters.get("XPERCHAN", 1),
+        "offset": parameters.get("OFFSET", 0),
+        "units": parameters.get("XUNITS", ""),
+        "navigate": False,
+    }
+    if x:
+        axis = _axis_from_x_column(np.array(x), axis)
+    axes = [axis]
     if filename is not None:
         mapped.set_item("General.original_filename", os.path.split(filename)[1])
 
@@ -404,7 +431,8 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
     format : str, default="Y"
         Specify whether the X-axis (energy/wavelength) should also be saved with
         the data. The default, ``"Y"`` omits the X-axis in the file. The alternative,
-        ``"XY"``, saves the calibrated signal axis as first column.
+        ``"XY"``, saves the calibrated signal axis as first column. A non-uniform
+        signal axis is always saved as ``"XY"``.
     separator : str, Default=", "
         Change the column separator. However, if a different separator is chosen
         the resulting file will not comply with the MSA/EMSA standard and
@@ -418,6 +446,15 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
     """
     loc_kwds = {}
     FORMAT = "EMSA/MAS Spectral Data File"
+    axis_dict = signal["axes"][0]
+    if "axis" in axis_dict:
+        x_axis = np.asarray(axis_dict["axis"])
+        offset = x_axis[0]
+        scale = (x_axis[-1] - x_axis[0]) / max(x_axis.size - 1, 1)
+        format = "XY"
+    else:
+        offset, scale = axis_dict["offset"], axis_dict["scale"]
+        x_axis = offset + scale * np.arange(axis_dict["size"])
     md = DTBox(signal["metadata"], box_dots=True)
     if signal["original_metadata"].get("FORMAT", None) == FORMAT:
         loc_kwds = signal["original_metadata"]
@@ -465,16 +502,16 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
         "DATE": "",
         "TIME": "",
         "OWNER": "",
-        "NPOINTS": signal["axes"][0]["size"],
+        "NPOINTS": x_axis.size,
         "NCOLUMNS": 1,
         "DATATYPE": format,
         "SIGNALTYPE": "",
-        "XPERCHAN": signal["axes"][0]["scale"],
-        "OFFSET": signal["axes"][0]["offset"],
+        "XPERCHAN": scale,
+        "OFFSET": offset,
         # Signal1D characteristics
-        "XLABEL": signal["axes"][0]["name"],
+        "XLABEL": axis_dict["name"],
         # "YLABEL" : getattr(md, "Signal.quantity", ""),
-        "XUNITS": signal["axes"][0]["units"],
+        "XUNITS": axis_dict["units"],
         #        'YUNITS' : '',
     }
     if "COMMENT" not in loc_kwds:
@@ -537,12 +574,8 @@ def file_writer(filename, signal, format="Y", separator=", ", encoding="latin-1"
         f.write("#%-12s: Spectral Data Starts Here\u000d\u000a" % "SPECTRUM")
 
         if format == "XY":
-            axis_dict = signal["axes"][0]
-            axis = axis_dict["offset"] + axis_dict["scale"] * np.arange(
-                axis_dict["size"]
-            )
-            for x, y in zip(axis, signal["data"]):
-                f.write("%g%s%g" % (x, separator, y))
+            for x, y in zip(x_axis, signal["data"]):
+                f.write("%r%s%g" % (float(x), separator, y))
                 f.write("\u000d\u000a")
         elif format == "Y":
             for y in signal["data"]:

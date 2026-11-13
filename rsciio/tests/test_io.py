@@ -106,8 +106,6 @@ class TestNonUniformAxisCheck:
     def test_io_nonuniform(self, tmp_path):
         assert self.s.axes_manager[0].is_uniform is False
         self.s.save(tmp_path / "tmp.hspy")
-        with pytest.raises(TypeError, match="not supported for non-uniform"):
-            self.s.save(tmp_path / "tmp.msa")
 
     def test_nonuniform_writer_characteristic(self):
         for plugin in IO_PLUGINS:

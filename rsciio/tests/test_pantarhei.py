@@ -18,6 +18,7 @@
 
 
 import io
+import json
 import logging
 from pathlib import Path
 
@@ -25,6 +26,7 @@ import dask.array as da
 import numpy as np
 import pytest
 
+from rsciio.pantarhei import file_reader
 from rsciio.pantarhei._restricted_unpickling import (
     InvalidPickleError,
     read_pickled_array,
@@ -304,3 +306,72 @@ def test_lazy_loading_with_chunks():
     assert isinstance(s.data, da.Array)
     assert s.data.chunksize == (8, 8)
     assert s.data.shape == (16, 16)
+
+
+@pytest.mark.parametrize("shape", [(2, 3), (20, 50)])
+def test_lazy_loading_compressed_writer_output(tmp_path, shape):
+    filename = tmp_path / "compressed.prz"
+    expected = np.arange(np.prod(shape), dtype=np.int64).reshape(shape)
+    hs.signals.Signal2D(expected).save(filename)
+
+    eager = hs.load(filename)
+    lazy = hs.load(filename, lazy=True, chunks=(2, 3))
+    assert isinstance(lazy.data, da.Array)
+    np.testing.assert_array_equal(eager.data, expected)
+    np.testing.assert_array_equal(lazy.data.compute(), expected)
+    assert lazy.data.dtype == expected.dtype
+    assert lazy.data.chunksize == (2, 3)
+
+
+@pytest.mark.parametrize("dtype", [np.uint16, np.float32, np.complex64])
+@pytest.mark.parametrize("order", ["C", "F"])
+def test_lazy_loading_compressed_json_metadata(tmp_path, dtype, order):
+    filename = tmp_path / "compressed_json.prz"
+    expected = np.array(np.arange(24).reshape(4, 6), dtype=dtype, order=order)
+    with filename.open("wb") as f:
+        np.savez_compressed(f, data=expected, meta_data_json=json.dumps([{}]))
+
+    lazy = file_reader(filename, lazy=True, chunks=(2, 3))[0]["data"]
+    assert isinstance(lazy, da.Array)
+    assert lazy.dtype == expected.dtype
+    assert lazy.chunksize == (2, 3)
+    np.testing.assert_array_equal(lazy.compute(), expected)
+
+
+def test_lazy_loading_compressed_defers_read(tmp_path, monkeypatch):
+    filename = tmp_path / "deferred.prz"
+    expected = np.arange(24, dtype=np.uint16).reshape(4, 6)
+    with filename.open("wb") as f:
+        np.savez_compressed(f, data=expected, meta_data_json=json.dumps([{}]))
+
+    data_reads = []
+    getitem = np.lib.npyio.NpzFile.__getitem__
+
+    def record_data_read(self, key):
+        if key == "data":
+            data_reads.append(key)
+        return getitem(self, key)
+
+    monkeypatch.setattr(np.lib.npyio.NpzFile, "__getitem__", record_data_read)
+    lazy = file_reader(filename, lazy=True, chunks=(2, 3))[0]["data"]
+    assert data_reads == []
+    np.testing.assert_array_equal(lazy.compute(scheduler="single-threaded"), expected)
+    assert data_reads == ["data"]
+
+
+def test_lazy_loading_compressed_rejects_memmap_arguments(tmp_path):
+    filename = tmp_path / "compressed.prz"
+    with filename.open("wb") as f:
+        np.savez_compressed(f, data=np.zeros((4, 6)), meta_data_json=json.dumps([{}]))
+    with pytest.raises(TypeError, match="compressed PRZ data: order"):
+        file_reader(filename, lazy=True, order="F")
+
+
+def test_lazy_loading_compressed_block_size_limit(tmp_path):
+    filename = tmp_path / "compressed.prz"
+    expected = np.arange(100, dtype=np.uint16).reshape(10, 10)
+    with filename.open("wb") as f:
+        np.savez_compressed(f, data=expected, meta_data_json=json.dumps([{}]))
+    lazy = file_reader(filename, lazy=True, block_size_limit=32)[0]["data"]
+    assert np.prod(lazy.chunksize) * lazy.dtype.itemsize <= 32
+    np.testing.assert_array_equal(lazy.compute(), expected)

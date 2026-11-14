@@ -72,9 +72,16 @@ def file_reader(
         This poses a security risk, use only for completely trusted prz files.
     **kwargs : dict, optional
         Additional keyword arguments passed to :func:`rsciio.utils.file.memmap_distributed`
-        when ``lazy=True``.
+        when ``lazy=True`` for uncompressed data. For compressed data, only
+        ``block_size_limit`` is supported in addition to ``chunks``.
 
     %s
+
+    Notes
+    -----
+    Lazy loading of compressed data defers decompression until computation.
+    The complete data array must fit in memory, even when smaller chunks are
+    requested. Uncompressed data can be loaded directly in individual chunks.
     """
     if Path(filename).suffix != ".prz":
         raise ValueError("Only prz files are supported")
@@ -110,26 +117,46 @@ def file_reader(
             with zf.open("data.npy") as f:
                 offset_in_npy, shape, dtype_str = inspect_npy_bytes(f)
 
-        with open(filename, "rb") as f:
-            # data_info.header_offset points to the local file header
-            f.seek(data_info.header_offset)
-            # Read local file header (30 bytes minimum)
-            local_header = f.read(30)
-            # Extract filename length and extra field length (bytes 26-30)
-            filename_len, extra_len = struct.unpack("<HH", local_header[26:30])
-            # The actual file data starts after: header (30) + filename + extra + npy_header
-            zip_data_offset = data_info.header_offset + 30 + filename_len + extra_len
-            # Add the offset within the .npy file itself
-            offset = zip_data_offset + offset_in_npy
+        if data_info.compress_type != zipfile.ZIP_STORED:
+            from dask import delayed
+            from dask.array import from_delayed
 
-        data = memmap_distributed(
-            filename,
-            offset=offset,
-            shape=shape,
-            dtype=np.dtype(dtype_str),
-            chunks=chunks,
-            **kwargs,
-        )
+            block_size_limit = kwargs.pop("block_size_limit", None)
+            if kwargs:
+                prz_file.close()
+                raise TypeError(
+                    "Memory-mapping arguments are not supported for compressed PRZ data: "
+                    + ", ".join(kwargs)
+                )
+            # Offsets in the decompressed NPY stream cannot index the ZIP file.
+            # Reopen it inside the task so the graph also works on other workers.
+            task = delayed(_read_compressed_data)(filename)
+            data = from_delayed(task, shape=shape, dtype=np.dtype(dtype_str)).rechunk(
+                chunks, block_size_limit=block_size_limit
+            )
+        else:
+            with open(filename, "rb") as f:
+                # data_info.header_offset points to the local file header
+                f.seek(data_info.header_offset)
+                # Read local file header (30 bytes minimum)
+                local_header = f.read(30)
+                # Extract filename length and extra field length (bytes 26-30)
+                filename_len, extra_len = struct.unpack("<HH", local_header[26:30])
+                # The actual file data starts after: header (30) + filename + extra + npy_header
+                zip_data_offset = (
+                    data_info.header_offset + 30 + filename_len + extra_len
+                )
+                # Add the offset within the .npy file itself
+                offset = zip_data_offset + offset_in_npy
+
+            data = memmap_distributed(
+                filename,
+                offset=offset,
+                shape=shape,
+                dtype=np.dtype(dtype_str),
+                chunks=chunks,
+                **kwargs,
+            )
     else:
         data = prz_file["data"]
 
@@ -138,6 +165,11 @@ def file_reader(
 
 
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, CHUNKS_DOC, RETURNS_DOC)
+
+
+def _read_compressed_data(filename):
+    with np.load(filename, allow_pickle=False) as prz_file:
+        return prz_file["data"]
 
 
 def file_writer(filename: str | Path, signal: dict) -> None:

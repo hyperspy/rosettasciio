@@ -2,7 +2,7 @@
 [![Tests](https://github.com/hyperspy/rosettasciio/workflows/Tests/badge.svg)](https://github.com/hyperspy/rosettasciio/actions)
 [![Codecov Status](https://codecov.io/gh/hyperspy/rosettasciio/branch/main/graph/badge.svg?token=8ZFX8X4Z1I)](https://codecov.io/gh/hyperspy/rosettasciio)
 [![Documentation Status](https://readthedocs.org/projects/rosettasciio/badge/?version=latest)](https://rosettasciio.readthedocs.io/en/latest/?badge=latest)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 [![Python Version](https://img.shields.io/pypi/pyversions/rosettasciio.svg?style=flat)](https://pypi.python.org/pypi/rosettasciio)
 [![PyPi Version](https://img.shields.io/pypi/v/rosettasciio.svg?style=flat)](https://pypi.python.org/pypi/rosettasciio)

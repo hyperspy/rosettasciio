@@ -11,8 +11,7 @@ of arbitrary dimensions. It is based on the `HDF5 open standard
 Parts of the specifications are documented in :external+hyperspy:ref:`metadata_structure`.
 
 .. versionadded:: HyperSpy_v1.2
-    Enable saving HSpy files with the ``.hspy`` extension. Previously only the
-    ``.hdf5`` extension was recognised.
+    Support for the ``.hspy`` file extension, in addition to ``.hdf5``.
 
 .. versionchanged:: HyperSpy_v1.3
     The default extension for the HyperSpy HDF5 specification is now ``.hspy``.

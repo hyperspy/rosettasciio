@@ -3,18 +3,8 @@
 #
 # This file is part of RosettaSciIO.
 #
-# RosettaSciIO is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# RosettaSciIO is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
+# SPDX-License-Identifier: BSD-3-Clause
+# See the LICENSE file at the root of the repository for the full license text.
 
 import logging
 import os
@@ -595,8 +585,7 @@ def ser_reader(filename, objects=None, lazy=False, only_valid_data=True):
             }
         )
 
-        # FEI seems to use the international system of units (SI) for the
-        # energy scale (eV).
+        # The energy axis of FEI spectra is always in eV
         axes[-1]["units"] = "eV"
         axes[-1]["name"] = "Energy"
 

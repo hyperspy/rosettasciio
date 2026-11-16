@@ -1,0 +1,1 @@
+RosettaSciIO is now distributed under the permissive BSD 3-Clause license instead of the GNU General Public License v3 or later, with the agreement of its contributors. This applies to this release and later; earlier releases remain available under GPL-3.0-or-later.

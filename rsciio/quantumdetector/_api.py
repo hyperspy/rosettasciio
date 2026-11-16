@@ -4,20 +4,12 @@
 #
 # This file is part of RosettaSciIO.
 #
-# RosettaSciIO is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# SPDX-License-Identifier: BSD-3-Clause
+# See the LICENSE file at the root of the repository for the full license text.
 #
-# RosettaSciIO is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
-#
-# Adapted from https://github.com/matkraj/read_mib under GPL-3.0 license
+# Adapted from https://github.com/matkraj/read_mib (GPL-3.0). Relicensed under
+# BSD-3-Clause with the permission of its author, see
+# https://github.com/hyperspy/rosettasciio/issues/51
 
 import logging
 import os

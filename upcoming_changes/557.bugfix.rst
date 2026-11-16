@@ -1,0 +1,1 @@
+Fix Direct Electron MRC 4D-STEM reader setting every axis scale to 1 instead of the pixel sizes read from the ``_info.txt`` metadata file.

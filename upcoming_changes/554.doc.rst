@@ -1,0 +1,1 @@
+LLM-friendly documentation is now published following the `llms.txt <https://llmstxt.org/>`_ standard: a ``llms.txt`` index, a markdown version of each page and a ``llms-full.txt`` file are generated alongside the HTML documentation using the `sphinx-llm <https://github.com/NVIDIA/sphinx-llm>`_ extension so that LLMs and AI agents can easily consume the documentation.

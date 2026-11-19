@@ -616,3 +616,16 @@ def test_nxdata_tag_str_or_bytes():
 
     assert len(nx) == 2
     assert len(hdf5) == 2
+
+
+def test_interpretation_on_signal_dataset(tmp_path):
+    fname = tmp_path / "interpretation.nxs"
+    with h5py.File(fname, "w") as f:
+        nxdata = f.create_group("entry/data")
+        nxdata.attrs["NX_class"] = "NXdata"
+        nxdata.attrs["signal"] = "data"
+        dataset = nxdata.create_dataset("data", data=np.zeros((2, 3, 4)))
+        dataset.attrs["interpretation"] = "image"
+
+    s = hs.load(fname, nxdata_only=True)
+    assert s.axes_manager.signal_shape == (4, 3)

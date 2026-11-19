@@ -1,0 +1,1 @@
+Read the NeXus ``interpretation`` attribute from the signal dataset when it is not set on the ``NXdata`` group, so that such files load with the correct signal dimension.

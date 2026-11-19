@@ -390,10 +390,12 @@ def _nexus_dataset_to_signal(group, nexus_dataset_path, lazy=False):
         else:
             data_key = "data"
 
+    data = dataentry[data_key]
     if "interpretation" in dataentry.attrs.keys():
         interpretation = _parse_from_file(dataentry.attrs["interpretation"])
+    elif "interpretation" in data.attrs.keys():
+        interpretation = _parse_from_file(data.attrs["interpretation"])
 
-    data = dataentry[data_key]
     nav_list = _get_nav_list(data, dataentry)
 
     if lazy:

@@ -36,8 +36,8 @@ a ``.nxs`` extension although standard HDF5 extensions are sometimes used.
 The loader will follow version 3 of the
 `NeXus data rules <https://manual.nexusformat.org/datarules.html#version-3>`_.
 The signal type, Signal1D or Signal2D, will be inferred by the ``interpretation``
-attribute, if this is set to ``spectrum`` or ``image``, in the ``NXdata``
-description. If the `interpretation
+attribute, if this is set to ``spectrum`` or ``image``, on the ``NXdata``
+group or on its signal dataset. If the `interpretation
 <https://manual.nexusformat.org/design.html#design-attributes>`_ attribute is
 not set, the loader will return a ``BaseSignal``, which must then be converted
 to the appropriate signal type. Following the NeXus data rules, if a ``default``

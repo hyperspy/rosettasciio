@@ -3,7 +3,7 @@ Installation
 
 RosettaSciIO can be installed with `pip <https://pip.pypa.io/>`_,
 `conda <https://docs.conda.io/>`_, the
-:ref:`hyperspy:hyperspy-bundle`, or from source, and supports Python >= 3.8.
+:ref:`hyperspy:hyperspy-bundle`, or from source, and supports Python >= 3.11.
 All alternatives are available on Windows, macOS and Linux.
 
 For using HyperSpy, it is not necessary to install RosettaSciIO separately, as it would
@@ -57,7 +57,7 @@ The list of *extras*:
 +---------------------+-------------------------+------------------------------------------------------------------------------+
 | ``hdf5``            | ``h5py``                | Reading hdf5-based file formats (``hspy``, ``de5``, ``emd``, ``usid``, etc.) |
 +---------------------+-------------------------+------------------------------------------------------------------------------+
-| ``image``           | ``imageio``             | Reading images, other than tiff format.                                      |
+| ``image``           | ``imageio``, ``pillow`` | Reading images, other than tiff format.                                      |
 +---------------------+-------------------------+------------------------------------------------------------------------------+
 | ``mrcz``            | ``mrcz``                | Reading ``mrc`` and ``mrcz`` format.                                         |
 +---------------------+-------------------------+------------------------------------------------------------------------------+
@@ -71,6 +71,8 @@ The list of *extras*:
 +---------------------+-------------------------+------------------------------------------------------------------------------+
 | ``zspy``            | ``zarr``                | Read ``zspy`` files.                                                         |
 +---------------------+-------------------------+------------------------------------------------------------------------------+
+
+The ``image`` extra requires ``pillow>=13.0.0``.
 
 And for development, the following *extras* are available (see ``pyproject.toml`` for more information):
 

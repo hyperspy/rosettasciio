@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rosettasciio"
 description = "Reading and writing scientific file formats"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 readme = "README.md"
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -108,7 +108,7 @@ tiff = [
 ]
 tofwerk = ["h5py>=3.8.0"]
 usid = ["pyUSID>=0.0.11"]
-zspy = ["zarr>=2,<3", "msgpack"]
+zspy = ["zarr>=2,<3", "msgpack", "numcodecs>=0.15.2,<0.16.0"]
 tests = [
   "filelock",
   "pooch",

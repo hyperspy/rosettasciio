@@ -16,12 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with RosettaSciIO. If not, see <https://www.gnu.org/licenses/#GPL>.
 
+import builtins
 import gc
+import os
+import shutil
 import zipfile
 from pathlib import Path
 
 import numpy as np
 import pytest
+
+from rsciio.jeol import file_reader
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
 
@@ -76,6 +81,70 @@ TEST_FILES2 = [
     "Dummy-Data_0000023.pts",
     "Dummy-Data_0000024.APB",
 ]
+
+_ASW_REFERENCE = b".\\Sample\\00_View000\\View000_0000000.img"
+
+
+def _build_asw_fixture(tmp_path, reference, name="rawdata.ASW"):
+    root = tmp_path / "asw"
+    root.mkdir()
+    asw_path = root / name
+    shutil.copy(TESTS_FILE_PATH / "rawdata.ASW", asw_path)
+    shutil.copytree(TESTS_FILE_PATH / "Sample", root / "Sample")
+    data = asw_path.read_bytes()
+    assert data.count(_ASW_REFERENCE) == 1
+    assert len(reference) == len(_ASW_REFERENCE)
+    asw_path.write_bytes(data.replace(_ASW_REFERENCE, reference))
+    return asw_path
+
+
+def _track_opened(monkeypatch):
+    opened = []
+    real_open = builtins.open
+
+    def tracking_open(file, *args, **kwargs):
+        try:
+            opened.append(os.path.realpath(os.fspath(file)))
+        except (TypeError, ValueError):
+            pass
+        return real_open(file, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "open", tracking_open)
+    return opened
+
+
+def test_reject_asw_reference_outside_project_directory(tmp_path, monkeypatch):
+    asw_path = _build_asw_fixture(
+        tmp_path, b".\\" * 5 + b"..\\outside\\secret-image11.img"
+    )
+    outside = tmp_path / "outside" / "secret-image11.img"
+    outside.parent.mkdir()
+    shutil.copy(
+        TESTS_FILE_PATH / "Sample" / "00_View000" / "View000_0000000.img",
+        outside,
+    )
+    opened = _track_opened(monkeypatch)
+
+    with pytest.raises(ValueError, match="outside the ASW directory"):
+        file_reader(str(asw_path))
+
+    assert os.path.realpath(outside) not in opened
+
+
+def test_reject_recursive_asw_reference(tmp_path, monkeypatch):
+    asw_path = _build_asw_fixture(
+        tmp_path,
+        b".\\" * 12 + b"rawdataABCD.ASW",
+        name="rawdataABCD.ASW",
+    )
+    opened = _track_opened(monkeypatch)
+
+    with pytest.raises(ValueError, match="recursive JEOL ASW reference") as excinfo:
+        file_reader(str(asw_path))
+
+    real_asw_path = os.path.realpath(asw_path)
+    assert real_asw_path in str(excinfo.value)
+    assert opened.count(real_asw_path) == 1
 
 
 def test_load_project():

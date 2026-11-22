@@ -129,24 +129,37 @@ def file_reader(
         frame_shifts=frame_shifts,
         frame_start_index=frame_start_index,
     )
+    return _file_reader_dispatch(filename, **kwargs)
+
+
+def _file_reader_dispatch(filename, _asw_visited=None, **kwargs):
     file_ext = os.path.splitext(filename)[-1][1:].lower()
     if file_ext in extension_to_reader_mapping:
-        return extension_to_reader_mapping[file_ext](filename, **kwargs)
-    else:
-        _logger.info(f"{filename} : File type {file_ext} is not supported. Skipping")
-        return []
+        reader = extension_to_reader_mapping[file_ext]
+        if reader is _read_asw:
+            return reader(filename, _asw_visited=_asw_visited, **kwargs)
+        return reader(filename, **kwargs)
+    _logger.info(f"{filename} : File type {file_ext} is not supported. Skipping")
+    return []
 
 
-def _read_asw(filename, **kwargs):
+def _read_asw(filename, _asw_visited=None, **kwargs):
+    asw_path = os.path.realpath(filename)
+    if _asw_visited is None:
+        _asw_visited = set()
+    if asw_path in _asw_visited:
+        raise ValueError(f"recursive JEOL ASW reference: {asw_path}")
+    _asw_visited.add(asw_path)
+
     image_list = []
-    with open(filename, "br") as fd:
+    with open(asw_path, "br") as fd:
         file_magic = np.fromfile(fd, "<I", 1)[0]
         if file_magic != 0:
             raise ValueError(f"Not a valid JEOL asw format '{filename}'")
         fd.seek(12)
         filetree = _parsejeol(fd)
 
-    filepath, filen = os.path.split(os.path.abspath(filename))
+    base = os.path.realpath(os.path.dirname(asw_path))
     if "SampleInfo" in filetree:
         for i in filetree["SampleInfo"].keys():
             if "ViewInfo" in filetree["SampleInfo"][i]:
@@ -157,10 +170,24 @@ def _read_asw(filename, **kwargs):
                             node2 = node["ViewData"][k]
                             # path tuple contains:
                             # root, sample_folder, view_folder, data_file
-                            path = node["ViewData"][k]["Filename"].split("\\")
+                            reference = node["ViewData"][k]["Filename"]
+                            path = reference.split("\\")
                             subfile = os.path.join(*path)
-                            file_path = os.path.join(filepath, subfile)
-                            dict_list = file_reader(file_path, **kwargs)
+                            candidate = os.path.realpath(os.path.join(base, subfile))
+                            try:
+                                is_contained = (
+                                    os.path.commonpath([base, candidate]) == base
+                                )
+                            except ValueError:
+                                is_contained = False
+                            if not is_contained:
+                                raise ValueError(
+                                    f"JEOL ASW reference {reference!r} is outside "
+                                    f"the ASW directory {base!r}"
+                                )
+                            dict_list = _file_reader_dispatch(
+                                candidate, _asw_visited=_asw_visited, **kwargs
+                            )
                             for d in dict_list:
                                 d["original_metadata"]["asw"] = filetree
                                 d["original_metadata"]["asw_viewdata"] = node2

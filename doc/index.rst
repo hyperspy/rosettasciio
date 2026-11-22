@@ -27,8 +27,9 @@ well represented.
     :link: user_guide/install
     :link-type: doc
 
-    :octicon:`rocket;2em;sd-text-info` Getting Started
-    ^^^
+    .. card-header::
+
+      :octicon:`rocket;2em;sd-text-info` Getting Started
 
     New to RosettaSciIO or Python? Find information on how to
     install RosettaSciIO.
@@ -37,8 +38,9 @@ well represented.
     :link: supported_formats/index
     :link-type: doc
 
-    :octicon:`checklist;2em;sd-text-info` Supported Formats
-    ^^^
+    .. card-header::
+
+      :octicon:`checklist;2em;sd-text-info` Supported Formats
 
     Overview of the different file formats that RosettaSciIO can read
     from and write to, as well as information on specific options if applicable.
@@ -47,8 +49,9 @@ well represented.
     :link: user_guide/interoperability
     :link-type: doc
 
-    :octicon:`arrow-switch;2em;sd-text-info` Interoperability
-    ^^^
+    .. card-header::
+
+      :octicon:`arrow-switch;2em;sd-text-info` Interoperability
 
     Information on scripts and packages that allow opening data saved using
     RosettaSciIO with third-party programs.
@@ -57,8 +60,9 @@ well represented.
     :link: file_specification/index
     :link-type: doc
 
-    :octicon:`checklist;2em;sd-text-info` File Specifications
-    ^^^
+    .. card-header::
+
+      :octicon:`checklist;2em;sd-text-info` File Specifications
 
     Links to or documentation of file specifications for
     some of the formats supported by RosettaSciIO.
@@ -67,8 +71,9 @@ well represented.
     :link: api/index
     :link-type: doc
 
-    :octicon:`book;2em;sd-text-info` API Reference
-    ^^^
+    .. card-header::
+
+      :octicon:`book;2em;sd-text-info` API Reference
 
     Documentation describing how to use RosettaSciIO with other
     libraries than HyperSpy or for custom implementations using the
@@ -78,8 +83,9 @@ well represented.
     :link: contributing
     :link-type: doc
 
-    :octicon:`code-square;2em;sd-text-info` Contributing
-    ^^^
+    .. card-header::
+
+      :octicon:`code-square;2em;sd-text-info` Contributing
 
     Information on how to implement new file plugins or help improve existing ones.
 

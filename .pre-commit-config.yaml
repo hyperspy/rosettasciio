@@ -1,4 +1,10 @@
+default_install_hook_types: [pre-commit, commit-msg]
 repos:
+  - repo: https://github.com/hyperspy/.github
+    rev: 267caabd9579a10d8614d8dcc3cb74f02132b73e
+    hooks:
+      - id: check-ai-co-author
+      - id: check-agents-policy
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
     rev: v0.16.10

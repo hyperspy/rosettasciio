@@ -473,6 +473,8 @@ def test_write_data_line(save_path):
         signal.save(save_path, overwrite=True)
     sig_reload = hs.load(save_path)
     np.testing.assert_equal(signal.data, sig_reload.data)
+    assert sig_reload.axes_manager.navigation_shape == (3,)
+    assert sig_reload.axes_manager.signal_shape == (5, 5)
 
 
 def test_write_data_single(save_path):
@@ -482,6 +484,8 @@ def test_write_data_single(save_path):
         signal.save(save_path, overwrite=True)
     sig_reload = hs.load(save_path)
     np.testing.assert_equal(signal.data, sig_reload.data)
+    assert sig_reload.axes_manager.navigation_shape == ()
+    assert sig_reload.axes_manager.signal_shape == (5, 5)
 
 
 def test_write_data_am_mismatch(save_path):

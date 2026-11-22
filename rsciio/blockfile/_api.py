@@ -285,7 +285,7 @@ def file_reader(filename, lazy=False, chunks="auto", endianness="<"):
         f.seek(offset2)
         data = np.fromfile(f, dtype=frame_dtype)["data"]
         try:
-            data = data.reshape(navigation_shape + signal_shape).squeeze()
+            data = data.reshape(navigation_shape + signal_shape)
         except ValueError:
             warnings.warn(
                 "Blockfile header dimensions larger than file size! "
@@ -294,7 +294,7 @@ def file_reader(filename, lazy=False, chunks="auto", endianness="<"):
             # Data is stored DP by DP:
             pw = [(0, np.prod(navigation_shape) - data.shape[0]), (0, 0)]
             data = np.pad(data, pw, mode="constant")
-            data = data.reshape(navigation_shape + signal_shape).squeeze()
+            data = data.reshape(navigation_shape + signal_shape)
     else:
         frame_dtype = np.dtype(
             [
@@ -327,18 +327,23 @@ def file_reader(filename, lazy=False, chunks="auto", endianness="<"):
         "Signal": {"signal_type": "diffraction"},
     }
     # Create the axis objects for each axis
-    dim = data.ndim
+    if lazy:
+        axes_index = [0, 1, 2, 3]
+    else:
+        # Drop navigation axes of size 1 (line scan or single pattern)
+        axes_index = [i for i, n in enumerate(navigation_shape) if n != 1] + [2, 3]
+        data = data.reshape(tuple(data.shape[i] for i in axes_index))
     axes = [
         {
-            "size": data.shape[i],
-            "index_in_array": i,
+            "size": data.shape[index_in_array],
+            "index_in_array": index_in_array,
             "name": names[i],
             "scale": scales[i],
             "offset": 0.0,
             "units": units[i],
             "navigate": navigate[i],
         }
-        for i in range(dim)
+        for index_in_array, i in enumerate(axes_index)
     ]
 
     dictionary = {

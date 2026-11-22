@@ -159,6 +159,19 @@ def test_mrc_metadata_auto():
     assert s.data.shape == shape
 
 
+def test_mrc_metadata_axes_scales():
+    # Pixel sizes come from the DE info file:
+    # Specimen Pixel Size X/Y = 0.1/0.2 nm, Diffraction Pixel Size X/Y = 0.1
+    s = hs.load(TEST_DATA_DIR / "20241021_00405_movie.mrc", lazy=True)
+    nav_x, nav_y = s.axes_manager.navigation_axes
+    sig_x, sig_y = s.axes_manager.signal_axes
+    assert (nav_x.name, nav_y.name) == ("x", "y")
+    np.testing.assert_allclose(nav_x.scale, 0.1)
+    np.testing.assert_allclose(nav_y.scale, 0.2)
+    np.testing.assert_allclose(sig_x.scale, 0.1)
+    np.testing.assert_allclose(sig_y.scale, 0.1)
+
+
 def test_mrc_metadata_auto_custom_shape():
     s = hs.load(
         TEST_DATA_DIR / "20241021_00405_movie.mrc", lazy=True, navigation_shape=(16, 2)

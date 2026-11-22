@@ -215,3 +215,34 @@ def test_owned_zipstore_is_closed_when_the_file_is_rejected(tmp_path, monkeypatc
         file_reader(str(filename))
 
     assert len(closed) == 1
+
+
+@pytest.mark.parametrize("store_name", ["N5Store", "N5FSStore"])
+def test_physical_zarray_inside_an_n5_store_fails_closed(tmp_path, store_name):
+    root = tmp_path / "n5-physical"
+    store = zarr.N5Store(str(root))
+    store["a/attributes.json"] = json.dumps(
+        {
+            "dimensions": [4],
+            "blockSize": [4],
+            "dataType": "<f8",
+            "compression": {"type": "raw"},
+        }
+    ).encode()
+    # N5Store translates ".zarray" to attributes.json on read, so the raw
+    # file is written through a plain DirectoryStore.
+    zarr.storage.DirectoryStore(str(root))["a/.zarray"] = json.dumps(
+        {
+            "zarr_format": 2,
+            "shape": [4],
+            "chunks": [4],
+            "dtype": "<f8",
+            "compressor": {"id": "pickle"},
+            "filters": None,
+            "fill_value": 0,
+            "order": "C",
+        }
+    ).encode()
+
+    with pytest.raises(_UnsafeCodecError, match="'a'"):
+        _validate_zspy_codecs(getattr(zarr, store_name)(str(root)))

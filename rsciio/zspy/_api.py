@@ -377,6 +377,17 @@ def _raise_malformed_metadata(array_path, reason):
     raise _malformed_metadata_error(array_path, reason)
 
 
+def _has_n5_chunk(keys, array_path):
+    prefix = f"{array_path}/" if array_path else ""
+    for key in keys:
+        if not key.startswith(prefix):
+            continue
+        relative = key[len(prefix) :]
+        if relative and all(part.isdigit() for part in relative.split("/")):
+            return True
+    return False
+
+
 def _iter_candidate_arrays(keys, store, selected_path):
     """Read the selected raw metadata of every candidate array."""
     keys = [str(key) for key in keys]
@@ -409,6 +420,7 @@ def _iter_candidate_arrays(keys, store, selected_path):
             "origin": origin,
             "raw": None,
             "problem": None,
+            "group": False,
         }
         try:
             if origin == "n5_zarray":
@@ -424,10 +436,21 @@ def _iter_candidate_arrays(keys, store, selected_path):
             # the codec decision this preflight makes.
             item["raw"] = _parse_raw_metadata(raw)
         except Exception as exc:
-            error = _malformed_metadata_error(array_path, "could not read metadata")
+            reason = (
+                "could not determine N5 array metadata"
+                if origin == "n5"
+                else "could not read metadata"
+            )
+            error = _malformed_metadata_error(array_path, reason)
             error.__cause__ = exc
             error.__suppress_context__ = True
             item["problem"] = error
+        if (
+            origin == "n5"
+            and isinstance(item["raw"], Mapping)
+            and "dimensions" not in item["raw"]
+        ):
+            item["group"] = not _has_n5_chunk(keys, array_path)
         candidates.append(item)
     return sorted(candidates, key=lambda item: (item["path"], item["key"]))
 
@@ -493,7 +516,12 @@ def _scan_candidate_codecs(item):
         except _UnsafeCodecError:
             raise
         except Exception as exc:
-            problems.append(exc)
+            error = _malformed_metadata_error(
+                item["path"], "could not determine N5 array metadata"
+            )
+            error.__cause__ = exc
+            error.__suppress_context__ = True
+            problems.append(error)
             return problems
         if config is not None:
             _scan_codec_entry(config, item["path"], problems)
@@ -506,6 +534,96 @@ def _scan_candidate_codecs(item):
         for codec in filters:
             _scan_codec_entry(codec, item["path"], problems)
     return problems
+
+
+def _validate_shape_values(value, field, positive, array_path):
+    if not isinstance(value, (list, tuple)) or any(
+        isinstance(item, bool)
+        or not isinstance(item, int)
+        or (item <= 0 if positive else item < 0)
+        for item in value
+    ):
+        _raise_malformed_metadata(
+            array_path, f"invalid {field!r}: expected integer list"
+        )
+
+
+def _inspect_array_metadata(metadata, array_path):
+    """Validate the Zarr array document before Zarr constructs anything."""
+    if not isinstance(metadata, Mapping):
+        _raise_malformed_metadata(array_path, "metadata is not a mapping")
+    required = (
+        "zarr_format",
+        "shape",
+        "chunks",
+        "dtype",
+        "compressor",
+        "fill_value",
+        "order",
+        "filters",
+    )
+    for field in required:
+        if field not in metadata:
+            _raise_malformed_metadata(array_path, f"missing {field!r}")
+    if metadata["zarr_format"] != 2:
+        _raise_malformed_metadata(
+            array_path,
+            f"unsupported zarr_format {metadata['zarr_format']!r}",
+        )
+    _validate_shape_values(metadata["shape"], "shape", False, array_path)
+    _validate_shape_values(metadata["chunks"], "chunks", True, array_path)
+    if len(metadata["shape"]) != len(metadata["chunks"]):
+        _raise_malformed_metadata(
+            array_path, "invalid 'chunks': rank differs from 'shape'"
+        )
+    if metadata["order"] not in ("C", "F"):
+        _raise_malformed_metadata(array_path, "invalid 'order': expected 'C' or 'F'")
+    if metadata.get("dimension_separator", ".") not in (".", "/"):
+        _raise_malformed_metadata(
+            array_path, "invalid 'dimension_separator': expected '.' or '/'"
+        )
+    if metadata["filters"] is not None and not isinstance(
+        metadata["filters"], (list, tuple)
+    ):
+        _raise_malformed_metadata(array_path, "filters is not a list")
+
+
+def _decode_array_metadata(metadata, array_path):
+    """Decode dtype and fill with Zarr, keeping the array path on failure."""
+    try:
+        zarr.meta.decode_array_metadata(json.dumps(metadata))
+    except Exception as exc:
+        raise ValueError(
+            "Malformed ZSPY array metadata for "
+            f"{array_path or '<root>'!r}: could not decode array metadata"
+        ) from exc
+
+
+def _inspect_n5_metadata(metadata, array_path):
+    """Validate the N5 array document before Zarr constructs anything."""
+    if not isinstance(metadata, Mapping):
+        _raise_malformed_metadata(array_path, "metadata is not a mapping")
+    for field in ("dimensions", "blockSize", "dataType", "compression"):
+        if field not in metadata:
+            _raise_malformed_metadata(
+                array_path,
+                f"could not determine N5 array metadata: missing {field!r}",
+            )
+    for field in ("dimensions", "blockSize"):
+        if not isinstance(metadata[field], (list, tuple)):
+            _raise_malformed_metadata(
+                array_path,
+                f"could not determine N5 array metadata: invalid {field!r}",
+            )
+    if not isinstance(metadata["dataType"], str):
+        _raise_malformed_metadata(
+            array_path, "could not determine N5 array metadata: invalid 'dataType'"
+        )
+    if not isinstance(metadata["compression"], Mapping):
+        _raise_malformed_metadata(
+            array_path,
+            "could not determine N5 array metadata: invalid 'compression'",
+        )
 
 
 def _validate_zspy_codecs(store, path=None):
@@ -528,6 +646,12 @@ def _validate_zspy_codecs(store, path=None):
             raise item["problem"]
         if item["codec_problems"]:
             raise item["codec_problems"][0]
+        if item["origin"] == "n5":
+            if not item.get("group"):
+                _inspect_n5_metadata(item["raw"], item["path"])
+        else:
+            _inspect_array_metadata(item["raw"], item["path"])
+            _decode_array_metadata(item["raw"], item["path"])
 
 
 def file_reader(filename, lazy=False, **kwds):

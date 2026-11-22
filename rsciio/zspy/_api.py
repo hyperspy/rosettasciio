@@ -545,23 +545,28 @@ def file_reader(filename, lazy=False, **kwds):
     %s
     """
     # check that this is a not zarr store before checking if it is a zip file
+    owns_zip_store = False
     if not isinstance(filename, MutableMapping) and zipfile.is_zipfile(filename):
         filename = zarr.storage.ZipStore(filename, mode="r")
+        owns_zip_store = True
 
-    if isinstance(filename, zarr.storage.ZipStore) and "mode" in kwds.keys():
-        _logger.warning(
-            "Specifying `mode` when opening a zspy file with a ZipStore is not supported."
-        )
-
-    # if lazy is True, we need to open the file in read/write mode
-    # to be able to write later
-    kwds.setdefault("mode", "r+" if lazy else "r")
-
-    storage_options = kwds.pop("storage_options", None)
-    store = _normalize_zspy_store(filename, kwds["mode"], storage_options)
-    _validate_zspy_codecs(store, kwds.get("path"))
+    completed = False
     try:
+        if isinstance(filename, zarr.storage.ZipStore) and "mode" in kwds.keys():
+            _logger.warning(
+                "Specifying `mode` when opening a zspy file with a ZipStore is not supported."
+            )
+
+        # if lazy is True, we need to open the file in read/write mode
+        # to be able to write later
+        kwds.setdefault("mode", "r+" if lazy else "r")
+
+        storage_options = kwds.pop("storage_options", None)
+        store = _normalize_zspy_store(filename, kwds["mode"], storage_options)
+        _validate_zspy_codecs(store, kwds.get("path"))
         f = zarr.open(store, **kwds)
+        to_return = ZspyReader(f).read(lazy=lazy)
+        completed = True
     except Exception:
         _logger.error(
             "The file can't be read. It may be possible that the zspy file is "
@@ -569,11 +574,11 @@ def file_reader(filename, lazy=False, **kwds):
             "passing a different zarr store instead of the file name."
         )
         raise
-
-    to_return = ZspyReader(f).read(lazy=lazy)
-    if not lazy and isinstance(filename, zarr.storage.ZipStore):
-        # Close the file if not lazy
-        filename.close()
+    finally:
+        # A store this reader opened must not leak when the preflight rejects
+        # the file or the read fails; a lazy read keeps it usable.
+        if owns_zip_store and not (completed and lazy):
+            filename.close()
 
     return to_return
 

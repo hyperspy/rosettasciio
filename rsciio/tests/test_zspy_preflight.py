@@ -19,6 +19,7 @@
 import json
 import pickle
 import struct
+import zipfile
 from pathlib import Path
 
 import numpy as np
@@ -190,3 +191,27 @@ def test_selected_subtree_ignores_arrays_outside_it(tmp_path):
     _validate_zspy_codecs(store, path="Experiments/b")
     with pytest.raises(_UnsafeCodecError, match="Experiments/a/data"):
         _validate_zspy_codecs(store)
+
+
+def test_owned_zipstore_is_closed_when_the_file_is_rejected(tmp_path, monkeypatch):
+    root = tmp_path / "src"
+    store = _zarr_zszy(root)
+    _set_zarray(store, "Experiments/a/data/.zarray", compressor={"id": "pickle"})
+    filename = tmp_path / "hostile.zspy"
+    with zipfile.ZipFile(filename, "w") as archive:
+        for path in sorted(root.rglob("*")):
+            if path.is_file():
+                archive.write(path, path.relative_to(root))
+
+    closed = []
+    real_close = zarr.storage.ZipStore.close
+    monkeypatch.setattr(
+        zarr.storage.ZipStore,
+        "close",
+        lambda self: (closed.append(self), real_close(self)),
+    )
+
+    with pytest.raises(_UnsafeCodecError):
+        file_reader(str(filename))
+
+    assert len(closed) == 1

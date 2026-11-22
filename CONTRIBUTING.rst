@@ -60,6 +60,22 @@ Please refer to the
 `HyperSpy developer guide <http://hyperspy.org/hyperspy-doc/current/dev_guide/intro.html>`_
 in order to get started and for detailed contributing guidelines.
 
+AI-assisted contributions
+-------------------------
+
+RosettaSciIO follows the `HyperSpy AI policy
+<https://github.com/hyperspy/.github/blob/main/AI-POLICY.md>`_ shared by all
+HyperSpy repositories. In short: non-trivial AI-assisted changes require an
+accepted proposal in `hyperspy/hyperspy-proposals
+<https://github.com/hyperspy/hyperspy-proposals>`_ before the implementation
+pull request is reviewed; every AI-assisted commit carries the
+``Assisted-by: <tool>:<model>`` trailer (disclosure is the contributor's
+responsibility) and never an AI ``Co-authored-by:`` trailer (a pre-commit hook
+and the ``compliance`` CI checks reject those). See the `Coding with AI
+assistants
+<https://hyperspy.org/hyperspy-doc/current/dev_guide/coding_with_ai.html>`_
+section of the HyperSpy developer guide for the full guidance.
+
 Lint
 ----
 
@@ -118,11 +134,13 @@ other member of the development team before being merged.
 
 Pre-commit Hooks
 ----------------
-Three pre-commit hooks are set up:
+The pre-commit hooks cover:
 
 * Linting: run ``ruff``
 * Check spelling using ``codespell``
 * Update test data registry (Unix only)
+* Block AI ``Co-authored-by:`` trailers at the commit-msg stage
+* Keep the pinned HyperSpy AI policy block in ``AGENTS.md`` synchronized
 
 These can be run locally by using `pre-commit <https://pre-commit.com>`__.
 Alternatively, the comment ``pre-commit.ci autofix`` can be added to a PR to fix the formatting

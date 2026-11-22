@@ -18,6 +18,7 @@
 
 import gc
 import importlib
+import os
 from importlib.metadata import version
 from pathlib import Path
 
@@ -25,6 +26,7 @@ import numpy as np
 import pytest
 from packaging.version import Version
 
+from rsciio.empad import file_reader
 from rsciio.utils._tests import normalize_micro
 
 hs = pytest.importorskip("hyperspy.api", reason="hyperspy not installed")
@@ -176,3 +178,67 @@ def test_remove_nans(lazy):
     filename = DATA_DIR / "EMPAD_v1.2.2_x32_y64_size0.8.xml"
     s = hs.load(filename, lazy=lazy, remove_nans=True, file_format="EMPAD")
     assert np.isnan(s.data).sum() == 0
+
+
+def _write_empad_raw(path):
+    raw = np.arange(130 * 128, dtype="<f4").reshape(130, 128)
+    raw.tofile(path)
+    return raw[:128]
+
+
+def _write_empad_xml(path, raw_filename):
+    path.write_text(
+        '<root name="poc">'
+        '<timestamp timestamp="1559820600" isoformat="2019-06-06T13:30:00"/>'
+        "<software_version>0.51</software_version>"
+        "<pix_x>1</pix_x><pix_y>1</pix_y>"
+        f'<raw_file filename="{raw_filename}"/></root>'
+    )
+
+
+def _build_empad_escape(tmp_path, raw_filename):
+    scan_dir = tmp_path / "scan"
+    scan_dir.mkdir()
+    outside = tmp_path / "outside.raw"
+    _write_empad_raw(outside)
+    xml_path = scan_dir / "scan.xml"
+    _write_empad_xml(xml_path, raw_filename)
+    return xml_path, outside, scan_dir
+
+
+def test_read_raw_inside_scan_directory(tmp_path):
+    scan_dir = tmp_path / "scan"
+    scan_dir.mkdir()
+    expected = _write_empad_raw(scan_dir / "inside.raw")
+    xml_path = scan_dir / "scan.xml"
+    _write_empad_xml(xml_path, "inside.raw")
+
+    result = file_reader(str(xml_path))
+
+    assert result[0]["data"].dtype == np.float32
+    np.testing.assert_allclose(result[0]["data"], expected)
+
+
+def test_reject_absolute_raw_filename_outside_scan_directory(tmp_path):
+    xml_path, _, _ = _build_empad_escape(tmp_path, str(tmp_path / "outside.raw"))
+
+    with pytest.raises(ValueError, match="outside the scan directory"):
+        file_reader(str(xml_path))
+
+
+def test_reject_parent_raw_filename_outside_scan_directory(tmp_path):
+    xml_path, _, _ = _build_empad_escape(tmp_path, "../outside.raw")
+
+    with pytest.raises(ValueError, match="outside the scan directory"):
+        file_reader(str(xml_path))
+
+
+@pytest.mark.skipif(
+    os.name == "nt", reason="creating symlinks may require elevated privileges"
+)
+def test_reject_symlinked_raw_filename_outside_scan_directory(tmp_path):
+    xml_path, outside, scan_dir = _build_empad_escape(tmp_path, "link.raw")
+    (scan_dir / "link.raw").symlink_to(outside)
+
+    with pytest.raises(ValueError, match="outside the scan directory"):
+        file_reader(str(xml_path))

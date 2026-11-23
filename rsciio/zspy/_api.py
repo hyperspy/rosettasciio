@@ -615,10 +615,22 @@ def _inspect_n5_metadata(metadata, array_path):
                 array_path,
                 f"could not determine N5 array metadata: invalid {field!r}",
             )
+    _validate_shape_values(metadata["dimensions"], "dimensions", False, array_path)
+    _validate_shape_values(metadata["blockSize"], "blockSize", True, array_path)
+    if len(metadata["dimensions"]) != len(metadata["blockSize"]):
+        _raise_malformed_metadata(
+            array_path, "invalid 'blockSize': rank differs from 'dimensions'"
+        )
     if not isinstance(metadata["dataType"], str):
         _raise_malformed_metadata(
             array_path, "could not determine N5 array metadata: invalid 'dataType'"
         )
+    try:
+        np.dtype(metadata["dataType"])
+    except Exception as exc:
+        raise _malformed_metadata_error(
+            array_path, "could not determine N5 array metadata: invalid 'dataType'"
+        ) from exc
     if not isinstance(metadata["compression"], Mapping):
         _raise_malformed_metadata(
             array_path,

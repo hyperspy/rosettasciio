@@ -246,3 +246,25 @@ def test_physical_zarray_inside_an_n5_store_fails_closed(tmp_path, store_name):
 
     with pytest.raises(_UnsafeCodecError, match="'a'"):
         _validate_zspy_codecs(getattr(zarr, store_name)(str(root)))
+
+
+@pytest.mark.parametrize(
+    "patch, message",
+    [
+        ({"dimensions": [None]}, "invalid 'dimensions'"),
+        ({"blockSize": [0]}, "invalid 'blockSize'"),
+        ({"blockSize": [4, 4]}, "rank differs from 'dimensions'"),
+        ({"dataType": "notatype"}, "invalid 'dataType'"),
+    ],
+    ids=["non-integer-dimension", "zero-chunk", "rank-mismatch", "bad-datatype"],
+)
+def test_malformed_n5_field_values_are_rejected_with_the_path(tmp_path, patch, message):
+    root = _n5_zszy(tmp_path / "s.zspy", {"type": "raw"})
+    store = zarr.N5Store(str(root))
+    key = f"{ARRAY}/attributes.json"
+    attributes = json.loads(bytes(store[key]))
+    attributes.update(patch)
+    store[key] = json.dumps(attributes).encode()
+
+    with pytest.raises(ValueError, match=f"{ARRAY}.*{message}"):
+        file_reader(zarr.N5Store(str(root)))

@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
@@ -45,7 +45,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=d1c4098b"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/index';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -416,6 +416,7 @@
 <li class="toctree-l1"><a class="reference internal" href="image.html">Image formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jeol.html">JEOL Analyst Station (ASW, …)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jobinyvon.html">Horiba Jobin Yvon LabSpec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mla_xpoints.html">MLA xpoints</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mrc.html">MRC format</a></li>
 
 <li class="toctree-l1"><a class="reference internal" href="mrcz.html">MRCZ format</a></li>
@@ -662,147 +663,154 @@ RosettaSciIO plugins for the file formats associated with their products.</p>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="mrc.html#mrc-format"><span class="std std-ref">MRC</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="mla_xpoints.html#mla-xpoints-format"><span class="std std-ref">MLA xpoints</span></a></p></td>
+<td><p>xpoints</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mrc.html#mrc-format"><span class="std std-ref">MRC</span></a></p></td>
 <td><p>mrc</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="mrcz.html#mrcz-format"><span class="std std-ref">MRCZ (compressed)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="mrcz.html#mrcz-format"><span class="std std-ref">MRCZ (compressed)</span></a></p></td>
 <td><p>mrcz</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="msa.html#msa-format"><span class="std std-ref">EMSA/MSA</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="msa.html#msa-format"><span class="std std-ref">EMSA/MSA</span></a></p></td>
 <td><p>emsa/msa</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="netcdf.html#netcdf-format"><span class="std std-ref">NetCDF (EELSlab)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="netcdf.html#netcdf-format"><span class="std std-ref">NetCDF (EELSlab)</span></a></p></td>
 <td><p>nc</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="nexus.html#nexus-format"><span class="std std-ref">NeXus</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="nexus.html#nexus-format"><span class="std std-ref">NeXus</span></a></p></td>
 <td><p>nxs</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="numpy.html#numpy-format"><span class="std std-ref">NumPy</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="numpy.html#numpy-format"><span class="std std-ref">NumPy</span></a></p></td>
 <td><p>npy</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pantarhei.html#pantarhei-format"><span class="std std-ref">CEOS Phanta Rhei</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pantarhei.html#pantarhei-format"><span class="std std-ref">CEOS Phanta Rhei</span></a></p></td>
 <td><p>prz</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="phenom.html#elid-format"><span class="std std-ref">Phenom ELID</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="phenom.html#elid-format"><span class="std std-ref">Phenom ELID</span></a></p></td>
 <td><p>elid</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="protochips.html#protochips-format"><span class="std std-ref">Protochips logfile</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="protochips.html#protochips-format"><span class="std std-ref">Protochips logfile</span></a></p></td>
 <td><p>csv &amp; log</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="quadstar.html#quadstar-format"><span class="std std-ref">Quadstar</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="quadstar.html#quadstar-format"><span class="std std-ref">Quadstar</span></a></p></td>
 <td><p>sac, sbc</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="quantumdetector.html#quantumdetector-format"><span class="std std-ref">Quantum Detector</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="quantumdetector.html#quantumdetector-format"><span class="std std-ref">Quantum Detector</span></a></p></td>
 <td><p>mib</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="renishaw.html#renishaw-format"><span class="std std-ref">Renishaw</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="renishaw.html#renishaw-format"><span class="std std-ref">Renishaw</span></a></p></td>
 <td><p>wdf</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="ripple.html#ripple-format"><span class="std std-ref">Ripple</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="ripple.html#ripple-format"><span class="std std-ref">Ripple</span></a></p></td>
 <td><p>rpl</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="semper.html#semper-format"><span class="std std-ref">SEMPER binary UNF</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="semper.html#semper-format"><span class="std std-ref">SEMPER binary UNF</span></a></p></td>
 <td><p>unf</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tiff.html#tiff-format"><span class="std std-ref">TIFF (tiffile)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tiff.html#tiff-format"><span class="std std-ref">TIFF (tiffile)</span></a></p></td>
 <td><p>tif, tiff</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="tofwerk.html#tofwerk-format"><span class="std std-ref">Tofwerk TofDAQ HDF5</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="tofwerk.html#tofwerk-format"><span class="std std-ref">Tofwerk TofDAQ HDF5</span></a></p></td>
 <td><p>h5</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="topspin.html#app5-format"><span class="std std-ref">NanoMegas TopSpin</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="topspin.html#app5-format"><span class="std std-ref">NanoMegas TopSpin</span></a></p></td>
 <td><p>app5</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="trivista.html#trivista-format"><span class="std std-ref">TriVista</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="trivista.html#trivista-format"><span class="std std-ref">TriVista</span></a></p></td>
 <td><p>tvf</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="tvips.html#tvips-format"><span class="std std-ref">TVIPS</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="tvips.html#tvips-format"><span class="std std-ref">TVIPS</span></a></p></td>
 <td><p>tvips</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="usid.html#usid-format"><span class="std std-ref">Universal Spectroscopy and Imaging Data (USID)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="usid.html#usid-format"><span class="std std-ref">Universal Spectroscopy and Imaging Data (USID)</span></a></p></td>
 <td><p>h5, hdf5</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>No</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="zspy.html#zspy-format"><span class="std std-ref">ZSpy - HyperSpy ZARR</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="zspy.html#zspy-format"><span class="std std-ref">ZSpy - HyperSpy ZARR</span></a></p></td>
 <td><p>zspy</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>

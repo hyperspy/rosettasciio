@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../_static/logo_sq.svg" type="image/svg+xml">
+    <title>MLA xpoints &#8212; RosettaSciIO  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=d1c4098b"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/mla_xpoints';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="MRC format" href="mrc.html" />
+    <link rel="prev" title="Horiba Jobin Yvon LabSpec" href="jobinyvon.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo_rec_oct22.svg" class="logo__image only-light" alt="RosettaSciIO  documentation - Home"/>
+    <img src="../_static/logo_rec_dark_oct22.svg" class="logo__image only-dark pst-js-only" alt="RosettaSciIO  documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../file_specification/index.html">
+    File Specifications
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Supported formats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../changes.html">
+    Release Notes
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/hyperspy/rosettasciio" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://gitter.im/hyperspy/hyperspy" title="Gitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-gitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Gitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../file_specification/index.html">
+    File Specifications
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Supported formats
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../changes.html">
+    Release Notes
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/hyperspy/rosettasciio" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://gitter.im/hyperspy/hyperspy" title="Gitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-gitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Gitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="arina.html">Arina</a></li>
+<li class="toctree-l1"><a class="reference internal" href="blockfile.html">Blockfile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bruker.html">Bruker</a></li>
+<li class="toctree-l1"><a class="reference internal" href="de5.html">Direct Electron EMD (DE5)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delmic.html">Delmic HDF5</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dens.html">DENSsolutions formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="digitalmicrograph.html">Gatan Digital Micrograph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="digitalsurf.html">DigitalSurf format (SUR &amp; PRO)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="edax.html">EDAX TEAM/Genesis (SPC, SPD)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emd.html">Electron Microscopy Dataset (EMD)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="empad.html">EMPAD format (XML &amp; RAW)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hamamatsu.html">Hamamatsu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hspy.html">HSpy - HyperSpy’s HDF5 Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image.html">Image formats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="jeol.html">JEOL Analyst Station (ASW, …)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="jobinyvon.html">Horiba Jobin Yvon LabSpec</a></li>
+<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">MLA xpoints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mrc.html">MRC format</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="mrcz.html">MRCZ format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="msa.html">EMSA/MSA format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="netcdf.html">NetCDF (EELSlab) format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nexus.html">NeXus data format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="numpy.html">NumPy (NPY)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pantarhei.html">CEOS Panta Rhei (PRZ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="phenom.html">Phenom ELID format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="protochips.html">Protochips logfile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quadstar.html">Quadstar (SAC, SBC)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantumdetector.html">Quantum Detector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="renishaw.html">Renishaw</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ripple.html">Ripple format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="semper.html">SEMPER binary format (UNF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tia.html">FEI TIA (SER &amp; EMI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tiff.html">Tagged image file format (TIFF)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tofwerk.html">Tofwerk (fibTOF FIB-SIMS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topspin.html">TopSpin App5</a></li>
+<li class="toctree-l1"><a class="reference internal" href="trivista.html">TriVista</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tvips.html">TVIPS format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usid.html">Universal Spectroscopy and Imaging Data (h5USID)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zspy.html">ZSpy - HyperSpy’s Zarr Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="supporting_your_file_format.html">Supporting Your File Format</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Supported formats</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">MLA xpoints</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="mla-xpoints">
+<span id="mla-xpoints-format"></span><h1>MLA xpoints<a class="headerlink" href="#mla-xpoints" title="Link to this heading">#</a></h1>
+<p>Reader for the raw X-ray (EDS) spectra stored in <code class="docutils literal notranslate"><span class="pre">.xpoints</span></code> files by the FEI/Thermo
+Fisher Mineral Liberation Analyser (MLA) software. An MLA measurement acquires one
+spectrum for every point of a grid, or for every grain, of a mosaic of scanning
+electron microscope frames; a single measurement can contain more than a million
+spectra.</p>
+<p>The reader returns one signal with a navigation axis that runs over the spectra, in
+acquisition order, and a signal axis with the 2000 channels of the spectra. The signal
+type is <code class="docutils literal notranslate"><span class="pre">EDS_SEM</span></code>, so <a class="reference external" href="https://hyperspy.org/exspy">exspy</a> provides EDS-specific
+methods when it is installed. The <code class="docutils literal notranslate"><span class="pre">.xpoints</span></code> extension is not used by other readers,
+therefore <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/reference/api.html#hyperspy.api.load" title="(in HyperSpy v2.5)"><code class="xref py py-func docutils literal notranslate"><span class="pre">hyperspy.api.load()</span></code></a> selects this reader automatically:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">hyperspy.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">hs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">hs</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">"3_GXMAP_spx.xpoints"</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span>  <span class="c1"># with exspy installed, otherwise a LazySignal1D</span>
+<span class="go">&lt;LazyEDSSEMSpectrum, title: 3_GXMAP_spx, dimensions: (1216798|2000)&gt;</span>
+</pre></div>
+</div>
+<p>Reading scans the headers of all records, because the position of a record depends on
+the sizes of all records before it. This reads the whole file, which takes a few seconds
+for a file with about 1.2 million spectra (2.5 GB). The counts are always returned as
+<code class="docutils literal notranslate"><span class="pre">uint16</span></code>, so loading such a file completely needs about 5 GB. Use <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code> to
+process these files in chunks of complete spectra, for example to compute a sum spectrum
+or the total counts of every spectrum.</p>
+<section id="energy-axis">
+<h2>Energy axis<a class="headerlink" href="#energy-axis" title="Link to this heading">#</a></h2>
+<p>The files do not store a calibration. The signal axis uses the calibration fitted to nine
+K lines (Mg Kα to Fe Kβ) of the summed spectrum of one frame of one sample of the dataset
+that the format was decoded from: an offset of -10.04 eV and a gain of 10.0163 eV per
+channel, in keV. The residuals of the fit are within 3.3 eV. If the detector settings of
+your measurement differ, set the <code class="docutils literal notranslate"><span class="pre">offset</span></code> and <code class="docutils literal notranslate"><span class="pre">scale</span></code> of the signal axis after
+loading. A file with a number of channels other than 2000 gets an uncalibrated channel
+axis.</p>
+</section>
+<section id="metadata">
+<h2>Metadata<a class="headerlink" href="#metadata" title="Link to this heading">#</a></h2>
+<p>The fields of the record header that are decoded are available for each spectrum as
+arrays in <code class="docutils literal notranslate"><span class="pre">original_metadata[&quot;spectrum_headers&quot;]</span></code>:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 80.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code></p></td>
+<td><p>Pixel column and row of the spectrum in its frame (500 × 500 pixels).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">width</span></code>, <code class="docutils literal notranslate"><span class="pre">height</span></code></p></td>
+<td><p>Side, in pixels, of the area that the spectrum stands for: the step size of the
+grid (10 pixels) or a single spot (1 pixel). In rare cases it is 0.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bse_mode</span></code></p></td>
+<td><p>Most frequent backscattered-electron grey level of the grain that the spectrum
+belongs to.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">bse_mode_fraction</span></code></p></td>
+<td><p>Fraction of the pixels of that grain with the grey level <code class="docutils literal notranslate"><span class="pre">bse_mode</span></code>,
+truncated to three decimals.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">.xpoints</span></code> file does not say which frame a spectrum belongs to. This is stored in
+the <code class="docutils literal notranslate"><span class="pre">.jkf</span></code> file of the X-Ray processing stage with the same name, for example
+<code class="docutils literal notranslate"><span class="pre">&lt;name&gt;_spx.jkf</span></code> for <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;_spx.xpoints</span></code>. If this file is found next to the
+<code class="docutils literal notranslate"><span class="pre">.xpoints</span></code> file, <code class="docutils literal notranslate"><span class="pre">original_metadata[&quot;jkf&quot;]</span></code> adds, for each spectrum, the arrays
+<code class="docutils literal notranslate"><span class="pre">frame</span></code>, <code class="docutils literal notranslate"><span class="pre">particle</span></code> and <code class="docutils literal notranslate"><span class="pre">grain</span></code> (numbers of the frame, the particle and the grain
+label at the position of the spectrum) and <code class="docutils literal notranslate"><span class="pre">stage_x_um</span></code> and <code class="docutils literal notranslate"><span class="pre">stage_y_um</span></code> (stage
+position in µm). The index in the <code class="docutils literal notranslate"><span class="pre">.jkf</span></code> file can skip spectra whose frames were
+dropped during processing: these spectra are matched by their position in the
+<code class="docutils literal notranslate"><span class="pre">.xpoints</span></code> file and have -1 for the numbers and NaN for the positions. A <code class="docutils literal notranslate"><span class="pre">.jkf</span></code> file
+that does not belong to the <code class="docutils literal notranslate"><span class="pre">.xpoints</span></code> file is ignored with a warning. Use the <code class="docutils literal notranslate"><span class="pre">jkf</span></code>
+argument to select another file or to turn this off.</p>
+<p>The stage position follows from the stage position of the centre of the frame and a
+pixel size of 3 µm, with the image x axis along the stage X axis and the image rows
+along the negative stage Y axis. The pixel size and the half-pixel origin of the pixel
+positions are assumed, they are not stored in the file.</p>
+</section>
+<section id="file-layout">
+<h2>File layout<a class="headerlink" href="#file-layout" title="Link to this heading">#</a></h2>
+<p>A <code class="docutils literal notranslate"><span class="pre">.xpoints</span></code> file has no header and no footer. It is a sequence of records, each of
+which consists of an 80-byte little-endian header followed by the counts of one
+spectrum: <code class="docutils literal notranslate"><span class="pre">n_channels</span></code> values as <code class="docutils literal notranslate"><span class="pre">uint8</span></code> when the size of the payload (stored at byte
+0x4C of the header) equals <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>, or as little-endian <code class="docutils literal notranslate"><span class="pre">uint16</span></code> when it equals
+twice <code class="docutils literal notranslate"><span class="pre">n_channels</span></code>. In the sample of the dataset that was checked record by record, a
+spectrum is stored as <code class="docutils literal notranslate"><span class="pre">uint16</span></code> exactly when one of its channels exceeds 255, and across
+the dataset between 0.01 % and 2 % of the spectra are stored that way. The size of the
+payload is the only difference between the two kinds of record.</p>
+</section>
+<section id="source-and-limitations">
+<h2>Source and limitations<a class="headerlink" href="#source-and-limitations" title="Link to this heading">#</a></h2>
+<p>The format is not documented by the vendor. It was decoded from the files of the public
+dataset <em>SEM-based automated mineralogy analysis of various granodiorite samples from
+the Kindisch quarry</em> (<a class="reference external" href="https://rodare.hzdr.de/record/4896">RODARE 4896</a>, published by the
+Helmholtz-Zentrum Dresden-Rossendorf under the license
+<a class="reference external" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>), which was measured with
+an FEI Quanta 650F and two Bruker XFlash 5030 detectors in the GXMAP mode. In one
+sample, all 1.2 million records parse back to back to the last byte and every header equals
+the corresponding entry of the <code class="docutils literal notranslate"><span class="pre">.jkf</span></code> file. For all 20 full-size files of the dataset, the
+number of records and of <code class="docutils literal notranslate"><span class="pre">uint16</span></code> records follows from the file size and the logged number
+of spectra, it agrees with the <code class="docutils literal notranslate"><span class="pre">.jkf</span></code> index (which omits some frames in one sample), and
+the first 16,000 headers of each file equal that index. The files were written by <strong>MLA Suite 3.1.4.686 only</strong>; other versions of the software, other measurement
+modes and other detectors may write a different layout.</p>
+</section>
+<section id="module-rsciio.mla_xpoints">
+<span id="api-functions"></span><h2>API functions<a class="headerlink" href="#module-rsciio.mla_xpoints" title="Link to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="rsciio.mla_xpoints.file_reader">
+<span class="sig-prename descclassname"><span class="pre">rsciio.mla_xpoints.</span></span><span class="sig-name descname"><span class="pre">file_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lazy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jkf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#rsciio.mla_xpoints.file_reader" title="Link to this definition">#</a></dt>
+<dd><p>Read the raw X-ray spectra of a FEI/Thermo MLA <code class="docutils literal notranslate"><span class="pre">.xpoints</span></code> file.</p>
+<p>The signal has one navigation axis (the spectrum index, in acquisition order) and
+one signal axis with the 2000 channels of the spectra. The values are always
+<code class="docutils literal notranslate"><span class="pre">uint16</span></code>, even for the records that MLA stored as <code class="docutils literal notranslate"><span class="pre">uint8</span></code>.</p>
+<p>Reading scans the headers of all records, because the position of a record can
+only be known from the sizes of the records before it. This touches the whole
+file, which takes a few seconds for a full-size file (about 1.2 million spectra,
+2.5 GB). Use <code class="docutils literal notranslate"><span class="pre">lazy=True</span></code> for those, loading them completely needs about 5 GB.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Filename of the file to read or corresponding <cite>pathlib.Path</cite>.</p>
+</dd>
+<dt><strong>lazy</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bltin-boolean-values" title="(in Python v3.15)"><span class="xref std std-ref">bool</span></a>, default=False</span></dt><dd><p>Whether to load the spectra lazily with <code class="docutils literal notranslate"><span class="pre">dask</span></code>. The headers of the records
+are always read when the file is opened, the counts when the data is computed.
+No file stays open.</p>
+</dd>
+<dt><strong>chunks</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, default=”auto”</span></dt><dd><p>Number of spectra per chunk when reading lazily. <code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code> lets
+<a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.core.normalize_chunks.html#dask.array.core.normalize_chunks" title="(in Dask)"><code class="xref py py-func docutils literal notranslate"><span class="pre">dask.array.core.normalize_chunks()</span></code></a> choose. When a tuple is given
+its first element is used, because a chunk always holds complete spectra.</p>
+</dd>
+<dt><strong>jkf</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bltin-boolean-values" title="(in Python v3.15)"><span class="xref std std-ref">bool</span></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a>, default=True</span></dt><dd><p>Whether to add the frame, particle, grain and stage position of each spectrum
+from the X-Ray stage <code class="docutils literal notranslate"><span class="pre">.jkf</span></code> file to <code class="docutils literal notranslate"><span class="pre">original_metadata</span></code>. If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the
+file next to the <code class="docutils literal notranslate"><span class="pre">.xpoints</span></code> file with the same name and the extension
+<code class="docutils literal notranslate"><span class="pre">.jkf</span></code> is used when it exists, and ignored with a warning if it does not
+belong to the <code class="docutils literal notranslate"><span class="pre">.xpoints</span></code> file. A path selects the file to use and raises
+an error when it cannot be used. <code class="docutils literal notranslate"><span class="pre">False</span></code> does not read a <code class="docutils literal notranslate"><span class="pre">.jkf</span></code> file.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></dt><dd><p>List of dictionaries containing the following fields:</p>
+<ul class="simple">
+<li><p>‘data’ – multidimensional <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or <a class="reference external" href="https://docs.dask.org/en/latest/generated/dask.array.Array.html#dask.array.Array" title="(in Dask)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dask.array.Array</span></code></a></p></li>
+<li><p>‘axes’ – list of dictionaries describing the axes
+containing the fields ‘name’, ‘units’, ‘index_in_array’, and
+either ‘size’, ‘offset’, and ‘scale’ or a numpy array ‘axis’
+containing the full axes vector</p></li>
+<li><p>‘metadata’ – dictionary containing the parsed metadata</p></li>
+<li><p>‘original_metadata’ – dictionary containing the full metadata tree from the input file</p></li>
+</ul>
+<p>When the file contains several datasets, each dataset will be loaded as separate dictionary.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The per-spectrum fields of the record headers are in
+<code class="docutils literal notranslate"><span class="pre">original_metadata[&quot;spectrum_headers&quot;]</span></code> as arrays with one value per
+spectrum: <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> (pixel position in the frame), <code class="docutils literal notranslate"><span class="pre">width</span></code> and
+<code class="docutils literal notranslate"><span class="pre">height</span></code> (side in pixels of the area the spectrum stands for),
+<code class="docutils literal notranslate"><span class="pre">bse_mode</span></code> and <code class="docutils literal notranslate"><span class="pre">bse_mode_fraction</span></code> (most frequent backscattered-electron
+grey level of the spectrum’s grain and the fraction of the grain at that
+level).</p>
+<p>With a <code class="docutils literal notranslate"><span class="pre">.jkf</span></code> file, <code class="docutils literal notranslate"><span class="pre">original_metadata[&quot;jkf&quot;]</span></code> holds the arrays <code class="docutils literal notranslate"><span class="pre">frame</span></code>,
+<code class="docutils literal notranslate"><span class="pre">particle</span></code> and <code class="docutils literal notranslate"><span class="pre">grain</span></code> (-1 where unknown) and <code class="docutils literal notranslate"><span class="pre">stage_x_um</span></code>, <code class="docutils literal notranslate"><span class="pre">stage_y_um</span></code>
+(stage position in um, NaN where unknown).</p>
+<p>The format was decoded from files written by MLA Suite 3.1.4.686 and the energy
+axis (offset -10.04 eV, gain 10.0163 eV per channel) was fitted on one frame of
+one sample; other versions or detector settings may differ.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">rsciio.mla_xpoints</span><span class="w"> </span><span class="kn">import</span> <span class="n">file_reader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">file_reader</span><span class="p">(</span><span class="s2">"3_GXMAP_spx.xpoints"</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="jobinyvon.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Horiba Jobin Yvon LabSpec</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="mrc.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">MRC format</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#energy-axis">Energy axis</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#metadata">Metadata</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#file-layout">File layout</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#source-and-limitations">Source and limitations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-rsciio.mla_xpoints">API functions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#rsciio.mla_xpoints.file_reader"><code class="docutils literal notranslate"><span class="pre">file_reader()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/supported_formats/mla_xpoints.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2023-2026, HyperSpy Developers.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.1.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

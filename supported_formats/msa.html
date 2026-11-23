@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
@@ -45,7 +45,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=d1c4098b"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'supported_formats/msa';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -416,6 +416,7 @@
 <li class="toctree-l1"><a class="reference internal" href="image.html">Image formats</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jeol.html">JEOL Analyst Station (ASW, …)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="jobinyvon.html">Horiba Jobin Yvon LabSpec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mla_xpoints.html">MLA xpoints</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mrc.html">MRC format</a></li>
 
 <li class="toctree-l1"><a class="reference internal" href="mrcz.html">MRCZ format</a></li>
@@ -507,6 +508,10 @@ widely used to exchange single spectrum data, but does not support
 multidimensional data. It can for example be used to exchange single spectra
 with Gatan’s Digital Micrograph or other software packages. A wide range of
 programs supports exporting to and reading from the <code class="docutils literal notranslate"><span class="pre">.msa</span></code> format.</p>
+<p>For <code class="docutils literal notranslate"><span class="pre">DATATYPE:</span> <span class="pre">XY</span></code> files, the signal axis comes from the X column of the
+data, not from the <code class="docutils literal notranslate"><span class="pre">OFFSET</span></code> and <code class="docutils literal notranslate"><span class="pre">XPERCHAN</span></code> keywords. When the X values are
+not evenly spaced, the signal has a non-uniform axis. A signal with a
+non-uniform axis is always saved as XY data.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If several spectra are loaded and stacked in <a class="reference external" href="https://hyperspy.org">HyperSpy</a>
@@ -578,7 +583,8 @@ containing the full axes vector</p></li>
 </dd>
 <dt><strong>format</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default=”Y”</span></dt><dd><p>Specify whether the X-axis (energy/wavelength) should also be saved with
 the data. The default, <code class="docutils literal notranslate"><span class="pre">&quot;Y&quot;</span></code> omits the X-axis in the file. The alternative,
-<code class="docutils literal notranslate"><span class="pre">&quot;XY&quot;</span></code>, saves the calibrated signal axis as first column.</p>
+<code class="docutils literal notranslate"><span class="pre">&quot;XY&quot;</span></code>, saves the calibrated signal axis as first column. A non-uniform
+signal axis is always saved as <code class="docutils literal notranslate"><span class="pre">&quot;XY&quot;</span></code>.</p>
 </dd>
 <dt><strong>separator</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, Default=”, “</span></dt><dd><p>Change the column separator. However, if a different separator is chosen
 the resulting file will not comply with the MSA/EMSA standard and

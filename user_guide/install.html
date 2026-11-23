@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/custom-styles.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
@@ -45,7 +45,7 @@
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=d1c4098b"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/install';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -566,7 +566,7 @@ manually or by using <a class="reference external" href="https://peps.python.org
 <section id="with-conda">
 <span id="install-with-conda"></span><h2>With conda<a class="headerlink" href="#with-conda" title="Link to this heading">#</a></h2>
 <p>To install with conda, we recommend you install it in a
-<a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html" title="(in conda v26.11.0.dev43)"><span class="xref std std-doc">conda environment</span></a> with the
+<a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html" title="(in conda v26.11.0.dev60)"><span class="xref std std-doc">conda environment</span></a> with the
 <a class="reference external" href="https://github.com/conda-forge/miniforge">Miniforge distribution</a>.
 To create an environment and activate it:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">rsciio</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.11</span>
@@ -629,16 +629,16 @@ of the C-extension of the Bruker reader can be disabled using the <code class="d
 environment variable:</p>
 <div class="sd-tab-set docutils">
 <input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-0">
-Windows</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-0-content" class="sd-tab-label" for="sd-tab-item-0">
+Windows</label><div class="sd-tab-content docutils" id="sd-tab-item-0-content">
 <div class="highlight-bat notranslate"><div class="highlight"><pre><span></span><span class="k">set</span> <span class="nv">DISABLE_C_EXTENSIONS</span><span class="p">=</span>1
 pip install git+https://github.com/hyperspy/rosettasciio.git
 </pre></div>
 </div>
 </div>
 <input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
-<label class="sd-tab-label" for="sd-tab-item-1">
-Linux/macOS</label><div class="sd-tab-content docutils">
+<label aria-controls="sd-tab-item-1-content" class="sd-tab-label" for="sd-tab-item-1">
+Linux/macOS</label><div class="sd-tab-content docutils" id="sd-tab-item-1-content">
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">DISABLE_C_EXTENSIONS</span><span class="o">=</span><span class="m">1</span>
 pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/hyperspy/rosettasciio.git
 </pre></div>

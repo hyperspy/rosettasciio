@@ -32,7 +32,7 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/custom-styles.css" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=6a604523" />
   
   <!-- So that users can add custom icons -->
   <script defer src="_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
@@ -45,7 +45,7 @@
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="_static/copybutton.js?v=d1c4098b"></script>
-    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="_static/design-tabs.js?v=fcb327ea"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'contributing';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -505,6 +505,18 @@ to common standards.</p>
 <p>Please refer to the
 <a class="reference external" href="http://hyperspy.org/hyperspy-doc/current/dev_guide/intro.html">HyperSpy developer guide</a>
 in order to get started and for detailed contributing guidelines.</p>
+<section id="ai-assisted-contributions">
+<h3>AI-assisted contributions<a class="headerlink" href="#ai-assisted-contributions" title="Link to this heading">#</a></h3>
+<p>RosettaSciIO follows the <a class="reference external" href="https://github.com/hyperspy/.github/blob/main/AI-POLICY.md">HyperSpy AI policy</a> shared by all
+HyperSpy repositories. In short: non-trivial AI-assisted changes require an
+accepted proposal in <a class="reference external" href="https://github.com/hyperspy/hyperspy-proposals">hyperspy/hyperspy-proposals</a> before the implementation
+pull request is reviewed; every AI-assisted commit carries the
+<code class="docutils literal notranslate"><span class="pre">Assisted-by:</span> <span class="pre">&lt;tool&gt;:&lt;model&gt;</span></code> trailer (disclosure is the contributor’s
+responsibility) and never an AI <code class="docutils literal notranslate"><span class="pre">Co-authored-by:</span></code> trailer (a pre-commit hook
+and the <code class="docutils literal notranslate"><span class="pre">compliance</span></code> CI checks reject those). See the <a class="reference external" href="https://hyperspy.org/hyperspy-doc/current/dev_guide/coding_with_ai.html">Coding with AI
+assistants</a>
+section of the HyperSpy developer guide for the full guidance.</p>
+</section>
 <section id="lint">
 <h3>Lint<a class="headerlink" href="#lint" title="Link to this heading">#</a></h3>
 <p>To keep the code style consistent (and more readable), <a class="reference external" href="https://docs.astral.sh/ruff/">ruff</a>
@@ -553,11 +565,13 @@ other member of the development team before being merged.</p>
 </section>
 <section id="pre-commit-hooks">
 <span id="id4"></span><h3>Pre-commit Hooks<a class="headerlink" href="#pre-commit-hooks" title="Link to this heading">#</a></h3>
-<p>Three pre-commit hooks are set up:</p>
+<p>The pre-commit hooks cover:</p>
 <ul class="simple">
 <li><p>Linting: run <code class="docutils literal notranslate"><span class="pre">ruff</span></code></p></li>
 <li><p>Check spelling using <code class="docutils literal notranslate"><span class="pre">codespell</span></code></p></li>
 <li><p>Update test data registry (Unix only)</p></li>
+<li><p>Block AI <code class="docutils literal notranslate"><span class="pre">Co-authored-by:</span></code> trailers at the commit-msg stage</p></li>
+<li><p>Keep the pinned HyperSpy AI policy block in <code class="docutils literal notranslate"><span class="pre">AGENTS.md</span></code> synchronized</p></li>
 </ul>
 <p>These can be run locally by using <a class="reference external" href="https://pre-commit.com">pre-commit</a>.
 Alternatively, the comment <code class="docutils literal notranslate"><span class="pre">pre-commit.ci</span> <span class="pre">autofix</span></code> can be added to a PR to fix the formatting
@@ -752,6 +766,7 @@ with a possible alternative to be used.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#issues">Issues</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#making-test-data-files">Making test data files</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pull-requests">Pull Requests</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ai-assisted-contributions">AI-assisted contributions</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#lint">Lint</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-and-updating-test-data">Adding and Updating Test Data</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#review">Review</a></li>

@@ -34,6 +34,7 @@ big datasets is supported.
    image
    jeol
    jobinyvon
+   mla_xpoints
    mrc
    mrcz
    msa

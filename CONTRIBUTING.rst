@@ -206,6 +206,10 @@ for which a corresponding ``spamandeggs.rst`` file should be created in the dire
 ``doc/user_guide/supported_formats/`` and the format added to the lists in
 ``doc/user_guide/supported_formats/index.rst`` and ``doc/user_guide/supported_formats/supported_formats.rst``.
 
+**Security**: if the plugin allocates or decompresses file-declared content (array
+sizes, element counts, event counts, compressed archive members), add the format to
+the resource-exhaustion list in ``doc/user_guide/security.rst``.
+
 A few standard *docstring* components are provided by ``rsciio._docstrings.py`` and should
 be used (see existing plugins).
 

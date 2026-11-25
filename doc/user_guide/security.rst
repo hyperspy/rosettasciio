@@ -18,7 +18,7 @@ Resource exhaustion
 Crafted files can declare excessive dimensions, element counts, or compressed
 content. Reading or decompressing them can exhaust memory or CPU, terminate the
 process, or make the system unresponsive. RosettaSciIO does not impose general
-allocation or decompression limits. The following ten components have confirmed
+allocation or decompression limits. The following components have confirmed
 resource-exhaustion risks:
 
 * TIA SER: file-declared array sizes.

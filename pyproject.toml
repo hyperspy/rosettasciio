@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rosettasciio"
 description = "Reading and writing scientific file formats"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 readme = "README.md"
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -97,7 +97,7 @@ eds-stream = ["sparse"]
 hdf5 = ["h5py>=3.8.0"]
 image = [
   "imageio>=2.27", # For scikit-image
-  "pillow>=9.2.0"
+  "pillow>=13.0.0"
 ]
 mrcz = ["mrcz>=0.6.0"]  # support for numpy 2.0
 scalebar_export = ["matplotlib-scalebar", "matplotlib>=3.6"]
@@ -134,6 +134,7 @@ all = [
   "rosettasciio[blockfile]",
   "rosettasciio[eds-stream]",
   "rosettasciio[hdf5]",
+  "rosettasciio[image]",
   "rosettasciio[app5]",
   "rosettasciio[arina]",
   "rosettasciio[mrcz]",

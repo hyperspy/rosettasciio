@@ -30,13 +30,13 @@ jobs:
           - os: macos
             PYTHON_VERSION: '3.14'
         include:
-          # test oldest supported version of main dependencies on python 3.8
+          # test oldest supported version of main dependencies on python 3.11
           - os: ubuntu
             os_version: latest
             PYTHON_VERSION: '3.11'
             # Set pillow and scikit-image version to be compatible with imageio and scipy
             # align matplotlib and dask dependency with hyperspy
-            DEPENDENCIES: matplotlib==3.6 numpy==1.25.0 tifffile==2022.8.12 dask[array]==2024.12.0 distributed==2024.12.0 numba==0.58.0 imageio==2.27 pillow==9.2.0 scikit-image==0.21.0 python-box==6.0.0 h5py==3.8.0
+            DEPENDENCIES: matplotlib==3.6 numpy==1.25.0 tifffile==2022.8.12 dask[array]==2024.12.0 distributed==2024.12.0 numba==0.58.0 imageio==2.27 'pillow>=13.0.0' scikit-image==0.21.0 python-box==6.0.0 h5py==3.8.0
             LABEL: '-oldest'
             HYPERSPY_VERSION: 'release'
           - os: ubuntu

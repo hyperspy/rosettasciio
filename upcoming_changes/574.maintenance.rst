@@ -1,0 +1,3 @@
+Require Python >= 3.11 and Pillow >= 13.0.0, and include the ``image`` extra in
+``rosettasciio[all]`` so the documented all-extras installation always installs a
+Pillow release with the decoder memory-safety fixes.

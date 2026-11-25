@@ -139,6 +139,33 @@ def test_hdf5_without_entry_attributes(tmp_path, grouped, root_attributes, lazy)
 
 
 @pytest.mark.parametrize("lazy", [False, True])
+def test_hard_link_cycle_terminates_metadata_walk(tmp_path, lazy):
+    # A cycle outside any NXdata group reaches the metadata walker, which
+    # skips NXdata groups: it must stop at the ancestor instead of
+    # recursing without bound, and the metadata tree must stay intact.
+    path = tmp_path / "hard_link_cycle_metadata.nxs"
+    with h5py.File(path, "w") as f:
+        entry = f.create_group("entry")
+        entry.attrs["NX_class"] = "NXentry"
+        data = entry.create_group("data")
+        data.attrs["NX_class"] = "NXdata"
+        data.attrs["signal"] = "counts"
+        data.attrs["axes"] = ["x"]
+        data["counts"] = np.arange(8, dtype="float32")
+        data["x"] = np.arange(8, dtype="float64")
+        instrument = entry.create_group("instrument")
+        instrument.attrs["NX_class"] = "NXinstrument"
+        f["entry/instrument/cycle"] = f["entry"]
+
+    signals = file_reader(path, lazy=lazy)
+    assert len(signals) == 2
+    original_metadata = signals[0]["original_metadata"]
+    assert "instrument" in original_metadata
+    # the cycle resolves back to an ancestor group: its subtree is skipped
+    assert len(original_metadata["instrument"]["cycle"]) == 0
+
+
+@pytest.mark.parametrize("lazy", [False, True])
 def test_hard_link_cycle_terminates(tmp_path, lazy):
     # A hard-link cycle between groups must not recurse until the
     # recursion limit is hit: a group reachable through more than one

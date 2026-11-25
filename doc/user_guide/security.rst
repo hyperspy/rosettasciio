@@ -36,10 +36,9 @@ Lazy loading doesn't remove these risks. Metadata processing can allocate
 resources while a file is opened, and data access or computation can trigger
 further allocation and decompression later.
 
-A crafted NeXus HDF5 file can also contain a hard-link cycle. Recursive link
-traversal without cycle detection can repeatedly visit the same objects and
-exhaust CPU or memory. The NeXus reader doesn't currently guard against this
-cycle, so only open NeXus files you trust.
+A crafted NeXus HDF5 file can also contain a hard-link cycle. The NeXus
+readers walk every group once, so a cycle cannot be traversed repeatedly and
+loading such a file terminates instead of exhausting CPU or memory.
 
 XML entity bombs
 ----------------

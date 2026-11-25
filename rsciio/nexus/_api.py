@@ -191,6 +191,22 @@ def _getlink(h5group, rootkey, key):
     return _target
 
 
+def _get_hdf_object_key(obj):
+    """Return the HDF5 identity of a group or file.
+
+    Hard links give the same object several path names, so an object
+    cannot be identified by its name; its file number and address do.
+
+    Returns
+    -------
+    tuple
+        The ``fileno`` and ``addr`` of the object.
+
+    """
+    obj_info = h5py.h5o.get_info(obj.id)
+    return (obj_info.fileno, obj_info.addr)
+
+
 def _get_nav_list(data, dataentry):
     """Get the list with information of each axes of the dataset
 
@@ -755,7 +771,17 @@ def _find_data(group, search_keys=None, hardlinks_only=False, absolute_path=None
     unique_nx_datasets = []
     rootname = ""
 
-    def find_data_in_tree(group, rootname):
+    def find_data_in_tree(group, rootname, _ancestor_groups=None):
+        if _ancestor_groups is None:
+            _ancestor_groups = set()
+        object_key = _get_hdf_object_key(group)
+        if object_key in _ancestor_groups:
+            # Hard link back to a group on the path from the root:
+            # walking it again would recurse without bound, so stop here.
+            # A hard link that is not an ancestor is a finite alias and
+            # is still walked.
+            return
+        _ancestor_groups = _ancestor_groups | {object_key}
         for key, value in group.items():
             if rootname != "":
                 rootkey = rootname + "/" + key
@@ -773,9 +799,9 @@ def _find_data(group, search_keys=None, hardlinks_only=False, absolute_path=None
                             unique_nx_datasets.append(rootkey)
                 if hardlinks_only:
                     if target is None:
-                        find_data_in_tree(value, rootkey)
+                        find_data_in_tree(value, rootkey, _ancestor_groups)
                 else:
-                    find_data_in_tree(value, rootkey)
+                    find_data_in_tree(value, rootkey, _ancestor_groups)
             else:
                 if isinstance(value, h5py.Dataset):
                     if value.size >= 2:
@@ -856,7 +882,19 @@ def _load_metadata(group, lazy=False, skip_array_metadata=False):
     """
     rootname = ""
 
-    def find_meta_in_tree(group, rootname, lazy=False, skip_array_metadata=False):
+    def find_meta_in_tree(
+        group, rootname, lazy=False, skip_array_metadata=False, _ancestor_groups=None
+    ):
+        if _ancestor_groups is None:
+            _ancestor_groups = set()
+        object_key = _get_hdf_object_key(group)
+        if object_key in _ancestor_groups:
+            # Hard link back to a group on the path from the root:
+            # walking it again would recurse without bound, so stop here.
+            # A hard link that is not an ancestor is a finite alias and
+            # is still walked.
+            return {}
+        _ancestor_groups = _ancestor_groups | {object_key}
         tree = {}
         for key, item in group.attrs.items():
             new_key = _fix_exclusion_keys(key)
@@ -902,6 +940,7 @@ def _load_metadata(group, lazy=False, skip_array_metadata=False):
                             rootkey,
                             lazy=lazy,
                             skip_array_metadata=skip_array_metadata,
+                            _ancestor_groups=_ancestor_groups,
                         )
                 else:
                     tree[new_key] = find_meta_in_tree(
@@ -909,6 +948,7 @@ def _load_metadata(group, lazy=False, skip_array_metadata=False):
                         rootkey,
                         lazy=lazy,
                         skip_array_metadata=skip_array_metadata,
+                        _ancestor_groups=_ancestor_groups,
                     )
 
         return tree

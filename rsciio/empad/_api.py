@@ -260,7 +260,19 @@ def file_reader(filename, lazy=False, q_calibration=None, remove_nans=False):
             )
             index_in_array += 1
 
-    data = _read_raw(info, os.path.join(dname, info["raw_filename"]), lazy=lazy)
+    base = os.path.realpath(dname)
+    candidate = os.path.realpath(os.path.join(base, info["raw_filename"]))
+    try:
+        is_contained = os.path.commonpath([base, candidate]) == base
+    except ValueError:
+        is_contained = False
+    if not is_contained:
+        raise ValueError(
+            f"EMPAD raw filename {info['raw_filename']!r} is outside the scan "
+            f"directory {base!r}"
+        )
+
+    data = _read_raw(info, candidate, lazy=lazy)
 
     # Remove NaN values if requested. Will add a few seconds for the loading time.
     if remove_nans:

@@ -138,6 +138,18 @@ def test_safe_n5_compressions_pass_the_preflight(tmp_path, compression):
     _validate_zspy_codecs(zarr.N5Store(str(root)))
 
 
+def test_n5_group_attributes_are_not_codecs(tmp_path):
+    root = _n5_zszy(tmp_path / "s.zspy", {"type": "raw"})
+
+    # Saved original_metadata can carry any keys: a group attribute named
+    # like an array codec is metadata (zarr warns it is a reserved N5
+    # keyword but still stores it), not a codec to scan.
+    group = zarr.open_group(store=zarr.N5Store(str(root)), mode="r+")
+    group["Experiments/security/original_metadata"].attrs["compression"] = "gzip"
+
+    _validate_zspy_codecs(zarr.N5Store(str(root)))
+
+
 @pytest.mark.parametrize(
     "filename",
     [

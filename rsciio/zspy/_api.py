@@ -509,6 +509,11 @@ def _scan_candidate_codecs(item):
     if not isinstance(raw, Mapping):
         return problems
     if item["origin"] == "n5":
+        if item.get("group"):
+            # A group's attributes.json carries saved metadata, not array
+            # codecs: Zarr builds codecs from array attributes only, so
+            # scanning group attributes would reject valid metadata.
+            return problems
         if "compression" not in raw:
             return problems
         try:
@@ -642,12 +647,18 @@ def _validate_zspy_codecs(store, path=None):
     """Reject Pickle codecs using the selected raw metadata only."""
     selected_path = zarr.util.normalize_storage_path(path)
     try:
-        keys = sorted(store.keys())
+        keys = [str(key) for key in store.keys()]
     except Exception as exc:
         raise ValueError(
             "Malformed ZSPY array metadata for '<store>': "
             "could not enumerate metadata keys"
         ) from exc
+    if selected_path:
+        # Nothing outside the selected subtree can influence the decision,
+        # so a small selection does not need to hold every chunk key of a
+        # large store in memory.
+        prefix = selected_path + "/"
+        keys = [key for key in keys if key.startswith(prefix)]
     candidates = _iter_candidate_arrays(keys, store, selected_path)
     # A hostile codec anywhere in the selection wins over an earlier array's
     # unreadable or malformed metadata, so scan every candidate first.

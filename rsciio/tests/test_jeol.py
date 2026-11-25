@@ -147,6 +147,49 @@ def test_reject_recursive_asw_reference(tmp_path, monkeypatch):
     assert opened.count(real_asw_path) == 1
 
 
+def test_allow_repeated_child_asw_reference(tmp_path, monkeypatch):
+    # Several views may reference the same child ASW: the recursion guard
+    # tracks only the chain of reads in progress, so a repeated child is
+    # not a recursive reference.
+    import rsciio.jeol._api as _jeol_api
+
+    root = tmp_path / "asw"
+    root.mkdir()
+    asw_path = root / "rawdata.ASW"
+    shutil.copy(TESTS_FILE_PATH / "rawdata.ASW", asw_path)
+    shutil.copytree(TESTS_FILE_PATH / "Sample", root / "Sample")
+    child_path = root / "child.ASW"
+    shutil.copy(TESTS_FILE_PATH / "rawdata.ASW", child_path)
+
+    real_parsejeol = _jeol_api._parsejeol
+    opened = _track_opened(monkeypatch)
+
+    def parsejeol_with_repeated_child(fd):
+        tree = real_parsejeol(fd)
+        if os.path.realpath(os.fspath(fd.name)) == os.path.realpath(asw_path):
+            for sample in tree.get("SampleInfo", {}).values():
+                for view in sample.get("ViewInfo", {}).values():
+                    view["ViewData"] = {
+                        "0": {"Filename": "child.ASW"},
+                        "1": {"Filename": "child.ASW"},
+                    }
+        return tree
+
+    monkeypatch.setattr(_jeol_api, "_parsejeol", parsejeol_with_repeated_child)
+
+    # Warm the child read so its own opens do not count towards the
+    # repeated-reference assertion below.
+    child_images = file_reader(str(child_path))
+    assert os.path.realpath(child_path) in opened
+    opened.clear()
+
+    images = file_reader(str(asw_path))
+
+    real_child = os.path.realpath(child_path)
+    assert opened.count(real_child) == 2
+    assert len(images) == 2 * len(child_images)
+
+
 def test_load_project():
     pytest.importorskip("numba")
     # test load all elements of the project rawdata.ASW

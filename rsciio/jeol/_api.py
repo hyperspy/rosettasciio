@@ -152,58 +152,65 @@ def _read_asw(filename, _asw_visited=None, **kwargs):
     _asw_visited.add(asw_path)
 
     image_list = []
-    with open(asw_path, "br") as fd:
-        file_magic = np.fromfile(fd, "<I", 1)[0]
-        if file_magic != 0:
-            raise ValueError(f"Not a valid JEOL asw format '{filename}'")
-        fd.seek(12)
-        filetree = _parsejeol(fd)
+    try:
+        with open(asw_path, "br") as fd:
+            file_magic = np.fromfile(fd, "<I", 1)[0]
+            if file_magic != 0:
+                raise ValueError(f"Not a valid JEOL asw format '{filename}'")
+            fd.seek(12)
+            filetree = _parsejeol(fd)
 
-    base = os.path.realpath(os.path.dirname(asw_path))
-    if "SampleInfo" in filetree:
-        for i in filetree["SampleInfo"].keys():
-            if "ViewInfo" in filetree["SampleInfo"][i]:
-                for j in filetree["SampleInfo"][i]["ViewInfo"].keys():
-                    node = filetree["SampleInfo"][i]["ViewInfo"][j]
-                    if "ViewData" in node:
-                        for k in node["ViewData"].keys():
-                            node2 = node["ViewData"][k]
-                            # path tuple contains:
-                            # root, sample_folder, view_folder, data_file
-                            reference = node["ViewData"][k]["Filename"]
-                            path = reference.split("\\")
-                            subfile = os.path.join(*path)
-                            candidate = os.path.realpath(os.path.join(base, subfile))
-                            try:
-                                is_contained = (
-                                    os.path.commonpath([base, candidate]) == base
+        base = os.path.realpath(os.path.dirname(asw_path))
+        if "SampleInfo" in filetree:
+            for i in filetree["SampleInfo"].keys():
+                if "ViewInfo" in filetree["SampleInfo"][i]:
+                    for j in filetree["SampleInfo"][i]["ViewInfo"].keys():
+                        node = filetree["SampleInfo"][i]["ViewInfo"][j]
+                        if "ViewData" in node:
+                            for k in node["ViewData"].keys():
+                                node2 = node["ViewData"][k]
+                                # path tuple contains:
+                                # root, sample_folder, view_folder, data_file
+                                reference = node["ViewData"][k]["Filename"]
+                                path = reference.split("\\")
+                                subfile = os.path.join(*path)
+                                candidate = os.path.realpath(
+                                    os.path.join(base, subfile)
                                 )
-                            except ValueError:
-                                is_contained = False
-                            if not is_contained:
-                                raise ValueError(
-                                    f"JEOL ASW reference {reference!r} is outside "
-                                    f"the ASW directory {base!r}"
+                                try:
+                                    is_contained = (
+                                        os.path.commonpath([base, candidate]) == base
+                                    )
+                                except ValueError:
+                                    is_contained = False
+                                if not is_contained:
+                                    raise ValueError(
+                                        f"JEOL ASW reference {reference!r} is outside "
+                                        f"the ASW directory {base!r}"
+                                    )
+                                dict_list = _file_reader_dispatch(
+                                    candidate, _asw_visited=_asw_visited, **kwargs
                                 )
-                            dict_list = _file_reader_dispatch(
-                                candidate, _asw_visited=_asw_visited, **kwargs
+                                for d in dict_list:
+                                    d["original_metadata"]["asw"] = filetree
+                                    d["original_metadata"]["asw_viewdata"] = node2
+                                    image_list.append(d)
+                        else:
+                            _logger.warning(
+                                f"{filename} : SampleInfo[{i}].ViewInfo[{j}] does not have ViewData section."
                             )
-                            for d in dict_list:
-                                d["original_metadata"]["asw"] = filetree
-                                d["original_metadata"]["asw_viewdata"] = node2
-                                image_list.append(d)
-                    else:
-                        _logger.warning(
-                            f"{filename} : SampleInfo[{i}].ViewInfo[{j}] does not have ViewData section."
-                        )
-            else:
-                _logger.warning(
-                    f"{filename} : SampleInfo[{i}] does not have ViewInfo section."
-                )
-    else:
-        _logger.warning(f"{filename} does not have SampleInfo section.")
+                else:
+                    _logger.warning(
+                        f"{filename} : SampleInfo[{i}] does not have ViewInfo section."
+                    )
+        else:
+            _logger.warning(f"{filename} does not have SampleInfo section.")
 
-    return image_list
+        return image_list
+    finally:
+        # Keep only the chain of ASW reads in progress: a project may
+        # reference the same child from several views without a cycle.
+        _asw_visited.discard(asw_path)
 
 
 file_reader.__doc__ %= (FILENAME_DOC, LAZY_DOC, RETURNS_DOC)

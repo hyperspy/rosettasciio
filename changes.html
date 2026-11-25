@@ -469,6 +469,8 @@
 <section id="bug-fixes">
 <h3>Bug Fixes<a class="headerlink" href="#bug-fixes" title="Link to this heading">#</a></h3>
 <ul class="simple">
+<li><p>The EMPAD reader now rejects XML files whose raw filename resolves outside the scan directory, preventing crafted files from disclosing local files. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/security-empad-path-containment">#security-empad-path-containment</a>)</p></li>
+<li><p>The JEOL reader now rejects ASW project references that resolve outside the project directory, and recursive ASW references raise a clear error instead of exhausting the recursion limit. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/security-jeol-path-containment">#security-jeol-path-containment</a>)</p></li>
 <li><p>Fix NeXus default signal selection for files with a single entry and no root
 <code class="docutils literal notranslate"><span class="pre">default</span></code> attribute. The entry’s default NXdata group is now selected instead
 of returning additional datasets as separate signals. (<a class="reference external" href="https://github.com/hyperspy/rosettasciio/issues/542">#542</a>)</p></li>

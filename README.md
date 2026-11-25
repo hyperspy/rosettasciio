@@ -41,3 +41,10 @@ from rsciio import msa
 
 msa.file_reader("your_msa_file.msa")
 ```
+
+## Security
+
+Only open files from sources you trust: crafted files can exhaust memory or
+CPU and, through HDF5 external references, disclose local files. Read the
+[security guide](https://rosettasciio.readthedocs.io/en/latest/user_guide/security.html)
+for the risks and the preventive measures that apply to every reader.

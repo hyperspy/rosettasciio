@@ -14,3 +14,4 @@ A list of all the supported file formats can be found in the :ref:`supported for
    install
    lazy
    interoperability
+   security

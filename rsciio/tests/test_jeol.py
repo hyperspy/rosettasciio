@@ -106,6 +106,8 @@ def _track_opened(monkeypatch):
         try:
             opened.append(os.path.realpath(os.fspath(file)))
         except (TypeError, ValueError):
+            # Not every opened file is path-like (for example a file
+            # descriptor): there is no path to track for those.
             pass
         return real_open(file, *args, **kwargs)
 

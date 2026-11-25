@@ -136,3 +136,60 @@ def test_hdf5_without_entry_attributes(tmp_path, grouped, root_attributes, lazy)
             data = data.compute()
         assert data.dtype == np.float32
         np.testing.assert_array_equal(data, expected)
+
+
+@pytest.mark.parametrize("lazy", [False, True])
+def test_hard_link_cycle_terminates_metadata_walk(tmp_path, lazy):
+    # A cycle outside any NXdata group reaches the metadata walker, which
+    # skips NXdata groups: it must stop at the ancestor instead of
+    # recursing without bound, and the metadata tree must stay intact.
+    path = tmp_path / "hard_link_cycle_metadata.nxs"
+    with h5py.File(path, "w") as f:
+        entry = f.create_group("entry")
+        entry.attrs["NX_class"] = "NXentry"
+        data = entry.create_group("data")
+        data.attrs["NX_class"] = "NXdata"
+        data.attrs["signal"] = "counts"
+        data.attrs["axes"] = ["x"]
+        data["counts"] = np.arange(8, dtype="float32")
+        data["x"] = np.arange(8, dtype="float64")
+        instrument = entry.create_group("instrument")
+        instrument.attrs["NX_class"] = "NXinstrument"
+        f["entry/instrument/cycle"] = f["entry"]
+
+    signals = file_reader(path, lazy=lazy)
+    assert len(signals) == 2
+    original_metadata = signals[0]["original_metadata"]
+    assert "instrument" in original_metadata
+    # the cycle resolves back to an ancestor group: its subtree is skipped
+    assert len(original_metadata["instrument"]["cycle"]) == 0
+
+
+@pytest.mark.parametrize("lazy", [False, True])
+def test_hard_link_cycle_terminates(tmp_path, lazy):
+    # A hard-link cycle between groups must not recurse until the
+    # recursion limit is hit: a group reachable through more than one
+    # hard link is walked once.
+    path = tmp_path / "hard_link_cycle.nxs"
+    with h5py.File(path, "w") as f:
+        entry = f.create_group("entry")
+        entry.attrs["NX_class"] = "NXentry"
+        entry.attrs["default"] = "data"
+        data = entry.create_group("data")
+        data.attrs["NX_class"] = "NXdata"
+        data.attrs["signal"] = "counts"
+        data.attrs["axes"] = ["x"]
+        data["counts"] = np.arange(8, dtype="float32")
+        data["x"] = np.arange(8, dtype="float64")
+        f["entry/data/cycle"] = f["entry"]
+
+    assert len(file_reader(path, lazy=lazy)) == 2
+    selected = file_reader(path, use_default=True, lazy=lazy)
+    assert len(selected) == 1
+    data = selected[0]["data"]
+    if lazy:
+        import dask.array as da
+
+        assert isinstance(data, da.Array)
+        data = data.compute()
+    np.testing.assert_array_equal(data, np.arange(8, dtype="float32"))

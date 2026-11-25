@@ -383,8 +383,14 @@ def _has_n5_chunk(keys, array_path):
         if not key.startswith(prefix):
             continue
         relative = key[len(prefix) :]
-        if relative and all(part.isdigit() for part in relative.split("/")):
-            return True
+        parts = relative.split("/")
+        if not relative or not all(part.isdigit() for part in parts):
+            continue
+        # A numeric first segment may name a child array: a chunk key
+        # below it belongs to that descendant, not to this candidate.
+        if len(parts) > 1 and f"{prefix}{parts[0]}/attributes.json" in keys:
+            continue
+        return True
     return False
 
 
@@ -646,19 +652,26 @@ def _inspect_n5_metadata(metadata, array_path):
 def _validate_zspy_codecs(store, path=None):
     """Reject Pickle codecs using the selected raw metadata only."""
     selected_path = zarr.util.normalize_storage_path(path)
+    if getattr(store, "normalize_keys", False):
+        # A normalizing store lowercases every key, so Zarr resolves a
+        # cased path against lowercased keys; the selection must use the
+        # same normalization or it skips the subtree it selects.
+        selected_path = selected_path.lower()
+    prefix = selected_path + "/" if selected_path else ""
     try:
-        keys = [str(key) for key in store.keys()]
+        # Filter while enumerating: nothing outside the selected subtree
+        # can influence the decision, and a small selection does not need
+        # to hold every chunk key of a large store in memory.
+        keys = [
+            key
+            for key in (str(k) for k in store.keys())
+            if not prefix or key.startswith(prefix)
+        ]
     except Exception as exc:
         raise ValueError(
             "Malformed ZSPY array metadata for '<store>': "
             "could not enumerate metadata keys"
         ) from exc
-    if selected_path:
-        # Nothing outside the selected subtree can influence the decision,
-        # so a small selection does not need to hold every chunk key of a
-        # large store in memory.
-        prefix = selected_path + "/"
-        keys = [key for key in keys if key.startswith(prefix)]
     candidates = _iter_candidate_arrays(keys, store, selected_path)
     # A hostile codec anywhere in the selection wins over an earlier array's
     # unreadable or malformed metadata, so scan every candidate first.

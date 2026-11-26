@@ -45,8 +45,8 @@ class _Payload:
         return (open, (self.marker, "w"))
 
 
-def _n5_zszy(root, compression, payload=None):
-    store = zarr.N5Store(str(root))
+def _n5_zszy(root, compression, payload=None, normalize_keys=False):
+    store = zarr.N5Store(str(root), normalize_keys=normalize_keys)
     group = zarr.open_group(store=store, mode="w")
     group.attrs["file_format"] = "ZSpy"
     group.attrs["file_format_version"] = "3.3"
@@ -61,7 +61,7 @@ def _n5_zszy(root, compression, payload=None):
         data=np.arange(4.0),
         compressor=None,
     )
-    store = zarr.N5Store(str(root))
+    store = zarr.N5Store(str(root), normalize_keys=normalize_keys)
     key = f"{ARRAY}/attributes.json"
     attributes = json.loads(bytes(store[key]))
     attributes["compression"] = compression
@@ -136,6 +136,69 @@ def test_safe_n5_compressions_pass_the_preflight(tmp_path, compression):
     root = _n5_zszy(tmp_path / "s.zspy", compression)
 
     _validate_zspy_codecs(zarr.N5Store(str(root)))
+
+
+def test_n5_group_attributes_are_not_codecs(tmp_path):
+    root = _n5_zszy(tmp_path / "s.zspy", {"type": "raw"})
+
+    # Saved original_metadata can carry any keys: a group attribute named
+    # like an array codec is metadata (zarr warns it is a reserved N5
+    # keyword but still stores it), not a codec to scan.
+    group = zarr.open_group(store=zarr.N5Store(str(root)), mode="r+")
+    group["Experiments/security/original_metadata"].attrs["compression"] = "gzip"
+
+    _validate_zspy_codecs(zarr.N5Store(str(root)))
+
+
+def test_n5_group_with_numeric_child_array_attributes_are_metadata(tmp_path):
+    root = tmp_path / "s.zspy"
+    store = zarr.N5Store(str(root))
+    group = zarr.open_group(store=store, mode="w")
+    group.attrs["file_format"] = "ZSpy"
+    group.attrs["file_format_version"] = "3.3"
+    experiment = group.require_group("Experiments/security")
+    # A numerically named child array under a group whose attributes.json
+    # also mentions compression: the child's chunks belong to the child,
+    # so the parent stays a group and its attribute stays metadata.
+    experiment.require_group("original_metadata").attrs["compression"] = "gzip"
+    experiment.create_dataset(
+        "0",
+        shape=(4,),
+        chunks=(4,),
+        dtype="f8",
+        data=np.arange(4.0),
+        compressor=None,
+    )
+
+    _validate_zspy_codecs(zarr.N5Store(str(root)))
+
+
+def test_selected_subtree_uses_store_key_normalization(tmp_path):
+    # A normalizing store lowercases every key on disk, so Zarr resolves a
+    # cased path against lowercased keys: the selection must use the same
+    # normalization or it skips the subtree it selects.
+    root = _n5_zszy(tmp_path / "s.zspy", {"type": "pickle"}, normalize_keys=True)
+    store = zarr.N5Store(str(root), normalize_keys=True)
+
+    # The lowercase keys carry a Pickle codec: selecting with the original
+    # cased path must still reach and reject it instead of skipping the
+    # subtree.
+    with pytest.raises(_UnsafeCodecError, match="experiments/security/data"):
+        _validate_zspy_codecs(store, path="EXPERIMENTS/SECURITY/DATA")
+
+
+def test_selected_subtree_reaches_the_on_disk_casing(tmp_path):
+    # Keys keep the casing they were written with; a normalizing store
+    # lowercases only its lookups. On a case-insensitive filesystem Zarr
+    # still opens the mixed-case subtree a cased path selects, so the
+    # preflight must reach and reject it there instead of skipping the
+    # subtree; the same selection fails closed at the read on a
+    # case-sensitive filesystem, where Zarr cannot open it either.
+    root = _n5_zszy(tmp_path / "s.zspy", {"type": "pickle"})
+    store = zarr.N5Store(str(root), normalize_keys=True)
+
+    with pytest.raises(ValueError, match="Experiments/security/data"):
+        _validate_zspy_codecs(store, path="Experiments/security/data")
 
 
 @pytest.mark.parametrize(

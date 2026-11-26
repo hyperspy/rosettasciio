@@ -383,18 +383,33 @@ def _has_n5_chunk(keys, array_path):
         if not key.startswith(prefix):
             continue
         relative = key[len(prefix) :]
-        if relative and all(part.isdigit() for part in relative.split("/")):
-            return True
+        parts = relative.split("/")
+        if not relative or not all(part.isdigit() for part in parts):
+            continue
+        # A numeric first segment may name a child array: a chunk key
+        # below it belongs to that descendant, not to this candidate.
+        if len(parts) > 1 and f"{prefix}{parts[0]}/attributes.json" in keys:
+            continue
+        return True
     return False
 
 
 def _iter_candidate_arrays(keys, store, selected_path):
     """Read the selected raw metadata of every candidate array."""
     keys = [str(key) for key in keys]
+    # A set gives the chunk descendant check constant-time membership;
+    # the final sort still orders the candidates.
+    members = set(keys)
     n5_store = isinstance(store, (zarr.N5Store, zarr.N5FSStore))
+    normalize = bool(getattr(store, "normalize_keys", False))
     candidates = []
 
     def selected(array_path):
+        if normalize:
+            # Keys keep the casing they were written with; a normalizing
+            # store lowercases only its lookups, so the selection must
+            # lowercase both sides to keep the subtree it selects.
+            array_path = array_path.lower()
         return not selected_path or (
             array_path == selected_path or array_path.startswith(selected_path + "/")
         )
@@ -450,7 +465,7 @@ def _iter_candidate_arrays(keys, store, selected_path):
             and isinstance(item["raw"], Mapping)
             and "dimensions" not in item["raw"]
         ):
-            item["group"] = not _has_n5_chunk(keys, array_path)
+            item["group"] = not _has_n5_chunk(members, array_path)
         candidates.append(item)
     return sorted(candidates, key=lambda item: (item["path"], item["key"]))
 
@@ -509,6 +524,11 @@ def _scan_candidate_codecs(item):
     if not isinstance(raw, Mapping):
         return problems
     if item["origin"] == "n5":
+        if item.get("group"):
+            # A group's attributes.json carries saved metadata, not array
+            # codecs: Zarr builds codecs from array attributes only, so
+            # scanning group attributes would reject valid metadata.
+            return problems
         if "compression" not in raw:
             return problems
         try:
@@ -641,8 +661,23 @@ def _inspect_n5_metadata(metadata, array_path):
 def _validate_zspy_codecs(store, path=None):
     """Reject Pickle codecs using the selected raw metadata only."""
     selected_path = zarr.util.normalize_storage_path(path)
+    normalize = bool(getattr(store, "normalize_keys", False))
+    if normalize:
+        # A normalizing store lowercases its lookups, not the keys on
+        # disk: on a case-insensitive filesystem Zarr still opens the
+        # mixed-case subtree a cased path selects. Lowercase both sides
+        # of the selection so it keeps, not skips, that subtree.
+        selected_path = selected_path.lower()
+    prefix = selected_path + "/" if selected_path else ""
     try:
-        keys = sorted(store.keys())
+        # Filter while enumerating: nothing outside the selected subtree
+        # can influence the decision, and a small selection does not need
+        # to hold every chunk key of a large store in memory.
+        keys = [
+            key
+            for key in (str(k) for k in store.keys())
+            if not prefix or (key.lower() if normalize else key).startswith(prefix)
+        ]
     except Exception as exc:
         raise ValueError(
             "Malformed ZSPY array metadata for '<store>': "

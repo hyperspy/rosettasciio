@@ -8,8 +8,8 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 
 .. towncrier release notes start
 
-0.16 (2026-11-26)
-=================
+0.16.0 (2026-11-26)
+====================
 
 New features
 ------------

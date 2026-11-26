@@ -187,6 +187,20 @@ def test_selected_subtree_uses_store_key_normalization(tmp_path):
         _validate_zspy_codecs(store, path="EXPERIMENTS/SECURITY/DATA")
 
 
+def test_selected_subtree_reaches_the_on_disk_casing(tmp_path):
+    # Keys keep the casing they were written with; a normalizing store
+    # lowercases only its lookups. On a case-insensitive filesystem Zarr
+    # still opens the mixed-case subtree a cased path selects, so the
+    # preflight must reach and reject it there instead of skipping the
+    # subtree; the same selection fails closed at the read on a
+    # case-sensitive filesystem, where Zarr cannot open it either.
+    root = _n5_zszy(tmp_path / "s.zspy", {"type": "pickle"})
+    store = zarr.N5Store(str(root), normalize_keys=True)
+
+    with pytest.raises(ValueError, match="Experiments/security/data"):
+        _validate_zspy_codecs(store, path="Experiments/security/data")
+
+
 @pytest.mark.parametrize(
     "filename",
     [

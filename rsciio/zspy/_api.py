@@ -397,10 +397,19 @@ def _has_n5_chunk(keys, array_path):
 def _iter_candidate_arrays(keys, store, selected_path):
     """Read the selected raw metadata of every candidate array."""
     keys = [str(key) for key in keys]
+    # A set gives the chunk descendant check constant-time membership;
+    # the final sort still orders the candidates.
+    members = set(keys)
     n5_store = isinstance(store, (zarr.N5Store, zarr.N5FSStore))
+    normalize = bool(getattr(store, "normalize_keys", False))
     candidates = []
 
     def selected(array_path):
+        if normalize:
+            # Keys keep the casing they were written with; a normalizing
+            # store lowercases only its lookups, so the selection must
+            # lowercase both sides to keep the subtree it selects.
+            array_path = array_path.lower()
         return not selected_path or (
             array_path == selected_path or array_path.startswith(selected_path + "/")
         )
@@ -456,7 +465,7 @@ def _iter_candidate_arrays(keys, store, selected_path):
             and isinstance(item["raw"], Mapping)
             and "dimensions" not in item["raw"]
         ):
-            item["group"] = not _has_n5_chunk(keys, array_path)
+            item["group"] = not _has_n5_chunk(members, array_path)
         candidates.append(item)
     return sorted(candidates, key=lambda item: (item["path"], item["key"]))
 
@@ -652,10 +661,12 @@ def _inspect_n5_metadata(metadata, array_path):
 def _validate_zspy_codecs(store, path=None):
     """Reject Pickle codecs using the selected raw metadata only."""
     selected_path = zarr.util.normalize_storage_path(path)
-    if getattr(store, "normalize_keys", False):
-        # A normalizing store lowercases every key, so Zarr resolves a
-        # cased path against lowercased keys; the selection must use the
-        # same normalization or it skips the subtree it selects.
+    normalize = bool(getattr(store, "normalize_keys", False))
+    if normalize:
+        # A normalizing store lowercases its lookups, not the keys on
+        # disk: on a case-insensitive filesystem Zarr still opens the
+        # mixed-case subtree a cased path selects. Lowercase both sides
+        # of the selection so it keeps, not skips, that subtree.
         selected_path = selected_path.lower()
     prefix = selected_path + "/" if selected_path else ""
     try:
@@ -665,7 +676,7 @@ def _validate_zspy_codecs(store, path=None):
         keys = [
             key
             for key in (str(k) for k in store.keys())
-            if not prefix or key.startswith(prefix)
+            if not prefix or (key.lower() if normalize else key).startswith(prefix)
         ]
     except Exception as exc:
         raise ValueError(

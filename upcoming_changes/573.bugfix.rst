@@ -1,1 +1,0 @@
-Loading a NeXus file containing a hard-link cycle between groups no longer recurses until the recursion limit is hit: traversal stops when a hard link leads back to a group on the path from the root, while a hard link aliasing a group from a different path is still followed.

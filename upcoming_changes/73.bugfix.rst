@@ -1,0 +1,1 @@
+Fix reading and writing two-dimensional signals in the MRCZ format.

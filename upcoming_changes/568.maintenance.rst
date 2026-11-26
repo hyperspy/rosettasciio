@@ -1,2 +1,0 @@
-Adopt the HyperSpy AI-assisted contribution policy, shared compliance checks, and a
-repository-specific ``AGENTS.md`` knowledge base for contributors and coding agents.

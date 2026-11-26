@@ -8,6 +8,60 @@ https://rosettasciio.readthedocs.io/en/latest/changes.html
 
 .. towncrier release notes start
 
+0.16.0 (2026-11-26)
+====================
+
+New features
+------------
+
+- Add a reader for the raw X-ray spectra (``.xpoints``) of the FEI/Thermo Fisher Mineral Liberation Analyser (MLA), see :ref:`mla_xpoints-format`. (`#561 <https://github.com/hyperspy/rosettasciio/issues/561>`_)
+
+
+Bug Fixes
+---------
+
+- Fix NeXus default signal selection for files with a single entry and no root
+  ``default`` attribute. The entry's default NXdata group is now selected instead
+  of returning additional datasets as separate signals. (`#542 <https://github.com/hyperspy/rosettasciio/issues/542>`_)
+- Fix the TIFF reader swapping the x and y pixel sizes of FEI/Thermo Fisher, TVIPS and Olympus SIS files, which gave wrong calibrations for images with non-square pixels. (`#556 <https://github.com/hyperspy/rosettasciio/issues/556>`_)
+- Saving 32-bit signed integer data (``int32``) to PNG now raises an
+  informative error explaining that the data type needs to be changed
+  (e.g. cast to ``np.uint16``), since Pillow >=13.0.0 dropped writing
+  32-bit ("I" mode) images to PNG, which used to fail with a cryptic
+  ``OSError``. (`#558 <https://github.com/hyperspy/rosettasciio/issues/558>`_)
+- Use the X column of ``DATATYPE: XY`` MSA files for the signal axis, instead of ``OFFSET`` and ``XPERCHAN``. When the X values are not evenly spaced, the signal gets a non-uniform axis, which the MSA writer now saves as XY data. (`#564 <https://github.com/hyperspy/rosettasciio/issues/564>`_)
+- Loading a NeXus file containing a hard-link cycle between groups no longer recurses until the recursion limit is hit: traversal stops when a hard link leads back to a group on the path from the root, while a hard link aliasing a group from a different path is still followed. (`#573 <https://github.com/hyperspy/rosettasciio/issues/573>`_)
+- Reject files whose ZSPY arrays select the Pickle codec. The check reads the
+  selected raw array metadata, including the N5 codec mapping that Zarr itself
+  builds, before any array or codec is constructed. (`#575 <https://github.com/hyperspy/rosettasciio/issues/575>`_)
+- The EMPAD reader now rejects XML files whose raw filename resolves outside
+  the scan directory, preventing crafted files from disclosing local files.
+  The JEOL reader now rejects ASW project references that resolve outside the
+  project directory, and recursive ASW references raise a clear error instead
+  of exhausting the recursion limit. (`#576 <https://github.com/hyperspy/rosettasciio/issues/576>`_)
+
+
+Improved Documentation
+----------------------
+
+- Add :ref:`Security and untrusted files <security-untrusted-files>` guidance on
+  resource exhaustion, NeXus hard-link cycles, and unaddressed HDF5 external
+  references. The guidance explains why only trusted files should be opened. (`#571 <https://github.com/hyperspy/rosettasciio/issues/571>`_)
+- Add a Security section to the README that links the user guide's security
+  page, so users arriving from the repository or PyPI find the preventive
+  measures for untrusted files. (`#572 <https://github.com/hyperspy/rosettasciio/issues/572>`_)
+
+
+Maintenance
+-----------
+
+- Adopt the HyperSpy AI-assisted contribution policy, shared compliance checks, and a
+  repository-specific ``AGENTS.md`` knowledge base for contributors and coding agents. (`#568 <https://github.com/hyperspy/rosettasciio/issues/568>`_)
+- Require Python >= 3.11 and Pillow >= 13.0.0, and include the ``image`` extra in
+  ``rosettasciio[all]`` so the documented all-extras installation always installs a
+  Pillow release with the decoder memory-safety fixes. (`#574 <https://github.com/hyperspy/rosettasciio/issues/574>`_)
+
+
 0.15.0 (2026-10-06)
 ===================
 

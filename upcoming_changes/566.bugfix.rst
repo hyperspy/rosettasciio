@@ -1,0 +1,3 @@
+Fix lazy loading of compressed Panta Rhei (``.prz``) files, including files
+saved by RosettaSciIO. Compressed arrays are decompressed at computation
+time and must fit in memory.
